@@ -2,7 +2,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/foedag/badge/?version=latest)](https://foedag.readthedocs.io/en/latest/?badge=latest)
 
-FOEDAG denotes Framework Open EDA Gui
+FOEDAG denotes Qt-based Framework Open EDA Gui
 
 ## Documentation
 
