@@ -1,53 +1,11 @@
-# See https://github.com/actions/labeler#common-examples for defining patterns.
-# The globs use "minimatch" syntax found at https://github.com/isaacs/minimatch
-#
-# WARNING: Due to this file being yaml, any string starting with `*` must be
-# wrapped in quotes.
+name: "Pull Request Labeler"
+on:
+- pull_request_target
 
-# Third-party tools
-# TODO
-
-# General areas
-documentation:
- - docs/*
- - docs/**/*
- - "*README*"
- - "*.md"
- - "*.rst"
- - ".readthedocs.yml"
-github:
- - .github/*
- - .github/**/*
-docker:
- - Dockerfile
- - "*docker*"
-build:
- - Makefile
- - "*.make"
- - CMakeLists.txt
- - cmake
-
-# Tag pull requests with the languages used to make it easy to see what is
-# being used.
-lang-hdl:
- - "*.v"
- - "*.sv"
-lang-cpp:
- - "*.c*"
- - "*.h"
-lang-perl:
- - "*.pl"
- - "*perl*"
-lang-python:
- - "*.py"
-lang-shell:
- - "*.sh"
-lang-netlist:
- - "*.blif"
- - "*.eblif"
- - "*.edif"
- - "*.vqm"
-lang-make:
- - "*.make"
- - Makefile
- - CMakeLists.txt
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/labeler@main
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
