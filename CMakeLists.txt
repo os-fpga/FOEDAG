@@ -137,7 +137,7 @@ add_custom_command(
 #  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/third_party/build/lib/libtcl9.0.a
   COMMAND echo "       Compiling Tcl"
   COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
-  COMMAND make
+  COMMAND make all 
   COMMAND echo "       Tcl Compilation completed"
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
 )
