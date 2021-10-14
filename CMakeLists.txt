@@ -29,7 +29,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
-add_subdirectory(third_party/zlib EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
+add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -100,7 +101,9 @@ set(foedag_SRC
 add_library(foedag STATIC ${foedag_SRC})
 set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/foedag.h)
 target_include_directories(foedag PRIVATE
-  third_party/tcl/include)
+  third_party/tcl/include
+  third_party/googletest/googletest/include
+  third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
 add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp)
@@ -213,7 +216,9 @@ function(register_gtests)
 endfunction()
 
 register_gtests(
+  src/Tcl/HelloTcl_test.cpp
 )
+
 
 # Installation target
 install(
