@@ -18,21 +18,20 @@
 #include <string_view>
 #include <vector>
 
+#include "Tcl/TclInterpreter.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-
-#include "Tcl/TclInterpreter.h"
 
 using ::testing::ElementsAre;
 
 namespace FOEDAG {
 namespace {
 TEST(TclBasic, HelloWorld) {
-  
   TclInterpreter interpreter("fakepath");
-  std::string result = interpreter.evalCmd("puts \"Hello Foedag, you have Tcl\"");
+  std::string result =
+      interpreter.evalCmd("puts \"Hello Foedag, you have Tcl\"");
   EXPECT_EQ(result, "Hello Foedag, you have Tcl");
-  EXPECT_EQ(1,0);
+  EXPECT_EQ(1, 0);
 }
 
 }  // namespace

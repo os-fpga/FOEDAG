@@ -110,14 +110,15 @@ target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp)
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
-add_custom_target(tcl_build DEPENDS tcl_build_command)
-add_custom_command(OUTPUT tcl_build_command
+add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
   COMMAND echo "       Compiling Tcl"
   COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_SOURCE_DIR}/build
   COMMAND make all -j
   COMMAND make install
   COMMAND echo "       Tcl Compilation completed"
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
 )
 add_dependencies(foedag tcl_build)
 

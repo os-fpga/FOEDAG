@@ -25,22 +25,21 @@
 #include <unistd.h>
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <tcl.h>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <stdlib.h>
-
-#include <tcl.h>
-
 class TclInterpreter {
-private:
+ private:
   Tcl_Interp *interp;
-public:
+
+ public:
   TclInterpreter(const char *argv0 = nullptr) : interp(nullptr) {
     static bool initLib;
     if (!initLib) {
@@ -48,28 +47,27 @@ public:
       initLib = true;
     }
     interp = Tcl_CreateInterp();
-    if (!interp) throw new std::runtime_error("failed to initialise Tcl library");
+    if (!interp)
+      throw new std::runtime_error("failed to initialise Tcl library");
   }
-  
+
   ~TclInterpreter() {
     if (interp) Tcl_DeleteInterp(interp);
   }
-  
+
   std::string evalFile(const std::string &filename) {
     int code = Tcl_EvalFile(interp, filename.c_str());
-    
+
     if (code >= TCL_ERROR) {
-      
       throw Tcl_GetStringResult(interp);
     }
     return std::string(Tcl_GetStringResult(interp));
   }
-  
+
   std::string evalCmd(const std::string cmd) {
     int code = Tcl_Eval(interp, cmd.c_str());
-    
+
     if (code >= TCL_ERROR) {
-      
       throw Tcl_GetStringResult(interp);
     }
     return std::string(Tcl_GetStringResult(interp));
