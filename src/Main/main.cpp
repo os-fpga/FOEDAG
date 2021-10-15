@@ -33,9 +33,9 @@
 #include "Tcl/TclInterpreter.h"
 
 int main(int argc, const char** argv) {
-  
   TclInterpreter interpreter(argv[0]);
-  std::string result = interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
+  std::string result =
+      interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
   std::cout << result << '\n';
   return 0;
 }
