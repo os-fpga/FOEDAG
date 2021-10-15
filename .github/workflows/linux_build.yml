@@ -1,0 +1,220 @@
+name: linux_build
+
+# Run CI on push, PR, and weekly.
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 0 " # weekly
+
+# Environment variables
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  MAKEFLAGS: "-j8"
+
+# Multiple job to tests
+jobs:
+  change_detect:
+    name: "Detect code changes"
+    runs-on: ubuntu-18.04
+    outputs:
+      # this is output as string, see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idoutputs
+      source_modified: ${{ steps.changes.outputs.status_code == '1' }}
+      force_upload: false
+      sha_short: ${{ steps.changes.outputs.sha_short }}
+    steps:
+      - name: Checkout FOEDAG repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Check for source code changes
+        id: changes
+        run: |
+          git diff origin/master HEAD --name-status -- . ':!docs'
+          if git diff origin/master HEAD --name-status --exit-code -- . ':!docs'; then
+            echo "::set-output name=status_code::0"
+          else
+            echo "::set-output name=status_code::$?"
+          fi
+          if [[ ${GITHUB_REF} == 'refs/heads/master' ]]; then
+            echo "Current brnach is master forcing source_modified"
+            echo "::set-output name=status_code::1"
+          fi
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+  # Test the compilation compatibility
+  linux_build:
+    needs: change_detect
+    if: ${{ fromJSON(needs.change_detect.outputs.source_modified) }}
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-18.04
+    container: ghcr.io/$${{GITHUB_REPOSITORY}}-build-${{ matrix.config.cc}}
+    # Branch on different OS and settings
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Build Compatibility: GCC-7 (Ubuntu 18.04)"
+            cc: gcc-7
+            cxx: g++-7
+          - name: "Build Compatibility: GCC-8 (Ubuntu 18.04)"
+            cc: gcc-8
+            cxx: g++-8
+          - name: "Build Compatibility: GCC-9 (Ubuntu 18.04)"
+            cc: gcc-9
+            cxx: g++-9
+          - name: "Build Compatibility: Clang-6 (Ubuntu 18.04)"
+            cc: clang-6.0
+            cxx: clang++-6.0
+          - name: "Build Compatibility: Clang-8 (Ubuntu 18.04)"
+            cc: clang-8
+            cxx: clang++-8
+    # Define the steps to run the build job
+    env:
+      CC: ${{ matrix.config.cc }}
+      CXX: ${{ matrix.config.cxx }}
+      CCACHE_COMPRESS: "true"
+      CCACHE_COMPRESSLEVEL: "6"
+      CCACHE_MAXSIZE: "400M"
+      CCACHE_LOGFILE: ccache_log
+      CCACHE_DIR: /__w/FOEDAG/.ccache
+    steps:
+      - name: Checkout FOEDAG repo
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Dump tool versions
+        run: |
+          cmake --version
+
+      - name: Prepare ccache timestamp
+        id: ccache_cache_timestamp
+        shell: cmake -P {0}
+        run: |
+          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+          message("::set-output name=timestamp::${current_date}")
+
+      - name: Create CMake build environment
+        # Some projects don't allow in-source building, so create a separate build directory
+        # We'll use this as our working directory for all subsequent commands
+        run: cmake -E make_directory build
+
+      - name: Setup ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            /__w/FOEDAG/.ccache
+          key: ${{ matrix.config.cc }}-ccache-${{ github.ref}}
+          restore-keys: |
+            ${{ matrix.config.cc }}-ccache-
+
+      - name: Build
+        working-directory: build
+        shell: bash
+        # Execute the build.  You can specify a specific target with "--target <NAME>"
+        run: |
+          cmake --build . --config $BUILD_TYPE
+
+      # Check the cache size and see if it is over the limit
+      - name: Check ccache size
+        run: ccache -s
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.config.cc == 'gcc-8'}}
+        with:
+          name: FOEDAG
+          path: |
+            build/bin/foedag
+            build/bin/tclsh9.0
+  docker_distribution:
+    name: Build docker image for distribution
+    runs-on: ubuntu-latest
+    needs: [linux_build, change_detect]
+    steps:
+      - name: Checkout FOEDAG repo
+        uses: actions/checkout@v2
+      - name: Download a built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: openfpga
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        if: ${{ (github.ref == 'refs/heads/master') || (needs.change_detect.outputs.force_upload == true) }}
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build and push master image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/Dockerfile.master
+          push: ${{ github.ref == 'refs/heads/master' || needs.change_detect.outputs.force_upload }}
+          tags: |
+            ghcr.io/$${{GITHUB_REPOSITORY}}-master:latest
+            ghcr.io/$${{GITHUB_REPOSITORY}}-master:${{ needs.change_detect.outputs.sha_short }}
+  linux_regression_tests:
+    name: linux_regression_tests
+    runs-on: ubuntu-18.04
+    container: ghcr.io/lnis-uofu/openfpga-env
+    needs: linux_build
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: quick_test
+    steps:
+      - name: Checkout FOEDAG repo
+        uses: actions/checkout@v2
+      - name: Download a built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: openfpga
+      - name: chmod
+        run: |
+          chmod +x build/bin/foedag
+      - name: ${{matrix.config.name}}_GCC-8_(Ubuntu 18.04)
+        shell: bash
+        run: foedag > log
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: failed_${{matrix.config.name}}_regression_log
+          retention-days: 1
+          path: |
+            log
+  docker_regression_tests:
+    needs: change_detect
+    if: ${{ !fromJSON(needs.change_detect.outputs.source_modified) }}
+    name: docker_regression_tests
+    runs-on: ubuntu-18.04
+    container: ghcr.io/$${GITHUB_REPOSITORY}}-master:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: quick_test
+    steps:
+      - name: Checkout OpenFPGA repo
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: ${{matrix.config.name}}_GCC-8_(Ubuntu 18.04)
+        shell: bash
+        run: |
+          foedag > log
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
+        with:
+          name: failed_${{matrix.config.name}}_regression_log
+          retention-days: 1
+          path: log
