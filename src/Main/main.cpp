@@ -25,6 +25,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
+#include <QApplication>
+#include <QLabel>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -32,15 +34,12 @@
 
 #include "Tcl/TclInterpreter.h"
 
-#include <QApplication>
-#include <QLabel>
-
 int main(int argc, char** argv) {
   TclInterpreter interpreter(argv[0]);
   std::string result =
       interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
   std::cout << result << '\n';
-  if (argc >=2) {
+  if (argc >= 2) {
     if (std::string(argv[1]) == "-noqt") {
       return 0;
     }
