@@ -1,9 +1,6 @@
 [submodule "third_party/tcl"]
 	path = third_party/tcl
 	url = https://github.com/tcltk/tcl
-[submodule "third_party/zlib"]
-	path = third_party/zlib
-	url = https://github.com/madler/zlib
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
