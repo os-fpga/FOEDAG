@@ -96,7 +96,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src build/include/)
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
 set(foedag_SRC
-  ${PROJECT_SOURCE_DIR}/src/Main/main.cpp
+  src/Tcl/TclInterpreter.cpp
 )
 
 add_library(foedag STATIC ${foedag_SRC})
