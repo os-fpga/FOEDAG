@@ -32,8 +32,8 @@ import sphinxcontrib.rsvgconverter
 
 # -- Project information -----------------------------------------------------
 
-project = u'OpenFPGA'
-copyright = u'2018, Xifan Tang'
+project = u'FOEDAG'
+copyright = u'2020, OSFPGA'
 author = u'Xifan Tang'
 
 # The short X.Y version
@@ -59,6 +59,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinxcontrib.yt',
     'sphinxcontrib.rsvgconverter',
+    'm2r2',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -68,8 +69,7 @@ templates_path = [sphinx_rtd_theme.get_html_theme_path()]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
