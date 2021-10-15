@@ -20,6 +20,7 @@ option(
 
 project(FOEDAG)
 
+
 # NOTE: Policy changes has to happen before adding any subprojects
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -90,7 +91,7 @@ else()
   )
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src third_party/build/include/)
+include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src build/include/)
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
@@ -108,6 +109,18 @@ target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
 add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp)
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
+
+add_custom_target(tcl_build DEPENDS tcl_build_command)
+add_custom_command(OUTPUT tcl_build_command
+  COMMAND echo "       Compiling Tcl"
+  COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_SOURCE_DIR}/build
+  COMMAND make all -j
+  COMMAND make install
+  COMMAND echo "       Tcl Compilation completed"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+)
+add_dependencies(foedag tcl_build)
+
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
@@ -130,17 +143,6 @@ if(MSVC OR WIN32)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
 
-
-
-add_custom_command(
-  TARGET foedag
-#  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/third_party/build/lib/libtcl9.0.a
-  COMMAND echo "       Compiling Tcl"
-  COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
-  COMMAND make all 
-  COMMAND echo "       Tcl Compilation completed"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
-)
 
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
