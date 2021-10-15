@@ -50,7 +50,7 @@ jobs:
     if: ${{ fromJSON(needs.change_detect.outputs.source_modified) }}
     name: ${{ matrix.config.name }}
     runs-on: ubuntu-18.04
-    container: ghcr.io/$${{ GITHUB_REPOSITORY }}-build-${{ matrix.config.cc}}
+    container: ghcr.io/${GITHUB_REPOSITORY}-build-${{ matrix.config.cc}}
     # Branch on different OS and settings
     strategy:
       fail-fast: false
@@ -158,8 +158,8 @@ jobs:
           file: ./docker/Dockerfile.master
           push: ${{ github.ref == 'refs/heads/master' || needs.change_detect.outputs.force_upload }}
           tags: |
-            ghcr.io/$${{ GITHUB_REPOSITORY }}-master:latest
-            ghcr.io/$${{ GITHUB_REPOSITORY }}-master:${{ needs.change_detect.outputs.sha_short }}
+            ghcr.io/${GITHUB_REPOSITORY}-master:latest
+            ghcr.io/${GITHUB_REPOSITORY}-master:${{ needs.change_detect.outputs.sha_short }}
   linux_regression_tests:
     name: linux_regression_tests
     runs-on: ubuntu-18.04
@@ -196,7 +196,7 @@ jobs:
     if: ${{ !fromJSON(needs.change_detect.outputs.source_modified) }}
     name: docker_regression_tests
     runs-on: ubuntu-18.04
-    container: ghcr.io/$${ GITHUB_REPOSITORY }}-master:latest
+    container: ghcr.io/${GITHUB_REPOSITORY}-master:latest
     strategy:
       fail-fast: false
       matrix:

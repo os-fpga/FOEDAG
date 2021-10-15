@@ -24,14 +24,14 @@ jobs:
           context: .
           file: ./docker/Dockerfile.base
           push: true
-          tags: ghcr.io/$${{ GITHUB_REPOSITORY }}-build-base:latest
+          tags: ghcr.io/${GITHUB_REPOSITORY}-build-base:latest
       - name: Build environment image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./docker/Dockerfile.env
           push: true
-          tags: ghcr.io/$${{ GITHUB_REPOSITORY }}-env:latest
+          tags: ghcr.io/${GITHUB_REPOSITORY}-env:latest
   compiler_images:
     name: Build ${{ matrix.compiler }} compiler image
     needs: base_images
@@ -63,4 +63,4 @@ jobs:
           context: .
           file: ./docker/Dockerfile.${{ matrix.compiler }}
           push: true
-          tags: ghcr.io/$${{ GITHUB_REPOSITORY }}-build-${{ matrix.compiler }}:latest
+          tags: ghcr.io/${GITHUB_REPOSITORY}-build-${{ matrix.compiler }}:latest
