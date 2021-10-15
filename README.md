@@ -9,6 +9,9 @@ FOEDAG denotes Qt-based Framework Open EDA Gui
 FOEDAG's [full documentation](https://foedag.readthedocs.io/en/latest/) includes tutorials, tool options and contributor guidelines.
 
 ## Build instructions
+
+Read [`INSTALL`](INSTALL.md) for more details
+
 ```bash
   make
 or
