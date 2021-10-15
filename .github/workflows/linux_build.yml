@@ -33,14 +33,14 @@ jobs:
       - name: Check for source code changes
         id: changes
         run: |
-          git diff origin/master HEAD --name-status -- . ':!docs'
-          if git diff origin/master HEAD --name-status --exit-code -- . ':!docs'; then
+          git diff origin/main HEAD --name-status -- . ':!docs'
+          if git diff origin/main HEAD --name-status --exit-code -- . ':!docs'; then
             echo "::set-output name=status_code::0"
           else
             echo "::set-output name=status_code::$?"
           fi
-          if [[ ${GITHUB_REF} == 'refs/heads/master' ]]; then
-            echo "Current brnach is master forcing source_modified"
+          if [[ ${GITHUB_REF} == 'refs/heads/main' ]]; then
+            echo "Current brnach is main forcing source_modified"
             echo "::set-output name=status_code::1"
           fi
           echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -145,21 +145,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to GitHub Container Registry
-        if: ${{ (github.ref == 'refs/heads/master') || (needs.change_detect.outputs.force_upload == true) }}
+        if: ${{ (github.ref == 'refs/heads/main') || (needs.change_detect.outputs.force_upload == true) }}
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
-      - name: Build and push master image
+      - name: Build and push main image
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/Dockerfile.master
-          push: ${{ github.ref == 'refs/heads/master' || needs.change_detect.outputs.force_upload }}
+          file: ./docker/Dockerfile.main
+          push: ${{ github.ref == 'refs/heads/main' || needs.change_detect.outputs.force_upload }}
           tags: |
-            ghcr.io/${GITHUB_REPOSITORY}-master:latest
-            ghcr.io/${GITHUB_REPOSITORY}-master:${{ needs.change_detect.outputs.sha_short }}
+            ghcr.io/${GITHUB_REPOSITORY}-main:latest
+            ghcr.io/${GITHUB_REPOSITORY}-main:${{ needs.change_detect.outputs.sha_short }}
   linux_regression_tests:
     name: linux_regression_tests
     runs-on: ubuntu-18.04
@@ -196,7 +196,7 @@ jobs:
     if: ${{ !fromJSON(needs.change_detect.outputs.source_modified) }}
     name: docker_regression_tests
     runs-on: ubuntu-18.04
-    container: ghcr.io/${GITHUB_REPOSITORY}-master:latest
+    container: ghcr.io/${GITHUB_REPOSITORY}-main:latest
     strategy:
       fail-fast: false
       matrix:
