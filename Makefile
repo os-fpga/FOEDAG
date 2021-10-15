@@ -70,18 +70,16 @@ test-parallel: release test/unittest
 	cmake -E make_directory build/tests
 	cmake -E remove_directory build/test
 	cmake -E make_directory build/test
-	tclsh tests/cmake_gen.tcl . build/test
-	cmake -S build/test -B build/test/build
-	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
+#	cmake -S build/test -B build/test/build
+#	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
 
 
 regression: release
 	cmake -E make_directory build/tests
 	cmake -E remove_directory build/test
 	cmake -E make_directory build/test
-	tclsh tests/cmake_gen.tcl . build/test
-	cmake -S build/test -B build/test/build
-	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
+#	cmake -S build/test -B build/test/build
+#	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
 
 clean:
 	$(RM) -r build dbuild coverage-build dist tests/TestInstall/build
