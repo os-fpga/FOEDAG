@@ -40,7 +40,11 @@ int main(int argc, char** argv) {
   std::string result =
       interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
   std::cout << result << '\n';
-
+  if (argc >=2) {
+    if (std::string(argv[1]) == "-noqt") {
+      return 0;
+    }
+  }
   QApplication app(argc, argv);
   QLabel* label = new QLabel("Hello Qt!");
   label->show();
