@@ -91,7 +91,7 @@ else()
   )
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src build/include/)
+include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
@@ -103,7 +103,7 @@ add_library(foedag STATIC ${foedag_SRC})
 
 set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/Main/foedag.h)
 target_include_directories(foedag PRIVATE
-  third_party/tcl/include
+  ${CMAKE_CURRENT_BINARY_DIR}/include
   third_party/googletest/googletest/include
   third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
@@ -114,7 +114,7 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
   COMMAND echo "       Compiling Tcl"
-  COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_SOURCE_DIR}/build
+  COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
   COMMAND make all -j
   COMMAND make install
   COMMAND echo "       Tcl Compilation completed"
