@@ -98,7 +98,7 @@ jobs:
     - name: Coverage
       if: matrix.mode == 'coverage'
       run: |
-        make coverage-build/foedag.coverage
+        make debug coverage-build/foedag.coverage
 
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/chipsalliance/Surelog
