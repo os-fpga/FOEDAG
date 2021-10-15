@@ -222,7 +222,6 @@ register_gtests(
   src/Tcl/HelloTcl_test.cpp
 )
 
-
 # Installation target
 install(
   TARGETS foedag-bin
