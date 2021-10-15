@@ -100,7 +100,8 @@ set(foedag_SRC
 )
 
 add_library(foedag STATIC ${foedag_SRC})
-set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/foedag.h)
+
+set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/Main/foedag.h)
 target_include_directories(foedag PRIVATE
   third_party/tcl/include
   third_party/googletest/googletest/include
@@ -148,11 +149,11 @@ endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix/libtcl9.0.a)
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
 
 
-target_link_libraries(foedag-bin PUBLIC foedag tcl_static)
-target_link_libraries(foedag  PUBLIC tcl_static zlib)
+target_link_libraries(foedag-bin PUBLIC foedag tcl_static zlib )
+target_link_libraries(foedag PUBLIC tcl_static  zlib )
 
 if(NOT NO_TCMALLOC)
   find_library(TCMALLOC_LIBRARY NAMES tcmalloc)
@@ -226,11 +227,14 @@ register_gtests(
 install(
   TARGETS foedag-bin
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-#install(
-#  TARGETS foedag tcl_static
-#  EXPORT Foedag
-#  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
-#  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
+install(
+  TARGETS foedag 
+  EXPORT Foedag
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)
@@ -244,6 +248,16 @@ if (WIN32 AND $<CONFIG:Debug>)
           ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_static.dir/tcl_static.pdb
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
+
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h
+        ${CMAKE_CURRENT_BINARY_DIR}/include/tclDecls.h
+        ${CMAKE_CURRENT_BINARY_DIR}/include/tclPlatDecls.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include)
 
 #install(
 #  EXPORT Foedag
