@@ -101,7 +101,7 @@ jobs:
         make debug coverage-build/foedag.coverage
 
     - name: Upload coverage
-      # will show up under https://app.codecov.io/gh/chipsalliance/Surelog
+      # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
       if: matrix.mode == 'coverage'
       uses: codecov/codecov-action@v2
       with:
