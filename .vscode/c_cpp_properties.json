@@ -3,13 +3,16 @@
         {
             "name": "Linux",
             "includePath": [
-                "${default}"
+                "${workspaceFolder}/src/",
+                "${workspaceFolder}/dbuild/", 
+                "${workspaceFolder}/third_party/googletest/googletest/include/",
+                "${workspaceFolder}/src/**"
             ],
-            "compilerPath": "/usr/bin/clang-12",
-            "cStandard": "c17",
-            "cppStandard": "c++14",
-            "intelliSenseMode": "linux-clang-x64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

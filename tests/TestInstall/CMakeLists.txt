@@ -17,6 +17,23 @@ project(HELLOFOEDAG)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
+
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Core REQUIRED)
+if (NOT Qt5Widgets_FOUND)
+    message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
+elseif (NOT Qt5Gui_FOUND)
+    message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
+elseif (NOT Qt5Core_FOUND)
+    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
+else()
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+endif()
+
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -84,6 +101,7 @@ else()
     foedag
     tcl_static
     zlib
+    Qt5::Widgets Qt5::Core Qt5::Gui
     $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 endif()
@@ -119,5 +137,5 @@ endif()
 
 add_custom_target(RunInstallTest ALL
     DEPENDS test_hellofoedag
-    COMMAND $<TARGET_FILE:test_hellofoedag> --version
+    COMMAND $<TARGET_FILE:test_hellofoedag> -noqt
     WORKING_DIRECTORY $<TARGET_FILE_DIR:test_hellofoedag>)

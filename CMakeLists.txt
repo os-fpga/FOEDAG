@@ -112,6 +112,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINA
 # foedag_generated_SRC
 set(foedag_SRC
   src/Tcl/TclInterpreter.cpp
+  src/Command/Command.cpp
+  src/Command/CommandStack.cpp
 )
 
 add_library(foedag STATIC ${foedag_SRC})
@@ -236,6 +238,7 @@ endfunction()
 
 register_gtests(
   src/Tcl/HelloTcl_test.cpp
+  src/Command/Command_test.cpp
 )
 
 # Installation target
@@ -267,6 +270,11 @@ endif()
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
+  ${PROJECT_SOURCE_DIR}/src/Command/CommandStack.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Command)
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h

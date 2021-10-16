@@ -91,6 +91,9 @@ test_install:
 	cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_DIR=$(PREFIX) -S tests/TestInstall -B tests/TestInstall/build
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
+format:
+	.github/bin/run-clang-format.sh
+
 uninstall:
 	$(RM) -r $(PREFIX)/bin/foedag
 	$(RM) -r $(PREFIX)/lib/foedag

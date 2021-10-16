@@ -28,6 +28,7 @@
 #include <tcl.h>
 
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -35,18 +36,28 @@
 #ifndef TCL_INTERPRETER_H
 #define TCL_INTERPRETER_H
 
+struct Tcl_Interp;
+
 class TclInterpreter {
  private:
-  Tcl_Interp *interp;
+  Tcl_Interp* interp;
 
  public:
-  TclInterpreter(const char *argv0 = nullptr);
+  TclInterpreter(const char* argv0 = nullptr);
 
   ~TclInterpreter();
 
-  std::string evalFile(const std::string &filename);
+  std::string evalFile(const std::string& filename);
 
   std::string evalCmd(const std::string cmd);
+
+  typedef std::function<void()> TclCallback0;
+  typedef std::function<void(const std::string& arg1)> TclCallback1;
+  typedef std::function<void(const std::string& arg1, const std::string& arg2)>
+      TclCallback2;
+
+  void registerCmd(const std::string& cmdName, Tcl_CmdProc proc,
+                   ClientData clientData, Tcl_CmdDeleteProc* deleteProc);
 };
 
 #endif

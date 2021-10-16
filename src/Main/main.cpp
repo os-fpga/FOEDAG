@@ -24,25 +24,40 @@
 
 #include <string.h>
 #include <sys/stat.h>
+#include <tcl.h>
 
+#include <QApplication>
+#include <QLabel>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "Command/CommandStack.h"
 #include "Tcl/TclInterpreter.h"
 
-#include <QApplication>
-#include <QLabel>
-
-int main(int argc, char** argv) {
-  TclInterpreter interpreter(argv[0]);
-  std::string result =
-      interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
-  std::cout << result << '\n';
-
-  QApplication app(argc, argv);
+static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
+                       const char** argv) {
+  QApplication app(argc, (char**)argv);
   QLabel* label = new QLabel("Hello Qt!");
   label->show();
   return app.exec();
+}
+
+int main(int argc, char** argv) {
+  TclInterpreter interpreter(argv[0]);
+
+  interpreter.registerCmd("gui_start", GuiStartCmd, 0, nullptr);
+  CommandStack commands(&interpreter);
+
+  std::string result =
+      interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
+  std::cout << result << '\n';
+  if (argc >= 2) {
+    if (std::string(argv[1]) == "-noqt") {
+      return 0;
+    }
+  }
+  Command* start = new Command("gui_start", "bye_gui");
+  commands.push_and_exec(start);
 }
