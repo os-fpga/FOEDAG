@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
       return 0;
     }
   }
-  Command* start  = new Command("start_gui", "bye_gui");
+  Command* start  = new Command("gui_start", "bye_gui");
   commands.push_and_exec(start);
   
 }
