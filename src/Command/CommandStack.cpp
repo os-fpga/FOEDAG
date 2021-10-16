@@ -18,23 +18,20 @@ limitations under the License.
 
 CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {}
 
-bool CommandStack::push_and_exec(Command *cmd)
-{
-    const std::string& result = m_interp->evalCmd(cmd->do_cmd());
-    m_cmds.push_back(cmd);
-    return (result == "");
+bool CommandStack::push_and_exec(Command *cmd) {
+  const std::string &result = m_interp->evalCmd(cmd->do_cmd());
+  m_cmds.push_back(cmd);
+  return (result == "");
 }
 
-bool CommandStack::pop_and_undo()
-{
-    if (!m_cmds.empty())
-    {
-        Command *c = m_cmds.back();
-        const std::string& result = m_interp->evalCmd(c->undo_cmd());
-        m_cmds.pop_back();
-        return (result == "");
-    }
-    return false;
+bool CommandStack::pop_and_undo() {
+  if (!m_cmds.empty()) {
+    Command *c = m_cmds.back();
+    const std::string &result = m_interp->evalCmd(c->undo_cmd());
+    m_cmds.pop_back();
+    return (result == "");
+  }
+  return false;
 }
 
 CommandStack::~CommandStack() {}

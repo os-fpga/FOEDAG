@@ -51,7 +51,8 @@ std::string TclInterpreter::evalCmd(const std::string cmd) {
   return std::string(Tcl_GetStringResult(interp));
 }
 
-
-void TclInterpreter::registerCmd(const std::string& cmdName, Tcl_CmdProc proc, ClientData clientData, Tcl_CmdDeleteProc *deleteProc) {
+void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
+                                 ClientData clientData,
+                                 Tcl_CmdDeleteProc *deleteProc) {
   Tcl_CreateCommand(interp, cmdName.c_str(), proc, clientData, deleteProc);
 }

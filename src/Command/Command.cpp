@@ -24,6 +24,4 @@ const std::string& Command::Command::do_cmd() { return m_do; }
 
 const std::string& Command::Command::undo_cmd() { return m_undo; }
 
-Command::~Command() {
-
-}
+Command::~Command() {}

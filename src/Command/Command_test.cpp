@@ -18,9 +18,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Tcl/TclInterpreter.h"
 #include "Command/CommandStack.h"
-
+#include "Tcl/TclInterpreter.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 

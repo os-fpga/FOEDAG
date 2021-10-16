@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <sys/stat.h>
+#include <tcl.h>
 
 #include <QApplication>
 #include <QLabel>
@@ -31,17 +32,13 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <tcl.h>
-#include "Tcl/TclInterpreter.h"
-#include "Command/CommandStack.h"
 
-static int
-GuiStartCmd(ClientData clientData,
-            Tcl_Interp *interp,
-            int argc,
-            const char **argv)
-{
-  QApplication app(argc, (char **) argv);
+#include "Command/CommandStack.h"
+#include "Tcl/TclInterpreter.h"
+
+static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
+                       const char** argv) {
+  QApplication app(argc, (char**)argv);
   QLabel* label = new QLabel("Hello Qt!");
   label->show();
   return app.exec();
@@ -61,7 +58,6 @@ int main(int argc, char** argv) {
       return 0;
     }
   }
-  Command* start  = new Command("gui_start", "bye_gui");
+  Command* start = new Command("gui_start", "bye_gui");
   commands.push_and_exec(start);
-  
 }
