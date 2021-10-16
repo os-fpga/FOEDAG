@@ -31,11 +31,28 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <tcl.h>
 #include "Tcl/TclInterpreter.h"
+#include "Command/CommandStack.h"
+
+static int
+GuiStartCmd(ClientData clientData,
+            Tcl_Interp *interp,
+            int argc,
+            const char **argv)
+{
+  QApplication app(argc, (char **) argv);
+  QLabel* label = new QLabel("Hello Qt!");
+  label->show();
+  return app.exec();
+}
 
 int main(int argc, char** argv) {
   TclInterpreter interpreter(argv[0]);
+
+  interpreter.registerCmd("gui_start", GuiStartCmd, 0, nullptr);
+  CommandStack commands(&interpreter);
+
   std::string result =
       interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
   std::cout << result << '\n';
@@ -44,8 +61,7 @@ int main(int argc, char** argv) {
       return 0;
     }
   }
-  QApplication app(argc, argv);
-  QLabel* label = new QLabel("Hello Qt!");
-  label->show();
-  return app.exec();
+  Command* start  = new Command("start_gui", "bye_gui");
+  commands.push_and_exec(start);
+  
 }

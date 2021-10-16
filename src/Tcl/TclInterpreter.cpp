@@ -13,8 +13,9 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-
 #include "TclInterpreter.h"
+
+#include <tcl.h>
 
 TclInterpreter::TclInterpreter(const char *argv0) : interp(nullptr) {
   static bool initLib;
@@ -48,4 +49,9 @@ std::string TclInterpreter::evalCmd(const std::string cmd) {
                        std::string(Tcl_GetStringResult(interp)));
   }
   return std::string(Tcl_GetStringResult(interp));
+}
+
+
+void TclInterpreter::registerCmd(const std::string& cmdName, Tcl_CmdProc proc, ClientData clientData, Tcl_CmdDeleteProc *deleteProc) {
+  Tcl_CreateCommand(interp, cmdName.c_str(), proc, clientData, deleteProc);
 }
