@@ -7,6 +7,7 @@
 MainWindow::MainWindow() {
   createActions();
   createMenus();
+  createToolBars();
 
   setWindowTitle(tr("FOEDAG"));
 }
@@ -21,6 +22,11 @@ void MainWindow::createMenus() {
   fileMenu->addAction(newAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
+}
+
+void MainWindow::createToolBars() {
+  fileToolBar = addToolBar(tr("&File"));
+  fileToolBar->addAction(newAction);
 }
 
 void MainWindow::createActions() {

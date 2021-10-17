@@ -18,6 +18,7 @@ class MainWindow : public QMainWindow {
 
   private: /* Menu bar builders */
     void createMenus();
+    void createToolBars();
     void createActions();
 
   private: /* Objects/Widgets under the main window */
@@ -25,6 +26,9 @@ class MainWindow : public QMainWindow {
     QMenu* fileMenu;
     QAction* newAction;
     QAction* exitAction;
+
+    /* Tool bar objects */
+    QToolBar* fileToolBar;
 };
 
 #endif
