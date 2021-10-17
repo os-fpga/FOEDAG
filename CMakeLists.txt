@@ -114,6 +114,7 @@ set(foedag_SRC
   src/Tcl/TclInterpreter.cpp
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
+  src/MainWindow/main_window.cpp
 )
 
 add_library(foedag STATIC ${foedag_SRC})
