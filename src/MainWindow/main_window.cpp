@@ -16,5 +16,5 @@ void MainWindow::createActions() {
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));
   exitAction->setStatusTip(tr("Exit the application"));
-  connect(exitAction, SIGNAL(triggered()), this, SLOT(closeAllWindows()));
+  connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 }
