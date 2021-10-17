@@ -14,6 +14,7 @@ class MainWindow : public QMainWindow {
     MainWindow();
  
   private slots: /* slots */
+    void newFile();
 
   private: /* Menu bar builders */
     void createMenus();
@@ -22,6 +23,7 @@ class MainWindow : public QMainWindow {
   private: /* Objects/Widgets under the main window */
     /* Menu bar objects */
     QMenu* fileMenu;
+    QAction* newAction;
     QAction* exitAction;
 };
 
