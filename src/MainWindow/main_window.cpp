@@ -5,6 +5,10 @@
 #include "main_window.h"
 
 MainWindow::MainWindow() {
+  /* Window settings */
+  setWindowTitle(tr("FOEDAG"));
+  resize(350, 250);
+
   /* Create actions that can be added to menu/tool bars */
   createActions();
 
@@ -17,7 +21,12 @@ MainWindow::MainWindow() {
   /* Create status bar */
   statusBar();
 
-  setWindowTitle(tr("FOEDAG"));
+  /* Add a text editor */
+  auto *edit = new QTextEdit(this);
+
+  setCentralWidget(edit);
+
+  statusBar()->showMessage("Ready");
 }
 
 void MainWindow::newFile() {
