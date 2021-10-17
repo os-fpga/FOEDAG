@@ -35,7 +35,7 @@
 
 #include "Command/CommandStack.h"
 #include "Tcl/TclInterpreter.h"
-#include "main_window.h"
+#include "MainWindow/main_window.h"
 
 static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
                        const char** argv) {

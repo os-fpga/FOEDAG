@@ -14,8 +14,6 @@ class MainWindow : public QMainWindow {
     MainWindow();
  
   private slots: /* slots */
-    /* Show intro about the program */
-    void about();
 
   private: /* Menu bar builders */
     void createMenus();

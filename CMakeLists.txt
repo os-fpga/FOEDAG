@@ -269,6 +269,10 @@ if (WIN32 AND $<CONFIG:Debug>)
 endif()
 
 install(
+  FILES ${PROJECT_SOURCE_DIR}/src/MainWindow/main_window.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
+
+install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
 
