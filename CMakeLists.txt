@@ -108,6 +108,8 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
+set(QRC_MAIN_WINDOW src/MainWindow/main_window_resource.qrc)
+
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
 set(foedag_SRC
@@ -115,6 +117,7 @@ set(foedag_SRC
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
   src/MainWindow/main_window.cpp
+  ${QRC_MAIN_WINDOW}
 )
 
 add_library(foedag STATIC ${foedag_SRC})

@@ -7,6 +7,8 @@
 MainWindow::MainWindow() {
   createActions();
   createMenus();
+
+  setWindowTitle(tr("FOEDAG"));
 }
 
 void MainWindow::newFile() {
@@ -23,7 +25,7 @@ void MainWindow::createMenus() {
 
 void MainWindow::createActions() {
   newAction = new QAction(tr("&New"), this);
-  //newAction->setIcon(QIcon(":images/new.png"));
+  newAction->setIcon(QIcon(":/images/icon_newfile.png"));
   newAction->setShortcut(QKeySequence::New); 
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
