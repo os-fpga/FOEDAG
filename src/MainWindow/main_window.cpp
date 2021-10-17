@@ -5,9 +5,17 @@
 #include "main_window.h"
 
 MainWindow::MainWindow() {
+  /* Create actions that can be added to menu/tool bars */
   createActions();
+
+  /* Create menu bars */
   createMenus();
+
+  /* Create tool bars */
   createToolBars();
+
+  /* Create status bar */
+  statusBar();
 
   setWindowTitle(tr("FOEDAG"));
 }
