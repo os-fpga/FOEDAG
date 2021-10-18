@@ -21,10 +21,23 @@ MainWindow::MainWindow() {
   /* Create status bar */
   statusBar();
 
-  /* Add a text editor */
-  auto *edit = new QTextEdit(this);
+  /* Add dummy text editors */
+  QTextEdit* editor1 = new QTextEdit;
+  QTextEdit* editor2 = new QTextEdit;
+  QTextEdit* editor3 = new QTextEdit;
 
-  setCentralWidget(edit);
+  /* Add widgets into floorplanning */
+  QSplitter* leftSplitter = new QSplitter(Qt::Horizontal);
+  leftSplitter->addWidget(editor1);
+  leftSplitter->addWidget(editor2);
+  leftSplitter->setStretchFactor(1, 1);
+
+  QSplitter* mainSplitter = new QSplitter(Qt::Vertical);
+  mainSplitter->addWidget(leftSplitter);
+  mainSplitter->addWidget(editor3);
+  mainSplitter->setStretchFactor(1, 1);
+ 
+  setCentralWidget(mainSplitter); 
 
   statusBar()->showMessage("Ready");
 }
