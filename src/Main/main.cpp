@@ -34,13 +34,14 @@
 #include <vector>
 
 #include "Command/CommandStack.h"
+#include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
 
 static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
                        const char** argv) {
   QApplication app(argc, (char**)argv);
-  QLabel* label = new QLabel("Hello Qt!");
-  label->show();
+  MainWindow main_win;
+  main_win.show();
   return app.exec();
 }
 

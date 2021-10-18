@@ -108,12 +108,16 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
+set(QRC_MAIN_WINDOW src/MainWindow/main_window_resource.qrc)
+
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
 set(foedag_SRC
   src/Tcl/TclInterpreter.cpp
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
+  src/MainWindow/main_window.cpp
+  ${QRC_MAIN_WINDOW}
 )
 
 add_library(foedag STATIC ${foedag_SRC})
@@ -125,7 +129,7 @@ target_include_directories(foedag PRIVATE
   third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
-add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp)
+add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
@@ -266,6 +270,10 @@ if (WIN32 AND $<CONFIG:Debug>)
           ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_static.dir/tcl_static.pdb
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/src/MainWindow/main_window.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
