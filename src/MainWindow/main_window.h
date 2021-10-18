@@ -8,27 +8,27 @@ class QLabel;
 
 /** Main window of the program */
 class MainWindow : public QMainWindow {
-    Q_OBJECT
+  Q_OBJECT
 
-  public: /*-- Constructor --*/ 
-    MainWindow();
- 
-  private slots: /* slots */
-    void newFile();
+ public: /*-- Constructor --*/
+  MainWindow();
 
-  private: /* Menu bar builders */
-    void createMenus();
-    void createToolBars();
-    void createActions();
+ private slots: /* slots */
+  void newFile();
 
-  private: /* Objects/Widgets under the main window */
-    /* Menu bar objects */
-    QMenu* fileMenu;
-    QAction* newAction;
-    QAction* exitAction;
+ private: /* Menu bar builders */
+  void createMenus();
+  void createToolBars();
+  void createActions();
 
-    /* Tool bar objects */
-    QToolBar* fileToolBar;
+ private: /* Objects/Widgets under the main window */
+  /* Menu bar objects */
+  QMenu* fileMenu;
+  QAction* newAction;
+  QAction* exitAction;
+
+  /* Tool bar objects */
+  QToolBar* fileToolBar;
 };
 
 #endif

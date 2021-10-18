@@ -1,8 +1,8 @@
-#include <fstream>
+#include "main_window.h"
+
 #include <QTextStream>
 #include <QtWidgets>
-
-#include "main_window.h"
+#include <fstream>
 
 MainWindow::MainWindow() {
   /* Window settings */
@@ -34,15 +34,16 @@ MainWindow::MainWindow() {
   QDockWidget* texteditorDockWidget = new QDockWidget(tr("Text Editor"));
   texteditorDockWidget->setObjectName("texteditorDockWidget");
   texteditorDockWidget->setWidget(editor2);
-  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea |
+                                        Qt::RightDockWidgetArea);
   addDockWidget(Qt::RightDockWidgetArea, texteditorDockWidget);
 
   QSplitter* mainSplitter = new QSplitter(Qt::Vertical);
   mainSplitter->addWidget(leftSplitter);
   mainSplitter->addWidget(editor3);
   mainSplitter->setStretchFactor(1, 1);
- 
-  setCentralWidget(mainSplitter); 
+
+  setCentralWidget(mainSplitter);
 
   statusBar()->showMessage("Ready");
 }
@@ -67,7 +68,7 @@ void MainWindow::createToolBars() {
 void MainWindow::createActions() {
   newAction = new QAction(tr("&New"), this);
   newAction->setIcon(QIcon(":/images/icon_newfile.png"));
-  newAction->setShortcut(QKeySequence::New); 
+  newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
