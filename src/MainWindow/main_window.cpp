@@ -29,8 +29,13 @@ MainWindow::MainWindow() {
   /* Add widgets into floorplanning */
   QSplitter* leftSplitter = new QSplitter(Qt::Horizontal);
   leftSplitter->addWidget(editor1);
-  leftSplitter->addWidget(editor2);
   leftSplitter->setStretchFactor(1, 1);
+
+  QDockWidget* texteditorDockWidget = new QDockWidget(tr("Text Editor"));
+  texteditorDockWidget->setObjectName("texteditorDockWidget");
+  texteditorDockWidget->setWidget(editor2);
+  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+  addDockWidget(Qt::RightDockWidgetArea, texteditorDockWidget);
 
   QSplitter* mainSplitter = new QSplitter(Qt::Vertical);
   mainSplitter->addWidget(leftSplitter);
