@@ -72,11 +72,15 @@ static int Tcl_AppInit(Tcl_Interp* interp) {
 }
 
 int main(int argc, char** argv) {
-  TclInterpreter interpreter(argv[0]);
-
   // Do not run Qt when option "-noqt" is specified
   if (argc >= 2) {
     if (std::string(argv[1]) == "-noqt") {
+      TclInterpreter interpreter(argv[0]);
+      std::string result =
+          interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
+      if (result != "") {
+        std::cout << result << '\n';
+      }
       return 0;
     }
   }
@@ -92,14 +96,6 @@ int main(int argc, char** argv) {
   // create a Tcl interpreter and connect it to the terminal
   Tcl_Main(argc, (char**)argv, Tcl_AppInit);
 
-  //  std::string result =
-  //      interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
-  //  std::cout << result << '\n';
-  //  if (argc >= 2) {
-  //    if (std::string(argv[1]) == "-noqt") {
-  //      return 0;
-  //    }
-  //  }
   //  Command* start = new Command("gui_start", "bye_gui");
   //  commands.push_and_exec(start);
 }
