@@ -20,6 +20,9 @@ option(
 
 project(FOEDAG)
 
+# Check system 
+message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+
 # Find Qt packages and error out if not found
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Gui REQUIRED)
