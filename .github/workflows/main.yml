@@ -31,11 +31,6 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
-# TODO: This should be moved to a shell script. In the workflow, only the script will be called
-    - name: Install dependencies
-      run: |
-        bash .github/workflows/install_ubuntu_dependencies_build.sh
-
     - uses: actions/setup-python@v2
       with:
         python-version: 3.8
@@ -45,6 +40,10 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
+
+    - name: Install dependencies
+      run: |
+        bash .github/workflows/install_ubuntu_dependencies_build.sh
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
