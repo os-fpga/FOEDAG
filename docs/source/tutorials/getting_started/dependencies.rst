@@ -29,3 +29,13 @@ Full list of dependencies can be found at install_ubuntu_dependencies_build_.
   :code: shell
 
 .. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_ubuntu_dependencies_build.sh
+
+Mac OS
+======
+
+Full list of dependencies can be found at install_macos_dependencies_build_.
+
+.. include:: ../../../../.github/workflows/install_macos_dependencies_build.sh
+  :code: shell
+
+.. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_macos_dependencies_build.sh

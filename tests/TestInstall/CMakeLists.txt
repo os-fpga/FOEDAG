@@ -112,6 +112,7 @@ if (APPLE)
       util
       m
       pthread
+      "-framework CoreFoundation"
   )
 elseif (UNIX)
   target_link_libraries(test_hellofoedag

@@ -60,7 +60,7 @@ static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
   return 0;
 }
 
-static int Tcl_AppInit(Tcl_Interp* interp) {
+static int QtTcl_AppInit(Tcl_Interp* interp) {
   //  interpreter.registerCmd("gui_start", GuiStartCmd, 0, nullptr);
   //  CommandStack commands(&interpreter);
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
   Tcl_SetMainLoop([]() { QApplication::exec(); });
 
   // create a Tcl interpreter and connect it to the terminal
-  Tcl_Main(argc, (char**)argv, Tcl_AppInit);
+  Tcl_Main(argc, (char**)argv, QtTcl_AppInit);
 
   //  Command* start = new Command("gui_start", "bye_gui");
   //  commands.push_and_exec(start);
