@@ -22,23 +22,19 @@
 #include "Command/Command.h"
 #include "Tcl/TclInterpreter.h"
 
-#ifndef COMMAND_STACK_H
-#define COMMAND_STACK_H
+#ifndef SESSION_H
+#define SESSION_H
 
 namespace FOEDAG {
 
-class CommandStack {
+class Session {
  private:
  public:
-  CommandStack(TclInterpreter* interp);
-  bool push_and_exec(Command* cmd);
-  bool pop_and_undo();
+  Session();
 
-  ~CommandStack();
+  ~Session();
 
  private:
-  std::vector<Command*> m_cmds;
-  TclInterpreter* m_interp;
 };
 
 }  // namespace FOEDAG

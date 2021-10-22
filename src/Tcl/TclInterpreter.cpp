@@ -15,6 +15,8 @@
  */
 #include "TclInterpreter.h"
 
+using namespace FOEDAG;
+
 #include <tcl.h>
 
 TclInterpreter::TclInterpreter(const char *argv0) : interp(nullptr) {

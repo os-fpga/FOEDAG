@@ -22,6 +22,8 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+namespace FOEDAG {
+
 class Command {
  private:
  public:
@@ -35,5 +37,7 @@ class Command {
   std::string m_do;
   std::string m_undo;
 };
+
+}  // namespace FOEDAG
 
 #endif
