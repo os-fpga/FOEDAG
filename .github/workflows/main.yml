@@ -20,6 +20,7 @@ jobs:
         - regression
         - coverage
         - install
+        - valgrind
     env:
       MODE: ${{ matrix.mode }}
 
@@ -45,6 +46,7 @@ jobs:
           libgoogle-perftools-dev \
           uuid-dev \
           lcov \
+          valgrind \
           xorg \
           qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
         sudo ln -sf /usr/bin/g++-9 /usr/bin/g++
@@ -102,6 +104,12 @@ jobs:
       if: matrix.mode == 'coverage'
       run: |
         make debug coverage-build/foedag.coverage
+
+    - name: Valgrind
+      if: matrix.mode == 'valgrind'
+      run: |
+        make debug
+        make test/valgrind
 
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
@@ -463,7 +471,7 @@ jobs:
         sudo apt -qq -y install clang-tidy-12 \
                                 g++-9 tclsh  default-jre cmake \
                                 uuid-dev build-essential xorg \
-          qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
