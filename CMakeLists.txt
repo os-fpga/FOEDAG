@@ -243,8 +243,6 @@ function(register_gtests)
 
     if (APPLE)
       target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
-    elseif (${CHECK_SYSTEM_NAME} STREQUAL "Darwin")
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
     else()
       target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
     endif()
