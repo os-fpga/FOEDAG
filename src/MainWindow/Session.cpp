@@ -1,4 +1,3 @@
-
 /*
 Copyright 2021 The Foedag team
 
@@ -15,15 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "Command.h"
+#include "MainWindow/Session.h"
 
 using namespace FOEDAG;
 
-Command::Command(const std::string& cmd, const std::string& undo)
-    : m_do(cmd), m_undo(undo) {}
+Session::Session() {}
 
-const std::string& Command::Command::do_cmd() { return m_do; }
-
-const std::string& Command::Command::undo_cmd() { return m_undo; }
-
-Command::~Command() {}
+Session::~Session() {}

@@ -4,6 +4,8 @@
 #include <QtWidgets>
 #include <fstream>
 
+using namespace FOEDAG;
+
 MainWindow::MainWindow() {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
