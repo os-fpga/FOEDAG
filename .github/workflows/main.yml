@@ -319,8 +319,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install dependencies
-      run: |
-        bash .github/workflows/install_macos_dependencies_build.sh
+      uses: jurplel/install-qt-action@v2
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
