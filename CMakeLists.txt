@@ -219,6 +219,7 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
+
 # All unit-tests are registered with this custom target as dependency, so
 # just `make UnitTests` will build them all.
 add_custom_target(UnitTests)
@@ -241,6 +242,10 @@ function(register_gtests)
     # Often it is sufficient to just have a few depeendencies.
     target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
     gtest_discover_tests(${test_bin} TEST_PREFIX "${test_prefix}/")
+
+    if (APPLE)
+      target_link_libraries(${test_bin} PUBLIC foedag "-framework CoreFoundation")
+    endif()
 
     # Now, add this binary to our UnitTests target that it builds this
     add_dependencies(UnitTests ${test_bin})
