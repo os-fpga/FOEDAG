@@ -59,8 +59,6 @@ static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
 }
 
 static int Tcl_AppInit(Tcl_Interp* interp) {
-  int Mymodule_Init(Tcl_Interp*);
-
   //  interpreter.registerCmd("gui_start", GuiStartCmd, 0, nullptr);
   //  CommandStack commands(&interpreter);
 
@@ -70,9 +68,6 @@ static int Tcl_AppInit(Tcl_Interp* interp) {
 
   if (Tcl_Init(interp) == TCL_ERROR) return TCL_ERROR;
 
-  /* Now initialize our functions */
-  // if (Mymodule_Init(interp) == TCL_ERROR)
-  //  return TCL_ERROR;
   return TCL_OK;
 }
 
