@@ -167,6 +167,7 @@ if (APPLE)
   # set_target_properties(foedag-bin PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE
   # INSTALL_RPATH "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/")
   target_link_libraries(foedag-bin PUBLIC foedag "-framework CoreFoundation")
+  target_link_libraries(foedag PUBLIC "-framework CoreFoundation")
 endif()
 
 if(MSVC OR WIN32)
