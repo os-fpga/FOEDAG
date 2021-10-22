@@ -400,19 +400,17 @@ jobs:
 
     - name: Build
       run: |
-# Comment until we finish the port
-#        make release
-#        sudo make install
+        make release
+        sudo make install
 
     - name: Unit tests
       run: |
-# Comment until we finish the port
-#        make test_install
-#        make test/unittest
+        make test_install
+        make test/unittest
 
     - name: Regression tests
       run: |
-#        make regression
+        make regression
 
   CodeFormatting:
     runs-on: ubuntu-20.04
