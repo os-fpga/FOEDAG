@@ -353,18 +353,18 @@ jobs:
         which $CXX && $CXX --version
 
     - name: Build
-#      run: |
+      run: |
 # Comment until we finish the port
 #        make release
 #        sudo make install
 
     - name: Unit tests
-#      run: |
+      run: |
 #        make test_install
 #        make test/unittest
 
     - name: Regression tests
-#      run: |
+      run: |
 #        make regression
 
   macos-clang:
