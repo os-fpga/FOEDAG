@@ -54,7 +54,7 @@ MainWindow::MainWindow() {
 
 void MainWindow::newFile() {
   QTextStream out(stdout);
-  out << "New file is requested" << Qt::endl;
+  out << "New file is requested\n";
 }
 
 void MainWindow::createMenus() {
