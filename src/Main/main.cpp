@@ -72,14 +72,14 @@ static int Tcl_AppInit(Tcl_Interp* interp) {
 }
 
 int main(int argc, char** argv) {
-
   // Do not run Qt when option "-noqt" is specified
   if (argc >= 2) {
     if (std::string(argv[1]) == "-noqt") {
       TclInterpreter interpreter(argv[0]);
-      std::string result = interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
+      std::string result =
+          interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
       if (result != "") {
-         std::cout << result << '\n';
+        std::cout << result << '\n';
       }
       return 0;
     }
