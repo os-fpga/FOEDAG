@@ -280,6 +280,7 @@ endif()
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/MainWindow/main_window.h
+        ${PROJECT_SOURCE_DIR}/src/MainWindow/Session.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
 
 install(
