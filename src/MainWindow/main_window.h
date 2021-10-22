@@ -6,6 +6,8 @@
 class QAction;
 class QLabel;
 
+namespace FOEDAG {
+
 /** Main window of the program */
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -30,5 +32,7 @@ class MainWindow : public QMainWindow {
   /* Tool bar objects */
   QToolBar* fileToolBar;
 };
+
+}
 
 #endif

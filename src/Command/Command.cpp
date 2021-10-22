@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "Command.h"
 
+using namespace FOEDAG;
+
 Command::Command(const std::string& cmd, const std::string& undo)
     : m_do(cmd), m_undo(undo) {}
 

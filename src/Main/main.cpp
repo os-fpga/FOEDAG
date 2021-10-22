@@ -38,6 +38,8 @@
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
+using namespace FOEDAG;
+
 /* TODO: Remove this ugly global variable */
 MainWindow* main_win = nullptr;
 

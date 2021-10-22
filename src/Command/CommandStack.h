@@ -25,6 +25,8 @@
 #ifndef COMMAND_STACK_H
 #define COMMAND_STACK_H
 
+namespace FOEDAG {
+
 class CommandStack {
  private:
  public:
@@ -38,5 +40,7 @@ class CommandStack {
   std::vector<Command*> m_cmds;
   TclInterpreter* m_interp;
 };
+
+}
 
 #endif

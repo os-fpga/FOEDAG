@@ -38,12 +38,12 @@
 
 struct Tcl_Interp;
 
+namespace FOEDAG {
+
 class TclInterpreter {
  private:
   Tcl_Interp* interp;
-  /* TODO: Add main window object here to interact with the internal Tcl
-   * interperator*/
-
+  
  public:
   TclInterpreter(const char* argv0 = nullptr);
 
@@ -60,6 +60,10 @@ class TclInterpreter {
 
   void registerCmd(const std::string& cmdName, Tcl_CmdProc proc,
                    ClientData clientData, Tcl_CmdDeleteProc* deleteProc);
+
+  Tcl_Interp* getInterp() { return interp; }
 };
+
+}
 
 #endif
