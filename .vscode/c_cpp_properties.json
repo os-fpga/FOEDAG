@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/src/",
-                "${workspaceFolder}/dbuild/", 
+                "${workspaceFolder}/dbuild/",
+                "${workspaceFolder}/dbuild/include/", 
                 "${workspaceFolder}/third_party/googletest/googletest/include/",
                 "${workspaceFolder}/src/**"
             ],

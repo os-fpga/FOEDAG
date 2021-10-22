@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "CommandStack.h"
 
+using namespace FOEDAG;
+
 CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {}
 
 bool CommandStack::push_and_exec(Command *cmd) {
