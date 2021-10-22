@@ -79,6 +79,12 @@ static int Tcl_AppInit(Tcl_Interp* interp) {
 int main(int argc, char** argv) {
   TclInterpreter interpreter(argv[0]);
 
+  // Do not run Qt when option "-noqt" is specified
+  if (argc >= 2) {
+    if (std::string(argv[1]) == "-noqt") {
+      return 0;
+    }
+  }
   QApplication app(argc, (char**)argv);
   main_win = new MainWindow;
 
