@@ -58,6 +58,7 @@ void registerTclCommands(Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);
+}
 
 int main(int argc, char** argv) {
   // Do not run Qt when option "-noqt" is specified
