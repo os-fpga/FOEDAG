@@ -41,6 +41,8 @@ struct Tcl_Interp;
 class TclInterpreter {
  private:
   Tcl_Interp* interp;
+  /* TODO: Add main window object here to interact with the internal Tcl
+   * interperator*/
 
  public:
   TclInterpreter(const char* argv0 = nullptr);

@@ -117,6 +117,7 @@ set(foedag_SRC
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
   src/MainWindow/main_window.cpp
+  src/Main/qttclnotifier.cpp
   ${QRC_MAIN_WINDOW}
 )
 
