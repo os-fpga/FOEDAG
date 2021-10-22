@@ -142,6 +142,9 @@ jobs:
         java-package: jre
         architecture: x64
 
+    - name: Install dependencies
+      uses: jurplel/install-qt-action@v2
+
     - name: Setup Msys2
       uses: msys2/setup-msys2@v2
       with:
@@ -197,17 +200,15 @@ jobs:
     - name: Build
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-# Comment until we finish the port
-#        make release
-#        make install
+        make release
+        make install
 
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-# Comment until we finish the port
-#        make test_install
-#        make test/unittest
-#        make regression
+        make test_install
+        make test/unittest
+        make regression
 
   windows-msvc:
     runs-on: windows-latest
@@ -241,6 +242,9 @@ jobs:
         java-package: jre
         architecture: x64
 
+    - name: Install dependencies
+      uses: jurplel/install-qt-action@v2
+
     - run: git config --global core.autocrlf input
       shell: bash
 
@@ -273,16 +277,15 @@ jobs:
         where python && python --version
         where ninja && ninja --version
 
-# Comment until we finish the port
-#        make release
-#        if %errorlevel% neq 0 exit /b %errorlevel%
-#        make install
-#        if %errorlevel% neq 0 exit /b %errorlevel%
-#        make test_install
-#        if %errorlevel% neq 0 exit /b %errorlevel%
-#        make test/unittest
-#        if %errorlevel% neq 0 exit /b %errorlevel%
-#        make regression
+        make release
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make install
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test_install
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test/unittest
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make regression
 
     - name: Archive build artifacts
       uses: actions/upload-artifact@v2
