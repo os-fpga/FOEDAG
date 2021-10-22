@@ -20,6 +20,9 @@ option(
 
 project(FOEDAG)
 
+# Check system 
+message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+
 # Find Qt packages and error out if not found
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Gui REQUIRED)
@@ -163,6 +166,8 @@ if (APPLE)
   # if you installed python with hombrew. Or if you install python with Xcode:
   # set_target_properties(foedag-bin PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE
   # INSTALL_RPATH "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/")
+  target_link_libraries(foedag-bin PUBLIC foedag "-framework CoreFoundation")
+  target_link_libraries(foedag PUBLIC "-framework CoreFoundation")
 endif()
 
 if(MSVC OR WIN32)
@@ -219,6 +224,7 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
+
 # All unit-tests are registered with this custom target as dependency, so
 # just `make UnitTests` will build them all.
 add_custom_target(UnitTests)
@@ -239,7 +245,15 @@ function(register_gtests)
     # For simplicity, we link the test with libfoedag, but there is of
     # course a lot unnecessary churn if headers are modified.
     # Often it is sufficient to just have a few depeendencies.
-    target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
+
+    if (APPLE)
+      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
+    elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
+    else()
+      target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
+    endif()
+
     gtest_discover_tests(${test_bin} TEST_PREFIX "${test_prefix}/")
 
     # Now, add this binary to our UnitTests target that it builds this

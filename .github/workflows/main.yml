@@ -318,6 +318,9 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - name: Install dependencies
+      uses: jurplel/install-qt-action@v2
+
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
       with:
@@ -344,18 +347,17 @@ jobs:
 
     - name: Build
       run: |
-# Comment until we finish the port
-#        make release
-#        sudo make install
+        make release
+        sudo make install
 
     - name: Unit tests
       run: |
-#        make test_install
-#        make test/unittest
+        make test_install
+        make test/unittest
 
     - name: Regression tests
       run: |
-#        make regression
+        make regression
 
   macos-clang:
     runs-on: macos-latest
@@ -370,6 +372,9 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.8
+
+    - name: Install dependencies
+      uses: jurplel/install-qt-action@v2
 
     - uses: actions/checkout@v2
       with:
@@ -398,19 +403,17 @@ jobs:
 
     - name: Build
       run: |
-# Comment until we finish the port
-#        make release
-#        sudo make install
+        make release
+        sudo make install
 
     - name: Unit tests
       run: |
-# Comment until we finish the port
-#        make test_install
-#        make test/unittest
+        make test_install
+        make test/unittest
 
     - name: Regression tests
       run: |
-#        make regression
+        make regression
 
   CodeFormatting:
     runs-on: ubuntu-20.04
