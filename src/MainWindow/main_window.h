@@ -33,6 +33,6 @@ class MainWindow : public QMainWindow {
   QToolBar* fileToolBar;
 };
 
-}
+}  // namespace FOEDAG
 
 #endif

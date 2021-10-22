@@ -38,6 +38,6 @@ class Command {
   std::string m_undo;
 };
 
-}
+}  // namespace FOEDAG
 
 #endif

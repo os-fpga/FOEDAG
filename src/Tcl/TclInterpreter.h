@@ -43,7 +43,7 @@ namespace FOEDAG {
 class TclInterpreter {
  private:
   Tcl_Interp* interp;
-  
+
  public:
   TclInterpreter(const char* argv0 = nullptr);
 
@@ -64,6 +64,6 @@ class TclInterpreter {
   Tcl_Interp* getInterp() { return interp; }
 };
 
-}
+}  // namespace FOEDAG
 
 #endif

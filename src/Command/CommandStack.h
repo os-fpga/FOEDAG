@@ -41,6 +41,6 @@ class CommandStack {
   TclInterpreter* m_interp;
 };
 
-}
+}  // namespace FOEDAG
 
 #endif
