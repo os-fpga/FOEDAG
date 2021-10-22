@@ -1,10 +1,9 @@
 .. _tutorial_dependencies:
 
 Dependencies
---------------
+------------
 
-Full list of dependencies can be found at install_dependencies_build_.
-In particular, OpenFPGA requires specific versions for the following dependencies:
+In general, OpenFPGA requires specific versions for the following dependencies:
 
 :cmake:
   version >3.15 for graphical interface
@@ -20,4 +19,13 @@ In particular, OpenFPGA requires specific versions for the following dependencie
   
   python3 -m pip install -r requirements.txt
 
-.. _install_dependencies_build: https://github.com/osfpga/FOEDAG/blob/master/.github/workflows/install_dependencies_build.sh
+
+Ubuntu
+======
+
+Full list of dependencies can be found at install_ubuntu_dependencies_build_.
+
+.. include:: ../../../../.github/workflows/install_ubuntu_dependencies_build.sh
+  :code: shell
+
+.. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_ubuntu_dependencies_build.sh
