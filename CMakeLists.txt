@@ -143,6 +143,11 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
 )
+# Copy the init.tcl file from source to build directory
+add_custom_command(TARGET foedag POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy 
+          ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/library/init.tcl
+          ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl9.0/init.tcl)
 add_dependencies(foedag tcl_build)
 
 
