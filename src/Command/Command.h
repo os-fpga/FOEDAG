@@ -27,7 +27,7 @@ namespace FOEDAG {
 class Command {
  private:
  public:
-  Command(const std::string& cmd, const std::string& undo);
+  Command(const std::string& cmd, const std::string& undo = "");
   const std::string& do_cmd();
   const std::string& undo_cmd();
 
