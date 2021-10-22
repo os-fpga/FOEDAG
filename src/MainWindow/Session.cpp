@@ -18,6 +18,4 @@ limitations under the License.
 
 using namespace FOEDAG;
 
-Session::Session() {}
-
 Session::~Session() {}
