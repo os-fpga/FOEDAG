@@ -244,6 +244,8 @@ function(register_gtests)
 
     if (APPLE)
       target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
+    elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
     else()
       target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
     endif()
