@@ -93,6 +93,7 @@ if(MSVC)
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+  set(CMAKE_EXE_LINKER_FLAGS "-static")
 else()
   if(DEFINED ENV{MSYSTEM})
     # Under MSYS some files are too large to build without additional flags

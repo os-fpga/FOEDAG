@@ -206,7 +206,7 @@ jobs:
     - name: Build
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make release DCMAKE_PREFIX_PATH=$QT_DIR
+        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
         make install
 
     - name: Test
