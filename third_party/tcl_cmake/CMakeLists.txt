@@ -44,7 +44,7 @@ if(NOT NO_TCMALLOC)
 endif()
 
 
-if (WIN32)
+if (MSVC)
   add_custom_command(
     OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
     COMMAND echo "       Compiling Tcl"
