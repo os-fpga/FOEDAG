@@ -147,14 +147,15 @@ jobs:
       with:
         msystem: mingw64 
         update: true
-        install: mingw-w64-x86_64-toolchain cmake ninja python python-devel diffutils
+        install: mingw-w64-x86_64-toolchain make cmake ninja python python-devel diffutils
       env:
         MSYS2_PATH_TYPE: inherit
 
-    - name: Install dependencies
+    - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
         dir: "${{github.workspace}}/qt/"
+        arch: "win64_mingw73"
 
     - name: Configure Git
       run: git config --global core.autocrlf input
