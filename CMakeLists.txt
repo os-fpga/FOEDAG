@@ -134,7 +134,11 @@ target_include_directories(foedag PRIVATE
   third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
-add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+if(MSVC)
+  add_executable(foedag-bin WIN32 ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+else()
+  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
