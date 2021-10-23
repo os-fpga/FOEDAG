@@ -145,9 +145,9 @@ jobs:
     - name: Setup Msys2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: mingw64 
+        msystem: MSYS
         update: true
-        install: mingw-w64-x86_64-toolchain make cmake ninja python python-devel diffutils
+        install: make cmake ninja python python-devel gcc git diffutils
       env:
         MSYS2_PATH_TYPE: inherit
 
@@ -155,7 +155,7 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
         dir: "${{github.workspace}}/qt/"
-        arch: "win64_mingw73"
+        arch: "win64_mingw81"
 
     - name: Configure Git
       run: git config --global core.autocrlf input
