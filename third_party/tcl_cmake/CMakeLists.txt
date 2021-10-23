@@ -44,16 +44,23 @@ if(NOT NO_TCMALLOC)
 endif()
 
 
-add_custom_command(
-  OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
-  COMMAND echo "       Compiling Tcl"
-  COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
-  COMMAND echo "       Tcl Compilation completed"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/unix"
-)
-
-
-
+if (WIN32)
+  add_custom_command(
+    OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
+    COMMAND echo "       Compiling Tcl"
+    COMMAND nmake -f makefile.vc
+    COMMAND echo "       Tcl Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/win"
+  )
+else ()
+  add_custom_command(
+    OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
+    COMMAND echo "       Compiling Tcl"
+    COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
+    COMMAND echo "       Tcl Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/unix"
+  )
+endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
