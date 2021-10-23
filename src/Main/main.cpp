@@ -24,7 +24,9 @@
 
 #include <string.h>
 #include <sys/stat.h>
+extern "C" {
 #include <tcl.h>
+}
 
 #include <QApplication>
 #include <QLabel>
