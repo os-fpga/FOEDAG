@@ -147,7 +147,7 @@ jobs:
       with:
         msystem: MSYS
         update: true
-        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt-tools
+        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt-static
       env:
         MSYS2_PATH_TYPE: inherit
 
@@ -167,8 +167,8 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        #export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64
-        export QT_DIR=D:/a/_temp/msys64/mingw64/qt5-static
+        export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake\\Qt5Widgets
+        #export QT_DIR=D:/a/_temp/msys64/mingw64/qt5-static/
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
