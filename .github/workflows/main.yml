@@ -210,7 +210,7 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make release ADDITIONAL_CMAKE_OPTIONS="-G \"CodeBlocks - MinGW Makefiles\""
+        make release
         make install
 
     - name: Test
