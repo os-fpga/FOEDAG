@@ -143,7 +143,7 @@ if(MSVC)
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake -f makefile.vc
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
 else()
