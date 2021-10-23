@@ -34,43 +34,30 @@
 #include <vector>
 
 #include "Command/CommandStack.h"
+#include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
+#include "foedag.h"
 #include "qttclnotifier.hpp"
 
 using namespace FOEDAG;
 
-/* TODO: Remove this ugly global variable */
-MainWindow* main_win = nullptr;
+FOEDAG::Session* GlobalSession;
 
-static int GuiCloseCmd(ClientData clientData, Tcl_Interp* interp, int argc,
-                       const char** argv) {
-  main_win->hide();
-  return 0;
-}
+void registerTclCommands(Session* session) {
+  auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    GlobalSession->MainWindow()->show();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("gui_start", gui_start, 0, 0);
 
-// static int tcl_eval(std::string cmd) {
-//  Tcl_Eval(interp, cmd.c_str());
-//}
-
-static int GuiStartCmd(ClientData clientData, Tcl_Interp* interp, int argc,
-                       const char** argv) {
-  /* Create the main window */
-  main_win->show();
-  return 0;
-}
-
-static int QtTcl_AppInit(Tcl_Interp* interp) {
-  //  interpreter.registerCmd("gui_start", GuiStartCmd, 0, nullptr);
-  //  CommandStack commands(&interpreter);
-
-  // TODO: register gui close command
-  Tcl_CreateCommand(interp, "gui_start", GuiStartCmd, 0, 0);
-  Tcl_CreateCommand(interp, "gui_close", GuiCloseCmd, 0, 0);
-
-  if (Tcl_Init(interp) == TCL_ERROR) return TCL_ERROR;
-
-  return TCL_OK;
+  auto gui_stop = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    GlobalSession->MainWindow()->hide();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);
 }
 
 int main(int argc, char** argv) {
@@ -87,17 +74,25 @@ int main(int argc, char** argv) {
     }
   }
   QApplication app(argc, (char**)argv);
-  main_win = new MainWindow;
+  MainWindow* main_win = new MainWindow;
+  TclInterpreter* interpreter = new TclInterpreter(argv[0]);
+  CommandStack* commands = new CommandStack(interpreter);
+  GlobalSession = new Session(main_win, interpreter, commands);
+  registerTclCommands(GlobalSession);
 
   QtTclNotify::QtTclNotifier::setup();  // registers my notifier with Tcl
 
-  // tell Tcl to run Qt as the main event loop once the interpreter is
+  // Tell Tcl to run Qt as the main event loop once the interpreter is
   // initialized
   Tcl_SetMainLoop([]() { QApplication::exec(); });
 
-  // create a Tcl interpreter and connect it to the terminal
-  Tcl_Main(argc, (char**)argv, QtTcl_AppInit);
+  // Dummy Tcl_AppInit
+  auto tcl_init = [](Tcl_Interp*) -> int { return 0; };
 
-  //  Command* start = new Command("gui_start", "bye_gui");
-  //  commands.push_and_exec(start);
+  // Start Loop
+  Tcl_MainEx(argc, (char**)argv, tcl_init,
+             ((Tcl_SetPanicProc(Tcl_ConsolePanic), interpreter->getInterp())));
+
+  delete GlobalSession;
+  return 0;
 }

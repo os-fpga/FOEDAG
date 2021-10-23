@@ -14,12 +14,14 @@
  limitations under the License.
  */
 
+#include <QMainWindow>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include "Command/Command.h"
+#include "Command/CommandStack.h"
 #include "Tcl/TclInterpreter.h"
 
 #ifndef SESSION_H
@@ -30,11 +32,19 @@ namespace FOEDAG {
 class Session {
  private:
  public:
-  Session();
+  Session(QMainWindow *mainWindow, TclInterpreter *interp, CommandStack *stack)
+      : m_mainWindow(mainWindow), m_interp(interp), m_stack(stack) {}
 
   ~Session();
 
+  QMainWindow *MainWindow() { return m_mainWindow; }
+  TclInterpreter *TclInterp() { return m_interp; }
+  CommandStack *CmdStack() { return m_stack; }
+
  private:
+  QMainWindow *m_mainWindow;
+  TclInterpreter *m_interp;
+  CommandStack *m_stack;
 };
 
 }  // namespace FOEDAG
