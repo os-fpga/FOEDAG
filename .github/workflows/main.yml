@@ -167,6 +167,7 @@ jobs:
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
+        echo "QT_INSTALL_PREFIX=$QT_INSTALL_PREFIX" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
