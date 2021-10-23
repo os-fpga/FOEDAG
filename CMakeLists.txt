@@ -137,9 +137,14 @@ target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
-add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
+set(TCL_STATIC_LIB libtcl9.0.a)
+if (MSVC)
+  set(TCL_STATIC_LIB tcl90s.lib)
+endif()
+
+add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 if(MSVC)
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake -f makefile.vc all install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt,noembed
     #COMMAND nmake -f makefile.vc all OPTS=static,nomsvcrt,noembed
@@ -148,7 +153,7 @@ if(MSVC)
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
 else()
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
     COMMAND make all -j
@@ -193,7 +198,7 @@ endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_static zlib)
@@ -287,7 +292,7 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 
 if (WIN32 AND $<CONFIG:Debug>)
