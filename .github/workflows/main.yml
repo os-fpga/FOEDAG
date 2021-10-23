@@ -185,6 +185,8 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
+        # Add qt to cmake path 
+        export CMAKE_PREFIX_PATH='D:\a\FOEDAG\Qt\5.15.2\msvc2019_64'
         env
         where git && git --version
         where cmake && cmake --version
