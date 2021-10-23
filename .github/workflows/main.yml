@@ -145,7 +145,7 @@ jobs:
     - name: Setup Msys2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MSYS
+        msystem: mingw64
         update: true
         install: make cmake ninja python python-devel gcc git diffutils
       env:
@@ -249,7 +249,7 @@ jobs:
         java-package: jre
         architecture: x64
 
-    - name: Install dependencies
+    - name: Install Qt
       uses: jurplel/install-qt-action@v2
 
     - run: git config --global core.autocrlf input
