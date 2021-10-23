@@ -4,6 +4,8 @@
 #include <QtWidgets>
 #include <fstream>
 
+#include "Main/foedag.h"
+
 using namespace FOEDAG;
 
 MainWindow::MainWindow() {
@@ -52,7 +54,7 @@ MainWindow::MainWindow() {
 
 void MainWindow::newFile() {
   QTextStream out(stdout);
-  out << "New file is requested" << endl;
+  out << "New file is requested\n";
 }
 
 void MainWindow::createMenus() {
@@ -77,5 +79,9 @@ void MainWindow::createActions() {
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));
   exitAction->setStatusTip(tr("Exit the application"));
-  connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
+
+  connect(exitAction, &QAction::triggered, qApp, [this]() {
+    Command cmd("gui_stop; exit");
+    GlobalSession->CmdStack()->push_and_exec(&cmd);
+  });
 }
