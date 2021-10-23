@@ -143,7 +143,7 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 if (MSVC)
-  set(TCL_STATIC_LIB tcl90sx.lib)
+  set(TCL_STATIC_LIB tcl9dde14sx.lib)
 endif()
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
