@@ -138,15 +138,25 @@ add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WIN
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
-  COMMAND echo "       Compiling Tcl"
-  COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
-  COMMAND make all -j
-  COMMAND make install
-  COMMAND echo "       Tcl Compilation completed"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
-)
+if(MSVC)
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+    COMMAND echo "       Compiling Tcl"
+    COMMAND nmake -f makefile.vc
+    COMMAND echo "       Tcl Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
+  )
+else()
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
+    COMMAND echo "       Compiling Tcl"
+    COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND make all -j
+    COMMAND make install
+    COMMAND echo "       Tcl Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
+  )
+endif()
 # Copy the init.tcl file from source to build directory
 add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
