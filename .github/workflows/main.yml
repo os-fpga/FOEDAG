@@ -117,6 +117,7 @@ jobs:
         path: |
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
+
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
     runs-on: windows-latest
@@ -205,7 +206,7 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=${Qt5_Dir}
+        make release ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=${Qt5_Dir} -G \"CodeBlocks - MinGW Makefiles\""
         make install
 
     - name: Test
