@@ -167,8 +167,8 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        #export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64\\
-        export QT_DIR=D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake
+        export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64\\
+        #export QT_DIR=D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
@@ -207,14 +207,14 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
-        make install
+        make install ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
 
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make test_install
-        make test/unittest
-        make regression
+        make test_install ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
+        make test/unittest ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
+        make regression ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
 
   windows-msvc:
     runs-on: windows-latest
