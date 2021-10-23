@@ -164,10 +164,11 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
+        export QT_DIR=/d/a/_temp/msys64/mingw64/qt5-static
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
-        echo "QT_INSTALL_PREFIX=$QT_INSTALL_PREFIX" >> $GITHUB_ENV
+        echo "QT_DIR=$QT_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
@@ -176,6 +177,7 @@ jobs:
         echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
         echo "PREFIX=$CWD/install" >> $GITHUB_ENV
 
+        echo "$QT_DIR" >> $GITHUB_PATH
         echo "$SWIG_DIR" >> $GITHUB_PATH
         echo "$JAVA_HOME/bin" >> $GITHUB_PATH
 
@@ -183,7 +185,7 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
-        export PATH=$QT_INSTALL_PREFIX:$PATH
+        export PATH=$QT_DIR:$PATH
         env
         where git && git --version
         where cmake && cmake --version
