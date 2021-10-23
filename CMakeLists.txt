@@ -141,14 +141,14 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 if (MSVC)
-  set(TCL_STATIC_LIB tcl90.dll)
+  set(TCL_STATIC_LIB tcl90.lib)
 endif()
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 if(MSVC)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     #COMMAND nmake -f makefile.vc all OPTS=static,nomsvcrt,noembed
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
