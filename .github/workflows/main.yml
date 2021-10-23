@@ -145,9 +145,9 @@ jobs:
     - name: Setup Msys2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MSYS
+        msystem: mingw64 
         update: true
-        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt-static
+        install: make cmake ninja python python-devel gcc git diffutils
       env:
         MSYS2_PATH_TYPE: inherit
 
@@ -169,12 +169,9 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        #export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64
-        #export QT_DIR="D:/a/_temp/msys64/mingw64/qt5-static/lib"
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
-        #echo "QT_DIR=$QT_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
@@ -183,7 +180,6 @@ jobs:
         echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
         echo "PREFIX=$CWD/install" >> $GITHUB_ENV
 
-        echo "$QT_DIR" >> $GITHUB_PATH
         echo "$SWIG_DIR" >> $GITHUB_PATH
         echo "$JAVA_HOME/bin" >> $GITHUB_PATH
 
@@ -191,8 +187,6 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
-        #export PATH=$QT_DIR:$PATH
-        export CMAKE_PREFIX_PATH=$QT_DIR
         env
         where git && git --version
         where cmake && cmake --version
@@ -214,6 +208,8 @@ jobs:
         make install
 
     - name: Test
+      env:
+        CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         make test_install
