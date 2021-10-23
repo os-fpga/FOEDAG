@@ -93,7 +93,6 @@ if(MSVC)
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
-  set(CMAKE_EXE_LINKER_FLAGS /DSTATIC_BUILD)  # 8MB stack size
 else()
   if(DEFINED ENV{MSYSTEM})
     # Under MSYS some files are too large to build without additional flags
@@ -144,14 +143,14 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 if (MSVC)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  set(TCL_STATIC_LIB tclstub90.lib)
 endif()
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 if(MSVC)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake -f makefile.vc all install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,noembed,nomsvcrt
+    COMMAND nmake -f makefile.vc all install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     #COMMAND nmake -f makefile.vc all OPTS=static,nomsvcrt,noembed
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
