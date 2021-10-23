@@ -90,8 +90,7 @@ int main(int argc, char** argv) {
   auto tcl_init = [](Tcl_Interp*) -> int { return 0; };
 
   // Start Loop
-  Tcl_MainEx(argc, (char**)argv, tcl_init,
-             ((Tcl_SetPanicProc(Tcl_ConsolePanic), interpreter->getInterp())));
+  Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
 
   delete GlobalSession;
   return 0;
