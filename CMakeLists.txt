@@ -24,9 +24,7 @@ project(FOEDAG)
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
 # Find Qt packages and error out if not found
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Core REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 if (NOT Qt5Widgets_FOUND)
     message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Gui_FOUND)
