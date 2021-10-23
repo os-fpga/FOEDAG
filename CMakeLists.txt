@@ -93,6 +93,7 @@ if(MSVC)
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+  set(CMAKE_EXE_LINKER_FLAGS /DSTATIC_BUILD)  # 8MB stack size
 else()
   if(DEFINED ENV{MSYSTEM})
     # Under MSYS some files are too large to build without additional flags
@@ -196,7 +197,6 @@ if(MSVC OR WIN32)
   # becaues of /IMPLIB option when linking the executable. Unfortunately, there is no documented
   # way to disable the latter in CMake. So, moving the library to the bin directory (right next to the exe)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-  target_link_libraries(foedag-bin -static)
 endif()
 
 
