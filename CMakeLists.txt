@@ -141,7 +141,8 @@ add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a)
 if(MSVC)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/libtcl9.0.a
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,msvcrt
+    #COMMAND nmake -f makefile.vc all install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND nmake -f makefile.vc all OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
