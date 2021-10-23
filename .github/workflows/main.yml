@@ -186,6 +186,7 @@ jobs:
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
         export PATH=$QT_DIR:$PATH
+        export CMAKE_PREFIX_PATH=$QT_DIR
         env
         where git && git --version
         where cmake && cmake --version
