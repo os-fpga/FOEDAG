@@ -117,7 +117,7 @@ jobs:
         path: |
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
-
+# Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
     runs-on: windows-latest
     defaults:
@@ -153,6 +153,8 @@ jobs:
 
     - name: Install dependencies
       uses: jurplel/install-qt-action@v2
+      with:
+        dir: "${{github.workspace}}/qt/"
 
     - name: Configure Git
       run: git config --global core.autocrlf input
@@ -168,11 +170,11 @@ jobs:
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
         #export QT_DIR=D:\\a\\FOEDAG\\Qt\\5.15.2\\msvc2019_64
-        export QT_DIR="D:/a/_temp/msys64/mingw64/qt5-static/lib"
+        #export QT_DIR="D:/a/_temp/msys64/mingw64/qt5-static/lib"
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export CWD=`pwd`
 
-        echo "QT_DIR=$QT_DIR" >> $GITHUB_ENV
+        #echo "QT_DIR=$QT_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
@@ -189,7 +191,7 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
-        export PATH=$QT_DIR:$PATH
+        #export PATH=$QT_DIR:$PATH
         export CMAKE_PREFIX_PATH=$QT_DIR
         env
         where git && git --version
@@ -204,17 +206,19 @@ jobs:
         where $CXX && $CXX --version
 
     - name: Build
+      env:
+        CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
-        make install ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
+        make release ADDITIONAL_CMAKE_OPTIONS="-G \"CodeBlocks - MinGW Makefiles\""
+        make install
 
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make test_install ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
-        make test/unittest ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
-        make regression ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH=$QT_DIR
+        make test_install
+        make test/unittest
+        make regression
 
   windows-msvc:
     runs-on: windows-latest
