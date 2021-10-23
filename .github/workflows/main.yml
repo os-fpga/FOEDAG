@@ -147,12 +147,9 @@ jobs:
       with:
         msystem: MSYS
         update: true
-        install: make cmake ninja python python-devel gcc git diffutils
+        install: make cmake ninja python python-devel gcc git diffutils qt5
       env:
         MSYS2_PATH_TYPE: inherit
-
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
 
     - name: Configure Git
       run: git config --global core.autocrlf input
@@ -168,7 +165,6 @@ jobs:
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
-        export QT_DIR=`/d/FOEDAG/Qt/5.15.2/mscv2019_64`
         export CWD=`pwd`
 
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
@@ -186,7 +182,6 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
-        export PATH=$QT_DIR:$PATH
         env
         where git && git --version
         where cmake && cmake --version
