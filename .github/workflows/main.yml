@@ -213,11 +213,6 @@ jobs:
         where $CC && $CC --version
         where $CXX && $CXX --version
 
-    - name: Configure CMake
-      env:
-        CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
-      run: cmake -B '${{github.workspace}}'/build
-
     - name: Build
       env:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
