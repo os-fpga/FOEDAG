@@ -147,7 +147,7 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
-        update: true
+#        update: true
 #        install: mingw-w64-x86_64-toolchain make cmake ninja python python-devel gcc git diffutils
         install: mingw-w64-x86_64-toolchain cmake ninja python-devel git diffutils
         release: false
@@ -195,6 +195,7 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
+        export Qt5_DIR=$Qt5_Dir
         env
         where git && git --version
         where cmake && cmake --version
@@ -212,7 +213,7 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
-        make release ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=${Qt5_Dir} -G \"CodeBlocks - MinGW Makefiles\""
+        make release #ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=${Qt5_Dir}"
         make install
 
     - name: Test
