@@ -148,21 +148,12 @@ jobs:
       with:
         msystem: MSYS
         update: true
-        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt5-static
+        install: make cmake ninja python python-devel gcc git diffutils
+#        install: make ninja python python-devel gcc git diffutils mingw-w64-x86_64-{cmake, qt5-static}
 #        install: mingw-w64-x86_64-toolchain cmake ninja python-devel git diffutils
 #        release: false
 #      env:
 #        MSYS2_PATH_TYPE: inherit
-
-#    - name: Install Qt
-#      uses: jurplel/install-qt-action@v2
-#      with:
-#        version: "5.12.11"
-#        host: "windows"
-#        target: "desktop"
-#        dir: "${{github.workspace}}/qt/"
-#        arch: "win64_mingw73"
-#        install-deps: "true"
 
     - name: Configure Git
       run: git config --global core.autocrlf input
@@ -174,12 +165,22 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: "5.12.11"
+        host: "windows"
+        target: "desktop"
+        dir: "${{github.workspace}}/qt/"
+        arch: "win64_mingw73"
+        install-deps: "true"
+
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
-        #export Qt5_DIR=$Qt5_Dir
-        export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
+        export Qt5_DIR=$Qt5_Dir
+        #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         export CWD=`pwd`
 
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
@@ -212,14 +213,14 @@ jobs:
         where $CXX && $CXX --version
 
     - name: Build
-#      env:
-#        CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
+      env:
+        CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
+        export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-        #export Qt5_DIR=$Qt5_Dir
-        export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
-        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH="D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake;D:/a/_temp/msys64/mingw64/qt5-static/"
+        #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
+        make release #ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH="D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake;D:/a/_temp/msys64/mingw64/qt5-static/"
         make install
 
     - name: Test
