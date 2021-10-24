@@ -196,6 +196,7 @@ if(MSVC OR WIN32)
   # becaues of /IMPLIB option when linking the executable. Unfortunately, there is no documented
   # way to disable the latter in CMake. So, moving the library to the bin directory (right next to the exe)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+  set_target_properties(foedag PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
 
 
