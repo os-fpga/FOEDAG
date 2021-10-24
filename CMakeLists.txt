@@ -203,6 +203,14 @@ endif()
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+if(MSVC)
+  set_target_properties(tcl_static PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
+  set_target_properties(foedag PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
+endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_static zlib)
