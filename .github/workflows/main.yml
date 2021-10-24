@@ -212,7 +212,7 @@ jobs:
         where $CXX && $CXX --version
 
     - name: Build
-      env:
+#      env:
 #        CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
