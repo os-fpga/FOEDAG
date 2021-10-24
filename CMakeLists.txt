@@ -205,7 +205,7 @@ SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_static zlib)
-target_link_libraries(foedag  PUBLIC tcl_static zlib ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+target_link_libraries(foedag  PUBLIC tcl_static zlib)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)

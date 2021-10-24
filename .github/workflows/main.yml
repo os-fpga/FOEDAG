@@ -219,7 +219,7 @@ jobs:
         export PATH=$Qt5_DIR:$PATH
         #export Qt5_DIR=$Qt5_Dir
         export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
-        make release #ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake"
+        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH="D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake;D:/a/_temp/msys64/mingw64/qt5-static/"
         make install
 
     - name: Test
