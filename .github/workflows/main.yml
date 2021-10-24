@@ -179,7 +179,7 @@ jobs:
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         #export Qt5_DIR=$Qt5_Dir
-        export Qt5_DIR=D:/a/_temp/mingw64/qt5-static
+        export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         export CWD=`pwd`
 
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
