@@ -182,7 +182,7 @@ jobs:
         export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         export CWD=`pwd`
 
-        echo "Qt5_DIR=$SWIG_DIR" >> $GITHUB_ENV
+        echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
