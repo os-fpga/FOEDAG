@@ -178,6 +178,7 @@ jobs:
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
         export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
+        export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
 
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
@@ -188,6 +189,7 @@ jobs:
         echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
         echo "PREFIX=$CWD/install" >> $GITHUB_ENV
 
+        echo "$Qt5_DIR" >> $GITHUB_PATH
         echo "$SWIG_DIR" >> $GITHUB_PATH
         echo "$JAVA_HOME/bin" >> $GITHUB_PATH
 
@@ -195,7 +197,6 @@ jobs:
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_DIR=$Qt5_Dir
         env
         where git && git --version
         where cmake && cmake --version
