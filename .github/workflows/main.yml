@@ -146,9 +146,9 @@ jobs:
     - name: Setup Msys2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: mingw64
+        msystem: MSYS
         update: true
-        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt5-static mingw-w64-x86_64-imagemagick
+        install: make cmake ninja python python-devel gcc git diffutils mingw-w64-x86_64-qt5-static
 #        install: mingw-w64-x86_64-toolchain cmake ninja python-devel git diffutils
 #        release: false
 #      env:
