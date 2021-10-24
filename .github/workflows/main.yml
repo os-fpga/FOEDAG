@@ -212,7 +212,6 @@ jobs:
         where $CXX && $CXX --version
 
     - name: Build
-      shell: bash
       env:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
@@ -221,6 +220,12 @@ jobs:
         export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         make release #ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=D:/a/_temp/msys64/mingw64/qt5-static/lib/cmake"
         make install
+
+    - name: Start SSH session
+      uses: luchihoratiu/debug-via-ssh@main
+      with:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - name: Test
       env:
