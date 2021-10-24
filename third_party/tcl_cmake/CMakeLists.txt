@@ -43,18 +43,24 @@ if(NOT NO_TCMALLOC)
   endif()
 endif()
 
+set(TCL_STATIC_LIB libtcl9.0.a)
+if (MSVC)
+  set(TCL_STATIC_LIB tcl90sx.lib)
+endif()
+
 
 if(MSVC)
   add_custom_command(
-    OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
+    OUTPUT ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake -f makefile.vc
+    COMMAND nmake -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
+    COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/win"
   )
 else ()
   add_custom_command(
-    OUTPUT ../../build/third_party/tcl_cmake/lib/libtcl9.0.a
+    OUTPUT ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
     COMMAND echo "       Tcl Compilation completed"
@@ -64,7 +70,7 @@ endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION ../../build/third_party/tcl_cmake/lib/libtcl9.0.a)
+    IMPORTED_LOCATION ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB})
 
 if(MSVC)
   add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
