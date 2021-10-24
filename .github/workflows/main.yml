@@ -214,6 +214,7 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_Dir}}
       run: |
         export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
+        export Qt5_DIR=$Qt5_Dir
         make release #ADDITIONAL_CMAKE_OPTIONS="-DCMAKE_PREFIX_PATH=${Qt5_Dir}"
         make install
 
@@ -294,7 +295,7 @@ jobs:
         where python && python --version
         where ninja && ninja --version
 
-        make release ADDITIONAL_CMAKE_OPTIONS="-G \"Visual Studio 2019 Win64\""
+        make release ADDITIONAL_CMAKE_OPTIONS="-G \"Visual Studio 16 2019 -A Win64\""
         if %errorlevel% neq 0 exit /b %errorlevel%
         make install
         if %errorlevel% neq 0 exit /b %errorlevel%
