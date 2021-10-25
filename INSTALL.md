@@ -6,6 +6,9 @@
 On Ubuntu 18.04:
    sudo apt-get install qt5-default
 
+On Ubuntu 20.04:
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+
 On Ubuntu 21.04:
    sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
 ```
