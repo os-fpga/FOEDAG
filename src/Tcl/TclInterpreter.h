@@ -25,7 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+extern "C" {
 #include <tcl.h>
+}
 
 #include <fstream>
 #include <functional>

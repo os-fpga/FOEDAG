@@ -24,7 +24,9 @@
 
 #include <string.h>
 #include <sys/stat.h>
+extern "C" {
 #include <tcl.h>
+}
 
 #include <QApplication>
 #include <QLabel>
@@ -40,11 +42,9 @@
 #include "foedag.h"
 #include "qttclnotifier.hpp"
 
-using namespace FOEDAG;
-
 FOEDAG::Session* GlobalSession;
 
-void registerTclCommands(Session* session) {
+void registerTclCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     GlobalSession->MainWindow()->show();
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
   // Do not run Qt when option "-noqt" is specified
   if (argc >= 2) {
     if (std::string(argv[1]) == "-noqt") {
-      TclInterpreter interpreter(argv[0]);
+      FOEDAG::TclInterpreter interpreter(argv[0]);
       std::string result =
           interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
       if (result != "") {
@@ -74,10 +74,10 @@ int main(int argc, char** argv) {
     }
   }
   QApplication app(argc, (char**)argv);
-  MainWindow* main_win = new MainWindow;
-  TclInterpreter* interpreter = new TclInterpreter(argv[0]);
-  CommandStack* commands = new CommandStack(interpreter);
-  GlobalSession = new Session(main_win, interpreter, commands);
+  FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
+  FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
+  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  GlobalSession = new FOEDAG::Session(main_win, interpreter, commands);
   registerTclCommands(GlobalSession);
 
   QtTclNotify::QtTclNotifier::setup();  // registers my notifier with Tcl
