@@ -153,9 +153,6 @@ if(MSVC)
     COMMAND nmake -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     COMMAND echo "       Tcl Compilation completed"
-    COMMAND ${CMAKE_COMMAND} -E copy 
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win/Release_AMD64_VC1929/${TCL_STATIC_LIB}
-            ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
@@ -164,6 +161,7 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy 
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win/Release_AMD64_VC1929/${TCL_STATIC_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
+  )
   add_dependencies(foedag tcl_build)
 else()
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
