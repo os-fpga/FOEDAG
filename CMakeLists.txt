@@ -148,7 +148,7 @@ endif()
 
 add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 if(MSVC)
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/lib${TCL_STATIC_LIB}
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
     COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
