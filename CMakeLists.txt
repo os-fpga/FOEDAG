@@ -256,6 +256,8 @@ if(MSVC)
   set_target_properties(foedag PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
+  target_link_libraries(foedag-bin PUBLIC Netapi32)
+  target_link_libraries(foedag  PUBLIC Netapi32)
 endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
