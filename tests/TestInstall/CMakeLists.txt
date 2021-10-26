@@ -47,9 +47,11 @@ endif()
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
+set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90sx.lib)
+  set(ZLIB_STATIC_LIB zlib.lib)
 endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
@@ -62,7 +64,7 @@ SET_TARGET_PROPERTIES(tcl_stubb  PROPERTIES
 
 ADD_LIBRARY(zlib STATIC IMPORTED)
 SET_TARGET_PROPERTIES(zlib  PROPERTIES
-    IMPORTED_LOCATION ${INSTALL_DIR}/lib/libz.a)
+    IMPORTED_LOCATION ${INSTALL_DIR}/lib/${ZLIB_STATIC_LIB})
 
 if(NOT NO_TCMALLOC)
   find_library(TCMALLOC_LIBRARY NAMES tcmalloc)
