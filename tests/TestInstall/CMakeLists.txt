@@ -15,7 +15,7 @@ project(HELLOFOEDAG)
 
 # NOTE: Policy changes has to happen before adding any subprojects
 cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
@@ -94,7 +94,7 @@ endif()
 add_executable(test_hellofoedag ${PROJECT_SOURCE_DIR}/../../src/Main/main.cpp)
 
 if(MSVC)
-  set_property(TARGET test_hellofoedag PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+  set_property(TARGET test_hellofoedag PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
   set_property(TARGET test_hellofoedag PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
 endif()
 
