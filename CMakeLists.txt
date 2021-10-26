@@ -90,7 +90,8 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS_RELEASE
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
-  set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608 /NODEFAULTLIB:library)  # 8MB stack size
+  set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+  set(CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:library) 
 else()
   if(DEFINED ENV{MSYSTEM})
     # Under MSYS some files are too large to build without additional flags
