@@ -120,7 +120,7 @@ else()
 endif()
 
 if(MSVC)
-  target_link_libraries(test_hellofoedag PUBLIC Netapi32)
+  target_link_libraries(test_hellofoedag Netapi32)
 endif()
 
 if (APPLE)
