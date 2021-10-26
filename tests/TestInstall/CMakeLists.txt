@@ -45,10 +45,20 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
+set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_STUBB_LIB libtclstub9.0.a)
+if (MSVC)
+  set(TCL_STUBB_LIB tclstub90.lib)
+  set(TCL_STATIC_LIB tcl90sx.lib)
+endif()
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/libtcl9.0.a)
+    IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STATIC_LIB})
+
+ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
+SET_TARGET_PROPERTIES(tcl_stubb  PROPERTIES
+    IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STUBB_LIB})
 
 ADD_LIBRARY(zlib STATIC IMPORTED)
 SET_TARGET_PROPERTIES(zlib  PROPERTIES
@@ -63,8 +73,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${TCMALLOC_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS}")
 if(MSVC)
-  set(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj ${MY_CXX_WARNING_FLAGS}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj ${MY_CXX_WARNING_FLAGS}")
+  set(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}")
 else()
   # C++ Compilation line
   if($<BOOL:${TCMALLOC_LIBRARY}>)
@@ -89,6 +99,7 @@ target_link_directories(test_hellofoedag
 if (FOEDAG_WITH_PYTHON)
   target_link_libraries(test_hellofoedag
     foedag
+    tcl_stubb
     tcl_static
     zlib
     ${Python3_LIBRARIES}
@@ -97,6 +108,7 @@ if (FOEDAG_WITH_PYTHON)
 else()
   target_link_libraries(test_hellofoedag
     foedag
+    tcl_stubb
     tcl_static
     zlib
     Qt5::Widgets Qt5::Core Qt5::Gui
