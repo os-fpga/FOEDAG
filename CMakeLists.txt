@@ -150,7 +150,7 @@ endif()
 
 if(MSVC)
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
-  add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
+  add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
@@ -171,7 +171,8 @@ if(MSVC)
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win/Release_AMD64_VC1929/${TCL_STUBB_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}   
   )
-  add_dependencies(foedag tcl_stubb_build tcl_build)
+  add_dependencies(foedag tcl_stubb_build)
+  add_dependencies(foedag tcl_build)
 else()
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
