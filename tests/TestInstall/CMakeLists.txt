@@ -120,6 +120,19 @@ else()
 endif()
 
 if(MSVC)
+  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+  set_target_properties(tcl_static PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
+  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
+  set_target_properties(tcl_stubb PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
+  set_target_properties(test_hellofoedag PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
   target_link_libraries(test_hellofoedag Netapi32)
 endif()
 
