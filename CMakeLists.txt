@@ -142,7 +142,7 @@ endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
-set(TCL_STUBB_LIB )
+set(TCL_STUBB_LIB libtclstub9.0.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90sx.lib)
@@ -217,12 +217,20 @@ endif()
 
 
 ADD_LIBRARY(tcl_static STATIC IMPORTED)
-SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
+SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
+SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})    
 if(MSVC)
-  SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}")
+  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
+    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+  )
+  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
+  set_target_properties(tcl_stubb PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
   set_target_properties(foedag PROPERTIES
@@ -230,8 +238,8 @@ if(MSVC)
   )
 endif()
 
-target_link_libraries(foedag-bin PUBLIC foedag tcl_static zlib)
-target_link_libraries(foedag  PUBLIC tcl_static zlib)
+target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
+target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)
@@ -324,7 +332,9 @@ install(
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
-
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)
     install(
@@ -332,12 +342,10 @@ if (WIN32 AND $<CONFIG:Debug>)
             ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}$<$<CONFIG:Debug>:_d>.dll
       DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
-  install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
   install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/foedag.dir/foedag.pdb
           ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_static.dir/tcl_static.pdb
+          ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_stubb.dir/tcl_stubb.pdb
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
 
