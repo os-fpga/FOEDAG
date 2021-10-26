@@ -105,6 +105,7 @@ if (FOEDAG_WITH_PYTHON)
     tcl_static
     zlib
     ${Python3_LIBRARIES}
+    Qt5::Widgets Qt5::Core Qt5::Gui 
     $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 else()
@@ -116,6 +117,10 @@ else()
     Qt5::Widgets Qt5::Core Qt5::Gui
     $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
+endif()
+
+if(MSVC)
+  target_link_libraries(test_hellofoedag PUBLIC Netapi32)
 endif()
 
 if (APPLE)
