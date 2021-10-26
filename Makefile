@@ -67,7 +67,7 @@ test/regression: run-cmake-release
 test/valgrind: run-cmake-debug
 	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag -noqt  ; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind.log 
-	
+
 
 test: test/unittest test/regression
 
