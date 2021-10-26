@@ -142,7 +142,9 @@ endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_STUBB_LIB )
 if (MSVC)
+  set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90sx.lib)
 endif()
 
@@ -162,6 +164,11 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy 
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win/Release_AMD64_VC1929/${TCL_STATIC_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
+  )
+  add_custom_command(TARGET tcl_build POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+            ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win/Release_AMD64_VC1929/${TCL_STUBB_LIB}
+            ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}   
   )
   add_dependencies(foedag tcl_build)
 else()
@@ -213,6 +220,8 @@ ADD_LIBRARY(tcl_static STATIC IMPORTED)
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 if(MSVC)
+  SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
@@ -323,6 +332,9 @@ if (WIN32 AND $<CONFIG:Debug>)
             ${Python3_RUNTIME_LIBRARY_DIRS}/python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}$<$<CONFIG:Debug>:_d>.dll
       DESTINATION ${CMAKE_INSTALL_BINDIR})
   endif()
+  install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
   install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/foedag.dir/foedag.pdb
           ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_static.dir/tcl_static.pdb
