@@ -89,6 +89,12 @@ else()
 endif()
 
 add_executable(test_hellofoedag ${PROJECT_SOURCE_DIR}/../../src/Main/main.cpp)
+
+if(MSVC)
+  set_property(TARGET test_hellofoedag PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set_property(TARGET test_hellofoedag PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
+endif()
+
 target_include_directories(test_hellofoedag PRIVATE
   ${INSTALL_DIR}/include/foedag
   ${INSTALL_DIR}/include
