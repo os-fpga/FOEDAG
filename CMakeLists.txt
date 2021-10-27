@@ -82,13 +82,13 @@ if(MSVC)
   add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
 
   set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
 else()
@@ -152,9 +152,9 @@ if(MSVC)
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
-    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
+    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
@@ -168,9 +168,9 @@ if(MSVC)
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
-    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
+    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
