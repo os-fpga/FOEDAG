@@ -312,9 +312,9 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
         make install
         if %errorlevel% neq 0 exit /b %errorlevel%
-        make test_install
-        if %errorlevel% neq 0 exit /b %errorlevel%
         make test/unittest
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test_install
         if %errorlevel% neq 0 exit /b %errorlevel%
         make regression
 
