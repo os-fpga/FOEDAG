@@ -50,7 +50,7 @@ set(TCL_STUBB_LIB libtclstub9.0.a)
 set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90sx.lib)
+  set(TCL_STATIC_LIB tcl90s.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
 endif()
 

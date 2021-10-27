@@ -145,7 +145,7 @@ set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90sx.lib)
+  set(TCL_STATIC_LIB tcl90s.lib)
 endif()
 
 if(MSVC)
