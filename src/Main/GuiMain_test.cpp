@@ -14,19 +14,12 @@
  limitations under the License.
 */
 
-#include <string>
-#include <string_view>
-#include <vector>
-
-#include "Tcl/TclInterpreter.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-
 #include <QApplication>
 #include <QLabel>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Command/CommandStack.h"
@@ -34,6 +27,8 @@
 #include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
 #include "foedag.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "qttclnotifier.hpp"
 
 FOEDAG::Session* GlobalSession;
@@ -54,21 +49,19 @@ void registerTclCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);
 
   auto gui_refresh = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
+                        const char* argv[]) -> int {
     QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
     return 0;
   };
   session->TclInterp()->registerCmd("gui_refresh", gui_refresh, 0, 0);
 
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
+                     const char* argv[]) -> int {
     Tcl_Exit(0);
     return 0;
   };
   session->TclInterp()->registerCmd("tcl_exit", tcl_exit, 0, 0);
-
 }
-
 
 using ::testing::ElementsAre;
 
@@ -93,7 +86,7 @@ TEST(GuiMain, GuiOpenClose) {
   Tcl_SetMainLoop([]() { QApplication::exec(); });
 
   // Tcl_AppInit runs the test
-  auto tcl_init = [](Tcl_Interp* interp) -> int { 
+  auto tcl_init = [](Tcl_Interp* interp) -> int {
     Tcl_Eval(interp, R"(
       gui_start
       after 1000 gui_stop
@@ -106,7 +99,7 @@ TEST(GuiMain, GuiOpenClose) {
         vwait a
       }
       
-    )"); 
+    )");
     return 0;
   };
 
