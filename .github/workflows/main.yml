@@ -53,7 +53,7 @@ jobs:
     - name: Run headless test
       uses: GabrielBB/xvfb-action@v1
       with:
-          run: Test
+        key: linux-${{ matrix.mode }} 
 
     - name: Configure shell
       run: |
