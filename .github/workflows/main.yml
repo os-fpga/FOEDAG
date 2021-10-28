@@ -53,7 +53,7 @@ jobs:
     - name: Run headless test
       uses: GabrielBB/xvfb-action@v1
       with:
-          run: test
+          run: Test
 
     - name: Configure shell
       run: |
