@@ -52,9 +52,7 @@ jobs:
 
     - name: Run headless test
       uses: GabrielBB/xvfb-action@v1
-      with:
-        key: linux-${{ matrix.mode }} 
-
+ 
     - name: Configure shell
       run: |
         echo 'CC=gcc-9' >> $GITHUB_ENV
