@@ -57,7 +57,8 @@ void registerTclCommands(FOEDAG::Session* session) {
 
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
-    Tcl_Exit(0); // Cannot use Tcl_Finalize that issues signals probably due to the Tcl/QT loop
+    Tcl_Exit(0);  // Cannot use Tcl_Finalize that issues signals probably due to
+                  // the Tcl/QT loop
     return 0;
   };
   session->TclInterp()->registerCmd("tcl_exit", tcl_exit, 0, 0);
@@ -106,7 +107,7 @@ TEST(GuiMain, GuiOpenClose) {
   // Start Loop
   Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
   // Never ends, executable exits with the Tcl_exit call.
-  // Google test cannot tear down the test, so no reporting happens 
+  // Google test cannot tear down the test, so no reporting happens
 }
 
 }  // namespace
