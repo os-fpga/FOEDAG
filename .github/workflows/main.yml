@@ -49,7 +49,13 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: linux-${{ matrix.mode }}
-
+        
+    - name: npm install, build, and test example
+      working-directory: ./example
+      run: |
+        npm install
+        npm run build --if-present
+        
     - name: Run headless test
       uses: GabrielBB/xvfb-action@v1
       with:
