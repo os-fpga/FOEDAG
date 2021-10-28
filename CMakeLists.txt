@@ -342,6 +342,11 @@ register_gtests(
   src/Command/Command_test.cpp
 )
 
+if (WIN OR APPLE)
+else ()
+  register_gtests(src/Main/GuiMain_test.cpp)
+endif()
+
 # Installation target
 install(
   TARGETS foedag-bin
