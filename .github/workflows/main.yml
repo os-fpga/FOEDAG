@@ -358,7 +358,7 @@ jobs:
         which $CC && $CC --version
         which $CXX && $CXX --version
 
-   - name: Install Dependencies
+    - name: Install Dependencies
       run: |
        brew install clang-tidy-12 \
                                 g++-9 tclsh  default-jre cmake \
