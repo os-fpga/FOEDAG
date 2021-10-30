@@ -53,6 +53,8 @@ class TclInterpreter {
 
   std::string evalFile(const std::string& filename);
 
+  std::string evalGuiTestFile(const std::string& filename);
+
   std::string evalCmd(const std::string cmd);
 
   typedef std::function<void()> TclCallback0;

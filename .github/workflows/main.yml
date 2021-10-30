@@ -50,19 +50,6 @@ jobs:
       with:
         key: linux-${{ matrix.mode }}
 
-# Commenting for now, this headless CI test framework does not work yet
-#    - name: npm install, build, and test example
-#      working-directory: 
-#      run: |
-#        npm install
-#        npm run build --if-present
-#
-#    - name: Run headless test
-#      uses: GabrielBB/xvfb-action@v1
-#      with:
-#        run:
-#          npm test
-
     - name: Configure shell
       run: |
         echo 'CC=gcc-9' >> $GITHUB_ENV
@@ -78,7 +65,6 @@ jobs:
         which cmake && cmake --version
         which make && make --version
         which swig && swig -version
-        which java && java -version
         which python && python --version
         which ninja && ninja --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
@@ -89,6 +75,7 @@ jobs:
       if: matrix.mode == 'test'
       run: |
         make debug test/unittest-d
+        make test/gui
 
     - name: Regression
       if: matrix.mode == 'regression'
@@ -159,13 +146,6 @@ jobs:
       run: choco install -y swig --side-by-side --version=3.0.12
       shell: powershell
 
-    - name: Setup Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8.0.275
-        java-package: jre
-        architecture: x64
-
 #    - name: Setup Msys2 basic tools
 #      uses: msys2/setup-msys2@v2
 #      with:
@@ -199,14 +179,12 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        export JAVA_HOME=`cygpath -u $JAVA_HOME_8_0_275_X64`
         export Qt5_DIR=$Qt5_Dir
         #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         export CWD=`pwd`
 
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
-        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
         echo 'CC=gcc' >> $GITHUB_ENV
         echo 'CXX=g++' >> $GITHUB_ENV
@@ -215,18 +193,15 @@ jobs:
 
         echo "$Qt5_DIR" >> $GITHUB_PATH
         echo "$SWIG_DIR" >> $GITHUB_PATH
-        echo "$JAVA_HOME/bin" >> $GITHUB_PATH
 
     - name: Show shell configuration
       run: |
-        export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
         export PATH=$SWIG_DIR:$PATH
         env
         where git && git --version
         where cmake && cmake --version
         where make && make --version
         where swig && swig -version
-        where java && java -version
         where python && python --version
         where ninja && ninja --version
         where tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
@@ -237,7 +212,7 @@ jobs:
       env:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
-        export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
+        export PATH=$SWIG_DIR:$PATH
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
         #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
@@ -248,7 +223,7 @@ jobs:
       env:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
-        export PATH=$SWIG_DIR:$JAVA_HOME/bin:$PATH
+        export PATH=$SWIG_DIR:$PATH
 #        make test_install
 #        make test/unittest
 #        make regression
@@ -278,13 +253,6 @@ jobs:
         python-version: 3.8
         architecture: x64
 
-    - name: Setup Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-        java-package: jre
-        architecture: x64
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
 
@@ -310,14 +278,13 @@ jobs:
         set MAKE_DIR=C:\make\bin
         #set TCL_DIR=%PROGRAMFILES%\Git\mingw64\bin
         set SWIG_DIR=%PROGRMDATA%\chocolatey\lib\swig\tools\install\swigwin-3.0.12
-        set PATH=%pythonLocation%;%SWIG_DIR%;%JAVA_HOME%\bin;%MAKE_DIR%;%PATH%
-        #set PATH=%pythonLocation%;%SWIG_DIR%;%JAVA_HOME%\bin;%MAKE_DIR%;%TCL_DIR%;%PATH%
+        set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%PATH%
+        #set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%TCL_DIR%;%PATH%
 
         set
         where cmake && cmake --version
         where make && make --version
         where swig && swig -version
-        where java && java -version
         where python && python --version
         where ninja && ninja --version
 
@@ -386,7 +353,6 @@ jobs:
         which cmake && cmake --version
         which make && make --version
         which swig && swig -version
-        which java && java -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
         which $CC && $CC --version
@@ -444,7 +410,6 @@ jobs:
         which cmake && cmake --version
         which make && make --version
         which swig && swig -version
-        which java && java -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
 

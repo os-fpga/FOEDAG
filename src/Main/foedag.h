@@ -17,3 +17,5 @@
 #include "MainWindow/Session.h"
 
 extern FOEDAG::Session* GlobalSession;
+
+void registerTclCommands(FOEDAG::Session* session);

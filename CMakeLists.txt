@@ -120,6 +120,8 @@ set(foedag_SRC
   src/MainWindow/main_window.cpp
   src/MainWindow/Session.cpp
   src/Main/qttclnotifier.cpp
+  src/Main/CommandLine.cpp
+  src/Main/registerTclCommands.cpp
   ${QRC_MAIN_WINDOW}
 )
 
@@ -385,6 +387,10 @@ install(
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/src/Main/CommandLine.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
