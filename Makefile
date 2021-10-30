@@ -86,7 +86,7 @@ coverage-build/html: foedag-build/foedag.coverage
 test/regression: run-cmake-release
 
 test/valgrind: run-cmake-debug
-	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag --noqt  ; 
+	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag --noqt --script ../tests/TestBatch/hello.tcl ; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind.log
 	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --gui_test ../tests/TestGui/gui_start_stop.tcl; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
