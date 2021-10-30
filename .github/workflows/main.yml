@@ -366,7 +366,7 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make debug test/gui_mac
+        make debug test/gui
 
     - name: Regression tests
       run: |
