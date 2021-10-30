@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
   // initialized
   Tcl_SetMainLoop([]() { QApplication::exec(); });
 
-  // Gui replay
+  // --gui_test <script> Gui replay, register test
   if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
     interpreter->evalGuiTestFile(GlobalSession->CmdLine()->GuiTestScript());
   }
@@ -88,13 +88,9 @@ int main(int argc, char** argv) {
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
     if (!GlobalSession->CmdLine()->Script().empty()) {
-      int code =
-          Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
-      if (code >= TCL_ERROR) {
-        // std::cout << std::string("Tcl Error: " +
-        //                          std::string(Tcl_GetStringResult(interp)));
-      }
+      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
     }
+    // --gui_test <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
       Tcl_Eval(interp, "call_test");
     }
