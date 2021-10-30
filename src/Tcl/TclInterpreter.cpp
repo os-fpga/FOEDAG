@@ -65,5 +65,67 @@ void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
 }
 
 std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
-  return "";
+
+  std::string testHarness =  R"(
+  proc test_harness { gui_script } {
+    global CONT
+    set fid [open $gui_script]
+    set content [read $fid]
+    close $fid
+    set errorInfo ""
+
+    catch {
+        
+        # Schedule commands
+        set lines [split $content "\n"]
+        set time 500
+        foreach line $lines {
+            if {[regexp {^#} $line]} {
+                continue
+            }
+            if {$line == ""} {
+                continue
+            }
+            after  $time $line 
+            
+            set time [expr $time + 500]
+        }
+    }
+    
+    # Schedule GUI exit
+    set time [expr $time + 500]
+    after $time "puts \"GUI EXIT\" ; flush stdout; set CONT 0"
+    
+    # Enter loop
+    set CONT 1 
+    while {$CONT} {
+        set a 0
+        after 100 set a 1
+        vwait a
+    }
+    
+    if {$errorInfo != ""} {
+        puts $errorInfo
+        exit 1
+    }
+    
+    puts "Tcl Exit" ; flush stdout
+    exit 0
+  }
+
+  )";
+
+  std::string call_test = "proc call_test { } {\n";
+  call_test += "test_harness " + filename + "\n";
+  call_test += "}\n";
+
+  std::string completeScript = testHarness + "\n" + call_test;
+
+  int code = Tcl_Eval(interp, completeScript.c_str());
+
+  if (code >= TCL_ERROR) {
+    return std::string("Tcl Error: " +
+                       std::string(Tcl_GetStringResult(interp)));
+  }
+  return std::string(Tcl_GetStringResult(interp));
 }

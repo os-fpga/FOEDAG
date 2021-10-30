@@ -30,9 +30,10 @@ void CommandLine::printHelp() {
   std::cout << "Options:" << std::endl;
   std::cout << "   --help:  This help" << std::endl;
   std::cout << "   --noqt:  Tcl only, no GUI" << std::endl;
-  std::cout << "   --test_gui <script>: Replay GUI test" << std::endl;
+  std::cout << "   --gui_test <script>: Replay GUI test" << std::endl;
   std::cout << "   --script   <script>: Execute a Tcl script" << std::endl;
   std::cout << "Tcl commands:" << std::endl;
+  std::cout << "   help" << std::endl;
   std::cout << "   gui_start" << std::endl;
   std::cout << "   gui_stop" << std::endl;
   std::cout << "   tcl_exit" << std::endl;
@@ -40,7 +41,7 @@ void CommandLine::printHelp() {
 }
 
 CommandLine::CommandLine(int argc, char** argv) {
-  for (int i = 0; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     std::string token(argv[i]);
     if (token == "--noqt") {
       m_withQt = false;
@@ -52,6 +53,8 @@ CommandLine::CommandLine(int argc, char** argv) {
       m_runScript = argv[i];
     } else if (token == "--help") {
       printHelp();
+    } else {
+      std::cout << "Unknown command line option: " <<  argv[i] << std::endl;
     }
   }
 }
