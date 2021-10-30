@@ -358,13 +358,6 @@ jobs:
         which $CC && $CC --version
         which $CXX && $CXX --version
 
-    - name: Install Dependencies
-      run: |
-       brew install clang-tidy-12 \
-                                g++-9 tclsh  default-jre cmake \
-                                uuid-dev build-essential xorg \
-                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools xvfb
-
     - name: Build
       run: |
         make release
@@ -373,7 +366,7 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make debug test/gui
+        make debug test/gui_mac
 
     - name: Regression tests
       run: |
@@ -429,6 +422,7 @@ jobs:
       run: |
         make test_install
         make test/unittest
+        make debug test/gui_mac
 
     - name: Regression tests
       run: |
@@ -439,13 +433,6 @@ jobs:
       run: |
         make debug
         make test/valgrind
-
-    - name: Install Dependencies
-      run: |
-       brew install clang-tidy-12 \
-                                g++-9 tclsh  default-jre cmake \
-                                uuid-dev build-essential xorg \
-                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools xvfb
 
   CodeFormatting:
     runs-on: ubuntu-20.04

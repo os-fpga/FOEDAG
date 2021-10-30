@@ -120,6 +120,9 @@ test_install:
 test/gui: run-cmake-debug
 	xvfb-run ./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
 
+test/gui_macos: run-cmake-debug
+	Xvfb :1337 & export DISPLAY=:1337 &./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
+
 format:
 	.github/bin/run-clang-format.sh
 
