@@ -99,7 +99,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-release
-	xvfb-run ./build/bin/foedag --script tests/TestGui/gui_start_stop.tcl
+	xvfb-run ./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
 
 format:
 	.github/bin/run-clang-format.sh
