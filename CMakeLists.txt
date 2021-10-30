@@ -120,6 +120,8 @@ set(foedag_SRC
   src/MainWindow/main_window.cpp
   src/MainWindow/Session.cpp
   src/Main/qttclnotifier.cpp
+  src/Main/CommandLine.cpp
+  src/Main/registerTclCommands.cpp
   ${QRC_MAIN_WINDOW}
 )
 

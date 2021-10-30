@@ -58,3 +58,8 @@ void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
                                  Tcl_CmdDeleteProc *deleteProc) {
   Tcl_CreateCommand(interp, cmdName.c_str(), proc, clientData, deleteProc);
 }
+
+std::string TclInterpreter::evalGuiTestFile(const std::string& filename) {
+   
+  return "";
+}

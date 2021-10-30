@@ -14,40 +14,39 @@
  limitations under the License.
  */
 
-#include <QMainWindow>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "Command/Command.h"
-#include "Command/CommandStack.h"
-#include "Tcl/TclInterpreter.h"
-#include "Main/CommandLine.h"
-
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef COMMAND_LINE_H
+#define COMMAND_LINE_H
 
 namespace FOEDAG {
 
-class Session {
+class CommandLine {
  private:
  public:
-  Session(QMainWindow *mainWindow, TclInterpreter *interp, CommandStack *stack, CommandLine* cmdLine)
-      : m_mainWindow(mainWindow), m_interp(interp), m_stack(stack), m_cmdLine(cmdLine) {}
+  CommandLine(int argc, char** argv);
+  
+  ~CommandLine();
 
-  ~Session();
+  bool WithQt() const { return m_withQt; }
 
-  QMainWindow *MainWindow() { return m_mainWindow; }
-  TclInterpreter *TclInterp() { return m_interp; }
-  CommandStack *CmdStack() { return m_stack; }
-  CommandLine * CmdLine() { return m_cmdLine; }
+  const std::vector<std::string>& Args() const { return m_args; }
 
+  const std::string& GuiTestScript() const { return m_runGuiTest; }
+
+  const std::string& Script() const { return m_runScript; }
+
+  void printHelp();
+  
  private:
-  QMainWindow *m_mainWindow;
-  TclInterpreter *m_interp;
-  CommandStack *m_stack;
-  CommandLine *m_cmdLine;
+  
+  std::vector<std::string> m_args;
+  bool m_withQt = true;
+  std::string m_runScript;
+  std::string m_runGuiTest;
 };
 
 }  // namespace FOEDAG

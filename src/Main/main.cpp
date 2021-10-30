@@ -41,53 +41,59 @@ extern "C" {
 #include "Tcl/TclInterpreter.h"
 #include "foedag.h"
 #include "qttclnotifier.hpp"
+#include "CommandLine.h"
 
 FOEDAG::Session* GlobalSession;
 
-void registerTclCommands(FOEDAG::Session* session) {
-  auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
-    GlobalSession->MainWindow()->show();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("gui_start", gui_start, 0, 0);
-
-  auto gui_stop = [](void* clientData, Tcl_Interp* interp, int argc,
-                     const char* argv[]) -> int {
-    GlobalSession->MainWindow()->hide();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);
-}
-
 int main(int argc, char** argv) {
-  // Do not run Qt when option "-noqt" is specified
-  if (argc >= 2) {
-    if (std::string(argv[1]) == "-noqt") {
-      FOEDAG::TclInterpreter interpreter(argv[0]);
-      std::string result =
-          interpreter.evalCmd("puts \"Hello Foedag, you have Tcl!\"");
-      if (result != "") {
-        std::cout << result << '\n';
-      }
-      return 0;
+  FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
+
+  // Batch mode
+  if (!cmd->WithQt())
+  {
+    FOEDAG::TclInterpreter interpreter(argv[0]);
+    std::string result =
+        interpreter.evalCmd("puts \"Tcl only mode\"");
+    // --script <script>    
+    if (!cmd->Script().empty())
+      result =
+        interpreter.evalFile(cmd->Script());  
+    if (result != "")
+    {
+      std::cout << result << '\n';
     }
+    return 0;
   }
+
+  // Gui mode
   QApplication app(argc, (char**)argv);
   FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
   FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-  GlobalSession = new FOEDAG::Session(main_win, interpreter, commands);
+  GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
   registerTclCommands(GlobalSession);
 
-  QtTclNotify::QtTclNotifier::setup();  // registers my notifier with Tcl
+  QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
 
   // Tell Tcl to run Qt as the main event loop once the interpreter is
   // initialized
   Tcl_SetMainLoop([]() { QApplication::exec(); });
 
-  // Dummy Tcl_AppInit
-  auto tcl_init = [](Tcl_Interp*) -> int { return 0; };
+  // Tcl_AppInit
+  auto tcl_init = [](Tcl_Interp *interp) -> int
+  {
+    // --script <script>
+    if (!GlobalSession->CmdLine()->Script().empty())
+    {
+       int code = Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+       if (code >= TCL_ERROR)
+       {
+         std::cout << std::string("Tcl Error: " +
+                            std::string(Tcl_GetStringResult(interp)));
+       }
+    }
+    return 0;
+  };
 
   // Start Loop
   Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
