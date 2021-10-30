@@ -389,6 +389,10 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
 
 install(
+  FILES ${PROJECT_SOURCE_DIR}/src/Main/CommandLine.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
+
+install(
   FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
   ${PROJECT_SOURCE_DIR}/src/Command/CommandStack.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Command)
