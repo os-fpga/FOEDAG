@@ -55,7 +55,6 @@ int main(int argc, char** argv) {
   cmd->processArgs();
 
   if (!cmd->WithQt()) {
-
     // Batch mode
     FOEDAG::MainWindow* main_win = nullptr;
     FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
@@ -71,9 +70,8 @@ int main(int argc, char** argv) {
     }
     delete GlobalSession;
     return 0;
-    
-  } else {
 
+  } else {
     // Gui mode
     QApplication app(argc, (char**)argv);
     FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
