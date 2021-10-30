@@ -54,7 +54,7 @@ CommandLine::CommandLine(int argc, char** argv) {
     } else if (token == "--help") {
       printHelp();
     } else {
-      std::cout << "Unknown command line option: " <<  argv[i] << std::endl;
+      std::cout << "Unknown command line option: " << argv[i] << std::endl;
     }
   }
 }

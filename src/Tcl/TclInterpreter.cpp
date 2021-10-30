@@ -65,8 +65,7 @@ void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
 }
 
 std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
-
-  std::string testHarness =  R"(
+  std::string testHarness = R"(
   proc test_harness { gui_script } {
     global CONT
     set fid [open $gui_script]
