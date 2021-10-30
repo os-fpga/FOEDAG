@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
       int code =
           Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
       if (code >= TCL_ERROR) {
-        //std::cout << std::string("Tcl Error: " +
-        //                         std::string(Tcl_GetStringResult(interp)));
+        // std::cout << std::string("Tcl Error: " +
+        //                          std::string(Tcl_GetStringResult(interp)));
       }
     }
     return 0;
