@@ -427,7 +427,7 @@ jobs:
       run: |
         make regression
 
-    - name: Valgrind
+    - name: Valgrind Macos
       if: matrix.mode == 'valgrind'
       run: |
         make debug
