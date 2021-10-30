@@ -366,7 +366,6 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make debug test/gui_mac
 
     - name: Regression tests
       run: |
@@ -422,17 +421,11 @@ jobs:
       run: |
         make test_install
         make test/unittest
-        make debug test/gui_mac
+        make XVFB="Xvfb :1337 & export DISPLAY=:1337 &" debug test/gui
 
     - name: Regression tests
       run: |
         make regression
-
-    - name: Valgrind Macos
-      if: matrix.mode == 'valgrind'
-      run: |
-        make debug
-        make test/valgrind
 
   CodeFormatting:
     runs-on: ubuntu-20.04
