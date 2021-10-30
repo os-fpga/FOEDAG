@@ -28,7 +28,7 @@ class CommandLine {
  private:
  public:
   CommandLine(int argc, char** argv);
-  
+
   ~CommandLine();
 
   bool WithQt() const { return m_withQt; }
@@ -40,9 +40,8 @@ class CommandLine {
   const std::string& Script() const { return m_runScript; }
 
   void printHelp();
-  
+
  private:
-  
   std::vector<std::string> m_args;
   bool m_withQt = true;
   std::string m_runScript;

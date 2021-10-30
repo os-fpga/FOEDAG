@@ -36,12 +36,12 @@ extern "C" {
 #include <vector>
 
 #include "Command/CommandStack.h"
+#include "CommandLine.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
 #include "foedag.h"
 #include "qttclnotifier.hpp"
-#include "CommandLine.h"
 
 void registerTclCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -66,11 +66,10 @@ void registerTclCommands(FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("tcl_exit", tcl_exit, 0, 0);
 
- auto help = [](void* clientData, Tcl_Interp* interp, int argc,
-                     const char* argv[]) -> int {
+  auto help = [](void* clientData, Tcl_Interp* interp, int argc,
+                 const char* argv[]) -> int {
     GlobalSession->CmdLine()->printHelp();
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);
-
 }

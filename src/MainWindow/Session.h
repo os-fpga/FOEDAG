@@ -22,8 +22,8 @@
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "Tcl/TclInterpreter.h"
 #include "Main/CommandLine.h"
+#include "Tcl/TclInterpreter.h"
 
 #ifndef SESSION_H
 #define SESSION_H
@@ -33,15 +33,19 @@ namespace FOEDAG {
 class Session {
  private:
  public:
-  Session(QMainWindow *mainWindow, TclInterpreter *interp, CommandStack *stack, CommandLine* cmdLine)
-      : m_mainWindow(mainWindow), m_interp(interp), m_stack(stack), m_cmdLine(cmdLine) {}
+  Session(QMainWindow *mainWindow, TclInterpreter *interp, CommandStack *stack,
+          CommandLine *cmdLine)
+      : m_mainWindow(mainWindow),
+        m_interp(interp),
+        m_stack(stack),
+        m_cmdLine(cmdLine) {}
 
   ~Session();
 
   QMainWindow *MainWindow() { return m_mainWindow; }
   TclInterpreter *TclInterp() { return m_interp; }
   CommandStack *CmdStack() { return m_stack; }
-  CommandLine * CmdLine() { return m_cmdLine; }
+  CommandLine *CmdLine() { return m_cmdLine; }
 
  private:
   QMainWindow *m_mainWindow;
