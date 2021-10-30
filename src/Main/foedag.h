@@ -23,4 +23,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern FOEDAG::Session* GlobalSession;
 
-void registerTclCommands(FOEDAG::Session* session);
+void registerBasicGuiCommands(FOEDAG::Session* session);
+void registerBasicBatchCommands(FOEDAG::Session* session);

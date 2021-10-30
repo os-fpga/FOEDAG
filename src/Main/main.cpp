@@ -52,54 +52,64 @@ FOEDAG::Session* GlobalSession;
 
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
+  cmd->processArgs();
 
-  // Batch mode
   if (!cmd->WithQt()) {
-    FOEDAG::TclInterpreter interpreter(argv[0]);
-    std::string result = interpreter.evalCmd("puts \"Tcl only mode\"");
+
+    // Batch mode
+    FOEDAG::MainWindow* main_win = nullptr;
+    FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
+    FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+    GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
+    registerBasicBatchCommands(GlobalSession);
+
+    std::string result = interpreter->evalCmd("puts \"Tcl only mode\"");
     // --script <script>
-    if (!cmd->Script().empty()) result = interpreter.evalFile(cmd->Script());
+    if (!cmd->Script().empty()) result = interpreter->evalFile(cmd->Script());
     if (result != "") {
       std::cout << result << '\n';
     }
+    delete GlobalSession;
     return 0;
-  }
+    
+  } else {
 
-  // Gui mode
-  QApplication app(argc, (char**)argv);
-  FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
-  FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-  GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
-  registerTclCommands(GlobalSession);
+    // Gui mode
+    QApplication app(argc, (char**)argv);
+    FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
+    FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
+    FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+    GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
+    registerBasicGuiCommands(GlobalSession);
 
-  QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
+    QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
 
-  // Tell Tcl to run Qt as the main event loop once the interpreter is
-  // initialized
-  Tcl_SetMainLoop([]() { QApplication::exec(); });
+    // Tell Tcl to run Qt as the main event loop once the interpreter is
+    // initialized
+    Tcl_SetMainLoop([]() { QApplication::exec(); });
 
-  // --gui_test <script> Gui replay, register test
-  if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
-    interpreter->evalGuiTestFile(GlobalSession->CmdLine()->GuiTestScript());
-  }
-
-  // Tcl_AppInit
-  auto tcl_init = [](Tcl_Interp* interp) -> int {
-    // --script <script>
-    if (!GlobalSession->CmdLine()->Script().empty()) {
-      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
-    }
-    // --gui_test <script> Gui replay, invoke test
+    // --gui_test <script> Gui replay, register test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
-      std::string proc = "call_test";
-      Tcl_EvalEx(interp, proc.c_str(), -1, 0);
+      interpreter->evalGuiTestFile(GlobalSession->CmdLine()->GuiTestScript());
     }
-    return 0;
-  };
 
-  // Start Loop
-  Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
+    // Tcl_AppInit
+    auto tcl_init = [](Tcl_Interp* interp) -> int {
+      // --script <script>
+      if (!GlobalSession->CmdLine()->Script().empty()) {
+        Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+      }
+      // --gui_test <script> Gui replay, invoke test
+      if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
+        std::string proc = "call_test";
+        Tcl_EvalEx(interp, proc.c_str(), -1, 0);
+      }
+      return 0;
+    };
+
+    // Start Loop
+    Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
+  }
 
   delete GlobalSession;
   return 0;

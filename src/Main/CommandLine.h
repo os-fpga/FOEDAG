@@ -32,9 +32,9 @@ namespace FOEDAG {
 class CommandLine {
  private:
  public:
-  CommandLine(int argc, char** argv);
+  CommandLine(int argc, char** argv) : m_argc(argc), m_argv(argv) {}
 
-  ~CommandLine();
+  virtual ~CommandLine();
 
   bool WithQt() const { return m_withQt; }
 
@@ -44,9 +44,12 @@ class CommandLine {
 
   const std::string& Script() const { return m_runScript; }
 
-  void printHelp();
+  virtual void printHelp();
+  virtual void processArgs();
 
- private:
+ protected:
+  int m_argc = 0;
+  char** m_argv = nullptr;
   std::vector<std::string> m_args;
   bool m_withQt = true;
   std::string m_runScript;

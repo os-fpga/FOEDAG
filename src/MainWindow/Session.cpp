@@ -23,4 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-Session::~Session() {}
+Session::~Session() {
+  delete m_mainWindow;
+  delete m_interp;
+  delete m_stack;
+  delete m_cmdLine;
+}
