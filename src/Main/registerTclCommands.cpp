@@ -48,7 +48,7 @@ extern "C" {
 #include "foedag.h"
 #include "qttclnotifier.hpp"
 
-void registerTclCommands(FOEDAG::Session* session) {
+void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     GlobalSession->MainWindow()->show();
@@ -65,6 +65,25 @@ void registerTclCommands(FOEDAG::Session* session) {
 
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
+    delete GlobalSession;
+    Tcl_Exit(0);  // Cannot use Tcl_Finalize that issues signals probably due to
+                  // the Tcl/QT loop
+    return 0;
+  };
+  session->TclInterp()->registerCmd("tcl_exit", tcl_exit, 0, 0);
+
+  auto help = [](void* clientData, Tcl_Interp* interp, int argc,
+                 const char* argv[]) -> int {
+    GlobalSession->CmdLine()->printHelp();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("help", help, 0, 0);
+}
+
+void registerBasicBatchCommands(FOEDAG::Session* session) {
+  auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    delete GlobalSession;
     Tcl_Exit(0);  // Cannot use Tcl_Finalize that issues signals probably due to
                   // the Tcl/QT loop
     return 0;

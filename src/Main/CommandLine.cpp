@@ -40,21 +40,21 @@ void CommandLine::printHelp() {
   std::cout << "-------------------------" << std::endl;
 }
 
-CommandLine::CommandLine(int argc, char** argv) {
-  for (int i = 1; i < argc; i++) {
-    std::string token(argv[i]);
+void CommandLine::processArgs() {
+  for (int i = 1; i < m_argc; i++) {
+    std::string token(m_argv[i]);
     if (token == "--noqt") {
       m_withQt = false;
     } else if (token == "--gui_test") {
       i++;
-      m_runGuiTest = argv[i];
+      m_runGuiTest = m_argv[i];
     } else if (token == "--script") {
       i++;
-      m_runScript = argv[i];
+      m_runScript = m_argv[i];
     } else if (token == "--help") {
       printHelp();
     } else {
-      std::cout << "Unknown command line option: " << argv[i] << std::endl;
+      std::cout << "Unknown command line option: " << m_argv[i] << std::endl;
     }
   }
 }

@@ -109,7 +109,7 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
     }
     
     puts "Tcl Exit" ; flush stdout
-    exit 0
+    tcl_exit
   }
 
   )";
