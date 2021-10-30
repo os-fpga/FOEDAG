@@ -98,7 +98,7 @@ test_install:
 	cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_DIR=$(PREFIX) -S tests/TestInstall -B tests/TestInstall/build
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
-test/gui:
+test/gui: run-cmake-release
 	xvfb-run ./build/bin/foedag --script tests/TestGui/gui_start_stop.tcl
 
 format:
