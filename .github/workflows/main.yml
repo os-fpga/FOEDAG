@@ -366,7 +366,7 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make test/unittest
+        make debug test/gui
 
     - name: Regression tests
       run: |
@@ -427,6 +427,12 @@ jobs:
       run: |
         make regression
 
+    - name: Valgrind
+      if: matrix.mode == 'valgrind'
+      run: |
+        make debug
+        make test/valgrind
+
   CodeFormatting:
     runs-on: ubuntu-20.04
 
@@ -468,7 +474,7 @@ jobs:
         sudo apt -qq -y install clang-tidy-12 \
                                 g++-9 tclsh  default-jre cmake \
                                 uuid-dev build-essential xorg \
-                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools xvfb
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
