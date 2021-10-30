@@ -92,7 +92,8 @@ int main(int argc, char** argv) {
     }
     // --gui_test <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
-      Tcl_Eval(interp, "call_test");
+      std::string proc = "call_test";
+      Tcl_Eval(interp, proc.c_str());
     }
     return 0;
   };
