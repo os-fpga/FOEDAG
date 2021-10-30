@@ -4,13 +4,46 @@
 
 ```
 On Ubuntu 18.04:
-   sudo apt-get install qt5-default
-
+   sudo apt-get install qt5-default g++-9 \
+      tclsh \
+      cmake \
+      build-essential \
+      swig \
+      google-perftools \
+      libgoogle-perftools-dev \
+      uuid-dev \
+      lcov \
+      valgrind \
+      xorg \
+      xvfb
+  
 On Ubuntu 20.04:
-   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
+      tclsh \
+      cmake \
+      build-essential \
+      swig \
+      google-perftools \
+      libgoogle-perftools-dev \
+      uuid-dev \
+      lcov \
+      valgrind \
+      xorg \
+      xvfb
 
 On Ubuntu 21.04:
-   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
+      tclsh \
+      cmake \
+      build-essential \
+      swig \
+      google-perftools \
+      libgoogle-perftools-dev \
+      uuid-dev \
+      lcov \
+      valgrind \
+      xorg \
+      xvfb
    
 On AlmaLinux 8.4 (*needs further testing*):
    sudo dnf install qt5-qtbase-devel

@@ -117,8 +117,11 @@ test_install:
 	cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_DIR=$(PREFIX) -S tests/TestInstall -B tests/TestInstall/build
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
-test/gui: run-cmake-release
+test/gui: run-cmake-debug
 	xvfb-run ./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
+
+test/gui_mac: run-cmake-debug
+	Xvfb :1337 & export DISPLAY=:1337 &./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
 
 format:
 	.github/bin/run-clang-format.sh
