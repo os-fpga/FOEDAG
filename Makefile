@@ -20,6 +20,8 @@
 # Use bash as the default shell
 SHELL := /bin/bash
 
+XVFB = xvfb-run
+
 ifdef $(LC_ALL)
 	undefine LC_ALL
 endif
@@ -86,7 +88,7 @@ test/regression: run-cmake-release
 test/valgrind: run-cmake-debug
 	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag --noqt  ; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind.log
-	cd dbuild && xvfb-run valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --script ../tests/TestGui/gui_start_stop.tcl; 
+	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --script ../tests/TestGui/gui_start_stop.tcl; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 
@@ -118,10 +120,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	xvfb-run ./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
-
-test/gui_mac: run-cmake-debug
-	Xvfb :1337 & export DISPLAY=:1337 &./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
+	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gui_start_stop.tcl
 
 format:
 	.github/bin/run-clang-format.sh
