@@ -24,29 +24,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "Command/Command.h"
-#include "Command/Logger.h"
-#include "Tcl/TclInterpreter.h"
-
-#ifndef COMMAND_STACK_H
-#define COMMAND_STACK_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 namespace FOEDAG {
 
-class CommandStack {
+class Logger {
  private:
  public:
-  CommandStack(TclInterpreter* interp);
-  bool push_and_exec(Command* cmd);
-  bool pop_and_undo();
+  Logger(const std::string& filePath);
+  void open();
+  void close();
+  void log(const std::string& text);
 
-  ~CommandStack();
-  Logger* CmdLogger() { return m_logger; }
+  ~Logger() {}
 
  private:
-  std::vector<Command*> m_cmds;
-  TclInterpreter* m_interp = nullptr;
-  Logger* m_logger = nullptr;
+  std::ofstream* m_stream = nullptr;
+  std::string m_fileName;
 };
 
 }  // namespace FOEDAG

@@ -51,6 +51,7 @@ extern "C" {
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
+    GlobalSession->CmdStack()->CmdLogger()->log("gui_start");
     GlobalSession->MainWindow()->show();
     return 0;
   };
@@ -58,6 +59,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto gui_stop = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
+    GlobalSession->CmdStack()->CmdLogger()->log("gui_stop");
     GlobalSession->MainWindow()->hide();
     return 0;
   };
@@ -66,6 +68,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     delete GlobalSession;
+    // Do not log this command
     Tcl_Exit(0);  // Cannot use Tcl_Finalize that issues signals probably due to
                   // the Tcl/QT loop
     return 0;
@@ -74,6 +77,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
+    GlobalSession->CmdStack()->CmdLogger()->log("help");
     GlobalSession->CmdLine()->printHelp();
     return 0;
   };
@@ -84,6 +88,7 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
   auto tcl_exit = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     delete GlobalSession;
+    // Do not log this command
     Tcl_Exit(0);  // Cannot use Tcl_Finalize that issues signals probably due to
                   // the Tcl/QT loop
     return 0;
@@ -92,6 +97,7 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
+    GlobalSession->CmdStack()->CmdLogger()->log("help");
     GlobalSession->CmdLine()->printHelp();
     return 0;
   };

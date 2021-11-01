@@ -139,6 +139,7 @@ set(foedag_SRC
   src/Tcl/TclInterpreter.cpp
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
+  src/Command/Logger.cpp
   src/MainWindow/main_window.cpp
   src/MainWindow/Session.cpp
   src/Main/qttclnotifier.cpp

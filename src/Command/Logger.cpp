@@ -19,36 +19,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#include "Command/Command.h"
 #include "Command/Logger.h"
-#include "Tcl/TclInterpreter.h"
 
-#ifndef COMMAND_STACK_H
-#define COMMAND_STACK_H
+using namespace FOEDAG;
 
-namespace FOEDAG {
+Logger::Logger(const std::string& filePath) {
+  m_fileName = filePath;
+  m_stream = new std::ofstream(filePath, std::fstream::out);
+}
 
-class CommandStack {
- private:
- public:
-  CommandStack(TclInterpreter* interp);
-  bool push_and_exec(Command* cmd);
-  bool pop_and_undo();
+void Logger::open() {
+  if (m_stream == nullptr) {
+    m_stream = new std::ofstream(m_fileName, std::fstream::app);
+  }
+}
 
-  ~CommandStack();
-  Logger* CmdLogger() { return m_logger; }
+void Logger::close() {
+  m_stream->close();
+  m_stream = nullptr;
+}
 
- private:
-  std::vector<Command*> m_cmds;
-  TclInterpreter* m_interp = nullptr;
-  Logger* m_logger = nullptr;
-};
-
-}  // namespace FOEDAG
-
-#endif
+void Logger::log(const std::string& text) {
+  if (m_stream) {
+    *m_stream << text << std::endl << std::flush;
+  }
+}
