@@ -88,7 +88,7 @@ test/regression: run-cmake-release
 test/valgrind: run-cmake-debug
 	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag --noqt --script ../tests/TestBatch/hello.tcl ; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind.log
-	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --gui_test ../tests/TestGui/gui_start_stop.tcl; 
+	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --replay ../tests/TestGui/gui_start_stop.tcl; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 
@@ -120,10 +120,13 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/foedag --gui_test tests/TestGui/gui_start_stop.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
 
 format:
 	.github/bin/run-clang-format.sh
+
+help:
+	build/bin/foedag --help > docs/source/help/help.txt
 
 uninstall:
 	$(RM) -r $(PREFIX)/bin/foedag

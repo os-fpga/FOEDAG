@@ -1,0 +1,14 @@
+-------------------------
+-----  FOEDAG HELP  -----
+-------------------------
+Options:
+   --help:  This help
+   --noqt:  Tcl only, no GUI
+   --replay <script>: Replay GUI test
+   --script <script>: Execute a Tcl script
+Tcl commands:
+   help
+   gui_start
+   gui_stop
+   tcl_exit
+-------------------------
