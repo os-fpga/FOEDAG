@@ -7,3 +7,5 @@
    motivation
 
    tech_highlights
+
+   help
