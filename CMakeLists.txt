@@ -135,6 +135,7 @@ set(QRC_MAIN_WINDOW src/MainWindow/main_window_resource.qrc)
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
 set(foedag_SRC
+  src/Main/Foedag.cpp
   src/Tcl/TclInterpreter.cpp
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
@@ -148,7 +149,7 @@ set(foedag_SRC
 
 add_library(foedag STATIC ${foedag_SRC})
 
-set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/Main/foedag.h)
+set_target_properties(foedag PROPERTIES PUBLIC_HEADER src/Main/Foedag.h)
 target_include_directories(foedag PRIVATE
   ${CMAKE_CURRENT_BINARY_DIR}/include
   third_party/googletest/googletest/include

@@ -19,36 +19,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if defined(_MSC_VER)
-#include <direct.h>
-#include <process.h>
-#else
-#include <sys/param.h>
-#include <unistd.h>
-#endif
-
-#include <string.h>
-#include <sys/stat.h>
-extern "C" {
-#include <tcl.h>
-}
-
-#include <QApplication>
-#include <QLabel>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
-#include "Tcl/TclInterpreter.h"
-#include "foedag.h"
-#include "qttclnotifier.hpp"
 
 FOEDAG::Session* GlobalSession;
+
+FOEDAG::MainWindow* mainWindowBuilder(FOEDAG::CommandLine* cmd) {
+  return new FOEDAG::MainWindow;
+}
+
+void registerExampleCommands(FOEDAG::Session* session) {
+  auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+    GlobalSession->TclInterp()->evalCmd("puts Hello!");
+    return 0;
+  };
+  session->TclInterp()->registerCmd("hello", hello, 0, 0);
+}
 
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
@@ -56,59 +45,13 @@ int main(int argc, char** argv) {
 
   if (!cmd->WithQt()) {
     // Batch mode
-    FOEDAG::MainWindow* main_win = nullptr;
-    FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
-    FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-    GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
-    registerBasicBatchCommands(GlobalSession);
-
-    std::string result = interpreter->evalCmd("puts \"Tcl only mode\"");
-    // --script <script>
-    if (!cmd->Script().empty()) result = interpreter->evalFile(cmd->Script());
-    if (result != "") {
-      std::cout << result << '\n';
-    }
-    delete GlobalSession;
-    return 0;
-
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, nullptr, registerExampleCommands);
+    return foedag->initBatch();
   } else {
     // Gui mode
-    QApplication app(argc, (char**)argv);
-    FOEDAG::MainWindow* main_win = new FOEDAG::MainWindow;
-    FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter(argv[0]);
-    FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-    GlobalSession = new FOEDAG::Session(main_win, interpreter, commands, cmd);
-    registerBasicGuiCommands(GlobalSession);
-
-    QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
-
-    // Tell Tcl to run Qt as the main event loop once the interpreter is
-    // initialized
-    Tcl_SetMainLoop([]() { QApplication::exec(); });
-
-    // --replay <script> Gui replay, register test
-    if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
-      interpreter->evalGuiTestFile(GlobalSession->CmdLine()->GuiTestScript());
-    }
-
-    // Tcl_AppInit
-    auto tcl_init = [](Tcl_Interp* interp) -> int {
-      // --script <script>
-      if (!GlobalSession->CmdLine()->Script().empty()) {
-        Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
-      }
-      // --replay <script> Gui replay, invoke test
-      if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
-        std::string proc = "call_test";
-        Tcl_EvalEx(interp, proc.c_str(), -1, 0);
-      }
-      return 0;
-    };
-
-    // Start Loop
-    Tcl_MainEx(argc, (char**)argv, tcl_init, interpreter->getInterp());
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
+    return foedag->initGui();
   }
-
-  delete GlobalSession;
-  return 0;
 }
