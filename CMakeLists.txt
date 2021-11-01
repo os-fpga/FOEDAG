@@ -417,6 +417,7 @@ install(
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
+  ${PROJECT_SOURCE_DIR}/src/Command/Logger.h
   ${PROJECT_SOURCE_DIR}/src/Command/CommandStack.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Command)
 
