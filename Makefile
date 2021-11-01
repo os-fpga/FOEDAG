@@ -128,6 +128,10 @@ format:
 help:
 	build/bin/foedag --help > docs/source/help/help.txt
 
+doc:
+	cd docs && make html
+	cd -
+
 uninstall:
 	$(RM) -r $(PREFIX)/bin/foedag
 	$(RM) -r $(PREFIX)/lib/foedag
