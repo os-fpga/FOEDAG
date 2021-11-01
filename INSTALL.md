@@ -74,3 +74,10 @@ make install (/usr/local/bin and /usr/local/lib/foedag by default which requires
 ```
 make test
 ```
+
+### Build documentation
+
+```
+make doc
+```
+You can view the documentation under the ``docs/build/html`` using a web browser, e.g., Firefox
