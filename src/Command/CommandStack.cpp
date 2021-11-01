@@ -23,9 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {}
+CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {
+  m_logger = new Logger("cmd.log");
+  m_logger->open();
+  m_logger->log("# Command log file\n");
+}
 
 bool CommandStack::push_and_exec(Command *cmd) {
+  m_logger->log(cmd->do_cmd());
   const std::string &result = m_interp->evalCmd(cmd->do_cmd());
   m_cmds.push_back(cmd);
   return (result == "");
@@ -34,6 +39,7 @@ bool CommandStack::push_and_exec(Command *cmd) {
 bool CommandStack::pop_and_undo() {
   if (!m_cmds.empty()) {
     Command *c = m_cmds.back();
+    m_logger->log(c->undo_cmd());
     const std::string &result = m_interp->evalCmd(c->undo_cmd());
     m_cmds.pop_back();
     return (result == "");
@@ -41,4 +47,4 @@ bool CommandStack::pop_and_undo() {
   return false;
 }
 
-CommandStack::~CommandStack() {}
+CommandStack::~CommandStack() { m_logger->close(); }

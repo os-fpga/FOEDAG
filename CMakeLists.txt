@@ -139,6 +139,7 @@ set(foedag_SRC
   src/Tcl/TclInterpreter.cpp
   src/Command/Command.cpp
   src/Command/CommandStack.cpp
+  src/Command/Logger.cpp
   src/MainWindow/main_window.cpp
   src/MainWindow/Session.cpp
   src/Main/qttclnotifier.cpp
@@ -416,6 +417,7 @@ install(
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
+  ${PROJECT_SOURCE_DIR}/src/Command/Logger.h
   ${PROJECT_SOURCE_DIR}/src/Command/CommandStack.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Command)
 
