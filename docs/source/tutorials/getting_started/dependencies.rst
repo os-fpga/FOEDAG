@@ -30,6 +30,10 @@ Full list of dependencies can be found at install_ubuntu_dependencies_build_.
 
 .. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_ubuntu_dependencies_build.sh
 
+.. note:: Different Ubuntu version may require different package names. See details in the sub subsections
+
+.. mdinclude:: ../../../../DEPENDENCIES.md
+
 Mac OS
 ======
 
