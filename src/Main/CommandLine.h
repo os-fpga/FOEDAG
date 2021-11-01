@@ -47,6 +47,9 @@ class CommandLine {
   virtual void printHelp();
   virtual void processArgs();
 
+  int Argc() { return m_argc; }
+  char** Argv() { return m_argv; }
+
  protected:
   int m_argc = 0;
   char** m_argv = nullptr;

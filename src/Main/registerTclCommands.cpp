@@ -42,10 +42,10 @@ extern "C" {
 
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
-#include "foedag.h"
 #include "qttclnotifier.hpp"
 
 void registerBasicGuiCommands(FOEDAG::Session* session) {
