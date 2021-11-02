@@ -166,15 +166,15 @@ jobs:
       env:
         MSYS2_PATH_TYPE: inherit
 
-#    - name: Install Qt
-#      uses: jurplel/install-qt-action@v2
-#      with:
-#        version: "5.15.2"
-#        host: "windows"
-#        target: "desktop"
-#        dir: "${{github.workspace}}/qt/"
-#        arch: "win64_mingw73"
-#        install-deps: "true"
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: "5.15.2"
+        host: "windows"
+        target: "desktop"
+        dir: "${{github.workspace}}/qt/"
+        arch: "win64_mingw73"
+        install-deps: "true"
 
     - name: Configure shell environment variables
       run: |
