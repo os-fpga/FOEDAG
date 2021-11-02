@@ -169,11 +169,11 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
-        version: "5.15.2"
+        version: "5"
         host: "windows"
         target: "desktop"
         dir: "${{github.workspace}}/qt/"
-        arch: "win64_mingw73"
+        arch: "mingw-w64"
         install-deps: "true"
 
     - name: Configure shell environment variables
