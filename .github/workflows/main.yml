@@ -167,9 +167,9 @@ jobs:
         MSYS2_PATH_TYPE: inherit
 
     - shell: msys2 {0}
-       run: |
-         makepkg-mingw -sCLfc --noconfirm --noprogressbar
-         pacman -S mingw-w64-x86_64-qt5
+      run: |
+        makepkg-mingw -sCLfc --noconfirm --noprogressbar
+        pacman -S mingw-w64-x86_64-qt5
       
 #    - name: Install Qt
 #      uses: jurplel/install-qt-action@v2
