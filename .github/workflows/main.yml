@@ -179,7 +179,7 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/Qt/5.15.2/msvc2019_64/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
 
@@ -209,11 +209,11 @@ jobs:
         where $CXX && $CXX --version
 
     - name: Build
-      env:
-        CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
+    #  env:
+    #    CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/Qt/5.15.2/msvc2019_64/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
         make release 
@@ -221,11 +221,11 @@ jobs:
         make install
 
     - name: Test
-      env:
-        CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
+    #  env:
+    #    CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/Qt/5.15.2/msvc2019_64/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
         make test_install
