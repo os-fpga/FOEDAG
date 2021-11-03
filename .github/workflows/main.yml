@@ -173,7 +173,7 @@ jobs:
         host: "windows"
         target: "desktop"
         dir: "${{github.workspace}}/qt/"
-        arch: "x86_64"
+#        arch: "x86_64"
         install-deps: "true"
 
     - name: Configure shell environment variables
