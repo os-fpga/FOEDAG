@@ -168,7 +168,7 @@ jobs:
 
     - shell: msys2 {0}
       run: |
-        pacman -S mingw-w64-x86_64-qt5
+        pacman --noconfirm -S mingw-w64-x86_64-qt5
       
 #    - name: Install Qt
 #      uses: jurplel/install-qt-action@v2
