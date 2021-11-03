@@ -168,7 +168,6 @@ jobs:
 
     - shell: msys2 {0}
       run: |
-        makepkg-mingw -sCLfc --noconfirm --noprogressbar
         pacman -S mingw-w64-x86_64-qt5
       
 #    - name: Install Qt
