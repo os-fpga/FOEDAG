@@ -213,11 +213,11 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$PATH
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-        #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
-        make release ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH="D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/mingw73_64/lib/cmake"
-        make debug ADDITIONAL_CMAKE_OPTIONS=-DCMAKE_PREFIX_PATH="D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/mingw73_64/lib/cmake"
+        make release 
+        make debug 
         make install
 
     - name: Test
@@ -225,6 +225,9 @@ jobs:
         CMAKE_PREFIX_PATH: ${{env.Qt5_DIR}}
       run: |
         export PATH=$SWIG_DIR:$PATH
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
+        export Qt5_DIR=$Qt5_Dir
+        export PATH=$Qt5_DIR:$PATH
         make test_install
         make test/unittest
         make regression
