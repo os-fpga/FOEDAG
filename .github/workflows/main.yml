@@ -179,8 +179,8 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
+        export Qt5_Dir=D:/a/FOEDAG/FOEDAG/qt/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
         export Qt5_DIR=$Qt5_Dir
-        #export Qt5_DIR=D:/a/_temp/msys64/mingw64/qt5-static
         export CWD=`pwd`
 
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
