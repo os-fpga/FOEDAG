@@ -210,11 +210,7 @@ else()
     COMMAND echo "       Compiling Tcl"
     COMMAND autoconf configure.ac  > configure
     COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    execute_process( 
-      COMMAND make
-      COMMAND make install
-      ERROR_QUIET
-    )
+    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
@@ -224,11 +220,7 @@ else()
     COMMAND echo "       Compiling Tcl Stubb"
     COMMAND autoconf configure.ac  > configure
     COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    execute_process( 
-      COMMAND make
-      COMMAND make install
-      ERROR_QUIET
-    )
+    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Stubb Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
