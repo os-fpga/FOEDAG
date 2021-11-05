@@ -151,7 +151,7 @@ jobs:
       with:
         msystem: MSYS
         update: true
-        install:  mingw-w64-x86_64-toolchain mingw-w64-x86_64-gcc make cmake ninja python python-devel git diffutils
+        install:  gcc make cmake ninja python python-devel git diffutils
         release: false
       env:
         MSYS2_PATH_TYPE: inherit
