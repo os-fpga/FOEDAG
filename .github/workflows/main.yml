@@ -137,8 +137,6 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
         cmake-version: '3.21.3'
-    - name: Use cmake
-      run: cmake --version
 
     - name: Configure Git
       run: git config --global core.autocrlf input
