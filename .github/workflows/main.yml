@@ -227,6 +227,13 @@ jobs:
 #      with:
 #        access_token: ${{ github.token }}
 
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.21.3'
+    - name: Use cmake
+      run: cmake --version
+
     - name: Install Core Dependencies
       run: |
         choco install -y make
