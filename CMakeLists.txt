@@ -210,8 +210,9 @@ else()
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all -j
+    COMMAND autoconf configure.ac  > configure
+    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND make all
     COMMAND make install
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
@@ -219,9 +220,10 @@ else()
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
-    COMMAND echo "       Compiling Tcl"
-    COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all -j
+    COMMAND echo "       Compiling Tcl Stubb"
+    COMMAND autoconf configure.ac  > configure
+    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND make all
     COMMAND make install
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
