@@ -222,10 +222,10 @@ jobs:
 
     steps:
 
-#    - name: Cancel previous
-#      uses: styfle/cancel-workflow-action@0.9.1
-#      with:
-#        access_token: ${{ github.token }}
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.9.1
+      with:
+        access_token: ${{ github.token }}
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
@@ -281,29 +281,29 @@ jobs:
         where ninja && ninja --version
 
         make release
- #       if %errorlevel% neq 0 exit /b %errorlevel%
- #       make install
- #       if %errorlevel% neq 0 exit /b %errorlevel%
- #       make test/unittest
- #       if %errorlevel% neq 0 exit /b %errorlevel%
- #       make test_install
- #       if %errorlevel% neq 0 exit /b %errorlevel%
- #       make regression
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make install
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test/unittest
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test_install
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make regression
 
-#    - name: Archive build artifacts
-#      uses: actions/upload-artifact@v2
-#      with:
-#        name: foedag-windows-msvc
-#        path: ${{ github.workspace }}/install
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: foedag-windows-msvc
+        path: ${{ github.workspace }}/install
 
-#    - name: Archive regression artifacts
-#      if: always()
-#      uses: actions/upload-artifact@v2
-#      with:
-#        name: foedag-windows-msvc-regression
-#        path: |
-#          ${{ github.workspace }}/build/test/
-#          ${{ github.workspace }}/build/tests/
+    - name: Archive regression artifacts
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: foedag-windows-msvc-regression
+        path: |
+          ${{ github.workspace }}/build/test/
+          ${{ github.workspace }}/build/tests/
 
   macos-gcc:
     runs-on: macos-latest
