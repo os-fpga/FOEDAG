@@ -179,7 +179,6 @@ if(MSVC)
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
@@ -192,11 +191,10 @@ if(MSVC)
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
-    COMMAND echo "       Compiling Tcl"
+    COMMAND echo "       Compiling Tcl Stubb"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-    COMMAND echo "       Tcl Compilation completed"
+    COMMAND echo "       Tcl Stubb Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
@@ -212,7 +210,7 @@ else()
     COMMAND echo "       Compiling Tcl"
     COMMAND autoconf configure.ac  > configure
     COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all
+    COMMAND make 
     COMMAND make install
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
@@ -223,9 +221,9 @@ else()
     COMMAND echo "       Compiling Tcl Stubb"
     COMMAND autoconf configure.ac  > configure
     COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all
+    COMMAND make
     COMMAND make install
-    COMMAND echo "       Tcl Compilation completed"
+    COMMAND echo "       Tcl Stubb Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
