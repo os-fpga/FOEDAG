@@ -132,6 +132,14 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.21.3'
+    - name: Use cmake
+      run: cmake --version
+
     - name: Configure Git
       run: git config --global core.autocrlf input
       shell: bash
@@ -199,7 +207,7 @@ jobs:
         export Qt5_Dir=/mingw64/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-#        make release 
+        make release 
 #        make debug 
 #        make install
 
@@ -227,6 +235,7 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
