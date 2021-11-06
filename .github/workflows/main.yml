@@ -170,7 +170,7 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5-static/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
@@ -201,7 +201,7 @@ jobs:
     - name: Build
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5-static/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
         make VERBOSE=1 release
@@ -211,7 +211,7 @@ jobs:
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5-static/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
 #        make test_install
