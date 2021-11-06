@@ -165,7 +165,7 @@ jobs:
 # Install Qt
     - shell: msys2 {0}
       run: |
-        pacman --noconfirm -S mingw-w64-x86_64-qt5
+        pacman --noconfirm -S mingw-w64-x86_64-qt5-static
       
     - name: Configure shell environment variables
       run: |
