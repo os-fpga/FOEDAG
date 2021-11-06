@@ -165,7 +165,7 @@ jobs:
 # Install Qt
     - shell: msys2 {0}
       run: |
-        pacman --noconfirm -S mingw-w64-x86_64-qt5-static mingw-w64-x86_64-zlib
+        pacman --noconfirm -S mingw-w64-ucrt-x86_64-zlib mingw-w64-x86_64-qt5-static
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
         find /mingw64 -name qt5-config.cmake
