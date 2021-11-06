@@ -157,7 +157,7 @@ jobs:
       with:
         msystem: MSYS
         update: true
-        install:  gcc make cmake ninja python python-devel git diffutils zlib1g-dev
+        install:  gcc make cmake ninja python python-devel git diffutils
         release: false
       env:
         MSYS2_PATH_TYPE: inherit
@@ -165,7 +165,7 @@ jobs:
 # Install Qt
     - shell: msys2 {0}
       run: |
-        pacman --noconfirm -S mingw-w64-x86_64-qt5-static
+        pacman --noconfirm -S mingw-w64-x86_64-qt5-static mingw-w64-x86_64-zlib
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
         find /mingw64 -name qt5-config.cmake
