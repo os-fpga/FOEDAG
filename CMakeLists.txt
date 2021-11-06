@@ -209,6 +209,15 @@ if(MSVC)
             ${CMAKE_CURRENT_BINARY_DIR}/lib/foedag/lib/${TCL_STUBB_LIB}         
   )
 else()
+  add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
+    COMMAND echo "       Compiling Zlib"
+    COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
+    COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/
+    COMMAND echo "       Zlib Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib/zlib.h
+  )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
@@ -233,16 +242,6 @@ else()
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
-  add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
-    COMMAND echo "       Compiling Zlib"
-    COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
-    COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/
-    COMMAND echo "       Zlib Compilation completed"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib"
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib/zlib.h
-  )
-  add_dependencies(tcl_build zlib_build)
 endif()
 
 # Copy the init.tcl file from source to build directory
@@ -252,6 +251,13 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl9.0/init.tcl)
 add_dependencies(foedag tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
+
+
+if(MSVC)
+else()
+  add_dependencies(tcl_build zlib_build)
+endif()
+
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
