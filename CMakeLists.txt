@@ -245,6 +245,7 @@ else()
   )
   add_dependencies(tcl_build zlib_build)
 endif()
+
 # Copy the init.tcl file from source to build directory
 add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
@@ -278,11 +279,13 @@ endif()
 
 
 if(MSVC)
+  ADD_LIBRARY(tcl_static STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
+  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
