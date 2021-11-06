@@ -173,7 +173,6 @@ jobs:
         export Qt5_Dir=/mingw64/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
-        export MINGW=1
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
