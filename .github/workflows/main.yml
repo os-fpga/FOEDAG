@@ -204,7 +204,7 @@ jobs:
         export Qt5_Dir=/mingw64/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-        make release 
+        make VERBOSE=1 release
 #        make debug 
 #        make install
 
