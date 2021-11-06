@@ -236,9 +236,8 @@ else()
   add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
     COMMAND echo "       Compiling Zlib"
-    COMMAND ./configure  --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make 
-    COMMAND make install
+    COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
+    COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/
     COMMAND echo "       Zlib Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib/zlib.h
