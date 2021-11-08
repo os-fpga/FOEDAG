@@ -44,6 +44,11 @@ project(FOEDAG)
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
+if (WIN32)
+SET(CMAKE_EXE_LINKER_FLAGS 
+          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,C:\Windows\System32")
+endif()
+
 # Find Qt packages and error out if not found
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 if (NOT Qt5Widgets_FOUND)
