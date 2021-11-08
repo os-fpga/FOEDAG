@@ -45,6 +45,9 @@ add_library(newproject STATIC
   summary_form.cpp
   summary_form.h
   summary_form.ui
+  create_file_dialog.cpp
+  create_file_dialog.h
+  create_file_dialog.ui
   newproject.qrc
 )
 target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)

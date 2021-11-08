@@ -1,23 +1,16 @@
 #include "source_grid.h"
-//#include "createfiledialog.h"
 
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
-#include <QPushButton>
 #include <QStandardItem>
 #include <QVBoxLayout>
 
+#include "create_file_dialog.h"
+
 sourceGrid::sourceGrid(grid_type type, QWidget *parent) : QWidget(parent) {
   m_type = type;
-
-  m_ftmap.insert("v", ST_V);
-  m_ftmap.insert("vhd", ST_VHD);
-  m_ftmap.insert("CDC", ST_CDC);
-  m_ftmap.insert("vqm", ST_VQM);
-  m_ftmap.insert("mif", ST_MIF);
-  m_ftmap.insert("hex", ST_HEX);
 
   m_fdatalist.clear();
   //    m_toolBar = new QToolBar(this);
@@ -75,23 +68,38 @@ sourceGrid::sourceGrid(grid_type type, QWidget *parent) : QWidget(parent) {
   //    m_actDown->setEnabled(false);
   //    connect(m_actDown,&QAction::triggered,this,&sourceGrid::slot_downgriditem);
   //    m_toolBar->addAction(m_actDown);
-  QPushButton *btnAddFile = new QPushButton(tr("AddFile"), this);
-  QPushButton *btnAddDri = new QPushButton(tr("AddDir"), this);
-  QPushButton *btnCreateFile = new QPushButton(tr("CreateFile"), this);
-  QPushButton *btnDelete = new QPushButton(tr("Delete"), this);
-  QPushButton *btnMoveUp = new QPushButton(tr("MoveUp"), this);
-  QPushButton *btnMoveDown = new QPushButton(tr("MoveDown"), this);
+  m_btnAddFile = new QPushButton(tr("AddFile"), this);
+  connect(m_btnAddFile, &QPushButton::clicked, this,
+          &sourceGrid::slot_addfiles);
+  m_btnAddDri = new QPushButton(tr("AddDir"), this);
+  connect(m_btnAddDri, &QPushButton::clicked, this,
+          &sourceGrid::slot_adddirectories);
+  m_btnCreateFile = new QPushButton(tr("CreateFile"), this);
+  connect(m_btnCreateFile, &QPushButton::clicked, this,
+          &sourceGrid::slot_createfile);
+  m_btnDelete = new QPushButton(tr("Delete"), this);
+  m_btnDelete->setEnabled(false);
+  connect(m_btnDelete, &QPushButton::clicked, this,
+          &sourceGrid::slot_deletegriditem);
+  m_btnMoveUp = new QPushButton(tr("MoveUp"), this);
+  m_btnMoveUp->setEnabled(false);
+  connect(m_btnMoveUp, &QPushButton::clicked, this,
+          &sourceGrid::slot_upgriditem);
+  m_btnMoveDown = new QPushButton(tr("MoveDown"), this);
+  m_btnMoveDown->setEnabled(false);
+  connect(m_btnMoveDown, &QPushButton::clicked, this,
+          &sourceGrid::slot_downgriditem);
 
   QHBoxLayout *hbox = new QHBoxLayout();
-  hbox->addWidget(btnAddFile);
-  hbox->addWidget(btnAddDri);
+  hbox->addWidget(m_btnAddFile);
+  hbox->addWidget(m_btnAddDri);
   if (GT_CONSTRAINTS == m_type) {
-    btnAddDri->setVisible(false);
+    m_btnAddDri->setVisible(false);
   }
-  hbox->addWidget(btnCreateFile);
-  hbox->addWidget(btnDelete);
-  hbox->addWidget(btnMoveUp);
-  hbox->addWidget(btnMoveDown);
+  hbox->addWidget(m_btnCreateFile);
+  hbox->addWidget(m_btnDelete);
+  hbox->addWidget(m_btnMoveUp);
+  hbox->addWidget(m_btnMoveDown);
   hbox->addSpacerItem(new QSpacerItem(20, 20, QSizePolicy::Expanding));
 
   hbox->setContentsMargins(0, 0, 0, 0);
@@ -210,12 +218,13 @@ void sourceGrid::slot_adddirectories() {
 }
 
 void sourceGrid::slot_createfile() {
-  //    createfiledialog* createdlg = new createfiledialog(this);
-  //    createdlg->initialdialog(m_type);
-  //    connect(createdlg,&createfiledialog::sig_updategrid,this,
-  //    &sourceGrid::slot_addgridrow); createdlg->exec();
-  //    disconnect(createdlg,&createfiledialog::sig_updategrid,this,
-  //    &sourceGrid::slot_addgridrow);
+  createFileDialog *createdlg = new createFileDialog(this);
+  createdlg->initialdialog(m_type);
+  connect(createdlg, &createFileDialog::sig_updategrid, this,
+          &sourceGrid::slot_addgridrow);
+  createdlg->exec();
+  disconnect(createdlg, &createFileDialog::sig_updategrid, this,
+             &sourceGrid::slot_addgridrow);
 }
 
 void sourceGrid::slot_deletegriditem() {
@@ -242,8 +251,7 @@ void sourceGrid::slot_deletegriditem() {
   m_grid->selectRow(curRow);
 
   if (0 == rows) {
-    m_actDel->setIcon(QIcon(":/img/img/del.png"));
-    m_actDel->setEnabled(false);
+    m_btnDelete->setEnabled(false);
   }
 }
 
@@ -264,23 +272,18 @@ void sourceGrid::slot_selectionChanged() {
   if (curRow < 0) return;
 
   int rows = m_model->rowCount();
-  m_actDel->setIcon(QIcon(":/img/img/del_enable.png"));
-  m_actDel->setEnabled(true);
+  m_btnDelete->setEnabled(true);
 
   if (rows > curRow + 1) {
-    m_actDown->setIcon(QIcon(":/img/img/down_enable.png"));
-    m_actDown->setEnabled(true);
+    m_btnMoveDown->setEnabled(true);
   } else {
-    m_actDown->setIcon(QIcon(":/img/img/down.png"));
-    m_actDown->setEnabled(false);
+    m_btnMoveDown->setEnabled(false);
   }
 
   if (curRow > 0) {
-    m_actUp->setIcon(QIcon(":/img/img/up_enable.png"));
-    m_actUp->setEnabled(true);
+    m_btnMoveUp->setEnabled(true);
   } else {
-    m_actUp->setIcon(QIcon(":/img/img/up.png"));
-    m_actUp->setEnabled(false);
+    m_btnMoveUp->setEnabled(false);
   }
   return;
 }

@@ -2,6 +2,7 @@
 #define SOURCEGRID_H
 
 #include <QObject>
+#include <QPushButton>
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QToolBar>
@@ -31,17 +32,21 @@ class sourceGrid : public QWidget {
   Q_OBJECT
 
   grid_type m_type;
-  QToolBar* m_toolBar;
-  QToolButton* m_toolBtnAdd;
-  QAction* m_actDel;
-  QAction* m_actUp;
-  QAction* m_actDown;
+  //  QToolBar* m_toolBar;
+  //  QToolButton* m_toolBtnAdd;
+  //  QAction* m_actDel;
+  //  QAction* m_actUp;
+  //  QAction* m_actDown;
+  QPushButton *m_btnAddFile;
+  QPushButton *m_btnAddDri;
+  QPushButton *m_btnCreateFile;
+  QPushButton *m_btnDelete;
+  QPushButton *m_btnMoveUp;
+  QPushButton *m_btnMoveDown;
 
-  QTableView* m_grid;
-  QStandardItemModel* m_model;
-  QItemSelectionModel* m_selectmodel;
-
-  QMap<QString, qint32> m_ftmap;
+  QTableView *m_grid;
+  QStandardItemModel *m_model;
+  QItemSelectionModel *m_selectmodel;
 
   QList<filedata> m_fdatalist;
 
@@ -49,7 +54,7 @@ class sourceGrid : public QWidget {
   bool isfiledataexit(filedata fdata);
 
  public:
-  explicit sourceGrid(grid_type type, QWidget* parent = nullptr);
+  explicit sourceGrid(grid_type type, QWidget *parent = nullptr);
 
   void initsourcegrid(const QList<filedata> flist);
   QList<filedata> getgriddata();
