@@ -78,10 +78,9 @@ void MainWindow::newFile() {
   out << "New file is requested\n";
 }
 
-void MainWindow::newProjectDlg()
-{
-    newProjectDialog* m_dialog = new newProjectDialog(this);
-    m_dialog->exec();
+void MainWindow::newProjectDlg() {
+  newProjectDialog* m_dialog = new newProjectDialog(this);
+  m_dialog->exec();
 }
 
 void MainWindow::createMenus() {
@@ -103,7 +102,6 @@ void MainWindow::createActions() {
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
-
 
   newProjectAction = new QAction(tr("&NewProject"), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
