@@ -69,7 +69,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
-add_subdirectory(src/ProjectManager)
+add_subdirectory(src/NewProject)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -311,9 +311,10 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 add_executable(newproject_bin
-    ${PROJECT_SOURCE_DIR}/src/ProjectManager/newproject_main.cpp
-    ${PROJECT_SOURCE_DIR}/src/ProjectManager/newproject.qrc)
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject_main.cpp
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 target_link_libraries(newproject_bin foedag)
+set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
 
 # Unit tests
 enable_testing()

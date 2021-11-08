@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 #include "Main/qttclnotifier.hpp"
 #include "Main/Foedag.h"
-#include "ProjectManager/new_project_dialog.h"
+#include "new_project_dialog.h"
 
 #include <QApplication>
 

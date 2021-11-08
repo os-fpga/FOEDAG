@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 
 #include "Main/Foedag.h"
-#include "ProjectManager/new_project_dialog.h"
+#include "NewProject/new_project_dialog.h"
 
 using namespace FOEDAG;
 
