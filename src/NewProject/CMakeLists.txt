@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(projectmanager LANGUAGES CXX)
+project(newproject LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -21,7 +21,7 @@ else()
     set(CMAKE_AUTORCC ON)
 endif()
 
-add_library(projectmanager STATIC
+add_library(newproject STATIC
   add_constraints_form.cpp
   add_constraints_form.h
   add_constraints_form.ui
@@ -47,5 +47,5 @@ add_library(projectmanager STATIC
   summary_form.ui
   newproject.qrc
 )
-target_link_libraries(projectmanager  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
-target_compile_definitions(projectmanager PRIVATE PROJECTMANAGER_LIBRARY)
+target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_compile_definitions(newproject PRIVATE NEWPROJECT_LIBRARY)

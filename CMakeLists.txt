@@ -288,7 +288,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC projectmanager)
+target_link_libraries(foedag  PUBLIC newproject)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)
@@ -310,10 +310,10 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
   target_link_libraries(foedag PRIVATE rt)
 endif()
 
-add_executable(newproject
+add_executable(newproject_bin
     ${PROJECT_SOURCE_DIR}/src/ProjectManager/newproject_main.cpp
     ${PROJECT_SOURCE_DIR}/src/ProjectManager/newproject.qrc)
-target_link_libraries(newproject foedag)
+target_link_libraries(newproject_bin foedag)
 
 # Unit tests
 enable_testing()
