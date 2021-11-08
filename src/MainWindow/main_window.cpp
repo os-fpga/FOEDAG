@@ -76,13 +76,18 @@ MainWindow::MainWindow() {
 void MainWindow::newFile() {
   QTextStream out(stdout);
   out << "New file is requested\n";
-  newProjectDialog* m_dialog = new newProjectDialog();
-  m_dialog->exec();
+}
+
+void MainWindow::newProjectDlg()
+{
+    newProjectDialog* m_dialog = new newProjectDialog(this);
+    m_dialog->exec();
 }
 
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
+  fileMenu->addAction(newProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 }
@@ -98,6 +103,11 @@ void MainWindow::createActions() {
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
+
+
+  newProjectAction = new QAction(tr("&NewProject"), this);
+  newProjectAction->setStatusTip(tr("Create a new project"));
+  connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));

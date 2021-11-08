@@ -131,7 +131,9 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
-set(QRC_MAIN_WINDOW src/MainWindow/main_window_resource.qrc)
+set(QRC_MAIN_WINDOW 
+	src/MainWindow/main_window_resource.qrc
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
