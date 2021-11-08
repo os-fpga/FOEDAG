@@ -76,7 +76,7 @@ MainWindow::MainWindow() {
 void MainWindow::newFile() {
   QTextStream out(stdout);
   out << "New file is requested\n";
-  newProjectDialog *m_dialog = new newProjectDialog();
+  newProjectDialog* m_dialog = new newProjectDialog();
   m_dialog->exec();
 }
 
