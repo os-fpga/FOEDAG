@@ -167,8 +167,8 @@ jobs:
       run: |
         pacman --noconfirm -S zlib
         pacman --noconfirm -S zlib-devel
-        #  Non static version: pacman --noconfirm -S mingw-w64-x86_64-qt5
-        pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
+        pacman --noconfirm -S mingw-w64-x86_64-qt5
+        # Static version pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
         find /mingw64 -name qt5-config.cmake
@@ -179,8 +179,8 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        # Non static version: export Qt5_Dir=/mingw64/lib/cmake/Qt5/
-        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        # Static version: export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
@@ -211,9 +211,12 @@ jobs:
     - name: Build
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        # export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
+        make lib-only
+# There are Qt linkage issues, so build only the libs for now        
 #        make VERBOSE=1 release
 #        make debug 
 #        make install
@@ -221,9 +224,11 @@ jobs:
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        # export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
+# There Qt are linkage issues, so build only the libs for now        
 #        make test_install
 #        make test/unittest
 #        make regression

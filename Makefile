@@ -122,6 +122,9 @@ test_install:
 test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
 
+lib-only: run-cmake-release
+	cmake --build build --target foedag -j $(CPU_CORES)
+
 format:
 	.github/bin/run-clang-format.sh
 
