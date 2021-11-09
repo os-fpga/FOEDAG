@@ -130,6 +130,7 @@ target_link_directories(test_hellofoedag
 if (FOEDAG_WITH_PYTHON)
   target_link_libraries(test_hellofoedag
     foedag
+    newproject
     tcl_stubb
     tcl_static
     zlib
@@ -140,6 +141,7 @@ if (FOEDAG_WITH_PYTHON)
 else()
   target_link_libraries(test_hellofoedag
     foedag
+    newproject
     tcl_stubb
     tcl_static
     zlib
