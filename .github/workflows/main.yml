@@ -167,7 +167,7 @@ jobs:
       run: |
         pacman --noconfirm -S zlib
         pacman --noconfirm -S zlib-devel
-#  Non static version: pacman --noconfirm -S mingw-w64-x86_64-qt5
+        #  Non static version: pacman --noconfirm -S mingw-w64-x86_64-qt5
         pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
@@ -179,7 +179,7 @@ jobs:
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-# Non static version: export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        # Non static version: export Qt5_Dir=/mingw64/lib/cmake/Qt5/
         export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
