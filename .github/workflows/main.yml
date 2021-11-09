@@ -167,7 +167,7 @@ jobs:
       run: |
         pacman --noconfirm -S zlib
         pacman --noconfirm -S zlib-devel
-        pacman --noconfirm -Syu filesystem
+#        pacman --noconfirm -Syu filesystem
         pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
