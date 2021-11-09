@@ -167,7 +167,7 @@ jobs:
       run: |
         pacman --noconfirm -S zlib
         pacman --noconfirm -S zlib-devel
-        pacman --noconfirm -Syu filesystem-base filesystem
+        pacman --noconfirm -Syu filesystem
         pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
         find . -name qt5-config.cmake
         find . -name Qt5Config.cmake
@@ -213,7 +213,7 @@ jobs:
         export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-        make VERBOSE=1 release
+#        make VERBOSE=1 release
 #        make debug 
 #        make install
 
