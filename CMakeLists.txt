@@ -423,6 +423,10 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
 
 install(
+  FILES ${PROJECT_SOURCE_DIR}/src/NewProject/new_project_dialog.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
+
+install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
 
