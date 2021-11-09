@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>locationForm</class>
+ <widget class="QWidget" name="locationForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>654</width>
+    <height>539</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>15</number>
+   </property>
+   <property name="topMargin">
+    <number>9</number>
+   </property>
+   <property name="rightMargin">
+    <number>9</number>
+   </property>
+   <property name="bottomMargin">
+    <number>15</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="m_labelTitle">
+     <property name="font">
+      <font>
+       <family>Arial</family>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Project Location</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_labelCont">
+     <property name="text">
+      <string>This wizard will guide you through the creation of a new project.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="m_labelTail">
+     <property name="text">
+      <string>To create a Cwise project you will need to provide a name and a location for your project files. Next,you will specify the type of flow you'll be working with. Finally,you will specify your project sources and choose a default part.</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>207</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="m_groupBox">
+     <property name="styleSheet">
+      <string notr="true">border-color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="m_labelPname">
+            <property name="text">
+             <string>Project name:</string>
+            </property>
+            <property name="buddy">
+             <cstring>m_lineEditPname</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="m_labelPpath">
+            <property name="text">
+             <string>Project location:</string>
+            </property>
+            <property name="buddy">
+             <cstring>m_lineEditPpath</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="m_lineEditPname"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout" stretch="90,10">
+            <item>
+             <widget class="QLineEdit" name="m_lineEditPpath">
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="m_btnBrowse">
+              <property name="text">
+               <string>Browse...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="m_checkBox">
+        <property name="text">
+         <string>Create project subdirectory</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="25,75">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="m_labelPath0">
+          <property name="text">
+           <string>Project will be created at:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="m_labelPath1">
+          <property name="text">
+           <string>path</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>m_lineEditPname</tabstop>
+  <tabstop>m_lineEditPpath</tabstop>
+  <tabstop>m_btnBrowse</tabstop>
+  <tabstop>m_checkBox</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

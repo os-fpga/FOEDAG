@@ -38,13 +38,15 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 
-find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
 if (NOT Qt5Widgets_FOUND)
     message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Gui_FOUND)
     message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Core_FOUND)
     message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
+elseif (NOT Qt5Xml_FOUND)
+    message(STATUS "Failed to find Qt5Xml required (on debian/ubuntu try 'sudo apt install qt5-default')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -130,20 +132,22 @@ target_link_directories(test_hellofoedag
 if (FOEDAG_WITH_PYTHON)
   target_link_libraries(test_hellofoedag
     foedag
+    newproject
     tcl_stubb
     tcl_static
     zlib
     ${Python3_LIBRARIES}
-    Qt5::Widgets Qt5::Core Qt5::Gui 
+    Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml 
     $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 else()
   target_link_libraries(test_hellofoedag
     foedag
+    newproject
     tcl_stubb
     tcl_static
     zlib
-    Qt5::Widgets Qt5::Core Qt5::Gui
+    Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
     $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 endif()

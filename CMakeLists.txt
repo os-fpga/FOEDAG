@@ -69,6 +69,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
+add_subdirectory(src/NewProject)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -130,7 +131,9 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
-set(QRC_MAIN_WINDOW src/MainWindow/main_window_resource.qrc)
+set(QRC_MAIN_WINDOW 
+	src/MainWindow/main_window_resource.qrc
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
@@ -168,9 +171,11 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
+set(NEWPRO_STATIC_LIB libnewproject.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90s.lib)
+  set(NEWPRO_STATIC_LIB newproject.lib)
 endif()
 
 if(MSVC)
@@ -287,6 +292,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
+target_link_libraries(foedag  PUBLIC newproject)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)
@@ -307,6 +313,12 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
   target_link_libraries(foedag PRIVATE stdc++fs)
   target_link_libraries(foedag PRIVATE rt)
 endif()
+
+add_executable(newproject_bin
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject_main.cpp
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
+target_link_libraries(newproject_bin foedag)
+set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
 
 # Unit tests
 enable_testing()
@@ -383,6 +395,9 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
 install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${NEWPRO_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
+install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 install (
@@ -406,6 +421,10 @@ install(
   FILES ${PROJECT_SOURCE_DIR}/src/MainWindow/main_window.h
         ${PROJECT_SOURCE_DIR}/src/MainWindow/Session.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
+
+install(
+  FILES ${PROJECT_SOURCE_DIR}/src/NewProject/new_project_dialog.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
