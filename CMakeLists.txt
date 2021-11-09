@@ -44,6 +44,11 @@ project(FOEDAG)
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
+#if (WIN32)
+#SET(CMAKE_EXE_LINKER_FLAGS 
+#          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,C:\Windows\System32")
+#endif()
+
 # Find Qt packages and error out if not found
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 if (NOT Qt5Widgets_FOUND)
@@ -67,7 +72,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
-add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
+#add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(src/NewProject)
 
@@ -101,6 +106,8 @@ set(CMAKE_CXX_FLAGS
     "${CMAKE_CXX_FLAGS} ${TCMALLOC_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS}")
 
 if(MSVC)
+  add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
+
   add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
 
   set(CMAKE_CXX_FLAGS_DEBUG
@@ -171,10 +178,12 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
+set(ZLIB_STATIC_LIB libz.a)
 set(NEWPRO_STATIC_LIB libnewproject.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90s.lib)
+  set(ZLIB_STATIC_LIB zlib.lib)
   set(NEWPRO_STATIC_LIB newproject.lib)
 endif()
 
@@ -184,7 +193,6 @@ if(MSVC)
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
@@ -197,11 +205,10 @@ if(MSVC)
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
-    COMMAND echo "       Compiling Tcl"
+    COMMAND echo "       Compiling Tcl Stubb"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-#    COMMAND nmake verbose=1 -f makefile.vc test INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
-    COMMAND echo "       Tcl Compilation completed"
+    COMMAND echo "       Tcl Stubb Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/win"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
@@ -212,27 +219,41 @@ if(MSVC)
             ${CMAKE_CURRENT_BINARY_DIR}/lib/foedag/lib/${TCL_STUBB_LIB}         
   )
 else()
+  add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
+    COMMAND echo "       Compiling Zlib"
+    COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
+    COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/lib/
+    COMMAND echo "       Zlib Compilation completed"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/zlib/zlib.h
+  )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all -j
-    COMMAND make install
+    COMMAND rm -rf configure
+    COMMAND autoconf configure.ac  > configure
+    COMMAND chmod 755 configure
+    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
-    COMMAND echo "       Compiling Tcl"
-    COMMAND ./configure --enable-shared=off --prefix=${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND make all -j
-    COMMAND make install
-    COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+    COMMAND echo "       Compiling Tcl Stubb"
+#    COMMAND rm -rf configure
+#    COMMAND autoconf configure.ac  > configure
+#    COMMAND chmod 755 configure
+#    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
+#    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
+#    COMMAND echo "       Tcl Stubb Compilation completed"
+#    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
 endif()
+
 # Copy the init.tcl file from source to build directory
 add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
@@ -240,6 +261,13 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl9.0/init.tcl)
 add_dependencies(foedag tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
+
+
+if(MSVC)
+else()
+  add_dependencies(tcl_build zlib_build)
+endif()
+
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
@@ -265,19 +293,14 @@ if(MSVC OR WIN32)
 endif()
 
 
-
-ADD_LIBRARY(tcl_static STATIC IMPORTED)
-SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
-ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})    
 if(MSVC)
+  ADD_LIBRARY(tcl_static STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
+  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
@@ -288,6 +311,16 @@ if(MSVC)
   )
   target_link_libraries(foedag-bin PUBLIC Netapi32)
   target_link_libraries(foedag  PUBLIC Netapi32)
+else()
+  ADD_LIBRARY(tcl_static STATIC IMPORTED)
+  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
+  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
+  ADD_LIBRARY(zlib STATIC IMPORTED)
+  SET_TARGET_PROPERTIES(zlib PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})       
 endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
@@ -403,6 +436,9 @@ install (
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)  
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)
     install(

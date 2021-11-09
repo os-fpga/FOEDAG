@@ -132,6 +132,12 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.21.3'
+
     - name: Configure Git
       run: git config --global core.autocrlf input
       shell: bash
@@ -159,15 +165,24 @@ jobs:
 # Install Qt
     - shell: msys2 {0}
       run: |
-        pacman --noconfirm -S mingw-w64-x86_64-qt5
-      
+        pacman --noconfirm -S zlib
+        pacman --noconfirm -S zlib-devel
+        #  Non static version: pacman --noconfirm -S mingw-w64-x86_64-qt5
+        pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
+        find . -name qt5-config.cmake
+        find . -name Qt5Config.cmake
+        find /mingw64 -name qt5-config.cmake
+        find /mingw64 -name Qt5Config.cmake
+        find C:/msys64/ -name qt5-config.cmake
+        find C:/msys64/ -name Qt5Config.cmake
+        
     - name: Configure shell environment variables
       run: |
         export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        # Non static version: export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
-
         echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
         echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
         echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
@@ -196,17 +211,17 @@ jobs:
     - name: Build
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-#        make release 
+#        make VERBOSE=1 release
 #        make debug 
 #        make install
 
     - name: Test
       run: |
         export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
+        export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
 #        make test_install
@@ -227,6 +242,7 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
+# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.9
       with:
