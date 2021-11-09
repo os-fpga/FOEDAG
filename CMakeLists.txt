@@ -171,9 +171,11 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
+set(NEWPRO_STATIC_LIB libnewproject.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90s.lib)
+  set(NEWPRO_STATIC_LIB newproject.lib)
 endif()
 
 if(MSVC)
@@ -392,6 +394,9 @@ install(
   EXPORT Foedag
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${NEWPRO_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
