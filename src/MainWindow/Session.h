@@ -38,7 +38,7 @@ namespace FOEDAG {
 class Session {
  private:
  public:
-  Session(QMainWindow *mainWindow, TclInterpreter *interp, CommandStack *stack,
+  Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
           CommandLine *cmdLine)
       : m_mainWindow(mainWindow),
         m_interp(interp),
@@ -47,13 +47,13 @@ class Session {
 
   ~Session();
 
-  QMainWindow *MainWindow() { return m_mainWindow; }
+  QWidget *MainWindow() { return m_mainWindow; }
   TclInterpreter *TclInterp() { return m_interp; }
   CommandStack *CmdStack() { return m_stack; }
   CommandLine *CmdLine() { return m_cmdLine; }
 
  private:
-  QMainWindow *m_mainWindow;
+  QWidget *m_mainWindow;
   TclInterpreter *m_interp;
   CommandStack *m_stack;
   CommandLine *m_cmdLine;
