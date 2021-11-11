@@ -16,17 +16,10 @@ class projectTypeForm : public QWidget {
   explicit projectTypeForm(QWidget *parent = nullptr);
   ~projectTypeForm();
 
-  int getprojecttype();
-  bool isaddsource();
- private slots:
-  void on_m_radioBtnRTL_clicked();
-
-  void on_m_radioBtnPost_clicked();
+  int getProjectType();
 
  private:
   Ui::projectTypeForm *ui;
-
-  void updatestate();
 };
 
 #endif  // PROJECTTYPEFORM_H

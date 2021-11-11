@@ -12,12 +12,11 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("New Project"));
 
-  m_bfinished = false;
   // One thirds of desktop size
   QDesktopWidget dw;
-  int w = dw.width();
-  int h = dw.height();
-  setGeometry(w / 3, h / 3, w / 3, h / 3);
+  int w = dw.width() / 3;
+  int h = dw.height() / 3;
+  setGeometry(w, h, w, h);
 
   m_locationForm = new locationForm(this);
   ui->m_stackedWidget->insertWidget(1, m_locationForm);
@@ -33,31 +32,27 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   ui->m_stackedWidget->insertWidget(6, m_sumForm);
   ui->m_stackedWidget->adjustSize();
 
-  updatedialogview();
+  UpdateDialogView();
 }
 
 newProjectDialog::~newProjectDialog() { delete ui; }
 
+void newProjectDialog::tcl_command_test() { on_m_btnNext_clicked(); }
+
 void newProjectDialog::on_m_btnBack_clicked() {
   m_index--;
-  updatedialogview();
+  UpdateDialogView();
 }
 
 void newProjectDialog::on_m_btnNext_clicked() {
   m_index++;
-  updatedialogview();
+  UpdateDialogView();
 }
 
-void newProjectDialog::on_m_btnFinish_clicked() {
-  m_bfinished = true;
-  this->close();
-}
+void newProjectDialog::on_m_btnFinish_clicked() { this->close(); }
 
-void newProjectDialog::on_m_btnCancel_clicked() {
-  m_bfinished = false;
-  this->close();
-}
-void newProjectDialog::updatedialogview() {
+void newProjectDialog::on_m_btnCancel_clicked() { this->close(); }
+void newProjectDialog::UpdateDialogView() {
   if (INDEX_LOCATION == m_index) {
     ui->m_btnBack->setEnabled(false);
   } else {
@@ -67,15 +62,11 @@ void newProjectDialog::updatedialogview() {
   if (INDEX_SUMMARYF == m_index) {
     ui->m_btnNext->setEnabled(false);
     ui->m_btnFinish->setEnabled(true);
-    int ptype = m_proTypeForm->getprojecttype();
-
-    QString series;
-    QString device;
-    QString package;
-    m_devicePlanForm->getdeviceinfo(series, device, package);
-    m_sumForm->setprojectname(m_locationForm->getprojectname(), ptype);
-    m_sumForm->setdeviceinfo(series, device);
-    m_sumForm->setsourcecount(0, 0);
+    m_sumForm->setProjectName(m_locationForm->getProjectName(),
+                              m_proTypeForm->getProjectType());
+    m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
+    m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
+                              m_addConstrsForm->getFileData().count());
   } else {
     ui->m_btnNext->setEnabled(true);
     ui->m_btnFinish->setEnabled(false);

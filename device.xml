@@ -1,0 +1,27 @@
+<device_list>
+    <device name="x7c100t" series="7series" family="artix7" package="SBG484" pin_count="238" speedgrade="1" core_voltage="1.1V">
+        <resource type="io" num="200"/>
+        <resource type="lut" num="8000"/>
+        <resource type="ff" num="16000"/>
+        <resource type="bram" num="48"/>
+    </device>
+        <device name="x7c100t" series="7series" family="artix7x" package="SBG484" pin_count="238" speedgrade="1" core_voltage="1.1V">
+        <resource type="io" num="200"/>
+        <resource type="lut" num="8000"/>
+        <resource type="ff" num="16000"/>
+        <resource type="bram" num="48"/>
+    </device>
+        <device name="x7c100tE" series="7series" family="artix7x" package="SBG484E" pin_count="238" speedgrade="1" core_voltage="1.1V">
+        <resource type="io" num="200"/>
+        <resource type="lut" num="8000"/>
+        <resource type="ff" num="16000"/>
+        <resource type="bram" num="48"/>
+    </device>
+        <device name="x5c100t" series="5series" family="artix5" package="SBG585" pin_count="238" speedgrade="1" core_voltage="1.2V">
+        <resource type="io" num="200"/>
+        <resource type="lut" num="8000"/>
+        <resource type="ff" num="16000"/>
+        <resource type="bram" num="48"/>
+    </device>
+    <!-- more devices …  -->
+</device_list>

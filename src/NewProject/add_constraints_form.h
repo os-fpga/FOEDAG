@@ -16,13 +16,13 @@ class addConstraintsForm : public QWidget {
   explicit addConstraintsForm(QWidget *parent = nullptr);
   ~addConstraintsForm();
 
-  QList<filedata> getfiledata();
-  bool iscopysource();
+  QList<filedata> getFileData();
+  bool IsCopySource();
 
  private:
   Ui::addConstraintsForm *ui;
 
-  sourceGrid *m_widgetgrid;
+  sourceGrid *m_widgetGrid;
 };
 
 #endif  // ADDCONSTRAINTSFORM_H

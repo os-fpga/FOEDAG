@@ -26,7 +26,7 @@ createFileDialog::createFileDialog(QWidget *parent)
 
 createFileDialog::~createFileDialog() { delete ui; }
 
-void createFileDialog::initialdialog(int type) {
+void createFileDialog::initialDialog(int type) {
   m_type = type;
   if (GT_SOURCE == m_type) {
     setWindowTitle(tr("Create Source File"));
@@ -41,7 +41,7 @@ void createFileDialog::initialdialog(int type) {
     ui->m_labelDetailed->setText(
         tr("Create a new Constraints file and add it to your project."));
     ui->m_comboxFileType->clear();
-    ui->m_comboxFileType->addItem(tr("CDC"));
+    ui->m_comboxFileType->addItem(tr("SDC"));
   }
   // ui->m_comboxFileType->setStyleSheet("border: 1px solid gray;");
 }
@@ -53,27 +53,25 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
     return;
   }
   filedata fdata;
-  fdata.isfolder = 0;
+  fdata.m_isFolder = false;
   if (GT_SOURCE == m_type) {
-    fdata.filetype = ui->m_comboxFileType->currentIndex();
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:
-        fdata.fname = ui->m_lineEditFileName->text() + QString(".v");
-        fdata.strtype = QString("v");
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");
+        fdata.m_fileType = QString("v");
         break;
       case 1:
-        fdata.fname = ui->m_lineEditFileName->text() + QString(".vhd");
-        fdata.strtype = QString("vhd");
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".vhd");
+        fdata.m_fileType = QString("vhd");
         break;
       default:
         break;
     }
-  } else {
-    fdata.filetype = 2;
+  } else if (GT_CONSTRAINTS == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:
-        fdata.fname = ui->m_lineEditFileName->text() + QString(".CDC");
-        fdata.strtype = QString("CDC");
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".SDC");
+        fdata.m_fileType = QString("SDC");
         break;
       case 1:
         break;
@@ -82,8 +80,8 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
     }
   }
 
-  fdata.fpath = ui->m_comboxFileLocation->currentText();
-  emit sig_updategrid(fdata);
+  fdata.m_filePath = ui->m_comboxFileLocation->currentText();
+  emit sig_updateGrid(fdata);
 
   this->close();
 }

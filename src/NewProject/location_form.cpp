@@ -27,13 +27,13 @@ locationForm::locationForm(QWidget *parent)
 }
 
 locationForm::~locationForm() { delete ui; }
-QString locationForm::getprojectname() { return ui->m_lineEditPname->text(); }
-QString locationForm::getprojectpath() { return ui->m_labelPath1->text(); }
-bool locationForm::iscreatedir() {
+QString locationForm::getProjectName() { return ui->m_lineEditPname->text(); }
+QString locationForm::getProjectPath() { return ui->m_labelPath1->text(); }
+bool locationForm::IsCreateDir() {
   return ui->m_checkBox->checkState() == Qt::CheckState::Checked ? true : false;
 }
 
-bool locationForm::isprojectNameExit() {
+bool locationForm::IsProjectNameExit() {
   QString pname = ui->m_lineEditPname->text();
   QString ppath = ui->m_labelPath1->text();
   if ("" == pname || "" == ppath) return false;
@@ -55,8 +55,9 @@ void locationForm::on_m_btnBrowse_clicked() {
                                         : ui->m_lineEditPpath->text(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-  if ("" == pathName) return;
-  //    pathName.replace("/","\\");
+  if ("" == pathName) {
+    return;
+  }
   ui->m_lineEditPpath->setText(pathName);
 
   QString name = ui->m_lineEditPname->text();

@@ -21,10 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 
+#include "../new_project_dialog.h"
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
-#include "new_project_dialog.h"
 
 FOEDAG::Session* GlobalSession;
 FOEDAG::newProjectDialog* m_dialog;
@@ -41,7 +41,21 @@ int main(int argc, char** argv) {
     m_dialog->show();
     return 0;
   };
-  interpreter->registerCmd("newproject", newproject, 0, 0);
+  interpreter->registerCmd("newproject_gui_open", newproject, 0, 0);
+
+  auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    m_dialog->hide();
+    return 0;
+  };
+  interpreter->registerCmd("newproject_gui_close", newprojecthide, 0, 0);
+
+  auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    m_dialog->tcl_command_test();
+    return 0;
+  };
+  interpreter->registerCmd("next", btnnext, 0, 0);
 
   QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
 
@@ -53,7 +67,7 @@ int main(int argc, char** argv) {
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     FOEDAG::TclInterpreter interpreter;
     std::string result = interpreter.evalCmd(
-        "puts \"Hello put newproject to create new project.\"");
+        "puts \"Hello put newproject_gui_open to show new project GUI.\"");
     return 0;
   };
 

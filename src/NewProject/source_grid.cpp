@@ -9,10 +9,10 @@
 
 #include "create_file_dialog.h"
 
-sourceGrid::sourceGrid(grid_type type, QWidget *parent) : QWidget(parent) {
+sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   m_type = type;
 
-  m_fdatalist.clear();
+  m_lisFileData.clear();
   //    m_toolBar = new QToolBar(this);
   //    m_toolBar->setIconSize(QSize(32,32));
 
@@ -69,26 +69,24 @@ sourceGrid::sourceGrid(grid_type type, QWidget *parent) : QWidget(parent) {
   //    connect(m_actDown,&QAction::triggered,this,&sourceGrid::slot_downgriditem);
   //    m_toolBar->addAction(m_actDown);
   m_btnAddFile = new QPushButton(tr("AddFile"), this);
-  connect(m_btnAddFile, &QPushButton::clicked, this,
-          &sourceGrid::slot_addfiles);
+  connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
   m_btnAddDri = new QPushButton(tr("AddDir"), this);
   connect(m_btnAddDri, &QPushButton::clicked, this,
-          &sourceGrid::slot_adddirectories);
+          &sourceGrid::AddDirectories);
   m_btnCreateFile = new QPushButton(tr("CreateFile"), this);
   connect(m_btnCreateFile, &QPushButton::clicked, this,
-          &sourceGrid::slot_createfile);
+          &sourceGrid::CreateFile);
   m_btnDelete = new QPushButton(tr("Delete"), this);
   m_btnDelete->setEnabled(false);
   connect(m_btnDelete, &QPushButton::clicked, this,
-          &sourceGrid::slot_deletegriditem);
+          &sourceGrid::DeleteTableItem);
   m_btnMoveUp = new QPushButton(tr("MoveUp"), this);
   m_btnMoveUp->setEnabled(false);
-  connect(m_btnMoveUp, &QPushButton::clicked, this,
-          &sourceGrid::slot_upgriditem);
+  connect(m_btnMoveUp, &QPushButton::clicked, this, &sourceGrid::UpTableItem);
   m_btnMoveDown = new QPushButton(tr("MoveDown"), this);
   m_btnMoveDown->setEnabled(false);
   connect(m_btnMoveDown, &QPushButton::clicked, this,
-          &sourceGrid::slot_downgriditem);
+          &sourceGrid::DownTableItem);
 
   QHBoxLayout *hbox = new QHBoxLayout();
   hbox->addWidget(m_btnAddFile);
@@ -105,72 +103,57 @@ sourceGrid::sourceGrid(grid_type type, QWidget *parent) : QWidget(parent) {
   hbox->setContentsMargins(0, 0, 0, 0);
   hbox->setSpacing(1);
 
-  m_grid = new QTableView(this);
+  m_tableViewSrc = new QTableView(this);
 
   // Set properties
-  m_grid->verticalHeader()->hide();
-  m_grid->verticalHeader()->setDefaultSectionSize(30);
-  m_grid->horizontalHeader()->setStretchLastSection(
+  m_tableViewSrc->verticalHeader()->hide();
+  m_tableViewSrc->verticalHeader()->setDefaultSectionSize(30);
+  m_tableViewSrc->horizontalHeader()->setStretchLastSection(
       true);  // Last column adaptive width
-  m_grid->setEditTriggers(QTableView::NoEditTriggers);
-  m_grid->setSelectionBehavior(QTableView::SelectRows);
-  m_grid->setSelectionMode(
-      QTableView::SingleSelection);       // Single line selection
-  m_grid->setAlternatingRowColors(true);  // Color separation between lines
+  m_tableViewSrc->setEditTriggers(QTableView::NoEditTriggers);
+  m_tableViewSrc->setSelectionBehavior(QTableView::SelectRows);
+  m_tableViewSrc->setSelectionMode(
+      QTableView::SingleSelection);  // Single line selection
+  m_tableViewSrc->setAlternatingRowColors(
+      true);  // Color separation between lines
 
-  m_grid->setStyleSheet(
+  m_tableViewSrc->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
                           QTableView::item:selected{color:black;background: #63B8FF;}");
-  m_grid->setColumnWidth(0, 80);
+  m_tableViewSrc->setColumnWidth(0, 80);
 
-  // add table header
   m_model = new QStandardItemModel();
-  m_selectmodel = new QItemSelectionModel(m_model);
+  m_selectModel = new QItemSelectionModel(m_model);
 
-  m_grid->horizontalHeader()->setMinimumHeight(30);
+  m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
 
   m_model->setHorizontalHeaderItem(0, new QStandardItem(tr("Index")));
   m_model->setHorizontalHeaderItem(1, new QStandardItem(tr("Name")));
   m_model->setHorizontalHeaderItem(2, new QStandardItem(tr("Location")));
 
-  m_grid->setModel(m_model);
-  m_grid->setSelectionModel(m_selectmodel);
-  connect(m_selectmodel, &QItemSelectionModel::selectionChanged, this,
-          &sourceGrid::slot_selectionChanged);
+  m_tableViewSrc->setModel(m_model);
+  m_tableViewSrc->setSelectionModel(m_selectModel);
+  connect(m_selectModel, &QItemSelectionModel::selectionChanged, this,
+          &sourceGrid::TableViewSelectionChanged);
 
   QVBoxLayout *vbox = new QVBoxLayout();
   // vbox->addWidget(m_toolBar);
   vbox->addLayout(hbox);
-  vbox->addWidget(m_grid);
+  vbox->addWidget(m_tableViewSrc);
 
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
   setLayout(vbox);
 }
 
-void sourceGrid::initsourcegrid(const QList<filedata> flist) {
-  for (int cnt = 0; cnt < flist.count(); ++cnt) {
-    filedata pfdt = flist[cnt];
-    filedata fdata;
-    fdata.isfolder = pfdt.isfolder;
-    fdata.filetype = pfdt.filetype;
-    fdata.strtype = pfdt.strtype;
-    fdata.fname = pfdt.fname;
-    fdata.fpath = pfdt.fpath;
-    slot_addgridrow(fdata);
-  }
-}
+QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 
-QList<filedata> sourceGrid::getgriddata() { return m_fdatalist; }
-
-void sourceGrid::slot_addfiles() {
+void sourceGrid::AddFiles() {
   QString fileformat;
   if (GT_SOURCE == m_type) {
     fileformat = QString(tr("Design Files(*.v *.vhd)"));
   } else if (GT_CONSTRAINTS == m_type) {
-    fileformat = QString(tr("Design Files(*.CDC)"));
-  } else if (GT_NETLIST == m_type) {
-    fileformat = QString(tr("Design Files(*.vqm *.hex *.mif)"));
+    fileformat = QString(tr("Design Files(*.SDC)"));
   }
   QStringList fileNames =
       QFileDialog::getOpenFileNames(this, tr("Select File"), "", fileformat);
@@ -180,28 +163,15 @@ void sourceGrid::slot_addfiles() {
     QString suffix = name.right(name.size() - (name.lastIndexOf(".") + 1));
 
     filedata fdata;
-    fdata.isfolder = 0;
-    if ("v" == suffix) {
-      fdata.filetype = ST_V;
-    } else if ("vhd" == suffix) {
-      fdata.filetype = ST_VHD;
-    } else if ("CDC" == suffix) {
-      fdata.filetype = ST_CDC;
-    } else if ("vqm" == suffix) {
-      fdata.filetype = ST_VQM;
-    } else if ("hex" == suffix) {
-      fdata.filetype = ST_HEX;
-    } else if ("mif" == suffix) {
-      fdata.filetype = ST_MIF;
-    }
-    fdata.strtype = suffix;
-    fdata.fname = name;
-    fdata.fpath = path;
-    slot_addgridrow(fdata);
+    fdata.m_isFolder = false;
+    fdata.m_fileType = suffix;
+    fdata.m_fileName = name;
+    fdata.m_filePath = path;
+    AddTableItem(fdata);
   }
 }
 
-void sourceGrid::slot_adddirectories() {
+void sourceGrid::AddDirectories() {
   QString pathName = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
@@ -211,64 +181,64 @@ void sourceGrid::slot_adddirectories() {
   QString path = pathName.left(pathName.lastIndexOf("/"));
 
   filedata fdata;
-  fdata.isfolder = 1;
-  fdata.fname = folder;
-  fdata.fpath = path;
-  slot_addgridrow(fdata);
+  fdata.m_isFolder = true;
+  fdata.m_fileName = folder;
+  fdata.m_filePath = path;
+  AddTableItem(fdata);
 }
 
-void sourceGrid::slot_createfile() {
+void sourceGrid::CreateFile() {
   createFileDialog *createdlg = new createFileDialog(this);
-  createdlg->initialdialog(m_type);
-  connect(createdlg, &createFileDialog::sig_updategrid, this,
-          &sourceGrid::slot_addgridrow);
+  createdlg->initialDialog(m_type);
+  connect(createdlg, &createFileDialog::sig_updateGrid, this,
+          &sourceGrid::AddTableItem);
   createdlg->exec();
-  disconnect(createdlg, &createFileDialog::sig_updategrid, this,
-             &sourceGrid::slot_addgridrow);
+  disconnect(createdlg, &createFileDialog::sig_updateGrid, this,
+             &sourceGrid::AddTableItem);
 }
 
-void sourceGrid::slot_deletegriditem() {
-  int curRow = m_selectmodel->currentIndex().row();
+void sourceGrid::DeleteTableItem() {
+  int curRow = m_selectModel->currentIndex().row();
   if (curRow < 0) return;
   QString strtemp = m_model->item(curRow, 1)->text();
-  for (int i = 0; i < m_fdatalist.count(); ++i) {
-    if (m_fdatalist[i].fname == strtemp) {
-      m_fdatalist.removeAt(i);
+  for (int i = 0; i < m_lisFileData.count(); ++i) {
+    if (m_lisFileData[i].m_fileName == strtemp) {
+      m_lisFileData.removeAt(i);
       break;
     }
   }
   m_model->removeRow(curRow);
 
   QStandardItemModel *model =
-      qobject_cast<QStandardItemModel *>(m_grid->model());
+      qobject_cast<QStandardItemModel *>(m_tableViewSrc->model());
   if (model == nullptr) {
     return;
   }
   int column = m_model->columnCount();
   int rows = m_model->rowCount();
   if (curRow == rows && rows != 0) curRow--;
-  m_grid->setCurrentIndex(model->index(curRow, column));
-  m_grid->selectRow(curRow);
+  m_tableViewSrc->setCurrentIndex(model->index(curRow, column));
+  m_tableViewSrc->selectRow(curRow);
 
   if (0 == rows) {
     m_btnDelete->setEnabled(false);
   }
 }
 
-void sourceGrid::slot_upgriditem() {
-  int curRow = m_selectmodel->currentIndex().row();
+void sourceGrid::UpTableItem() {
+  int curRow = m_selectModel->currentIndex().row();
   if (curRow < 0) return;
-  moverow(curRow, curRow - 1);
+  MoveTableRow(curRow, curRow - 1);
 }
 
-void sourceGrid::slot_downgriditem() {
-  int curRow = m_selectmodel->currentIndex().row();
+void sourceGrid::DownTableItem() {
+  int curRow = m_selectModel->currentIndex().row();
   if (curRow < 0) return;
-  moverow(curRow, curRow + 1);
+  MoveTableRow(curRow, curRow + 1);
 }
 
-void sourceGrid::slot_selectionChanged() {
-  int curRow = m_selectmodel->currentIndex().row();
+void sourceGrid::TableViewSelectionChanged() {
+  int curRow = m_selectModel->currentIndex().row();
   if (curRow < 0) return;
 
   int rows = m_model->rowCount();
@@ -288,8 +258,8 @@ void sourceGrid::slot_selectionChanged() {
   return;
 }
 
-void sourceGrid::slot_addgridrow(filedata fdata) {
-  if (isfiledataexit(fdata)) return;
+void sourceGrid::AddTableItem(filedata fdata) {
+  if (IsFileDataExit(fdata)) return;
 
   int rows = m_model->rowCount();
   QList<QStandardItem *> items;
@@ -300,33 +270,33 @@ void sourceGrid::slot_addgridrow(filedata fdata) {
   items.append(item);
 
   QIcon icon;
-  if (0 == fdata.isfolder) {
+  if (0 == fdata.m_isFolder) {
     icon.addFile(":/img/img/file.png");
   } else {
     icon.addFile(":/img/img/files.png");
   }
   item = new QStandardItem();
   item->setIcon(icon);
-  item->setText(fdata.fname);
-  item->setTextAlignment(Qt::AlignLeft);
+  item->setText(fdata.m_fileName);
+  item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   items.append(item);
 
-  item = new QStandardItem(fdata.fpath);
-  item->setTextAlignment(Qt::AlignLeft);
+  item = new QStandardItem(fdata.m_filePath);
+  item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   items.append(item);
 
   m_model->insertRow(rows, items);
-  slot_selectionChanged();
-  m_fdatalist.append(fdata);
+  TableViewSelectionChanged();
+  m_lisFileData.append(fdata);
 }
 
-void sourceGrid::moverow(int from, int to) {
+void sourceGrid::MoveTableRow(int from, int to) {
   if (from == to) {
     return;
   }
 
   QStandardItemModel *model =
-      qobject_cast<QStandardItemModel *>(m_grid->model());
+      qobject_cast<QStandardItemModel *>(m_tableViewSrc->model());
   if (model == nullptr) {
     return;
   }
@@ -334,9 +304,9 @@ void sourceGrid::moverow(int from, int to) {
   QList<QStandardItem *> listItem = model->takeRow(from);
   model->insertRow(to, listItem);
 
-  int column = m_grid->currentIndex().column();
-  m_grid->setCurrentIndex(model->index(to, column));
-  m_grid->selectRow(to);
+  int column = m_tableViewSrc->currentIndex().column();
+  m_tableViewSrc->setCurrentIndex(model->index(to, column));
+  m_tableViewSrc->selectRow(to);
 
   for (int i = 0; i < m_model->rowCount(); i++) {
     m_model->item(i, 0)->setText(QString::number(i + 1));
@@ -344,9 +314,9 @@ void sourceGrid::moverow(int from, int to) {
   }
 }
 
-bool sourceGrid::isfiledataexit(filedata fdata) {
-  foreach (filedata fd, m_fdatalist) {
-    if (fdata.fname == fd.fname) {
+bool sourceGrid::IsFileDataExit(filedata fdata) {
+  foreach (filedata fd, m_lisFileData) {
+    if (fdata.m_fileName == fd.m_fileName) {
       return true;
     }
   }

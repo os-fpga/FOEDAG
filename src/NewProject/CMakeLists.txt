@@ -26,35 +26,17 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
+file(GLOB SRC_CPP_LIST "*.cpp" "ProjectManager/*.cpp")
+file(GLOB SRC_H_LIST "*.h" "ProjectManager/*.h")
+file(GLOB SRC_UI_LIST "*.ui")
+
 add_library(newproject STATIC
-  add_constraints_form.cpp
-  add_constraints_form.h
-  add_constraints_form.ui
-  add_source_form.cpp
-  add_source_form.h
-  add_source_form.ui
-  device_planner_form.cpp
-  device_planner_form.h
-  device_planner_form.ui
-  location_form.cpp
-  location_form.h
-  location_form.ui
-  new_project_dialog.cpp
-  new_project_dialog.h
-  new_project_dialog.ui
-  project_type_form.cpp
-  project_type_form.h
-  project_type_form.ui
-  source_grid.cpp
-  source_grid.h
-  summary_form.cpp
-  summary_form.h
-  summary_form.ui
-  create_file_dialog.cpp
-  create_file_dialog.h
-  create_file_dialog.ui
-  newproject.qrc
+    ${SRC_CPP_LIST}
+    ${SRC_H_LIST}
+    ${SRC_UI_LIST}
+    newproject.qrc
 )
+
 target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 target_compile_definitions(newproject PRIVATE NEWPROJECT_LIBRARY)
 

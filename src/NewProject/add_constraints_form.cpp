@@ -10,9 +10,9 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
       tr("Specify or create constraint file for physical and timing "
          "constraints."));
 
-  m_widgetgrid = new sourceGrid(GT_CONSTRAINTS, ui->m_groupBox);
+  m_widgetGrid = new sourceGrid(GT_CONSTRAINTS, ui->m_groupBox);
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
-  box->addWidget(m_widgetgrid);
+  box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);
   box->setSpacing(0);
   ui->m_groupBox->setLayout(box);
@@ -23,11 +23,11 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
 
 addConstraintsForm::~addConstraintsForm() { delete ui; }
 
-QList<filedata> addConstraintsForm::getfiledata() {
-  return m_widgetgrid->getgriddata();
+QList<filedata> addConstraintsForm::getFileData() {
+  return m_widgetGrid->getTableViewData();
 }
 
-bool addConstraintsForm::iscopysource() {
+bool addConstraintsForm::IsCopySource() {
   return ui->m_ckkBoxCopy->checkState() == Qt::CheckState::Checked ? true
                                                                    : false;
 }

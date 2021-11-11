@@ -14,15 +14,13 @@ class locationForm : public QWidget {
   explicit locationForm(QWidget *parent = nullptr);
   ~locationForm();
 
-  QString getprojectname();
-  QString getprojectpath();
-  bool iscreatedir();
-  bool isprojectNameExit();
+  QString getProjectName();
+  QString getProjectPath();
+  bool IsCreateDir();
+  bool IsProjectNameExit();
  private slots:
   void on_m_btnBrowse_clicked();
-
   void on_m_checkBox_stateChanged(int arg1);
-
   void on_m_lineEditPname_textChanged(const QString &arg1);
 
  private:
