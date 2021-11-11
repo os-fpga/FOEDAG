@@ -492,3 +492,11 @@ install(
 ADD_CUSTOM_TARGET(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
+
+
+add_executable(newproject_bin
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject_main.cpp
+	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
+target_link_libraries(newproject_bin foedag tcl_stubb tcl_static zlib)
+set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
+
