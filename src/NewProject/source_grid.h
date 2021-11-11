@@ -9,13 +9,6 @@
 #include <QToolButton>
 #include <QWidget>
 
-#define QSTRING_ST_V "v"
-#define QSTRING_ST_VHD "vhd"
-#define QSTRING_ST_SDC "SDC"
-#define QSTRING_ST_VQM "vqm"
-#define QSTRING_ST_HEX "hex"
-#define QSTRING_ST_MIF "mif"
-
 enum GridType { GT_ADD, GT_SOURCE, GT_CONSTRAINTS, GT_NETLIST, GT_SIM };
 
 typedef struct tagFileData {
