@@ -81,8 +81,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-set(GENDIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
-
 # Python
 if (FOEDAG_WITH_PYTHON)
 find_package(Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
@@ -136,7 +134,7 @@ else()
   )
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
+include_directories(${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
 set(QRC_MAIN_WINDOW 
 	src/MainWindow/main_window_resource.qrc
@@ -179,12 +177,10 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 set(TCL_STATIC_LIB libtcl9.0.a)
 set(TCL_STUBB_LIB libtclstub9.0.a)
 set(ZLIB_STATIC_LIB libz.a)
-set(NEWPRO_STATIC_LIB libnewproject.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_STATIC_LIB tcl90s.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
-  set(NEWPRO_STATIC_LIB newproject.lib)
 endif()
 
 if(MSVC)
@@ -347,12 +343,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
   target_link_libraries(foedag PRIVATE rt)
 endif()
 
-add_executable(newproject_bin
-	${PROJECT_SOURCE_DIR}/src/NewProject/newproject_main.cpp
-	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
-target_link_libraries(newproject_bin foedag)
-set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
-
 # Unit tests
 enable_testing()
 include(GoogleTest)
@@ -427,9 +417,7 @@ install(
   EXPORT Foedag
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
-install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${NEWPRO_STATIC_LIB}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
+
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)

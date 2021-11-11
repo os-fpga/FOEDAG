@@ -21,6 +21,9 @@ else()
     set(CMAKE_AUTORCC ON)
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 add_library(newproject STATIC
@@ -54,3 +57,19 @@ add_library(newproject STATIC
 )
 target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 target_compile_definitions(newproject PRIVATE NEWPROJECT_LIBRARY)
+
+add_executable(newproject_bin
+	${PROJECT_SOURCE_DIR}/newproject_main.cpp
+	${PROJECT_SOURCE_DIR}/newproject.qrc)
+target_link_libraries(newproject_bin foedag)
+set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
+
+
+set(NEWPRO_STATIC_LIB libnewproject.a)
+if (MSVC)
+  set(NEWPRO_STATIC_LIB newproject.lib)
+endif()
+
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${NEWPRO_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
