@@ -33,33 +33,36 @@ QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
 }
 
 void registerNewProjectCommands(FOEDAG::Session* session) {
-   auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
-    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*) (clientData);
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->show();
     return 0;
   };
-  session->TclInterp()->registerCmd("newproject_gui_open", newproject, GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newproject_gui_open", newproject,
+                                    GlobalSession->MainWindow(), 0);
 
   auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*) (clientData);                        
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->hide();
     return 0;
   };
-  session->TclInterp()->registerCmd("newproject_gui_close", newprojecthide, GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newproject_gui_close", newprojecthide,
+                                    GlobalSession->MainWindow(), 0);
 
   auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
-    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*) (clientData);
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->tcl_command_test();
     return 0;
   };
-  session->TclInterp()->registerCmd("next", btnnext, GlobalSession->MainWindow(), 0);
-  
-  session->TclInterp()->evalCmd("puts \"Hello put newproject_gui_open to show new project GUI.\"");
-}
+  session->TclInterp()->registerCmd("next", btnnext,
+                                    GlobalSession->MainWindow(), 0);
 
+  session->TclInterp()->evalCmd(
+      "puts \"Hello put newproject_gui_open to show new project GUI.\"");
+}
 
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
