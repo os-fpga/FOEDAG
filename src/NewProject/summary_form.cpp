@@ -11,18 +11,18 @@ summaryForm::summaryForm(QWidget *parent)
 }
 
 summaryForm::~summaryForm() { delete ui; }
-void summaryForm::setprojectname(QString strname, int itype) {
+void summaryForm::setProjectName(const QString &proName, const int &proType) {
   QString tstrtype =
-      itype == TYPE_RTL ? QString("RTL") : QString("Post-synthesis");
+      proType == TYPE_RTL ? QString("RTL") : QString("Post-synthesis");
   ui->m_labelNamePic->setStyleSheet(QString("image: url(:/img/info.png);"));
   ui->m_labelName->setText(
       QString(tr("A new %1 project named '%2' will be created."))
           .arg(tstrtype)
-          .arg(strname));
+          .arg(proName));
 }
 
-void summaryForm::setsourcecount(int source, int constr) {
-  if (0 == source) {
+void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
+  if (0 == srcCount) {
     ui->m_labelSourcesPic->setStyleSheet(
         QString("image: url(:/img/warn.png);"));
     ui->m_labelSources->setText(
@@ -32,10 +32,10 @@ void summaryForm::setsourcecount(int source, int constr) {
     ui->m_labelSourcesPic->setStyleSheet(
         QString("image: url(:/img/info.png);"));
     ui->m_labelSources->setText(
-        QString(tr("%1 source files will be added.")).arg(source));
+        QString(tr("%1 source files will be added.")).arg(srcCount));
   }
 
-  if (0 == constr) {
+  if (0 == constrCount) {
     ui->m_labelConstraintsPic->setStyleSheet(
         QString("image: url(:/img/warn.png);"));
     ui->m_labelConstraints->setText(
@@ -45,12 +45,16 @@ void summaryForm::setsourcecount(int source, int constr) {
     ui->m_labelConstraintsPic->setStyleSheet(
         QString("image: url(:/img/info.png);"));
     ui->m_labelConstraints->setText(
-        QString(tr("%1 constraints files will be added.")).arg(constr));
+        QString(tr("%1 constraints files will be added.")).arg(constrCount));
   }
 }
 
-void summaryForm::setdeviceinfo(QString strseries, QString device) {
+void summaryForm::setDeviceInfo(const QList<QString> listDevItem) {
   ui->m_labelSDevPic->setStyleSheet(QString("image: url(:/img/info.png);"));
-  ui->m_labelSeries->setText(QString("Series: %1").arg(strseries));
-  ui->m_labelDevice->setText(QString("Device: %1").arg(device));
+  if (listDevItem.count() >= 3) {
+    ui->m_labelSeries->setText(QString("Series: %1").arg(listDevItem.at(0)));
+    ui->m_labelFamily->setText(QString("Family: %1").arg(listDevItem.at(1)));
+    ui->m_labePackage->setText(QString("Package: %1").arg(listDevItem.at(2)));
+    ui->m_labelDevice->setText(QString("Device: %1").arg(listDevItem.at(3)));
+  }
 }

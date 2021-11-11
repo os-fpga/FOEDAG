@@ -16,15 +16,13 @@ class createFileDialog : public QDialog {
   explicit createFileDialog(QWidget *parent = nullptr);
   ~createFileDialog();
 
-  void initialdialog(int type);
+  void initialDialog(int type);
  signals:
-  void sig_updategrid(filedata fdata);
+  void sig_updateGrid(filedata fdata);
 
  private slots:
   void on_m_pushBtnOK_clicked();
-
   void on_m_pushBtnCancel_clicked();
-
   void on_m_comboxFileLocation_currentIndexChanged(int index);
 
  private:

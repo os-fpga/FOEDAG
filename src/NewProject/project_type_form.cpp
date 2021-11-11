@@ -22,12 +22,6 @@ projectTypeForm::projectTypeForm(QWidget *parent)
 }
 
 projectTypeForm::~projectTypeForm() { delete ui; }
-int projectTypeForm::getprojecttype() {
+int projectTypeForm::getProjectType() {
   return ui->m_radioBtnRTL->isChecked() ? TYPE_RTL : TYPE_POST;
 }
-bool projectTypeForm::isaddsource() { return true; }
-
-void projectTypeForm::on_m_radioBtnRTL_clicked() { updatestate(); }
-
-void projectTypeForm::on_m_radioBtnPost_clicked() { updatestate(); }
-void projectTypeForm::updatestate() {}

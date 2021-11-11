@@ -495,7 +495,7 @@ ADD_CUSTOM_TARGET(link_target ALL
 
 
 add_executable(newproject_bin
-	${PROJECT_SOURCE_DIR}/src/NewProject/newproject_main.cpp
+	${PROJECT_SOURCE_DIR}/src/NewProject/Main/newproject_main.cpp
 	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 target_link_libraries(newproject_bin foedag tcl_stubb tcl_static zlib)
 set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)

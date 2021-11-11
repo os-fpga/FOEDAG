@@ -16,13 +16,13 @@ class addSourceForm : public QWidget {
   explicit addSourceForm(QWidget *parent = nullptr);
   ~addSourceForm();
 
-  QList<filedata> getfiledata();
-  bool iscopysource();
+  QList<filedata> getFileData();
+  bool IsCopySource();
 
  private:
   Ui::addSourceForm *ui;
 
-  sourceGrid *m_widgetgrid;
+  sourceGrid *m_widgetGrid;
 };
 
 #endif  // ADDSOURCEFORM_H

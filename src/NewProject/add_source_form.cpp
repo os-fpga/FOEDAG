@@ -12,9 +12,9 @@ addSourceForm::addSourceForm(QWidget *parent)
          "Create a new source file on disk and add it to your project.You can "
          "also add and create source later."));
 
-  m_widgetgrid = new sourceGrid(GT_SOURCE, ui->m_groupBox);
+  m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_groupBox);
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
-  box->addWidget(m_widgetgrid);
+  box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);
   box->setSpacing(0);
   ui->m_groupBox->setLayout(box);
@@ -25,11 +25,11 @@ addSourceForm::addSourceForm(QWidget *parent)
 
 addSourceForm::~addSourceForm() { delete ui; }
 
-QList<filedata> addSourceForm::getfiledata() {
-  return m_widgetgrid->getgriddata();
+QList<filedata> addSourceForm::getFileData() {
+  return m_widgetGrid->getTableViewData();
 }
 
-bool addSourceForm::iscopysource() {
+bool addSourceForm::IsCopySource() {
   return ui->m_ckkBoxCopy->checkState() == Qt::CheckState::Checked ? true
                                                                    : false;
 }

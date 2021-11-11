@@ -11,27 +11,43 @@
 
 #define QSTRING_ST_V "v"
 #define QSTRING_ST_VHD "vhd"
-#define QSTRING_ST_CDC "CDC"
+#define QSTRING_ST_SDC "SDC"
 #define QSTRING_ST_VQM "vqm"
 #define QSTRING_ST_HEX "hex"
 #define QSTRING_ST_MIF "mif"
 
-enum grid_type { GT_ADD, GT_SOURCE, GT_CONSTRAINTS, GT_NETLIST, GT_SIM };
+enum GridType { GT_ADD, GT_SOURCE, GT_CONSTRAINTS, GT_NETLIST, GT_SIM };
 
-enum source_type { ST_V, ST_VHD, ST_CDC, ST_VQM, ST_HEX, ST_MIF };
+typedef struct tagFileData {
+  bool m_isFolder;
+  QString m_fileType;
+  QString m_fileName;
+  QString m_filePath;
+} FILEDATA;
 
-struct filedata {
-  int isfolder;     // 0:file 1:folder
-  int filetype;     // 0:v 1:vhd 2:CDC 3:vqm 4:hex 5:mif
-  QString strtype;  // In fact, Maybe can use string to distinguish file type
-  QString fname;
-  QString fpath;
-};
+typedef FILEDATA filedata;
 
 class sourceGrid : public QWidget {
   Q_OBJECT
 
-  grid_type m_type;
+ public:
+  explicit sourceGrid(GridType type, QWidget *parent = nullptr);
+
+  QList<filedata> getTableViewData();
+
+ public slots:
+  void AddFiles();
+  void AddDirectories();
+  void CreateFile();
+  void DeleteTableItem();
+  void UpTableItem();
+  void DownTableItem();
+  void TableViewSelectionChanged();
+
+  void AddTableItem(filedata fdata);
+
+ private:
+  GridType m_type;
   //  QToolBar* m_toolBar;
   //  QToolButton* m_toolBtnAdd;
   //  QAction* m_actDel;
@@ -44,33 +60,15 @@ class sourceGrid : public QWidget {
   QPushButton *m_btnMoveUp;
   QPushButton *m_btnMoveDown;
 
-  QTableView *m_grid;
+  QTableView *m_tableViewSrc;
   QStandardItemModel *m_model;
-  QItemSelectionModel *m_selectmodel;
+  QItemSelectionModel *m_selectModel;
 
-  QList<filedata> m_fdatalist;
+  QList<filedata> m_lisFileData;
 
-  void moverow(int from, int to);
-  bool isfiledataexit(filedata fdata);
-
- public:
-  explicit sourceGrid(grid_type type, QWidget *parent = nullptr);
-
-  void initsourcegrid(const QList<filedata> flist);
-  QList<filedata> getgriddata();
- signals:
-
- public slots:
-  void slot_addfiles();
-  void slot_adddirectories();
-  void slot_createfile();
-  void slot_deletegriditem();
-  void slot_upgriditem();
-  void slot_downgriditem();
-
-  void slot_selectionChanged();
-
-  void slot_addgridrow(filedata fdata);
+ private:
+  void MoveTableRow(int from, int to);
+  bool IsFileDataExit(filedata fdata);
 };
 
 #endif  // SOURCEGRID_H

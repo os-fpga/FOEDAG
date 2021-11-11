@@ -3,10 +3,9 @@
 #include <QDir>
 #include <QFile>
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QTextStream>
-#include <QtXml/QDomDocument>
 
+#include "ProjectManager/config.h"
 #include "ui_device_planner_form.h"
 
 devicePlannerForm::devicePlannerForm(QWidget *parent)
@@ -16,223 +15,163 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   ui->m_labelDetail->setText(
       tr("Select the series and device you want to target for compilation."));
 
-  QString path = QDir::currentPath() + "/device/";
-  ui->comboBox->setStyleSheet("border: 1px solid gray;");
+  ui->m_comboBoxFamily->setStyleSheet("border: 1px solid gray;");
   ui->m_comboBoxSeries->setStyleSheet("border: 1px solid gray;");
   ui->m_comboBoxPackage->setStyleSheet("border: 1px solid gray;");
 
-  m_grid = new QTableView(this);
+  m_tableView = new QTableView(this);
 
   // Set properties
-  m_grid->verticalHeader()->hide();
-  m_grid->verticalHeader()->setDefaultSectionSize(30);
-  m_grid->horizontalHeader()->setMinimumHeight(30);
-  m_grid->horizontalHeader()->setStretchLastSection(
+  m_tableView->verticalHeader()->hide();
+  m_tableView->verticalHeader()->setDefaultSectionSize(30);
+  m_tableView->horizontalHeader()->setMinimumHeight(30);
+  m_tableView->horizontalHeader()->setStretchLastSection(
       true);  // Last column adaptive width
-  m_grid->setEditTriggers(QTableView::NoEditTriggers);
-  m_grid->setSelectionBehavior(QTableView::SelectRows);
-  m_grid->setSelectionMode(
-      QTableView::SingleSelection);       // Single line selection
-  m_grid->setAlternatingRowColors(true);  // Color separation between lines
+  m_tableView->setEditTriggers(QTableView::NoEditTriggers);
+  m_tableView->setSelectionBehavior(QTableView::SelectRows);
+  m_tableView->setSelectionMode(
+      QTableView::SingleSelection);            // Single line selection
+  m_tableView->setAlternatingRowColors(true);  // Color separation between lines
 
-  m_grid->setStyleSheet(
+  m_tableView->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
                           QTableView::item:selected{color:black;background: #63B8FF;}");
-  m_grid->setColumnWidth(0, 80);
+  m_tableView->setColumnWidth(0, 80);
+
   m_model = new QStandardItemModel();
-  m_grid->setModel(m_model);
+  m_selectmodel = new QItemSelectionModel(m_model);
+
+  m_tableView->horizontalHeader()->setMinimumHeight(30);
+
+  m_tableView->setModel(m_model);
+  m_tableView->setSelectionModel(m_selectmodel);
 
   QVBoxLayout *vbox = new QVBoxLayout(ui->m_groupBoxGrid);
-  vbox->addWidget(m_grid);
+  vbox->addWidget(m_tableView);
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
   ui->m_groupBoxGrid->setLayout(vbox);
 
+  connect(ui->m_comboBoxFamily, &QComboBox::currentTextChanged, this,
+          &devicePlannerForm::onFamilytextChanged);
   connect(ui->m_comboBoxSeries, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onSeriestextChanged);
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
+
+  QString devicexml = QDir::currentPath() + "/device.xml";
+  Config::Instance()->InitConfig(devicexml);
+  InitSeriesComboBox();
 }
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
 
-void devicePlannerForm::getdeviceinfo(QString &servies, QString &device,
-                                      QString &package) {
-  QString pkgname = ui->m_comboBoxPackage->currentText();
-  QString sername = ui->m_comboBoxSeries->currentText();
+QList<QString> devicePlannerForm::getSelectedDevice() const {
+  QList<QString> listRtn;
+  listRtn.append(ui->m_comboBoxSeries->currentText());
+  listRtn.append(ui->m_comboBoxFamily->currentText());
+  listRtn.append(ui->m_comboBoxPackage->currentText());
+
+  if (m_selectmodel->hasSelection()) {
+    int curRow = m_selectmodel->currentIndex().row();
+    listRtn.append(m_model->data(m_model->index(curRow, 0)).toString());
+  } else {
+    listRtn.append(m_model->data(m_model->index(0, 0)).toString());
+  }
+
+  return listRtn;
 }
 
-void devicePlannerForm::initformdata_fpga(QString dir) {
-  QFile file(dir + "device_fpga.xml");
-  if (!file.open(QFile::ReadOnly)) {
-    QMessageBox::warning(this, tr("error"), tr("device_fpga.xml read error!"),
-                         QMessageBox::Ok);
-    return;
-  }
-
-  QDomDocument doc;
-  if (!doc.setContent(&file)) {
-    file.close();
-    QMessageBox::warning(this, tr("error"),
-                         tr("device_fpga.xml setContent failed!"),
-                         QMessageBox::Ok);
-    return;
-  }
-  file.close();
-
-  QDomElement root = doc.documentElement();
-  QDomNode node = root.firstChild();
-  while (!node.isNull()) {
-    if (node.isElement()) {
-      QDomElement e1 = node.toElement();
-      // qDebug()<<e1.tagName()<<" "<<e1.attribute("name");
-      series series;
-      series.sername = e1.attribute("name");
-      QDomNode node2 = e1.firstChild();
-      while (!node2.isNull()) {
-        if (node2.isElement()) {
-          QDomElement e2 = node2.toElement();
-          device dev;
-          // qDebug()<<e2.tagName()<<" "<<e2.attribute("name");
-          dev.devname = e2.attribute("name");
-          QDomNode node3 = e2.firstChild();
-          while (!node3.isNull()) {
-            if (node3.isElement()) {
-              package pkg;
-              QDomElement e3 = node3.toElement();
-              // qDebug()<<e3.tagName()<<" "<<e3.attribute("name");
-              pkg.pkgname = e3.attribute("name");
-              QDomNodeList list = e3.childNodes();
-              for (int i = 0; i < list.count(); i++) {
-                QDomNode n = list.at(i);
-                if (node.isElement()) {
-                  // qDebug()<<n.nodeName()<<":"<<n.toElement().text();
-                  if ("Type" == n.nodeName()) {
-                    pkg.type = n.toElement().text();
-                  } else if ("CoreVoltage" == n.nodeName()) {
-                    pkg.coreVoltage = n.toElement().text();
-                  } else if ("LUTs" == n.nodeName()) {
-                    pkg.luts = n.toElement().text();
-                  } else if ("TotalIOs" == n.nodeName()) {
-                    pkg.totalIOs = n.toElement().text();
-                  } else if ("MemoryBits" == n.nodeName()) {
-                    pkg.memoryBits = n.toElement().text();
-                  } else if ("DspBlocks" == n.nodeName()) {
-                    pkg.dspBlocks = n.toElement().text();
-                  } else if ("PLLs" == n.nodeName()) {
-                    pkg.plls = n.toElement().text();
-                  }
-
-                  // If you only need to display, you don't need to parse out
-                  // each field
-                  QPair<QString, QString> pair(n.nodeName(),
-                                               n.toElement().text());
-                  pkg.itemlist.append(pair);
-                }
-              }
-              dev.pkglist.append(pkg);
-            }
-            node3 = node3.nextSibling();
-          }
-          series.devlist.append(dev);
-        }
-        node2 = node2.nextSibling();
-      }
-      m_fpga.serlist.append(series);
-    }
-    node = node.nextSibling();
-  }
+void devicePlannerForm::onSeriestextChanged(const QString &arg1) {
+  Q_UNUSED(arg1);
+  UpdateFamilyComboBox();
 }
 
-void devicePlannerForm::initformdata_efpga(QString dir) {
-  QFile file(dir + "device.xml");
-  if (!file.open(QFile::ReadOnly)) {
-    QMessageBox::warning(this, tr("error"), tr("device.xml read error!"),
-                         QMessageBox::Ok);
-    return;
-  }
-
-  QDomDocument doc;
-  if (!doc.setContent(&file)) {
-    file.close();
-    QMessageBox::warning(this, tr("error"), tr("device.xml setContent failed!"),
-                         QMessageBox::Ok);
-    return;
-  }
-  file.close();
-
-  QDomElement root = doc.documentElement();
-
-  QDomNode node = root.firstChild();
-  while (!node.isNull()) {
-    if (node.isElement()) {
-      QDomElement e = node.toElement();
-      // qDebug()<<e.tagName()<<" "<<e.attribute("Name") << e.attribute("Type")
-      // << e.attribute("Series");
-      m_efpga.ename = e.attribute("Name");
-      m_efpga.type = e.attribute("Type");
-      m_efpga.series = e.attribute("Series");
-
-      QDomNodeList list = e.childNodes();
-      for (int i = 0; i < list.count(); i++) {
-        QDomNode n = list.at(i);
-        if (node.isElement()) {
-          // qDebug()<<n.nodeName()<<":"<<n.toElement().text();
-          if ("LUTs" == n.nodeName()) {
-            m_efpga.luts = n.toElement().text();
-          } else if ("Memory_Bits" == n.nodeName()) {
-            m_efpga.memoryBits = n.toElement().text();
-          } else if ("DSP" == n.nodeName()) {
-            m_efpga.dsp = n.toElement().text();
-          } else if ("Pins" == n.nodeName()) {
-            m_efpga.pins = n.toElement().text();
-          } else if ("PLL" == n.nodeName()) {
-            m_efpga.pll = n.toElement().text();
-          } else if ("Height" == n.nodeName()) {
-            m_efpga.height = n.toElement().text();
-          } else if ("Width" == n.nodeName()) {
-            m_efpga.width = n.toElement().text();
-          } else if ("Area" == n.nodeName()) {
-            m_efpga.area = n.toElement().text();
-          } else if ("ShrinkArea" == n.nodeName()) {
-            m_efpga.shrinArea = n.toElement().text();
-          } else if ("Aspect_Ratio" == n.nodeName()) {
-            m_efpga.aspect_Ratio = n.toElement().text();
-          }
-
-          // If you only need to display, you don't need to parse out each field
-          QPair<QString, QString> pair(n.nodeName(), n.toElement().text());
-          m_efpga.itemlist.append(pair);
-        }
-      }
-    }
-    node = node.nextSibling();
-  }
+void devicePlannerForm::onFamilytextChanged(const QString &arg1) {
+  Q_UNUSED(arg1);
+  UpdatePackageComboBox();
 }
 
-void devicePlannerForm::updateformview() {
+void devicePlannerForm::onPackagetextChanged(const QString &arg1) {
+  Q_UNUSED(arg1);
+  UpdateDeviceTableView();
+}
+
+void devicePlannerForm::InitSeriesComboBox() {
   disconnect(ui->m_comboBoxSeries, &QComboBox::currentTextChanged, this,
              &devicePlannerForm::onSeriestextChanged);
+
+  ui->m_comboBoxSeries->clear();
+
+  QList<QString> lisSeries = Config::Instance()->getSerieslist();
+  for (int i = 0; i < lisSeries.size(); ++i) {
+    ui->m_comboBoxSeries->addItem(lisSeries[i]);
+  }
+
+  UpdateFamilyComboBox();
+  connect(ui->m_comboBoxSeries, &QComboBox::currentTextChanged, this,
+          &devicePlannerForm::onSeriestextChanged);
+}
+
+void devicePlannerForm::InitDeviceTableViewHead() {
+  QList<QString> listHead = Config::Instance()->getDeviceItem();
+  for (int i = 0; i < listHead.size(); ++i) {
+    m_model->setHorizontalHeaderItem(i, new QStandardItem(listHead.at(i)));
+  }
+}
+
+void devicePlannerForm::UpdateFamilyComboBox() {
+  disconnect(ui->m_comboBoxFamily, &QComboBox::currentTextChanged, this,
+             &devicePlannerForm::onFamilytextChanged);
+
+  ui->m_comboBoxFamily->clear();
+
+  QList<QString> lisFamily =
+      Config::Instance()->getFamilylist(ui->m_comboBoxSeries->currentText());
+  for (int i = 0; i < lisFamily.size(); ++i) {
+    ui->m_comboBoxFamily->addItem(lisFamily[i]);
+  }
+
+  UpdatePackageComboBox();
+  connect(ui->m_comboBoxFamily, &QComboBox::currentTextChanged, this,
+          &devicePlannerForm::onFamilytextChanged);
+}
+
+void devicePlannerForm::UpdatePackageComboBox() {
   disconnect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
              &devicePlannerForm::onPackagetextChanged);
 
-  updateformgrid();
-  connect(ui->m_comboBoxSeries, &QComboBox::currentTextChanged, this,
-          &devicePlannerForm::onSeriestextChanged);
+  ui->m_comboBoxPackage->clear();
+
+  QList<QString> lisPackage = Config::Instance()->getPackagelist(
+      ui->m_comboBoxSeries->currentText(), ui->m_comboBoxFamily->currentText());
+  for (int i = 0; i < lisPackage.size(); ++i) {
+    ui->m_comboBoxPackage->addItem(lisPackage[i]);
+  }
+
+  UpdateDeviceTableView();
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
 }
 
-void devicePlannerForm::updateformgrid() {
-  QString pkgname = ui->m_comboBoxPackage->currentText();
-  QString sername = ui->m_comboBoxSeries->currentText();
+void devicePlannerForm::UpdateDeviceTableView() {
   m_model->clear();
-}
+  InitDeviceTableViewHead();
+  QList<QList<QString>> listDevice = Config::Instance()->getDevicelist(
+      ui->m_comboBoxSeries->currentText(), ui->m_comboBoxFamily->currentText(),
+      ui->m_comboBoxPackage->currentText());
+  for (int i = 0; i < listDevice.count(); ++i) {
+    int rows = m_model->rowCount();
+    QList<QStandardItem *> items;
+    QStandardItem *item = nullptr;
 
-void devicePlannerForm::onSeriestextChanged(const QString &arg1) {
-  updateformgrid();
-}
+    QList<QString> listDev = listDevice.at(i);
+    foreach (QString strItem, listDev) {
+      item = new QStandardItem(strItem);
+      item->setTextAlignment(Qt::AlignCenter);
+      items.append(item);
+    }
 
-void devicePlannerForm::onPackagetextChanged(const QString &arg1) {
-  updateformgrid();
+    m_model->insertRow(rows, items);
+  }
 }

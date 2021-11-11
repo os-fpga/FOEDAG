@@ -67,26 +67,12 @@
        <property name="title">
         <string>Filters</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="30,30,30">
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="25,25,25">
         <property name="spacing">
-         <number>10</number>
+         <number>12</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,90">
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Family:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="comboBox"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="10,90">
+         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="15,85">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -103,7 +89,21 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,90">
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="15,85">
+          <item>
+           <widget class="QLabel" name="m_labelFamily">
+            <property name="text">
+             <string>Family:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="m_comboBoxFamily"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="15,85">
           <property name="spacing">
            <number>0</number>
           </property>

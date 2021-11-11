@@ -165,6 +165,20 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="m_labelFamily">
+       <property name="text">
+        <string>Family:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="m_labePackage">
+       <property name="text">
+        <string>Package:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="m_labelDevice">
        <property name="text">
         <string>Device:</string>
