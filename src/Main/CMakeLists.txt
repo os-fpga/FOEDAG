@@ -49,20 +49,9 @@ if(MSVC)
   ADD_LIBRARY(tcl_static STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  set_target_properties(tcl_static PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  set_target_properties(tcl_stubb PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )
-  set_target_properties(foedag PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )
-  target_link_libraries(foedag-bin PUBLIC Netapi32)
-  target_link_libraries(foedag  PUBLIC Netapi32)
 else()
   set(TCL_STATIC_LIB libtcl9.0.a)
   set(TCL_STUBB_LIB libtclstub9.0.a)
@@ -77,8 +66,6 @@ else()
   SET_TARGET_PROPERTIES(zlib PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
 endif()
-
-
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
@@ -113,6 +100,12 @@ add_library(foedagcore STATIC
     ${SRC_UI_LIST}
     ../MainWindow/main_window_resource.qrc
 )
+
+if (MSVC)
+else()
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
+endif()
 
 target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 target_compile_definitions(foedagcore PRIVATE FOEDAG_CORE_LIBRARY)
