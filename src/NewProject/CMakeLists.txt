@@ -48,3 +48,8 @@ endif()
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${NEWPRO_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
+
+install(
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/new_project_dialog.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
+  
