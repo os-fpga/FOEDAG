@@ -33,8 +33,9 @@ void ProjectConfiguration::setSimulationTopMoule(
 void ProjectConfiguration::initProjectID() {
   QDateTime curDateTime = QDateTime::currentDateTime();
 
-  m_id = m_id.sprintf("%04d%02d%02d%02d%02d%02d%03d", curDateTime.date().year(),
-                      curDateTime.date().month(), curDateTime.date().day(),
-                      curDateTime.time().hour(), curDateTime.time().minute(),
-                      curDateTime.time().second(), curDateTime.time().msec());
+  m_id =
+      m_id.asprintf("%04d%02d%02d%02d%02d%02d%03d", curDateTime.date().year(),
+                    curDateTime.date().month(), curDateTime.date().day(),
+                    curDateTime.time().hour(), curDateTime.time().minute(),
+                    curDateTime.time().second(), curDateTime.time().msec());
 }

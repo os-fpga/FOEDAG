@@ -74,15 +74,53 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-file(GLOB SRC_CPP_LIST "*.cpp" "ProjectManager/*.cpp")
-file(GLOB SRC_H_LIST "*.h" "ProjectManager/*.h")
-file(GLOB SRC_UI_LIST "*.ui")
+set (SRC_CPP_LIST
+  new_project_dialog.cpp
+  location_form.cpp
+  project_type_form.cpp
+  add_source_form.cpp
+  add_constraints_form.cpp
+  device_planner_form.cpp
+  summary_form.cpp
+  create_file_dialog.cpp
+  source_grid.cpp
+  ProjectManager/config.cpp
+  ProjectManager/project_configuration.cpp
+  ProjectManager/project_fileset.cpp
+  ProjectManager/project_option.cpp
+  ProjectManager/project_run.cpp)
+
+set (SRC_H_LIST
+  new_project_dialog.h
+  location_form.h
+  project_type_form.h
+  add_source_form.h
+  add_constraints_form.h
+  device_planner_form.h
+  summary_form.h
+  create_file_dialog.h
+  source_grid.h
+  ProjectManager/config.h
+  ProjectManager/project_configuration.h
+  ProjectManager/project_fileset.h
+  ProjectManager/project_option.cpp
+  ProjectManager/project_run.cpp)
+
+set (SRC_UI_LIST
+  new_project_dialog.ui
+  location_form.ui
+  project_type_form.ui
+  add_source_form.ui
+  add_constraints_form.ui
+  device_planner_form.ui
+  summary_form.ui
+  create_file_dialog.ui)
 
 add_library(newproject STATIC
-    ${SRC_CPP_LIST}
-    ${SRC_H_LIST}
-    ${SRC_UI_LIST}
-    newproject.qrc
+  ${SRC_CPP_LIST}
+  ${SRC_H_LIST}
+  ${SRC_UI_LIST}
+  newproject.qrc
 )
 
 target_link_libraries(newproject  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)

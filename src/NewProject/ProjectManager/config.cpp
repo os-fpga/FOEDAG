@@ -123,7 +123,7 @@ QList<QString> Config::getPackagelist(const QString &series,
     setpkg = iterf.value();
   }
 
-  return setpkg.toList();
+  return setpkg.values();
 }
 
 QList<QList<QString>> Config::getDevicelist(QString series, QString family,
