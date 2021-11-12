@@ -1,23 +1,23 @@
 # -*- mode:cmake -*-
 
-#Copyright 2021 The Foedag team
+# Copyright 2021 The Foedag team
 
-#GPL License
+# GPL License
 
-#Copyright (c) 2021 The Open-Source FPGA Foundation
+# Copyright (c) 2021 The Open-Source FPGA Foundation
 
-#This program is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 cmake_minimum_required(VERSION 3.15)
@@ -44,11 +44,6 @@ project(FOEDAG)
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
-#if (WIN32)
-#SET(CMAKE_EXE_LINKER_FLAGS 
-#          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,C:\Windows\System32")
-#endif()
-
 # Find Qt packages and error out if not found
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 if (NOT Qt5Widgets_FOUND)
@@ -72,9 +67,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
-#add_subdirectory(third_party/zlib) # Do not use EXCLUDE_FROM_ALL else unit tests will fail for this subsystem
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(src/NewProject)
+add_subdirectory(src/Main)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -123,14 +118,16 @@ else()
     # Under MSYS some files are too large to build without additional flags
     set(MSYS_COMPILE_OPTIONS "-m64 -Wa,-mbig-obj")
   endif()
-  #set(MEM_SANITIZER_FLAGS
-  #    "-fsanitize=address -fno-omit-frame-pointer"
-  #)
+
+  if (SANITIZE)
+    set(MEM_SANITIZER_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+  endif()
+
   set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}"
+      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}"
   )
   set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} -Wall -O3 ${MSYS_COMPILE_OPTIONS} -DNDEBUG ${MY_CXX_WARNING_FLAGS}"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O3 ${MSYS_COMPILE_OPTIONS} -DNDEBUG ${MY_CXX_WARNING_FLAGS}"
   )
 endif()
 
@@ -142,17 +139,7 @@ set(QRC_MAIN_WINDOW
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
-set(foedag_SRC
-  src/Main/Foedag.cpp
-  src/Tcl/TclInterpreter.cpp
-  src/Command/Command.cpp
-  src/Command/CommandStack.cpp
-  src/Command/Logger.cpp
-  src/MainWindow/main_window.cpp
-  src/MainWindow/Session.cpp
-  src/Main/qttclnotifier.cpp
-  src/Main/CommandLine.cpp
-  src/Main/registerTclCommands.cpp
+set(foedag_SRC  
   ${QRC_MAIN_WINDOW}
 )
 
@@ -239,13 +226,7 @@ else()
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}
     COMMAND echo "       Compiling Tcl Stubb"
-#    COMMAND rm -rf configure
-#    COMMAND autoconf configure.ac  > configure
-#    COMMAND chmod 755 configure
-#    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}
-#    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
-#    COMMAND echo "       Tcl Stubb Compilation completed"
-#    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/unix"
+    COMMAND echo "       Tcl Stubb Compilation completed"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/generic/tcl.h
   )
 endif()
@@ -255,10 +236,11 @@ add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl9.0/init.tcl)
-add_dependencies(foedag tcl_stubb_build)
+
+# Explicit lib build order
+add_dependencies(foedag foedagcore)
+add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
-
-
 if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
@@ -283,7 +265,7 @@ endif()
 if(MSVC OR WIN32)
   # We have two files named "foedag.lib" and both getting generated in the lib folder
   # One is the foedag.lib generated by the foedag target and the other is the one generated
-  # becaues of /IMPLIB option when linking the executable. Unfortunately, there is no documented
+  # because of /IMPLIB option when linking the executable. Unfortunately, there is no documented
   # way to disable the latter in CMake. So, moving the library to the bin directory (right next to the exe)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
@@ -321,7 +303,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC newproject)
+target_link_libraries(foedag  PUBLIC foedagcore newproject)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)
@@ -440,29 +422,6 @@ if (WIN32 AND $<CONFIG:Debug>)
           ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_stubb.dir/tcl_stubb.pdb
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
-
-install(
-  FILES ${PROJECT_SOURCE_DIR}/src/MainWindow/main_window.h
-        ${PROJECT_SOURCE_DIR}/src/MainWindow/Session.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
-
-install(
-  FILES ${PROJECT_SOURCE_DIR}/src/NewProject/new_project_dialog.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
-
-install(
-  FILES ${PROJECT_SOURCE_DIR}/src/Tcl/TclInterpreter.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Tcl)
-
-install(
-  FILES ${PROJECT_SOURCE_DIR}/src/Main/CommandLine.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
-
-install(
-  FILES ${PROJECT_SOURCE_DIR}/src/Command/Command.h
-  ${PROJECT_SOURCE_DIR}/src/Command/Logger.h
-  ${PROJECT_SOURCE_DIR}/src/Command/CommandStack.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Command)
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h
