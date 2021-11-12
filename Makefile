@@ -20,7 +20,7 @@
 # Use bash as the default shell
 SHELL := /bin/bash
 
-XVFB = xvfb-run
+XVFB = xvfb-run --auto-servernum
 
 ifdef $(LC_ALL)
 	undefine LC_ALL
@@ -88,7 +88,9 @@ test/regression: run-cmake-release
 test/valgrind: run-cmake-debug
 	cd dbuild && valgrind --tool=memcheck --log-file=valgrind.log bin/foedag --noqt --script ../tests/TestBatch/hello.tcl ; 
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind.log
-	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --replay ../tests/TestGui/gui_start_stop.tcl; 
+	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/foedag --replay ../tests/TestGui/gui_start_stop.tcl;
+	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log 
+	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/newproject --replay ../tests/TestGui/gui_new_project.tcl
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 
@@ -121,6 +123,7 @@ test_install:
 
 test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
+	$(XVFB) ./dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

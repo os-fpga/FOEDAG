@@ -57,7 +57,7 @@ bool Foedag::initGui() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-  FOEDAG::MainWindow* mainWin = nullptr;
+  QWidget* mainWin = nullptr;
   if (m_mainWinBuilder) {
     mainWin = m_mainWinBuilder(m_cmdLine);
   }

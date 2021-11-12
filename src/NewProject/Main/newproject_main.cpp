@@ -27,51 +27,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 
 FOEDAG::Session* GlobalSession;
-FOEDAG::newProjectDialog* m_dialog;
 
-int main(int argc, char** argv) {
-  QApplication app(argc, argv);
+QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
+  return new FOEDAG::newProjectDialog();
+}
 
-  FOEDAG::TclInterpreter* interpreter = new FOEDAG::TclInterpreter();
-
-  m_dialog = new FOEDAG::newProjectDialog();
-
+void registerNewProjectCommands(FOEDAG::Session* session) {
   auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
-    m_dialog->show();
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->show();
     return 0;
   };
-  interpreter->registerCmd("newproject_gui_open", newproject, 0, 0);
+  session->TclInterp()->registerCmd("newproject_gui_open", newproject,
+                                    GlobalSession->MainWindow(), 0);
 
   auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    m_dialog->hide();
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->hide();
     return 0;
   };
-  interpreter->registerCmd("newproject_gui_close", newprojecthide, 0, 0);
+  session->TclInterp()->registerCmd("newproject_gui_close", newprojecthide,
+                                    GlobalSession->MainWindow(), 0);
 
   auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
-    m_dialog->tcl_command_test();
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->tcl_command_test();
     return 0;
   };
-  interpreter->registerCmd("next", btnnext, 0, 0);
+  session->TclInterp()->registerCmd("next", btnnext,
+                                    GlobalSession->MainWindow(), 0);
 
-  QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
+  session->TclInterp()->evalCmd(
+      "puts \"Hello put newproject_gui_open to show new project GUI.\"");
+}
 
-  // Tell Tcl to run Qt as the main event loop once the interpreter is
-  // initialized
-  Tcl_SetMainLoop([]() { QApplication::exec(); });
+int main(int argc, char** argv) {
+  FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
+  cmd->processArgs();
 
-  // Tcl_AppInit
-  auto tcl_init = [](Tcl_Interp* interp) -> int {
-    FOEDAG::TclInterpreter interpreter;
-    std::string result = interpreter.evalCmd(
-        "puts \"Hello put newproject_gui_open to show new project GUI.\"");
-    return 0;
-  };
-
-  // Start Loop
-  Tcl_MainEx(argc, argv, tcl_init, interpreter->getInterp());
-  return 0;
+  if (!cmd->WithQt()) {
+    // Batch mode
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, nullptr, registerNewProjectCommands);
+    return foedag->initBatch();
+  } else {
+    // Gui mode
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, newProjectBuilder, registerNewProjectCommands);
+    return foedag->initGui();
+  }
 }
