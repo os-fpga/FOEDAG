@@ -59,10 +59,10 @@ class ProjectManager : public QObject {
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
-  int setSimulationFile(const QString &strFileName, bool isFolder = false,
-                        bool isFileCopy = true);
-  int setConstrsFile(const QString &strFileName, bool isFolder = false,
-                     bool isFileCopy = true);
+//  int setSimulationFile(const QString &strFileName, bool isFolder = false,
+//                        bool isFileCopy = true);
+//  int setConstrsFile(const QString &strFileName, bool isFolder = false,
+//                     bool isFileCopy = true);
   int setRunSet(QList<QString> listParam);
   int StartProject(const QString &strOspro);
   void FinishedProject();
@@ -76,7 +76,7 @@ class ProjectManager : public QObject {
 
   int CreateProjectDir();
   int CreateFolder(QString strPath);
-  int CreateFile(QString strFile);
+//  int CreateFile(QString strFile);
 
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,

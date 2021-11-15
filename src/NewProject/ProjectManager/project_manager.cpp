@@ -82,23 +82,17 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
     return -1;
   }
 
-  QTextStream out(stdout);
-  out << "11111111111111111111111111111\n";
-  out << strFileName << "\n";
-
   QFileInfo fileInfo(strFileName);
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       QString fname = QFileInfo(strfile).fileName();
       QString suffix = QFileInfo(strfile).suffix();
-      out << strfile <<"::" << fname << "::" << suffix <<"\n";
       if ("v" == suffix || "vhd" == suffix) {
         if (isFileCopy) {
           QString filePath = "/" + Project::Instance()->projectName() +
                              ".srcs/" + m_currentFileSet + "/" + fname;
           QString destinDir = Project::Instance()->projectPath() + filePath;
-          out << filePath <<"::" << destinDir << "\n";
           CopyFileToPath(strfile, destinDir);
           proFileSet->addFile(fname, filePath);
 
@@ -108,10 +102,8 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       }
     }
   } else if (fileInfo.exists()) {
-      out <<  "222222222222222222222 \n";
     QString fname = fileInfo.fileName();
     QString suffix = fileInfo.suffix();
-    out << fname << "::" << suffix <<"\n";
     if ("v" == suffix || "vhd" == suffix) {
       if (isFileCopy) {
         QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
@@ -128,35 +120,34 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   else
   {
       QString str = fileInfo.canonicalPath();
-      out << str << "3333333333333333333333 \n";
   }
 
   return ret;
 }
 
-int ProjectManager::setSimulationFile(const QString& strFileName, bool isFolder,
-                                      bool isFileCopy) {
-  int ret = 0;
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet ||
-      PROJECT_FILE_TYPE_SS != proFileSet->getSetType()) {
-    return -1;
-  }
-  return ret;
-}
+//int ProjectManager::setSimulationFile(const QString& strFileName, bool isFolder,
+//                                      bool isFileCopy) {
+//  int ret = 0;
+//  ProjectFileSet* proFileSet =
+//      Project::Instance()->getProjectFileset(m_currentFileSet);
+//  if (nullptr == proFileSet ||
+//      PROJECT_FILE_TYPE_SS != proFileSet->getSetType()) {
+//    return -1;
+//  }
+//  return ret;
+//}
 
-int ProjectManager::setConstrsFile(const QString& strFileName, bool isFolder,
-                                   bool isFileCopy) {
-  int ret = 0;
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet ||
-      PROJECT_FILE_TYPE_CS != proFileSet->getSetType()) {
-    return -1;
-  }
-  return ret;
-}
+//int ProjectManager::setConstrsFile(const QString& strFileName, bool isFolder,
+//                                   bool isFileCopy) {
+//  int ret = 0;
+//  ProjectFileSet* proFileSet =
+//      Project::Instance()->getProjectFileset(m_currentFileSet);
+//  if (nullptr == proFileSet ||
+//      PROJECT_FILE_TYPE_CS != proFileSet->getSetType()) {
+//    return -1;
+//  }
+//  return ret;
+//}
 
 int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
@@ -359,7 +350,7 @@ int ProjectManager::CreateFolder(QString strPath) {
   return 0;
 }
 
-int ProjectManager::CreateFile(QString strFile) { return 0; }
+//int ProjectManager::CreateFile(QString strFile) { return 0; }
 
 QStringList ProjectManager::getAllChildFiles(QString path) {
   QStringList resultFileList;
