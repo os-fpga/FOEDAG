@@ -11,13 +11,12 @@ summaryForm::summaryForm(QWidget *parent)
 }
 
 summaryForm::~summaryForm() { delete ui; }
-void summaryForm::setProjectName(const QString &proName, const int &proType) {
-  QString tstrtype =
-      proType == TYPE_RTL ? QString("RTL") : QString("Post-synthesis");
+void summaryForm::setProjectName(const QString &proName,
+                                 const QString &proType) {
   ui->m_labelNamePic->setStyleSheet(QString("image: url(:/img/info.png);"));
   ui->m_labelName->setText(
       QString(tr("A new %1 project named '%2' will be created."))
-          .arg(tstrtype)
+          .arg(proType)
           .arg(proName));
 }
 

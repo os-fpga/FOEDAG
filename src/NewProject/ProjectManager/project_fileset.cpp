@@ -1,12 +1,22 @@
 #include "project_fileset.h"
 
-ProjectFileSet::ProjectFileSet(QObject *parent) : ProjectOption(parent) {}
+ProjectFileSet::ProjectFileSet(QObject *parent) : ProjectOption(parent) {
+  m_setName = "";
+  m_setType = "";
+  m_relSrcDir = "";
+  m_mapFiles.clear();
+}
 
 ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
+  if (this == &other) {
+    return *this;
+  }
   this->m_setName = other.m_setName;
   this->m_setType = other.m_setType;
   this->m_relSrcDir = other.m_relSrcDir;
   this->m_mapFiles = other.m_mapFiles;
+  ProjectOption::operator=(other);
+
   return *this;
 }
 
@@ -36,4 +46,8 @@ QString ProjectFileSet::getRelSrcDir() const { return m_relSrcDir; }
 
 void ProjectFileSet::setRelSrcDir(const QString &relSrcDir) {
   m_relSrcDir = relSrcDir;
+}
+
+QMap<QString, QString> ProjectFileSet::getMapFiles() const {
+  return m_mapFiles;
 }

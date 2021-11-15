@@ -33,7 +33,9 @@ set (SRC_CPP_LIST
   ProjectManager/project_configuration.cpp
   ProjectManager/project_fileset.cpp
   ProjectManager/project_option.cpp
-  ProjectManager/project_run.cpp)
+  ProjectManager/project_run.cpp
+  ProjectManager/project.cpp
+  ProjectManager/project_manager.cpp)
 
 set (SRC_H_LIST
   new_project_dialog.h
@@ -48,8 +50,10 @@ set (SRC_H_LIST
   ProjectManager/config.h
   ProjectManager/project_configuration.h
   ProjectManager/project_fileset.h
-  ProjectManager/project_option.cpp
-  ProjectManager/project_run.cpp)
+  ProjectManager/project_option.h
+  ProjectManager/project_run.h
+  ProjectManager/project.h
+  ProjectManager/project_manager.h)
 
 set (SRC_UI_LIST
   new_project_dialog.ui

@@ -5,6 +5,9 @@
 ProjectConfiguration::ProjectConfiguration(QObject *parent)
     : ProjectOption(parent) {
   initProjectID();
+  m_projectType = "";
+  m_activeSimSet = "";
+  m_simulationTopMoule = "";
 }
 
 QString ProjectConfiguration::id() const { return m_id; }

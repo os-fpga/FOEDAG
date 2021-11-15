@@ -1,14 +1,25 @@
 #include "project_run.h"
 
-ProjectRun::ProjectRun(QObject *parent) : ProjectOption(parent) {}
+ProjectRun::ProjectRun(QObject *parent) : ProjectOption(parent) {
+  m_runName = "";
+  m_runType = "";
+  m_srcSet = "";
+  m_constrsSet = "";
+  m_runState = "";
+  m_synthRun = "";
+}
 
 ProjectRun &ProjectRun::operator=(const ProjectRun &other) {
+  if (this == &other) {
+    return *this;
+  }
   this->m_runName = other.m_runName;
   this->m_runType = other.m_runType;
   this->m_runState = other.m_runState;
   this->m_srcSet = other.m_srcSet;
   this->m_synthRun = other.m_synthRun;
   this->m_constrsSet = other.m_constrsSet;
+  ProjectOption::operator=(other);
 
   return *this;
 }

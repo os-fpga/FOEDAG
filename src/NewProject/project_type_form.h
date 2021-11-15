@@ -3,8 +3,6 @@
 
 #include <QWidget>
 
-enum project_type { TYPE_RTL, TYPE_POST };
-
 namespace Ui {
 class projectTypeForm;
 }
@@ -16,7 +14,7 @@ class projectTypeForm : public QWidget {
   explicit projectTypeForm(QWidget *parent = nullptr);
   ~projectTypeForm();
 
-  int getProjectType();
+  QString getProjectType();
 
  private:
   Ui::projectTypeForm *ui;

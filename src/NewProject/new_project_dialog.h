@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QVector>
 
+#include "ProjectManager/project_manager.h"
 #include "add_constraints_form.h"
 #include "add_source_form.h"
 #include "device_planner_form.h"
@@ -52,6 +53,7 @@ class newProjectDialog : public QDialog {
   devicePlannerForm* m_devicePlanForm;
   summaryForm* m_sumForm;
 
+  ProjectManager* m_projectManager;
   void UpdateDialogView();
 };
 }  // namespace FOEDAG

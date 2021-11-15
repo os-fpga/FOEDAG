@@ -1,9 +1,15 @@
 #include "project_option.h"
 
-ProjectOption::ProjectOption(QObject *parent) : QObject(parent) {}
+ProjectOption::ProjectOption(QObject *parent) : QObject(parent) {
+  m_mapOption.clear();
+}
 
 ProjectOption &ProjectOption::operator=(const ProjectOption &other) {
+  if (this == &other) {
+    return *this;
+  }
   this->m_mapOption = other.m_mapOption;
+
   return *this;
 }
 
@@ -18,4 +24,8 @@ QString ProjectOption::getOption(QString strKey) {
     retStr = iter.value();
   }
   return retStr;
+}
+
+QMap<QString, QString> ProjectOption::getMapOption() const {
+  return m_mapOption;
 }
