@@ -69,6 +69,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(src/NewProject)
+add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
