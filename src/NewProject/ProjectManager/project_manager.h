@@ -59,10 +59,9 @@ class ProjectManager : public QObject {
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
-//  int setSimulationFile(const QString &strFileName, bool isFolder = false,
-//                        bool isFileCopy = true);
-//  int setConstrsFile(const QString &strFileName, bool isFolder = false,
-//                     bool isFileCopy = true);
+  //  int setSimulationFile(const QString &strFileName, bool isFolder = false,
+  //                        bool isFileCopy = true);
+  int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
   int setRunSet(QList<QString> listParam);
   int StartProject(const QString &strOspro);
   void FinishedProject();
@@ -70,13 +69,20 @@ class ProjectManager : public QObject {
   QString currentFileSet() const;
   void setCurrentFileSet(const QString &currentFileSet);
 
+  QString getCurrentRun() const;
+  void setCurrentRun(const QString &currentRun);
+
  private:
   int ImportProjectData(QString strOspro);
   int ExportProjectData();
 
   int CreateProjectDir();
   int CreateFolder(QString strPath);
-//  int CreateFile(QString strFile);
+  int CreateVerilogFile(QString strFile);
+  int CreateVHDLFile(QString strFile);
+  int CreateSDCFile(QString strFile);
+
+  int setFileSet(const QString &strFileName, bool isFileCopy = true);
 
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
@@ -84,6 +90,7 @@ class ProjectManager : public QObject {
 
  private:
   QString m_currentFileSet;
+  QString m_currentRun;
 };
 
 #endif  // PROJECTMANAGER_H

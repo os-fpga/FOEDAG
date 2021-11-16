@@ -2,8 +2,9 @@
 
 #include <QDir>
 #include <QFile>
-#include <QXmlStreamWriter>
 #include <QTextStream>
+#include <QTime>
+#include <QXmlStreamWriter>
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   Project::Instance()->InitProject();
@@ -75,79 +76,100 @@ int ProjectManager::setProjectType(const QString& strType) {
 
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   int ret = 0;
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet ||
-      PROJECT_FILE_TYPE_DS != proFileSet->getSetType()) {
-    return -1;
-  }
-
   QFileInfo fileInfo(strFileName);
+  QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
-      QString fname = QFileInfo(strfile).fileName();
-      QString suffix = QFileInfo(strfile).suffix();
+      suffix = QFileInfo(strfile).suffix();
       if ("v" == suffix || "vhd" == suffix) {
-        if (isFileCopy) {
-          QString filePath = "/" + Project::Instance()->projectName() +
-                             ".srcs/" + m_currentFileSet + "/" + fname;
-          QString destinDir = Project::Instance()->projectPath() + filePath;
-          CopyFileToPath(strfile, destinDir);
-          proFileSet->addFile(fname, filePath);
-
-        } else {
-          proFileSet->addFile(fname, strfile);
-        }
+        setFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    QString fname = fileInfo.fileName();
-    QString suffix = fileInfo.suffix();
     if ("v" == suffix || "vhd" == suffix) {
-      if (isFileCopy) {
-        QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
-                           m_currentFileSet + "/" + fname;
-        QString destinDir = Project::Instance()->projectPath() + filePath;
-        CopyFileToPath(strFileName, destinDir);
-        proFileSet->addFile(fname, filePath);
-
-      } else {
-        proFileSet->addFile(fname, strFileName);
+      setFileSet(strFileName, isFileCopy);
+    }
+  } else {
+    if (strFileName.contains("/")) {
+      if ("v" == suffix) {
+        CreateVerilogFile(strFileName);
+        setFileSet(strFileName, isFileCopy);
+      } else if ("vhd" == suffix) {
+        CreateVHDLFile(strFileName);
+        setFileSet(strFileName, isFileCopy);
+      }
+    } else {
+      QString filePath = Project::Instance()->projectPath() + "/" +
+                         Project::Instance()->projectName() + ".srcs/" +
+                         m_currentFileSet + "/" + strFileName;
+      QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
+                            ".srcs/" + m_currentFileSet + "/" + strFileName;
+      if ("v" == suffix) {
+        CreateVerilogFile(filePath);
+        setFileSet(fileSetPath, false);
+      } else if ("vhd" == suffix) {
+        CreateVHDLFile(filePath);
+        setFileSet(fileSetPath, false);
       }
     }
   }
-  else
-  {
-      QString str = fileInfo.canonicalPath();
-  }
-
   return ret;
 }
 
-//int ProjectManager::setSimulationFile(const QString& strFileName, bool isFolder,
-//                                      bool isFileCopy) {
-//  int ret = 0;
-//  ProjectFileSet* proFileSet =
-//      Project::Instance()->getProjectFileset(m_currentFileSet);
-//  if (nullptr == proFileSet ||
-//      PROJECT_FILE_TYPE_SS != proFileSet->getSetType()) {
-//    return -1;
-//  }
-//  return ret;
-//}
+int ProjectManager::setConstrsFile(const QString& strFileName,
+                                   bool isFileCopy) {
+  int ret = 0;
+  QFileInfo fileInfo(strFileName);
+  QString suffix = fileInfo.suffix();
+  if (fileInfo.isDir()) {
+    QStringList fileList = getAllChildFiles(strFileName);
+    foreach (QString strfile, fileList) {
+      suffix = QFileInfo(strfile).suffix();
+      if ("SDC" == suffix) {
+        setFileSet(strfile, isFileCopy);
+      }
+    }
+  } else if (fileInfo.exists()) {
+    if ("SDC" == suffix) {
+      setFileSet(strFileName, isFileCopy);
+    }
+  } else {
+    if (strFileName.contains("/")) {
+      if ("SDC" == suffix) {
+        CreateSDCFile(strFileName);
+        setFileSet(strFileName, isFileCopy);
+      }
+    } else {
+      QString filePath = Project::Instance()->projectPath() + "/" +
+                         Project::Instance()->projectName() + ".srcs/" +
+                         m_currentFileSet + "/" + strFileName;
+      QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
+                            ".srcs/" + m_currentFileSet + "/" + strFileName;
+      if ("SDC" == suffix) {
+        CreateSDCFile(filePath);
+        setFileSet(fileSetPath, false);
+      }
+    }
+  }
+  return ret;
+}
 
-//int ProjectManager::setConstrsFile(const QString& strFileName, bool isFolder,
-//                                   bool isFileCopy) {
-//  int ret = 0;
-//  ProjectFileSet* proFileSet =
-//      Project::Instance()->getProjectFileset(m_currentFileSet);
-//  if (nullptr == proFileSet ||
-//      PROJECT_FILE_TYPE_CS != proFileSet->getSetType()) {
-//    return -1;
-//  }
-//  return ret;
-//}
+int ProjectManager::setRunSet(QList<QString> listParam) {
+  int ret = 0;
+  if (listParam.size() < 4) {
+    return -1;
+  }
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun || RUN_TYPE_SYNTHESIS != proRun->runType()) {
+    return -2;
+  }
+  proRun->setOption("Series", listParam.at(0));
+  proRun->setOption("Family", listParam.at(1));
+  proRun->setOption("Package", listParam.at(2));
+  proRun->setOption("Device", listParam.at(3));
+  return ret;
+}
 
 int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
@@ -350,7 +372,139 @@ int ProjectManager::CreateFolder(QString strPath) {
   return 0;
 }
 
-//int ProjectManager::CreateFile(QString strFile) { return 0; }
+int ProjectManager::CreateVerilogFile(QString strFile) {
+  int ret = 0;
+  QFile file(strFile);
+  if (file.exists()) return ret;
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
+  QString tempname =
+      strFile.mid(strFile.lastIndexOf("/") + 1,
+                  strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
+  QTextStream out(&file);
+  out << "`timescale 1 ps/ 1 ps \n";
+  out << "///////////////////////////////////////////////////////////////// \n";
+  out << "// Company: \n";
+  out << "// Engineer: \n";
+  out << "// Create Date: "
+      << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") << "\n";
+  out << "// Design Name: \n";
+  out << "// Module Name: " << tempname << "\n";
+  out << "// Project Name: \n";
+  out << "// Target Devices: \n";
+  out << "// Tool Versions: \n";
+  out << "// Description: \n";
+  out << "// \n";
+  out << "// Dependencies: \n";
+  out << "// \n";
+  out << "// Revision: \n";
+  out << "// Additional Comments:\n";
+  out << "// \n";
+  out << "///////////////////////////////////////////////////////////////// \n";
+
+  out << "\n\n";
+  out << "module " << tempname << "( \n";
+  out << "\n";
+  out << "    ); \n";
+  out << "endmodule \n";
+
+  file.flush();
+  file.close();
+  return ret;
+}
+
+int ProjectManager::CreateVHDLFile(QString strFile) {
+  int ret = 0;
+  QFile file(strFile);
+  if (file.exists()) return ret;
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
+  QString tempname =
+      strFile.mid(strFile.lastIndexOf("/") + 1,
+                  strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
+  QTextStream out(&file);
+  out << "------------------------------------------------------------------\n";
+  out << "-- Company:\n";
+  out << "-- Engineer:\n";
+  out << "-- \n";
+  out << "-- Create Date: "
+      << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + "\n";
+  out << "-- Design Name: \n";
+  out << "-- Module Name: " << tempname << " - Behavioral \n";
+  out << "-- Project Name: \n";
+  out << "-- Target Devices: \n";
+  out << "-- Tool Versions: \n";
+  out << "-- Description: \n";
+  out << "-- \n";
+  out << "-- Dependencies: \n";
+  out << "-- \n";
+  out << "-- Revision: \n";
+  out << "-- Additional Comments: \n";
+  out << "-- \n";
+  out << "------------------------------------------------------------------\n";
+
+  out << "\n\n";
+  out << "library IEEE;\n";
+  out << "use IEEE.STD_LOGIC_1164.ALL;\n";
+  out << "\n";
+  out << "-- Uncomment the following library declaration if using\n";
+  out << "-- arithmetic functions with Signed or Unsigned values\n";
+  out << "--use IEEE.NUMERIC_STD.ALL;\n";
+  out << "\n";
+  out << "-- Uncomment the following library declaration if instantiating\n";
+  out << "--library UNISIM;\n";
+  out << "--use UNISIM.VComponents.all;\n";
+  out << "\n";
+  out << "entity aaa is\n";
+  out << "--  Port ( );\n";
+  out << "end aaa;\n";
+  out << "\n";
+  out << "architecture Behavioral of aaa is\n";
+  out << "\n";
+  out << "begin\n";
+  out << "\n\n";
+  out << "end Behavioral;\n";
+
+  file.flush();
+  file.close();
+  return ret;
+}
+
+int ProjectManager::CreateSDCFile(QString strFile) {
+  int ret = 0;
+  QFile file(strFile);
+  if (file.exists()) return ret;
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
+  file.close();
+  return ret;
+}
+
+int ProjectManager::setFileSet(const QString& strFileName, bool isFileCopy) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+
+  QFileInfo fileInfo(strFileName);
+  QString fname = fileInfo.fileName();
+  if (isFileCopy) {
+    QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
+                       m_currentFileSet + "/" + fname;
+    QString destinDir = Project::Instance()->projectPath() + filePath;
+    CopyFileToPath(strFileName, destinDir);
+    proFileSet->addFile(fname, "$OSRCDIR" + filePath);
+
+  } else {
+    proFileSet->addFile(fname, strFileName);
+  }
+  return ret;
+}
 
 QStringList ProjectManager::getAllChildFiles(QString path) {
   QStringList resultFileList;
@@ -363,7 +517,7 @@ QStringList ProjectManager::getAllChildFiles(QString path) {
   foreach (QFileInfo fileInfo, fileInfoList) {
     if (fileInfo.fileName() == "." || fileInfo.fileName() == "..") continue;
     if (fileInfo.isDir()) continue;
-    resultFileList.push_back(path+"/"+fileInfo.fileName());
+    resultFileList.push_back(path + "/" + fileInfo.fileName());
   }
   return resultFileList;
 }
@@ -390,6 +544,12 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
     return false;
   }
   return true;
+}
+
+QString ProjectManager::getCurrentRun() const { return m_currentRun; }
+
+void ProjectManager::setCurrentRun(const QString& currentRun) {
+  m_currentRun = currentRun;
 }
 
 QString ProjectManager::currentFileSet() const { return m_currentFileSet; }
