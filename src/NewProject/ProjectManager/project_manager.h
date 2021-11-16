@@ -56,13 +56,15 @@ class ProjectManager : public QObject {
  public:
   explicit ProjectManager(QObject *parent = nullptr);
 
+  int CreateProjectbyXml(const QString &strProXMl);
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
-  //  int setSimulationFile(const QString &strFileName, bool isFolder = false,
-  //                        bool isFileCopy = true);
+  int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
-  int setRunSet(QList<QString> listParam);
+  int setRunSet(const QStringList &listParam);
+  int setTopModule(const QString &strTopName);
+
   int StartProject(const QString &strOspro);
   void FinishedProject();
 

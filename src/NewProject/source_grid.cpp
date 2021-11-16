@@ -271,9 +271,9 @@ void sourceGrid::AddTableItem(filedata fdata) {
 
   QIcon icon;
   if (0 == fdata.m_isFolder) {
-    icon.addFile(":/img/img/file.png");
+    icon.addFile(":/img/file.png");
   } else {
-    icon.addFile(":/img/img/files.png");
+    icon.addFile(":/img/folder.png");
   }
   item = new QStandardItem();
   item->setIcon(icon);

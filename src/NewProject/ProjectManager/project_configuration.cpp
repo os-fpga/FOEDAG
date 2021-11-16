@@ -12,6 +12,8 @@ ProjectConfiguration::ProjectConfiguration(QObject *parent)
 
 QString ProjectConfiguration::id() const { return m_id; }
 
+void ProjectConfiguration::setId(const QString &id) { m_id = id; }
+
 QString ProjectConfiguration::projectType() const { return m_projectType; }
 
 void ProjectConfiguration::setProjectType(const QString &projectType) {

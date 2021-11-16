@@ -10,6 +10,108 @@ ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   Project::Instance()->InitProject();
 }
 
+int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
+  /**xml format ***********
+  <project type="" name="" path="">
+      <device name="x7c100t"/>
+      <sources>
+          <source file="~/counter.v" is_top=""/>
+           … more <source>
+      </sources>
+      <constraints>
+          <constraint file="~/counter.sdc"/>
+           … more <constraint>
+      <constraints>
+      <testbenches>
+          <testbench file="~/counter_tb.v"/>
+          … more <testbench>
+      </testbenches>
+  </project>
+   ****************************/
+  int ret = 0;
+  QFile file(strProXMl);
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    return -1;
+  }
+
+  Project::Instance()->InitProject();
+  QXmlStreamReader reader;
+  reader.setDevice(&file);
+  while (!reader.atEnd()) {
+    QXmlStreamReader::TokenType type = reader.readNext();
+    if (type == QXmlStreamReader::StartElement) {
+      if (reader.name() == "project") {
+        if (reader.attributes().hasAttribute("type") &&
+            reader.attributes().hasAttribute("name") &&
+            reader.attributes().hasAttribute("path")) {
+          QString strPath = reader.attributes().value("name").toString();
+          QString strName = reader.attributes().value("path").toString();
+          CreateProject(strName, strPath);
+          setProjectType(reader.attributes().value("type").toString());
+        } else {
+          file.close();
+          return -2;
+        }
+      } else if (reader.name() == "device" &&
+                 reader.attributes().hasAttribute("name")) {
+        setCurrentRun(DEFAULT_FOLDER_SYNTH);
+        QStringList listdev;
+        listdev.append("");
+        listdev.append("");
+        listdev.append("");
+        listdev.append(reader.attributes().value("name").toString());
+        setRunSet(listdev);
+      } else if (reader.name() == "sources") {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == "sources") {
+            break;
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute("file") &&
+                     reader.attributes().hasAttribute("is_top")) {
+            setCurrentFileSet(DEFAULT_FOLDER_SOURCE);
+            setDesignFile(reader.attributes().value("file").toString());
+            if ("true" == reader.attributes().value("is_top").toString()) {
+              setCurrentRun(DEFAULT_FOLDER_SYNTH);
+              setTopModule(reader.attributes().value("file").toString());
+            }
+          }
+        }
+      } else if (reader.name() == "constraints") {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == "constraints") {
+            break;
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute("file")) {
+            setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+            setConstrsFile(reader.attributes().value("file").toString());
+          }
+        }
+      } else if (reader.name() == "testbenches") {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == "testbenches") {
+            break;
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute("file")) {
+            setCurrentFileSet(DEFAULT_FOLDER_SIM);
+            setSimulationFile(reader.attributes().value("file").toString());
+          }
+        }
+      }
+    }
+  }
+  if (reader.hasError()) {
+    return -2;
+  }
+  file.close();
+  return ret;
+}
+
 int ProjectManager::CreateProject(const QString& strName,
                                   const QString& strPath) {
   int ret = 0;
@@ -117,6 +219,44 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   return ret;
 }
 
+int ProjectManager::setSimulationFile(const QString& strFileName,
+                                      bool isFileCopy) {
+  int ret = 0;
+  QFileInfo fileInfo(strFileName);
+  QString suffix = fileInfo.suffix();
+  if (fileInfo.isDir()) {
+    QStringList fileList = getAllChildFiles(strFileName);
+    foreach (QString strfile, fileList) {
+      suffix = QFileInfo(strfile).suffix();
+      if ("v" == suffix) {
+        setFileSet(strfile, isFileCopy);
+      }
+    }
+  } else if (fileInfo.exists()) {
+    if ("v" == suffix) {
+      setFileSet(strFileName, isFileCopy);
+    }
+  } else {
+    if (strFileName.contains("/")) {
+      if ("v" == suffix) {
+        CreateVerilogFile(strFileName);
+        setFileSet(strFileName, isFileCopy);
+      }
+    } else {
+      QString filePath = Project::Instance()->projectPath() + "/" +
+                         Project::Instance()->projectName() + ".srcs/" +
+                         m_currentFileSet + "/" + strFileName;
+      QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
+                            ".srcs/" + m_currentFileSet + "/" + strFileName;
+      if ("v" == suffix) {
+        CreateVerilogFile(filePath);
+        setFileSet(fileSetPath, false);
+      }
+    }
+  }
+  return ret;
+}
+
 int ProjectManager::setConstrsFile(const QString& strFileName,
                                    bool isFileCopy) {
   int ret = 0;
@@ -155,7 +295,7 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
   return ret;
 }
 
-int ProjectManager::setRunSet(QList<QString> listParam) {
+int ProjectManager::setRunSet(const QStringList& listParam) {
   int ret = 0;
   if (listParam.size() < 4) {
     return -1;
@@ -171,6 +311,16 @@ int ProjectManager::setRunSet(QList<QString> listParam) {
   return ret;
 }
 
+int ProjectManager::setTopModule(const QString& strTopName) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun || RUN_TYPE_SYNTHESIS != proRun->runType()) {
+    return -2;
+  }
+  proRun->setOption("TopModule", strTopName);
+  return ret;
+}
+
 int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
 }
@@ -178,8 +328,194 @@ int ProjectManager::StartProject(const QString& strOspro) {
 void ProjectManager::FinishedProject() { ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
-  Q_UNUSED(strOspro);
-  return 0;
+  int ret = 0;
+  QFile file(strOspro);
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    return -1;
+  }
+
+  Project::Instance()->InitProject();
+  QXmlStreamReader reader;
+  reader.setDevice(&file);
+  while (!reader.atEnd()) {
+    QXmlStreamReader::TokenType type = reader.readNext();
+    if (type == QXmlStreamReader::StartElement) {
+      if (reader.name() == PROJECT_PROJECT &&
+          reader.attributes().hasAttribute(PROJECT_PATH)) {
+        QString strPath = reader.attributes().value(PROJECT_PATH).toString();
+        QString strName =
+            strPath.right(strPath.size() - (strPath.lastIndexOf("/") + 1));
+        Project::Instance()->setProjectName(strName);
+        Project::Instance()->setProjectPath(strPath);
+      }
+      if (reader.name() == PROJECT_CONFIGURATION) {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == PROJECT_CONFIGURATION) {
+            break;
+          }
+
+          ProjectConfiguration* tmpProCfg =
+              Project::Instance()->projectConfig();
+          if (type == QXmlStreamReader::StartElement &&
+              reader.attributes().hasAttribute(PROJECT_NAME) &&
+              reader.attributes().hasAttribute(PROJECT_VAL)) {
+            if (PROJECT_CONFIG_ID ==
+                reader.attributes().value(PROJECT_NAME).toString()) {
+              tmpProCfg->setId(
+                  reader.attributes().value(PROJECT_VAL).toString());
+            } else if (PROJECT_CONFIG_ACTIVESIMSET ==
+                       reader.attributes().value(PROJECT_NAME).toString()) {
+              tmpProCfg->setActiveSimSet(
+                  reader.attributes().value(PROJECT_VAL).toString());
+            } else if (PROJECT_CONFIG_TYPE ==
+                       reader.attributes().value(PROJECT_NAME).toString()) {
+              tmpProCfg->setProjectType(
+                  reader.attributes().value(PROJECT_VAL).toString());
+            } else if (PROJECT_CONFIG_SIMTOPMODULE ==
+                       reader.attributes().value(PROJECT_NAME).toString()) {
+              tmpProCfg->setSimulationTopMoule(
+                  reader.attributes().value(PROJECT_VAL).toString());
+            } else {
+              tmpProCfg->setOption(
+                  reader.attributes().value(PROJECT_NAME).toString(),
+                  reader.attributes().value(PROJECT_VAL).toString());
+            }
+          }
+        }
+      }
+      if (reader.name() == PROJECT_FILESETS) {
+        QString strSetName;
+        QString strSetType;
+        QString strSetSrcDir;
+        QStringList listFiles;
+        QMap<QString, QString> mapOption;
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == PROJECT_FILESETS) {
+            break;
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_FILESET_NAME) &&
+                     reader.attributes().hasAttribute(PROJECT_FILESET_TYPE) &&
+                     reader.attributes().hasAttribute(
+                         PROJECT_FILESET_RELSRCDIR)) {
+            strSetName =
+                reader.attributes().value(PROJECT_FILESET_NAME).toString();
+            strSetType =
+                reader.attributes().value(PROJECT_FILESET_TYPE).toString();
+            strSetSrcDir =
+                reader.attributes().value(PROJECT_FILESET_RELSRCDIR).toString();
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_PATH)) {
+            listFiles.append(
+                reader.attributes().value(PROJECT_PATH).toString());
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_NAME) &&
+                     reader.attributes().hasAttribute(PROJECT_VAL)) {
+            mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
+                             reader.attributes().value(PROJECT_VAL).toString());
+          } else if (type == QXmlStreamReader::EndElement &&
+                     reader.name() == PROJECT_FILESET) {
+            ProjectFileSet* projectFileset = new ProjectFileSet();
+            projectFileset->setSetName(strSetName);
+            projectFileset->setSetType(strSetType);
+            projectFileset->setRelSrcDir(strSetSrcDir);
+
+            foreach (QString strFile, listFiles) {
+              projectFileset->addFile(
+                  strFile.right(strFile.size() -
+                                (strFile.lastIndexOf("/") + 1)),
+                  strFile);
+            }
+            for (auto iter = mapOption.begin(); iter != mapOption.end();
+                 ++iter) {
+              projectFileset->setOption(iter.key(), iter.value());
+            }
+            Project::Instance()->setProjectFileset(projectFileset);
+            // clear data for next
+            strSetName = "";
+            strSetType = "";
+            strSetSrcDir = "";
+            listFiles.clear();
+            mapOption.clear();
+          }
+        }
+      }
+      if (reader.name() == PROJECT_RUNS /*"Runs"*/) {
+        QString strRunName;
+        QString strRunType;
+        QString strSrcSet;
+        QString strConstrs;
+        QString strRunState;
+        QString strSynthRun;
+        QMap<QString, QString> mapOption;
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == PROJECT_RUNS) {
+            break;
+          } else if ((type == QXmlStreamReader::StartElement &&
+                      reader.attributes().hasAttribute(PROJECT_RUN_NAME) &&
+                      reader.attributes().hasAttribute(PROJECT_RUN_TYPE) &&
+                      reader.attributes().hasAttribute(PROJECT_RUN_SRCSET) &&
+                      reader.attributes().hasAttribute(
+                          PROJECT_RUN_CONSTRSSET) &&
+                      reader.attributes().hasAttribute(PROJECT_RUN_STATE)) ||
+                     reader.attributes().hasAttribute(PROJECT_RUN_SYNTHRUN)) {
+            strRunName = reader.attributes().value(PROJECT_RUN_NAME).toString();
+            strRunType = reader.attributes().value(PROJECT_RUN_TYPE).toString();
+            strSrcSet =
+                reader.attributes().value(PROJECT_RUN_SRCSET).toString();
+            strConstrs =
+                reader.attributes().value(PROJECT_RUN_CONSTRSSET).toString();
+            strRunState =
+                reader.attributes().value(PROJECT_RUN_STATE).toString();
+
+            if (reader.attributes().hasAttribute(PROJECT_RUN_SYNTHRUN)) {
+              strSynthRun =
+                  reader.attributes().value(PROJECT_RUN_SYNTHRUN).toString();
+            }
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_NAME) &&
+                     reader.attributes().hasAttribute(PROJECT_VAL)) {
+            mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
+                             reader.attributes().value(PROJECT_VAL).toString());
+          } else if (type == QXmlStreamReader::EndElement &&
+                     reader.name() == PROJECT_RUN) {
+            ProjectRun* proRun = new ProjectRun();
+            proRun->setRunName(strRunName);
+            proRun->setRunType(strRunType);
+            proRun->setSrcSet(strSrcSet);
+            proRun->setConstrsSet(strConstrs);
+            proRun->setRunState(strRunState);
+            proRun->setSynthRun(strSynthRun);
+
+            for (auto iter = mapOption.begin(); iter != mapOption.end();
+                 ++iter) {
+              proRun->setOption(iter.key(), iter.value());
+            }
+            Project::Instance()->setProjectRun(proRun);
+            // clear data for next
+            strRunName = "";
+            strRunType = "";
+            strSrcSet = "";
+            strConstrs = "";
+            strRunState = "";
+            strSynthRun = "";
+            mapOption.clear();
+          }
+        }
+      }
+    }
+  }
+
+  if (reader.hasError()) {
+    return -2;
+  }
+  file.close();
+  return ret;
 }
 
 int ProjectManager::ExportProjectData() {
