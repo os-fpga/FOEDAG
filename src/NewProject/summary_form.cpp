@@ -11,13 +11,12 @@ summaryForm::summaryForm(QWidget *parent)
 }
 
 summaryForm::~summaryForm() { delete ui; }
-void summaryForm::setProjectName(const QString &proName, const int &proType) {
-  QString tstrtype =
-      proType == TYPE_RTL ? QString("RTL") : QString("Post-synthesis");
+void summaryForm::setProjectName(const QString &proName,
+                                 const QString &proType) {
   ui->m_labelNamePic->setStyleSheet(QString("image: url(:/img/info.png);"));
   ui->m_labelName->setText(
       QString(tr("A new %1 project named '%2' will be created."))
-          .arg(tstrtype)
+          .arg(proType)
           .arg(proName));
 }
 
@@ -49,7 +48,7 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
   }
 }
 
-void summaryForm::setDeviceInfo(const QList<QString> listDevItem) {
+void summaryForm::setDeviceInfo(const QStringList &listDevItem) {
   ui->m_labelSDevPic->setStyleSheet(QString("image: url(:/img/info.png);"));
   if (listDevItem.count() >= 3) {
     ui->m_labelSeries->setText(QString("Series: %1").arg(listDevItem.at(0)));

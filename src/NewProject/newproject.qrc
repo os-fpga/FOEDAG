@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>img/info.png</file>
         <file>img/warn.png</file>
+        <file>img/file.png</file>
+        <file>img/folder.png</file>
     </qresource>
 </RCC>

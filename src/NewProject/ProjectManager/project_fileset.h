@@ -23,6 +23,8 @@ class ProjectFileSet : public ProjectOption {
   QString getRelSrcDir() const;
   void setRelSrcDir(const QString &relSrcDir);
 
+  QMap<QString, QString> getMapFiles() const;
+
  private:
   QString m_setName;
   QString m_setType;

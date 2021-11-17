@@ -14,6 +14,8 @@ class ProjectOption : public QObject {
   void setOption(const QString &strKey, const QString &strValue);
   QString getOption(QString strKey);
 
+  QMap<QString, QString> getMapOption() const;
+
  private:
   QMap<QString, QString> m_mapOption;
 };

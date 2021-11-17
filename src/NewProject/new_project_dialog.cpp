@@ -33,6 +33,8 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   ui->m_stackedWidget->adjustSize();
 
   UpdateDialogView();
+
+  m_projectManager = new ProjectManager(this);
 }
 
 newProjectDialog::~newProjectDialog() { delete ui; }
@@ -49,7 +51,42 @@ void newProjectDialog::on_m_btnNext_clicked() {
   UpdateDialogView();
 }
 
-void newProjectDialog::on_m_btnFinish_clicked() { this->close(); }
+void newProjectDialog::on_m_btnFinish_clicked() {
+  m_projectManager->CreateProject(m_locationForm->getProjectName(),
+                                  m_locationForm->getProjectPath());
+
+  m_projectManager->setProjectType(m_proTypeForm->getProjectType());
+
+  m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SOURCE);
+  QList<filedata> listFile = m_addSrcForm->getFileData();
+  foreach (filedata fdata, listFile) {
+    if ("<Local to Project>" == fdata.m_filePath) {
+      m_projectManager->setDesignFile(fdata.m_fileName, false);
+    } else {
+      m_projectManager->setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
+                                      m_addSrcForm->IsCopySource());
+    }
+  }
+
+  m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  listFile.clear();
+  listFile = m_addConstrsForm->getFileData();
+  foreach (filedata fdata, listFile) {
+    if ("<Local to Project>" == fdata.m_filePath) {
+      m_projectManager->setConstrsFile(fdata.m_fileName, false);
+    } else {
+      m_projectManager->setConstrsFile(
+          fdata.m_filePath + "/" + fdata.m_fileName,
+          m_addConstrsForm->IsCopySource());
+    }
+  }
+
+  m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);
+  m_projectManager->setRunSet(m_devicePlanForm->getSelectedDevice());
+
+  m_projectManager->FinishedProject();
+  this->close();
+}
 
 void newProjectDialog::on_m_btnCancel_clicked() { this->close(); }
 void newProjectDialog::UpdateDialogView() {

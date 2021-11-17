@@ -5,9 +5,14 @@
 ProjectConfiguration::ProjectConfiguration(QObject *parent)
     : ProjectOption(parent) {
   initProjectID();
+  m_projectType = "";
+  m_activeSimSet = "";
+  m_simulationTopMoule = "";
 }
 
 QString ProjectConfiguration::id() const { return m_id; }
+
+void ProjectConfiguration::setId(const QString &id) { m_id = id; }
 
 QString ProjectConfiguration::projectType() const { return m_projectType; }
 

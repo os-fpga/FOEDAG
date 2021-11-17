@@ -10,6 +10,7 @@ class ProjectConfiguration : public ProjectOption {
   explicit ProjectConfiguration(QObject *parent = nullptr);
 
   QString id() const;
+  void setId(const QString &id);
 
   QString projectType() const;
   void setProjectType(const QString &projectType);

@@ -96,7 +96,7 @@ void createFileDialog::on_m_comboxFileLocation_currentIndexChanged(int index) {
     if ("" == pathName) {
       return;
     }
-    pathName.replace("/", "\\");
+    // pathName.replace("/", "\\");
     // QAbstractItemView* itemview = new QAbstractItemView(this);
     ui->m_comboxFileLocation->removeItem(2);
     ui->m_comboxFileLocation->insertItem(2, pathName);
