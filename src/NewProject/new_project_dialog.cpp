@@ -39,7 +39,11 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 
 newProjectDialog::~newProjectDialog() { delete ui; }
 
-void newProjectDialog::tcl_command_test() { on_m_btnNext_clicked(); }
+void newProjectDialog::Next_TclCommand_Test() { on_m_btnNext_clicked(); }
+
+void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
+  m_projectManager->Tcl_CreateProject(argc, argv);
+}
 
 void newProjectDialog::on_m_btnBack_clicked() {
   m_index--;
