@@ -36,6 +36,8 @@ class MainWindow : public QMainWindow {
  public: /*-- Constructor --*/
   MainWindow();
 
+  void Tcl_NewProject(int argc, const char* argv[]);
+
  private slots: /* slots */
   void newFile();
   void newProjectDlg();

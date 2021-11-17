@@ -29,12 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 FOEDAG::Session* GlobalSession;
 
 QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
+  Q_UNUSED(cmd);
   return new FOEDAG::newProjectDialog();
 }
 
 void registerNewProjectCommands(FOEDAG::Session* session) {
   auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->show();
     return 0;
@@ -44,6 +48,9 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
 
   auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->hide();
     return 0;
@@ -53,6 +60,9 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
 
   auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->tcl_command_test();
     return 0;

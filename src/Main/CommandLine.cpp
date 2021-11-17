@@ -36,6 +36,7 @@ void CommandLine::printHelp() {
   std::cout << "   help" << std::endl;
   std::cout << "   gui_start" << std::endl;
   std::cout << "   gui_stop" << std::endl;
+  std::cout << "   create_project" << std::endl;
   std::cout << "   tcl_exit" << std::endl;
   std::cout << "-------------------------" << std::endl;
 }
