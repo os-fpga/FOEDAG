@@ -2,6 +2,7 @@
 
 #include <QDesktopWidget>
 #include <QMessageBox>
+#include <QThread>
 
 #include "ui_new_project_dialog.h"
 using namespace FOEDAG;
@@ -39,7 +40,10 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 
 newProjectDialog::~newProjectDialog() { delete ui; }
 
-void newProjectDialog::Next_TclCommand_Test() { emit ui->m_btnNext->clicked(); }
+void newProjectDialog::Next_TclCommand_Test() {
+  QThread::sleep(3);
+  emit ui->m_btnNext->clicked();
+}
 
 void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
   m_projectManager->Tcl_CreateProject(argc, argv);
