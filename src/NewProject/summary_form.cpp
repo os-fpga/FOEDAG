@@ -50,7 +50,7 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
 
 void summaryForm::setDeviceInfo(const QStringList &listDevItem) {
   ui->m_labelSDevPic->setStyleSheet(QString("image: url(:/img/info.png);"));
-  if (listDevItem.count() >= 3) {
+  if (listDevItem.count() > 3) {
     ui->m_labelSeries->setText(QString("Series: %1").arg(listDevItem.at(0)));
     ui->m_labelFamily->setText(QString("Family: %1").arg(listDevItem.at(1)));
     ui->m_labePackage->setText(QString("Package: %1").arg(listDevItem.at(2)));
