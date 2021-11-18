@@ -73,6 +73,11 @@ MainWindow::MainWindow() {
   statusBar()->showMessage("Ready");
 }
 
+void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
+  ProjectManager* projectManager = new ProjectManager(this);
+  projectManager->Tcl_CreateProject(argc, argv);
+}
+
 void MainWindow::newFile() {
   QTextStream out(stdout);
   out << "New file is requested\n";

@@ -2,6 +2,7 @@
 
 #include <QDesktopWidget>
 #include <QMessageBox>
+#include <QThread>
 
 #include "ui_new_project_dialog.h"
 using namespace FOEDAG;
@@ -39,7 +40,14 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 
 newProjectDialog::~newProjectDialog() { delete ui; }
 
-void newProjectDialog::tcl_command_test() { on_m_btnNext_clicked(); }
+void newProjectDialog::Next_TclCommand_Test() {
+  QThread::sleep(3);
+  emit ui->m_btnNext->clicked();
+}
+
+void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
+  m_projectManager->Tcl_CreateProject(argc, argv);
+}
 
 void newProjectDialog::on_m_btnBack_clicked() {
   m_index--;
@@ -82,7 +90,23 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   }
 
   m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);
-  m_projectManager->setRunSet(m_devicePlanForm->getSelectedDevice());
+
+  QStringList strlist = m_devicePlanForm->getSelectedDevice();
+  QList<QPair<QString, QString>> listParam;
+  QPair<QString, QString> pair;
+  pair.first = "Series";
+  pair.second = strlist.at(0);
+  listParam.append(pair);
+  pair.first = "Family";
+  pair.second = strlist.at(1);
+  listParam.append(pair);
+  pair.first = "Package";
+  pair.second = strlist.at(2);
+  listParam.append(pair);
+  pair.first = "Device";
+  pair.second = strlist.at(3);
+  listParam.append(pair);
+  m_projectManager->setRunSet(listParam);
 
   m_projectManager->FinishedProject();
   this->close();

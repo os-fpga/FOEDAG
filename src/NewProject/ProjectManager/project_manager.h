@@ -56,13 +56,15 @@ class ProjectManager : public QObject {
  public:
   explicit ProjectManager(QObject *parent = nullptr);
 
+  void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
+
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
-  int setRunSet(const QStringList &listParam);
+  int setRunSet(const QList<QPair<QString, QString>> &listParam);
   int setTopModule(const QString &strTopName);
 
   int StartProject(const QString &strOspro);

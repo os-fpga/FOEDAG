@@ -35,7 +35,9 @@ class newProjectDialog : public QDialog {
   explicit newProjectDialog(QWidget* parent = nullptr);
   ~newProjectDialog();
 
-  void tcl_command_test();
+  void Next_TclCommand_Test();
+  void CreateProject_Tcl_Test(int argc, const char* argv[]);
+
  private slots:
   void on_m_btnBack_clicked();
   void on_m_btnNext_clicked();

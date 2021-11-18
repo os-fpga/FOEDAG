@@ -29,12 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 FOEDAG::Session* GlobalSession;
 
 QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
+  Q_UNUSED(cmd);
   return new FOEDAG::newProjectDialog();
 }
 
 void registerNewProjectCommands(FOEDAG::Session* session) {
   auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->show();
     return 0;
@@ -44,6 +48,9 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
 
   auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
     dialog->hide();
     return 0;
@@ -53,15 +60,28 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
 
   auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
     FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
-    dialog->tcl_command_test();
+    dialog->Next_TclCommand_Test();
     return 0;
   };
   session->TclInterp()->registerCmd("next", btnnext,
                                     GlobalSession->MainWindow(), 0);
 
+  auto createproject = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    FOEDAG::newProjectDialog* dialog = (FOEDAG::newProjectDialog*)(clientData);
+    dialog->CreateProject_Tcl_Test(argc, argv);
+    return 0;
+  };
+  session->TclInterp()->registerCmd("create_project", createproject,
+                                    GlobalSession->MainWindow(), 0);
+
   session->TclInterp()->evalCmd(
-      "puts \"Hello put newproject_gui_open to show new project GUI.\"");
+      "puts \"Put newproject_gui_open to show new project GUI.\"");
 }
 
 int main(int argc, char** argv) {

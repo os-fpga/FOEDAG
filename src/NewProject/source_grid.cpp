@@ -153,7 +153,7 @@ void sourceGrid::AddFiles() {
   if (GT_SOURCE == m_type) {
     fileformat = QString(tr("Design Files(*.v *.vhd)"));
   } else if (GT_CONSTRAINTS == m_type) {
-    fileformat = QString(tr("Design Files(*.SDC)"));
+    fileformat = QString(tr("Design Files(*.SDC *.sdc)"));
   }
   QStringList fileNames =
       QFileDialog::getOpenFileNames(this, tr("Select File"), "", fileformat);

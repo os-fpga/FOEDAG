@@ -1,6 +1,7 @@
 #include "project_manager.h"
 
 #include <QDir>
+#include <QDomDocument>
 #include <QFile>
 #include <QTextStream>
 #include <QTime>
@@ -10,27 +11,56 @@ ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   Project::Instance()->InitProject();
 }
 
+void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
+  QTextStream out(stdout);
+  if (argc < 3 || "--file" != QString(argv[1])) {
+    out << "-----------create_project ------------\n";
+    out << " \n";
+    out << " Description: \n";
+    out << " Create a new project. \n";
+    out << " \n";
+    out << " Syntax: \n";
+    out << " create_project --file <filename.xml> \n";
+    out << " \n";
+    out << "--------------------------------------\n";
+    return;
+  }
+
+  QFileInfo fileInfo;
+  fileInfo.setFile(QString(argv[2]));
+  if (fileInfo.exists()) {
+    if (0 == CreateProjectbyXml(QString(argv[2]))) {
+      ExportProjectData();
+      out << "Project created successfully! \n";
+    }
+  } else {
+    out << " Warning : This file <" << QString(argv[2]) << "> is not exist! \n";
+  }
+}
+
 int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
   /**xml format ***********
-  <project type="" name="" path="">
+  <project type="RTL" name="project_1" path="/root">
       <device name="x7c100t"/>
       <sources>
-          <source file="~/counter.v" is_top=""/>
+          <source file="/counter.v" is_top="true"/>
            … more <source>
       </sources>
       <constraints>
-          <constraint file="~/counter.sdc"/>
+          <constraint file="/counter.sdc"/>
            … more <constraint>
-      <constraints>
+      </constraints>
       <testbenches>
-          <testbench file="~/counter_tb.v"/>
+          <testbench file="/counter_tb.v"/>
           … more <testbench>
       </testbenches>
   </project>
    ****************************/
+  QTextStream out(stdout);
   int ret = 0;
   QFile file(strProXMl);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    out << " Warning : This file <" << strProXMl << "> cannot be opened! \n";
     return -1;
   }
 
@@ -44,23 +74,27 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
         if (reader.attributes().hasAttribute("type") &&
             reader.attributes().hasAttribute("name") &&
             reader.attributes().hasAttribute("path")) {
-          QString strPath = reader.attributes().value("name").toString();
-          QString strName = reader.attributes().value("path").toString();
-          CreateProject(strName, strPath);
-          setProjectType(reader.attributes().value("type").toString());
+          QString strName = reader.attributes().value("name").toString();
+          QString strPath = reader.attributes().value("path").toString();
+          QString strProjectPath = strPath + "/" + strName;
+          ret = CreateProject(strName, strProjectPath);
+          ret = setProjectType(reader.attributes().value("type").toString());
         } else {
           file.close();
+          out << " Warning : This file < " << strProXMl
+              << " > is missing required fields! \n";
+          out << " The type,name and path fields are required. \n";
           return -2;
         }
       } else if (reader.name() == "device" &&
                  reader.attributes().hasAttribute("name")) {
         setCurrentRun(DEFAULT_FOLDER_SYNTH);
-        QStringList listdev;
-        listdev.append("");
-        listdev.append("");
-        listdev.append("");
-        listdev.append(reader.attributes().value("name").toString());
-        setRunSet(listdev);
+        QList<QPair<QString, QString>> listParam;
+        QPair<QString, QString> pair;
+        pair.first = "device";
+        pair.second = reader.attributes().value("name").toString();
+        listParam.append(pair);
+        ret = setRunSet(listParam);
       } else if (reader.name() == "sources") {
         while (true) {
           type = reader.readNext();
@@ -71,10 +105,14 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
                      reader.attributes().hasAttribute("file") &&
                      reader.attributes().hasAttribute("is_top")) {
             setCurrentFileSet(DEFAULT_FOLDER_SOURCE);
-            setDesignFile(reader.attributes().value("file").toString());
-            if ("true" == reader.attributes().value("is_top").toString()) {
+            ret = setDesignFile(reader.attributes().value("file").toString());
+            if (0 != ret) {
+              out << "Failed to add source. Check the format of file field.\n";
+            }
+            if (0 == ret &&
+                "true" == reader.attributes().value("is_top").toString()) {
               setCurrentRun(DEFAULT_FOLDER_SYNTH);
-              setTopModule(reader.attributes().value("file").toString());
+              ret = setTopModule(reader.attributes().value("file").toString());
             }
           }
         }
@@ -87,7 +125,11 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute("file")) {
             setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
-            setConstrsFile(reader.attributes().value("file").toString());
+            ret = setConstrsFile(reader.attributes().value("file").toString());
+            if (0 != ret) {
+              out << "Failed to add constraint. Check the format of file "
+                     "field.\n";
+            }
           }
         }
       } else if (reader.name() == "testbenches") {
@@ -99,7 +141,12 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute("file")) {
             setCurrentFileSet(DEFAULT_FOLDER_SIM);
-            setSimulationFile(reader.attributes().value("file").toString());
+            ret =
+                setSimulationFile(reader.attributes().value("file").toString());
+            if (0 != ret) {
+              out << "Failed to add testbench. Check the format of file "
+                     "field.\n";
+            }
           }
         }
       }
@@ -184,22 +231,28 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if ("v" == suffix || "vhd" == suffix) {
-        setFileSet(strfile, isFileCopy);
+      if (!suffix.compare("v", Qt::CaseInsensitive) ||
+          !suffix.compare("vhd", Qt::CaseInsensitive)) {
+        ret = setFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if ("v" == suffix || "vhd" == suffix) {
-      setFileSet(strFileName, isFileCopy);
+    if (!suffix.compare("v", Qt::CaseInsensitive) ||
+        !suffix.compare("vhd", Qt::CaseInsensitive)) {
+      ret = setFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if ("v" == suffix) {
-        CreateVerilogFile(strFileName);
-        setFileSet(strFileName, isFileCopy);
-      } else if ("vhd" == suffix) {
-        CreateVHDLFile(strFileName);
-        setFileSet(strFileName, isFileCopy);
+      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+        ret = CreateVerilogFile(strFileName);
+        if (0 == ret) {
+          ret = setFileSet(strFileName, isFileCopy);
+        }
+      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
+        ret = CreateVHDLFile(strFileName);
+        if (0 == ret) {
+          ret = setFileSet(strFileName, isFileCopy);
+        }
       }
     } else {
       QString filePath = Project::Instance()->projectPath() + "/" +
@@ -207,12 +260,16 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
                          m_currentFileSet + "/" + strFileName;
       QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
                             ".srcs/" + m_currentFileSet + "/" + strFileName;
-      if ("v" == suffix) {
-        CreateVerilogFile(filePath);
-        setFileSet(fileSetPath, false);
-      } else if ("vhd" == suffix) {
-        CreateVHDLFile(filePath);
-        setFileSet(fileSetPath, false);
+      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+        ret = CreateVerilogFile(filePath);
+        if (0 == ret) {
+          ret = setFileSet(fileSetPath, false);
+        }
+      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
+        ret = CreateVHDLFile(filePath);
+        if (0 == ret) {
+          ret = setFileSet(fileSetPath, false);
+        }
       }
     }
   }
@@ -228,19 +285,21 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if ("v" == suffix) {
-        setFileSet(strfile, isFileCopy);
+      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+        ret = setFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if ("v" == suffix) {
-      setFileSet(strFileName, isFileCopy);
+    if (!suffix.compare("v", Qt::CaseInsensitive)) {
+      ret = setFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if ("v" == suffix) {
-        CreateVerilogFile(strFileName);
-        setFileSet(strFileName, isFileCopy);
+      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+        ret = CreateVerilogFile(strFileName);
+        if (0 == ret) {
+          ret = setFileSet(strFileName, isFileCopy);
+        }
       }
     } else {
       QString filePath = Project::Instance()->projectPath() + "/" +
@@ -248,9 +307,11 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
                          m_currentFileSet + "/" + strFileName;
       QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
                             ".srcs/" + m_currentFileSet + "/" + strFileName;
-      if ("v" == suffix) {
-        CreateVerilogFile(filePath);
-        setFileSet(fileSetPath, false);
+      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+        ret = CreateVerilogFile(filePath);
+        if (0 == ret) {
+          ret = setFileSet(fileSetPath, false);
+        }
       }
     }
   }
@@ -266,19 +327,21 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if ("SDC" == suffix) {
-        setFileSet(strfile, isFileCopy);
+      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+        ret = setFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if ("SDC" == suffix) {
-      setFileSet(strFileName, isFileCopy);
+    if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+      ret = setFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if ("SDC" == suffix) {
-        CreateSDCFile(strFileName);
-        setFileSet(strFileName, isFileCopy);
+      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+        ret = CreateSDCFile(strFileName);
+        if (0 == ret) {
+          ret = setFileSet(strFileName, isFileCopy);
+        }
       }
     } else {
       QString filePath = Project::Instance()->projectPath() + "/" +
@@ -286,28 +349,26 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
                          m_currentFileSet + "/" + strFileName;
       QString fileSetPath = "$OSRCDIR/" + Project::Instance()->projectName() +
                             ".srcs/" + m_currentFileSet + "/" + strFileName;
-      if ("SDC" == suffix) {
-        CreateSDCFile(filePath);
-        setFileSet(fileSetPath, false);
+      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+        ret = CreateSDCFile(filePath);
+        if (0 == ret) {
+          setFileSet(fileSetPath, false);
+        }
       }
     }
   }
   return ret;
 }
 
-int ProjectManager::setRunSet(const QStringList& listParam) {
+int ProjectManager::setRunSet(const QList<QPair<QString, QString>>& listParam) {
   int ret = 0;
-  if (listParam.size() < 4) {
-    return -1;
-  }
   ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
-  if (nullptr == proRun || RUN_TYPE_SYNTHESIS != proRun->runType()) {
+  if (nullptr == proRun) {
     return -2;
   }
-  proRun->setOption("Series", listParam.at(0));
-  proRun->setOption("Family", listParam.at(1));
-  proRun->setOption("Package", listParam.at(2));
-  proRun->setOption("Device", listParam.at(3));
+  foreach (QPair pair, listParam) {
+    proRun->setOption(pair.first, pair.second);
+  }
   return ret;
 }
 
@@ -713,6 +774,7 @@ int ProjectManager::CreateVerilogFile(QString strFile) {
   QFile file(strFile);
   if (file.exists()) return ret;
   if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    QTextStream out(stdout);
     return -1;
   }
   QString tempname =
@@ -755,6 +817,8 @@ int ProjectManager::CreateVHDLFile(QString strFile) {
   QFile file(strFile);
   if (file.exists()) return ret;
   if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    QTextStream out(stdout);
+    out << "failed:" << strFile << "\n";
     return -1;
   }
   QString tempname =
@@ -833,8 +897,11 @@ int ProjectManager::setFileSet(const QString& strFileName, bool isFileCopy) {
     QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
                        m_currentFileSet + "/" + fname;
     QString destinDir = Project::Instance()->projectPath() + filePath;
-    CopyFileToPath(strFileName, destinDir);
-    proFileSet->addFile(fname, "$OSRCDIR" + filePath);
+    if (CopyFileToPath(strFileName, destinDir)) {
+      proFileSet->addFile(fname, "$OSRCDIR" + filePath);
+    } else {
+      ret = -2;
+    }
 
   } else {
     proFileSet->addFile(fname, strFileName);
