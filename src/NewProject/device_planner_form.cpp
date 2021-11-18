@@ -60,8 +60,9 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
           &devicePlannerForm::onPackagetextChanged);
 
   QString devicexml = QDir::currentPath() + "/device.xml";
-  Config::Instance()->InitConfig(devicexml);
-  InitSeriesComboBox();
+  if (0 == Config::Instance()->InitConfig(devicexml)) {
+    InitSeriesComboBox();
+  }
 }
 
 devicePlannerForm::~devicePlannerForm() { delete ui; }
@@ -157,7 +158,7 @@ void devicePlannerForm::UpdatePackageComboBox() {
 void devicePlannerForm::UpdateDeviceTableView() {
   m_model->clear();
   InitDeviceTableViewHead();
-  QList<QList<QString>> listDevice = Config::Instance()->getDevicelist(
+  QList<QStringList> listDevice = Config::Instance()->getDevicelist(
       ui->m_comboBoxSeries->currentText(), ui->m_comboBoxFamily->currentText(),
       ui->m_comboBoxPackage->currentText());
   for (int i = 0; i < listDevice.count(); ++i) {

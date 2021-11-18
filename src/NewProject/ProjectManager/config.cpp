@@ -8,9 +8,10 @@ Q_GLOBAL_STATIC(Config, config)
 
 Config *Config::Instance() { return config(); }
 
-void Config::InitConfig(const QString &devicexml) {
-  if (devicexml == m_device_xml) {
-    return;
+int Config::InitConfig(const QString &devicexml) {
+  int ret = 0;
+  if ("" != devicexml && devicexml == m_device_xml) {
+    return ret;
   } else {
     m_lsit_device_item.clear();
     m_map_device.clear();
@@ -20,13 +21,13 @@ void Config::InitConfig(const QString &devicexml) {
 
   QFile file(devicexml);
   if (!file.open(QFile::ReadOnly)) {
-    return;
+    return -1;
   }
 
   QDomDocument doc;
   if (!doc.setContent(&file)) {
     file.close();
-    return;
+    return -2;
   }
   file.close();
 
@@ -55,7 +56,7 @@ void Config::InitConfig(const QString &devicexml) {
     if (node.isElement()) {
       QDomElement e = node.toElement();
 
-      QList<QString> devlist;
+      QStringList devlist;
       devlist.append(e.attribute("name"));
       devlist.append(e.attribute("pin_count"));
       devlist.append(e.attribute("speedgrade"));
@@ -80,28 +81,29 @@ void Config::InitConfig(const QString &devicexml) {
 
     node = node.nextSibling();
   }
+  return ret;
 }
 
-QList<QString> Config::getDeviceItem() const { return m_lsit_device_item; }
+QStringList Config::getDeviceItem() const { return m_lsit_device_item; }
 
 void Config::MakeDeviceMap(QString series, QString family, QString package) {
-  QMap<QString, QSet<QString>> mapfamily;
+  QMap<QString, QStringList> mapfamily;
   auto iter = m_map_device.find(series);
   if (iter != m_map_device.end()) {
     mapfamily = iter.value();
-    mapfamily[family].insert(package);
+    mapfamily[family].append(package);
   } else {
-    QSet<QString> setpkg;
-    setpkg.insert(package);
-    mapfamily.insert(family, setpkg);
+    QStringList listpkg;
+    listpkg.append(package);
+    mapfamily.insert(family, listpkg);
   }
   m_map_device.insert(series, mapfamily);
 }
 
-QList<QString> Config::getSerieslist() const { return m_map_device.keys(); }
+QStringList Config::getSerieslist() const { return m_map_device.keys(); }
 
-QList<QString> Config::getFamilylist(const QString &series) const {
-  QMap<QString, QSet<QString>> mapfamily;
+QStringList Config::getFamilylist(const QString &series) const {
+  QMap<QString, QStringList> mapfamily;
   auto iter = m_map_device.find(series);
   if (iter != m_map_device.end()) {
     mapfamily = iter.value();
@@ -109,26 +111,26 @@ QList<QString> Config::getFamilylist(const QString &series) const {
   return mapfamily.keys();
 }
 
-QList<QString> Config::getPackagelist(const QString &series,
-                                      const QString &family) const {
-  QMap<QString, QSet<QString>> mapfamily;
+QStringList Config::getPackagelist(const QString &series,
+                                   const QString &family) const {
+  QMap<QString, QStringList> mapfamily;
   auto iter = m_map_device.find(series);
   if (iter != m_map_device.end()) {
     mapfamily = iter.value();
   }
 
-  QSet<QString> setpkg;
+  QStringList listpkg;
   auto iterf = mapfamily.find(family);
   if (iterf != mapfamily.end()) {
-    setpkg = iterf.value();
+    listpkg = iterf.value();
   }
 
-  return setpkg.values();
+  return listpkg;
 }
 
-QList<QList<QString>> Config::getDevicelist(QString series, QString family,
-                                            QString package) const {
-  QList<QList<QString>> listdevice;
+QList<QStringList> Config::getDevicelist(QString series, QString family,
+                                         QString package) const {
+  QList<QStringList> listdevice;
   QString strkey = series + family + package;
   QList<QString> listkey = m_map_device_info.keys();
   for (int i = 0; i < listkey.size(); ++i) {
