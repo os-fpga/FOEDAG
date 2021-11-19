@@ -83,7 +83,8 @@ void newProjectDialog::on_m_btnFinish_clicked() {
 
     // set default simulation source
     m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SIM);
-    m_projectManager->setDesignFile(strDefaultSrc, false);
+    m_projectManager->setDesignFile("sim_" + strDefaultSrc, false);
+    m_projectManager->setTopModule("sim_" + strDefaultSrc);
   }
 
   m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
