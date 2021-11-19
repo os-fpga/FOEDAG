@@ -40,7 +40,7 @@ void registerExampleCommands(FOEDAG::Session* session) {
     FOEDAG::Design* design = new FOEDAG::Design(designName);
     FOEDAG::Compiler* compiler =
         new FOEDAG::Compiler(GlobalSession->TclInterp(), design, std::cout);
-    compiler->registerCommands();
+    compiler->RegisterCommands();
     return 0;
   };
   session->TclInterp()->registerCmd("design_init", design_init, 0, 0);

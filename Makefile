@@ -127,6 +127,7 @@ test/gui: run-cmake-debug
 
 test/batch: run-cmake-debug
 	./dbuild/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_mt.tcl
+	./dbuild/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

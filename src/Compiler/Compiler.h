@@ -37,7 +37,16 @@ namespace FOEDAG {
 
 class Compiler {
  public:
-  enum Action { NoAction, Synthesis, Global, Detailed, Routing, STA, Bitream };
+  enum Action {
+    NoAction,
+    Synthesis,
+    Global,
+    Detailed,
+    Routing,
+    STA,
+    Bitream,
+    Batch
+  };
   enum State {
     None,
     Synthesized,
@@ -52,13 +61,13 @@ class Compiler {
       : m_interp(interp), m_design(design), m_out(out) {}
 
   ~Compiler();
-
+  void BatchScript(const std::string& script) { m_batchScript = script; }
   State CompilerState() { return m_state; }
-  bool compile(Action action);
-  void stop() { m_stop = true; }
+  bool Compile(Action action);
+  void Stop() { m_stop = true; }
   TclInterpreter* TclInterp() { return m_interp; }
   Design* GetDesign() { return m_design; }
-  bool registerCommands();
+  bool RegisterCommands(bool batchMode = false);
   bool Clear();
   bool Synthesize();
   bool GlobalPlacement();
@@ -66,6 +75,7 @@ class Compiler {
   bool Route();
   bool TimingAnalysis();
   bool GenerateBitstream();
+  bool RunBatch();
 
  private:
   TclInterpreter* m_interp = nullptr;
@@ -73,6 +83,7 @@ class Compiler {
   bool m_stop = false;
   State m_state = None;
   std::ostream& m_out;
+  std::string m_batchScript;
 };
 
 }  // namespace FOEDAG

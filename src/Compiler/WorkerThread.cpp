@@ -38,12 +38,12 @@ WorkerThread::~WorkerThread() {}
 
 bool WorkerThread::start() {
   bool result = true;
-  m_thread = new std::thread([=] { m_compiler->compile(m_action); });
+  m_thread = new std::thread([=] { m_compiler->Compile(m_action); });
   return result;
 }
 
 bool WorkerThread::stop() {
-  m_compiler->stop();
+  m_compiler->Stop();
   m_thread->join();
   delete m_thread;
   m_thread = nullptr;
