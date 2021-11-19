@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QMainWindow>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -29,35 +28,59 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-#include "Compiler/WorkerThread.h"
+#include "Compiler/Design.h"
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef COMPILER_H
+#define COMPILER_H
 
 namespace FOEDAG {
 
-class Session {
- private:
+class Compiler {
  public:
-  Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
-          CommandLine *cmdLine)
-      : m_mainWindow(mainWindow),
-        m_interp(interp),
-        m_stack(stack),
-        m_cmdLine(cmdLine) {}
+  enum Action {
+    NoAction,
+    Synthesis,
+    Global,
+    Detailed,
+    Routing,
+    STA,
+    Bitream
+  }; 
+  enum State {
+    None,
+    Synthesized,
+    GloballyPlaced,
+    Placed,
+    Routed,
+    TimingAnalyzed,
+    BistreamGenerated
+  };
 
-  ~Session();
+  Compiler(TclInterpreter *interp, Design* design, std::ostream &out) : m_interp(interp), m_design(design), m_out(out) {}
 
-  QWidget *MainWindow() { return m_mainWindow; }
+  ~Compiler();
+
+  State CompilerState() { return m_state; }
+  bool compile(Action action);
+  void stop() { m_stop = true; }
   TclInterpreter *TclInterp() { return m_interp; }
-  CommandStack *CmdStack() { return m_stack; }
-  CommandLine *CmdLine() { return m_cmdLine; }
+  Design* GetDesign() { return m_design; }
+  bool registerCommands();
+  bool Clear();
+  bool Synthesize();
+  bool GlobalPlacement();
+  bool Placement();
+  bool Route();
+  bool TimingAnalysis();
+  bool GenerateBitstream();
 
  private:
-  QWidget *m_mainWindow;
-  TclInterpreter *m_interp;
-  CommandStack *m_stack;
-  CommandLine *m_cmdLine;
+  TclInterpreter *m_interp = nullptr;
+  Design* m_design = nullptr;
+  bool m_stop = false;
+  State m_state = None;
+  std::ostream& m_out;
+
 };
 
 }  // namespace FOEDAG

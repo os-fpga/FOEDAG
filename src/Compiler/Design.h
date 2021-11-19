@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QMainWindow>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -29,35 +28,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-#include "Compiler/WorkerThread.h"
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef DESIGN_H
+#define DESIGN_H
 
 namespace FOEDAG {
 
-class Session {
- private:
+class Design {
  public:
-  Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
-          CommandLine *cmdLine)
-      : m_mainWindow(mainWindow),
-        m_interp(interp),
-        m_stack(stack),
-        m_cmdLine(cmdLine) {}
+  enum Language {
+    VHDL_1987,
+    VHDL_1993,
+    VHDL_2008, 
+    VERILOG_1995,
+    VERILOG_2001,
+    SYSTEMVERILOG_2005,
+    SYSTEMVERILOG_2009,
+    SYSTEMVERILOG_2012,
+    SYSTEMVERILOG_2017, 
+  };
+  Design(std::string& designName) : m_designName(designName) {}
+  ~Design();
 
-  ~Session();
+  const std::string& Name() { return m_designName; }
 
-  QWidget *MainWindow() { return m_mainWindow; }
-  TclInterpreter *TclInterp() { return m_interp; }
-  CommandStack *CmdStack() { return m_stack; }
-  CommandLine *CmdLine() { return m_cmdLine; }
+  void AddFile(Language language, const std::string& fileName) { m_fileList.push_back(std::make_pair(language, fileName)); }
+  std::vector<std::pair<Language, std::string>>& FileList() { return m_fileList; }
+
+  void TopLevel(const std::string& topLevelModule) { m_topLevelModule = topLevelModule; }
+  const std::string& TopLevel() { return m_topLevelModule; }
 
  private:
-  QWidget *m_mainWindow;
-  TclInterpreter *m_interp;
-  CommandStack *m_stack;
-  CommandLine *m_cmdLine;
+  std::string m_designName;
+  std::string m_topLevelModule;
+  std::vector<std::pair<Language, std::string>> m_fileList;
+
 };
 
 }  // namespace FOEDAG

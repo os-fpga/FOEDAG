@@ -71,6 +71,7 @@ add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/Console)
 add_subdirectory(src/Main)
+add_subdirectory(src/Compiler)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -304,7 +305,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject)
+target_link_libraries(foedag  PUBLIC foedagcore newproject compiler)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)
