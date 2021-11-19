@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include <unistd.h>
 #endif
-
+#include <chrono>
+#include <thread>
 #include "Compiler/Compiler.h"
 #include "Compiler/WorkerThread.h"
 
@@ -83,7 +84,8 @@ bool Compiler::Synthesize() {
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     m_out << i << "%" << std::endl;
-    sleep(1);
+    std::chrono::milliseconds dura( 1000 );
+    std::this_thread::sleep_for( dura );
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
@@ -100,7 +102,8 @@ bool Compiler::GlobalPlacement() {
         << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     m_out << i << "%" << std::endl;
-    sleep(1);
+    std::chrono::milliseconds dura( 1000 );
+    std::this_thread::sleep_for( dura );
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
