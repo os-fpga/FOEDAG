@@ -19,45 +19,45 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QMainWindow>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "Compiler/WorkerThread.h"
+#include "Compiler/Compiler.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef WORKER_THREAD_H
+#define WORKER_THREAD_H
 
 namespace FOEDAG {
 
-class Session {
- private:
+class WorkerThread {
  public:
-  Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
-          CommandLine *cmdLine)
-      : m_mainWindow(mainWindow),
-        m_interp(interp),
-        m_stack(stack),
-        m_cmdLine(cmdLine) {}
+  WorkerThread(const std::string& threadName, Compiler::Action action,
+               Compiler* compiler);
+  ~WorkerThread();
 
-  ~Session();
+  const std::string& Name() { return m_threadName; }
 
-  QWidget *MainWindow() { return m_mainWindow; }
-  TclInterpreter *TclInterp() { return m_interp; }
-  CommandStack *CmdStack() { return m_stack; }
-  CommandLine *CmdLine() { return m_cmdLine; }
+  bool start();
+  bool stop();
 
  private:
-  QWidget *m_mainWindow;
-  TclInterpreter *m_interp;
-  CommandStack *m_stack;
-  CommandLine *m_cmdLine;
+  std::string m_threadName;
+  Compiler::Action m_action = Compiler::Action::NoAction;
+  std::thread* m_thread = nullptr;
+  Compiler* m_compiler = nullptr;
+};
+
+class ThreadPool {
+ public:
+  static std::set<WorkerThread*> threads;
 };
 
 }  // namespace FOEDAG
