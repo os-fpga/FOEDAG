@@ -39,30 +39,35 @@ class Design {
   enum Language {
     VHDL_1987,
     VHDL_1993,
-    VHDL_2008, 
+    VHDL_2008,
     VERILOG_1995,
     VERILOG_2001,
     SYSTEMVERILOG_2005,
     SYSTEMVERILOG_2009,
     SYSTEMVERILOG_2012,
-    SYSTEMVERILOG_2017, 
+    SYSTEMVERILOG_2017,
   };
   Design(std::string& designName) : m_designName(designName) {}
   ~Design();
 
   const std::string& Name() { return m_designName; }
 
-  void AddFile(Language language, const std::string& fileName) { m_fileList.push_back(std::make_pair(language, fileName)); }
-  std::vector<std::pair<Language, std::string>>& FileList() { return m_fileList; }
+  void AddFile(Language language, const std::string& fileName) {
+    m_fileList.push_back(std::make_pair(language, fileName));
+  }
+  std::vector<std::pair<Language, std::string>>& FileList() {
+    return m_fileList;
+  }
 
-  void TopLevel(const std::string& topLevelModule) { m_topLevelModule = topLevelModule; }
+  void TopLevel(const std::string& topLevelModule) {
+    m_topLevelModule = topLevelModule;
+  }
   const std::string& TopLevel() { return m_topLevelModule; }
 
  private:
   std::string m_designName;
   std::string m_topLevelModule;
   std::vector<std::pair<Language, std::string>> m_fileList;
-
 };
 
 }  // namespace FOEDAG

@@ -26,9 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
+#include "Compiler/Design.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-#include "Compiler/Design.h"
 
 #ifndef COMPILER_H
 #define COMPILER_H
@@ -37,15 +37,7 @@ namespace FOEDAG {
 
 class Compiler {
  public:
-  enum Action {
-    NoAction,
-    Synthesis,
-    Global,
-    Detailed,
-    Routing,
-    STA,
-    Bitream
-  }; 
+  enum Action { NoAction, Synthesis, Global, Detailed, Routing, STA, Bitream };
   enum State {
     None,
     Synthesized,
@@ -56,14 +48,15 @@ class Compiler {
     BistreamGenerated
   };
 
-  Compiler(TclInterpreter *interp, Design* design, std::ostream &out) : m_interp(interp), m_design(design), m_out(out) {}
+  Compiler(TclInterpreter* interp, Design* design, std::ostream& out)
+      : m_interp(interp), m_design(design), m_out(out) {}
 
   ~Compiler();
 
   State CompilerState() { return m_state; }
   bool compile(Action action);
   void stop() { m_stop = true; }
-  TclInterpreter *TclInterp() { return m_interp; }
+  TclInterpreter* TclInterp() { return m_interp; }
   Design* GetDesign() { return m_design; }
   bool registerCommands();
   bool Clear();
@@ -75,12 +68,11 @@ class Compiler {
   bool GenerateBitstream();
 
  private:
-  TclInterpreter *m_interp = nullptr;
+  TclInterpreter* m_interp = nullptr;
   Design* m_design = nullptr;
   bool m_stop = false;
   State m_state = None;
   std::ostream& m_out;
-
 };
 
 }  // namespace FOEDAG

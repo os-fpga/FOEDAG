@@ -21,15 +21,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 #include <set>
+#include <string>
 #include <thread>
+#include <vector>
+
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
+#include "Compiler/Compiler.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-#include "Compiler/Compiler.h"
 
 #ifndef WORKER_THREAD_H
 #define WORKER_THREAD_H
@@ -38,8 +39,8 @@ namespace FOEDAG {
 
 class WorkerThread {
  public:
- 
-  WorkerThread(const std::string& threadName, Compiler::Action action, Compiler* compiler);
+  WorkerThread(const std::string& threadName, Compiler::Action action,
+               Compiler* compiler);
   ~WorkerThread();
 
   const std::string& Name() { return m_threadName; }
@@ -54,9 +55,8 @@ class WorkerThread {
   Compiler* m_compiler = nullptr;
 };
 
-
 class ThreadPool {
-  public:
+ public:
   static std::set<WorkerThread*> threads;
 };
 

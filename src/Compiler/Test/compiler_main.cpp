@@ -19,13 +19,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Compiler/Compiler.h"
+#include "Compiler/Design.h"
+#include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
 #include "Main/Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
-#include "Compiler/Design.h"
-#include "Compiler/Compiler.h"
-#include "Compiler/WorkerThread.h"
 
 FOEDAG::Session* GlobalSession;
 
@@ -35,10 +35,11 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd) {
 
 void registerExampleCommands(FOEDAG::Session* session) {
   auto design_init = [](void* clientData, Tcl_Interp* interp, int argc,
-                  const char* argv[]) -> int {
+                        const char* argv[]) -> int {
     std::string designName = "test_design";
     FOEDAG::Design* design = new FOEDAG::Design(designName);
-    FOEDAG::Compiler* compiler = new FOEDAG::Compiler(GlobalSession->TclInterp(), design, std::cout);
+    FOEDAG::Compiler* compiler =
+        new FOEDAG::Compiler(GlobalSession->TclInterp(), design, std::cout);
     compiler->registerCommands();
     return 0;
   };

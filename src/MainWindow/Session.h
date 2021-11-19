@@ -27,9 +27,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
+#include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-#include "Compiler/WorkerThread.h"
 
 #ifndef SESSION_H
 #define SESSION_H

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Compiler/WorkerThread.h"
+
 #include <mutex>
 #include <thread>
 
@@ -27,23 +28,22 @@ using namespace FOEDAG;
 
 std::set<WorkerThread*> ThreadPool::threads;
 
-WorkerThread::WorkerThread(const std::string& threadName, Compiler::Action action, Compiler* compiler) : m_threadName(threadName), m_action(action), m_compiler(compiler) {
+WorkerThread::WorkerThread(const std::string& threadName,
+                           Compiler::Action action, Compiler* compiler)
+    : m_threadName(threadName), m_action(action), m_compiler(compiler) {
   ThreadPool::threads.insert(this);
 }
 
-WorkerThread::~WorkerThread() {
-}
+WorkerThread::~WorkerThread() {}
 
 bool WorkerThread::start() {
   bool result = true;
-  m_thread = new std::thread([=] {
-    m_compiler->compile(m_action);
-  }); 
+  m_thread = new std::thread([=] { m_compiler->compile(m_action); });
   return result;
 }
 
 bool WorkerThread::stop() {
-  m_compiler->stop();  
+  m_compiler->stop();
   m_thread->join();
   delete m_thread;
   m_thread = nullptr;
