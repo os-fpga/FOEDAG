@@ -7,7 +7,6 @@ ProjectConfiguration::ProjectConfiguration(QObject *parent)
   initProjectID();
   m_projectType = "";
   m_activeSimSet = "";
-  m_simulationTopMoule = "";
 }
 
 QString ProjectConfiguration::id() const { return m_id; }
@@ -24,15 +23,6 @@ QString ProjectConfiguration::activeSimSet() const { return m_activeSimSet; }
 
 void ProjectConfiguration::setActiveSimSet(const QString &activeSimSet) {
   m_activeSimSet = activeSimSet;
-}
-
-QString ProjectConfiguration::simulationTopMoule() const {
-  return m_simulationTopMoule;
-}
-
-void ProjectConfiguration::setSimulationTopMoule(
-    const QString &simulationTopMoule) {
-  m_simulationTopMoule = simulationTopMoule;
 }
 
 void ProjectConfiguration::initProjectID() {

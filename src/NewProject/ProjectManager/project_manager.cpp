@@ -111,7 +111,6 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
             }
             if (0 == ret &&
                 "true" == reader.attributes().value("is_top").toString()) {
-              setCurrentRun(DEFAULT_FOLDER_SYNTH);
               ret = setTopModule(reader.attributes().value("file").toString());
             }
           }
@@ -129,6 +128,9 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
             if (0 != ret) {
               out << "Failed to add constraint. Check the format of file "
                      "field.\n";
+            } else {
+              ret = setTargetConstrs(
+                  reader.attributes().value("file").toString());
             }
           }
         }
@@ -146,6 +148,8 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
             if (0 != ret) {
               out << "Failed to add testbench. Check the format of file "
                      "field.\n";
+            } else {
+              ret = setTopModule(reader.attributes().value("file").toString());
             }
           }
         }
@@ -187,7 +191,7 @@ int ProjectManager::CreateProject(const QString& strName,
   proFileSet = new ProjectFileSet();
   proFileSet->setSetName(DEFAULT_FOLDER_SIM);
   proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + PROJECT_FILE_TYPE_SS);
+  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SIM);
   Project::Instance()->setProjectFileset(proFileSet);
 
   ProjectRun* proRun = new ProjectRun();
@@ -372,13 +376,25 @@ int ProjectManager::setRunSet(const QList<QPair<QString, QString>>& listParam) {
   return ret;
 }
 
-int ProjectManager::setTopModule(const QString& strTopName) {
+int ProjectManager::setTopModule(const QString& strFileName) {
   int ret = 0;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
-  if (nullptr == proRun || RUN_TYPE_SYNTHESIS != proRun->runType()) {
-    return -2;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
   }
-  proRun->setOption("TopModule", strTopName);
+  proFileSet->setOption(PROJECT_FILE_CONFIG_TOP, strFileName);
+  return ret;
+}
+
+int ProjectManager::setTargetConstrs(const QString& strFileName) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  proFileSet->setOption(PROJECT_FILE_CONFIG_TARGET, strFileName);
   return ret;
 }
 
@@ -433,10 +449,6 @@ int ProjectManager::ImportProjectData(QString strOspro) {
             } else if (PROJECT_CONFIG_TYPE ==
                        reader.attributes().value(PROJECT_NAME).toString()) {
               tmpProCfg->setProjectType(
-                  reader.attributes().value(PROJECT_VAL).toString());
-            } else if (PROJECT_CONFIG_SIMTOPMODULE ==
-                       reader.attributes().value(PROJECT_NAME).toString()) {
-              tmpProCfg->setSimulationTopMoule(
                   reader.attributes().value(PROJECT_VAL).toString());
             } else {
               tmpProCfg->setOption(
@@ -615,11 +627,6 @@ int ProjectManager::ExportProjectData() {
   stream.writeStartElement(PROJECT_OPTION);
   stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_TYPE);
   stream.writeAttribute(PROJECT_VAL, tmpProCfg->projectType());
-  stream.writeEndElement();
-
-  stream.writeStartElement(PROJECT_OPTION);
-  stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_SIMTOPMODULE);
-  stream.writeAttribute(PROJECT_VAL, tmpProCfg->simulationTopMoule());
   stream.writeEndElement();
 
   QMap<QString, QString> tmpOption = tmpProCfg->getMapOption();
