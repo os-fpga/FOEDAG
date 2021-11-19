@@ -18,14 +18,10 @@ class ProjectConfiguration : public ProjectOption {
   QString activeSimSet() const;
   void setActiveSimSet(const QString &activeSimSet);
 
-  QString simulationTopMoule() const;
-  void setSimulationTopMoule(const QString &simulationTopMoule);
-
  private:
   QString m_id;
   QString m_projectType;
   QString m_activeSimSet;
-  QString m_simulationTopMoule;
 
   void initProjectID();
 };

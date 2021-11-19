@@ -66,6 +66,7 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   m_projectManager->setProjectType(m_proTypeForm->getProjectType());
 
   m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SOURCE);
+  QString strDefaultSrc = "";
   QList<filedata> listFile = m_addSrcForm->getFileData();
   foreach (filedata fdata, listFile) {
     if ("<Local to Project>" == fdata.m_filePath) {
@@ -74,9 +75,20 @@ void newProjectDialog::on_m_btnFinish_clicked() {
       m_projectManager->setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
                                       m_addSrcForm->IsCopySource());
     }
+    strDefaultSrc = fdata.m_fileName;
+  }
+
+  if ("" != strDefaultSrc) {
+    m_projectManager->setTopModule(strDefaultSrc);
+
+    // set default simulation source
+    m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SIM);
+    m_projectManager->setDesignFile("sim_" + strDefaultSrc, false);
+    m_projectManager->setTopModule("sim_" + strDefaultSrc);
   }
 
   m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  QString strDefaultCts = "";
   listFile.clear();
   listFile = m_addConstrsForm->getFileData();
   foreach (filedata fdata, listFile) {
@@ -87,6 +99,11 @@ void newProjectDialog::on_m_btnFinish_clicked() {
           fdata.m_filePath + "/" + fdata.m_fileName,
           m_addConstrsForm->IsCopySource());
     }
+    strDefaultCts = fdata.m_fileName;
+  }
+
+  if ("" != strDefaultCts) {
+    m_projectManager->setTargetConstrs(strDefaultCts);
   }
 
   m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);

@@ -11,7 +11,6 @@
 #define PROJECT_CONFIG_ID "ID"
 #define PROJECT_CONFIG_ACTIVESIMSET "ActiveSimSet"
 #define PROJECT_CONFIG_TYPE "Project Type"
-#define PROJECT_CONFIG_SIMTOPMODULE "SimulationTopModule"
 
 #define PROJECT_OPTION "Option"
 #define PROJECT_NAME "Name"
@@ -37,6 +36,8 @@
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
+#define PROJECT_FILE_CONFIG_TOP "TopModule"
+#define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
 #define RUN_STATE_CURRENT "current"
 
@@ -65,7 +66,8 @@ class ProjectManager : public QObject {
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
   int setRunSet(const QList<QPair<QString, QString>> &listParam);
-  int setTopModule(const QString &strTopName);
+  int setTopModule(const QString &strFileName);
+  int setTargetConstrs(const QString &strFileName);
 
   int StartProject(const QString &strOspro);
   void FinishedProject();
