@@ -75,7 +75,7 @@ jobs:
       if: matrix.mode == 'test'
       run: |
         make debug test/unittest-d
-        make test/batch
+        make release test/batch
         make test/gui
 
     - name: Regression
@@ -311,6 +311,8 @@ jobs:
         make test_install
         if %errorlevel% neq 0 exit /b %errorlevel%
         make regression
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        make test/batch
 
     - name: Archive build artifacts
       uses: actions/upload-artifact@v2

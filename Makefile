@@ -125,9 +125,9 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
 	$(XVFB) ./dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 
-test/batch: run-cmake-debug
-	./dbuild/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_mt.tcl
-	./dbuild/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_batch.tcl
+test/batch: run-cmake-release
+	./build/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
