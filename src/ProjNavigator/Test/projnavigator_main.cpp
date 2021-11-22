@@ -28,24 +28,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 FOEDAG::Session* GlobalSession;
 
 // QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
-//  Q_UNUSED(cmd);
-//  return new FOEDAG::newProjectDialog();
+//    Q_UNUSED(cmd);
+//    return new FOEDAG::newProjectDialog();
 //}
 
-void registerNewProjectCommands(FOEDAG::Session* session) {
-  auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
-                       const char* argv[]) -> int {
+void registerProjNavigatorCommands(FOEDAG::Session* session) {
+  auto projnavigator = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
     Q_UNUSED(interp);
     Q_UNUSED(argv);
     Q_UNUSED(argc);
     Q_UNUSED(clientData);
     return 0;
   };
-  session->TclInterp()->registerCmd("newproject_gui_open", newproject,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("projnavigator_show", projnavigator, 0, 0);
 
   session->TclInterp()->evalCmd(
-      "puts \"Put projnavigator_gui to test projnavigator GUI.\"");
+      "puts \"Put projnavigator_show to test projnavigator GUI.\"");
 }
 
 int main(int argc, char** argv) {
@@ -55,7 +54,7 @@ int main(int argc, char** argv) {
   if (!cmd->WithQt()) {
     // Batch mode
     FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerNewProjectCommands);
+        new FOEDAG::Foedag(cmd, nullptr, registerProjNavigatorCommands);
     return foedag->initBatch();
   }
   // else {
