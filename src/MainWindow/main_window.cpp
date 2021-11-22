@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/Foedag.h"
 #include "NewProject/new_project_dialog.h"
+#include "ProjNavigator/sources_form.h"
 
 using namespace FOEDAG;
 
@@ -86,6 +87,12 @@ void MainWindow::newFile() {
 void MainWindow::newProjectDlg() {
   newProjectDialog* m_dialog = new newProjectDialog(this);
   m_dialog->exec();
+
+  QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"));
+  sourceDockWidget->setObjectName("sourcedockwidget");
+  SourcesForm* sourform = new SourcesForm(this);
+  sourceDockWidget->setWidget(sourform);
+  addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 }
 
 void MainWindow::createMenus() {
