@@ -75,7 +75,9 @@ void newProjectDialog::on_m_btnFinish_clicked() {
       m_projectManager->setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
                                       m_addSrcForm->IsCopySource());
     }
-    strDefaultSrc = fdata.m_fileName;
+    if (!fdata.m_isFolder) {
+      strDefaultSrc = fdata.m_fileName;
+    }
   }
 
   if ("" != strDefaultSrc) {
