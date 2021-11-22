@@ -176,25 +176,25 @@ int ProjectManager::CreateProject(const QString& strName,
     return ret;
   }
 
-  ProjectFileSet* proFileSet = new ProjectFileSet();
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
   proFileSet->setSetName(DEFAULT_FOLDER_CONSTRS);
   proFileSet->setSetType(PROJECT_FILE_TYPE_CS);
   proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_CONSTRS);
   Project::Instance()->setProjectFileset(proFileSet);
 
-  proFileSet = new ProjectFileSet();
+  proFileSet = new ProjectFileSet(this);
   proFileSet->setSetName(DEFAULT_FOLDER_SOURCE);
   proFileSet->setSetType(PROJECT_FILE_TYPE_DS);
   proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SOURCE);
   Project::Instance()->setProjectFileset(proFileSet);
 
-  proFileSet = new ProjectFileSet();
+  proFileSet = new ProjectFileSet(this);
   proFileSet->setSetName(DEFAULT_FOLDER_SIM);
   proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
   proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SIM);
   Project::Instance()->setProjectFileset(proFileSet);
 
-  ProjectRun* proRun = new ProjectRun();
+  ProjectRun* proRun = new ProjectRun(this);
   proRun->setRunName(DEFAULT_FOLDER_IMPLE);
   proRun->setRunType(RUN_TYPE_IMPLEMENT);
   proRun->setSrcSet(DEFAULT_FOLDER_SOURCE);
@@ -203,7 +203,7 @@ int ProjectManager::CreateProject(const QString& strName,
   proRun->setSynthRun(DEFAULT_FOLDER_SYNTH);
   Project::Instance()->setProjectRun(proRun);
 
-  proRun = new ProjectRun();
+  proRun = new ProjectRun(this);
   proRun->setRunName(DEFAULT_FOLDER_SYNTH);
   proRun->setRunType(RUN_TYPE_SYNTHESIS);
   proRun->setSrcSet(DEFAULT_FOLDER_SOURCE);

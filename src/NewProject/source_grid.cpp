@@ -122,8 +122,8 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
                           QTableView::item:selected{color:black;background: #63B8FF;}");
   m_tableViewSrc->setColumnWidth(0, 80);
 
-  m_model = new QStandardItemModel();
-  m_selectModel = new QItemSelectionModel(m_model);
+  m_model = new QStandardItemModel(m_tableViewSrc);
+  m_selectModel = new QItemSelectionModel(m_model, m_model);
 
   m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
 
