@@ -134,6 +134,7 @@ if (FOEDAG_WITH_PYTHON)
     foedagcore
     foedag
     newproject
+    projnavigator
     tcl_stubb
     tcl_static
     zlib
@@ -146,6 +147,7 @@ else()
     foedagcore
     foedag
     newproject
+    projnavigator
     tcl_stubb
     tcl_static
     zlib
