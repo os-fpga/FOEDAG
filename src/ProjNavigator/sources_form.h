@@ -29,6 +29,15 @@ class SourcesForm : public QWidget {
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
+  void SlotRefreshSourceTree();
+  void SlotAddFileSet(){};
+  void SlotAddFile(){};
+  void SlotOpenFile(){};
+  void SlotRemoveFileSet(){};
+  void SlotRemoveFile(){};
+  void SlotSetAsTop(){};
+  void SlotSetAsTarget(){};
+  void SlotSetActive(){};
 
  private:
   Ui::SourcesForm* ui;
@@ -36,7 +45,7 @@ class SourcesForm : public QWidget {
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
   QAction* m_actAddFileSet;
-  QAction* m_actAddSrc;
+  QAction* m_actAddFile;
   QAction* m_actOpenFile;
   QAction* m_actRemoveFileSet;
   QAction* m_actRemoveFile;
@@ -46,6 +55,7 @@ class SourcesForm : public QWidget {
 
   ProjectManager* m_projManager;
 
+  void CreateActions();
   void UpdateSrcHierachyTree();
 };
 }  // namespace FOEDAG

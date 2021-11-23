@@ -22,16 +22,7 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 
   UpdateSrcHierachyTree();
 
-  m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
-  m_actAddFileSet = new QAction(tr("Add FileSet"), m_treeSrcHierachy);
-  m_actAddSrc = new QAction(tr("Add Sources"), m_treeSrcHierachy);
-  m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);
-  m_actRemoveFileSet = new QAction(tr("Remove FileSet"), m_treeSrcHierachy);
-  m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
-  m_actSetAsTop = new QAction(tr("Set As TopModule"), m_treeSrcHierachy);
-  m_actSetAsTarget =
-      new QAction(tr("Set as Target Constraint File"), m_treeSrcHierachy);
-  m_actMakeActive = new QAction(tr("Make Active"), m_treeSrcHierachy);
+  CreateActions();
 
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
@@ -52,7 +43,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actAddFileSet);
     } else if (SOURCE_TREE_DESFILESETITEM == strPropertyRole) {
       menu->addAction(m_actRemoveFileSet);
-      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actAddFile);
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_DESFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
@@ -60,7 +51,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actSetAsTop);
     } else if (SOURCE_TREE_CONSTRFSETITEM == strPropertyRole) {
       menu->addAction(m_actRemoveFileSet);
-      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actAddFile);
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_CONSTRFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
@@ -68,7 +59,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actSetAsTarget);
     } else if (SOURCE_TREE_SIMFILESETITEM == strPropertyRole) {
       menu->addAction(m_actRemoveFileSet);
-      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actAddFile);
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_SIMFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
@@ -78,6 +69,40 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     QPoint p = QCursor::pos();
     menu->exec(QPoint(p.rx(), p.ry() + 3));
   }
+}
+
+void SourcesForm::SlotRefreshSourceTree() { UpdateSrcHierachyTree(); }
+
+void SourcesForm::CreateActions() {
+  m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
+  connect(m_actRefresh, SIGNAL(triggered()), this,
+          SLOT(SlotRefreshSourceTree()));
+
+  m_actAddFileSet = new QAction(tr("Add FileSet"), m_treeSrcHierachy);
+  connect(m_actAddFileSet, SIGNAL(triggered()), this, SLOT(SlotAddFileSet()));
+
+  m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
+  connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));
+
+  m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);
+  connect(m_actOpenFile, SIGNAL(triggered()), this, SLOT(SlotOpenFile()));
+
+  m_actRemoveFileSet = new QAction(tr("Remove FileSet"), m_treeSrcHierachy);
+  connect(m_actRemoveFileSet, SIGNAL(triggered()), this,
+          SLOT(SlotRemoveFileSet()));
+
+  m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
+  connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
+
+  m_actSetAsTop = new QAction(tr("Set As TopModule"), m_treeSrcHierachy);
+  connect(m_actSetAsTop, SIGNAL(triggered()), this, SLOT(SlotSetAsTop()));
+
+  m_actSetAsTarget =
+      new QAction(tr("Set as Target Constraint File"), m_treeSrcHierachy);
+  connect(m_actSetAsTarget, SIGNAL(triggered()), this, SLOT(SlotSetAsTarget()));
+
+  m_actMakeActive = new QAction(tr("Make Active"), m_treeSrcHierachy);
+  connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotSetActive()));
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
