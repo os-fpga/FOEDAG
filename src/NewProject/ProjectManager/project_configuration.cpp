@@ -2,6 +2,8 @@
 
 #include <QTime>
 
+using namespace FOEDAG;
+
 ProjectConfiguration::ProjectConfiguration(QObject *parent)
     : ProjectOption(parent) {
   initProjectID();

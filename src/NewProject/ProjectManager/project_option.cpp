@@ -1,5 +1,7 @@
 #include "project_option.h"
 
+using namespace FOEDAG;
+
 ProjectOption::ProjectOption(QObject *parent) : QObject(parent) {
   m_mapOption.clear();
 }

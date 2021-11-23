@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QSet>
 
+namespace FOEDAG {
+
 class Config : public QObject {
   Q_OBJECT
 
@@ -28,5 +30,5 @@ class Config : public QObject {
 
   void MakeDeviceMap(QString series, QString family, QString package);
 };
-
+}  // namespace FOEDAG
 #endif  // CONFIG_H

@@ -7,6 +7,8 @@
 #include <QTime>
 #include <QXmlStreamWriter>
 
+using namespace FOEDAG;
+
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   Project::Instance()->InitProject();
 }

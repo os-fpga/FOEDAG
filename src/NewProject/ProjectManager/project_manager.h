@@ -53,6 +53,8 @@
 
 #define PROJECT_FILE_FORMAT ".ospr"
 
+namespace FOEDAG {
+
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
@@ -114,5 +116,5 @@ class ProjectManager : public QObject {
   QString m_currentFileSet;
   QString m_currentRun;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTMANAGER_H

@@ -1,5 +1,7 @@
 #include "project.h"
 
+using namespace FOEDAG;
+
 Q_GLOBAL_STATIC(Project, project)
 
 Project *Project::Instance() { return project(); }

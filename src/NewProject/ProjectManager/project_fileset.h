@@ -4,6 +4,8 @@
 
 #include "project_option.h"
 
+namespace FOEDAG {
+
 class ProjectFileSet : public ProjectOption {
   Q_OBJECT
  public:
@@ -31,5 +33,5 @@ class ProjectFileSet : public ProjectOption {
   QString m_relSrcDir;
   QMap<QString, QString> m_mapFiles;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTFILESET_H

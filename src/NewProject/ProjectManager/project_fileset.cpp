@@ -1,4 +1,5 @@
 #include "project_fileset.h"
+using namespace FOEDAG;
 
 ProjectFileSet::ProjectFileSet(QObject *parent) : ProjectOption(parent) {
   m_setName = "";

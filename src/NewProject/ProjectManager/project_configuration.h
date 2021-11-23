@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include "project_option.h"
+namespace FOEDAG {
 
 class ProjectConfiguration : public ProjectOption {
   Q_OBJECT
@@ -25,5 +26,5 @@ class ProjectConfiguration : public ProjectOption {
 
   void initProjectID();
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTCONFIG_H
