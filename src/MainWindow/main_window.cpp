@@ -87,10 +87,11 @@ void MainWindow::newFile() {
 void MainWindow::newProjectDlg() {
   newProjectDialog* m_dialog = new newProjectDialog(this);
   m_dialog->exec();
+  QString strproject = m_dialog->getProject();
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"));
   sourceDockWidget->setObjectName("sourcedockwidget");
-  SourcesForm* sourform = new SourcesForm(this);
+  SourcesForm* sourform = new SourcesForm(strproject, this);
   sourceDockWidget->setWidget(sourform);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 }

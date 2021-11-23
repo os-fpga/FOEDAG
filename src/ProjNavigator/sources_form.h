@@ -1,9 +1,10 @@
 #ifndef SOURCES_FORM_H
 #define SOURCES_FORM_H
-
 #include <QAction>
 #include <QTreeWidget>
 #include <QWidget>
+
+#include "NewProject/ProjectManager/project_manager.h"
 
 namespace Ui {
 class SourcesForm;
@@ -13,7 +14,7 @@ class SourcesForm : public QWidget {
   Q_OBJECT
 
  public:
-  explicit SourcesForm(QWidget* parent = nullptr);
+  explicit SourcesForm(QString strprojpath, QWidget* parent = nullptr);
   ~SourcesForm();
 
  private:
@@ -29,6 +30,8 @@ class SourcesForm : public QWidget {
   QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
+
+  ProjectManager* m_projManager;
 
   void UpdateSrcHierachyTree();
 };

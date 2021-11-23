@@ -1,9 +1,8 @@
 #include "sources_form.h"
 
-#include "NewProject/ProjectManager/project_manager.h"
 #include "ui_sources_form.h"
 
-SourcesForm::SourcesForm(QWidget *parent)
+SourcesForm::SourcesForm(QString strproject, QWidget *parent)
     : QWidget(parent), ui(new Ui::SourcesForm) {
   ui->setupUi(this);
 
@@ -13,6 +12,9 @@ SourcesForm::SourcesForm(QWidget *parent)
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(0);
   ui->m_tabHierarchy->setLayout(vbox);
+
+  m_projManager = new ProjectManager(this);
+  m_projManager->StartProject(strproject + PROJECT_FILE_FORMAT);
 
   UpdateSrcHierachyTree();
 
@@ -36,8 +38,7 @@ SourcesForm::SourcesForm(QWidget *parent)
 SourcesForm::~SourcesForm() { delete ui; }
 
 void SourcesForm::UpdateSrcHierachyTree() {
-  ProjectManager *projManager = new ProjectManager(this);
-  if (nullptr == projManager) {
+  if (nullptr == m_projManager) {
     return;
   }
 
@@ -47,8 +48,8 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemDS->setData(0, Qt::WhatsThisPropertyRole, QString("topitem"));
   m_treeSrcHierachy->addTopLevelItem(topitemDS);
 
-  QStringList listDesFset = projManager->getDesignFileSets();
-  QString strDesAct = projManager->getDesignActiveFileSet();
+  QStringList listDesFset = m_projManager->getDesignFileSets();
+  QString strDesAct = m_projManager->getDesignActiveFileSet();
   foreach (auto str, listDesFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemDS);
     if (str == strDesAct) {
@@ -59,13 +60,13 @@ void SourcesForm::UpdateSrcHierachyTree() {
     itemfolder->setData(0, Qt::WhatsThisPropertyRole,
                         QString("desfilesetitem"));
 
-    QStringList listDesFile = projManager->getDesignFiles(str);
-    QString strTop = projManager->getDesignTopModule(str);
+    QStringList listDesFile = m_projManager->getDesignFiles(str);
+    QString strTop = m_projManager->getDesignTopModule(str);
     foreach (auto strfile, listDesFile) {
       QString filename =
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (strfile == strTop) {
+      if (filename == strTop) {
         itemf->setText(0, filename + tr("(Top)"));
       } else {
         itemf->setText(0, filename);
@@ -78,8 +79,8 @@ void SourcesForm::UpdateSrcHierachyTree() {
   m_treeSrcHierachy->addTopLevelItem(topitemCS);
   topitemCS->setText(0, tr("Constraints"));
   topitemCS->setData(0, Qt::WhatsThisPropertyRole, QString("topitem"));
-  QStringList listConstrFset = projManager->getConstrFileSets();
-  QString strConstrAct = projManager->getConstrActiveFileSet();
+  QStringList listConstrFset = m_projManager->getConstrFileSets();
+  QString strConstrAct = m_projManager->getConstrActiveFileSet();
   foreach (auto str, listConstrFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemCS);
     if (str == strConstrAct) {
@@ -90,13 +91,13 @@ void SourcesForm::UpdateSrcHierachyTree() {
     itemfolder->setData(0, Qt::WhatsThisPropertyRole,
                         QString("constrfilesetitem"));
 
-    QStringList listConstrFile = projManager->getConstrFiles(str);
-    QString strTarget = projManager->getConstrTargetFile(str);
+    QStringList listConstrFile = m_projManager->getConstrFiles(str);
+    QString strTarget = m_projManager->getConstrTargetFile(str);
     foreach (auto strfile, listConstrFile) {
       QString filename =
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (strfile == strTarget) {
+      if (filename == strTarget) {
         itemf->setText(0, filename + tr("(Target)"));
       } else {
         itemf->setText(0, filename);
@@ -109,8 +110,8 @@ void SourcesForm::UpdateSrcHierachyTree() {
   m_treeSrcHierachy->addTopLevelItem(topitemSS);
   topitemSS->setText(0, tr("Simulation Sources"));
   topitemSS->setData(0, Qt::WhatsThisPropertyRole, QString("topitem"));
-  QStringList listSimFset = projManager->getSimulationFileSets();
-  QString strSimAct = projManager->getSimulationActiveFileSet();
+  QStringList listSimFset = m_projManager->getSimulationFileSets();
+  QString strSimAct = m_projManager->getSimulationActiveFileSet();
   foreach (auto str, listSimFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemSS);
     if (str == strSimAct) {
@@ -121,13 +122,13 @@ void SourcesForm::UpdateSrcHierachyTree() {
     itemfolder->setData(0, Qt::WhatsThisPropertyRole,
                         QString("simfilesetitem"));
 
-    QStringList listSimFile = projManager->getSimulationFiles(str);
-    QString strTop = projManager->getSimulationTopModule(str);
+    QStringList listSimFile = m_projManager->getSimulationFiles(str);
+    QString strTop = m_projManager->getSimulationTopModule(str);
     foreach (auto strfile, listSimFile) {
       QString filename =
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (strfile == strTop) {
+      if (filename == strTop) {
         itemf->setText(0, filename + tr("(Top)"));
       } else {
         itemf->setText(0, filename);

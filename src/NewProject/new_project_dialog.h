@@ -38,6 +38,8 @@ class newProjectDialog : public QDialog {
   void Next_TclCommand_Test();
   void CreateProject_Tcl_Test(int argc, const char* argv[]);
 
+  QString getProject();
+
  private slots:
   void on_m_btnBack_clicked();
   void on_m_btnNext_clicked();
