@@ -33,9 +33,9 @@ void Project::setProjectPath(const QString &projectPath) {
 
 ProjectConfiguration *Project::projectConfig() const { return m_projectConfig; }
 
-ProjectFileSet *Project::getProjectFileset(const QString &strname) const {
+ProjectFileSet *Project::getProjectFileset(const QString &strName) const {
   ProjectFileSet *retProFileSet = nullptr;
-  auto iter = m_mapProjectFileset.find(strname);
+  auto iter = m_mapProjectFileset.find(strName);
   if (iter != m_mapProjectFileset.end()) {
     retProFileSet = iter.value();
   }
@@ -52,9 +52,19 @@ void Project::setProjectFileset(ProjectFileSet *projectFileset) {
   }
 }
 
-ProjectRun *Project::getProjectRun(const QString &strname) const {
+void Project::deleteProjectFileset(const QString &strName) {
+  ProjectFileSet *proFileSet = nullptr;
+  auto iter = m_mapProjectFileset.find(strName);
+  if (iter != m_mapProjectFileset.end()) {
+    proFileSet = iter.value();
+    delete proFileSet;
+    m_mapProjectFileset.erase(iter);
+  }
+}
+
+ProjectRun *Project::getProjectRun(const QString &strName) const {
   ProjectRun *retProRun = nullptr;
-  auto iter = m_mapProjectRun.find(strname);
+  auto iter = m_mapProjectRun.find(strName);
   if (iter != m_mapProjectRun.end()) {
     retProRun = iter.value();
   }
@@ -68,6 +78,16 @@ void Project::setProjectRun(ProjectRun *projectRun) {
       delete iter.value();
     }
     m_mapProjectRun.insert(projectRun->runName(), projectRun);
+  }
+}
+
+void Project::deleteprojectRun(const QString &strName) {
+  ProjectRun *proRun = nullptr;
+  auto iter = m_mapProjectRun.find(strName);
+  if (iter != m_mapProjectRun.end()) {
+    proRun = iter.value();
+    delete proRun;
+    m_mapProjectRun.erase(iter);
   }
 }
 

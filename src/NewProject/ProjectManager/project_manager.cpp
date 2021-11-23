@@ -573,6 +573,34 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
+int ProjectManager::deleteFileSet(const QString& strFileSet) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+  if (PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
+      strFileSet == getDesignActiveFileSet()) {
+    return -1;
+  } else if (PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
+             strFileSet == getConstrActiveFileSet()) {
+    return -1;
+  } else if (PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
+             strFileSet == getSimulationActiveFileSet()) {
+    return -1;
+  }
+  Project::Instance()->deleteProjectFileset(strFileSet);
+  return ret;
+}
+
+int ProjectManager::deleteRun(const QString& strRun) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRun);
+  if (RUN_STATE_CURRENT == proRun->runState()) {
+    return -1;
+  }
+  Project::Instance()->deleteprojectRun(strRun);
+  return ret;
+}
+
 int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
 }

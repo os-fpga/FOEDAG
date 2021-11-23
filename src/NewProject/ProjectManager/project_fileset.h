@@ -13,8 +13,9 @@ class ProjectFileSet : public ProjectOption {
 
   ProjectFileSet &operator=(const ProjectFileSet &other);
 
-  void addFile(const QString &strName, const QString &strFilePath);
+  void addFile(const QString &strFileName, const QString &strFilePath);
   QString getFilePath(const QString &strFileName);
+  void deleteFile(const QString &strFileName);
 
   QString getSetName() const;
   void setSetName(const QString &setName);

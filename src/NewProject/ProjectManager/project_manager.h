@@ -87,6 +87,9 @@ class ProjectManager : public QObject {
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 
+  int deleteFileSet(const QString &strFileSet);
+  int deleteRun(const QString &strRun);
+
   int StartProject(const QString &strOspro);
   void FinishedProject();
 
