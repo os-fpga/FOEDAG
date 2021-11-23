@@ -1,5 +1,7 @@
 #include "sources_form.h"
 
+#include <QMenu>
+
 #include "ui_sources_form.h"
 
 SourcesForm::SourcesForm(QString strproject, QWidget *parent)
@@ -29,13 +31,51 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
       new QAction(tr("Set as Target Constraint File"), m_treeSrcHierachy);
   m_actMakeActive = new QAction(tr("Make Active"), m_treeSrcHierachy);
 
-  // connect(m_treeViewSrc, SIGNAL(itemPressed(QTreeWidgetItem*,int)), this,
-  // SLOT(slot_hitempressedSlot(QTreeWidgetItem*,int)));
+  connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
+          SLOT(SlotItempressed(QTreeWidgetItem *, int)));
 
   ui->m_tabWidget->removeTab(ui->m_tabWidget->indexOf(ui->tab_2));
 }
 
 SourcesForm::~SourcesForm() { delete ui; }
+
+void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
+  if (qApp->mouseButtons() == Qt::RightButton) {
+    QMenu *menu = new QMenu(m_treeSrcHierachy);
+    menu->addAction(m_actRefresh);
+    QString strPropertyRole =
+        (item->data(0, Qt::WhatsThisPropertyRole)).toString();
+    if (SOURCE_TREE_TOPITEM == strPropertyRole) {
+      menu->addAction(m_actAddFileSet);
+    } else if (SOURCE_TREE_DESFILESETITEM == strPropertyRole) {
+      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actMakeActive);
+    } else if (SOURCE_TREE_DESFILEITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRemoveFile);
+      menu->addAction(m_actSetAsTop);
+    } else if (SOURCE_TREE_CONSTRFSETITEM == strPropertyRole) {
+      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actMakeActive);
+    } else if (SOURCE_TREE_CONSTRFILEITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRemoveFile);
+      menu->addAction(m_actSetAsTarget);
+    } else if (SOURCE_TREE_SIMFILESETITEM == strPropertyRole) {
+      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actAddSrc);
+      menu->addAction(m_actMakeActive);
+    } else if (SOURCE_TREE_SIMFILEITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRemoveFile);
+      menu->addAction(m_actSetAsTop);
+    }
+    QPoint p = QCursor::pos();
+    menu->exec(QPoint(p.rx(), p.ry() + 3));
+  }
+}
 
 void SourcesForm::UpdateSrcHierachyTree() {
   if (nullptr == m_projManager) {

@@ -25,6 +25,9 @@ class SourcesForm : public QWidget {
   explicit SourcesForm(QString strprojpath, QWidget* parent = nullptr);
   ~SourcesForm();
 
+ private slots:
+  void SlotItempressed(QTreeWidgetItem* item, int column);
+
  private:
   Ui::SourcesForm* ui;
 
