@@ -36,6 +36,7 @@
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
+
 #define PROJECT_FILE_CONFIG_TOP "TopModule"
 #define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
@@ -68,6 +69,21 @@ class ProjectManager : public QObject {
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
   int setTopModule(const QString &strFileName);
   int setTargetConstrs(const QString &strFileName);
+
+  QStringList getDesignFileSets() const;
+  QString getDesignActiveFileSet() const;
+  QStringList getDesignFiles(const QString &strFileSet) const;
+  QString getDesignTopModule(const QString &strFileSet) const;
+
+  QStringList getConstrFileSets() const;
+  QString getConstrActiveFileSet() const;
+  QStringList getConstrFiles(const QString &strFileSet) const;
+  QString getConstrTargetFile(const QString &strFileSet) const;
+
+  QStringList getSimulationFileSets() const;
+  QString getSimulationActiveFileSet() const;
+  QStringList getSimulationFiles(const QString &strFileSet) const;
+  QString getSimulationTopModule(const QString &strFileSet) const;
 
   int StartProject(const QString &strOspro);
   void FinishedProject();
