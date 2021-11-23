@@ -6,6 +6,14 @@
 
 #include "NewProject/ProjectManager/project_manager.h"
 
+#define SOURCE_TREE_TOPITEM "topitem"
+#define SOURCE_TREE_DESFILESETITEM "desfilesetitem"
+#define SOURCE_TREE_DESFILEITEM "desfileitem"
+#define SOURCE_TREE_CONSTRFSETITEM "constrfilesetitem"
+#define SOURCE_TREE_CONSTRFILEITEM "constrfileitem"
+#define SOURCE_TREE_SIMFILESETITEM "simfilesetitem"
+#define SOURCE_TREE_SIMFILEITEM "simfileitem"
+
 namespace Ui {
 class SourcesForm;
 }
