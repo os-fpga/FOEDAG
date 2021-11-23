@@ -2,6 +2,8 @@
 
 #include "ui_add_constraints_form.h"
 
+using namespace FOEDAG;
+
 addConstraintsForm::addConstraintsForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::addConstraintsForm) {
   ui->setupUi(this);

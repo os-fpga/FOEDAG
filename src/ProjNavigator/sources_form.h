@@ -18,6 +18,8 @@ namespace Ui {
 class SourcesForm;
 }
 
+namespace FOEDAG {
+
 class SourcesForm : public QWidget {
   Q_OBJECT
 
@@ -46,5 +48,6 @@ class SourcesForm : public QWidget {
 
   void UpdateSrcHierachyTree();
 };
+}  // namespace FOEDAG
 
 #endif  // SOURCES_FORM_H

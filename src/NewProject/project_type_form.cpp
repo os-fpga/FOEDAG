@@ -2,6 +2,8 @@
 
 #include "ui_project_type_form.h"
 
+using namespace FOEDAG;
+
 projectTypeForm::projectTypeForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::projectTypeForm) {
   ui->setupUi(this);

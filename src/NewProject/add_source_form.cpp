@@ -2,6 +2,8 @@
 
 #include "ui_add_source_form.h"
 
+using namespace FOEDAG;
+
 addSourceForm::addSourceForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::addSourceForm) {
   ui->setupUi(this);

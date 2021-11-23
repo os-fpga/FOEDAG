@@ -7,6 +7,8 @@ namespace Ui {
 class locationForm;
 }
 
+namespace FOEDAG {
+
 class locationForm : public QWidget {
   Q_OBJECT
 
@@ -26,5 +28,5 @@ class locationForm : public QWidget {
  private:
   Ui::locationForm *ui;
 };
-
+}  // namespace FOEDAG
 #endif  // LOCATIONFORM_H

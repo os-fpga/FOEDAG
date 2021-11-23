@@ -7,6 +7,8 @@ namespace Ui {
 class summaryForm;
 }
 
+namespace FOEDAG {
+
 class summaryForm : public QWidget {
   Q_OBJECT
 
@@ -21,5 +23,5 @@ class summaryForm : public QWidget {
  private:
   Ui::summaryForm *ui;
 };
-
+}  // namespace FOEDAG
 #endif  // SUMMARYFORM_H

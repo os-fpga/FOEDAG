@@ -8,6 +8,8 @@ namespace Ui {
 class devicePlannerForm;
 }
 
+namespace FOEDAG {
+
 class devicePlannerForm : public QWidget {
   Q_OBJECT
 
@@ -35,5 +37,5 @@ class devicePlannerForm : public QWidget {
   void UpdatePackageComboBox();
   void UpdateDeviceTableView();
 };
-
+}  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H

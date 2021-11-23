@@ -9,6 +9,8 @@ namespace Ui {
 class addConstraintsForm;
 }
 
+namespace FOEDAG {
+
 class addConstraintsForm : public QWidget {
   Q_OBJECT
 
@@ -24,5 +26,5 @@ class addConstraintsForm : public QWidget {
 
   sourceGrid *m_widgetGrid;
 };
-
+}  // namespace FOEDAG
 #endif  // ADDCONSTRAINTSFORM_H

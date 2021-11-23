@@ -4,6 +4,8 @@
 
 #include "ui_sources_form.h"
 
+using namespace FOEDAG;
+
 SourcesForm::SourcesForm(QString strproject, QWidget *parent)
     : QWidget(parent), ui(new Ui::SourcesForm) {
   ui->setupUi(this);
@@ -40,6 +42,7 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 SourcesForm::~SourcesForm() { delete ui; }
 
 void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
+  Q_UNUSED(column);
   if (qApp->mouseButtons() == Qt::RightButton) {
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->addAction(m_actRefresh);

@@ -9,6 +9,8 @@ namespace Ui {
 class addSourceForm;
 }
 
+namespace FOEDAG {
+
 class addSourceForm : public QWidget {
   Q_OBJECT
 
@@ -24,5 +26,5 @@ class addSourceForm : public QWidget {
 
   sourceGrid *m_widgetGrid;
 };
-
+}  // namespace FOEDAG
 #endif  // ADDSOURCEFORM_H

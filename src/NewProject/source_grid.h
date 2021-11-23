@@ -9,6 +9,8 @@
 #include <QToolButton>
 #include <QWidget>
 
+namespace FOEDAG {
+
 enum GridType { GT_ADD, GT_SOURCE, GT_CONSTRAINTS, GT_NETLIST, GT_SIM };
 
 typedef struct tagFileData {
@@ -63,5 +65,5 @@ class sourceGrid : public QWidget {
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
 };
-
+}  // namespace FOEDAG
 #endif  // SOURCEGRID_H

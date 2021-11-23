@@ -3,6 +3,8 @@
 #include "project_type_form.h"
 #include "ui_summary_form.h"
 
+using namespace FOEDAG;
+
 summaryForm::summaryForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::summaryForm) {
   ui->setupUi(this);
