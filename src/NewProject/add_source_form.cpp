@@ -9,8 +9,7 @@ addSourceForm::addSourceForm(QWidget *parent)
   ui->m_labelDetail->setText(
       tr("Specify design files,or directories containing those files,to add to "
          "your project."
-         "Create a new source file on disk and add it to your project.You can "
-         "also add and create source later."));
+         "Create a new source file on disk and add it to your project."));
 
   m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_groupBox);
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
