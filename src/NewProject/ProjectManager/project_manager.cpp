@@ -94,7 +94,7 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
         pair.first = "device";
         pair.second = reader.attributes().value("name").toString();
         listParam.append(pair);
-        ret = setRunSet(listParam);
+        ret = setSynthesisOption(listParam);
       } else if (reader.name() == "sources") {
         while (true) {
           type = reader.readNext();
@@ -364,7 +364,7 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
   return ret;
 }
 
-int ProjectManager::setRunSet(const QList<QPair<QString, QString>>& listParam) {
+int ProjectManager::setSynthesisOption(const QList<QPair<QString, QString>>& listParam) {
   int ret = 0;
   ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
   if (nullptr == proRun) {

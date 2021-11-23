@@ -65,7 +65,7 @@ class ProjectManager : public QObject {
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
-  int setRunSet(const QList<QPair<QString, QString>> &listParam);
+  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
   int setTopModule(const QString &strFileName);
   int setTargetConstrs(const QString &strFileName);
 

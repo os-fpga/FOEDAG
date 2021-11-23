@@ -125,7 +125,7 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   pair.first = "Device";
   pair.second = strlist.at(3);
   listParam.append(pair);
-  m_projectManager->setRunSet(listParam);
+  m_projectManager->setSynthesisOption(listParam);
 
   m_projectManager->FinishedProject();
   this->close();
