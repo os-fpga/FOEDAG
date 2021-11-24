@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QTextStream>
 
+using namespace FOEDAG;
+
 Q_GLOBAL_STATIC(Config, config)
 
 Config *Config::Instance() { return config(); }

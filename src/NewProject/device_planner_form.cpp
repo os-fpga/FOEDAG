@@ -8,6 +8,8 @@
 #include "ProjectManager/config.h"
 #include "ui_device_planner_form.h"
 
+using namespace FOEDAG;
+
 devicePlannerForm::devicePlannerForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::devicePlannerForm) {
   ui->setupUi(this);

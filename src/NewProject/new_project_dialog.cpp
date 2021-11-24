@@ -49,6 +49,11 @@ void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
   m_projectManager->Tcl_CreateProject(argc, argv);
 }
 
+QString newProjectDialog::getProject() {
+  return m_locationForm->getProjectPath() + "/" +
+         m_locationForm->getProjectName();
+}
+
 void newProjectDialog::on_m_btnBack_clicked() {
   m_index--;
   UpdateDialogView();
@@ -125,7 +130,7 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   pair.first = "Device";
   pair.second = strlist.at(3);
   listParam.append(pair);
-  m_projectManager->setRunSet(listParam);
+  m_projectManager->setSynthesisOption(listParam);
 
   m_projectManager->FinishedProject();
   this->close();

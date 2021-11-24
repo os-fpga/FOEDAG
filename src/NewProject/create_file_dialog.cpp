@@ -5,6 +5,8 @@
 
 #include "ui_create_file_dialog.h"
 
+using namespace FOEDAG;
+
 createFileDialog::createFileDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::createFileDialog) {
   ui->setupUi(this);

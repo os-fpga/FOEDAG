@@ -9,6 +9,8 @@ namespace Ui {
 class createFileDialog;
 }
 
+namespace FOEDAG {
+
 class createFileDialog : public QDialog {
   Q_OBJECT
 
@@ -30,5 +32,5 @@ class createFileDialog : public QDialog {
 
   int m_type;
 };
-
+}  // namespace FOEDAG
 #endif  // CREATEFILEDIALOG_H

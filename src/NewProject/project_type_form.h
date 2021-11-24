@@ -7,6 +7,8 @@ namespace Ui {
 class projectTypeForm;
 }
 
+namespace FOEDAG {
+
 class projectTypeForm : public QWidget {
   Q_OBJECT
 
@@ -19,5 +21,5 @@ class projectTypeForm : public QWidget {
  private:
   Ui::projectTypeForm *ui;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTTYPEFORM_H

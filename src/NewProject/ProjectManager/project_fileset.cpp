@@ -1,4 +1,5 @@
 #include "project_fileset.h"
+using namespace FOEDAG;
 
 ProjectFileSet::ProjectFileSet(QObject *parent) : ProjectOption(parent) {
   m_setName = "";
@@ -20,9 +21,9 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
   return *this;
 }
 
-void ProjectFileSet::addFile(const QString &strName,
+void ProjectFileSet::addFile(const QString &strFileName,
                              const QString &strFilePath) {
-  m_mapFiles[strName] = strFilePath;
+  m_mapFiles[strFileName] = strFilePath;
 }
 
 QString ProjectFileSet::getFilePath(const QString &strFileName) {
@@ -32,6 +33,13 @@ QString ProjectFileSet::getFilePath(const QString &strFileName) {
     retStr = iter.value();
   }
   return retStr;
+}
+
+void ProjectFileSet::deleteFile(const QString &strFileName) {
+  auto iter = m_mapFiles.find(strFileName);
+  if (iter != m_mapFiles.end()) {
+    m_mapFiles.erase(iter);
+  }
 }
 
 QString ProjectFileSet::getSetName() const { return m_setName; }

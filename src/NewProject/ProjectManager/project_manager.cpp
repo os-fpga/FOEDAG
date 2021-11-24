@@ -7,6 +7,8 @@
 #include <QTime>
 #include <QXmlStreamWriter>
 
+using namespace FOEDAG;
+
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   Project::Instance()->InitProject();
 }
@@ -94,7 +96,7 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
         pair.first = "device";
         pair.second = reader.attributes().value("name").toString();
         listParam.append(pair);
-        ret = setRunSet(listParam);
+        ret = setSynthesisOption(listParam);
       } else if (reader.name() == "sources") {
         while (true) {
           type = reader.readNext();
@@ -364,7 +366,8 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
   return ret;
 }
 
-int ProjectManager::setRunSet(const QList<QPair<QString, QString>>& listParam) {
+int ProjectManager::setSynthesisOption(
+    const QList<QPair<QString, QString>>& listParam) {
   int ret = 0;
   ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
   if (nullptr == proRun) {
@@ -395,6 +398,206 @@ int ProjectManager::setTargetConstrs(const QString& strFileName) {
     return -1;
   }
   proFileSet->setOption(PROJECT_FILE_CONFIG_TARGET, strFileName);
+  return ret;
+}
+
+QStringList ProjectManager::getDesignFileSets() const {
+  QStringList retList;
+
+  QMap<QString, ProjectFileSet*> tmpFileSetMap =
+      Project::Instance()->getMapProjectFileset();
+
+  for (auto iter = tmpFileSetMap.begin(); iter != tmpFileSetMap.end(); ++iter) {
+    ProjectFileSet* tmpFileSet = iter.value();
+    if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+      retList.append(tmpFileSet->getSetName());
+    }
+  }
+  return retList;
+}
+
+QString ProjectManager::getDesignActiveFileSet() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->srcSet();
+      break;
+    }
+  }
+  return strActive;
+}
+
+QStringList ProjectManager::getDesignFiles(const QString& strFileSet) const {
+  QStringList strList;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      strList.append(iter.value());
+    }
+  }
+  return strList;
+}
+
+QString ProjectManager::getDesignTopModule(const QString& strFileSet) const {
+  QString strTopModule;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    strTopModule = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP);
+  }
+  return strTopModule;
+}
+
+QStringList ProjectManager::getConstrFileSets() const {
+  QStringList retList;
+
+  QMap<QString, ProjectFileSet*> tmpFileSetMap =
+      Project::Instance()->getMapProjectFileset();
+
+  for (auto iter = tmpFileSetMap.begin(); iter != tmpFileSetMap.end(); ++iter) {
+    ProjectFileSet* tmpFileSet = iter.value();
+    if (tmpFileSet && PROJECT_FILE_TYPE_CS == tmpFileSet->getSetType()) {
+      retList.append(tmpFileSet->getSetName());
+    }
+  }
+  return retList;
+}
+
+QString ProjectManager::getConstrActiveFileSet() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->constrsSet();
+      break;
+    }
+  }
+  return strActive;
+}
+
+QStringList ProjectManager::getConstrFiles(const QString& strFileSet) const {
+  QStringList strList;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_CS == tmpFileSet->getSetType()) {
+    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      strList.append(iter.value());
+    }
+  }
+  return strList;
+}
+
+QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
+  QString strTargetFile;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_CS == tmpFileSet->getSetType()) {
+    strTargetFile = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TARGET);
+  }
+  return strTargetFile;
+}
+
+QStringList ProjectManager::getSimulationFileSets() const {
+  QStringList retList;
+
+  QMap<QString, ProjectFileSet*> tmpFileSetMap =
+      Project::Instance()->getMapProjectFileset();
+
+  for (auto iter = tmpFileSetMap.begin(); iter != tmpFileSetMap.end(); ++iter) {
+    ProjectFileSet* tmpFileSet = iter.value();
+    if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
+      retList.append(tmpFileSet->getSetName());
+    }
+  }
+  return retList;
+}
+
+QString ProjectManager::getSimulationActiveFileSet() const {
+  QString strActive = "";
+
+  ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
+  if (tmpProCfg) {
+    strActive = tmpProCfg->activeSimSet();
+  }
+  return strActive;
+}
+
+QStringList ProjectManager::getSimulationFiles(
+    const QString& strFileSet) const {
+  QStringList strList;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
+    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      strList.append(iter.value());
+    }
+  }
+  return strList;
+}
+
+QString ProjectManager::getSimulationTopModule(
+    const QString& strFileSet) const {
+  QString strTopModule = "";
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
+    strTopModule = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP);
+  }
+  return strTopModule;
+}
+
+int ProjectManager::deleteFileSet(const QString& strFileSet) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+  if (PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
+      strFileSet == getDesignActiveFileSet()) {
+    return -1;
+  } else if (PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
+             strFileSet == getConstrActiveFileSet()) {
+    return -1;
+  } else if (PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
+             strFileSet == getSimulationActiveFileSet()) {
+    return -1;
+  }
+  Project::Instance()->deleteProjectFileset(strFileSet);
+  return ret;
+}
+
+int ProjectManager::deleteRun(const QString& strRun) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRun);
+  if (RUN_STATE_CURRENT == proRun->runState()) {
+    return -1;
+  }
+  Project::Instance()->deleteprojectRun(strRun);
   return ret;
 }
 

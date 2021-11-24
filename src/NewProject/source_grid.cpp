@@ -9,6 +9,8 @@
 
 #include "create_file_dialog.h"
 
+using namespace FOEDAG;
+
 sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   m_type = type;
 

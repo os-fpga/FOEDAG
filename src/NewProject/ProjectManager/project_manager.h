@@ -36,6 +36,7 @@
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
+
 #define PROJECT_FILE_CONFIG_TOP "TopModule"
 #define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
@@ -52,6 +53,8 @@
 
 #define PROJECT_FILE_FORMAT ".ospr"
 
+namespace FOEDAG {
+
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
@@ -65,9 +68,27 @@ class ProjectManager : public QObject {
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
-  int setRunSet(const QList<QPair<QString, QString>> &listParam);
+  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
   int setTopModule(const QString &strFileName);
   int setTargetConstrs(const QString &strFileName);
+
+  QStringList getDesignFileSets() const;
+  QString getDesignActiveFileSet() const;
+  QStringList getDesignFiles(const QString &strFileSet) const;
+  QString getDesignTopModule(const QString &strFileSet) const;
+
+  QStringList getConstrFileSets() const;
+  QString getConstrActiveFileSet() const;
+  QStringList getConstrFiles(const QString &strFileSet) const;
+  QString getConstrTargetFile(const QString &strFileSet) const;
+
+  QStringList getSimulationFileSets() const;
+  QString getSimulationActiveFileSet() const;
+  QStringList getSimulationFiles(const QString &strFileSet) const;
+  QString getSimulationTopModule(const QString &strFileSet) const;
+
+  int deleteFileSet(const QString &strFileSet);
+  int deleteRun(const QString &strRun);
 
   int StartProject(const QString &strOspro);
   void FinishedProject();
@@ -98,5 +119,5 @@ class ProjectManager : public QObject {
   QString m_currentFileSet;
   QString m_currentRun;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTMANAGER_H

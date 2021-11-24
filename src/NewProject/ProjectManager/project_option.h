@@ -4,6 +4,8 @@
 #include <QMap>
 #include <QObject>
 
+namespace FOEDAG {
+
 class ProjectOption : public QObject {
   Q_OBJECT
  public:
@@ -19,5 +21,5 @@ class ProjectOption : public QObject {
  private:
   QMap<QString, QString> m_mapOption;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTOPTION_H

@@ -4,6 +4,8 @@
 
 #include "project_option.h"
 
+namespace FOEDAG {
+
 class ProjectRun : public ProjectOption {
   Q_OBJECT
  public:
@@ -37,5 +39,5 @@ class ProjectRun : public ProjectOption {
   QString m_runState;
   QString m_synthRun;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECTRUN_H

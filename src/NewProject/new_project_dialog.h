@@ -13,6 +13,12 @@
 #include "project_type_form.h"
 #include "summary_form.h"
 
+namespace Ui {
+class newProjectDialog;
+}
+
+namespace FOEDAG {
+
 enum FormIndex {
   INDEX_LOCATION = 1,
   INDEX_PROJTYPE,
@@ -21,12 +27,6 @@ enum FormIndex {
   INDEX_DEVICEPL,
   INDEX_SUMMARYF
 };
-
-namespace Ui {
-class newProjectDialog;
-}
-
-namespace FOEDAG {
 
 class newProjectDialog : public QDialog {
   Q_OBJECT
@@ -37,6 +37,8 @@ class newProjectDialog : public QDialog {
 
   void Next_TclCommand_Test();
   void CreateProject_Tcl_Test(int argc, const char* argv[]);
+
+  QString getProject();
 
  private slots:
   void on_m_btnBack_clicked();

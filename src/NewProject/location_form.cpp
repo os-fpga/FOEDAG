@@ -4,6 +4,8 @@
 
 #include "ui_location_form.h"
 
+using namespace FOEDAG;
+
 locationForm::locationForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::locationForm) {
   ui->setupUi(this);

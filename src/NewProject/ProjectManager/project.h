@@ -7,6 +7,8 @@
 #include "project_fileset.h"
 #include "project_run.h"
 
+namespace FOEDAG {
+
 class Project : public QObject {
   Q_OBJECT
 
@@ -23,11 +25,13 @@ class Project : public QObject {
 
   ProjectConfiguration *projectConfig() const;
 
-  ProjectFileSet *getProjectFileset(const QString &strname) const;
+  ProjectFileSet *getProjectFileset(const QString &strName) const;
   void setProjectFileset(ProjectFileSet *projectFileset);
+  void deleteProjectFileset(const QString &strName);
 
-  ProjectRun *getProjectRun(const QString &strname) const;
+  ProjectRun *getProjectRun(const QString &strName) const;
   void setProjectRun(ProjectRun *projectRun);
+  void deleteprojectRun(const QString &strName);
 
   QMap<QString, ProjectFileSet *> getMapProjectFileset() const;
 
@@ -43,5 +47,5 @@ class Project : public QObject {
   QMap<QString, ProjectFileSet *> m_mapProjectFileset;
   QMap<QString, ProjectRun *> m_mapProjectRun;
 };
-
+}  // namespace FOEDAG
 #endif  // PROJECT_H

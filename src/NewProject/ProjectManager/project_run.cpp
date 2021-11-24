@@ -1,5 +1,7 @@
 #include "project_run.h"
 
+using namespace FOEDAG;
+
 ProjectRun::ProjectRun(QObject *parent) : ProjectOption(parent) {
   m_runName = "";
   m_runType = "";
