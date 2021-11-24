@@ -30,7 +30,7 @@ FOEDAG::Session* GlobalSession;
 
 QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd) {
   Q_UNUSED(cmd);
-  return new FOEDAG::SourcesForm("");
+  return new FOEDAG::SourcesForm("/testproject");
 }
 
 void registerProjNavigatorCommands(FOEDAG::Session* session) {
