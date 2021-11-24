@@ -440,6 +440,24 @@ QString ProjectManager::getDesignActiveFileSet() const {
   return strActive;
 }
 
+int ProjectManager::setDesignActive(const QString& strSetName) {
+  int ret = -1;
+  if ("" == strSetName) {
+    return ret;
+  }
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState()) {
+      tmpRun->setSrcSet(strSetName);
+      ret = 0;
+    }
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getDesignFiles(const QString& strFileSet) const {
   QStringList strList;
 
@@ -518,6 +536,24 @@ QString ProjectManager::getConstrActiveFileSet() const {
   return strActive;
 }
 
+int ProjectManager::setConstrActive(const QString& strSetName) {
+  int ret = -1;
+  if ("" == strSetName) {
+    return ret;
+  }
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState()) {
+      tmpRun->setConstrsSet(strSetName);
+      ret = 0;
+    }
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getConstrFiles(const QString& strFileSet) const {
   QStringList strList;
 
@@ -587,6 +623,19 @@ QString ProjectManager::getSimulationActiveFileSet() const {
     strActive = tmpProCfg->activeSimSet();
   }
   return strActive;
+}
+
+int ProjectManager::setSimulationActive(const QString& strSetName) {
+  int ret = 0;
+  if ("" == strSetName) {
+    return -1;
+  }
+
+  ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
+  if (tmpProCfg) {
+    tmpProCfg->setActiveSimSet(strSetName);
+  }
+  return ret;
 }
 
 QStringList ProjectManager::getSimulationFiles(

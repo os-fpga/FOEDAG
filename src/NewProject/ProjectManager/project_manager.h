@@ -78,18 +78,21 @@ class ProjectManager : public QObject {
   int setDesignFileSet(const QString &strSetName);
   QStringList getDesignFileSets() const;
   QString getDesignActiveFileSet() const;
+  int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QString getDesignTopModule(const QString &strFileSet) const;
 
   int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
   QString getConstrActiveFileSet() const;
+  int setConstrActive(const QString &strSetName);
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
 
   int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;
   QString getSimulationActiveFileSet() const;
+  int setSimulationActive(const QString &strSetName);
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 

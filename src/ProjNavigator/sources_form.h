@@ -7,19 +7,19 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "create_design_dialog.h"
 
-#define SOURCE_TREE_DESTOPITEM "destopitem"
-#define SOURCE_TREE_CONSTRTOPITEM "constrtopitem"
-#define SOURCE_TREE_SIMTOPITEM "simtopitem"
-#define SOURCE_TREE_DESFILESETITEM "desfilesetitem"
-#define SOURCE_TREE_DESFILEITEM "desfileitem"
-#define SOURCE_TREE_CONSTRFSETITEM "constrfilesetitem"
-#define SOURCE_TREE_CONSTRFILEITEM "constrfileitem"
-#define SOURCE_TREE_SIMFILESETITEM "simfilesetitem"
-#define SOURCE_TREE_SIMFILEITEM "simfileitem"
+#define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
+#define SRC_TREE_CONSTR_TOP_ITEM "constrtopitem"
+#define SRC_TREE_SIM_TOP_ITEM "simtopitem"
+#define SRC_TREE_DESIGN_SET_ITEM "desfilesetitem"
+#define SRC_TREE_DESIGN_FILE_ITEM "desfileitem"
+#define SRC_TREE_CONSTR_SET_ITEM "constrfilesetitem"
+#define SRC_TREE_CONSTR_FILE_ITEM "constrfileitem"
+#define SRC_TREE_SIM_SET_ITEM "simfilesetitem"
+#define SRC_TREE_SIM_FILE_ITEM "simfileitem"
 
-#define SOURCE_TREE_FLG_ACTIVE tr(" (Active)")
-#define SOURCE_TREE_FLG_TOP tr(" (Top)")
-#define SOURCE_TREE_FLG_TARGET tr(" (Target)")
+#define SRC_TREE_FLG_ACTIVE tr(" (Active)")
+#define SRC_TREE_FLG_TOP tr(" (Top)")
+#define SRC_TREE_FLG_TARGET tr(" (Target)")
 
 namespace Ui {
 class SourcesForm;
@@ -48,7 +48,7 @@ class SourcesForm : public QWidget {
   void SlotRemoveFile(){};
   void SlotSetAsTop(){};
   void SlotSetAsTarget(){};
-  void SlotSetActive(){};
+  void SlotSetActive();
 
  private:
   Ui::SourcesForm* ui;
