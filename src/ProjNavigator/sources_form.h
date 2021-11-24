@@ -27,6 +27,8 @@ class SourcesForm : public QWidget {
   explicit SourcesForm(QString strprojpath, QWidget* parent = nullptr);
   ~SourcesForm();
 
+  /*for test*/
+  void TestOpenProject(int argc, const char* argv[]);
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
   void SlotRefreshSourceTree();

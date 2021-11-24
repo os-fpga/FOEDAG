@@ -1,6 +1,8 @@
 #include "sources_form.h"
 
+#include <QFileInfo>
 #include <QMenu>
+#include <QTextStream>
 
 #include "ui_sources_form.h"
 
@@ -11,18 +13,20 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
   ui->setupUi(this);
 
   m_treeSrcHierachy = new QTreeWidget(ui->m_tabHierarchy);
+  m_treeSrcHierachy->setSelectionMode(
+      QAbstractItemView::SelectionMode::SingleSelection);
   QVBoxLayout *vbox = new QVBoxLayout();
   vbox->addWidget(m_treeSrcHierachy);
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(0);
   ui->m_tabHierarchy->setLayout(vbox);
 
+  CreateActions();
+
   m_projManager = new ProjectManager(this);
   m_projManager->StartProject(strproject + PROJECT_FILE_FORMAT);
 
   UpdateSrcHierachyTree();
-
-  CreateActions();
 
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
@@ -31,6 +35,32 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 }
 
 SourcesForm::~SourcesForm() { delete ui; }
+
+void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
+  QTextStream out(stdout);
+  if (argc < 3 || "--file" != QString(argv[1])) {
+    out << "-----------open_project ------------\n";
+    out << " \n";
+    out << " Description: \n";
+    out << " Open a project. Show the source file categories and hierarchies. "
+           "\n";
+    out << " \n";
+    out << " Syntax: \n";
+    out << " open_project --file <project.ospr> \n";
+    out << " \n";
+    out << "--------------------------------------\n";
+    return;
+  }
+
+  QFileInfo fileInfo;
+  fileInfo.setFile(QString(argv[2]));
+  if (fileInfo.exists()) {
+    m_projManager->StartProject(QString(argv[2]));
+    UpdateSrcHierachyTree();
+  } else {
+    out << " Warning : This file <" << QString(argv[2]) << "> is not exist! \n";
+  }
+}
 
 void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);

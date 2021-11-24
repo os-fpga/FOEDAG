@@ -58,6 +58,19 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("projnavigator_close", projnavigatorhide,
                                     GlobalSession->MainWindow(), 0);
 
+  auto openproject = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
+    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
+    srcForm->TestOpenProject(argc, argv);
+    srcForm->show();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("open_project", openproject,
+                                    GlobalSession->MainWindow(), 0);
+
   session->TclInterp()->evalCmd(
       "puts \"Put projnavigator_show to test projnavigator GUI.\"");
 }
