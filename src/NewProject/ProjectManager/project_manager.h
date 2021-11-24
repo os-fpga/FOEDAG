@@ -65,33 +65,39 @@ class ProjectManager : public QObject {
 
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
+
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
+
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+
   int setTopModule(const QString &strFileName);
   int setTargetConstrs(const QString &strFileName);
 
+  int setDesignFileSet(const QString &strSetName);
   QStringList getDesignFileSets() const;
   QString getDesignActiveFileSet() const;
   QStringList getDesignFiles(const QString &strFileSet) const;
   QString getDesignTopModule(const QString &strFileSet) const;
 
+  int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
   QString getConstrActiveFileSet() const;
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
 
+  int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;
   QString getSimulationActiveFileSet() const;
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 
-  int deleteFileSet(const QString &strFileSet);
+  int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRun);
 
   int StartProject(const QString &strOspro);
-  void FinishedProject();
+  int FinishedProject();
 
   QString currentFileSet() const;
   void setCurrentFileSet(const QString &currentFileSet);
@@ -104,7 +110,9 @@ class ProjectManager : public QObject {
   int ExportProjectData();
 
   int CreateProjectDir();
-  int CreateFolder(QString strPath);
+  int CreateSrcsFolder(QString strFolderName);
+  int CreateRunsFolder(QString strFolderName);
+
   int CreateVerilogFile(QString strFile);
   int CreateVHDLFile(QString strFile);
   int CreateSDCFile(QString strFile);

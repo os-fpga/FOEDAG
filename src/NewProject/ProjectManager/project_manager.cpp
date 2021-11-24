@@ -178,23 +178,11 @@ int ProjectManager::CreateProject(const QString& strName,
     return ret;
   }
 
-  ProjectFileSet* proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_CONSTRS);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_CS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_CONSTRS);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setDesignFileSet(DEFAULT_FOLDER_SOURCE);
 
-  proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_SOURCE);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_DS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SOURCE);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
 
-  proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_SIM);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SIM);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setSimulationFileSet(DEFAULT_FOLDER_SIM);
 
   ProjectRun* proRun = new ProjectRun(this);
   proRun->setRunName(DEFAULT_FOLDER_IMPLE);
@@ -401,6 +389,25 @@ int ProjectManager::setTargetConstrs(const QString& strFileName) {
   return ret;
 }
 
+int ProjectManager::setDesignFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_DS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getDesignFileSets() const {
   QStringList retList;
 
@@ -458,6 +465,25 @@ QString ProjectManager::getDesignTopModule(const QString& strFileSet) const {
     strTopModule = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP);
   }
   return strTopModule;
+}
+
+int ProjectManager::setConstrFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_CS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
 }
 
 QStringList ProjectManager::getConstrFileSets() const {
@@ -519,6 +545,25 @@ QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
   return strTargetFile;
 }
 
+int ProjectManager::setSimulationFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getSimulationFileSets() const {
   QStringList retList;
 
@@ -573,21 +618,21 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
-int ProjectManager::deleteFileSet(const QString& strFileSet) {
+int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(strFileSet);
+      Project::Instance()->getProjectFileset(strSetName);
   if (PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
-      strFileSet == getDesignActiveFileSet()) {
+      strSetName == getDesignActiveFileSet()) {
     return -1;
   } else if (PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
-             strFileSet == getConstrActiveFileSet()) {
+             strSetName == getConstrActiveFileSet()) {
     return -1;
   } else if (PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
-             strFileSet == getSimulationActiveFileSet()) {
+             strSetName == getSimulationActiveFileSet()) {
     return -1;
   }
-  Project::Instance()->deleteProjectFileset(strFileSet);
+  Project::Instance()->deleteProjectFileset(strSetName);
   return ret;
 }
 
@@ -605,7 +650,7 @@ int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
 }
 
-void ProjectManager::FinishedProject() { ExportProjectData(); }
+int ProjectManager::FinishedProject() { return ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
   int ret = 0;
@@ -623,10 +668,13 @@ int ProjectManager::ImportProjectData(QString strOspro) {
       if (reader.name() == PROJECT_PROJECT &&
           reader.attributes().hasAttribute(PROJECT_PATH)) {
         QString strPath = reader.attributes().value(PROJECT_PATH).toString();
-        QString strName =
-            strPath.right(strPath.size() - (strPath.lastIndexOf("/") + 1));
+        QString strName = strPath.mid(
+            strPath.lastIndexOf("/") + 1,
+            strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
+        ;
         Project::Instance()->setProjectName(strName);
-        Project::Instance()->setProjectPath(strPath);
+        Project::Instance()->setProjectPath(
+            strPath.left(strPath.lastIndexOf("/")));
       }
       if (reader.name() == PROJECT_CONFIGURATION) {
         while (true) {
@@ -938,23 +986,6 @@ int ProjectManager::CreateProjectDir() {
       break;
     }
 
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" +
-                   DEFAULT_FOLDER_CONSTRS)) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" + DEFAULT_FOLDER_SIM)) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" +
-                   DEFAULT_FOLDER_SOURCE)) {
-      ret = -2;
-      break;
-    }
-
     if (!dir.mkdir(tmpPath + "/" + tmpName + ".runs/" + DEFAULT_FOLDER_IMPLE)) {
       ret = -2;
       break;
@@ -969,14 +1000,50 @@ int ProjectManager::CreateProjectDir() {
   return ret;
 }
 
-int ProjectManager::CreateFolder(QString strPath) {
-  QDir dir(strPath);
-  if (!dir.exists()) {
-    if (!dir.mkpath(strPath)) {
-      return -2;
+int ProjectManager::CreateSrcsFolder(QString strFolderName) {
+  int ret = 0;
+  do {
+    QString tmpName = Project::Instance()->projectName();
+    QString tmpPath = Project::Instance()->projectPath();
+
+    if ("" == tmpName || "" == tmpPath || "" == strFolderName) {
+      ret = -1;
+      break;
     }
-  }
-  return 0;
+
+    QString strPath = tmpPath + "/" + tmpName + ".srcs/" + strFolderName;
+    QDir dir(strPath);
+    if (!dir.exists()) {
+      if (!dir.mkpath(strPath)) {
+        ret = -2;
+        break;
+      }
+    }
+  } while (false);
+  return ret;
+}
+
+int ProjectManager::CreateRunsFolder(QString strFolderName) {
+  int ret = 0;
+  do {
+    QString tmpName = Project::Instance()->projectName();
+    QString tmpPath = Project::Instance()->projectPath();
+
+    if ("" == tmpName || "" == tmpPath || "" == strFolderName) {
+      ret = -1;
+      break;
+    }
+
+    QString strPath = tmpPath + "/" + tmpName + ".runs/" + strFolderName;
+    QDir dir(strPath);
+    if (!dir.exists()) {
+      if (!dir.mkpath(strPath)) {
+        ret = -2;
+        break;
+      }
+    }
+  } while (false);
+  return ret;
 }
 
 int ProjectManager::CreateVerilogFile(QString strFile) {

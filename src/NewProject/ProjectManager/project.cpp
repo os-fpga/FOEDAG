@@ -42,14 +42,19 @@ ProjectFileSet *Project::getProjectFileset(const QString &strName) const {
   return retProFileSet;
 }
 
-void Project::setProjectFileset(ProjectFileSet *projectFileset) {
+int Project::setProjectFileset(ProjectFileSet *projectFileset) {
+  int ret = 0;
   if (nullptr != projectFileset) {
     auto iter = m_mapProjectFileset.find(projectFileset->getSetName());
     if (iter != m_mapProjectFileset.end()) {
-      delete iter.value();
+      ret = 1;
+    } else {
+      m_mapProjectFileset.insert(projectFileset->getSetName(), projectFileset);
     }
-    m_mapProjectFileset.insert(projectFileset->getSetName(), projectFileset);
+  } else {
+    ret = -1;
   }
+  return ret;
 }
 
 void Project::deleteProjectFileset(const QString &strName) {
@@ -71,14 +76,19 @@ ProjectRun *Project::getProjectRun(const QString &strName) const {
   return retProRun;
 }
 
-void Project::setProjectRun(ProjectRun *projectRun) {
+int Project::setProjectRun(ProjectRun *projectRun) {
+  int ret = 0;
   if (nullptr != projectRun) {
     auto iter = m_mapProjectRun.find(projectRun->runName());
     if (iter != m_mapProjectRun.end()) {
-      delete iter.value();
+      ret = 1;
+    } else {
+      m_mapProjectRun.insert(projectRun->runName(), projectRun);
     }
-    m_mapProjectRun.insert(projectRun->runName(), projectRun);
+  } else {
+    ret = -1;
   }
+  return ret;
 }
 
 void Project::deleteprojectRun(const QString &strName) {

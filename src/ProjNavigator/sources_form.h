@@ -7,13 +7,19 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "create_design_dialog.h"
 
-#define SOURCE_TREE_TOPITEM "topitem"
+#define SOURCE_TREE_DESTOPITEM "destopitem"
+#define SOURCE_TREE_CONSTRTOPITEM "constrtopitem"
+#define SOURCE_TREE_SIMTOPITEM "simtopitem"
 #define SOURCE_TREE_DESFILESETITEM "desfilesetitem"
 #define SOURCE_TREE_DESFILEITEM "desfileitem"
 #define SOURCE_TREE_CONSTRFSETITEM "constrfilesetitem"
 #define SOURCE_TREE_CONSTRFILEITEM "constrfileitem"
 #define SOURCE_TREE_SIMFILESETITEM "simfilesetitem"
 #define SOURCE_TREE_SIMFILEITEM "simfileitem"
+
+#define SOURCE_TREE_FLG_ACTIVE tr(" (Active)")
+#define SOURCE_TREE_FLG_TOP tr(" (Top)")
+#define SOURCE_TREE_FLG_TARGET tr(" (Target)")
 
 namespace Ui {
 class SourcesForm;
@@ -30,13 +36,15 @@ class SourcesForm : public QWidget {
 
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
+
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
+
   void SlotRefreshSourceTree();
   void SlotCreateDesign();
   void SlotAddFile(){};
   void SlotOpenFile(){};
-  void SlotRemoveDesign(){};
+  void SlotRemoveDesign();
   void SlotRemoveFile(){};
   void SlotSetAsTop(){};
   void SlotSetAsTarget(){};

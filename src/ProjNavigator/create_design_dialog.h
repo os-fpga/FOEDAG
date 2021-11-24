@@ -16,6 +16,9 @@ class CreateDesignDialog : public QDialog {
   explicit CreateDesignDialog(QWidget *parent = nullptr);
   ~CreateDesignDialog();
 
+  void InitDialog(QString strContent);
+  QString getDesignName() const;
+
  private slots:
   void on_m_btnCancel_clicked();
   void on_m_btnOK_clicked();

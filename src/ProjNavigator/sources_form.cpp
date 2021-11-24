@@ -2,6 +2,7 @@
 
 #include <QFileInfo>
 #include <QMenu>
+#include <QMessageBox>
 #include <QTextStream>
 
 #include "ui_sources_form.h"
@@ -70,36 +71,51 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     menu->addSeparator();
     QString strPropertyRole =
         (item->data(0, Qt::WhatsThisPropertyRole)).toString();
-    if (SOURCE_TREE_TOPITEM == strPropertyRole) {
+    QString strName = item->text(0);
+    if (SOURCE_TREE_DESTOPITEM == strPropertyRole ||
+        SOURCE_TREE_CONSTRTOPITEM == strPropertyRole ||
+        SOURCE_TREE_SIMTOPITEM == strPropertyRole) {
       menu->addAction(m_actCreateDesign);
     } else if (SOURCE_TREE_DESFILESETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveDesign);
+      if (!strName.contains(SOURCE_TREE_FLG_ACTIVE)) {
+        menu->addAction(m_actRemoveDesign);
+      }
       menu->addAction(m_actAddFile);
       menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_DESFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
-      menu->addAction(m_actRemoveFile);
+      if (!strName.contains(SOURCE_TREE_FLG_TOP)) {
+        menu->addAction(m_actRemoveFile);
+      }
       menu->addSeparator();
       menu->addAction(m_actSetAsTop);
     } else if (SOURCE_TREE_CONSTRFSETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveDesign);
+      if (!strName.contains(SOURCE_TREE_FLG_ACTIVE)) {
+        menu->addAction(m_actRemoveDesign);
+      }
       menu->addAction(m_actAddFile);
       menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_CONSTRFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
-      menu->addAction(m_actRemoveFile);
+      if (!strName.contains(SOURCE_TREE_FLG_TARGET)) {
+        menu->addAction(m_actRemoveFile);
+      }
       menu->addSeparator();
       menu->addAction(m_actSetAsTarget);
     } else if (SOURCE_TREE_SIMFILESETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveDesign);
+      if (!strName.contains(SOURCE_TREE_FLG_ACTIVE)) {
+        menu->addAction(m_actRemoveDesign);
+      }
       menu->addAction(m_actAddFile);
       menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_SIMFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
-      menu->addAction(m_actRemoveFile);
+      if (!strName.contains(SOURCE_TREE_FLG_TOP)) {
+        menu->addAction(m_actRemoveFile);
+      }
       menu->addSeparator();
       menu->addAction(m_actSetAsTop);
     }
@@ -111,8 +127,53 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 void SourcesForm::SlotRefreshSourceTree() { UpdateSrcHierachyTree(); }
 
 void SourcesForm::SlotCreateDesign() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  QString strPropertyRole =
+      (item->data(0, Qt::WhatsThisPropertyRole)).toString();
+  QString strContent;
+  if (SOURCE_TREE_DESTOPITEM == strPropertyRole) {
+    strContent = tr("Enter Design Set Name");
+  } else if (SOURCE_TREE_CONSTRTOPITEM == strPropertyRole) {
+    strContent = tr("Enter Constraints Set Name");
+  } else if (SOURCE_TREE_SIMTOPITEM == strPropertyRole) {
+    strContent = tr("Enter Simulation Set Name");
+  } else {
+    return;
+  }
   CreateDesignDialog *createdialog = new CreateDesignDialog(this);
-  createdialog->exec();
+  createdialog->InitDialog(strContent);
+
+  while (createdialog->exec()) {
+    QString strName = createdialog->getDesignName();
+    int ret = 0;
+    if (SOURCE_TREE_DESTOPITEM == strPropertyRole) {
+      ret = m_projManager->setDesignFileSet(strName);
+    } else if (SOURCE_TREE_CONSTRTOPITEM == strPropertyRole) {
+      ret = m_projManager->setConstrFileSet(strName);
+    } else if (SOURCE_TREE_SIMTOPITEM == strPropertyRole) {
+      ret = m_projManager->setSimulationFileSet(strName);
+    }
+    if (0 != ret) {
+      QMessageBox::information(this, tr("Information"),
+                               tr("The set name is already exists!"),
+                               QMessageBox::Ok);
+    } else {
+      UpdateSrcHierachyTree();
+      m_projManager->FinishedProject();
+      break;
+    }
+  }
+  createdialog->close();
+}
+
+void SourcesForm::SlotRemoveDesign() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  QString strName = item->text(0);
+  int ret = m_projManager->deleteFileSet(strName);
+  if (0 == ret) {
+    UpdateSrcHierachyTree();
+    m_projManager->FinishedProject();
+  }
 }
 
 void SourcesForm::CreateActions() {
@@ -156,7 +217,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
   m_treeSrcHierachy->clear();
   QTreeWidgetItem *topitemDS = new QTreeWidgetItem(m_treeSrcHierachy);
   topitemDS->setText(0, tr("Design Sources"));
-  topitemDS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_TOPITEM);
+  topitemDS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_DESTOPITEM);
   m_treeSrcHierachy->addTopLevelItem(topitemDS);
 
   QStringList listDesFset = m_projManager->getDesignFileSets();
@@ -164,7 +225,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
   foreach (auto str, listDesFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemDS);
     if (str == strDesAct) {
-      itemfolder->setText(0, str + tr("(Active)"));
+      itemfolder->setText(0, str + SOURCE_TREE_FLG_ACTIVE);
     } else {
       itemfolder->setText(0, str);
     }
@@ -178,7 +239,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
       if (filename == strTop) {
-        itemf->setText(0, filename + tr("(Top)"));
+        itemf->setText(0, filename + SOURCE_TREE_FLG_TOP);
       } else {
         itemf->setText(0, filename);
       }
@@ -189,13 +250,13 @@ void SourcesForm::UpdateSrcHierachyTree() {
   QTreeWidgetItem *topitemCS = new QTreeWidgetItem(m_treeSrcHierachy);
   m_treeSrcHierachy->addTopLevelItem(topitemCS);
   topitemCS->setText(0, tr("Constraints"));
-  topitemCS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_TOPITEM);
+  topitemCS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_CONSTRTOPITEM);
   QStringList listConstrFset = m_projManager->getConstrFileSets();
   QString strConstrAct = m_projManager->getConstrActiveFileSet();
   foreach (auto str, listConstrFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemCS);
     if (str == strConstrAct) {
-      itemfolder->setText(0, str + tr("(Active)"));
+      itemfolder->setText(0, str + SOURCE_TREE_FLG_ACTIVE);
     } else {
       itemfolder->setText(0, str);
     }
@@ -209,7 +270,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
       if (filename == strTarget) {
-        itemf->setText(0, filename + tr("(Target)"));
+        itemf->setText(0, filename + SOURCE_TREE_FLG_TARGET);
       } else {
         itemf->setText(0, filename);
       }
@@ -220,13 +281,13 @@ void SourcesForm::UpdateSrcHierachyTree() {
   QTreeWidgetItem *topitemSS = new QTreeWidgetItem(m_treeSrcHierachy);
   m_treeSrcHierachy->addTopLevelItem(topitemSS);
   topitemSS->setText(0, tr("Simulation Sources"));
-  topitemSS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_TOPITEM);
+  topitemSS->setData(0, Qt::WhatsThisPropertyRole, SOURCE_TREE_SIMTOPITEM);
   QStringList listSimFset = m_projManager->getSimulationFileSets();
   QString strSimAct = m_projManager->getSimulationActiveFileSet();
   foreach (auto str, listSimFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemSS);
     if (str == strSimAct) {
-      itemfolder->setText(0, str + tr("(Active)"));
+      itemfolder->setText(0, str + SOURCE_TREE_FLG_ACTIVE);
     } else {
       itemfolder->setText(0, str);
     }
@@ -240,7 +301,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
       if (filename == strTop) {
-        itemf->setText(0, filename + tr("(Top)"));
+        itemf->setText(0, filename + SOURCE_TREE_FLG_TOP);
       } else {
         itemf->setText(0, filename);
       }
