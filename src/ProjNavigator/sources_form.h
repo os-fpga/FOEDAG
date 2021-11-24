@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "NewProject/ProjectManager/project_manager.h"
+#include "create_design_dialog.h"
 
 #define SOURCE_TREE_TOPITEM "topitem"
 #define SOURCE_TREE_DESFILESETITEM "desfilesetitem"
@@ -32,10 +33,10 @@ class SourcesForm : public QWidget {
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
   void SlotRefreshSourceTree();
-  void SlotAddFileSet(){};
+  void SlotCreateDesign();
   void SlotAddFile(){};
   void SlotOpenFile(){};
-  void SlotRemoveFileSet(){};
+  void SlotRemoveDesign(){};
   void SlotRemoveFile(){};
   void SlotSetAsTop(){};
   void SlotSetAsTarget(){};
@@ -46,10 +47,10 @@ class SourcesForm : public QWidget {
 
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
-  QAction* m_actAddFileSet;
+  QAction* m_actCreateDesign;
   QAction* m_actAddFile;
   QAction* m_actOpenFile;
-  QAction* m_actRemoveFileSet;
+  QAction* m_actRemoveDesign;
   QAction* m_actRemoveFile;
   QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;

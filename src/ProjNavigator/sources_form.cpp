@@ -67,33 +67,40 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   if (qApp->mouseButtons() == Qt::RightButton) {
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->addAction(m_actRefresh);
+    menu->addSeparator();
     QString strPropertyRole =
         (item->data(0, Qt::WhatsThisPropertyRole)).toString();
     if (SOURCE_TREE_TOPITEM == strPropertyRole) {
-      menu->addAction(m_actAddFileSet);
+      menu->addAction(m_actCreateDesign);
     } else if (SOURCE_TREE_DESFILESETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actRemoveDesign);
       menu->addAction(m_actAddFile);
+      menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_DESFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
       menu->addAction(m_actRemoveFile);
+      menu->addSeparator();
       menu->addAction(m_actSetAsTop);
     } else if (SOURCE_TREE_CONSTRFSETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actRemoveDesign);
       menu->addAction(m_actAddFile);
+      menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_CONSTRFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
       menu->addAction(m_actRemoveFile);
+      menu->addSeparator();
       menu->addAction(m_actSetAsTarget);
     } else if (SOURCE_TREE_SIMFILESETITEM == strPropertyRole) {
-      menu->addAction(m_actRemoveFileSet);
+      menu->addAction(m_actRemoveDesign);
       menu->addAction(m_actAddFile);
+      menu->addSeparator();
       menu->addAction(m_actMakeActive);
     } else if (SOURCE_TREE_SIMFILEITEM == strPropertyRole) {
       menu->addAction(m_actOpenFile);
       menu->addAction(m_actRemoveFile);
+      menu->addSeparator();
       menu->addAction(m_actSetAsTop);
     }
     QPoint p = QCursor::pos();
@@ -103,13 +110,19 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
 void SourcesForm::SlotRefreshSourceTree() { UpdateSrcHierachyTree(); }
 
+void SourcesForm::SlotCreateDesign() {
+  CreateDesignDialog *createdialog = new CreateDesignDialog(this);
+  createdialog->exec();
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
           SLOT(SlotRefreshSourceTree()));
 
-  m_actAddFileSet = new QAction(tr("Add FileSet"), m_treeSrcHierachy);
-  connect(m_actAddFileSet, SIGNAL(triggered()), this, SLOT(SlotAddFileSet()));
+  m_actCreateDesign = new QAction(tr("Create Design"), m_treeSrcHierachy);
+  connect(m_actCreateDesign, SIGNAL(triggered()), this,
+          SLOT(SlotCreateDesign()));
 
   m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
   connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));
@@ -117,9 +130,9 @@ void SourcesForm::CreateActions() {
   m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);
   connect(m_actOpenFile, SIGNAL(triggered()), this, SLOT(SlotOpenFile()));
 
-  m_actRemoveFileSet = new QAction(tr("Remove FileSet"), m_treeSrcHierachy);
-  connect(m_actRemoveFileSet, SIGNAL(triggered()), this,
-          SLOT(SlotRemoveFileSet()));
+  m_actRemoveDesign = new QAction(tr("Remove Design"), m_treeSrcHierachy);
+  connect(m_actRemoveDesign, SIGNAL(triggered()), this,
+          SLOT(SlotRemoveDesign()));
 
   m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
