@@ -23,14 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
+#include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"
 
 FOEDAG::Session* GlobalSession;
 
-// QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd) {
-//    Q_UNUSED(cmd);
-//    return new FOEDAG::newProjectDialog();
-//}
+QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd) {
+  Q_UNUSED(cmd);
+  return new FOEDAG::SourcesForm("");
+}
 
 void registerProjNavigatorCommands(FOEDAG::Session* session) {
   auto projnavigator = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -38,10 +39,24 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     Q_UNUSED(interp);
     Q_UNUSED(argv);
     Q_UNUSED(argc);
-    Q_UNUSED(clientData);
+    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
+    srcForm->show();
     return 0;
   };
-  session->TclInterp()->registerCmd("projnavigator_show", projnavigator, 0, 0);
+  session->TclInterp()->registerCmd("projnavigator_show", projnavigator,
+                                    GlobalSession->MainWindow(), 0);
+
+  auto projnavigatorhide = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
+    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
+    srcForm->hide();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("projnavigator_close", projnavigatorhide,
+                                    GlobalSession->MainWindow(), 0);
 
   session->TclInterp()->evalCmd(
       "puts \"Put projnavigator_show to test projnavigator GUI.\"");
@@ -56,12 +71,10 @@ int main(int argc, char** argv) {
     FOEDAG::Foedag* foedag =
         new FOEDAG::Foedag(cmd, nullptr, registerProjNavigatorCommands);
     return foedag->initBatch();
+  } else {
+    // Gui mode
+    FOEDAG::Foedag* foedag = new FOEDAG::Foedag(cmd, proNavigatorBuilder,
+                                                registerProjNavigatorCommands);
+    return foedag->initGui();
   }
-  // else {
-  //    // Gui mode
-  //    FOEDAG::Foedag* foedag =
-  //        new FOEDAG::Foedag(cmd, newProjectBuilder,
-  //        registerNewProjectCommands);
-  //    return foedag->initGui();
-  //  }
 }
