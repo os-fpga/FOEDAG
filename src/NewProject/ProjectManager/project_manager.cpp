@@ -227,25 +227,25 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive) ||
           !suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive) ||
         !suffix.compare("vhd", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -257,12 +257,12 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
@@ -280,19 +280,19 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -304,7 +304,7 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
@@ -322,19 +322,19 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -346,7 +346,7 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(filePath);
         if (0 == ret) {
-          setFileSet(fileSetPath, false);
+          AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
@@ -1209,7 +1209,8 @@ int ProjectManager::CreateSDCFile(QString strFile) {
   return ret;
 }
 
-int ProjectManager::setFileSet(const QString& strFileName, bool isFileCopy) {
+int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
+                                             bool isFileCopy) {
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);

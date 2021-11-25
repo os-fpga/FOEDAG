@@ -66,13 +66,19 @@ class ProjectManager : public QObject {
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
 
+  // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
 
+  // Please set currentrun before using this function
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
 
+  // Please set currentfileset before using this function
   int setTopModule(const QString &strFileName);
+  // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
 
   int setDesignFileSet(const QString &strSetName);
@@ -120,7 +126,8 @@ class ProjectManager : public QObject {
   int CreateVHDLFile(QString strFile);
   int CreateSDCFile(QString strFile);
 
-  int setFileSet(const QString &strFileName, bool isFileCopy = true);
+  int AddOrCreateFileToFileSet(const QString &strFileName,
+                               bool isFileCopy = true);
 
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
