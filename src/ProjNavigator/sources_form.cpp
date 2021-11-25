@@ -161,6 +161,66 @@ void SourcesForm::SlotCreateDesign() {
   createdialog->close();
 }
 
+void SourcesForm::SlotAddFile() {
+  int ret = 0;
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+
+  QString strPropertyRole =
+      (item->data(0, Qt::WhatsThisPropertyRole)).toString();
+  QString strName = (item->data(0, Qt::UserRole)).toString();
+
+  AddFileDialog addFileDialog;
+  if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
+    addFileDialog.InitDialog(GT_SOURCE);
+  } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
+    addFileDialog.InitDialog(GT_CONSTRAINTS);
+  } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
+    addFileDialog.InitDialog(GT_SIM);
+  } else {
+    return;
+  }
+
+  if (addFileDialog.exec()) {
+    m_projManager->setCurrentFileSet(strName);
+    QList<filedata> listFile = addFileDialog.m_fileForm->getFileData();
+    foreach (filedata fdata, listFile) {
+      if ("<Local to Project>" == fdata.m_filePath) {
+        if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
+          ret = m_projManager->setDesignFile(fdata.m_fileName, false);
+        } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
+          ret = m_projManager->setConstrsFile(fdata.m_fileName, false);
+        } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
+          ret = m_projManager->setSimulationFile(fdata.m_fileName, false);
+        }
+      } else {
+        if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
+          m_projManager->setDesignFile(
+              fdata.m_filePath + "/" + fdata.m_fileName,
+              addFileDialog.m_fileForm->IsCopySource());
+        } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
+          m_projManager->setConstrsFile(
+              fdata.m_filePath + "/" + fdata.m_fileName,
+              addFileDialog.m_fileForm->IsCopySource());
+        } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
+          m_projManager->setSimulationFile(
+              fdata.m_filePath + "/" + fdata.m_fileName,
+              addFileDialog.m_fileForm->IsCopySource());
+        }
+      }
+    }
+  }
+
+  addFileDialog.close();
+
+  if (0 == ret) {
+    UpdateSrcHierachyTree();
+    m_projManager->FinishedProject();
+  }
+}
+
 void SourcesForm::SlotRemoveDesign() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {

@@ -23,19 +23,19 @@ set (SRC_CPP_LIST
   sources_form.cpp
   create_design_dialog.cpp
   add_file_dialog.cpp
-  add_simulation_form.cpp)
+  add_file_form.cpp)
 
 set (SRC_H_LIST
   sources_form.h
   create_design_dialog.h
   add_file_dialog.h
-  add_simulation_form.h)
+  add_file_form.h)
 
 set (SRC_UI_LIST
   sources_form.ui
   create_design_dialog.ui
   add_file_dialog.ui
-  add_simulation_form.ui)
+  add_file_form.ui)
 
 add_library(projnavigator STATIC
   ${SRC_CPP_LIST}

@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "NewProject/ProjectManager/project_manager.h"
+#include "add_file_dialog.h"
 #include "create_design_dialog.h"
 
 #define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
@@ -42,7 +43,7 @@ class SourcesForm : public QWidget {
 
   void SlotRefreshSourceTree();
   void SlotCreateDesign();
-  void SlotAddFile(){};
+  void SlotAddFile();
   void SlotOpenFile(){};
   void SlotRemoveDesign();
   void SlotRemoveFile();
