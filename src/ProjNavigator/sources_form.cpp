@@ -175,6 +175,24 @@ void SourcesForm::SlotRemoveDesign() {
   }
 }
 
+void SourcesForm::SlotRemoveFile() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strFileName = item->text(0);
+
+  QTreeWidgetItem *itemparent = item->parent();
+  QString strFileSetName = (itemparent->data(0, Qt::UserRole)).toString();
+
+  m_projManager->setCurrentFileSet(strFileSetName);
+  int ret = m_projManager->deleteFile(strFileName);
+  if (0 == ret) {
+    UpdateSrcHierachyTree();
+    m_projManager->FinishedProject();
+  }
+}
+
 void SourcesForm::SlotSetAsTop() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {

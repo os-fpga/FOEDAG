@@ -45,7 +45,7 @@ class SourcesForm : public QWidget {
   void SlotAddFile(){};
   void SlotOpenFile(){};
   void SlotRemoveDesign();
-  void SlotRemoveFile(){};
+  void SlotRemoveFile();
   void SlotSetAsTop();
   void SlotSetAsTarget();
   void SlotSetActive();

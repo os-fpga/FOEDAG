@@ -354,6 +354,23 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
   return ret;
 }
 
+int ProjectManager::deleteFile(const QString& strFileName) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  // target or top file cannot be deleted
+  if (strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TOP) ||
+      strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TARGET)) {
+    return -1;
+  }
+
+  proFileSet->deleteFile(strFileName);
+  return ret;
+}
+
 int ProjectManager::setSynthesisOption(
     const QList<QPair<QString, QString>>& listParam) {
   int ret = 0;

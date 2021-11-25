@@ -72,6 +72,8 @@ class ProjectManager : public QObject {
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   // Please set currentfileset before using this function
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
+  int deleteFile(const QString &strFileName);
 
   // Please set currentrun before using this function
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
