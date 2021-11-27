@@ -9,9 +9,7 @@
 
 using namespace FOEDAG;
 
-ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
-  Project::Instance()->InitProject();
-}
+ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
 
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   QTextStream out(stdout);
@@ -171,6 +169,7 @@ int ProjectManager::CreateProject(const QString& strName,
   if ("" == strName || "" == strPath) {
     return -1;
   }
+  Project::Instance()->InitProject();
   Project::Instance()->setProjectName(strName);
   Project::Instance()->setProjectPath(strPath);
   ret = CreateProjectDir();

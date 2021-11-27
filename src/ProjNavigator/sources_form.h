@@ -69,6 +69,16 @@ class SourcesForm : public QWidget {
 
   void CreateActions();
   void UpdateSrcHierachyTree();
+
+  void TclHelper();
+  bool TclCheckType(QString strType);
+
+ public:
+  void TclCreateDesign(int argc, const char* argv[]);
+  void TclAddOrCreateFiles(int argc, const char* argv[]);
+  void TclSetActiveDesign(int argc, const char* argv[]);
+  void TclSetTopModule(int argc, const char* argv[]);
+  void TclSetAsTarget(int argc, const char* argv[]);
 };
 }  // namespace FOEDAG
 
