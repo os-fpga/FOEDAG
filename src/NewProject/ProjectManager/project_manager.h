@@ -1,3 +1,26 @@
+/*Copyright 2021 The Foedag team
+
+GPL License
+
+Copyright (c) 2021 The Open-Source FPGA Foundation
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Note: At present, the ProjectManager manages only one project ,in addition,the
+project object is singleton mode.
+*/
+
 #ifndef PROJECTMANAGER_H
 #define PROJECTMANAGER_H
 
@@ -65,33 +88,50 @@ class ProjectManager : public QObject {
 
   int CreateProject(const QString &strName, const QString &strPath);
   int setProjectType(const QString &strType);
+
+  // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
+  // Please set currentfileset before using this function
+  int deleteFile(const QString &strFileName);
+
+  // Please set currentrun before using this function
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+
+  // Please set currentfileset before using this function
   int setTopModule(const QString &strFileName);
+  // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
 
+  int setDesignFileSet(const QString &strSetName);
   QStringList getDesignFileSets() const;
   QString getDesignActiveFileSet() const;
+  int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QString getDesignTopModule(const QString &strFileSet) const;
 
+  int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
   QString getConstrActiveFileSet() const;
+  int setConstrActive(const QString &strSetName);
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
 
+  int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;
   QString getSimulationActiveFileSet() const;
+  int setSimulationActive(const QString &strSetName);
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 
-  int deleteFileSet(const QString &strFileSet);
+  int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRun);
 
   int StartProject(const QString &strOspro);
-  void FinishedProject();
+  int FinishedProject();
 
   QString currentFileSet() const;
   void setCurrentFileSet(const QString &currentFileSet);
@@ -104,12 +144,15 @@ class ProjectManager : public QObject {
   int ExportProjectData();
 
   int CreateProjectDir();
-  int CreateFolder(QString strPath);
+  int CreateSrcsFolder(QString strFolderName);
+  int CreateRunsFolder(QString strFolderName);
+
   int CreateVerilogFile(QString strFile);
   int CreateVHDLFile(QString strFile);
   int CreateSDCFile(QString strFile);
 
-  int setFileSet(const QString &strFileName, bool isFileCopy = true);
+  int AddOrCreateFileToFileSet(const QString &strFileName,
+                               bool isFileCopy = true);
 
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,

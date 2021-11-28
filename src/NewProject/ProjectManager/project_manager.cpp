@@ -9,9 +9,7 @@
 
 using namespace FOEDAG;
 
-ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
-  Project::Instance()->InitProject();
-}
+ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
 
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   QTextStream out(stdout);
@@ -171,6 +169,7 @@ int ProjectManager::CreateProject(const QString& strName,
   if ("" == strName || "" == strPath) {
     return -1;
   }
+  Project::Instance()->InitProject();
   Project::Instance()->setProjectName(strName);
   Project::Instance()->setProjectPath(strPath);
   ret = CreateProjectDir();
@@ -178,23 +177,11 @@ int ProjectManager::CreateProject(const QString& strName,
     return ret;
   }
 
-  ProjectFileSet* proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_CONSTRS);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_CS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_CONSTRS);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setDesignFileSet(DEFAULT_FOLDER_SOURCE);
 
-  proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_SOURCE);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_DS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SOURCE);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
 
-  proFileSet = new ProjectFileSet(this);
-  proFileSet->setSetName(DEFAULT_FOLDER_SIM);
-  proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
-  proFileSet->setRelSrcDir("/" + strName + ".srcs/" + DEFAULT_FOLDER_SIM);
-  Project::Instance()->setProjectFileset(proFileSet);
+  ret = setSimulationFileSet(DEFAULT_FOLDER_SIM);
 
   ProjectRun* proRun = new ProjectRun(this);
   proRun->setRunName(DEFAULT_FOLDER_IMPLE);
@@ -239,25 +226,25 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive) ||
           !suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive) ||
         !suffix.compare("vhd", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -269,12 +256,12 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
@@ -292,19 +279,19 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -316,7 +303,7 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
-          ret = setFileSet(fileSetPath, false);
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
@@ -334,19 +321,19 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = setFileSet(strfile, isFileCopy);
+        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-      ret = setFileSet(strFileName, isFileCopy);
+      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(strFileName);
         if (0 == ret) {
-          ret = setFileSet(strFileName, isFileCopy);
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       }
     } else {
@@ -358,11 +345,28 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(filePath);
         if (0 == ret) {
-          setFileSet(fileSetPath, false);
+          AddOrCreateFileToFileSet(fileSetPath, false);
         }
       }
     }
   }
+  return ret;
+}
+
+int ProjectManager::deleteFile(const QString& strFileName) {
+  int ret = 0;
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  // target or top file cannot be deleted
+  if (strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TOP) ||
+      strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TARGET)) {
+    return -1;
+  }
+
+  proFileSet->deleteFile(strFileName);
   return ret;
 }
 
@@ -401,6 +405,25 @@ int ProjectManager::setTargetConstrs(const QString& strFileName) {
   return ret;
 }
 
+int ProjectManager::setDesignFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_DS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getDesignFileSets() const {
   QStringList retList;
 
@@ -433,6 +456,24 @@ QString ProjectManager::getDesignActiveFileSet() const {
   return strActive;
 }
 
+int ProjectManager::setDesignActive(const QString& strSetName) {
+  int ret = -1;
+  if ("" == strSetName) {
+    return ret;
+  }
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState()) {
+      tmpRun->setSrcSet(strSetName);
+      ret = 0;
+    }
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getDesignFiles(const QString& strFileSet) const {
   QStringList strList;
 
@@ -458,6 +499,25 @@ QString ProjectManager::getDesignTopModule(const QString& strFileSet) const {
     strTopModule = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP);
   }
   return strTopModule;
+}
+
+int ProjectManager::setConstrFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_CS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
 }
 
 QStringList ProjectManager::getConstrFileSets() const {
@@ -492,6 +552,24 @@ QString ProjectManager::getConstrActiveFileSet() const {
   return strActive;
 }
 
+int ProjectManager::setConstrActive(const QString& strSetName) {
+  int ret = -1;
+  if ("" == strSetName) {
+    return ret;
+  }
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState()) {
+      tmpRun->setConstrsSet(strSetName);
+      ret = 0;
+    }
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getConstrFiles(const QString& strFileSet) const {
   QStringList strList;
 
@@ -519,6 +597,25 @@ QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
   return strTargetFile;
 }
 
+int ProjectManager::setSimulationFileSet(const QString& strSetName) {
+  int ret = 0;
+  ret = CreateSrcsFolder(strSetName);
+  if (0 != ret) {
+    return ret;
+  }
+
+  ProjectFileSet* proFileSet = new ProjectFileSet(this);
+  proFileSet->setSetName(strSetName);
+  proFileSet->setSetType(PROJECT_FILE_TYPE_SS);
+  proFileSet->setRelSrcDir("/" + Project::Instance()->projectName() + ".srcs/" +
+                           strSetName);
+  ret = Project::Instance()->setProjectFileset(proFileSet);
+  if (ret) {
+    delete proFileSet;
+  }
+  return ret;
+}
+
 QStringList ProjectManager::getSimulationFileSets() const {
   QStringList retList;
 
@@ -542,6 +639,19 @@ QString ProjectManager::getSimulationActiveFileSet() const {
     strActive = tmpProCfg->activeSimSet();
   }
   return strActive;
+}
+
+int ProjectManager::setSimulationActive(const QString& strSetName) {
+  int ret = 0;
+  if ("" == strSetName) {
+    return -1;
+  }
+
+  ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
+  if (tmpProCfg) {
+    tmpProCfg->setActiveSimSet(strSetName);
+  }
+  return ret;
 }
 
 QStringList ProjectManager::getSimulationFiles(
@@ -573,21 +683,21 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
-int ProjectManager::deleteFileSet(const QString& strFileSet) {
+int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(strFileSet);
+      Project::Instance()->getProjectFileset(strSetName);
   if (PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
-      strFileSet == getDesignActiveFileSet()) {
+      strSetName == getDesignActiveFileSet()) {
     return -1;
   } else if (PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
-             strFileSet == getConstrActiveFileSet()) {
+             strSetName == getConstrActiveFileSet()) {
     return -1;
   } else if (PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
-             strFileSet == getSimulationActiveFileSet()) {
+             strSetName == getSimulationActiveFileSet()) {
     return -1;
   }
-  Project::Instance()->deleteProjectFileset(strFileSet);
+  Project::Instance()->deleteProjectFileset(strSetName);
   return ret;
 }
 
@@ -605,7 +715,7 @@ int ProjectManager::StartProject(const QString& strOspro) {
   return ImportProjectData(strOspro);
 }
 
-void ProjectManager::FinishedProject() { ExportProjectData(); }
+int ProjectManager::FinishedProject() { return ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
   int ret = 0;
@@ -623,10 +733,13 @@ int ProjectManager::ImportProjectData(QString strOspro) {
       if (reader.name() == PROJECT_PROJECT &&
           reader.attributes().hasAttribute(PROJECT_PATH)) {
         QString strPath = reader.attributes().value(PROJECT_PATH).toString();
-        QString strName =
-            strPath.right(strPath.size() - (strPath.lastIndexOf("/") + 1));
+        QString strName = strPath.mid(
+            strPath.lastIndexOf("/") + 1,
+            strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
+        ;
         Project::Instance()->setProjectName(strName);
-        Project::Instance()->setProjectPath(strPath);
+        Project::Instance()->setProjectPath(
+            strPath.left(strPath.lastIndexOf("/")));
       }
       if (reader.name() == PROJECT_CONFIGURATION) {
         while (true) {
@@ -938,23 +1051,6 @@ int ProjectManager::CreateProjectDir() {
       break;
     }
 
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" +
-                   DEFAULT_FOLDER_CONSTRS)) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" + DEFAULT_FOLDER_SIM)) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".srcs/" +
-                   DEFAULT_FOLDER_SOURCE)) {
-      ret = -2;
-      break;
-    }
-
     if (!dir.mkdir(tmpPath + "/" + tmpName + ".runs/" + DEFAULT_FOLDER_IMPLE)) {
       ret = -2;
       break;
@@ -969,14 +1065,50 @@ int ProjectManager::CreateProjectDir() {
   return ret;
 }
 
-int ProjectManager::CreateFolder(QString strPath) {
-  QDir dir(strPath);
-  if (!dir.exists()) {
-    if (!dir.mkpath(strPath)) {
-      return -2;
+int ProjectManager::CreateSrcsFolder(QString strFolderName) {
+  int ret = 0;
+  do {
+    QString tmpName = Project::Instance()->projectName();
+    QString tmpPath = Project::Instance()->projectPath();
+
+    if ("" == tmpName || "" == tmpPath || "" == strFolderName) {
+      ret = -1;
+      break;
     }
-  }
-  return 0;
+
+    QString strPath = tmpPath + "/" + tmpName + ".srcs/" + strFolderName;
+    QDir dir(strPath);
+    if (!dir.exists()) {
+      if (!dir.mkpath(strPath)) {
+        ret = -2;
+        break;
+      }
+    }
+  } while (false);
+  return ret;
+}
+
+int ProjectManager::CreateRunsFolder(QString strFolderName) {
+  int ret = 0;
+  do {
+    QString tmpName = Project::Instance()->projectName();
+    QString tmpPath = Project::Instance()->projectPath();
+
+    if ("" == tmpName || "" == tmpPath || "" == strFolderName) {
+      ret = -1;
+      break;
+    }
+
+    QString strPath = tmpPath + "/" + tmpName + ".runs/" + strFolderName;
+    QDir dir(strPath);
+    if (!dir.exists()) {
+      if (!dir.mkpath(strPath)) {
+        ret = -2;
+        break;
+      }
+    }
+  } while (false);
+  return ret;
 }
 
 int ProjectManager::CreateVerilogFile(QString strFile) {
@@ -1093,7 +1225,8 @@ int ProjectManager::CreateSDCFile(QString strFile) {
   return ret;
 }
 
-int ProjectManager::setFileSet(const QString& strFileName, bool isFileCopy) {
+int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
+                                             bool isFileCopy) {
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
