@@ -390,6 +390,13 @@ int ProjectManager::setTopModule(const QString& strFileName) {
   if (nullptr == proFileSet) {
     return -1;
   }
+
+  QString strFilePath = proFileSet->getFilePath(strFileName);
+  if ("" == strFilePath) {
+    // the file is not exist.
+    return -1;
+  }
+
   proFileSet->setOption(PROJECT_FILE_CONFIG_TOP, strFileName);
   return ret;
 }
@@ -401,6 +408,13 @@ int ProjectManager::setTargetConstrs(const QString& strFileName) {
   if (nullptr == proFileSet) {
     return -1;
   }
+
+  QString strFilePath = proFileSet->getFilePath(strFileName);
+  if ("" == strFilePath) {
+    // the file is not exist.
+    return -1;
+  }
+
   proFileSet->setOption(PROJECT_FILE_CONFIG_TARGET, strFileName);
   return ret;
 }
@@ -461,6 +475,19 @@ int ProjectManager::setDesignActive(const QString& strSetName) {
   if ("" == strSetName) {
     return ret;
   }
+
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(strSetName);
+  if (nullptr == proFileSet) {
+    // the set is not exist.
+    return ret;
+  }
+
+  if (proFileSet->getSetType() != PROJECT_FILE_TYPE_DS) {
+    // the set is not design file set.
+    return ret;
+  }
+
   QMap<QString, ProjectRun*> tmpRunMap =
       Project::Instance()->getMapProjectRun();
 
@@ -557,6 +584,19 @@ int ProjectManager::setConstrActive(const QString& strSetName) {
   if ("" == strSetName) {
     return ret;
   }
+
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(strSetName);
+  if (nullptr == proFileSet) {
+    // the set is not exist.
+    return ret;
+  }
+
+  if (proFileSet->getSetType() != PROJECT_FILE_TYPE_CS) {
+    // the set is not constraints file set.
+    return ret;
+  }
+
   QMap<QString, ProjectRun*> tmpRunMap =
       Project::Instance()->getMapProjectRun();
 
@@ -645,6 +685,18 @@ int ProjectManager::setSimulationActive(const QString& strSetName) {
   int ret = 0;
   if ("" == strSetName) {
     return -1;
+  }
+
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(strSetName);
+  if (nullptr == proFileSet) {
+    // the set is not exist.
+    return ret;
+  }
+
+  if (proFileSet->getSetType() != PROJECT_FILE_TYPE_SS) {
+    // the set is not simulation file set.
+    return ret;
   }
 
   ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
