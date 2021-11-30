@@ -42,9 +42,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 # TODO: add the list of files
 set (SRC_CPP_LIST
+  Console.cpp
+  TclController.cpp
 )
 
 set (SRC_H_LIST
+  Console.h
+  TclController.h
 )
 
 set (SRC_UI_LIST
@@ -70,16 +74,16 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 # TODO: Add the list of exported headers (See NewProject as example)
-#install(
-#    FILES ${PROJECT_SOURCE_DIR}/../Console/
-#    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
-  
+install(
+   FILES ${PROJECT_SOURCE_DIR}/../Console/Console.h ${PROJECT_SOURCE_DIR}/../Console/TclController.h
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 # TODO: Add the standalone executable to test the console (See NewProject as example)
-#add_executable(console_bin
-#	${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp
-#	${PROJECT_SOURCE_DIR}/../Console/console.qrc)
-#target_link_libraries(console_bin foedag tcl_stubb tcl_static zlib)
-#set_target_properties(console_bin PROPERTIES OUTPUT_NAME console)
+add_executable(console_bin
+	${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
+	# ${PROJECT_SOURCE_DIR}/../Console/console.qrc)
+target_link_libraries(console_bin console foedag tcl_stubb tcl_static zlib)
+set_target_properties(console_bin PROPERTIES OUTPUT_NAME console)
 
