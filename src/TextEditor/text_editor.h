@@ -5,14 +5,12 @@
 
 namespace FOEDAG {
 
-class TextEditor : public QObject
-{
-    Q_OBJECT
-public:
-    explicit TextEditor(QObject *parent = nullptr);
+class TextEditor : public QObject {
+  Q_OBJECT
+ public:
+  explicit TextEditor(QObject *parent = nullptr);
 
-signals:
-
+ signals:
 };
-}
-#endif // TEXTEDITOR_H
+}  // namespace FOEDAG
+#endif  // TEXTEDITOR_H

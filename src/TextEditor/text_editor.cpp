@@ -2,7 +2,4 @@
 
 using namespace FOEDAG;
 
-TextEditor::TextEditor(QObject *parent) : QObject(parent)
-{
-
-}
+TextEditor::TextEditor(QObject *parent) : QObject(parent) {}
