@@ -79,8 +79,10 @@ static const QLatin1String mimeTextPlain("text/plain");
 static const QLatin1String mimeRectangularWin("MSDEVColumnSelect");
 static const QLatin1String mimeRectangular("text/x-qscintilla-rectangular");
 
+#if 0 //Temporarily comment out the code applied to the Mac
 #if QT_VERSION < 0x060000 && defined(Q_OS_OSX)
 extern void initialiseRectangularPasteboardMime();
+#endif
 #endif
 
 
@@ -108,9 +110,10 @@ QsciScintillaBase::QsciScintillaBase(QWidget *parent)
     viewport()->setAttribute(Qt::WA_NoSystemBackground);
 
     triple_click.setSingleShot(true);
-
+#if 0 //Temporarily comment out the code applied to the Mac
 #if QT_VERSION < 0x060000 && defined(Q_OS_OSX)
     initialiseRectangularPasteboardMime();
+#endif
 #endif
 
     sci = new QsciScintillaQt(this);

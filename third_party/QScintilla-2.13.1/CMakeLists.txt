@@ -128,7 +128,7 @@ set ( qscintilla2_qt_SRCS
 	src/qscistyledtext.cpp
 	src/InputMethod.cpp
 	src/ListBoxQt.cpp
-	#	src/MacPasteboardMime.cpp
+ #	src/MacPasteboardMime.cpp --Temporarily comment out the code applied to the Mac
 	src/PlatQt.cpp
 	src/SciAccessibility.cpp
 	src/SciClasses.cpp
