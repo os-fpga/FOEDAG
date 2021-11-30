@@ -11,6 +11,7 @@ else()
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
+add_definitions(-w)
 
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
@@ -128,7 +129,7 @@ set ( qscintilla2_qt_SRCS
 	src/qscistyledtext.cpp
 	src/InputMethod.cpp
 	src/ListBoxQt.cpp
-	src/MacPasteboardMime.cpp
+	#	src/MacPasteboardMime.cpp
 	src/PlatQt.cpp
 	src/SciAccessibility.cpp
 	src/SciClasses.cpp
