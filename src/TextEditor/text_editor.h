@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include "text_editor_form.h"
+
 namespace FOEDAG {
 
 class TextEditor : public QObject {
@@ -10,7 +12,11 @@ class TextEditor : public QObject {
  public:
   explicit TextEditor(QObject *parent = nullptr);
 
- signals:
+  void ShowTextEditor();
+  QWidget *GetTextEditor();
+
+ public slots:
+  void OpenFile(const QString &strFileName);
 };
 }  // namespace FOEDAG
 #endif  // TEXTEDITOR_H

@@ -27,24 +27,24 @@ include_directories(
   src)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 set (qscintilla2_qt_HDRS
  src/Qsci/qsciglobal.h
- src/Qsci/qscicommand.h
- src/Qsci/qscicommandset.h
- src/Qsci/qscidocument.h
- src/Qsci/qscistyle.h
- src/Qsci/qscistyledtext.h
  src/Qsci/qsciscintilla.h
  src/Qsci/qsciscintillabase.h
  src/Qsci/qsciabstractapis.h
  src/Qsci/qsciapis.h
+ src/Qsci/qscicommand.h
+ src/Qsci/qscicommandset.h
+ src/Qsci/qscidocument.h
  src/Qsci/qscilexer.h
- src/Qsci/qscilexerpython.h
  src/Qsci/qscilexertcl.h
  src/Qsci/qscilexerverilog.h
  src/Qsci/qscilexervhdl.h
  src/Qsci/qscimacro.h
+ src/Qsci/qscistyle.h
+ src/Qsci/qscistyledtext.h
  src/SciClasses.h
  src/ScintillaQt.h
  src/ListBoxQt.h
@@ -120,7 +120,6 @@ set ( qscintilla2_qt_SRCS
 	src/qscicommandset.cpp
 	src/qscidocument.cpp
 	src/qscilexer.cpp
-	src/qscilexerpython.cpp
 	src/qscilexertcl.cpp
 	src/qscilexerverilog.cpp
 	src/qscilexervhdl.cpp
@@ -134,7 +133,6 @@ set ( qscintilla2_qt_SRCS
 	src/SciAccessibility.cpp
 	src/SciClasses.cpp
 	src/ScintillaQt.cpp
-	scintilla/lexers/LexPython.cpp
 	scintilla/lexers/LexTCL.cpp
 	scintilla/lexers/LexVHDL.cpp
 	scintilla/lexers/LexVerilog.cpp
@@ -199,5 +197,4 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/qsciapis.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Qscintilla2)
   
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 

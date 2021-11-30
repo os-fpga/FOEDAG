@@ -17,8 +17,8 @@ include (../../cmake/cmake_tcl.txt)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/../../src
-  ${CMAKE_CURRENT_BINARY_DIR}/../../include/
-  ${PORJECT_SOURCE_DIR}/../../third_party/QScintilla-2.13.1/)
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include
+  ${PROJECT_SOURCE_DIR}/../../third_party/QScintilla-2.13.1/src)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
@@ -39,7 +39,7 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor PUBLIC qscintilla2_qt)
+target_link_libraries(texteditor  PUBLIC qscintilla2_qt)
 target_link_libraries(texteditor  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
 
@@ -52,16 +52,15 @@ install (
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TEXTEDITOR_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
-#install(
-#    FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/sources_form.h
-#    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/TextEditor)
+install(
+    FILES ${PROJECT_SOURCE_DIR}/../TextEditor/text_editor.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/TextEditor)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-#add_executable(texteditor_bin
- #${PROJECT_SOURCE_DIR}/../ProjNavigator/Test/projnavigator_main.cpp
- #${PROJECT_SOURCE_DIR}/../ProjNavigator/projnavigator.qrc
- #)
-#target_link_libraries(projnavigator_bin foedag tcl_stubb tcl_static zlib)
-#set_target_properties(projnavigator_bin PROPERTIES OUTPUT_NAME projnavigator)
+add_executable(texteditor_bin
+ ${PROJECT_SOURCE_DIR}/../TextEditor/Test/texteditor_main.cpp
+ )
+target_link_libraries(texteditor_bin foedag tcl_stubb tcl_static zlib)
+set_target_properties(texteditor_bin PROPERTIES OUTPUT_NAME texteditor)
 
