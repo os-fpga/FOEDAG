@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
 else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
 include (../../cmake/cmake_qt.txt)
@@ -34,6 +34,18 @@ set (qscintilla2_qt_HDRS
  src/Qsci/qscidocument.h
  src/Qsci/qscistyle.h
  src/Qsci/qscistyledtext.h
+ src/Qsci/qsciscintilla.h
+ src/Qsci/qsciscintillabase.h
+ src/Qsci/qsciabstractapis.h
+ src/Qsci/qsciapis.h
+ src/Qsci/qscilexer.h
+ src/Qsci/qscilexerpython.h
+ src/Qsci/qscilexertcl.h
+ src/Qsci/qscilexerverilog.h
+ src/Qsci/qscilexervhdl.h
+ src/Qsci/qscimacro.h
+ src/SciClasses.h
+ src/ScintillaQt.h
  src/ListBoxQt.h
  src/SciAccessibility.h
  scintilla/include/ILexer.h
@@ -167,24 +179,8 @@ set ( qscintilla2_qt_SRCS
 	scintilla/src/XPM.cpp
 	)
 
-set ( qscintilla2_qt_MOCS
-	src/Qsci/qsciscintilla.h
-	src/Qsci/qsciscintillabase.h
-	src/Qsci/qsciabstractapis.h
-	src/Qsci/qsciapis.h
-	src/Qsci/qscilexer.h
-	src/Qsci/qscilexerpython.h
-	src/Qsci/qscilexertcl.h
-	src/Qsci/qscilexerverilog.h
-	src/Qsci/qscilexervhdl.h
-	src/Qsci/qscimacro.h
-	src/SciClasses.h
-	src/ScintillaQt.h
-	)
-QT5_WRAP_CPP(MOCS ${qscintilla2_qt_MOCS})
 
-
-add_library (qscintilla2_qt STATIC ${qscintilla2_qt_SRCS} ${qscintilla2_qt_HDRS} ${UIS} ${RSCS} ${MOCS} )
+add_library (qscintilla2_qt STATIC ${qscintilla2_qt_SRCS} ${qscintilla2_qt_HDRS})
 
 target_link_libraries (qscintilla2_qt  PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets)
 target_compile_definitions(qscintilla2_qt PRIVATE QSCINTILLA2_QT_LIBRARY)
