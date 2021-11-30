@@ -1,21 +1,23 @@
 #pragma once
 
 #include <QObject>
-extern "C" {
-#include <tcl.h>
+namespace FOEDAG {
+class TclInterpreter;
 }
 
 class TclController : public QObject {
   Q_OBJECT
  public:
-  explicit TclController(Tcl_Interp *interpreter);
+  explicit TclController(FOEDAG::TclInterpreter *interpreter);
   ~TclController();
+
+ public slots:
   void runCommand(const QString &command);
 
  signals:
   void sendOutput(QString);
 
  private:
-  Tcl_Interp *m_interpreter{nullptr};
-  Tcl_Channel m_channel;
+  FOEDAG::TclInterpreter *m_interpreter{nullptr};
+  // Tcl_Channel m_channel;
 };

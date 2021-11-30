@@ -36,7 +36,7 @@ endif()
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
@@ -61,7 +61,7 @@ add_library(console STATIC
 #  console.qrc
 )
 
-target_link_libraries(console  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml foedag)
 target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
 
 set(CONSOLE_STATIC_LIB libconsole.a)
@@ -75,7 +75,8 @@ install (
 
 # TODO: Add the list of exported headers (See NewProject as example)
 install(
-   FILES ${PROJECT_SOURCE_DIR}/../Console/Console.h ${PROJECT_SOURCE_DIR}/../Console/TclController.h
+   FILES ${PROJECT_SOURCE_DIR}/../Console/Console.h
+         ${PROJECT_SOURCE_DIR}/../Console/TclController.h
    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
@@ -84,6 +85,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 add_executable(console_bin
 	${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
 	# ${PROJECT_SOURCE_DIR}/../Console/console.qrc)
-target_link_libraries(console_bin console foedag tcl_stubb tcl_static zlib)
+target_link_libraries(console_bin foedag tcl_stubb tcl_static zlib console)
 set_target_properties(console_bin PROPERTIES OUTPUT_NAME console)
 

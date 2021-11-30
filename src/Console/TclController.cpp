@@ -2,17 +2,16 @@
 
 #include <QDebug>
 
+#include "Tcl/TclInterpreter.h"
 #include "string.h"
 
-TclController::TclController(Tcl_Interp *interpreter)
+TclController::TclController(FOEDAG::TclInterpreter *interpreter)
     : m_interpreter(interpreter) {}
 
 TclController::~TclController() {}
 
 void TclController::runCommand(const QString &command) {
-  auto cmd = command.toStdString().c_str();
-  int a = Tcl_EvalEx(m_interpreter, cmd, -1, 0);
-  qDebug() << "Return code: " << a;
-  QString data = Tcl_GetStringResult(m_interpreter);
-  emit sendOutput(data);
+  auto cmd = command.toStdString();
+  auto output = m_interpreter->evalCmd(cmd);
+  emit sendOutput(QString(output.c_str()));
 }
