@@ -25,7 +25,6 @@ void Editor::InitToolBar() {
   // m_actSearch->setIcon( QIcon(""));
   m_actSearch->setText(tr("&Search"));
   m_actSearch->setShortcut(tr("Ctrl+R"));
-  // connect(m_actSearch,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
   m_toolBar->addAction(m_actSearch);
   m_toolBar->addSeparator();
 
@@ -33,56 +32,54 @@ void Editor::InitToolBar() {
   // m_actSave->setIcon( QIcon(""));
   m_actSave->setText(tr("&Save"));
   m_actSave->setShortcut(tr("Ctrl+S"));
-  // connect(m_actSearch,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
   m_toolBar->addAction(m_actSave);
   m_toolBar->addSeparator();
 
   m_actUndo = new QAction(m_toolBar);
   // m_actUndo->setIcon( QIcon(""));
-  m_actUndo->setText(tr("undo"));
-  // connect(m_actUndo,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actUndo->setText(tr("&Undo"));
+  m_actUndo->setShortcut(tr("Ctrl+Z"));
   m_toolBar->addAction(m_actUndo);
   m_toolBar->addSeparator();
 
   m_actRedo = new QAction(m_toolBar);
   // m_actRedo->setIcon( QIcon(""));
-  m_actRedo->setText(tr("redo"));
-  // connect(m_actRedo,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actRedo->setText(tr("&Redo"));
+  m_actRedo->setShortcut(tr("Ctrl+Y"));
   m_toolBar->addAction(m_actRedo);
   m_toolBar->addSeparator();
 
   m_actCut = new QAction(m_toolBar);
   // m_actCut->setIcon( QIcon(""));
-  m_actCut->setText(tr("cut"));
-  // connect(m_actCut,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actCut->setText(tr("&Cut"));
+  m_actCut->setShortcut(tr("Ctrl+X"));
   m_toolBar->addAction(m_actCut);
   m_toolBar->addSeparator();
 
   m_actCopy = new QAction(m_toolBar);
   // m_actCopy->setIcon( QIcon(""));
-  m_actCopy->setText(tr("copy"));
-  // connect(m_actCopy,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actCopy->setText(tr("&Copy"));
+  m_actCopy->setShortcut(tr("Ctrl+C"));
   m_toolBar->addAction(m_actCopy);
   m_toolBar->addSeparator();
 
   m_actPaste = new QAction(m_toolBar);
   // m_actPaste->setIcon( QIcon(""));
-  m_actPaste->setText(tr("paste"));
-  // connect(m_actPaste,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actPaste->setText(tr("&Paste"));
+  m_actPaste->setShortcut(tr("Ctrl+V"));
   m_toolBar->addAction(m_actPaste);
   m_toolBar->addSeparator();
 
   m_actDelete = new QAction(m_toolBar);
   // m_actDelete->setIcon( QIcon(""));
-  m_actDelete->setText(tr("delete"));
-  // connect(m_actDelete,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actDelete->setText(tr("Delete"));
   m_toolBar->addAction(m_actDelete);
   m_toolBar->addSeparator();
 
   m_actSelect = new QAction(m_toolBar);
   // m_actSelect->setIcon( QIcon(""));
-  m_actSelect->setText(tr("select"));
-  // connect(m_actSelect,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_actSelect->setText(tr("&Select"));
+  m_actSelect->setShortcut(tr("Ctrl+A"));
   m_toolBar->addAction(m_actSelect);
 }
 
