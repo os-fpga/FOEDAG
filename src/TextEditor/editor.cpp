@@ -4,15 +4,86 @@ using namespace FOEDAG;
 
 Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
     : QWidget(parent) {
+  m_toolBar = new QToolBar(this);
+  m_toolBar->setIconSize(QSize(32, 32));
+  InitToolBar();
+
   m_scintilla = new QsciScintilla(this);
   InitScintilla(iFileType);
   SetScintillaText(strFileName);
 
-  QBoxLayout *l = new QBoxLayout(QBoxLayout::TopToBottom);
-  l->setContentsMargins(0, 0, 0, 0);
-  l->setSpacing(0);
-  l->addWidget(m_scintilla);
-  setLayout(l);
+  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom);
+  box->setContentsMargins(0, 0, 0, 0);
+  box->setSpacing(0);
+  box->addWidget(m_toolBar);
+  box->addWidget(m_scintilla);
+  setLayout(box);
+}
+
+void Editor::InitToolBar() {
+  m_actSearch = new QAction(m_toolBar);
+  // m_actSearch->setIcon( QIcon(""));
+  m_actSearch->setText(tr("&Search"));
+  m_actSearch->setShortcut(tr("Ctrl+R"));
+  // connect(m_actSearch,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actSearch);
+  m_toolBar->addSeparator();
+
+  m_actSave = new QAction(m_toolBar);
+  // m_actSave->setIcon( QIcon(""));
+  m_actSave->setText(tr("&Save"));
+  m_actSave->setShortcut(tr("Ctrl+S"));
+  // connect(m_actSearch,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actSave);
+  m_toolBar->addSeparator();
+
+  m_actUndo = new QAction(m_toolBar);
+  // m_actUndo->setIcon( QIcon(""));
+  m_actUndo->setText(tr("undo"));
+  // connect(m_actUndo,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actUndo);
+  m_toolBar->addSeparator();
+
+  m_actRedo = new QAction(m_toolBar);
+  // m_actRedo->setIcon( QIcon(""));
+  m_actRedo->setText(tr("redo"));
+  // connect(m_actRedo,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actRedo);
+  m_toolBar->addSeparator();
+
+  m_actCut = new QAction(m_toolBar);
+  // m_actCut->setIcon( QIcon(""));
+  m_actCut->setText(tr("cut"));
+  // connect(m_actCut,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actCut);
+  m_toolBar->addSeparator();
+
+  m_actCopy = new QAction(m_toolBar);
+  // m_actCopy->setIcon( QIcon(""));
+  m_actCopy->setText(tr("copy"));
+  // connect(m_actCopy,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actCopy);
+  m_toolBar->addSeparator();
+
+  m_actPaste = new QAction(m_toolBar);
+  // m_actPaste->setIcon( QIcon(""));
+  m_actPaste->setText(tr("paste"));
+  // connect(m_actPaste,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actPaste);
+  m_toolBar->addSeparator();
+
+  m_actDelete = new QAction(m_toolBar);
+  // m_actDelete->setIcon( QIcon(""));
+  m_actDelete->setText(tr("delete"));
+  // connect(m_actDelete,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actDelete);
+  m_toolBar->addSeparator();
+
+  m_actSelect = new QAction(m_toolBar);
+  // m_actSelect->setIcon( QIcon(""));
+  m_actSelect->setText(tr("select"));
+  // connect(m_actSelect,&QAction::triggered,this,&sourcegrid::slot_deletegriditem);
+  m_toolBar->addAction(m_actSelect);
 }
 
 void Editor::InitScintilla(int iFileType) {
