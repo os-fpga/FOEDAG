@@ -14,7 +14,7 @@
 #include "Qsci/qscilexertcl.h"
 #include "Qsci/qscilexerverilog.h"
 #include "Qsci/qscilexervhdl.h"
-#include "Qsci/qsciscintillabase.h"
+//#include "Qsci/qsciscintillabase.h"
 
 namespace FOEDAG {
 
@@ -31,9 +31,14 @@ class Editor : public QWidget {
   explicit Editor(QString strFileName, int iFileType,
                   QWidget* parent = nullptr);
 
- signals:
+  QString getFileName() const;
+  bool isModified() const;
+
+ public slots:
+  void Save();
 
  private:
+  QString m_strFileName;
   QsciScintilla* m_scintilla;
 
   QToolBar* m_toolBar;

@@ -17,6 +17,9 @@ class TextEditorForm : public QWidget {
   void InitForm();
   int OpenFile(const QString &strFileName);
 
+ private slots:
+  void SlotTabCloseRequested(int index);
+
  private:
   QTabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;

@@ -1,5 +1,7 @@
 #include "text_editor_form.h"
 
+#include <QMessageBox>
+
 using namespace FOEDAG;
 
 Q_GLOBAL_STATIC(TextEditorForm, texteditor)
@@ -14,6 +16,8 @@ void TextEditorForm::InitForm() {
 
   m_tab_editor = new QTabWidget(this);
   m_tab_editor->setTabsClosable(true);
+  connect(m_tab_editor, SIGNAL(tabCloseRequested(int)), this,
+          SLOT(SlotTabCloseRequested(int)));
 
   if (this->layout() != nullptr) {
     delete this->layout();
@@ -63,4 +67,34 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   m_map_file_tabIndex_editor.insert(strFileName, pair);
 
   return ret;
+}
+
+void TextEditorForm::SlotTabCloseRequested(int index) {
+  if (index == -1) {
+    return;
+  }
+
+  Editor *tabItem = (Editor *)m_tab_editor->widget(index);
+  QString strName = m_tab_editor->tabText(index);
+  if (tabItem->isModified()) {
+    int ret = QMessageBox::question(
+        this, tr(""), tr("Save changes in %1?").arg(strName), QMessageBox::Yes,
+        QMessageBox::No, QMessageBox::Cancel);
+    if (ret == QMessageBox::Yes) {
+      tabItem->Save();
+    } else if (ret == QMessageBox::Cancel) {
+      return;
+    }
+  }
+
+  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
+  if (iter != m_map_file_tabIndex_editor.end()) {
+    m_map_file_tabIndex_editor.erase(iter);
+  }
+  // Removes the tab at position index from this stack of widgets.
+  // The page widget itself is not deleted.
+  m_tab_editor->removeTab(index);
+
+  delete (tabItem);
+  tabItem = nullptr;
 }

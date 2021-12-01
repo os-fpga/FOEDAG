@@ -4,6 +4,7 @@ using namespace FOEDAG;
 
 Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
     : QWidget(parent) {
+  m_strFileName = strFileName;
   m_toolBar = new QToolBar(this);
   m_toolBar->setIconSize(QSize(32, 32));
   InitToolBar();
@@ -11,6 +12,9 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   m_scintilla = new QsciScintilla(this);
   InitScintilla(iFileType);
   SetScintillaText(strFileName);
+  //  connect(m_scintilla, SIGNAL(textChanged()),this,
+  //  SLOT(documentWasModified())); connect(m_scintilla,
+  //  SIGNAL(selectionChanged()),this, SLOT(documentWasModified()));
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom);
   box->setContentsMargins(0, 0, 0, 0);
@@ -20,6 +24,22 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   setLayout(box);
 
   UpdateToolBarStates();
+}
+
+QString Editor::getFileName() const { return m_strFileName; }
+
+bool Editor::isModified() const { return m_scintilla->isModified(); }
+
+void Editor::Save() {
+  QFile file(m_strFileName);
+  if (!file.open(QFile::WriteOnly)) {
+    return;
+  }
+
+  QTextStream out(&file);
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  out << m_scintilla->text();
+  QApplication::restoreOverrideCursor();
 }
 
 void Editor::InitToolBar() {
@@ -144,7 +164,7 @@ void Editor::UpdateToolBarStates() {
   m_actCut->setEnabled(m_scintilla->hasSelectedText());
   m_actCopy->setEnabled(m_scintilla->hasSelectedText());
   m_actDelete->setEnabled(m_scintilla->hasSelectedText());
-  QsciScintillaBase qscintillaBase;
-  m_actPaste->setEnabled(
-      qscintillaBase.SendScintilla(QsciScintillaBase::SCI_CANPASTE));
+  //  QsciScintillaBase qscintillaBase;
+  //  m_actPaste->setEnabled(
+  //      qscintillaBase.SendScintilla(QsciScintillaBase::SCI_CANPASTE));
 }
