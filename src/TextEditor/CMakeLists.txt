@@ -24,11 +24,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   text_editor.cpp
-  text_editor_form.cpp)
+  text_editor_form.cpp
+  editor.cpp)
 
 set (SRC_H_LIST
   text_editor.h
-  text_editor_form.h)
+  text_editor_form.h
+  editor.h)
 
 set (SRC_UI_LIST
   )

@@ -1,11 +1,5 @@
 #include "text_editor_form.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QFileInfo>
-#include <QTextStream>
-#include <QVBoxLayout>
-
 using namespace FOEDAG;
 
 Q_GLOBAL_STATIC(TextEditorForm, texteditor)
@@ -35,10 +29,6 @@ void TextEditorForm::InitForm() {
 
 int TextEditorForm::OpenFile(const QString &strFileName) {
   int ret = 0;
-  QFile file(strFileName);
-  if (!file.open(QFile::ReadOnly)) {
-    return -1;
-  }
 
   int index = 0;
   auto iter = m_map_file_tabIndex_editor.find(strFileName);
@@ -62,72 +52,15 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     filetype = FILE_TYPE_UNKOWN;
   }
 
-  QsciScintilla *qscintilla = CreateScintilla(filetype);
-  if (nullptr == qscintilla) {
-    return -1;
-  }
+  Editor *editor = new Editor(strFileName, filetype, this);
 
-  QTextStream in(&file);
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  qscintilla->setText(in.readAll());
-  QApplication::restoreOverrideCursor();
-  qscintilla->setObjectName(strFileName);
-
-  index = m_tab_editor->addTab(qscintilla, filename);
+  index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
 
-  QPair<int, QsciScintilla *> pair;
+  QPair<int, Editor *> pair;
   pair.first = index;
-  pair.second = qscintilla;
+  pair.second = editor;
   m_map_file_tabIndex_editor.insert(strFileName, pair);
 
   return ret;
-}
-
-QsciScintilla *TextEditorForm::CreateScintilla(int iFileType) {
-  QsciScintilla *qscintilla = new QsciScintilla(this);
-  if (nullptr == qscintilla) {
-    return nullptr;
-  }
-  qscintilla->setMarginType(0, QsciScintilla::NumberMargin);
-  qscintilla->setMarginLineNumbers(0, true);
-  qscintilla->setTabWidth(4);
-  qscintilla->setAutoIndent(true);
-  qscintilla->setIndentationGuides(QsciScintilla::SC_IV_LOOKBOTH);
-  qscintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
-
-  QsciLexer *textLexer;
-  if (FILE_TYPE_VERILOG == iFileType) {
-    textLexer = new QsciLexerVerilog(qscintilla);
-  } else if (FILE_TYPE_VHDL == iFileType) {
-    textLexer = new QsciLexerVHDL(qscintilla);
-  } else if (FILE_TYPE_TCL == iFileType) {
-    textLexer = new QsciLexerTCL(qscintilla);
-  }
-
-  if (FILE_TYPE_VERILOG == iFileType || FILE_TYPE_VHDL == iFileType ||
-      FILE_TYPE_TCL == iFileType) {
-    qscintilla->setLexer(textLexer);
-
-    QsciAPIs *apis = new QsciAPIs(textLexer);
-    apis->add(QString("begin"));
-    apis->add(QString("always"));
-    apis->prepare();
-
-    qscintilla->setAutoCompletionSource(QsciScintilla::AcsAll);
-    qscintilla->setAutoCompletionCaseSensitivity(true);
-    qscintilla->setAutoCompletionThreshold(1);
-  }
-
-  qscintilla->setCaretLineVisible(true);
-  qscintilla->setCaretLineBackgroundColor(Qt::lightGray);
-  qscintilla->SendScintilla(QsciScintilla::SCI_SETCODEPAGE,
-                            QsciScintilla::SC_CP_UTF8);
-  qscintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
-  qscintilla->setFoldMarginColors(Qt::gray, Qt::lightGray);
-
-  // connect(qscintilla, SIGNAL(textChanged()), this,
-  // SLOT(documentWasModified()));
-
-  return qscintilla;
 }

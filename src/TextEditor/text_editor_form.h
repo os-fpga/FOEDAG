@@ -4,19 +4,9 @@
 #include <QTabWidget>
 #include <QWidget>
 
-#include "Qsci/qsciapis.h"
-#include "Qsci/qscilexertcl.h"
-#include "Qsci/qscilexerverilog.h"
-#include "Qsci/qscilexervhdl.h"
+#include "editor.h"
 
 namespace FOEDAG {
-
-enum FileType {
-  FILE_TYPE_VERILOG,
-  FILE_TYPE_VHDL,
-  FILE_TYPE_TCL,
-  FILE_TYPE_UNKOWN
-};
 
 class TextEditorForm : public QWidget {
   Q_OBJECT
@@ -29,9 +19,7 @@ class TextEditorForm : public QWidget {
 
  private:
   QTabWidget *m_tab_editor;
-  QMap<QString, QPair<int, QsciScintilla *>> m_map_file_tabIndex_editor;
-
-  QsciScintilla *CreateScintilla(int iFileType);
+  QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
 };
 }  // namespace FOEDAG
 #endif  // TEXT_EDITOR_FORM_H
