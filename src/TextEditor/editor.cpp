@@ -18,6 +18,8 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_toolBar);
   box->addWidget(m_scintilla);
   setLayout(box);
+
+  UpdateToolBarStates();
 }
 
 void Editor::InitToolBar() {
@@ -132,4 +134,17 @@ void Editor::SetScintillaText(QString strFileName) {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_scintilla->setText(in.readAll());
   QApplication::restoreOverrideCursor();
+}
+
+void Editor::UpdateToolBarStates() {
+  m_actSave->setEnabled(!m_scintilla->isModified());
+  m_actUndo->setEnabled(m_scintilla->isUndoAvailable());
+  m_actRedo->setEnabled(m_scintilla->isRedoAvailable());
+
+  m_actCut->setEnabled(m_scintilla->hasSelectedText());
+  m_actCopy->setEnabled(m_scintilla->hasSelectedText());
+  m_actDelete->setEnabled(m_scintilla->hasSelectedText());
+  QsciScintillaBase qscintillaBase;
+  m_actPaste->setEnabled(
+      qscintillaBase.SendScintilla(QsciScintillaBase::SCI_CANPASTE));
 }

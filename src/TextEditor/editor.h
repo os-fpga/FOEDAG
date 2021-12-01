@@ -14,6 +14,7 @@
 #include "Qsci/qscilexertcl.h"
 #include "Qsci/qscilexerverilog.h"
 #include "Qsci/qscilexervhdl.h"
+#include "Qsci/qsciscintillabase.h"
 
 namespace FOEDAG {
 
@@ -52,6 +53,8 @@ class Editor : public QWidget {
   void InitToolBar();
   void InitScintilla(int iFileType);
   void SetScintillaText(QString strFileName);
+
+  void UpdateToolBarStates();
 };
 
 }  // namespace FOEDAG
