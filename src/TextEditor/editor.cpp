@@ -30,6 +30,8 @@ QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
+void Editor::Search() { return; }
+
 void Editor::Save() {
   QFile file(m_strFileName);
   if (!file.open(QFile::WriteOnly)) {
@@ -41,6 +43,20 @@ void Editor::Save() {
   out << m_scintilla->text();
   QApplication::restoreOverrideCursor();
 }
+
+void Editor::Undo() { m_scintilla->undo(); }
+
+void Editor::Redo() { m_scintilla->redo(); }
+
+void Editor::Cut() { m_scintilla->cut(); }
+
+void Editor::Copy() { m_scintilla->copy(); }
+
+void Editor::Paste() { m_scintilla->paste(); }
+
+void Editor::Delete() { m_scintilla->delete_selection(); }
+
+void Editor::SelectAll() { m_scintilla->selectAll(); }
 
 void Editor::InitToolBar() {
   m_actSearch = new QAction(m_toolBar);
@@ -103,6 +119,16 @@ void Editor::InitToolBar() {
   m_actSelect->setText(tr("&Select"));
   m_actSelect->setShortcut(tr("Ctrl+A"));
   m_toolBar->addAction(m_actSelect);
+
+  connect(m_actSearch, SIGNAL(triggered()), this, SLOT(Search()));
+  connect(m_actSave, SIGNAL(triggered()), this, SLOT(Save()));
+  connect(m_actUndo, SIGNAL(triggered()), this, SLOT(Undo()));
+  connect(m_actRedo, SIGNAL(triggered()), this, SLOT(Redo()));
+  connect(m_actCut, SIGNAL(triggered()), this, SLOT(Cut()));
+  connect(m_actCopy, SIGNAL(triggered()), this, SLOT(Copy()));
+  connect(m_actPaste, SIGNAL(triggered()), this, SLOT(Paste()));
+  connect(m_actDelete, SIGNAL(triggered()), this, SLOT(Delete()));
+  connect(m_actSelect, SIGNAL(triggered()), this, SLOT(SelectAll()));
 }
 
 void Editor::InitScintilla(int iFileType) {

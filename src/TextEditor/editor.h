@@ -35,7 +35,15 @@ class Editor : public QWidget {
   bool isModified() const;
 
  public slots:
+  void Search();
   void Save();
+  void Undo();
+  void Redo();
+  void Cut();
+  void Copy();
+  void Paste();
+  void Delete();
+  void SelectAll();
 
  private:
   QString m_strFileName;

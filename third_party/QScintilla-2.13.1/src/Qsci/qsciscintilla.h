@@ -2069,6 +2069,8 @@ public slots:
     //! \sa zoomIn(), zoomOut()
     virtual void zoomTo(int size);
 
+    virtual void delete_selection();
+
 signals:
     //! This signal is emitted whenever the cursor position changes.  \a line
     //! contains the line number and \a index contains the character index
@@ -2187,7 +2189,6 @@ private slots:
 
     void handleUpdateUI(int updated);
 
-    void delete_selection();
 
 private:
     void detachLexer();
