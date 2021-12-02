@@ -46,7 +46,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   QFileInfo fileInfo(strFileName);
   QString filename = fileInfo.fileName();
   QString suffix = fileInfo.suffix();
-  if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0) {
+  if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("sv"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("svi"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("svh"), Qt::CaseInsensitive) == 0) {
     filetype = FILE_TYPE_VERILOG;
   } else if (suffix.compare(QString("vhd"), Qt::CaseInsensitive) == 0) {
     filetype = FILE_TYPE_VHDL;
