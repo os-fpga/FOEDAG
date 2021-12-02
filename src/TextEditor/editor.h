@@ -34,6 +34,9 @@ class Editor : public QWidget {
   QString getFileName() const;
   bool isModified() const;
 
+ signals:
+  void EditorModificationChanged(bool m);
+
  public slots:
   void Save();
 

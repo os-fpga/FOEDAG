@@ -57,6 +57,8 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   }
 
   Editor *editor = new Editor(strFileName, filetype, this);
+  connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
+          SLOT(SlotUpdateTabTitle(bool)));
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
@@ -97,4 +99,14 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
 
   delete (tabItem);
   tabItem = nullptr;
+}
+
+void TextEditorForm::SlotUpdateTabTitle(bool m) {
+  int index = m_tab_editor->currentIndex();
+  QString strName = m_tab_editor->tabText(index);
+  if (m) {
+    m_tab_editor->setTabText(index, strName + tr("*"));
+  } else {
+    m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
+  }
 }

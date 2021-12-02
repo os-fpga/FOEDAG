@@ -64,7 +64,10 @@ void Editor::SelectAll() { m_scintilla->selectAll(); }
 
 void Editor::QscintillaSelectionChanged() { UpdateToolBarStates(); }
 
-void Editor::QscintillaModificationChanged(bool m) { m_actSave->setEnabled(m); }
+void Editor::QscintillaModificationChanged(bool m) {
+  m_actSave->setEnabled(m);
+  emit EditorModificationChanged(m);
+}
 
 void Editor::QScintillaTextChanged() { UpdateToolBarStates(); }
 
