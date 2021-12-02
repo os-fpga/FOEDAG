@@ -12,9 +12,13 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   m_scintilla = new QsciScintilla(this);
   InitScintilla(iFileType);
   SetScintillaText(strFileName);
-  //  connect(m_scintilla, SIGNAL(textChanged()),this,
-  //  SLOT(documentWasModified())); connect(m_scintilla,
-  //  SIGNAL(selectionChanged()),this, SLOT(documentWasModified()));
+
+  connect(m_scintilla, SIGNAL(textChanged()), this,
+          SLOT(QScintillaTextChanged()));
+  connect(m_scintilla, SIGNAL(selectionChanged()), this,
+          SLOT(QscintillaSelectionChanged()));
+  connect(m_scintilla, SIGNAL(modificationChanged(bool)), this,
+          SLOT(QscintillaModificationChanged(bool)));
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom);
   box->setContentsMargins(0, 0, 0, 0);
@@ -22,8 +26,6 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_toolBar);
   box->addWidget(m_scintilla);
   setLayout(box);
-
-  UpdateToolBarStates();
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
@@ -42,6 +44,8 @@ void Editor::Save() {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   out << m_scintilla->text();
   QApplication::restoreOverrideCursor();
+
+  m_scintilla->setModified(false);
 }
 
 void Editor::Undo() { m_scintilla->undo(); }
@@ -58,6 +62,12 @@ void Editor::Delete() { m_scintilla->delete_selection(); }
 
 void Editor::SelectAll() { m_scintilla->selectAll(); }
 
+void Editor::QscintillaSelectionChanged() { UpdateToolBarStates(); }
+
+void Editor::QscintillaModificationChanged(bool m) { m_actSave->setEnabled(m); }
+
+void Editor::QScintillaTextChanged() { UpdateToolBarStates(); }
+
 void Editor::InitToolBar() {
   m_actSearch = new QAction(m_toolBar);
   // m_actSearch->setIcon( QIcon(""));
@@ -70,6 +80,7 @@ void Editor::InitToolBar() {
   // m_actSave->setIcon( QIcon(""));
   m_actSave->setText(tr("&Save"));
   m_actSave->setShortcut(tr("Ctrl+S"));
+  m_actSave->setEnabled(false);
   m_toolBar->addAction(m_actSave);
   m_toolBar->addSeparator();
 
@@ -77,6 +88,7 @@ void Editor::InitToolBar() {
   // m_actUndo->setIcon( QIcon(""));
   m_actUndo->setText(tr("&Undo"));
   m_actUndo->setShortcut(tr("Ctrl+Z"));
+  m_actUndo->setEnabled(false);
   m_toolBar->addAction(m_actUndo);
   m_toolBar->addSeparator();
 
@@ -84,6 +96,7 @@ void Editor::InitToolBar() {
   // m_actRedo->setIcon( QIcon(""));
   m_actRedo->setText(tr("&Redo"));
   m_actRedo->setShortcut(tr("Ctrl+Y"));
+  m_actRedo->setEnabled(false);
   m_toolBar->addAction(m_actRedo);
   m_toolBar->addSeparator();
 
@@ -91,6 +104,7 @@ void Editor::InitToolBar() {
   // m_actCut->setIcon( QIcon(""));
   m_actCut->setText(tr("&Cut"));
   m_actCut->setShortcut(tr("Ctrl+X"));
+  m_actCut->setEnabled(false);
   m_toolBar->addAction(m_actCut);
   m_toolBar->addSeparator();
 
@@ -98,6 +112,7 @@ void Editor::InitToolBar() {
   // m_actCopy->setIcon( QIcon(""));
   m_actCopy->setText(tr("&Copy"));
   m_actCopy->setShortcut(tr("Ctrl+C"));
+  m_actCopy->setEnabled(false);
   m_toolBar->addAction(m_actCopy);
   m_toolBar->addSeparator();
 
@@ -111,6 +126,7 @@ void Editor::InitToolBar() {
   m_actDelete = new QAction(m_toolBar);
   // m_actDelete->setIcon( QIcon(""));
   m_actDelete->setText(tr("Delete"));
+  m_actDelete->setEnabled(false);
   m_toolBar->addAction(m_actDelete);
   m_toolBar->addSeparator();
 
@@ -183,14 +199,10 @@ void Editor::SetScintillaText(QString strFileName) {
 }
 
 void Editor::UpdateToolBarStates() {
-  m_actSave->setEnabled(!m_scintilla->isModified());
   m_actUndo->setEnabled(m_scintilla->isUndoAvailable());
   m_actRedo->setEnabled(m_scintilla->isRedoAvailable());
 
   m_actCut->setEnabled(m_scintilla->hasSelectedText());
   m_actCopy->setEnabled(m_scintilla->hasSelectedText());
   m_actDelete->setEnabled(m_scintilla->hasSelectedText());
-  //  QsciScintillaBase qscintillaBase;
-  //  m_actPaste->setEnabled(
-  //      qscintillaBase.SendScintilla(QsciScintillaBase::SCI_CANPASTE));
 }

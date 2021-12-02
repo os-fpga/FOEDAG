@@ -35,8 +35,10 @@ class Editor : public QWidget {
   bool isModified() const;
 
  public slots:
-  void Search();
   void Save();
+
+ private slots:
+  void Search();
   void Undo();
   void Redo();
   void Cut();
@@ -44,6 +46,10 @@ class Editor : public QWidget {
   void Paste();
   void Delete();
   void SelectAll();
+
+  void QScintillaTextChanged();
+  void QscintillaSelectionChanged();
+  void QscintillaModificationChanged(bool m);
 
  private:
   QString m_strFileName;
