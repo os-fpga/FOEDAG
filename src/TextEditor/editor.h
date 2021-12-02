@@ -14,7 +14,7 @@
 #include "Qsci/qscilexertcl.h"
 #include "Qsci/qscilexerverilog.h"
 #include "Qsci/qscilexervhdl.h"
-//#include "Qsci/qsciscintillabase.h"
+#include "search_dialog.h"
 
 namespace FOEDAG {
 
@@ -71,6 +71,8 @@ class Editor : public QWidget {
   QAction* m_actDelete;
 
   QAction* m_actSelect;
+
+  SearchDialog* m_searchDialog;
 
   void InitToolBar();
   void InitScintilla(int iFileType);

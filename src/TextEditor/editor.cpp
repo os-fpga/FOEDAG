@@ -26,13 +26,16 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_toolBar);
   box->addWidget(m_scintilla);
   setLayout(box);
+
+  m_searchDialog = new SearchDialog(this);
+  m_searchDialog->hide();
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
-void Editor::Search() { return; }
+void Editor::Search() { m_searchDialog->show(); }
 
 void Editor::Save() {
   QFile file(m_strFileName);
