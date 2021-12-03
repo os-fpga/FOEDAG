@@ -2,6 +2,8 @@
 
 #include <QVBoxLayout>
 
+using namespace FOEDAG;
+
 SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent) {
   m_labelFind = new QLabel(tr("Find:"), this);
   m_labelReplace = new QLabel(tr("Replace with:"), this);

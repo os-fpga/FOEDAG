@@ -7,6 +7,8 @@
 #include <QObject>
 #include <QPushButton>
 
+namespace FOEDAG {
+
 class SearchDialog : public QDialog {
   Q_OBJECT
  public:
@@ -35,5 +37,5 @@ class SearchDialog : public QDialog {
   QPushButton *CreateButton(const QString &text, const char *member);
   QComboBox *CreateComboBox(const QString &text = QString());
 };
-
+}  // namespace FOEDAG
 #endif  // SEARCHDIALOG_H
