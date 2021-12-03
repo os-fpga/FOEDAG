@@ -135,7 +135,6 @@ if (FOEDAG_WITH_PYTHON)
     foedag
     newproject
     projnavigator
-    qscintilla2_qt
     texteditor
     tcl_stubb
     tcl_static
@@ -150,7 +149,6 @@ else()
     foedag
     newproject
     projnavigator
-    qscintilla2_qt
     texteditor
     tcl_stubb
     tcl_static

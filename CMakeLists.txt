@@ -308,7 +308,7 @@ else()
 endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
+target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib qscintilla2_qt)
 target_link_libraries(foedag  PUBLIC foedagcore newproject projnavigator texteditor compiler)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
