@@ -27,15 +27,13 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_scintilla);
   setLayout(box);
 
-  m_searchDialog = new SearchDialog(this);
-  m_searchDialog->hide();
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
-void Editor::Search() { m_searchDialog->show(); }
+void Editor::Search() {}
 
 void Editor::Save() {
   QFile file(m_strFileName);
@@ -61,7 +59,7 @@ void Editor::Copy() { m_scintilla->copy(); }
 
 void Editor::Paste() { m_scintilla->paste(); }
 
-void Editor::Delete() { m_scintilla->delete_selection(); }
+void Editor::Delete() { m_scintilla->cut(); }
 
 void Editor::SelectAll() { m_scintilla->selectAll(); }
 

@@ -94,6 +94,8 @@ test/valgrind: run-cmake-debug
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
 	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/projnavigator --replay ../tests/TestGui/gui_project_navigator.tcl
 	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
+	cd dbuild && $(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log bin/texteditor --replay ../tests/TestGui/gui_text_editor.tcl
+	cd dbuild && grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 
 test: test/unittest test/regression
@@ -127,6 +129,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
 	$(XVFB) ./dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 	$(XVFB) ./dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
+	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 
 test/batch: run-cmake-release
 	./build/bin/compiler_test --noqt --script tests/TestBatch/test_compiler_mt.tcl

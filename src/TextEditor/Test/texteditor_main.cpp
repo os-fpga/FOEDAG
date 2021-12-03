@@ -30,8 +30,7 @@ FOEDAG::Session* GlobalSession;
 
 QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd) {
   Q_UNUSED(cmd);
-  FOEDAG::TextEditor* texteditor = new FOEDAG::TextEditor;
-  return texteditor->GetTextEditor();
+  return new FOEDAG::TextEditor();
 }
 
 void registerTextEditorCommands(FOEDAG::Session* session) {
@@ -40,8 +39,8 @@ void registerTextEditorCommands(FOEDAG::Session* session) {
     Q_UNUSED(interp);
     Q_UNUSED(argv);
     Q_UNUSED(argc);
-    FOEDAG::TextEditorForm* textForm = (FOEDAG::TextEditorForm*)(clientData);
-    textForm->show();
+    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
+    textEditor->ShowTextEditor();
     return 0;
   };
   session->TclInterp()->registerCmd("texteditor_show", texteditorshow,
@@ -52,8 +51,8 @@ void registerTextEditorCommands(FOEDAG::Session* session) {
     Q_UNUSED(interp);
     Q_UNUSED(argv);
     Q_UNUSED(argc);
-    FOEDAG::TextEditorForm* textForm = (FOEDAG::TextEditorForm*)(clientData);
-    textForm->hide();
+    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
+    textEditor->ClosetextEditor();
     return 0;
   };
   session->TclInterp()->registerCmd("texteditor_close", texteditorhide,
@@ -64,11 +63,11 @@ void registerTextEditorCommands(FOEDAG::Session* session) {
     Q_UNUSED(interp);
     Q_UNUSED(argv);
     Q_UNUSED(argc);
-    FOEDAG::TextEditorForm* textForm = (FOEDAG::TextEditorForm*)(clientData);
-    textForm->resize(800, 600);
-    textForm->show();
+    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
+    textEditor->GetTextEditor()->resize(850,650);
+    textEditor->ShowTextEditor();
     if (argc > 1) {
-      textForm->OpenFile(argv[1]);
+      textEditor->OpenFile(argv[1]);
     }
     return 0;
   };
