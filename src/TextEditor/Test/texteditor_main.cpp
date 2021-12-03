@@ -64,7 +64,7 @@ void registerTextEditorCommands(FOEDAG::Session* session) {
     Q_UNUSED(argv);
     Q_UNUSED(argc);
     FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
-    textEditor->GetTextEditor()->resize(850,650);
+    textEditor->GetTextEditor()->resize(850, 650);
     textEditor->ShowTextEditor();
     if (argc > 1) {
       textEditor->OpenFile(argv[1]);

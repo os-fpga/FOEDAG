@@ -8,10 +8,7 @@ TextEditor::TextEditor(QWidget *parent) : QWidget(parent) {
 
 void TextEditor::ShowTextEditor() { TextEditorForm::Instance()->show(); }
 
-void TextEditor::ClosetextEditor()
-{
-    TextEditorForm::Instance()->hide();
-}
+void TextEditor::ClosetextEditor() { TextEditorForm::Instance()->hide(); }
 
 QWidget *TextEditor::GetTextEditor() { return TextEditorForm::Instance(); }
 

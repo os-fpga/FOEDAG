@@ -26,7 +26,6 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_toolBar);
   box->addWidget(m_scintilla);
   setLayout(box);
-
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
