@@ -9,7 +9,7 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   m_toolBar->setIconSize(QSize(32, 32));
   InitToolBar();
 
-  m_scintilla = new QsciScintilla(this);
+  m_scintilla = new QsciScintilla;
   InitScintilla(iFileType);
   SetScintillaText(strFileName);
 
