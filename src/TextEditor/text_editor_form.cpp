@@ -1,10 +1,6 @@
 #include "text_editor_form.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QFileInfo>
-#include <QTextStream>
-#include <QVBoxLayout>
+#include <QMessageBox>
 
 using namespace FOEDAG;
 
@@ -20,6 +16,8 @@ void TextEditorForm::InitForm() {
 
   m_tab_editor = new QTabWidget(this);
   m_tab_editor->setTabsClosable(true);
+  connect(m_tab_editor, SIGNAL(tabCloseRequested(int)), this,
+          SLOT(SlotTabCloseRequested(int)));
 
   if (this->layout() != nullptr) {
     delete this->layout();
@@ -35,10 +33,6 @@ void TextEditorForm::InitForm() {
 
 int TextEditorForm::OpenFile(const QString &strFileName) {
   int ret = 0;
-  QFile file(strFileName);
-  if (!file.open(QFile::ReadOnly)) {
-    return -1;
-  }
 
   int index = 0;
   auto iter = m_map_file_tabIndex_editor.find(strFileName);
@@ -52,7 +46,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   QFileInfo fileInfo(strFileName);
   QString filename = fileInfo.fileName();
   QString suffix = fileInfo.suffix();
-  if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0) {
+  if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("sv"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("svi"), Qt::CaseInsensitive) == 0 ||
+      suffix.compare(QString("svh"), Qt::CaseInsensitive) == 0) {
     filetype = FILE_TYPE_VERILOG;
   } else if (suffix.compare(QString("vhd"), Qt::CaseInsensitive) == 0) {
     filetype = FILE_TYPE_VHDL;
@@ -62,72 +59,57 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     filetype = FILE_TYPE_UNKOWN;
   }
 
-  QsciScintilla *qscintilla = CreateScintilla(filetype);
-  if (nullptr == qscintilla) {
-    return -1;
-  }
+  Editor *editor = new Editor(strFileName, filetype, this);
+  connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
+          SLOT(SlotUpdateTabTitle(bool)));
 
-  QTextStream in(&file);
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  qscintilla->setText(in.readAll());
-  QApplication::restoreOverrideCursor();
-  qscintilla->setObjectName(strFileName);
-
-  index = m_tab_editor->addTab(qscintilla, filename);
+  index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
 
-  QPair<int, QsciScintilla *> pair;
+  QPair<int, Editor *> pair;
   pair.first = index;
-  pair.second = qscintilla;
+  pair.second = editor;
   m_map_file_tabIndex_editor.insert(strFileName, pair);
 
   return ret;
 }
 
-QsciScintilla *TextEditorForm::CreateScintilla(int iFileType) {
-  QsciScintilla *qscintilla = new QsciScintilla(this);
-  if (nullptr == qscintilla) {
-    return nullptr;
-  }
-  qscintilla->setMarginType(0, QsciScintilla::NumberMargin);
-  qscintilla->setMarginLineNumbers(0, true);
-  qscintilla->setTabWidth(4);
-  qscintilla->setAutoIndent(true);
-  qscintilla->setIndentationGuides(QsciScintilla::SC_IV_LOOKBOTH);
-  qscintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
-
-  QsciLexer *textLexer;
-  if (FILE_TYPE_VERILOG == iFileType) {
-    textLexer = new QsciLexerVerilog(qscintilla);
-  } else if (FILE_TYPE_VHDL == iFileType) {
-    textLexer = new QsciLexerVHDL(qscintilla);
-  } else if (FILE_TYPE_TCL == iFileType) {
-    textLexer = new QsciLexerTCL(qscintilla);
+void TextEditorForm::SlotTabCloseRequested(int index) {
+  if (index == -1) {
+    return;
   }
 
-  if (FILE_TYPE_VERILOG == iFileType || FILE_TYPE_VHDL == iFileType ||
-      FILE_TYPE_TCL == iFileType) {
-    qscintilla->setLexer(textLexer);
-
-    QsciAPIs *apis = new QsciAPIs(textLexer);
-    apis->add(QString("begin"));
-    apis->add(QString("always"));
-    apis->prepare();
-
-    qscintilla->setAutoCompletionSource(QsciScintilla::AcsAll);
-    qscintilla->setAutoCompletionCaseSensitivity(true);
-    qscintilla->setAutoCompletionThreshold(1);
+  Editor *tabItem = (Editor *)m_tab_editor->widget(index);
+  QString strName = m_tab_editor->tabText(index);
+  if (tabItem->isModified()) {
+    int ret = QMessageBox::question(
+        this, tr(""), tr("Save changes in %1?").arg(strName), QMessageBox::Yes,
+        QMessageBox::No, QMessageBox::Cancel);
+    if (ret == QMessageBox::Yes) {
+      tabItem->Save();
+    } else if (ret == QMessageBox::Cancel) {
+      return;
+    }
   }
 
-  qscintilla->setCaretLineVisible(true);
-  qscintilla->setCaretLineBackgroundColor(Qt::lightGray);
-  qscintilla->SendScintilla(QsciScintilla::SCI_SETCODEPAGE,
-                            QsciScintilla::SC_CP_UTF8);
-  qscintilla->setFolding(QsciScintilla::BoxedTreeFoldStyle);
-  qscintilla->setFoldMarginColors(Qt::gray, Qt::lightGray);
+  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
+  if (iter != m_map_file_tabIndex_editor.end()) {
+    m_map_file_tabIndex_editor.erase(iter);
+  }
+  // Removes the tab at position index from this stack of widgets.
+  // The page widget itself is not deleted.
+  m_tab_editor->removeTab(index);
 
-  // connect(qscintilla, SIGNAL(textChanged()), this,
-  // SLOT(documentWasModified()));
+  delete (tabItem);
+  tabItem = nullptr;
+}
 
-  return qscintilla;
+void TextEditorForm::SlotUpdateTabTitle(bool m) {
+  int index = m_tab_editor->currentIndex();
+  QString strName = m_tab_editor->tabText(index);
+  if (m) {
+    m_tab_editor->setTabText(index, strName + tr("*"));
+  } else {
+    m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
+  }
 }

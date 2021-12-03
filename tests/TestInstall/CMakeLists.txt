@@ -135,6 +135,7 @@ if (FOEDAG_WITH_PYTHON)
     foedag
     newproject
     projnavigator
+    texteditor
     tcl_stubb
     tcl_static
     zlib
@@ -148,6 +149,7 @@ else()
     foedag
     newproject
     projnavigator
+    texteditor
     tcl_stubb
     tcl_static
     zlib
