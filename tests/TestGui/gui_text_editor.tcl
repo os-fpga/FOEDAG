@@ -18,7 +18,6 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 puts "TEXT EDITOR GUI START" ; flush stdout ; texteditor_show
-puts "TEXT EDITOR GUI STOP"  ; flush stdout ; texteditor_close
-puts "TEXT EDITOR GUI START" ; flush stdout ; texteditor_show
+puts "TEXT EDITOR GUI OPENFILE"  ; flush stdout ; openfile tests/TestGui/text.v
 puts "TEXT EDITOR GUI STOP"  ; flush stdout ; texteditor_close
 
