@@ -157,7 +157,7 @@ void Editor::InitScintilla(int iFileType) {
   QFont font("Arial", 9, QFont::Normal);
   m_scintilla->setFont(font);
   QFontMetrics fontmetrics = QFontMetrics(font);
-  m_scintilla->setMarginWidth(0, 4 /*fontmetrics.width("0000")*/);
+  m_scintilla->setMarginWidth(0, 27 /*fontmetrics.width("0000")*/);
 
   m_scintilla->setMarginType(0, QsciScintilla::NumberMargin);
   m_scintilla->setMarginLineNumbers(0, true);
