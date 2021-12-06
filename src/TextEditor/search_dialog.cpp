@@ -8,31 +8,43 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent) {
   m_labelFind = new QLabel(tr("Find:"), this);
   m_labelReplace = new QLabel(tr("Replace with:"), this);
 
-  m_comboBoxFind = CreateComboBox();
-  m_comboBoxReplace = CreateComboBox();
+  m_editFind = new QLineEdit(this);
 
-  m_btnFindPrevious =
-      CreateButton(tr("&Find Previous"), SLOT(SlotFindPrevious()));
-  m_btnFindNext = CreateButton(tr("&Find Next"), SLOT(SlotFindNext()));
+  m_editReplace = new QLineEdit(this);
 
-  m_btnReplace = CreateButton(tr("&Replace"), SLOT(SlotReplace()));
-  m_btnReplaceAndFind =
-      CreateButton(tr("&Replace&&Find"), SLOT(SlotReplaceAndFind()));
-  m_btnReplaceAll = CreateButton(tr("&Replace All"), SLOT(SlotReplaceAll()));
+  m_btnFindPrevious = new QPushButton(tr("&Find Previous"), this);
+  connect(m_btnFindPrevious, SIGNAL(clicked()), this, SLOT(SlotFindPrevious()));
+
+  m_btnFindNext = new QPushButton(tr("&Find Next"), this);
+  connect(m_btnFindNext, SIGNAL(clicked()), this, SLOT(SlotFindNext()));
+
+  m_btnReplace = new QPushButton(tr("&Replace"), this);
+  connect(m_btnReplace, SIGNAL(clicked()), this, SLOT(SlotReplace()));
+
+  m_btnReplaceAndFind = new QPushButton(tr("&Replace&&Find"), this);
+  connect(m_btnReplaceAndFind, SIGNAL(clicked()), this, SLOT(SlotReplaceAndFind()));
+
+  m_btnReplaceAll = new QPushButton(tr("&Replace All"), this);
+  connect(m_btnReplaceAll, SIGNAL(clicked()), this, SLOT(SlotReplaceAll()));
 
   QGridLayout *mainLayout = new QGridLayout(this);
   mainLayout->addWidget(m_labelFind, 0, 0);
-  mainLayout->addWidget(m_comboBoxFind, 0, 1, 1, 2);
+  mainLayout->addWidget(m_editFind, 0, 1, 1, 2);
   mainLayout->addWidget(m_labelReplace, 1, 0);
-  mainLayout->addWidget(m_comboBoxReplace, 1, 1, 1, 2);
-  mainLayout->addWidget(m_btnFindPrevious, 0, 4);
-  mainLayout->addWidget(m_btnFindNext, 0, 5);
-  mainLayout->addWidget(m_btnReplace, 1, 4);
-  mainLayout->addWidget(m_btnReplaceAndFind, 1, 5);
-  mainLayout->addWidget(m_btnReplaceAll, 1, 6);
+  mainLayout->addWidget(m_editReplace, 1, 1, 1, 2);
+  mainLayout->addWidget(m_btnFindPrevious, 0, 3);
+  mainLayout->addWidget(m_btnFindNext, 0, 4);
+  mainLayout->addWidget(m_btnReplace, 1, 3);
+  mainLayout->addWidget(m_btnReplaceAndFind, 1, 4);
+  mainLayout->addWidget(m_btnReplaceAll, 1, 5);
   setLayout(mainLayout);
-  this->setWindowTitle(tr("Find"));
+  setWindowTitle(tr("Find"));
   resize(500, 80);
+}
+
+void SearchDialog::InsertSearchWord(const QString &strWord)
+{
+    m_editFind->setText(strWord);
 }
 
 void SearchDialog::SlotFindPrevious() {}
@@ -45,17 +57,3 @@ void SearchDialog::SlotReplaceAndFind() {}
 
 void SearchDialog::SlotReplaceAll() {}
 
-QPushButton *SearchDialog::CreateButton(const QString &text,
-                                        const char *member) {
-  QPushButton *button = new QPushButton(text, this);
-  connect(button, SIGNAL(clicked()), this, member);
-  return button;
-}
-
-QComboBox *SearchDialog::CreateComboBox(const QString &text) {
-  QComboBox *comboBox = new QComboBox(this);
-  comboBox->setEditable(true);
-  comboBox->addItem(text);
-  comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-  return comboBox;
-}

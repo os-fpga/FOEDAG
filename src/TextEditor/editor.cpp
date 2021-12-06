@@ -32,7 +32,14 @@ QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
-void Editor::Search() {}
+void Editor::Search() {
+
+    QString strWord = "";
+    if(m_scintilla->hasSelectedText()){
+        strWord = m_scintilla->selectedText();
+    }
+    emit ShowSearchDialog(strWord);
+}
 
 void Editor::Save() {
   QFile file(m_strFileName);
@@ -58,7 +65,7 @@ void Editor::Copy() { m_scintilla->copy(); }
 
 void Editor::Paste() { m_scintilla->paste(); }
 
-void Editor::Delete() { m_scintilla->cut(); }
+void Editor::Delete() { m_scintilla->removeSelectedText(); }
 
 void Editor::SelectAll() { m_scintilla->selectAll(); }
 

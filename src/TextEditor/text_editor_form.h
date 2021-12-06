@@ -5,6 +5,7 @@
 #include <QWidget>
 
 #include "editor.h"
+#include "search_dialog.h"
 
 namespace FOEDAG {
 
@@ -20,10 +21,13 @@ class TextEditorForm : public QWidget {
  public slots:
   void SlotTabCloseRequested(int index);
   void SlotUpdateTabTitle(bool m);
+  void SlotShowSearchDialog(const QString &strWord);
 
  private:
   QTabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
+
+  SearchDialog* m_searchDialog;
 };
 }  // namespace FOEDAG
 #endif  // TEXT_EDITOR_FORM_H

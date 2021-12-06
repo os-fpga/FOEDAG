@@ -35,6 +35,7 @@ class Editor : public QWidget {
 
  signals:
   void EditorModificationChanged(bool m);
+  void ShowSearchDialog(QString);
 
  public slots:
   void Save();

@@ -28,6 +28,8 @@ void TextEditorForm::InitForm() {
   vbox->addWidget(m_tab_editor);
   setLayout(vbox);
 
+  m_searchDialog = new SearchDialog(this);
+
   initForm = true;
 }
 
@@ -62,6 +64,8 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   Editor *editor = new Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
           SLOT(SlotUpdateTabTitle(bool)));
+  connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
+          SLOT(SlotShowSearchDialog(QString)));
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
@@ -112,4 +116,10 @@ void TextEditorForm::SlotUpdateTabTitle(bool m) {
   } else {
     m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
   }
+}
+
+void TextEditorForm::SlotShowSearchDialog(const QString &strWord)
+{
+    m_searchDialog->InsertSearchWord(strWord);
+    m_searchDialog->show();
 }
