@@ -147,7 +147,7 @@ QsciScintilla::QsciScintilla(QWidget *parent)
 QsciScintilla::~QsciScintilla()
 {
     // Detach any current lexer.
-    detachLexer();
+    // detachLexer();
 
     doc.undisplay(this);
     delete stdCmds;
