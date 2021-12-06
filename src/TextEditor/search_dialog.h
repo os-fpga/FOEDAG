@@ -14,8 +14,13 @@ class SearchDialog : public QDialog {
  public:
   explicit SearchDialog(QWidget *parent = nullptr);
 
-void InsertSearchWord(const QString &strWord);
-signals:
+  void InsertSearchWord(const QString &strWord);
+ signals:
+  void Find(QString);
+  void FindNext();
+  void Replace(QString, QString);
+  void ReplaceAndFind(QString, QString);
+  void ReplaceAll(QString, QString);
 
  private slots:
   void SlotFindPrevious();
@@ -34,7 +39,6 @@ signals:
   QPushButton *m_btnReplace;
   QPushButton *m_btnReplaceAndFind;
   QPushButton *m_btnReplaceAll;
-
 };
 }  // namespace FOEDAG
 #endif  // SEARCHDIALOG_H

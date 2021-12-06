@@ -32,13 +32,32 @@ QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
-void Editor::Search() {
+void Editor::FindFirst(const QString &strWord) {
+  m_scintilla->findFirst(strWord, true, true, true, true);
+}
 
-    QString strWord = "";
-    if(m_scintilla->hasSelectedText()){
-        strWord = m_scintilla->selectedText();
-    }
-    emit ShowSearchDialog(strWord);
+void Editor::FindNext() { m_scintilla->findNext(); }
+
+void Editor::Replace(const QString &strFind, const QString &strDesWord) {
+  m_scintilla->replace(strDesWord);
+  // m_scintilla->findFirst(strFind, true, true, true, true);
+}
+
+void Editor::ReplaceAndFind(const QString &strFind, const QString &strDesWord) {
+  m_scintilla->replace(strDesWord);
+  m_scintilla->findNext();
+}
+
+void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
+  m_scintilla->replace(strDesWord);
+}
+
+void Editor::Search() {
+  QString strWord = "";
+  if (m_scintilla->hasSelectedText()) {
+    strWord = m_scintilla->selectedText();
+  }
+  emit ShowSearchDialog(strWord);
 }
 
 void Editor::Save() {

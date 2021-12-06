@@ -33,6 +33,12 @@ class Editor : public QWidget {
   QString getFileName() const;
   bool isModified() const;
 
+  void FindFirst(const QString& strWord);
+  void FindNext();
+  void Replace(const QString& strFind, const QString& strDesWord);
+  void ReplaceAndFind(const QString& strFind, const QString& strDesWord);
+  void ReplaceAll(const QString& strFind, const QString& strDesWord);
+
  signals:
   void EditorModificationChanged(bool m);
   void ShowSearchDialog(QString);

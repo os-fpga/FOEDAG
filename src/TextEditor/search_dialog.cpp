@@ -22,7 +22,8 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent) {
   connect(m_btnReplace, SIGNAL(clicked()), this, SLOT(SlotReplace()));
 
   m_btnReplaceAndFind = new QPushButton(tr("&Replace&&Find"), this);
-  connect(m_btnReplaceAndFind, SIGNAL(clicked()), this, SLOT(SlotReplaceAndFind()));
+  connect(m_btnReplaceAndFind, SIGNAL(clicked()), this,
+          SLOT(SlotReplaceAndFind()));
 
   m_btnReplaceAll = new QPushButton(tr("&Replace All"), this);
   connect(m_btnReplaceAll, SIGNAL(clicked()), this, SLOT(SlotReplaceAll()));
@@ -42,18 +43,22 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent) {
   resize(500, 80);
 }
 
-void SearchDialog::InsertSearchWord(const QString &strWord)
-{
-    m_editFind->setText(strWord);
+void SearchDialog::InsertSearchWord(const QString &strWord) {
+  m_editFind->setText(strWord);
 }
 
-void SearchDialog::SlotFindPrevious() {}
+void SearchDialog::SlotFindPrevious() { emit Find(m_editFind->text()); }
 
-void SearchDialog::SlotFindNext() {}
+void SearchDialog::SlotFindNext() { emit FindNext(); }
 
-void SearchDialog::SlotReplace() {}
+void SearchDialog::SlotReplace() {
+  emit Replace(m_editFind->text(), m_editReplace->text());
+}
 
-void SearchDialog::SlotReplaceAndFind() {}
+void SearchDialog::SlotReplaceAndFind() {
+  emit ReplaceAndFind(m_editFind->text(), m_editReplace->text());
+}
 
-void SearchDialog::SlotReplaceAll() {}
-
+void SearchDialog::SlotReplaceAll() {
+  emit ReplaceAll(m_editFind->text(), m_editReplace->text());
+}

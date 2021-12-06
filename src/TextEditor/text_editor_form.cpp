@@ -29,6 +29,15 @@ void TextEditorForm::InitForm() {
   setLayout(vbox);
 
   m_searchDialog = new SearchDialog(this);
+  connect(m_searchDialog, SIGNAL(Find(QString)), this, SLOT(SlotFind(QString)));
+  connect(m_searchDialog, SIGNAL(FindNext()), this, SLOT(SlotFindNext()));
+
+  connect(m_searchDialog, SIGNAL(Replace(QString, QString)), this,
+          SLOT(SlotReplace(QString, QString)));
+  connect(m_searchDialog, SIGNAL(ReplaceAndFind(QString, QString)), this,
+          SLOT(SlotReplaceAndFind(QString, QString)));
+  connect(m_searchDialog, SIGNAL(ReplaceAll(QString, QString)), this,
+          SLOT(SlotReplaceAll(QString, QString)));
 
   initForm = true;
 }
@@ -61,7 +70,7 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     filetype = FILE_TYPE_UNKOWN;
   }
 
-  Editor *editor = new Editor(strFileName, filetype, this);
+  FOEDAG::Editor *editor = new FOEDAG::Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
           SLOT(SlotUpdateTabTitle(bool)));
   connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
@@ -118,8 +127,45 @@ void TextEditorForm::SlotUpdateTabTitle(bool m) {
   }
 }
 
-void TextEditorForm::SlotShowSearchDialog(const QString &strWord)
-{
-    m_searchDialog->InsertSearchWord(strWord);
-    m_searchDialog->show();
+void TextEditorForm::SlotShowSearchDialog(const QString &strWord) {
+  m_searchDialog->InsertSearchWord(strWord);
+  m_searchDialog->show();
+}
+
+void TextEditorForm::SlotFind(const QString &strFindWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindFirst(strFindWord);
+  }
+}
+
+void TextEditorForm::SlotFindNext() {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindNext();
+  }
+}
+
+void TextEditorForm::SlotReplace(const QString &strFindWord,
+                                 const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->Replace(strFindWord, strDesWord);
+  }
+}
+
+void TextEditorForm::SlotReplaceAndFind(const QString &strFindWord,
+                                        const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAndFind(strFindWord, strDesWord);
+  }
+}
+
+void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
+                                    const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAll(strFindWord, strDesWord);
+  }
 }
