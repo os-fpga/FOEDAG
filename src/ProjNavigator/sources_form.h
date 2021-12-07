@@ -41,6 +41,9 @@ class SourcesForm : public QWidget {
  signals:
   void OpenFile(QString);
 
+ public slots:
+  void SetCurrentFileItem(const QString& strFileName);
+
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
 

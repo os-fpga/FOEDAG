@@ -64,6 +64,24 @@ void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
   }
 }
 
+void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
+  QString filename = strFileName.right(strFileName.size() -
+                                       (strFileName.lastIndexOf("/") + 1));
+  QList<QTreeWidgetItem *> listItem = m_treeSrcHierachy->findItems(
+      filename, Qt::MatchContains | Qt::MatchRecursive);
+  foreach (auto item, listItem) {
+    if (item == nullptr) {
+      continue;
+    }
+    QString strItemFileName = (item->data(0, Qt::UserRole)).toString();
+    QString strPath = m_projManager->getProjectPath();
+    if (!strFileName.compare(strItemFileName.replace("$OSRCDIR", strPath))) {
+      m_treeSrcHierachy->setCurrentItem(item);
+      break;
+    }
+  }
+}
+
 void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);
   if (qApp->mouseButtons() == Qt::RightButton) {
