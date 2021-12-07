@@ -18,6 +18,8 @@ void TextEditorForm::InitForm() {
   m_tab_editor->setTabsClosable(true);
   connect(m_tab_editor, SIGNAL(tabCloseRequested(int)), this,
           SLOT(SlotTabCloseRequested(int)));
+  connect(m_tab_editor, SIGNAL(currentChanged(int)), this,
+          SLOT(SlotCurrentChanged(int)));
 
   if (this->layout() != nullptr) {
     delete this->layout();
@@ -116,6 +118,13 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
 
   delete (tabItem);
   tabItem = nullptr;
+}
+
+void TextEditorForm::SlotCurrentChanged(int index) {
+  Editor *tabEditor = (Editor *)m_tab_editor->widget(index);
+  if (tabEditor) {
+    emit CurrentFileChanged(tabEditor->getFileName());
+  }
 }
 
 void TextEditorForm::SlotUpdateTabTitle(bool m) {

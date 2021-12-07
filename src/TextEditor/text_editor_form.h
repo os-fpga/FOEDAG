@@ -18,10 +18,17 @@ class TextEditorForm : public QWidget {
   void InitForm();
   int OpenFile(const QString &strFileName);
 
- public slots:
+ signals:
+  void CurrentFileChanged(QString);
+
+ private slots:
   void SlotTabCloseRequested(int index);
+  void SlotCurrentChanged(int index);
+
   void SlotUpdateTabTitle(bool m);
+
   void SlotShowSearchDialog(const QString &strWord);
+
   void SlotFind(const QString &strFindWord);
   void SlotFindNext(const QString &strFindWord);
   void SlotReplace(const QString &strFindWord, const QString &strDesWord);
