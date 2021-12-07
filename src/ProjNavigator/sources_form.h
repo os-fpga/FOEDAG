@@ -46,6 +46,7 @@ class SourcesForm : public QWidget {
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
+  void SlotItemDoubleClicked(QTreeWidgetItem* item, int column);
 
   void SlotRefreshSourceTree();
   void SlotCreateDesign();

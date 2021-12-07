@@ -32,6 +32,8 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
+  connect(m_treeSrcHierachy, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
+          this, SLOT(SlotItemDoubleClicked(QTreeWidgetItem *, int)));
 
   ui->m_tabWidget->removeTab(ui->m_tabWidget->indexOf(ui->tab_2));
 }
@@ -130,6 +132,17 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     QPoint p = QCursor::pos();
     menu->exec(QPoint(p.rx(), p.ry() + 3));
+  }
+}
+
+void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
+  Q_UNUSED(column);
+  QString strPropertyRole =
+      (item->data(0, Qt::WhatsThisPropertyRole)).toString();
+  if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_SIM_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+    SlotOpenFile();
   }
 }
 
