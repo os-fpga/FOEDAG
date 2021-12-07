@@ -33,23 +33,28 @@ QString Editor::getFileName() const { return m_strFileName; }
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
 void Editor::FindFirst(const QString &strWord) {
+  m_scintilla->findFirst(strWord, true, true, true, true, false);
+  m_scintilla->findNext();
+}
+
+void Editor::FindNext(const QString &strWord) {
   m_scintilla->findFirst(strWord, true, true, true, true);
 }
 
-void Editor::FindNext() { m_scintilla->findNext(); }
-
 void Editor::Replace(const QString &strFind, const QString &strDesWord) {
+  Q_UNUSED(strFind);
   m_scintilla->replace(strDesWord);
-  // m_scintilla->findFirst(strFind, true, true, true, true);
 }
 
 void Editor::ReplaceAndFind(const QString &strFind, const QString &strDesWord) {
   m_scintilla->replace(strDesWord);
-  m_scintilla->findNext();
+  m_scintilla->findFirst(strFind, true, true, true, true);
 }
 
 void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
-  m_scintilla->replace(strDesWord);
+  while (m_scintilla->findFirst(strFind, true, true, true, true)) {
+    m_scintilla->replace(strDesWord);
+  }
 }
 
 void Editor::Search() {

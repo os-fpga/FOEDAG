@@ -23,7 +23,7 @@ class TextEditorForm : public QWidget {
   void SlotUpdateTabTitle(bool m);
   void SlotShowSearchDialog(const QString &strWord);
   void SlotFind(const QString &strFindWord);
-  void SlotFindNext();
+  void SlotFindNext(const QString &strFindWord);
   void SlotReplace(const QString &strFindWord, const QString &strDesWord);
   void SlotReplaceAndFind(const QString &strFindWord,
                           const QString &strDesWord);

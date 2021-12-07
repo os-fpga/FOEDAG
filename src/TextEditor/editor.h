@@ -34,7 +34,7 @@ class Editor : public QWidget {
   bool isModified() const;
 
   void FindFirst(const QString& strWord);
-  void FindNext();
+  void FindNext(const QString& strWord);
   void Replace(const QString& strFind, const QString& strDesWord);
   void ReplaceAndFind(const QString& strFind, const QString& strDesWord);
   void ReplaceAll(const QString& strFind, const QString& strDesWord);

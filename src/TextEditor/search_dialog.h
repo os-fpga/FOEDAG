@@ -17,7 +17,7 @@ class SearchDialog : public QDialog {
   void InsertSearchWord(const QString &strWord);
  signals:
   void Find(QString);
-  void FindNext();
+  void FindNext(QString);
   void Replace(QString, QString);
   void ReplaceAndFind(QString, QString);
   void ReplaceAll(QString, QString);

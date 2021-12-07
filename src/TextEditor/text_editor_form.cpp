@@ -30,7 +30,8 @@ void TextEditorForm::InitForm() {
 
   m_searchDialog = new SearchDialog(this);
   connect(m_searchDialog, SIGNAL(Find(QString)), this, SLOT(SlotFind(QString)));
-  connect(m_searchDialog, SIGNAL(FindNext()), this, SLOT(SlotFindNext()));
+  connect(m_searchDialog, SIGNAL(FindNext(QString)), this,
+          SLOT(SlotFindNext(QString)));
 
   connect(m_searchDialog, SIGNAL(Replace(QString, QString)), this,
           SLOT(SlotReplace(QString, QString)));
@@ -139,10 +140,10 @@ void TextEditorForm::SlotFind(const QString &strFindWord) {
   }
 }
 
-void TextEditorForm::SlotFindNext() {
+void TextEditorForm::SlotFindNext(const QString &strFindWord) {
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
-    tabEditor->FindNext();
+    tabEditor->FindNext(strFindWord);
   }
 }
 

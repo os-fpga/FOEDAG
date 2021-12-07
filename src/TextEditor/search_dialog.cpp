@@ -45,11 +45,12 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent) {
 
 void SearchDialog::InsertSearchWord(const QString &strWord) {
   m_editFind->setText(strWord);
+  m_editFind->setFocus();
 }
 
 void SearchDialog::SlotFindPrevious() { emit Find(m_editFind->text()); }
 
-void SearchDialog::SlotFindNext() { emit FindNext(); }
+void SearchDialog::SlotFindNext() { emit FindNext(m_editFind->text()); }
 
 void SearchDialog::SlotReplace() {
   emit Replace(m_editFind->text(), m_editReplace->text());
