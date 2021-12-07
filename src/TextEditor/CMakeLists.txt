@@ -43,7 +43,6 @@ add_library(texteditor STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(texteditor  PUBLIC qscintilla2_qt)
 target_link_libraries(texteditor  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
 

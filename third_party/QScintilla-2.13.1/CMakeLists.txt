@@ -194,21 +194,21 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciglobal.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciscintilla.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciscintillabase.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciabstractapis.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciapis.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscicommand.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscicommandset.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscidocument.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexer.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexertcl.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexerverilog.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexervhdl.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscimacro.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscistyle.h
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscistyledtext.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Qscintilla2)
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciglobal.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciscintilla.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciscintillabase.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciabstractapis.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciapis.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscicommand.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscicommandset.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscidocument.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexer.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexertcl.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexerverilog.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexervhdl.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscimacro.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscistyle.h
+    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscistyledtext.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Qsci)
   
 
