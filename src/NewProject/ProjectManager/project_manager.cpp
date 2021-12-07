@@ -209,6 +209,14 @@ int ProjectManager::CreateProject(const QString& strName,
   return ret;
 }
 
+QString ProjectManager::getProjectName() const {
+  return Project::Instance()->projectName();
+}
+
+QString ProjectManager::getProjectPath() const {
+  return Project::Instance()->projectPath();
+}
+
 int ProjectManager::setProjectType(const QString& strType) {
   int ret = 0;
   ProjectConfiguration* projectConfig = Project::Instance()->projectConfig();
