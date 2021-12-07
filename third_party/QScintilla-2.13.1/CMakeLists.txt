@@ -194,7 +194,21 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/qsciapis.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciglobal.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciscintilla.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciscintillabase.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciabstractapis.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qsciapis.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscicommand.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscicommandset.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscidocument.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexer.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexertcl.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexerverilog.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscilexervhdl.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscimacro.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscistyle.h
+    FILES ${PROJECT_SOURCE_DIR}/../Qscintilla2/Qsci/qscistyledtext.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Qscintilla2)
   
 
