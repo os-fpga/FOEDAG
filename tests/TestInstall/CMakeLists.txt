@@ -132,7 +132,6 @@ target_link_directories(test_hellofoedag
 if (FOEDAG_WITH_PYTHON)
   target_link_libraries(test_hellofoedag
     foedagcore
-    qscintilla2_qt
     foedag
     newproject
     projnavigator
@@ -147,7 +146,6 @@ if (FOEDAG_WITH_PYTHON)
 else()
   target_link_libraries(test_hellofoedag
     foedagcore
-    qscintilla2_qt
     foedag
     newproject
     projnavigator
