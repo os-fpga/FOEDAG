@@ -87,7 +87,9 @@ void MainWindow::newFile() {
 
 void MainWindow::newProjectDlg() {
   newProjectDialog* m_dialog = new newProjectDialog(this);
-  if (m_dialog->exec()) {
+  int ret = m_dialog->exec();
+  m_dialog->close();
+  if (ret) {
     QString strproject = m_dialog->getProject();
     newProjectAction->setEnabled(false);
     ReShowWindow(strproject);

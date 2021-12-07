@@ -134,12 +134,12 @@ void newProjectDialog::on_m_btnFinish_clicked() {
 
   m_projectManager->FinishedProject();
   this->setResult(1);
-  this->close();
+  this->hide();
 }
 
 void newProjectDialog::on_m_btnCancel_clicked() {
   this->setResult(0);
-  this->close();
+  this->hide();
 }
 void newProjectDialog::UpdateDialogView() {
   if (INDEX_LOCATION == m_index) {
