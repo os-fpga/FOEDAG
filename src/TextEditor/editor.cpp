@@ -235,6 +235,8 @@ void Editor::SetScintillaText(QString strFileName) {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_scintilla->setText(in.readAll());
   QApplication::restoreOverrideCursor();
+
+  m_scintilla->setModified(false);
 }
 
 void Editor::UpdateToolBarStates() {
