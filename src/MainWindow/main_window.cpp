@@ -87,10 +87,11 @@ void MainWindow::newFile() {
 
 void MainWindow::newProjectDlg() {
   newProjectDialog* m_dialog = new newProjectDialog(this);
-  m_dialog->exec();
-  QString strproject = m_dialog->getProject();
-  newProjectAction->setEnabled(false);
-  ReShowWindow(strproject);
+  if (m_dialog->exec()) {
+    QString strproject = m_dialog->getProject();
+    newProjectAction->setEnabled(false);
+    ReShowWindow(strproject);
+  }
 }
 
 void MainWindow::createMenus() {
