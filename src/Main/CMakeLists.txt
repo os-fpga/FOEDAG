@@ -84,7 +84,10 @@ else()
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(
+  ${PROJECT_SOURCE_DIR}/../../src
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/
+  ${PROJECT_SOURCE_DIR}/../../third_party/QScintilla-2.13.1/src)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
