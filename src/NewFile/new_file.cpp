@@ -9,6 +9,8 @@ NewFile::NewFile(QWidget *parent) : QWidget(parent) {
                    FILTER_TCL + tr(";;") + FILTER_CONSTR + tr(";;") +
                    FILTER_ALL;
   m_fileDialog = new QFileDialog(this, tr("New File"), "default", filter);
+  m_fileDialog->setAcceptMode(QFileDialog::AcceptSave);
+  m_fileDialog->setViewMode(QFileDialog::Detail);
 }
 
 void NewFile::StartNewFile() {
