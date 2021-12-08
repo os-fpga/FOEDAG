@@ -15,8 +15,37 @@ void NewFile::StartNewFile() {
   int ret = m_fileDialog->exec();
   if (ret) {
     QString selFilter = m_fileDialog->selectedNameFilter();
+    QString filter = "";
+    if (selFilter == FILTER_VERILOG) {
+      filter = ".v";
+    } else if (selFilter == FILTER_VHDL) {
+      filter = ".vhd";
+    } else if (selFilter == FILTER_TCL) {
+      filter = ".tcl";
+    } else if (selFilter == FILTER_CONSTR) {
+      filter = ".sdc";
+    }
+
     QStringList strlist = m_fileDialog->selectedFiles();
-    foreach (auto item, strlist) {}
+    foreach (auto item, strlist) {
+      QFileInfo fileInfo(item);
+      QString suffix = "." + fileInfo.suffix();
+      QString newFileName;
+      if (suffix.compare(filter, Qt::CaseInsensitive)) {
+        newFileName = item + filter;
+      } else {
+        newFileName = item;
+      }
+
+      QFile file(newFileName);
+      if (file.exists()) {
+        continue;
+      }
+      if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        continue;
+      }
+      file.close();
+    }
   }
 }
 

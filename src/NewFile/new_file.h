@@ -11,7 +11,7 @@
 #define FILTER_CONSTR "Synopsys Design Constraints Files(*.sdc)"
 #define FILTER_ALL "All Files(*.*)"
 
-namespace FOEDAG{
+namespace FOEDAG {
 
 class NewFile : public QWidget {
   Q_OBJECT
@@ -25,5 +25,5 @@ class NewFile : public QWidget {
  private:
   QFileDialog* m_fileDialog;
 };
-}
+}  // namespace FOEDAG
 #endif  // NEWFILE_H
