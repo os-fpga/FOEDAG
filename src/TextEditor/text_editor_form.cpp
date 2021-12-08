@@ -18,6 +18,8 @@ void TextEditorForm::InitForm() {
   m_tab_editor->setTabsClosable(true);
   connect(m_tab_editor, SIGNAL(tabCloseRequested(int)), this,
           SLOT(SlotTabCloseRequested(int)));
+  connect(m_tab_editor, SIGNAL(currentChanged(int)), this,
+          SLOT(SlotCurrentChanged(int)));
 
   if (this->layout() != nullptr) {
     delete this->layout();
@@ -27,6 +29,18 @@ void TextEditorForm::InitForm() {
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->addWidget(m_tab_editor);
   setLayout(vbox);
+
+  m_searchDialog = new SearchDialog(this);
+  connect(m_searchDialog, SIGNAL(Find(QString)), this, SLOT(SlotFind(QString)));
+  connect(m_searchDialog, SIGNAL(FindNext(QString)), this,
+          SLOT(SlotFindNext(QString)));
+
+  connect(m_searchDialog, SIGNAL(Replace(QString, QString)), this,
+          SLOT(SlotReplace(QString, QString)));
+  connect(m_searchDialog, SIGNAL(ReplaceAndFind(QString, QString)), this,
+          SLOT(SlotReplaceAndFind(QString, QString)));
+  connect(m_searchDialog, SIGNAL(ReplaceAll(QString, QString)), this,
+          SLOT(SlotReplaceAll(QString, QString)));
 
   initForm = true;
 }
@@ -59,9 +73,11 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     filetype = FILE_TYPE_UNKOWN;
   }
 
-  Editor *editor = new Editor(strFileName, filetype, this);
+  FOEDAG::Editor *editor = new FOEDAG::Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
           SLOT(SlotUpdateTabTitle(bool)));
+  connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
+          SLOT(SlotShowSearchDialog(QString)));
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
@@ -104,6 +120,13 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
   tabItem = nullptr;
 }
 
+void TextEditorForm::SlotCurrentChanged(int index) {
+  Editor *tabEditor = (Editor *)m_tab_editor->widget(index);
+  if (tabEditor) {
+    emit CurrentFileChanged(tabEditor->getFileName());
+  }
+}
+
 void TextEditorForm::SlotUpdateTabTitle(bool m) {
   int index = m_tab_editor->currentIndex();
   QString strName = m_tab_editor->tabText(index);
@@ -111,5 +134,48 @@ void TextEditorForm::SlotUpdateTabTitle(bool m) {
     m_tab_editor->setTabText(index, strName + tr("*"));
   } else {
     m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
+  }
+}
+
+void TextEditorForm::SlotShowSearchDialog(const QString &strWord) {
+  m_searchDialog->InsertSearchWord(strWord);
+  m_searchDialog->show();
+}
+
+void TextEditorForm::SlotFind(const QString &strFindWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindFirst(strFindWord);
+  }
+}
+
+void TextEditorForm::SlotFindNext(const QString &strFindWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->FindNext(strFindWord);
+  }
+}
+
+void TextEditorForm::SlotReplace(const QString &strFindWord,
+                                 const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->Replace(strFindWord, strDesWord);
+  }
+}
+
+void TextEditorForm::SlotReplaceAndFind(const QString &strFindWord,
+                                        const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAndFind(strFindWord, strDesWord);
+  }
+}
+
+void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
+                                    const QString &strDesWord) {
+  Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
+  if (tabEditor) {
+    tabEditor->ReplaceAll(strFindWord, strDesWord);
   }
 }

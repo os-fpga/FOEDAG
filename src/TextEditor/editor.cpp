@@ -32,7 +32,38 @@ QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
-void Editor::Search() {}
+void Editor::FindFirst(const QString &strWord) {
+  m_scintilla->findFirst(strWord, true, true, true, true, false);
+  m_scintilla->findNext();
+}
+
+void Editor::FindNext(const QString &strWord) {
+  m_scintilla->findFirst(strWord, true, true, true, true);
+}
+
+void Editor::Replace(const QString &strFind, const QString &strDesWord) {
+  Q_UNUSED(strFind);
+  m_scintilla->replace(strDesWord);
+}
+
+void Editor::ReplaceAndFind(const QString &strFind, const QString &strDesWord) {
+  m_scintilla->replace(strDesWord);
+  m_scintilla->findFirst(strFind, true, true, true, true);
+}
+
+void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
+  while (m_scintilla->findFirst(strFind, true, true, true, true)) {
+    m_scintilla->replace(strDesWord);
+  }
+}
+
+void Editor::Search() {
+  QString strWord = "";
+  if (m_scintilla->hasSelectedText()) {
+    strWord = m_scintilla->selectedText();
+  }
+  emit ShowSearchDialog(strWord);
+}
 
 void Editor::Save() {
   QFile file(m_strFileName);
@@ -58,7 +89,7 @@ void Editor::Copy() { m_scintilla->copy(); }
 
 void Editor::Paste() { m_scintilla->paste(); }
 
-void Editor::Delete() { m_scintilla->cut(); }
+void Editor::Delete() { m_scintilla->removeSelectedText(); }
 
 void Editor::SelectAll() { m_scintilla->selectAll(); }
 
@@ -204,6 +235,8 @@ void Editor::SetScintillaText(QString strFileName) {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_scintilla->setText(in.readAll());
   QApplication::restoreOverrideCursor();
+
+  m_scintilla->setModified(false);
 }
 
 void Editor::UpdateToolBarStates() {

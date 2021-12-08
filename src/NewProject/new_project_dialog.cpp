@@ -133,10 +133,14 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   m_projectManager->setSynthesisOption(listParam);
 
   m_projectManager->FinishedProject();
-  this->close();
+  this->setResult(1);
+  this->hide();
 }
 
-void newProjectDialog::on_m_btnCancel_clicked() { this->close(); }
+void newProjectDialog::on_m_btnCancel_clicked() {
+  this->setResult(0);
+  this->hide();
+}
 void newProjectDialog::UpdateDialogView() {
   if (INDEX_LOCATION == m_index) {
     ui->m_btnBack->setEnabled(false);

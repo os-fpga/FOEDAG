@@ -87,6 +87,9 @@ class ProjectManager : public QObject {
   int CreateProjectbyXml(const QString &strProXMl);
 
   int CreateProject(const QString &strName, const QString &strPath);
+  QString getProjectName() const;
+  QString getProjectPath() const;
+
   int setProjectType(const QString &strType);
 
   // Please set currentfileset before using this function

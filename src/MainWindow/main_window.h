@@ -47,6 +47,8 @@ class MainWindow : public QMainWindow {
   void createToolBars();
   void createActions();
 
+  void ReShowWindow(QString strProject);
+
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
   QMenu* fileMenu;

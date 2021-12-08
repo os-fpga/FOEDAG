@@ -17,8 +17,14 @@ class TextEditor : public QWidget {
   void ClosetextEditor();
   QWidget *GetTextEditor();
 
+ signals:
+  void CurrentFileChanged(QString);
+
  public slots:
-  void OpenFile(const QString &strFileName);
+  void SlotOpenFile(const QString &strFileName);
+
+ private slots:
+  void SlotCurrentFileChanged(const QString &strFileName);
 };
 }  // namespace FOEDAG
 #endif  // TEXTEDITOR_H

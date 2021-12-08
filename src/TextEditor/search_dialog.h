@@ -1,9 +1,9 @@
 #ifndef SEARCHDIALOG_H
 #define SEARCHDIALOG_H
 
-#include <QComboBox>
 #include <QDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QObject>
 #include <QPushButton>
 
@@ -14,7 +14,13 @@ class SearchDialog : public QDialog {
  public:
   explicit SearchDialog(QWidget *parent = nullptr);
 
+  void InsertSearchWord(const QString &strWord);
  signals:
+  void Find(QString);
+  void FindNext(QString);
+  void Replace(QString, QString);
+  void ReplaceAndFind(QString, QString);
+  void ReplaceAll(QString, QString);
 
  private slots:
   void SlotFindPrevious();
@@ -26,16 +32,13 @@ class SearchDialog : public QDialog {
  private:
   QLabel *m_labelFind;
   QLabel *m_labelReplace;
-  QComboBox *m_comboBoxFind;
-  QComboBox *m_comboBoxReplace;
+  QLineEdit *m_editFind;
+  QLineEdit *m_editReplace;
   QPushButton *m_btnFindPrevious;
   QPushButton *m_btnFindNext;
   QPushButton *m_btnReplace;
   QPushButton *m_btnReplaceAndFind;
   QPushButton *m_btnReplaceAll;
-
-  QPushButton *CreateButton(const QString &text, const char *member);
-  QComboBox *CreateComboBox(const QString &text = QString());
 };
 }  // namespace FOEDAG
 #endif  // SEARCHDIALOG_H

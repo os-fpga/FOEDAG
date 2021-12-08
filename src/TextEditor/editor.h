@@ -14,7 +14,6 @@
 #include "Qsci/qscilexertcl.h"
 #include "Qsci/qscilexerverilog.h"
 #include "Qsci/qscilexervhdl.h"
-#include "search_dialog.h"
 
 namespace FOEDAG {
 
@@ -34,8 +33,15 @@ class Editor : public QWidget {
   QString getFileName() const;
   bool isModified() const;
 
+  void FindFirst(const QString& strWord);
+  void FindNext(const QString& strWord);
+  void Replace(const QString& strFind, const QString& strDesWord);
+  void ReplaceAndFind(const QString& strFind, const QString& strDesWord);
+  void ReplaceAll(const QString& strFind, const QString& strDesWord);
+
  signals:
   void EditorModificationChanged(bool m);
+  void ShowSearchDialog(QString);
 
  public slots:
   void Save();
@@ -71,8 +77,6 @@ class Editor : public QWidget {
   QAction* m_actDelete;
 
   QAction* m_actSelect;
-
-  SearchDialog* m_searchDialog;
 
   void InitToolBar();
   void InitScintilla(int iFileType);

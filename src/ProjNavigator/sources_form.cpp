@@ -32,6 +32,8 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
+  connect(m_treeSrcHierachy, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
+          this, SLOT(SlotItemDoubleClicked(QTreeWidgetItem *, int)));
 
   ui->m_tabWidget->removeTab(ui->m_tabWidget->indexOf(ui->tab_2));
 }
@@ -61,6 +63,24 @@ void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
     UpdateSrcHierachyTree();
   } else {
     out << " Warning : This file <" << QString(argv[2]) << "> is not exist! \n";
+  }
+}
+
+void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
+  QString filename = strFileName.right(strFileName.size() -
+                                       (strFileName.lastIndexOf("/") + 1));
+  QList<QTreeWidgetItem *> listItem = m_treeSrcHierachy->findItems(
+      filename, Qt::MatchContains | Qt::MatchRecursive);
+  foreach (auto item, listItem) {
+    if (item == nullptr) {
+      continue;
+    }
+    QString strItemFileName = (item->data(0, Qt::UserRole)).toString();
+    QString strPath = m_projManager->getProjectPath();
+    if (!strFileName.compare(strItemFileName.replace("$OSRCDIR", strPath))) {
+      m_treeSrcHierachy->setCurrentItem(item);
+      break;
+    }
   }
 }
 
@@ -112,6 +132,17 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     QPoint p = QCursor::pos();
     menu->exec(QPoint(p.rx(), p.ry() + 3));
+  }
+}
+
+void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
+  Q_UNUSED(column);
+  QString strPropertyRole =
+      (item->data(0, Qt::WhatsThisPropertyRole)).toString();
+  if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_SIM_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+    SlotOpenFile();
   }
 }
 
@@ -170,7 +201,7 @@ void SourcesForm::SlotAddFile() {
 
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
-  QString strName = (item->data(0, Qt::UserRole)).toString();
+  QString strFielSetName = (item->data(0, Qt::UserRole)).toString();
 
   AddFileDialog addFileDialog;
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
@@ -184,7 +215,7 @@ void SourcesForm::SlotAddFile() {
   }
 
   if (addFileDialog.exec()) {
-    m_projManager->setCurrentFileSet(strName);
+    m_projManager->setCurrentFileSet(strFielSetName);
     QList<filedata> listFile = addFileDialog.m_fileForm->getFileData();
     foreach (filedata fdata, listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
@@ -219,6 +250,18 @@ void SourcesForm::SlotAddFile() {
     UpdateSrcHierachyTree();
     m_projManager->FinishedProject();
   }
+}
+
+void SourcesForm::SlotOpenFile() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strFileName = (item->data(0, Qt::UserRole)).toString();
+
+  QString strPath = m_projManager->getProjectPath();
+
+  emit OpenFile(strFileName.replace("$OSRCDIR", strPath));
 }
 
 void SourcesForm::SlotRemoveDesign() {

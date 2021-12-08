@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "NewProject/new_project_dialog.h"
 #include "ProjNavigator/sources_form.h"
+#include "TextEditor/text_editor.h"
 
 using namespace FOEDAG;
 
@@ -47,29 +48,29 @@ MainWindow::MainWindow() {
   /* Create status bar */
   statusBar();
 
-  /* Add dummy text editors */
-  QTextEdit* editor1 = new QTextEdit;
-  QTextEdit* editor2 = new QTextEdit;
-  QTextEdit* editor3 = new QTextEdit;
+  //  /* Add dummy text editors */
+  //  QTextEdit* editor1 = new QTextEdit;
+  //  QTextEdit* editor2 = new QTextEdit;
+  //  QTextEdit* editor3 = new QTextEdit;
 
-  /* Add widgets into floorplanning */
-  QSplitter* leftSplitter = new QSplitter(Qt::Horizontal);
-  leftSplitter->addWidget(editor1);
-  leftSplitter->setStretchFactor(1, 1);
+  //  /* Add widgets into floorplanning */
+  //  QSplitter* leftSplitter = new QSplitter(Qt::Horizontal);
+  //  leftSplitter->addWidget(editor1);
+  //  leftSplitter->setStretchFactor(1, 1);
 
-  QDockWidget* texteditorDockWidget = new QDockWidget(tr("Text Editor"));
-  texteditorDockWidget->setObjectName("texteditorDockWidget");
-  texteditorDockWidget->setWidget(editor2);
-  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea |
-                                        Qt::RightDockWidgetArea);
-  addDockWidget(Qt::RightDockWidgetArea, texteditorDockWidget);
+  //  QDockWidget* texteditorDockWidget = new QDockWidget(tr("Text Editor"));
+  //  texteditorDockWidget->setObjectName("texteditorDockWidget");
+  //  texteditorDockWidget->setWidget(editor2);
+  //  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea |
+  //                                        Qt::RightDockWidgetArea);
+  //  addDockWidget(Qt::RightDockWidgetArea, texteditorDockWidget);
 
-  QSplitter* mainSplitter = new QSplitter(Qt::Vertical);
-  mainSplitter->addWidget(leftSplitter);
-  mainSplitter->addWidget(editor3);
-  mainSplitter->setStretchFactor(1, 1);
+  //  QSplitter* mainSplitter = new QSplitter(Qt::Vertical);
+  //  mainSplitter->addWidget(leftSplitter);
+  //  mainSplitter->addWidget(editor3);
+  //  mainSplitter->setStretchFactor(1, 1);
 
-  setCentralWidget(mainSplitter);
+  //  setCentralWidget(mainSplitter);
 
   statusBar()->showMessage("Ready");
 }
@@ -86,14 +87,13 @@ void MainWindow::newFile() {
 
 void MainWindow::newProjectDlg() {
   newProjectDialog* m_dialog = new newProjectDialog(this);
-  m_dialog->exec();
-  QString strproject = m_dialog->getProject();
-
-  QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"));
-  sourceDockWidget->setObjectName("sourcedockwidget");
-  SourcesForm* sourform = new SourcesForm(strproject, this);
-  sourceDockWidget->setWidget(sourform);
-  addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+  int ret = m_dialog->exec();
+  m_dialog->close();
+  if (ret) {
+    QString strproject = m_dialog->getProject();
+    newProjectAction->setEnabled(false);
+    ReShowWindow(strproject);
+  }
 }
 
 void MainWindow::createMenus() {
@@ -128,4 +128,23 @@ void MainWindow::createActions() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
+}
+
+void MainWindow::ReShowWindow(QString strProject) {
+  QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
+  sourceDockWidget->setObjectName("sourcedockwidget");
+  SourcesForm* sourForm = new SourcesForm(strProject, this);
+  sourceDockWidget->setWidget(sourForm);
+  addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+
+  QDockWidget* editorDockWidget = new QDockWidget(this);
+  editorDockWidget->setObjectName("editordockwidget");
+  TextEditor* textEditor = new TextEditor(this);
+  editorDockWidget->setWidget(textEditor->GetTextEditor());
+  addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
+
+  connect(sourForm, SIGNAL(OpenFile(QString)), textEditor,
+          SLOT(SlotOpenFile(QString)));
+  connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourForm,
+          SLOT(SetCurrentFileItem(QString)));
 }

@@ -38,13 +38,20 @@ class SourcesForm : public QWidget {
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
 
+ signals:
+  void OpenFile(QString);
+
+ public slots:
+  void SetCurrentFileItem(const QString& strFileName);
+
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
+  void SlotItemDoubleClicked(QTreeWidgetItem* item, int column);
 
   void SlotRefreshSourceTree();
   void SlotCreateDesign();
   void SlotAddFile();
-  void SlotOpenFile(){};
+  void SlotOpenFile();
   void SlotRemoveDesign();
   void SlotRemoveFile();
   void SlotSetAsTop();
