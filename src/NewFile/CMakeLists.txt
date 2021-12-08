@@ -1,0 +1,59 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(newfile LANGUAGES CXX)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if (MSVC)
+else()
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
+endif()
+
+include (../../cmake/cmake_qt.txt)
+include (../../cmake/cmake_tcl.txt)
+
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+
+set (SRC_CPP_LIST
+  new_file.cpp)
+
+set (SRC_H_LIST
+  new_file.h)
+
+set (SRC_UI_LIST
+	)
+add_library(newfile STATIC
+  ${SRC_CPP_LIST}
+  ${SRC_H_LIST}
+  ${SRC_UI_LIST}
+)
+
+target_link_libraries(newfile  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_compile_definitions(newfile PRIVATE NEWFILE_LIBRARY)
+
+set(NEWFILE_STATIC_LIB libnewfile.a)
+if (MSVC)
+  set(NEWFILE_STATIC_LIB newfile.lib)
+endif()
+
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${NEWFILE_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
+
+install(
+ FILES ${PROJECT_SOURCE_DIR}/../NewFile/new_file.h
+ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewFile)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
+
+#add_executable(newproject_bin
+#	${PROJECT_SOURCE_DIR}/../NewProject/Main/newproject_main.cpp
+#	${PROJECT_SOURCE_DIR}/../NewProject/newproject.qrc)
+#target_link_libraries(newproject_bin foedag tcl_stubb tcl_static zlib)
+#set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
+

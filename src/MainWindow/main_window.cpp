@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 
 #include "Main/Foedag.h"
+#include "NewFile/new_file.h"
 #include "NewProject/new_project_dialog.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
@@ -81,8 +82,10 @@ void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
 }
 
 void MainWindow::newFile() {
-  QTextStream out(stdout);
-  out << "New file is requested\n";
+  //  QTextStream out(stdout);
+  //  out << "New file is requested\n";
+  NewFile* newfile = new NewFile(this);
+  newfile->StartNewFile();
 }
 
 void MainWindow::newProjectDlg() {
