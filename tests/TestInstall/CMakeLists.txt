@@ -133,6 +133,7 @@ if (FOEDAG_WITH_PYTHON)
   target_link_libraries(test_hellofoedag
     foedagcore
     foedag
+    newfile
     newproject
     projnavigator
     texteditor
@@ -148,6 +149,7 @@ else()
   target_link_libraries(test_hellofoedag
     foedagcore
     foedag
+    newfile
     newproject
     projnavigator
     texteditor
