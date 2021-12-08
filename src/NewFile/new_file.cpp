@@ -2,6 +2,8 @@
 
 #include <QTextStream>
 
+using namespace FOEDAG;
+
 NewFile::NewFile(QWidget *parent) : QWidget(parent) {
   QString filter = FILTER_VERILOG + tr(";;") + FILTER_VHDL + tr(";;") +
                    FILTER_TCL + tr(";;") + FILTER_CONSTR + tr(";;") +
