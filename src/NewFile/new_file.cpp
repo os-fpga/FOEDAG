@@ -37,16 +37,24 @@ void NewFile::StartNewFile() {
         newFileName = item;
       }
 
-      QFile file(newFileName);
-      if (file.exists()) {
-        continue;
+      if (!CreateFile(newFileName)) {
+        emit OpenFile(newFileName);
       }
-      if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        continue;
-      }
-      file.close();
     }
   }
 }
 
 void NewFile::StopNewFile() { m_fileDialog->close(); }
+
+int NewFile::CreateFile(QString strFileName) {
+  int ret = 0;
+  QFile file(strFileName);
+  if (file.exists()) {
+    return ret;
+  }
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
+  file.close();
+  return ret;
+}

@@ -20,10 +20,14 @@ class NewFile : public QWidget {
 
   void StartNewFile();
   void StopNewFile();
+
  signals:
+  void OpenFile(QString);
 
  private:
   QFileDialog* m_fileDialog;
+
+  int CreateFile(QString strFileName);
 };
 }  // namespace FOEDAG
 #endif  // NEWFILE_H
