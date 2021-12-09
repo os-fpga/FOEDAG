@@ -20,10 +20,12 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  new_file.cpp)
+  new_file.cpp
+  new_file_dialog.cpp)
 
 set (SRC_H_LIST
-  new_file.h)
+  new_file.h
+  new_file_dialog.h)
 
 set (SRC_UI_LIST
 	)
@@ -51,9 +53,8 @@ install(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-#add_executable(newproject_bin
-#	${PROJECT_SOURCE_DIR}/../NewProject/Main/newproject_main.cpp
-#	${PROJECT_SOURCE_DIR}/../NewProject/newproject.qrc)
-#target_link_libraries(newproject_bin foedag tcl_stubb tcl_static zlib)
-#set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
+add_executable(newfile_bin
+ ${PROJECT_SOURCE_DIR}/../NewFile/Test/newfile_main.cpp)
+target_link_libraries(newfile_bin foedag tcl_stubb tcl_static zlib)
+set_target_properties(newfile_bin PROPERTIES OUTPUT_NAME newfile)
 
