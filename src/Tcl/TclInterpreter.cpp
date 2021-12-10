@@ -85,7 +85,7 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
             if {$line == ""} {
                 continue
             }
-            after  $time $line 
+            after $time $line process_qt_events
             
             set time [expr $time + 500]
         }
@@ -97,12 +97,15 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
     
     # Enter loop
     set CONT 1 
+    puts TEST_LOOP_ENTERED
+    flush stdout
     while {$CONT} {
         set a 0
-        after 100 set a 1
+        after 10 set a 1
         vwait a
     }
-    
+    puts TEST_LOOP_EXITED
+    flush stdout
     if {$errorInfo != ""} {
         puts $errorInfo
         exit 1
