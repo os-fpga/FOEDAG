@@ -93,6 +93,14 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);
+
+  auto process_qt_events = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
+    return 0;
+  };
+  session->TclInterp()->registerCmd("process_qt_events", process_qt_events, 0,
+                                    0);
 }
 
 void registerBasicBatchCommands(FOEDAG::Session* session) {
