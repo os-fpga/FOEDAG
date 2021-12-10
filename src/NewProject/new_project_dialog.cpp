@@ -41,7 +41,7 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 newProjectDialog::~newProjectDialog() { delete ui; }
 
 void newProjectDialog::Next_TclCommand_Test() {
-  // Incorrect: There should not be any sleeps in actions: QThread::sleep(3);
+  QThread::sleep(0);
   emit ui->m_btnNext->clicked();
 }
 
