@@ -2,11 +2,15 @@
 #define RUNSFORM_H
 
 #include <QAction>
+#include <QApplication>
 #include <QObject>
 #include <QTreeWidget>
 #include <QWidget>
 
 #include "NewProject/ProjectManager/project_manager.h"
+
+#define RUNS_TREE_STATUS "Not Started"
+#define RUNS_TREE_ACTIVE "(Active)"
 
 namespace FOEDAG {
 
