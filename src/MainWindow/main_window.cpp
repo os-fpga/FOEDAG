@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
 #include "NewProject/new_project_dialog.h"
+#include "ProjNavigator/runs_form.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
 
@@ -139,6 +140,12 @@ void MainWindow::ReShowWindow(QString strProject) {
   SourcesForm* sourForm = new SourcesForm(strProject, this);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+
+  QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
+  runDockWidget->setObjectName("sourcedockwidget");
+  RunsForm* runForm = new RunsForm(strProject, this);
+  runDockWidget->setWidget(runForm);
+  addDockWidget(Qt::BottomDockWidgetArea, runDockWidget);
 
   QDockWidget* editorDockWidget = new QDockWidget(this);
   editorDockWidget->setObjectName("editordockwidget");

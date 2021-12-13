@@ -743,26 +743,67 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
-QStringList ProjectManager::getSynthRunsName() const {
+QStringList ProjectManager::getSynthRunsNames() const {
+  QStringList listSynthRunNames;
   QMap<QString, ProjectRun*> tmpRunMap =
       Project::Instance()->getMapProjectRun();
-  return tmpRunMap.keys();
-}
-
-QStringList ProjectManager::getRunsProperties(const QString& strRunName) {
-  QStringList strlist;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
-  if (nullptr != proRun) {
-    strlist.append(proRun->runName());
-    strlist.append(proRun->runType());
-    strlist.append(proRun->srcSet());
-    strlist.append(proRun->constrsSet());
-    strlist.append(proRun->runState());
-    strlist.append(proRun->synthRun());
-    strlist.append(proRun->getOption("Device"));
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      listSynthRunNames.append(tmpRun->runName());
+      break;
+    }
   }
 
-  return strlist;
+  return listSynthRunNames;
+}
+
+QString ProjectManager::SynthUsedByImple(const QString& strSynthName) const {
+  QString strImpleName = "";
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType() &&
+        strSynthName == tmpRun->synthRun()) {
+      strImpleName = tmpRun->runName();
+      break;
+    }
+  }
+
+  return strImpleName;
+}
+
+QList<QPair<QString, QString>> ProjectManager::getRunsProperties(
+    const QString& strRunName) {
+  QList<QPair<QString, QString>> listProperties;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
+  if (nullptr != proRun) {
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_RUN_NAME;
+    pair.second = proRun->runName();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_TYPE;
+    pair.second = proRun->runType();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_SRCSET;
+    pair.second = proRun->srcSet();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_CONSTRSSET;
+    pair.second = proRun->constrsSet();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_STATE;
+    pair.second = proRun->runState();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_SYNTHRUN;
+    pair.second = proRun->synthRun();
+    listProperties.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = proRun->getOption(PROJECT_PART_DEVICE);
+    listProperties.append(pair);
+  }
+
+  return listProperties;
 }
 
 int ProjectManager::deleteFileSet(const QString& strSetName) {

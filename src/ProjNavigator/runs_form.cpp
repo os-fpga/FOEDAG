@@ -43,7 +43,7 @@ void RunsForm::CreateActions() {
   connect(m_actDelete, SIGNAL(triggered()), this, SLOT(SlotDelete()));
 
   m_actMakeActive = new QAction(tr("Make Active"), m_treeRuns);
-  connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotMakeActive));
+  connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotMakeActive()));
 
   m_actLaunchRuns = new QAction(tr("Launch Runs"), m_treeRuns);
   connect(m_actLaunchRuns, SIGNAL(triggered()), this, SLOT(SlotLaunchRuns()));
@@ -63,29 +63,31 @@ void RunsForm::UpdateDesignRunsTree() {
   m_treeRuns->clear();
   QStringList strList;
   strList << "Name"
-          << "sources"
+          << "Sources"
           << "Constraints"
-          << "status"
-          << "Part"
+          << "Status"
+          << "Device"
           << "Start"
           << "Elapsed";
   m_treeRuns->setHeaderLabels(strList);
 
-  QStringList listSynthRunNames = m_projManager->getSynthRunsName();
+  QStringList listSynthRunNames = m_projManager->getSynthRunsNames();
   foreach (auto strSynthName, listSynthRunNames) {
     QTreeWidgetItem *itemSynth = new QTreeWidgetItem(m_treeRuns);
 
-    QStringList listSynthProperties =
+    QList<QPair<QString, QString>> listSynthProperties =
         m_projManager->getRunsProperties(strSynthName);
-    QString strImpleName;
     QString strState;
     for (int i = 0; i < listSynthProperties.count(); ++i) {
-      itemSynth->setText(i + 1, listSynthProperties.at(i));
-      if (4 == i) {
-        strState = listSynthProperties.at(i);
-      }
-      if (5 == i) {
-        strImpleName = listSynthProperties.at(i);
+      QPair<QString, QString> pair = listSynthProperties.at(i);
+      if (pair.first == PROJECT_RUN_SRCSET) {
+        itemSynth->setText(1, pair.second);
+      } else if (pair.first == PROJECT_RUN_CONSTRSSET) {
+        itemSynth->setText(2, pair.second);
+      } else if (pair.first == PROJECT_RUN_STATE) {
+        strState = pair.second;
+      } else if (pair.first == PROJECT_PART_DEVICE) {
+        itemSynth->setText(4, pair.second);
       }
     }
     if (strState == RUN_STATE_CURRENT) {
@@ -93,13 +95,26 @@ void RunsForm::UpdateDesignRunsTree() {
     } else {
       itemSynth->setText(0, strSynthName);
     }
+    itemSynth->setText(3, "Not Started");
 
-    QTreeWidgetItem *itemImple = new QTreeWidgetItem(itemSynth);
-    itemImple->setText(0, strImpleName);
-    QStringList listImpleProperties =
-        m_projManager->getRunsProperties(strSynthName);
-    for (int i = 0; i < listImpleProperties.count(); ++i) {
-      itemImple->setText(i + 1, listImpleProperties.at(i));
+    // Start creating the implementation view
+    QString strImpleName = m_projManager->SynthUsedByImple(strSynthName);
+    if ("" != strImpleName) {
+      QTreeWidgetItem *itemImple = new QTreeWidgetItem(itemSynth);
+      itemImple->setText(0, strImpleName);
+      QList<QPair<QString, QString>> listImpleProperties =
+          m_projManager->getRunsProperties(strImpleName);
+      for (int i = 0; i < listImpleProperties.count(); ++i) {
+        QPair<QString, QString> pair = listSynthProperties.at(i);
+        if (pair.first == PROJECT_RUN_SRCSET) {
+          itemImple->setText(1, pair.second);
+        } else if (pair.first == PROJECT_RUN_CONSTRSSET) {
+          itemImple->setText(2, pair.second);
+        } else if (pair.first == PROJECT_PART_DEVICE) {
+          itemImple->setText(4, pair.second);
+        }
+      }
+      itemImple->setText(3, "Not Started");
     }
   }
   m_treeRuns->expandAll();

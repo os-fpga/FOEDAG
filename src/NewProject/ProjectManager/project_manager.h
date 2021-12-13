@@ -56,6 +56,11 @@ project object is singleton mode.
 #define PROJECT_RUN_STATE "State"
 #define PROJECT_RUN_SYNTHRUN "SynthRun"
 
+#define PROJECT_PART_SERIES "Series"
+#define PROJECT_PART_FAMILY "Family"
+#define PROJECT_PART_PACKAGE "Package"
+#define PROJECT_PART_DEVICE "Device"
+
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
@@ -133,10 +138,9 @@ class ProjectManager : public QObject {
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 
-  QStringList getSynthRunsName() const;
-  // The contents in the list are:
-  // Name,Type,SrcSet,ConstrsSet,State="current",SynthRun,Device
-  QStringList getRunsProperties(const QString &strRunName);
+  QStringList getSynthRunsNames() const;
+  QString SynthUsedByImple(const QString &strSynthName) const;
+  QList<QPair<QString, QString>> getRunsProperties(const QString &strRunName);
 
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRun);
