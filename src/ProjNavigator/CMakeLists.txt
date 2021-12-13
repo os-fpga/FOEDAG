@@ -23,13 +23,15 @@ set (SRC_CPP_LIST
   sources_form.cpp
   create_design_dialog.cpp
   add_file_dialog.cpp
-  add_file_form.cpp)
+  add_file_form.cpp
+  runs_form.cpp)
 
 set (SRC_H_LIST
   sources_form.h
   create_design_dialog.h
   add_file_dialog.h
-  add_file_form.h)
+  add_file_form.h
+  runs_form.h)
 
 set (SRC_UI_LIST
   sources_form.ui
