@@ -20,10 +20,10 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-	)
+ runs_form.cpp)
 
 set (SRC_H_LIST
-	)
+ runs_form.h)
 
 set (SRC_UI_LIST
 	)
@@ -39,16 +39,16 @@ target_compile_definitions(designruns PRIVATE DESIGNRUNS_LIBRARY)
 
 set(DESIGNRUNS_STATIC_LIB libdesignruns.a)
 if (MSVC)
-	set(DESIGNRUN_STATIC_LIB designruns.lib)
+ set(DESIGNRUNS_STATIC_LIB designruns.lib)
 endif()
 
 install (
-	FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${DESIGNRUN_STATIC_LIB}
+ FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${DESIGNRUNS_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-    FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/sources_form.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/ProjNavigator)
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/runs_form.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/DesignRuns)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
