@@ -143,7 +143,7 @@ class ProjectManager : public QObject {
   QList<QPair<QString, QString>> getRunsProperties(const QString &strRunName);
 
   int deleteFileSet(const QString &strSetName);
-  int deleteRun(const QString &strRun);
+  int deleteRun(const QString &strRunName);
 
   int StartProject(const QString &strOspro);
   int FinishedProject();

@@ -824,13 +824,27 @@ int ProjectManager::deleteFileSet(const QString& strSetName) {
   return ret;
 }
 
-int ProjectManager::deleteRun(const QString& strRun) {
+int ProjectManager::deleteRun(const QString& strRunName) {
   int ret = 0;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(strRun);
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
   if (RUN_STATE_CURRENT == proRun->runState()) {
     return -1;
   }
-  Project::Instance()->deleteprojectRun(strRun);
+
+  // Check whether there is an implementation using synthesis's result. If so,
+  // delete the implementation run
+  if (RUN_TYPE_SYNTHESIS == proRun->runType()) {
+    QMap<QString, ProjectRun*> tmpRunMap =
+        Project::Instance()->getMapProjectRun();
+    for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+      ProjectRun* tmpRun = iter.value();
+      if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType() &&
+          strRunName == tmpRun->synthRun()) {
+        Project::Instance()->deleteprojectRun(tmpRun->runName());
+      }
+    }
+  }
+  Project::Instance()->deleteprojectRun(strRunName);
   return ret;
 }
 
