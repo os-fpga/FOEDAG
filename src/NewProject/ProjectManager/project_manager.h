@@ -86,6 +86,9 @@ class ProjectManager : public QObject {
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
 
+  // e.g strPath:/root/Desktop/project_1   strName:project_1
+  // project_1.ospr file, project_1.runs folder and project_1.srcs folder will
+  // be created under the /root/Desktop/project_1 path
   int CreateProject(const QString &strName, const QString &strPath);
   QString getProjectName() const;
   QString getProjectPath() const;
@@ -129,6 +132,11 @@ class ProjectManager : public QObject {
   int setSimulationActive(const QString &strSetName);
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
+
+  QStringList getSynthRunsName() const;
+  // The contents in the list are:
+  // Name,Type,SrcSet,ConstrsSet,State="current",SynthRun,Device
+  QStringList getRunsProperties(const QString &strRunName);
 
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRun);

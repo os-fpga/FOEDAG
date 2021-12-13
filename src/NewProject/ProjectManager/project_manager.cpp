@@ -743,6 +743,28 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
+QStringList ProjectManager::getSynthRunsName() const {
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  return tmpRunMap.keys();
+}
+
+QStringList ProjectManager::getRunsProperties(const QString& strRunName) {
+  QStringList strlist;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
+  if (nullptr != proRun) {
+    strlist.append(proRun->runName());
+    strlist.append(proRun->runType());
+    strlist.append(proRun->srcSet());
+    strlist.append(proRun->constrsSet());
+    strlist.append(proRun->runState());
+    strlist.append(proRun->synthRun());
+    strlist.append(proRun->getOption("Device"));
+  }
+
+  return strlist;
+}
+
 int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
@@ -779,6 +801,12 @@ int ProjectManager::FinishedProject() { return ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
   int ret = 0;
+  QString strTemp = Project::Instance()->projectPath() + "/" +
+                    Project::Instance()->projectName() + PROJECT_FILE_FORMAT;
+  if (strOspro == strTemp) {
+    return ret;
+  }
+
   QFile file(strOspro);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return -1;
