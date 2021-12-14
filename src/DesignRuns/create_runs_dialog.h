@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+#include "create_runs_form.h"
+
 namespace Ui {
 class CreateRunsDialog;
 }
@@ -15,6 +17,11 @@ class CreateRunsDialog : public QDialog {
  public:
   explicit CreateRunsDialog(QWidget *parent = nullptr);
   ~CreateRunsDialog();
+
+  void InitDialog(int itype);
+
+ public:
+  CreateRunsForm *m_createRunsForm;
 
  private:
   Ui::CreateRunsDialog *ui;

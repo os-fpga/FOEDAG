@@ -63,10 +63,15 @@ void RunsForm::SlotMakeActive() {}
 
 void RunsForm::SlotLaunchRuns() {}
 
-void RunsForm::SlotReSetRuns() {}
+void RunsForm::SlotReSetRuns() {
+  CreateRunsDialog dlg;
+  dlg.InitDialog(RT_IMPLE);
+  dlg.exec();
+}
 
 void RunsForm::SlotCreateRuns() {
   CreateRunsDialog dlg;
+  dlg.InitDialog(RT_SYNTH);
   dlg.exec();
 }
 
