@@ -26,7 +26,8 @@ class RunsForm : public QWidget {
   void SlotMakeActive();
   void SlotLaunchRuns();
   void SlotReSetRuns();
-  void SlotCreateRuns();
+  void SlotCreateSynthRuns();
+  void SlotCreateImpleRuns();
 
  signals:
 
@@ -37,7 +38,8 @@ class RunsForm : public QWidget {
   QAction* m_actMakeActive;
   QAction* m_actLaunchRuns;
   QAction* m_actResetRuns;
-  QAction* m_actCreateRuns;
+  QAction* m_actCreateSynthRuns;
+  QAction* m_actCreateImpleRuns;
 
   ProjectManager* m_projManager;
 

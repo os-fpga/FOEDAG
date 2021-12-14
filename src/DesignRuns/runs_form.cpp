@@ -37,7 +37,8 @@ void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     menu->addAction(m_actMakeActive);
     menu->addAction(m_actLaunchRuns);
     menu->addAction(m_actResetRuns);
-    menu->addAction(m_actCreateRuns);
+    menu->addAction(m_actCreateSynthRuns);
+    menu->addAction(m_actCreateImpleRuns);
     QString strName = item->text(0);
     if (strName.contains(RUNS_TREE_ACTIVE)) {
       m_actDelete->setEnabled(false);
@@ -65,9 +66,15 @@ void RunsForm::SlotLaunchRuns() {}
 
 void RunsForm::SlotReSetRuns() {}
 
-void RunsForm::SlotCreateRuns() {
+void RunsForm::SlotCreateSynthRuns() {
   CreateRunsDialog dlg;
   dlg.InitDialog(RT_SYNTH);
+  dlg.exec();
+}
+
+void RunsForm::SlotCreateImpleRuns() {
+  CreateRunsDialog dlg;
+  dlg.InitDialog(RT_IMPLE);
   dlg.exec();
 }
 
@@ -84,8 +91,13 @@ void RunsForm::CreateActions() {
   m_actResetRuns = new QAction(tr("Reset Runs"), m_treeRuns);
   connect(m_actResetRuns, SIGNAL(triggered()), this, SLOT(SlotReSetRuns()));
 
-  m_actCreateRuns = new QAction(tr("Create Runs"), m_treeRuns);
-  connect(m_actCreateRuns, SIGNAL(triggered()), this, SLOT(SlotCreateRuns()));
+  m_actCreateSynthRuns = new QAction(tr("Create Synthesis"), m_treeRuns);
+  connect(m_actCreateSynthRuns, SIGNAL(triggered()), this,
+          SLOT(SlotCreateSynthRuns()));
+
+  m_actCreateImpleRuns = new QAction(tr("Create Implement"), m_treeRuns);
+  connect(m_actCreateImpleRuns, SIGNAL(triggered()), this,
+          SLOT(SlotCreateImpleRuns()));
 }
 
 void RunsForm::UpdateDesignRunsTree() {

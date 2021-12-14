@@ -26,19 +26,20 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
 
   // Set properties
   m_tableViewRuns->verticalHeader()->hide();
-  m_tableViewRuns->verticalHeader()->setDefaultSectionSize(30);
-  // Last column adaptive width
-  m_tableViewRuns->horizontalHeader()->setStretchLastSection(true);
   // Color separation between lines
   m_tableViewRuns->setAlternatingRowColors(true);
-
+  // Last column adaptive width
+  m_tableViewRuns->horizontalHeader()->setStretchLastSection(true);
   m_tableViewRuns->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
        QTableView::item:selected{color:black;background:rgb(177,220,255);}");
-  m_tableViewRuns->setColumnWidth(0, 80);
 
   m_model = new QStandardItemModel(m_tableViewRuns);
-  m_selectModel = new QItemSelectionModel(m_model, m_model);
+  m_selectModel = new QItemSelectionModel(m_model, m_tableViewRuns);
+  m_tableViewRuns->setModel(m_model);
+  m_tableViewRuns->setSelectionModel(m_selectModel);
+  connect(m_selectModel, &QItemSelectionModel::selectionChanged, this,
+          &RunsGrid::SlotTableViewSelectionChanged);
 
   m_tableViewRuns->horizontalHeader()->setMinimumHeight(30);
 
@@ -51,13 +52,8 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
     m_model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
     m_model->setHorizontalHeaderItem(1, new QStandardItem("Sources Set"));
     m_model->setHorizontalHeaderItem(2, new QStandardItem("Constraints Set"));
-    m_model->setHorizontalHeaderItem(0, new QStandardItem("Synth Name"));
+    m_model->setHorizontalHeaderItem(3, new QStandardItem("Synth Name"));
   }
-
-  m_tableViewRuns->setModel(m_model);
-  m_tableViewRuns->setSelectionModel(m_selectModel);
-  connect(m_selectModel, &QItemSelectionModel::selectionChanged, this,
-          &RunsGrid::SlotTableViewSelectionChanged);
 
   QVBoxLayout *vbox = new QVBoxLayout();
   vbox->addWidget(m_toolBar);
