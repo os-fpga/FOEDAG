@@ -61,9 +61,38 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
   setLayout(vbox);
+
+  connect(m_actAdd, SIGNAL(triggered()), this, SLOT(SlotAddRuns()));
+  connect(m_actDelete, SIGNAL(triggered()), this, SLOT(SlotDeleteRuns()));
 }
 
-void RunsGrid::SlotAddRuns() {}
+void RunsGrid::SlotAddRuns() {
+  int rows = m_model->rowCount();
+  QList<QStandardItem *> items;
+  QStandardItem *item = nullptr;
+
+  item = new QStandardItem();
+  item->setText("fdata.0");
+  item->setTextAlignment(Qt::AlignCenter);
+  items.append(item);
+
+  item = new QStandardItem();
+  item->setText("fdata.1");
+  item->setTextAlignment(Qt::AlignCenter);
+  items.append(item);
+
+  item = new QStandardItem();
+  item->setText("fdata.2");
+  item->setTextAlignment(Qt::AlignCenter);
+  items.append(item);
+
+  item = new QStandardItem();
+  item->setText("fdata.3");
+  item->setTextAlignment(Qt::AlignCenter);
+  items.append(item);
+
+  m_model->insertRow(rows, items);
+}
 
 void RunsGrid::SlotDeleteRuns() {}
 
