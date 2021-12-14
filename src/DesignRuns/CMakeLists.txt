@@ -22,12 +22,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST
  runs_form.cpp
  create_runs_dialog.cpp
- create_runs_form.cpp)
+ create_runs_form.cpp
+ runs_grid.cpp)
 
 set (SRC_H_LIST
  runs_form.h
  create_runs_dialog.h
- create_runs_form.h)
+ create_runs_form.h
+ runs_grid.h)
 
 set (SRC_UI_LIST
  create_runs_dialog.ui

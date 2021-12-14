@@ -2,14 +2,13 @@
 #define CREATE_RUNS_FORM_H
 
 #include <QWidget>
+#include "runs_grid.h"
 
 namespace Ui {
 class CreateRunsForm;
 }
 
 namespace FOEDAG {
-
-enum RunType { RT_SYNTH, RT_IMPLE };
 
 class CreateRunsForm : public QWidget {
   Q_OBJECT
