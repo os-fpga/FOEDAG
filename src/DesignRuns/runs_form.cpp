@@ -3,6 +3,8 @@
 #include <QMenu>
 #include <QVBoxLayout>
 
+#include "create_runs_dialog.h"
+
 using namespace FOEDAG;
 
 RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
@@ -63,7 +65,10 @@ void RunsForm::SlotLaunchRuns() {}
 
 void RunsForm::SlotReSetRuns() {}
 
-void RunsForm::SlotCreateRuns() {}
+void RunsForm::SlotCreateRuns() {
+  CreateRunsDialog dlg;
+  dlg.exec();
+}
 
 void RunsForm::CreateActions() {
   m_actDelete = new QAction(tr("Delete"), m_treeRuns);

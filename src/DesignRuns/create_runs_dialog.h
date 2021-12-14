@@ -7,16 +7,17 @@ namespace Ui {
 class CreateRunsDialog;
 }
 
-class CreateRunsDialog : public QDialog
-{
-    Q_OBJECT
+namespace FOEDAG {
 
-public:
-    explicit CreateRunsDialog(QWidget *parent = nullptr);
-    ~CreateRunsDialog();
+class CreateRunsDialog : public QDialog {
+  Q_OBJECT
 
-private:
-    Ui::CreateRunsDialog *ui;
+ public:
+  explicit CreateRunsDialog(QWidget *parent = nullptr);
+  ~CreateRunsDialog();
+
+ private:
+  Ui::CreateRunsDialog *ui;
 };
-
-#endif // CREATE_RUNS_DIALOG_H
+}  // namespace FOEDAG
+#endif  // CREATE_RUNS_DIALOG_H
