@@ -20,13 +20,15 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
- runs_form.cpp)
+ runs_form.cpp
+ create_runs_dialog.cpp)
 
 set (SRC_H_LIST
- runs_form.h)
+ runs_form.h
+ create_runs_dialog.h)
 
 set (SRC_UI_LIST
-	)
+ create_runs_dialog.ui)
 
 add_library(designruns STATIC
   ${SRC_CPP_LIST}
