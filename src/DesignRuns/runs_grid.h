@@ -33,6 +33,7 @@ class RunsGrid : public QWidget {
 
   QToolBar *m_toolBar;
   QAction *m_actAdd;
+  QAction *m_actModify;
   QAction *m_actDelete;
 
   QTableView *m_tableViewRuns;
