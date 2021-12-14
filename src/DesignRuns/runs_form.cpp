@@ -21,7 +21,7 @@ RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
   CreateActions();
 
   m_projManager = new ProjectManager(this);
-  m_projManager->StartProject(strProPath + PROJECT_FILE_FORMAT);
+  m_projManager->StartProject(strProPath);
 
   UpdateDesignRunsTree();
 

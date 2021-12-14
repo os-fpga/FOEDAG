@@ -100,10 +100,20 @@ void MainWindow::newProjectDlg() {
   }
 }
 
+void MainWindow::openProject() {
+  QString fileName = "";
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), "",
+                                          "FOEDAG Project File(*.ospr)");
+  if ("" != fileName) {
+    ReShowWindow(fileName);
+  }
+}
+
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
   fileMenu->addAction(newProjectAction);
+  fileMenu->addAction(openProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 }
@@ -119,6 +129,10 @@ void MainWindow::createActions() {
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
+
+  openProjectAction = new QAction(tr("&OpenProject"), this);
+  openProjectAction->setStatusTip(tr("Open a new project"));
+  connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
   newProjectAction = new QAction(tr("&NewProject"), this);
   newProjectAction->setStatusTip(tr("Create a new project"));

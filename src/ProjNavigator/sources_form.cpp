@@ -26,7 +26,7 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
   CreateActions();
 
   m_projManager = new ProjectManager(this);
-  m_projManager->StartProject(strproject + PROJECT_FILE_FORMAT);
+  m_projManager->StartProject(strproject);
 
   UpdateSrcHierachyTree();
 

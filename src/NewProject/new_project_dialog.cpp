@@ -51,7 +51,7 @@ void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
 
 QString newProjectDialog::getProject() {
   return m_locationForm->getProjectPath() + "/" +
-         m_locationForm->getProjectName();
+         m_locationForm->getProjectName() + PROJECT_FILE_FORMAT;
 }
 
 void newProjectDialog::on_m_btnBack_clicked() {
