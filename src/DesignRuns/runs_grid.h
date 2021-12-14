@@ -12,14 +12,16 @@ namespace FOEDAG {
 
 enum RunsType { RT_SYNTH, RT_IMPLE };
 
-typedef struct tagFileData {
-  bool m_isFolder;
-  QString m_fileType;
-  QString m_fileName;
-  QString m_filePath;
-} FILEDATA;
+typedef struct tagRunData {
+  int m_iRunType;
+  QString m_runName;
+  QString m_srcSet;
+  QString m_constrSet;
+  QString m_device;     // Valid when m_iRunType=RT_SYNTH
+  QString m_synthName;  // Valid when m_iRunType=RT_IMPLE
+} RUNDATA;
 
-typedef FILEDATA filedata;
+typedef RUNDATA rundata;
 
 class RunsGrid : public QWidget {
   Q_OBJECT
@@ -28,12 +30,17 @@ class RunsGrid : public QWidget {
 
  signals:
 
+ private slots:
+  void SlotAddRuns();
+  void SlotDeleteRuns();
+
+  void SlotTableViewSelectionChanged();
+
  private:
   RunsType m_type;
 
   QToolBar *m_toolBar;
   QAction *m_actAdd;
-  QAction *m_actModify;
   QAction *m_actDelete;
 
   QTableView *m_tableViewRuns;
