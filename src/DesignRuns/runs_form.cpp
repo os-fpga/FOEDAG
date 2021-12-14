@@ -63,8 +63,7 @@ void RunsForm::SlotMakeActive() {}
 
 void RunsForm::SlotLaunchRuns() {}
 
-void RunsForm::SlotReSetRuns() {
-}
+void RunsForm::SlotReSetRuns() {}
 
 void RunsForm::SlotCreateRuns() {
   CreateRunsDialog dlg;

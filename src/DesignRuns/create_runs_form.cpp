@@ -20,7 +20,7 @@ void CreateRunsForm::InitForm(int itype) {
 
     ui->m_labelSummary->setText(tr("0 synthesis run will be created."));
 
-    // m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_groupBox);
+    m_widgetRunsGrid = new RunsGrid(RT_SYNTH, ui->m_groupBox);
 
   } else if (RT_IMPLE == itype) {
     ui->m_labelTitle->setText(tr("Configure Implementation Runs"));
@@ -29,12 +29,12 @@ void CreateRunsForm::InitForm(int itype) {
            "parts,constraints,flows and strategies."));
     ui->m_labelSummary->setText(tr("0 Implementation run will be created."));
 
-    // m_widgetGrid = new sourceGrid(GT_CONSTRAINTS, ui->m_groupBox);
+    m_widgetRunsGrid = new RunsGrid(RT_IMPLE, ui->m_groupBox);
   }
 
-  //    QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom,
-  //    ui->m_groupBox); box->addWidget(m_widgetGrid);
-  //    box->setContentsMargins(0, 0, 0, 1);
-  //    box->setSpacing(0);
-  //    ui->m_groupBox->setLayout(box);
+  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
+  box->addWidget(m_widgetRunsGrid);
+  box->setContentsMargins(0, 0, 0, 1);
+  box->setSpacing(0);
+  ui->m_groupBox->setLayout(box);
 }

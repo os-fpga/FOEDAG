@@ -2,6 +2,7 @@
 #define CREATE_RUNS_FORM_H
 
 #include <QWidget>
+
 #include "runs_grid.h"
 
 namespace Ui {
@@ -21,6 +22,7 @@ class CreateRunsForm : public QWidget {
 
  private:
   Ui::CreateRunsForm *ui;
+  RunsGrid *m_widgetRunsGrid;
 };
 }  // namespace FOEDAG
 #endif  // CREATE_RUNS_FORM_H
