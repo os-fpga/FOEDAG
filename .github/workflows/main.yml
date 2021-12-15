@@ -361,7 +361,7 @@ jobs:
         echo 'CC=gcc-9' >> $GITHUB_ENV
         echo 'CXX=g++-9' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=/usr/local' >> $GITHUB_ENV
+        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
 
     - name: Show shell configuration
       run: |
@@ -377,7 +377,7 @@ jobs:
     - name: Build
       run: |
         make release
-        sudo make install
+        make install
 
     - name: Unit tests
       run: |
@@ -416,7 +416,7 @@ jobs:
 
     - name: Configure shell
       run: |
-        echo 'PREFIX=/usr/local' >> $GITHUB_ENV
+        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
 
     - name: Show shell configuration
@@ -431,7 +431,7 @@ jobs:
     - name: Build
       run: |
         make release
-        sudo make install
+        make install
 
     - name: Unit tests
       run: |
