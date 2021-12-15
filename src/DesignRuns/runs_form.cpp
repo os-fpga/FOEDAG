@@ -58,9 +58,33 @@ void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   }
 }
 
-void RunsForm::SlotDelete() {}
+void RunsForm::SlotDelete() {
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = item->text(0);
 
-void RunsForm::SlotMakeActive() {}
+  int ret = m_projManager->deleteRun(strRunName);
+  if (0 == ret) {
+    UpdateDesignRunsTree();
+    m_projManager->FinishedProject();
+  }
+}
+
+void RunsForm::SlotMakeActive() {
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = item->text(0);
+
+  int ret = m_projManager->setRunActive(strRunName);
+  if (0 == ret) {
+    UpdateDesignRunsTree();
+    m_projManager->FinishedProject();
+  }
+}
 
 void RunsForm::SlotLaunchRuns() {}
 
@@ -69,13 +93,19 @@ void RunsForm::SlotReSetRuns() {}
 void RunsForm::SlotCreateSynthRuns() {
   CreateRunsDialog dlg;
   dlg.InitDialog(RT_SYNTH);
-  dlg.exec();
+  if (dlg.exec()) {
+    UpdateDesignRunsTree();
+    m_projManager->FinishedProject();
+  }
 }
 
 void RunsForm::SlotCreateImpleRuns() {
   CreateRunsDialog dlg;
   dlg.InitDialog(RT_IMPLE);
-  dlg.exec();
+  if (dlg.exec()) {
+    UpdateDesignRunsTree();
+    m_projManager->FinishedProject();
+  }
 }
 
 void RunsForm::CreateActions() {

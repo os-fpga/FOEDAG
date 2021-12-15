@@ -378,19 +378,6 @@ int ProjectManager::deleteFile(const QString& strFileName) {
   return ret;
 }
 
-int ProjectManager::setSynthesisOption(
-    const QList<QPair<QString, QString>>& listParam) {
-  int ret = 0;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
-  if (nullptr == proRun) {
-    return -2;
-  }
-  foreach (QPair pair, listParam) {
-    proRun->setOption(pair.first, pair.second);
-  }
-  return ret;
-}
-
 int ProjectManager::setTopModule(const QString& strFileName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
@@ -821,6 +808,104 @@ QList<QPair<QString, QString>> ProjectManager::getRunsProperties(
   return listProperties;
 }
 
+int ProjectManager::setSynthRun(const QString& strRunName) {
+  ProjectRun* proRun = new ProjectRun(this);
+  proRun = new ProjectRun(this);
+  proRun->setRunName(strRunName);
+  proRun->setRunType(RUN_TYPE_SYNTHESIS);
+  proRun->setOption("Compilation Flow", "Classic Flow");
+  proRun->setOption("LanguageVersion", "SYSTEMVERILOG_2005");
+  proRun->setOption("TargetLanguage", "VERILOG");
+  Project::Instance()->setProjectRun(proRun);
+  CreateRunsFolder(strRunName);
+  return 0;
+}
+
+int ProjectManager::setImpleRun(const QString& strRunName) {
+  ProjectRun* proRun = new ProjectRun(this);
+  proRun = new ProjectRun(this);
+  proRun->setRunName(strRunName);
+  proRun->setRunType(RUN_TYPE_IMPLEMENT);
+  Project::Instance()->setProjectRun(proRun);
+  CreateRunsFolder(strRunName);
+  return 0;
+}
+
+int ProjectManager::setRunSrcSet(const QString& strSrcSet) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setSrcSet(strSrcSet);
+  return ret;
+}
+
+int ProjectManager::setRunConstrSet(const QString& strConstrSet) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setConstrsSet(strConstrSet);
+  return ret;
+}
+
+int ProjectManager::setRunSynthRun(const QString& strSynthRunName) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun && proRun->runType() != RUN_TYPE_IMPLEMENT) {
+    return -2;
+  }
+  proRun->setSynthRun(strSynthRunName);
+  return ret;
+}
+
+int ProjectManager::setSynthesisOption(
+    const QList<QPair<QString, QString>>& listParam) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  foreach (QPair pair, listParam) {
+    proRun->setOption(pair.first, pair.second);
+  }
+  return ret;
+}
+
+int ProjectManager::setRunActive(const QString& strRunName) {
+  int ret = 0;
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  // clear all runs state
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun) {
+      tmpRun->setRunState("");
+    }
+  }
+
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setRunState(RUN_STATE_CURRENT);
+
+  // The synthesis used will become active
+  if (proRun->runType() == RUN_TYPE_IMPLEMENT) {
+    QString strSynthRunName = proRun->synthRun();
+    ProjectRun* proSynthRun =
+        Project::Instance()->getProjectRun(strSynthRunName);
+    if (nullptr == proSynthRun) {
+      return -2;
+    }
+    proSynthRun->setRunState(RUN_STATE_CURRENT);
+  }
+  return ret;
+}
+
 QString ProjectManager::getActiveRunDevice() const {
   QString strActive = "";
 
@@ -838,7 +923,7 @@ QString ProjectManager::getActiveRunDevice() const {
   return strActive;
 }
 
-QString ProjectManager::getActiveRunName() const {
+QString ProjectManager::getActiveSynthRunName() const {
   QString strActive = "";
 
   QMap<QString, ProjectRun*> tmpRunMap =

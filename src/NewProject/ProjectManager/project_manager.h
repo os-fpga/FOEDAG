@@ -109,9 +109,6 @@ class ProjectManager : public QObject {
   // Please set currentfileset before using this function
   int deleteFile(const QString &strFileName);
 
-  // Please set currentrun before using this function
-  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
-
   // Please set currentfileset before using this function
   int setTopModule(const QString &strFileName);
   // Please set currentfileset before using this function
@@ -143,8 +140,22 @@ class ProjectManager : public QObject {
   QString SynthUsedByImple(const QString &strSynthName) const;
   QList<QPair<QString, QString>> getRunsProperties(const QString &strRunName);
 
+  int setSynthRun(const QString &strRunName);
+  int setImpleRun(const QString &strRunName);
+
+  // Please set currentrun before using this function
+  int setRunSrcSet(const QString &strSrcSet);
+  // Please set currentrun before using this function
+  int setRunConstrSet(const QString &strConstrSet);
+  // Please set currentrun before using this function
+  int setRunSynthRun(const QString &strSynthRunName);
+  // Please set currentrun before using this function
+  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+
+  int setRunActive(const QString &strRunName);
+
   QString getActiveRunDevice() const;
-  QString getActiveRunName() const;
+  QString getActiveSynthRunName() const;
 
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRunName);

@@ -71,7 +71,7 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   m_strSrcSet = m_projManager->getDesignActiveFileSet();
   m_strConstrSet = m_projManager->getConstrActiveFileSet();
   m_strDevice = m_projManager->getActiveRunDevice();
-  m_strSynthName = m_projManager->getActiveRunName();
+  m_strSynthName = m_projManager->getActiveSynthRunName();
 }
 
 void RunsGrid::SlotAddRuns() {
