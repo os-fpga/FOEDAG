@@ -1,5 +1,6 @@
 #include "runs_grid.h"
 
+#include <QMouseEvent>
 #include <QVBoxLayout>
 
 using namespace FOEDAG;
@@ -64,6 +65,13 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
 
   connect(m_actAdd, SIGNAL(triggered()), this, SLOT(SlotAddRuns()));
   connect(m_actDelete, SIGNAL(triggered()), this, SLOT(SlotDeleteRuns()));
+
+  m_projManager = new ProjectManager(this);
+  m_runId = CreateFirstRunId();
+  m_strSrcSet = m_projManager->getDesignActiveFileSet();
+  m_strConstrSet = m_projManager->getConstrActiveFileSet();
+  m_strDevice = m_projManager->getActiveRunDevice();
+  m_strSynthName = m_projManager->getActiveRunName();
 }
 
 void RunsGrid::SlotAddRuns() {
@@ -71,27 +79,40 @@ void RunsGrid::SlotAddRuns() {
   QList<QStandardItem *> items;
   QStandardItem *item = nullptr;
 
+  QString strRunName;
+  if (m_type == RT_SYNTH) {
+    strRunName = QString("synth_%1").arg(m_runId);
+  } else if (m_type == RT_IMPLE) {
+    strRunName = QString("imple_%1").arg(m_runId);
+  }
+
   item = new QStandardItem();
-  item->setText("fdata.0");
+  item->setText(strRunName);
   item->setTextAlignment(Qt::AlignCenter);
   items.append(item);
 
   item = new QStandardItem();
-  item->setText("fdata.1");
+  item->setText(m_strSrcSet);
   item->setTextAlignment(Qt::AlignCenter);
   items.append(item);
 
   item = new QStandardItem();
-  item->setText("fdata.2");
+  item->setText(m_strConstrSet);
   item->setTextAlignment(Qt::AlignCenter);
   items.append(item);
 
   item = new QStandardItem();
-  item->setText("fdata.3");
+
+  if (m_type == RT_SYNTH) {
+    item->setText(m_strDevice);
+  } else if (m_type == RT_IMPLE) {
+    item->setText(m_strSynthName);
+  }
   item->setTextAlignment(Qt::AlignCenter);
   items.append(item);
 
   m_model->insertRow(rows, items);
+  m_runId++;
 }
 
 void RunsGrid::SlotDeleteRuns() {
@@ -108,4 +129,38 @@ void RunsGrid::SlotTableViewSelectionChanged() {
     m_actDelete->setEnabled(true);
   }
   return;
+}
+
+int RunsGrid::CreateFirstRunId() {
+  QStringList strlist;
+  if (m_type == RT_SYNTH) {
+    strlist = m_projManager->getSynthRunsNames();
+  } else if (m_type == RT_IMPLE) {
+    strlist = m_projManager->getImpleRunsNames();
+  } else {
+    return 0;
+  }
+  int runId = 0;
+  foreach (QString str, strlist) {
+    QString strNumber = str.right(str.size() - (str.lastIndexOf("_") + 1));
+    if (isDigitStr(strNumber)) {
+      int number = strNumber.toInt();
+      if (number > runId) {
+        runId = number + 1;
+      }
+    }
+  }
+  return runId;
+}
+
+bool RunsGrid::isDigitStr(QString src) {
+  QByteArray ba = src.toLatin1();  // QString to char*
+  const char *s = ba.data();
+
+  while (*s && *s >= '0' && *s <= '9') s++;
+  if (*s) {
+    return false;
+  } else {
+    return true;
+  }
 }

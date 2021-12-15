@@ -8,6 +8,8 @@
 #include <QToolBar>
 #include <QWidget>
 
+#include "NewProject/ProjectManager/project_manager.h"
+
 namespace FOEDAG {
 
 enum RunsType { RT_SYNTH, RT_IMPLE };
@@ -38,6 +40,11 @@ class RunsGrid : public QWidget {
 
  private:
   RunsType m_type;
+  int m_runId;
+  QString m_strSrcSet;
+  QString m_strConstrSet;
+  QString m_strDevice;
+  QString m_strSynthName;
 
   QToolBar *m_toolBar;
   QAction *m_actAdd;
@@ -46,6 +53,11 @@ class RunsGrid : public QWidget {
   QTableView *m_tableViewRuns;
   QStandardItemModel *m_model;
   QItemSelectionModel *m_selectModel;
+
+  ProjectManager *m_projManager;
+
+  bool isDigitStr(QString src);
+  int CreateFirstRunId();
 };
 }  // namespace FOEDAG
 #endif  // RUNGRID_H

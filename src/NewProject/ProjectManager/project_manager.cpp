@@ -758,6 +758,21 @@ QStringList ProjectManager::getSynthRunsNames() const {
   return listSynthRunNames;
 }
 
+QStringList ProjectManager::getImpleRunsNames() const {
+  QStringList listImpleRunNames;
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType()) {
+      listImpleRunNames.append(tmpRun->runName());
+      break;
+    }
+  }
+
+  return listImpleRunNames;
+}
+
 QString ProjectManager::SynthUsedByImple(const QString& strSynthName) const {
   QString strImpleName = "";
   QMap<QString, ProjectRun*> tmpRunMap =
@@ -804,6 +819,40 @@ QList<QPair<QString, QString>> ProjectManager::getRunsProperties(
   }
 
   return listProperties;
+}
+
+QString ProjectManager::getActiveRunDevice() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->getOption(PROJECT_PART_DEVICE);
+      break;
+    }
+  }
+  return strActive;
+}
+
+QString ProjectManager::getActiveRunName() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->runName();
+      break;
+    }
+  }
+  return strActive;
 }
 
 int ProjectManager::deleteFileSet(const QString& strSetName) {

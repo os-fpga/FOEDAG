@@ -139,8 +139,12 @@ class ProjectManager : public QObject {
   QString getSimulationTopModule(const QString &strFileSet) const;
 
   QStringList getSynthRunsNames() const;
+  QStringList getImpleRunsNames() const;
   QString SynthUsedByImple(const QString &strSynthName) const;
   QList<QPair<QString, QString>> getRunsProperties(const QString &strRunName);
+
+  QString getActiveRunDevice() const;
+  QString getActiveRunName() const;
 
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRunName);

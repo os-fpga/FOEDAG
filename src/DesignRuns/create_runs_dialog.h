@@ -23,6 +23,10 @@ class CreateRunsDialog : public QDialog {
  public:
   CreateRunsForm *m_createRunsForm;
 
+ private slots:
+  void on_m_btnCancel_clicked();
+  void on_m_btnOK_clicked();
+
  private:
   Ui::CreateRunsDialog *ui;
 };

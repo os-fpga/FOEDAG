@@ -33,3 +33,13 @@ void CreateRunsDialog::InitDialog(int itype) {
 
   m_createRunsForm->InitForm(itype);
 }
+
+void FOEDAG::CreateRunsDialog::on_m_btnOK_clicked() {
+  this->setResult(1);
+  this->hide();
+}
+
+void FOEDAG::CreateRunsDialog::on_m_btnCancel_clicked() {
+  this->setResult(0);
+  this->hide();
+}

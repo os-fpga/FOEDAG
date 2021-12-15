@@ -116,6 +116,7 @@ void RunsForm::UpdateDesignRunsTree() {
           << "Elapsed";
   m_treeRuns->setHeaderLabels(strList);
 
+  // gets all run names of type synth
   QStringList listSynthRunNames = m_projManager->getSynthRunsNames();
   foreach (auto strSynthName, listSynthRunNames) {
     QTreeWidgetItem *itemSynth = new QTreeWidgetItem(m_treeRuns);
