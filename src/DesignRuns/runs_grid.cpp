@@ -94,11 +94,15 @@ void RunsGrid::SlotAddRuns() {
   m_model->insertRow(rows, items);
 }
 
-void RunsGrid::SlotDeleteRuns() {}
+void RunsGrid::SlotDeleteRuns() {
+  int curRow = m_selectModel->currentIndex().row();
+  if (curRow < 0) return;
+  m_model->removeRow(curRow);
+}
 
 void RunsGrid::SlotTableViewSelectionChanged() {
   int curRow = m_selectModel->currentIndex().row();
-  if (curRow <= 0) {
+  if (curRow < 0) {
     m_actDelete->setEnabled(false);
   } else {
     m_actDelete->setEnabled(true);
