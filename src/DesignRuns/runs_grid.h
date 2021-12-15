@@ -30,6 +30,7 @@ class RunsGrid : public QWidget {
  public:
   explicit RunsGrid(RunsType type, QWidget *parent = nullptr);
 
+  QList<rundata> getRunDataList();
  signals:
 
  private slots:

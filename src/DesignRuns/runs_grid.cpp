@@ -74,6 +74,25 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   m_strSynthName = m_projManager->getActiveSynthRunName();
 }
 
+QList<rundata> RunsGrid::getRunDataList() {
+  QList<rundata> listRunData;
+  int rows = m_model->rowCount();
+  for (int i = 0; i < rows; ++i) {
+    rundata rd;
+    rd.m_runName = m_model->item(i, 0)->text();
+    rd.m_srcSet = m_model->item(i, 1)->text();
+    rd.m_constrSet = m_model->item(i, 2)->text();
+    rd.m_iRunType = m_type;
+    if (m_type == RT_SYNTH) {
+      rd.m_device = m_model->item(i, 3)->text();
+    } else if (m_type == RT_IMPLE) {
+      rd.m_synthName = m_model->item(i, 3)->text();
+    }
+    listRunData.append(rd);
+  }
+  return listRunData;
+}
+
 void RunsGrid::SlotAddRuns() {
   int rows = m_model->rowCount();
   QList<QStandardItem *> items;
@@ -145,7 +164,7 @@ int RunsGrid::CreateFirstRunId() {
     QString strNumber = str.right(str.size() - (str.lastIndexOf("_") + 1));
     if (isDigitStr(strNumber)) {
       int number = strNumber.toInt();
-      if (number > runId) {
+      if (number >= runId) {
         runId = number + 1;
       }
     }

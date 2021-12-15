@@ -738,10 +738,8 @@ QStringList ProjectManager::getSynthRunsNames() const {
     ProjectRun* tmpRun = iter.value();
     if (tmpRun && RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
       listSynthRunNames.append(tmpRun->runName());
-      break;
     }
   }
-
   return listSynthRunNames;
 }
 
@@ -753,31 +751,28 @@ QStringList ProjectManager::getImpleRunsNames() const {
     ProjectRun* tmpRun = iter.value();
     if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType()) {
       listImpleRunNames.append(tmpRun->runName());
-      break;
     }
   }
-
   return listImpleRunNames;
 }
 
-QString ProjectManager::SynthUsedByImple(const QString& strSynthName) const {
-  QString strImpleName = "";
+QStringList ProjectManager::ImpleUsedSynth(const QString& strSynthName) const {
+  QStringList listImpleRunNames;
   QMap<QString, ProjectRun*> tmpRunMap =
       Project::Instance()->getMapProjectRun();
   for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
     ProjectRun* tmpRun = iter.value();
     if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType() &&
         strSynthName == tmpRun->synthRun()) {
-      strImpleName = tmpRun->runName();
-      break;
+      listImpleRunNames.append(tmpRun->runName());
     }
   }
 
-  return strImpleName;
+  return listImpleRunNames;
 }
 
 QList<QPair<QString, QString>> ProjectManager::getRunsProperties(
-    const QString& strRunName) {
+    const QString& strRunName) const {
   QList<QPair<QString, QString>> listProperties;
   ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
   if (nullptr != proRun) {
@@ -818,6 +813,7 @@ int ProjectManager::setSynthRun(const QString& strRunName) {
   proRun->setOption("TargetLanguage", "VERILOG");
   Project::Instance()->setProjectRun(proRun);
   CreateRunsFolder(strRunName);
+  m_currentRun = strRunName;
   return 0;
 }
 
@@ -828,6 +824,7 @@ int ProjectManager::setImpleRun(const QString& strRunName) {
   proRun->setRunType(RUN_TYPE_IMPLEMENT);
   Project::Instance()->setProjectRun(proRun);
   CreateRunsFolder(strRunName);
+  m_currentRun = strRunName;
   return 0;
 }
 

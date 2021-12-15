@@ -1,6 +1,7 @@
 #include "runs_form.h"
 
 #include <QMenu>
+#include <QTextStream>
 #include <QVBoxLayout>
 
 #include "create_runs_dialog.h"
@@ -59,6 +60,9 @@ void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 }
 
 void RunsForm::SlotDelete() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
   QTreeWidgetItem *item = m_treeRuns->currentItem();
   if (item == nullptr) {
     return;
@@ -73,10 +77,14 @@ void RunsForm::SlotDelete() {
 }
 
 void RunsForm::SlotMakeActive() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
   QTreeWidgetItem *item = m_treeRuns->currentItem();
   if (item == nullptr) {
     return;
   }
+
   QString strRunName = item->text(0);
 
   int ret = m_projManager->setRunActive(strRunName);
@@ -90,23 +98,9 @@ void RunsForm::SlotLaunchRuns() {}
 
 void RunsForm::SlotReSetRuns() {}
 
-void RunsForm::SlotCreateSynthRuns() {
-  CreateRunsDialog dlg;
-  dlg.InitDialog(RT_SYNTH);
-  if (dlg.exec()) {
-    UpdateDesignRunsTree();
-    m_projManager->FinishedProject();
-  }
-}
+void RunsForm::SlotCreateSynthRuns() { CreateRuns(RT_SYNTH); }
 
-void RunsForm::SlotCreateImpleRuns() {
-  CreateRunsDialog dlg;
-  dlg.InitDialog(RT_IMPLE);
-  if (dlg.exec()) {
-    UpdateDesignRunsTree();
-    m_projManager->FinishedProject();
-  }
-}
+void RunsForm::SlotCreateImpleRuns() { CreateRuns(RT_IMPLE); }
 
 void RunsForm::CreateActions() {
   m_actDelete = new QAction(tr("Delete"), m_treeRuns);
@@ -153,7 +147,8 @@ void RunsForm::UpdateDesignRunsTree() {
 
     QList<QPair<QString, QString>> listSynthProperties =
         m_projManager->getRunsProperties(strSynthName);
-    QString strState;
+    QString strSynthState;
+    QString strDevice;
     for (int i = 0; i < listSynthProperties.count(); ++i) {
       QPair<QString, QString> pair = listSynthProperties.at(i);
       if (pair.first == PROJECT_RUN_SRCSET) {
@@ -161,12 +156,14 @@ void RunsForm::UpdateDesignRunsTree() {
       } else if (pair.first == PROJECT_RUN_CONSTRSSET) {
         itemSynth->setText(2, pair.second);
       } else if (pair.first == PROJECT_RUN_STATE) {
-        strState = pair.second;
+        strSynthState = pair.second;
       } else if (pair.first == PROJECT_PART_DEVICE) {
-        itemSynth->setText(4, pair.second);
+        strDevice = pair.second;
       }
     }
-    if (strState == RUN_STATE_CURRENT) {
+
+    itemSynth->setText(4, strDevice);
+    if (strSynthState == RUN_STATE_CURRENT) {
       itemSynth->setText(0, strSynthName + RUNS_TREE_ACTIVE);
     } else {
       itemSynth->setText(0, strSynthName);
@@ -174,29 +171,61 @@ void RunsForm::UpdateDesignRunsTree() {
     itemSynth->setText(3, RUNS_TREE_STATUS);
 
     // Start creating the implementation view
-    QString strImpleName = m_projManager->SynthUsedByImple(strSynthName);
-    if ("" != strImpleName) {
+    QStringList listImpleName = m_projManager->ImpleUsedSynth(strSynthName);
+    foreach (auto strImpleName, listImpleName) {
       QTreeWidgetItem *itemImple = new QTreeWidgetItem(itemSynth);
-      if (strState == RUN_STATE_CURRENT) {
+
+      QList<QPair<QString, QString>> listImpleProperties =
+          m_projManager->getRunsProperties(strImpleName);
+      QString strImpleState;
+      for (int i = 0; i < listImpleProperties.count(); ++i) {
+        QPair<QString, QString> pair = listImpleProperties.at(i);
+        if (pair.first == PROJECT_RUN_SRCSET) {
+          itemImple->setText(1, pair.second);
+        } else if (pair.first == PROJECT_RUN_CONSTRSSET) {
+          itemImple->setText(2, pair.second);
+        } else if (pair.first == PROJECT_RUN_STATE) {
+          strImpleState = pair.second;
+        }
+      }
+      itemImple->setText(4, strDevice);
+      if (strImpleState == RUN_STATE_CURRENT) {
         itemImple->setText(0, strImpleName + RUNS_TREE_ACTIVE);
       } else {
         itemImple->setText(0, strImpleName);
       }
 
-      QList<QPair<QString, QString>> listImpleProperties =
-          m_projManager->getRunsProperties(strImpleName);
-      for (int i = 0; i < listImpleProperties.count(); ++i) {
-        QPair<QString, QString> pair = listSynthProperties.at(i);
-        if (pair.first == PROJECT_RUN_SRCSET) {
-          itemImple->setText(1, pair.second);
-        } else if (pair.first == PROJECT_RUN_CONSTRSSET) {
-          itemImple->setText(2, pair.second);
-        } else if (pair.first == PROJECT_PART_DEVICE) {
-          itemImple->setText(4, pair.second);
-        }
-      }
       itemImple->setText(3, RUNS_TREE_STATUS);
     }
   }
   m_treeRuns->expandAll();
+}
+
+void RunsForm::CreateRuns(int type) {
+  CreateRunsDialog dlg;
+  dlg.InitDialog(type);
+  if (dlg.exec()) {
+    QList<rundata> listRun = dlg.getRunDataList();
+    if (listRun.size()) {
+      foreach (auto rd, listRun) {
+        if (rd.m_iRunType == RT_SYNTH) {
+          m_projManager->setSynthRun(rd.m_runName);
+          QList<QPair<QString, QString>> listParam;
+          QPair<QString, QString> pair;
+          pair.first = PROJECT_PART_DEVICE;
+          pair.second = rd.m_device;
+          listParam.append(pair);
+          m_projManager->setSynthesisOption(listParam);
+        } else {
+          m_projManager->setImpleRun(rd.m_runName);
+          m_projManager->setRunSynthRun(rd.m_synthName);
+        }
+        m_projManager->setRunSrcSet(rd.m_srcSet);
+        m_projManager->setRunConstrSet(rd.m_constrSet);
+      }
+    }
+    UpdateDesignRunsTree();
+    m_projManager->FinishedProject();
+  }
+  dlg.close();
 }

@@ -38,3 +38,7 @@ void CreateRunsForm::InitForm(int itype) {
   box->setSpacing(0);
   ui->m_groupBox->setLayout(box);
 }
+
+QList<rundata> CreateRunsForm::getRunDataList() {
+  return m_widgetRunsGrid->getRunDataList();
+}

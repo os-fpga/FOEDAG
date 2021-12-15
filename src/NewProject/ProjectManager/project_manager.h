@@ -137,19 +137,24 @@ class ProjectManager : public QObject {
 
   QStringList getSynthRunsNames() const;
   QStringList getImpleRunsNames() const;
-  QString SynthUsedByImple(const QString &strSynthName) const;
-  QList<QPair<QString, QString>> getRunsProperties(const QString &strRunName);
+  QStringList ImpleUsedSynth(const QString &strSynthName) const;
+  QList<QPair<QString, QString>> getRunsProperties(
+      const QString &strRunName) const;
 
   int setSynthRun(const QString &strRunName);
   int setImpleRun(const QString &strRunName);
 
-  // Please set currentrun before using this function
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
   int setRunSrcSet(const QString &strSrcSet);
-  // Please set currentrun before using this function
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
   int setRunConstrSet(const QString &strConstrSet);
-  // Please set currentrun before using this function
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
   int setRunSynthRun(const QString &strSynthRunName);
-  // Please set currentrun before using this function
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
 
   int setRunActive(const QString &strRunName);

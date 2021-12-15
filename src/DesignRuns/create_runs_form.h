@@ -19,6 +19,7 @@ class CreateRunsForm : public QWidget {
   ~CreateRunsForm();
 
   void InitForm(int itype);
+  QList<rundata> getRunDataList();
 
  private:
   Ui::CreateRunsForm *ui;

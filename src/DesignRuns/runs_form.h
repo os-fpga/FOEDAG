@@ -45,6 +45,7 @@ class RunsForm : public QWidget {
 
   void CreateActions();
   void UpdateDesignRunsTree();
+  void CreateRuns(int type);
 };
 }  // namespace FOEDAG
 #endif  // RUNSFORM_H

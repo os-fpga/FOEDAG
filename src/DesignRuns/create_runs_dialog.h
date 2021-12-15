@@ -19,6 +19,7 @@ class CreateRunsDialog : public QDialog {
   ~CreateRunsDialog();
 
   void InitDialog(int itype);
+  QList<rundata> getRunDataList();
 
  public:
   CreateRunsForm *m_createRunsForm;
@@ -29,6 +30,8 @@ class CreateRunsDialog : public QDialog {
 
  private:
   Ui::CreateRunsDialog *ui;
+
+  ProjectManager *m_projManager;
 };
 }  // namespace FOEDAG
 #endif  // CREATE_RUNS_DIALOG_H

@@ -18,6 +18,8 @@ CreateRunsDialog::CreateRunsDialog(QWidget *parent)
   setGeometry(w, h, w, h);
 
   m_createRunsForm = new CreateRunsForm(this);
+  m_projManager = new ProjectManager(this);
+  this->setResult(0);
 }
 
 CreateRunsDialog::~CreateRunsDialog() { delete ui; }
@@ -34,12 +36,13 @@ void CreateRunsDialog::InitDialog(int itype) {
   m_createRunsForm->InitForm(itype);
 }
 
+QList<rundata> CreateRunsDialog::getRunDataList() {
+  return m_createRunsForm->getRunDataList();
+}
+
 void FOEDAG::CreateRunsDialog::on_m_btnOK_clicked() {
   this->setResult(1);
   this->hide();
 }
 
-void FOEDAG::CreateRunsDialog::on_m_btnCancel_clicked() {
-  this->setResult(0);
-  this->hide();
-}
+void FOEDAG::CreateRunsDialog::on_m_btnCancel_clicked() { this->hide(); }
