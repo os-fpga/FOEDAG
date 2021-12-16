@@ -64,10 +64,9 @@ install(
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-#add_executable(projnavigator_bin
-# ${PROJECT_SOURCE_DIR}/../ProjNavigator/Test/projnavigator_main.cpp
- #${PROJECT_SOURCE_DIR}/../ProjNavigator/projnavigator.qrc
- # )
- #target_link_libraries(projnavigator_bin foedag tcl_stubb tcl_static zlib)
- #set_target_properties(projnavigator_bin PROPERTIES OUTPUT_NAME projnavigator)
+add_executable(designruns_bin
+ ${PROJECT_SOURCE_DIR}/../DesignRuns/Test/design_runs_main.cpp)
+
+target_link_libraries(designruns_bin foedag tcl_stubb tcl_static zlib)
+set_target_properties(designruns_bin PROPERTIES OUTPUT_NAME designruns)
 
