@@ -203,20 +203,20 @@ void SourcesForm::SlotAddFile() {
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   QString strFielSetName = (item->data(0, Qt::UserRole)).toString();
 
-  AddFileDialog addFileDialog;
+  AddFileDialog* addFileDialog = new AddFileDialog(this);
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
-    addFileDialog.InitDialog(GT_SOURCE);
+    addFileDialog->InitDialog(GT_SOURCE);
   } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
-    addFileDialog.InitDialog(GT_CONSTRAINTS);
+    addFileDialog->InitDialog(GT_CONSTRAINTS);
   } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
-    addFileDialog.InitDialog(GT_SIM);
+    addFileDialog->InitDialog(GT_SIM);
   } else {
     return;
   }
 
-  if (addFileDialog.exec()) {
+  if (addFileDialog->exec()) {
     m_projManager->setCurrentFileSet(strFielSetName);
-    QList<filedata> listFile = addFileDialog.m_fileForm->getFileData();
+    QList<filedata> listFile = addFileDialog->m_fileForm->getFileData();
     foreach (filedata fdata, listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
@@ -230,21 +230,21 @@ void SourcesForm::SlotAddFile() {
         if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
           m_projManager->setDesignFile(
               fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog.m_fileForm->IsCopySource());
+              addFileDialog->m_fileForm->IsCopySource());
         } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
           m_projManager->setConstrsFile(
               fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog.m_fileForm->IsCopySource());
+              addFileDialog->m_fileForm->IsCopySource());
         } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
           m_projManager->setSimulationFile(
               fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog.m_fileForm->IsCopySource());
+              addFileDialog->m_fileForm->IsCopySource());
         }
       }
     }
   }
 
-  addFileDialog.close();
+  addFileDialog->close();
 
   if (0 == ret) {
     UpdateSrcHierachyTree();

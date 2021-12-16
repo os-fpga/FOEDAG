@@ -202,10 +202,10 @@ void RunsForm::UpdateDesignRunsTree() {
 }
 
 void RunsForm::CreateRuns(int type) {
-  CreateRunsDialog dlg;
-  dlg.InitDialog(type);
-  if (dlg.exec()) {
-    QList<rundata> listRun = dlg.getRunDataList();
+  CreateRunsDialog* createRunsDlg = new CreateRunsDialog(this);
+  createRunsDlg->InitDialog(type);
+  if (createRunsDlg->exec()) {
+    QList<rundata> listRun = createRunsDlg->getRunDataList();
     if (listRun.size()) {
       foreach (auto rd, listRun) {
         if (rd.m_iRunType == RT_SYNTH) {
@@ -227,5 +227,5 @@ void RunsForm::CreateRuns(int type) {
     UpdateDesignRunsTree();
     m_projManager->FinishedProject();
   }
-  dlg.close();
+  createRunsDlg->close();
 }
