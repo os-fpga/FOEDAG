@@ -37,11 +37,11 @@ QWidget *RunsGridDelegate::createEditor(QWidget *parent,
   } else if (index.isValid() && m_dType == DT_LABLE) {
     QLabel *label = new QLabel(parent);
     QString strDevice = "";
-    DevicePlannerDialog deviceDlg;
-    if (deviceDlg.exec()) {
-      strDevice = deviceDlg.getSelectedDevice();
+    DevicePlannerDialog *deviceDlg = new DevicePlannerDialog(parent);
+    if (deviceDlg->exec()) {
+      strDevice = deviceDlg->getSelectedDevice();
     }
-    deviceDlg.close();
+    deviceDlg->close();
     if (strDevice != "") {
       label->setText(strDevice);
       label->setAutoFillBackground(true);

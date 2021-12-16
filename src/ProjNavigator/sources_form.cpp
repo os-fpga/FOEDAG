@@ -203,7 +203,7 @@ void SourcesForm::SlotAddFile() {
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   QString strFielSetName = (item->data(0, Qt::UserRole)).toString();
 
-  AddFileDialog* addFileDialog = new AddFileDialog(this);
+  AddFileDialog *addFileDialog = new AddFileDialog(this);
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
     addFileDialog->InitDialog(GT_SOURCE);
   } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {

@@ -202,7 +202,7 @@ void RunsForm::UpdateDesignRunsTree() {
 }
 
 void RunsForm::CreateRuns(int type) {
-  CreateRunsDialog* createRunsDlg = new CreateRunsDialog(this);
+  CreateRunsDialog *createRunsDlg = new CreateRunsDialog(this);
   createRunsDlg->InitDialog(type);
   if (createRunsDlg->exec()) {
     QList<rundata> listRun = createRunsDlg->getRunDataList();
