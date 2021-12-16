@@ -21,15 +21,13 @@ class CreateRunsDialog : public QDialog {
   void InitDialog(int itype);
   QList<rundata> getRunDataList();
 
- public:
-  CreateRunsForm *m_createRunsForm;
-
  private slots:
   void on_m_btnCancel_clicked();
   void on_m_btnOK_clicked();
 
  private:
   Ui::CreateRunsDialog *ui;
+  CreateRunsForm *m_createRunsForm;
 
   ProjectManager *m_projManager;
 };
