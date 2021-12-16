@@ -148,12 +148,14 @@ void RunsGrid::SlotAddRuns() {
 
   m_model->insertRow(rows, items);
   m_runId++;
+  emit RowsChanged();
 }
 
 void RunsGrid::SlotDeleteRuns() {
   int curRow = m_selectModel->currentIndex().row();
   if (curRow < 0) return;
   m_model->removeRow(curRow);
+  emit RowsChanged();
 }
 
 void RunsGrid::SlotTableViewSelectionChanged() {

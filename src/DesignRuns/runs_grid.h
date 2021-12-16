@@ -32,6 +32,7 @@ class RunsGrid : public QWidget {
 
   QList<rundata> getRunDataList();
  signals:
+  void RowsChanged();
 
  private slots:
   void SlotAddRuns();
