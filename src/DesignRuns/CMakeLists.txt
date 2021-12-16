@@ -23,17 +23,22 @@ set (SRC_CPP_LIST
  runs_form.cpp
  create_runs_dialog.cpp
  create_runs_form.cpp
- runs_grid.cpp)
+ runs_grid.cpp
+ runs_grid_delegate.cpp
+ device_planner_dialog.cpp)
 
 set (SRC_H_LIST
  runs_form.h
  create_runs_dialog.h
  create_runs_form.h
- runs_grid.h)
+ runs_grid.h
+ runs_grid_delegate.h
+ device_planner_dialog.h)
 
 set (SRC_UI_LIST
  create_runs_dialog.ui
- create_runs_form.ui)
+ create_runs_form.ui
+ device_planner_dialog.ui)
 
 add_library(designruns STATIC
   ${SRC_CPP_LIST}

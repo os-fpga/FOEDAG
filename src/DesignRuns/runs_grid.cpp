@@ -3,6 +3,8 @@
 #include <QMouseEvent>
 #include <QVBoxLayout>
 
+#include "runs_grid_delegate.h"
+
 using namespace FOEDAG;
 
 RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
@@ -30,7 +32,9 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   // Color separation between lines
   m_tableViewRuns->setAlternatingRowColors(true);
   // Last column adaptive width
-  m_tableViewRuns->horizontalHeader()->setStretchLastSection(true);
+  // m_tableViewRuns->horizontalHeader()->setStretchLastSection(true);
+  m_tableViewRuns->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::Stretch);
   m_tableViewRuns->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
        QTableView::item:selected{color:black;background:rgb(177,220,255);}");
@@ -44,15 +48,12 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
 
   m_tableViewRuns->horizontalHeader()->setMinimumHeight(30);
 
+  m_model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
+  m_model->setHorizontalHeaderItem(1, new QStandardItem("Sources Set"));
+  m_model->setHorizontalHeaderItem(2, new QStandardItem("Constraints Set"));
   if (type == RT_SYNTH) {
-    m_model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
-    m_model->setHorizontalHeaderItem(1, new QStandardItem("Sources Set"));
-    m_model->setHorizontalHeaderItem(2, new QStandardItem("Constraints Set"));
     m_model->setHorizontalHeaderItem(3, new QStandardItem("Device"));
   } else if (type == RT_IMPLE) {
-    m_model->setHorizontalHeaderItem(0, new QStandardItem("Name"));
-    m_model->setHorizontalHeaderItem(1, new QStandardItem("Sources Set"));
-    m_model->setHorizontalHeaderItem(2, new QStandardItem("Constraints Set"));
     m_model->setHorizontalHeaderItem(3, new QStandardItem("Synth Name"));
   }
 
@@ -72,6 +73,21 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   m_strConstrSet = m_projManager->getConstrActiveFileSet();
   m_strDevice = m_projManager->getActiveRunDevice();
   m_strSynthName = m_projManager->getActiveSynthRunName();
+
+  QStringList listSrcSet = m_projManager->getDesignFileSets();
+  m_tableViewRuns->setItemDelegateForColumn(
+      1, new RunsGridDelegate(DT_COMBOX, listSrcSet, this));
+  QStringList listConstrSet = m_projManager->getConstrFileSets();
+  m_tableViewRuns->setItemDelegateForColumn(
+      2, new RunsGridDelegate(DT_COMBOX, listConstrSet, this));
+  if (type == RT_IMPLE) {
+    QStringList listSynth = m_projManager->getSynthRunsNames();
+    m_tableViewRuns->setItemDelegateForColumn(
+        3, new RunsGridDelegate(DT_COMBOX, listSynth, this));
+  } else if (type == RT_SYNTH) {
+    m_tableViewRuns->setItemDelegateForColumn(
+        3, new RunsGridDelegate(DT_LABLE, listConstrSet, this));
+  }
 }
 
 QList<rundata> RunsGrid::getRunDataList() {

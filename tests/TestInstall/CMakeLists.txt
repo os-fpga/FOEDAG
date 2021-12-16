@@ -136,6 +136,7 @@ if (FOEDAG_WITH_PYTHON)
     newfile
     newproject
     projnavigator
+    designruns
     texteditor
     qscintilla2_qt
     tcl_stubb
@@ -152,6 +153,7 @@ else()
     newfile
     newproject
     projnavigator
+    designruns
     texteditor
     qscintilla2_qt
     tcl_stubb
