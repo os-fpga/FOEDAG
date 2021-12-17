@@ -31,7 +31,7 @@ QWidget *RunsGridDelegate::createEditor(QWidget *parent,
                                         const QModelIndex &index) const {
   if (index.isValid() && m_dType == DT_COMBOX) {
     QComboBox *combox = new QComboBox(parent);
-    combox->setEditable(true);
+    //combox->setEditable(true);
     combox->installEventFilter(const_cast<RunsGridDelegate *>(this));
     return combox;
   } else if (index.isValid() && m_dType == DT_LABLE) {
