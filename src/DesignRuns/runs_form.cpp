@@ -137,7 +137,13 @@ void RunsForm::UpdateDesignRunsTree() {
           << "Status"
           << "Device"
           << "Start"
-          << "Elapsed";
+          << "Elapsed"
+          << "LUT"
+          << "FF"
+          << "BRAM"
+          << "URAM"
+          << "DSP"
+          << "CLBs";
   m_treeRuns->setHeaderLabels(strList);
 
   // gets all run names of type synth
