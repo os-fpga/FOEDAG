@@ -56,6 +56,11 @@ project object is singleton mode.
 #define PROJECT_RUN_STATE "State"
 #define PROJECT_RUN_SYNTHRUN "SynthRun"
 
+#define PROJECT_PART_SERIES "Series"
+#define PROJECT_PART_FAMILY "Family"
+#define PROJECT_PART_PACKAGE "Package"
+#define PROJECT_PART_DEVICE "Device"
+
 #define PROJECT_FILE_TYPE_DS "DesignSrcs"
 #define PROJECT_FILE_TYPE_CS "Constrs"
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
@@ -86,6 +91,9 @@ class ProjectManager : public QObject {
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
 
+  // e.g strPath:/root/Desktop/project_1   strName:project_1
+  // project_1.ospr file, project_1.runs folder and project_1.srcs folder will
+  // be created under the /root/Desktop/project_1 path
   int CreateProject(const QString &strName, const QString &strPath);
   QString getProjectName() const;
   QString getProjectPath() const;
@@ -100,9 +108,6 @@ class ProjectManager : public QObject {
   int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
   // Please set currentfileset before using this function
   int deleteFile(const QString &strFileName);
-
-  // Please set currentrun before using this function
-  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
 
   // Please set currentfileset before using this function
   int setTopModule(const QString &strFileName);
@@ -130,8 +135,35 @@ class ProjectManager : public QObject {
   QStringList getSimulationFiles(const QString &strFileSet) const;
   QString getSimulationTopModule(const QString &strFileSet) const;
 
+  QStringList getSynthRunsNames() const;
+  QStringList getImpleRunsNames() const;
+  QStringList ImpleUsedSynth(const QString &strSynthName) const;
+  QList<QPair<QString, QString>> getRunsProperties(
+      const QString &strRunName) const;
+
+  int setSynthRun(const QString &strRunName);
+  int setImpleRun(const QString &strRunName);
+
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
+  int setRunSrcSet(const QString &strSrcSet);
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
+  int setRunConstrSet(const QString &strConstrSet);
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
+  int setRunSynthRun(const QString &strSynthRunName);
+  // Please set currentrun before using this function, Unless you used
+  // setSynthRun/setImpleRun before
+  int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+
+  int setRunActive(const QString &strRunName);
+
+  QString getActiveRunDevice() const;
+  QString getActiveSynthRunName() const;
+
   int deleteFileSet(const QString &strSetName);
-  int deleteRun(const QString &strRun);
+  int deleteRun(const QString &strRunName);
 
   int StartProject(const QString &strOspro);
   int FinishedProject();

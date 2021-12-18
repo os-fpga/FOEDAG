@@ -110,18 +110,18 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   // Set properties
   m_tableViewSrc->verticalHeader()->hide();
   m_tableViewSrc->verticalHeader()->setDefaultSectionSize(30);
-  m_tableViewSrc->horizontalHeader()->setStretchLastSection(
-      true);  // Last column adaptive width
+  // Last column adaptive width
+  m_tableViewSrc->horizontalHeader()->setStretchLastSection(true);
   m_tableViewSrc->setEditTriggers(QTableView::NoEditTriggers);
   m_tableViewSrc->setSelectionBehavior(QTableView::SelectRows);
-  m_tableViewSrc->setSelectionMode(
-      QTableView::SingleSelection);  // Single line selection
-  m_tableViewSrc->setAlternatingRowColors(
-      true);  // Color separation between lines
+  // Single line selection
+  m_tableViewSrc->setSelectionMode(QTableView::SingleSelection);
+  // Color separation between lines
+  m_tableViewSrc->setAlternatingRowColors(true);
 
   m_tableViewSrc->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
-                          QTableView::item:selected{color:black;background: #63B8FF;}");
+       QTableView::item:selected{color:black;background:rgb(177,220,255);}");
   m_tableViewSrc->setColumnWidth(0, 80);
 
   m_model = new QStandardItemModel(m_tableViewSrc);

@@ -378,19 +378,6 @@ int ProjectManager::deleteFile(const QString& strFileName) {
   return ret;
 }
 
-int ProjectManager::setSynthesisOption(
-    const QList<QPair<QString, QString>>& listParam) {
-  int ret = 0;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
-  if (nullptr == proRun) {
-    return -2;
-  }
-  foreach (QPair pair, listParam) {
-    proRun->setOption(pair.first, pair.second);
-  }
-  return ret;
-}
-
 int ProjectManager::setTopModule(const QString& strFileName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
@@ -743,6 +730,213 @@ QString ProjectManager::getSimulationTopModule(
   return strTopModule;
 }
 
+QStringList ProjectManager::getSynthRunsNames() const {
+  QStringList listSynthRunNames;
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      listSynthRunNames.append(tmpRun->runName());
+    }
+  }
+  return listSynthRunNames;
+}
+
+QStringList ProjectManager::getImpleRunsNames() const {
+  QStringList listImpleRunNames;
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType()) {
+      listImpleRunNames.append(tmpRun->runName());
+    }
+  }
+  return listImpleRunNames;
+}
+
+QStringList ProjectManager::ImpleUsedSynth(const QString& strSynthName) const {
+  QStringList listImpleRunNames;
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType() &&
+        strSynthName == tmpRun->synthRun()) {
+      listImpleRunNames.append(tmpRun->runName());
+    }
+  }
+
+  return listImpleRunNames;
+}
+
+QList<QPair<QString, QString>> ProjectManager::getRunsProperties(
+    const QString& strRunName) const {
+  QList<QPair<QString, QString>> listProperties;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
+  if (nullptr != proRun) {
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_RUN_NAME;
+    pair.second = proRun->runName();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_TYPE;
+    pair.second = proRun->runType();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_SRCSET;
+    pair.second = proRun->srcSet();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_CONSTRSSET;
+    pair.second = proRun->constrsSet();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_STATE;
+    pair.second = proRun->runState();
+    listProperties.append(pair);
+    pair.first = PROJECT_RUN_SYNTHRUN;
+    pair.second = proRun->synthRun();
+    listProperties.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = proRun->getOption(PROJECT_PART_DEVICE);
+    listProperties.append(pair);
+  }
+
+  return listProperties;
+}
+
+int ProjectManager::setSynthRun(const QString& strRunName) {
+  ProjectRun* proRun = new ProjectRun(this);
+  proRun = new ProjectRun(this);
+  proRun->setRunName(strRunName);
+  proRun->setRunType(RUN_TYPE_SYNTHESIS);
+  proRun->setOption("Compilation Flow", "Classic Flow");
+  proRun->setOption("LanguageVersion", "SYSTEMVERILOG_2005");
+  proRun->setOption("TargetLanguage", "VERILOG");
+  Project::Instance()->setProjectRun(proRun);
+  CreateRunsFolder(strRunName);
+  m_currentRun = strRunName;
+  return 0;
+}
+
+int ProjectManager::setImpleRun(const QString& strRunName) {
+  ProjectRun* proRun = new ProjectRun(this);
+  proRun = new ProjectRun(this);
+  proRun->setRunName(strRunName);
+  proRun->setRunType(RUN_TYPE_IMPLEMENT);
+  Project::Instance()->setProjectRun(proRun);
+  CreateRunsFolder(strRunName);
+  m_currentRun = strRunName;
+  return 0;
+}
+
+int ProjectManager::setRunSrcSet(const QString& strSrcSet) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setSrcSet(strSrcSet);
+  return ret;
+}
+
+int ProjectManager::setRunConstrSet(const QString& strConstrSet) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setConstrsSet(strConstrSet);
+  return ret;
+}
+
+int ProjectManager::setRunSynthRun(const QString& strSynthRunName) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun && proRun->runType() != RUN_TYPE_IMPLEMENT) {
+    return -2;
+  }
+  proRun->setSynthRun(strSynthRunName);
+  return ret;
+}
+
+int ProjectManager::setSynthesisOption(
+    const QList<QPair<QString, QString>>& listParam) {
+  int ret = 0;
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  foreach (QPair pair, listParam) {
+    proRun->setOption(pair.first, pair.second);
+  }
+  return ret;
+}
+
+int ProjectManager::setRunActive(const QString& strRunName) {
+  int ret = 0;
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+  // clear all runs state
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun) {
+      tmpRun->setRunState("");
+    }
+  }
+
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
+  if (nullptr == proRun) {
+    return -2;
+  }
+  proRun->setRunState(RUN_STATE_CURRENT);
+
+  // The synthesis used will become active
+  if (proRun->runType() == RUN_TYPE_IMPLEMENT) {
+    QString strSynthRunName = proRun->synthRun();
+    ProjectRun* proSynthRun =
+        Project::Instance()->getProjectRun(strSynthRunName);
+    if (nullptr == proSynthRun) {
+      return -2;
+    }
+    proSynthRun->setRunState(RUN_STATE_CURRENT);
+  }
+  return ret;
+}
+
+QString ProjectManager::getActiveRunDevice() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->getOption(PROJECT_PART_DEVICE);
+      break;
+    }
+  }
+  return strActive;
+}
+
+QString ProjectManager::getActiveSynthRunName() const {
+  QString strActive = "";
+
+  QMap<QString, ProjectRun*> tmpRunMap =
+      Project::Instance()->getMapProjectRun();
+
+  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+    ProjectRun* tmpRun = iter.value();
+    if (tmpRun && RUN_STATE_CURRENT == tmpRun->runState() &&
+        RUN_TYPE_SYNTHESIS == tmpRun->runType()) {
+      strActive = tmpRun->runName();
+      break;
+    }
+  }
+  return strActive;
+}
+
 int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
@@ -761,13 +955,27 @@ int ProjectManager::deleteFileSet(const QString& strSetName) {
   return ret;
 }
 
-int ProjectManager::deleteRun(const QString& strRun) {
+int ProjectManager::deleteRun(const QString& strRunName) {
   int ret = 0;
-  ProjectRun* proRun = Project::Instance()->getProjectRun(strRun);
+  ProjectRun* proRun = Project::Instance()->getProjectRun(strRunName);
   if (RUN_STATE_CURRENT == proRun->runState()) {
     return -1;
   }
-  Project::Instance()->deleteprojectRun(strRun);
+
+  // Check whether there is an implementation using synthesis's result. If so,
+  // delete the implementation run
+  if (RUN_TYPE_SYNTHESIS == proRun->runType()) {
+    QMap<QString, ProjectRun*> tmpRunMap =
+        Project::Instance()->getMapProjectRun();
+    for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
+      ProjectRun* tmpRun = iter.value();
+      if (tmpRun && RUN_TYPE_IMPLEMENT == tmpRun->runType() &&
+          strRunName == tmpRun->synthRun()) {
+        Project::Instance()->deleteprojectRun(tmpRun->runName());
+      }
+    }
+  }
+  Project::Instance()->deleteprojectRun(strRunName);
   return ret;
 }
 
@@ -779,6 +987,12 @@ int ProjectManager::FinishedProject() { return ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
   int ret = 0;
+  QString strTemp = Project::Instance()->projectPath() + "/" +
+                    Project::Instance()->projectName() + PROJECT_FILE_FORMAT;
+  if (strOspro == strTemp) {
+    return ret;
+  }
+
   QFile file(strOspro);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return -1;

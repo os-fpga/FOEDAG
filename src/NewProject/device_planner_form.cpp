@@ -17,27 +17,24 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   ui->m_labelDetail->setText(
       tr("Select the series and device you want to target for compilation."));
 
-  ui->m_comboBoxFamily->setStyleSheet("border: 1px solid gray;");
-  ui->m_comboBoxSeries->setStyleSheet("border: 1px solid gray;");
-  ui->m_comboBoxPackage->setStyleSheet("border: 1px solid gray;");
-
   m_tableView = new QTableView(this);
 
   // Set properties
   m_tableView->verticalHeader()->hide();
   m_tableView->verticalHeader()->setDefaultSectionSize(30);
   m_tableView->horizontalHeader()->setMinimumHeight(30);
-  m_tableView->horizontalHeader()->setStretchLastSection(
-      true);  // Last column adaptive width
+  // Last column adaptive width
+  m_tableView->horizontalHeader()->setStretchLastSection(true);
   m_tableView->setEditTriggers(QTableView::NoEditTriggers);
   m_tableView->setSelectionBehavior(QTableView::SelectRows);
-  m_tableView->setSelectionMode(
-      QTableView::SingleSelection);            // Single line selection
-  m_tableView->setAlternatingRowColors(true);  // Color separation between lines
+  // Single line selection
+  m_tableView->setSelectionMode(QTableView::SingleSelection);
+  // Color separation between lines
+  m_tableView->setAlternatingRowColors(true);
 
   m_tableView->setStyleSheet(
       "QTableView {border: 1px solid rgb(230,230,230);}\
-                          QTableView::item:selected{color:black;background: #63B8FF;}");
+       QTableView::item:selected{color:black;background:rgb(177,220,255);}");
   m_tableView->setColumnWidth(0, 80);
 
   m_model = new QStandardItemModel();

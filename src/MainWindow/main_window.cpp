@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 #include <fstream>
 
+#include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
 #include "NewProject/new_project_dialog.h"
@@ -99,10 +100,20 @@ void MainWindow::newProjectDlg() {
   }
 }
 
+void MainWindow::openProject() {
+  QString fileName = "";
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), "",
+                                          "FOEDAG Project File(*.ospr)");
+  if ("" != fileName) {
+    ReShowWindow(fileName);
+  }
+}
+
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
   fileMenu->addAction(newProjectAction);
+  fileMenu->addAction(openProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 }
@@ -118,6 +129,10 @@ void MainWindow::createActions() {
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
+
+  openProjectAction = new QAction(tr("&OpenProject"), this);
+  openProjectAction->setStatusTip(tr("Open a new project"));
+  connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
   newProjectAction = new QAction(tr("&NewProject"), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
@@ -139,6 +154,12 @@ void MainWindow::ReShowWindow(QString strProject) {
   SourcesForm* sourForm = new SourcesForm(strProject, this);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+
+  QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
+  runDockWidget->setObjectName("sourcedockwidget");
+  RunsForm* runForm = new RunsForm(strProject, this);
+  runDockWidget->setWidget(runForm);
+  addDockWidget(Qt::BottomDockWidgetArea, runDockWidget);
 
   QDockWidget* editorDockWidget = new QDockWidget(this);
   editorDockWidget->setObjectName("editordockwidget");

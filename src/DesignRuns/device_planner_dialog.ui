@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddFileDialog</class>
- <widget class="QDialog" name="AddFileDialog">
+ <class>DevicePlannerDialog</class>
+ <widget class="QDialog" name="DevicePlannerDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>772</height>
+    <width>860</width>
+    <height>830</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,7 +75,7 @@
         <item>
          <widget class="QPushButton" name="m_btnOK">
           <property name="text">
-           <string>  OK  </string>
+           <string>OK</string>
           </property>
          </widget>
         </item>

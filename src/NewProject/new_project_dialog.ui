@@ -46,7 +46,7 @@
         <string notr="true"/>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="page"/>
        <widget class="QWidget" name="page_2"/>
@@ -57,7 +57,7 @@
    <item>
     <widget class="QWidget" name="m_widget_bottom" native="true">
      <property name="styleSheet">
-      <string notr="true">background-color: rgba(220, 220, 220, 220);</string>
+      <string notr="true"/>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">

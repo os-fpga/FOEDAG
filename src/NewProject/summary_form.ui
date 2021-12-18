@@ -49,7 +49,7 @@
      <item>
       <widget class="QLabel" name="m_labelNamePic">
        <property name="styleSheet">
-        <string notr="true">image: url(:/img/img/info.png);</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string/>
