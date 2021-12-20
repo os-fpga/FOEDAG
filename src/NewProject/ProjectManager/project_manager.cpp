@@ -851,10 +851,12 @@ int ProjectManager::setRunConstrSet(const QString& strConstrSet) {
 int ProjectManager::setRunSynthRun(const QString& strSynthRunName) {
   int ret = 0;
   ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
-  if (nullptr == proRun && proRun->runType() != RUN_TYPE_IMPLEMENT) {
+  if (nullptr == proRun) {
     return -2;
   }
-  proRun->setSynthRun(strSynthRunName);
+  if (proRun->runType() == RUN_TYPE_IMPLEMENT) {
+    proRun->setSynthRun(strSynthRunName);
+  }
   return ret;
 }
 
