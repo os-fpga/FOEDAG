@@ -253,6 +253,8 @@ if(MSVC)
 else()
   add_dependencies(tcl_build zlib_build)
 endif()
+add_dependencies(foedagcore qscintilla2_qt)
+add_dependencies(texteditor qscintilla2_qt)
 
 
 if (APPLE)
