@@ -430,7 +430,6 @@ jobs:
         which swig && swig -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which xvfb
         which Xvfb
 
     - name: Build
