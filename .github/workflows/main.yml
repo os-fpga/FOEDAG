@@ -419,6 +419,9 @@ jobs:
         echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
 
+    - name: Install XQuartz on macOS
+      run: brew install xquartz --cask
+
     - name: Show shell configuration
       run: |
         env
@@ -427,9 +430,8 @@ jobs:
         which swig && swig -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-
-    - name: Install XQuartz on macOS
-      run: brew install xquartz --cask
+        which xvfb
+        which Xvfb
 
     - name: Build
       run: |
