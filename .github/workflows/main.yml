@@ -440,7 +440,7 @@ jobs:
       run: |
         make test_install
         make test/unittest
-        make XVFB="/usr/X11/bin/Xvfb :1337 & export DISPLAY=:1337 &" debug test/gui_mac
+        make XVFB="/usr/X11/bin/Xvfb :1337 -nolisten unix & export DISPLAY=:1337 &" debug test/gui_mac
 
     - name: Regression tests
       run: |
