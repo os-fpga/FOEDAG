@@ -419,6 +419,9 @@ jobs:
         echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
 
+    - name: Install XQuartz on macOS
+      run: brew install xquartz --cask
+
     - name: Show shell configuration
       run: |
         env
@@ -437,7 +440,7 @@ jobs:
       run: |
         make test_install
         make test/unittest
-        make XVFB="Xvfb :1337 & export DISPLAY=:1337 &" debug test/gui
+        make XVFB="" debug test/gui_mac
 
     - name: Regression tests
       run: |
