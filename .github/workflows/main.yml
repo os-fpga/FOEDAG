@@ -440,7 +440,7 @@ jobs:
       run: |
         make test_install
         make test/unittest
-        make XVFB="" debug test/gui
+        make XVFB="" debug test/gui_mac
 
     - name: Regression tests
       run: |
