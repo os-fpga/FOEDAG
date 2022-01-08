@@ -34,7 +34,67 @@ using namespace FOEDAG;
 
 Compiler::~Compiler() {}
 
-bool Compiler::RegisterCommands(bool batchMode) {
+static std::string TclInterpCloneScript() {
+  std::string script = R"(
+    # Simple Tcl Interpreter State copy utility
+  proc tcl_interp_clone { } {
+    set procs [info proc]
+    set script ""
+    foreach pr $procs {
+        set args [info args $pr]
+        set body [info body $pr]
+        append script "proc $pr {$args} {
+$body
+}
+
+"
+    }
+
+    foreach gl [info global] {
+        if {$gl == {tcl_interactive}} {
+          continue
+        }
+        upvar $gl x
+        if [array exist x] {
+        } else {
+            append script "set $gl \"$x\"
+
+"
+        }
+    }
+    return $script  
+}
+tcl_interp_clone
+    )";
+
+  return script;
+}
+
+static std::string TclInterpCloneVar() {
+  std::string script = R"(
+    # Simple Tcl Interpreter State copy utility
+  proc tcl_interp_clone { } {
+    foreach gl [info global] {
+        if {$gl == {tcl_interactive}} {
+          continue
+        }
+        upvar $gl x
+        if [array exist x] {
+        } else {
+            append script "set $gl \"$x\"
+
+"
+        }
+    }
+    return $script  
+}
+tcl_interp_clone
+    )";
+
+  return script;
+}
+
+bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -42,8 +102,8 @@ bool Compiler::RegisterCommands(bool batchMode) {
       compiler->Synthesize();
       return 0;
     };
-    m_interp->registerCmd("synthesize", synthesize, this, 0);
-    m_interp->registerCmd("synth", synthesize, this, 0);
+    interp->registerCmd("synthesize", synthesize, this, 0);
+    interp->registerCmd("synth", synthesize, this, 0);
 
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
@@ -51,8 +111,8 @@ bool Compiler::RegisterCommands(bool batchMode) {
       compiler->GlobalPlacement();
       return 0;
     };
-    m_interp->registerCmd("global_placement", globalplacement, this, 0);
-    m_interp->registerCmd("globp", globalplacement, this, 0);
+    interp->registerCmd("global_placement", globalplacement, this, 0);
+    interp->registerCmd("globp", globalplacement, this, 0);
 
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
@@ -62,8 +122,8 @@ bool Compiler::RegisterCommands(bool batchMode) {
       ThreadPool::threads.clear();
       return 0;
     };
-    m_interp->registerCmd("stop", stop, 0, 0);
-    m_interp->registerCmd("abort", stop, 0, 0);
+    interp->registerCmd("stop", stop, 0, 0);
+    interp->registerCmd("abort", stop, 0, 0);
   } else {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -73,8 +133,8 @@ bool Compiler::RegisterCommands(bool batchMode) {
       wthread->start();
       return 0;
     };
-    m_interp->registerCmd("synthesize", synthesize, this, 0);
-    m_interp->registerCmd("synth", synthesize, this, 0);
+    interp->registerCmd("synthesize", synthesize, this, 0);
+    interp->registerCmd("synth", synthesize, this, 0);
 
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
@@ -84,8 +144,8 @@ bool Compiler::RegisterCommands(bool batchMode) {
       wthread->start();
       return 0;
     };
-    m_interp->registerCmd("global_placement", globalplacement, this, 0);
-    m_interp->registerCmd("globp", globalplacement, this, 0);
+    interp->registerCmd("global_placement", globalplacement, this, 0);
+    interp->registerCmd("globp", globalplacement, this, 0);
 
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
@@ -95,13 +155,22 @@ bool Compiler::RegisterCommands(bool batchMode) {
       ThreadPool::threads.clear();
       return 0;
     };
-    m_interp->registerCmd("stop", stop, 0, 0);
-    m_interp->registerCmd("abort", stop, 0, 0);
+    interp->registerCmd("stop", stop, 0, 0);
+    interp->registerCmd("abort", stop, 0, 0);
 
     auto batch = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       std::string script;
+
+      // Pass state from master to worker interpreter
+      Tcl_Eval(interp, "set tcl_interactive false");
+      std::string interpStateScript = TclInterpCloneScript();
+      Tcl_Eval(interp, interpStateScript.c_str());
+      script = Tcl_GetStringResult(interp);
+      Tcl_Eval(interp, "set tcl_interactive true");
+
+      // Build batch script
       for (int i = 1; i < argc; i++) {
         script += argv[i] + std::string(" ");
       }
@@ -111,7 +180,21 @@ bool Compiler::RegisterCommands(bool batchMode) {
       wthread->start();
       return 0;
     };
-    m_interp->registerCmd("batch", batch, this, 0);
+    interp->registerCmd("batch", batch, this, 0);
+
+    auto update_result = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      std::string script = compiler->getResult();
+
+      // Pass state from worker interpreter to master
+      Tcl_Eval(interp, "set tcl_interactive false");
+      Tcl_Eval(interp, script.c_str());
+      Tcl_Eval(interp, "set tcl_interactive true");
+
+      return 0;
+    };
+    interp->registerCmd("update_result", update_result, this, 0);
   }
   return true;
 }
@@ -163,14 +246,16 @@ bool Compiler::GlobalPlacement() {
 }
 
 bool Compiler::RunBatch() {
-  std::cout << "Running batch: " << m_batchScript << std::endl;
+  std::cout << "Running batch..." << std::endl;
   TclInterpreter* batchInterp = new TclInterpreter("batchInterp");
-  TclInterpreter* memInterp = m_interp;
-  m_interp = batchInterp;
-  RegisterCommands(true);
-  m_out << m_interp->evalCmd(m_batchScript);
+  RegisterCommands(batchInterp, true);
+  m_out << batchInterp->evalCmd(m_batchScript);
   std::cout << std::endl << "Batch Done." << std::endl;
-  m_interp = memInterp;
+
+  // Save resulting state
+  batchInterp->evalCmd("set tcl_interactive false");
+  m_result = batchInterp->evalCmd(TclInterpCloneVar());
+  batchInterp->evalCmd("set tcl_interactive true");
   return true;
 }
 
