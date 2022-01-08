@@ -67,7 +67,7 @@ class Compiler {
   void Stop() { m_stop = true; }
   TclInterpreter* TclInterp() { return m_interp; }
   Design* GetDesign() { return m_design; }
-  bool RegisterCommands(bool batchMode = false);
+  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   bool Synthesize();
   bool GlobalPlacement();
@@ -77,6 +77,8 @@ class Compiler {
   bool GenerateBitstream();
   bool RunBatch();
 
+  std::string& getResult() { return m_result; }
+
  private:
   TclInterpreter* m_interp = nullptr;
   Design* m_design = nullptr;
@@ -84,6 +86,7 @@ class Compiler {
   State m_state = None;
   std::ostream& m_out;
   std::string m_batchScript;
+  std::string m_result;
 };
 
 }  // namespace FOEDAG
