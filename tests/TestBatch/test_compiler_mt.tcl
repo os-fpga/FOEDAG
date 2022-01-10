@@ -17,7 +17,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-design_init
 synthesize
 after 3000 {puts "STOP"; flush stdout ; stop} 
 after 5000 {synthesize}
@@ -29,3 +28,4 @@ while {$CONT} {
   after 100 set a 1
   vwait a
 }
+exit
