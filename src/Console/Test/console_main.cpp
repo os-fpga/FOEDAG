@@ -17,8 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <thread>
 
-#include "Console.h"
+#include "Compiler/Compiler.h"
+#include "Compiler/Design.h"
+#include "ConsoleWidget.h"
 #include "Tcl/TclInterpreter.h"
+#include "TclConsole.h"
 #include "TclController.h"
 
 void worker(int argc, char **argv, Tcl_Interp *interp) {
@@ -32,13 +35,18 @@ void worker(int argc, char **argv, Tcl_Interp *interp) {
 int main(int argc, char **argv) {
   QApplication a{argc, argv};
   FOEDAG::TclInterpreter *interpreter = new FOEDAG::TclInterpreter{argv[0]};
-
-  Console *console = new Console;
+  std::string design("Some cool design");
+  FOEDAG::Compiler *com =
+      new FOEDAG::Compiler{interpreter, new FOEDAG::Design(design), std::cout};
+  com->RegisterCommands(interpreter, false);
+  ConsoleWidget *console = new ConsoleWidget{std::make_unique<TclConsole>()};
   TclController *tcl = new TclController{interpreter};
 
-  QObject::connect(console, &Console::sendCommand, tcl,
+  QObject::connect(console, &ConsoleWidget::sendCommand, tcl,
                    &TclController::runCommand);
-  QObject::connect(tcl, &TclController::sendOutput, console, &Console::append);
+  QObject::connect(tcl, &TclController::sendOutput, console,
+                   &ConsoleWidget::append);
+  QObject::connect(console, &ConsoleWidget::abort, tcl, &TclController::abort);
   console->show();
   std::thread work{&worker, argc, argv, interpreter->getInterp()};
   work.detach();
