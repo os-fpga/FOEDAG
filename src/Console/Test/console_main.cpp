@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   std::string design("Some cool design");
   FOEDAG::Compiler *com =
       new FOEDAG::Compiler{interpreter, new FOEDAG::Design(design), std::cout};
-  com->RegisterCommands();
+  com->RegisterCommands(interpreter, false);
   ConsoleWidget *console = new ConsoleWidget{std::make_unique<TclConsole>()};
   TclController *tcl = new TclController{interpreter};
 
