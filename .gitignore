@@ -25,8 +25,27 @@ __pycache__/
 # Some local temporary files
 .vscode
 *_local.bat
+compile_commands.json
 tmp/
 build/
+dbuild/
 
 message.txt
 deploy_key
+
+# third party build files
+third_party/zlib/*.lo
+third_party/zlib/*.so
+third_party/zlib/*.so.*
+third_party/zlib/include/
+third_party/zlib/lib/
+third_party/zlib/share/
+third_party/zlib/example
+third_party/zlib/example64
+third_party/zlib/examplesh
+third_party/zlib/minigzip
+third_party/zlib/minigzip64
+third_party/zlib/minigzipsh
+third_party/zlib/zconf.h
+third_party/zlib/zlib.pc
+third_party/zlib/Makefile
