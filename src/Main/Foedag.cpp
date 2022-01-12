@@ -118,6 +118,25 @@ bool Foedag::initBatch() {
   if (result != "") {
     std::cout << result << '\n';
   }
+
+  // Tcl_AppInit
+  auto tcl_init = [](Tcl_Interp* interp) -> int {
+    // --script <script>
+    if (!GlobalSession->CmdLine()->Script().empty()) {
+      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+    }
+    // --replay <script> Gui replay, invoke test
+    if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
+      std::string proc = "call_test";
+      Tcl_EvalEx(interp, proc.c_str(), -1, 0);
+    }
+    return 0;
+  };
+
+  // Start Loop
+  int argc = m_cmdLine->Argc();
+  Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
+
   delete GlobalSession;
   return 0;
 }

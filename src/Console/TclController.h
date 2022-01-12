@@ -1,6 +1,9 @@
 #pragma once
 
 #include <QObject>
+#include <QThread>
+
+#include "TclWorker.h"
 namespace FOEDAG {
 class TclInterpreter;
 }
@@ -8,16 +11,24 @@ class TclInterpreter;
 class TclController : public QObject {
   Q_OBJECT
  public:
-  explicit TclController(FOEDAG::TclInterpreter *interpreter);
+  explicit TclController(FOEDAG::TclInterpreter *interpreter,
+                         QObject *parent = nullptr);
   ~TclController();
+  FOEDAG::TclInterpreter *getInterp();
 
  public slots:
   void runCommand(const QString &command);
+  void abort();
+
+ private slots:
+  void tclCommandDone();
 
  signals:
   void sendOutput(QString);
+  void sendCommand(QString);
+  void abort_();
 
  private:
-  FOEDAG::TclInterpreter *m_interpreter{nullptr};
-  // Tcl_Channel m_channel;
+  QThread m_tclThread;
+  TclWorker m_tclWorker;
 };

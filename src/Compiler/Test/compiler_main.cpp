@@ -34,16 +34,12 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd) {
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  auto design_init = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
-    std::string designName = "test_design";
-    FOEDAG::Design* design = new FOEDAG::Design(designName);
-    FOEDAG::Compiler* compiler =
-        new FOEDAG::Compiler(GlobalSession->TclInterp(), design, std::cout);
-    compiler->RegisterCommands();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("design_init", design_init, 0, 0);
+  // Create a fake design
+  std::string designName = "test_design";
+  FOEDAG::Design* design = new FOEDAG::Design(designName);
+  FOEDAG::Compiler* compiler =
+      new FOEDAG::Compiler(GlobalSession->TclInterp(), design, std::cout);
+  compiler->RegisterCommands(GlobalSession->TclInterp(), false);
 }
 
 int main(int argc, char** argv) {
