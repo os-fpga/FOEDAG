@@ -248,6 +248,7 @@ add_custom_command(TARGET foedag POST_BUILD
 add_dependencies(foedag foedagcore)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
+add_dependencies(console tcl_stubb_build)
 add_dependencies(tcl_stubb_build tcl_build)
 if(MSVC)
 else()
@@ -311,7 +312,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
 target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 
 if(NOT NO_TCMALLOC)

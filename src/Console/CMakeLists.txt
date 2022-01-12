@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(newproject LANGUAGES CXX)
+project(console LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -40,13 +40,13 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-# TODO: add the list of files
 set (SRC_CPP_LIST
   ConsoleWidget.cpp
   ConsoleInterface.cpp
   TclController.cpp
   TclConsole.cpp
   TclWorker.cpp
+  StreamBuffer.cpp
 )
 
 set (SRC_H_LIST
@@ -55,6 +55,7 @@ set (SRC_H_LIST
   TclController.h
   TclConsole.h
   TclWorker.h
+  StreamBuffer.h
 )
 
 set (SRC_UI_LIST
@@ -64,10 +65,9 @@ add_library(console STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${SRC_UI_LIST}
-#  console.qrc
 )
 
-target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml foedag)
+target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
 
 set(CONSOLE_STATIC_LIB libconsole.a)
@@ -79,7 +79,6 @@ install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${CONSOLE_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
-# TODO: Add the list of exported headers (See NewProject as example)
 install(
    FILES ${PROJECT_SOURCE_DIR}/../Console/ConsoleWidget.h
          ${PROJECT_SOURCE_DIR}/../Console/TclController.h
@@ -89,10 +88,7 @@ install(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-# TODO: Add the standalone executable to test the console (See NewProject as example)
 add_executable(console_bin
-	${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
-	# ${PROJECT_SOURCE_DIR}/../Console/console.qrc)
+  ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
 target_link_libraries(console_bin foedag compiler tcl_stubb tcl_static zlib console)
 set_target_properties(console_bin PROPERTIES OUTPUT_NAME console)
-

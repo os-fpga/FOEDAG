@@ -29,12 +29,13 @@ class QLabel;
 
 namespace FOEDAG {
 
+class TclInterpreter;
 /** Main window of the program */
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public: /*-- Constructor --*/
-  MainWindow();
+  MainWindow(TclInterpreter* interp);
 
   void Tcl_NewProject(int argc, const char* argv[]);
 
@@ -60,6 +61,8 @@ class MainWindow : public QMainWindow {
 
   /* Tool bar objects */
   QToolBar* fileToolBar;
+
+  TclInterpreter* m_interpreter;
 };
 
 }  // namespace FOEDAG

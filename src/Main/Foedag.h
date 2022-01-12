@@ -31,7 +31,8 @@ void registerBasicBatchCommands(FOEDAG::Session* session);
 
 namespace FOEDAG {
 
-typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine);
+typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine,
+                                    FOEDAG::TclInterpreter* tclInterp);
 
 typedef void(RegisterTclFunc)(FOEDAG::Session* session);
 

@@ -35,12 +35,13 @@ void worker(int argc, char **argv, Tcl_Interp *interp) {
 int main(int argc, char **argv) {
   QApplication a{argc, argv};
   FOEDAG::TclInterpreter *interpreter = new FOEDAG::TclInterpreter{argv[0]};
-  std::string design("Some cool design");
-  FOEDAG::Compiler *com =
-      new FOEDAG::Compiler{interpreter, new FOEDAG::Design(design), std::cout};
-  com->RegisterCommands(interpreter, false);
   ConsoleWidget *console = new ConsoleWidget{std::make_unique<TclConsole>()};
   TclController *tcl = new TclController{interpreter};
+
+  std::string design("Some cool design");
+  FOEDAG::Compiler *com = new FOEDAG::Compiler{
+      interpreter, new FOEDAG::Design(design), console->getStream()};
+  com->RegisterCommands(interpreter, false);
 
   QObject::connect(console, &ConsoleWidget::sendCommand, tcl,
                    &TclController::runCommand);

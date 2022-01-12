@@ -59,7 +59,7 @@ bool Foedag::initGui() {
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   QWidget* mainWin = nullptr;
   if (m_mainWinBuilder) {
-    mainWin = m_mainWinBuilder(m_cmdLine);
+    mainWin = m_mainWinBuilder(m_cmdLine, interpreter);
   }
   GlobalSession =
       new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine);

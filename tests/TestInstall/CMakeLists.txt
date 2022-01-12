@@ -138,6 +138,7 @@ if (FOEDAG_WITH_PYTHON)
     projnavigator
     designruns
     texteditor
+    console
     qscintilla2_qt
     tcl_stubb
     tcl_static
@@ -155,6 +156,7 @@ else()
     projnavigator
     designruns
     texteditor
+    console
     qscintilla2_qt
     tcl_stubb
     tcl_static

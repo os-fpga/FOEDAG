@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd) {
+QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
+                             FOEDAG::TclInterpreter* interp) {
+  Q_UNUSED(interp);
   if (cmd->Argc() > 2) {
     return new FOEDAG::SourcesForm(cmd->Argv()[2]);
   } else {

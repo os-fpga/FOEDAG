@@ -11,7 +11,6 @@ class TclWorker : public QObject {
  public:
   TclWorker(FOEDAG::TclInterpreter *interpreter, QObject *parent = nullptr);
   QString output() const;
-  FOEDAG::TclInterpreter *getInterp();
 
  public slots:
   void runCommand(const QString &command);

@@ -48,8 +48,6 @@ void TclWorker::abort() {
 
 QString TclWorker::output() const { return m_output; }
 
-FOEDAG::TclInterpreter *TclWorker::getInterp() { return m_interpreter; }
-
 void TclWorker::setOutput(const QString &out) {
   m_output = out;
   emit ready();

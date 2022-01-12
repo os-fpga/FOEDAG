@@ -33,7 +33,3 @@ void TclController::runCommand(const QString &command) {
 void TclController::abort() { emit abort_(); }
 
 void TclController::tclCommandDone() { emit sendOutput(m_tclWorker.output()); }
-
-FOEDAG::TclInterpreter *TclController::getInterp() {
-  return m_tclWorker.getInterp();
-}
