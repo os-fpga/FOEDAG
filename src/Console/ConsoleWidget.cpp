@@ -6,17 +6,32 @@
 #include <QScrollBar>
 #include <QTextBlock>
 
+#include "StreamBuffer.h"
+
 constexpr auto begin = "% ";
 
 ConsoleWidget::ConsoleWidget(std::unique_ptr<ConsoleInterface> iConsole,
                              QWidget *parent)
-    : QPlainTextEdit(parent), m_console(std::move(iConsole)) {}
+    : QPlainTextEdit(parent),
+      m_console(std::move(iConsole)),
+      m_buffer{new StreamBuffer{this}},
+      m_stream(m_buffer) {
+  connect(m_buffer, &StreamBuffer::ready, this, &ConsoleWidget::put);
+}
+
+std::ostream &ConsoleWidget::getStream() { return m_stream; }
 
 void ConsoleWidget::append(const QString &text) {
   if (!text.isEmpty()) {
     const QString tmp = text.simplified() + "\n";
     insertPlainText(tmp);
+    updateScroll();
   }
+}
+
+void ConsoleWidget::put(const QString &str) {
+  textCursor().insertText(str);
+  updateScroll();
 }
 
 void ConsoleWidget::keyPressEvent(QKeyEvent *e) {

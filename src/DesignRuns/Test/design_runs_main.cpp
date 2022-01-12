@@ -28,7 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd) {
+QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
+                           FOEDAG::TclInterpreter* interp) {
+  Q_UNUSED(interp);
   if (cmd->Argc() > 2) {
     return new FOEDAG::RunsForm(cmd->Argv()[2]);
   } else {

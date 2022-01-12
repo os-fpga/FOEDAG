@@ -28,8 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd) {
+QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd,
+                           FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(cmd);
+  Q_UNUSED(interp);
   return new FOEDAG::TextEditor();
 }
 

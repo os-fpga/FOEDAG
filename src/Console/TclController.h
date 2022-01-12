@@ -14,7 +14,6 @@ class TclController : public QObject {
   explicit TclController(FOEDAG::TclInterpreter *interpreter,
                          QObject *parent = nullptr);
   ~TclController();
-  FOEDAG::TclInterpreter *getInterp();
 
  public slots:
   void runCommand(const QString &command);

@@ -29,8 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd) {
-  return new FOEDAG::MainWindow;
+QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
+                           FOEDAG::TclInterpreter* interp) {
+  return new FOEDAG::MainWindow{interp};
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
