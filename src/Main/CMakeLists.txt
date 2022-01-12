@@ -92,6 +92,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Tcl/TclInterpreter.cpp
+  ../Tcl/TclHistoryScript.cpp
   ../Command/Command.cpp
   ../Command/CommandStack.cpp
   ../Command/Logger.cpp

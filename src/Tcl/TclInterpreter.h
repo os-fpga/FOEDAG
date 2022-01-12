@@ -71,6 +71,9 @@ class TclInterpreter {
                    ClientData clientData, Tcl_CmdDeleteProc* deleteProc);
 
   Tcl_Interp* getInterp() { return interp; }
+
+ private:
+  std::string TclHistoryScript();
 };
 
 }  // namespace FOEDAG

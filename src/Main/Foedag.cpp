@@ -85,6 +85,10 @@ bool Foedag::initGui() {
     if (!GlobalSession->CmdLine()->Script().empty()) {
       Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
     }
+    // --cmd \"tcl cmd\"
+    if (!GlobalSession->CmdLine()->TclCmd().empty()) {
+      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+    }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
       std::string proc = "call_test";
@@ -124,6 +128,10 @@ bool Foedag::initBatch() {
     // --script <script>
     if (!GlobalSession->CmdLine()->Script().empty()) {
       Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+    }
+    // --cmd \"tcl cmd\"
+    if (!GlobalSession->CmdLine()->TclCmd().empty()) {
+      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
     }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {

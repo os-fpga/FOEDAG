@@ -52,6 +52,9 @@ void CommandLine::processArgs() {
     } else if (token == "--script") {
       i++;
       m_runScript = m_argv[i];
+    } else if (token == "--cmd") {
+      i++;
+      m_runTclCmd = m_argv[i];
     } else if (token == "--help") {
       printHelp();
       exit(0);

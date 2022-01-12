@@ -44,6 +44,8 @@ class CommandLine {
 
   const std::string& Script() const { return m_runScript; }
 
+  const std::string& TclCmd() const { return m_runTclCmd; }
+
   virtual void printHelp();
   virtual void processArgs();
 
@@ -57,6 +59,7 @@ class CommandLine {
   bool m_withQt = true;
   std::string m_runScript;
   std::string m_runGuiTest;
+  std::string m_runTclCmd;
 };
 
 }  // namespace FOEDAG
