@@ -184,6 +184,33 @@ add_library (qscintilla2_qt STATIC ${qscintilla2_qt_SRCS} ${qscintilla2_qt_HDRS}
 target_link_libraries (qscintilla2_qt  PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets)
 target_compile_definitions(qscintilla2_qt PRIVATE QSCINTILLA2_QT_LIBRARY)
 
+set (qscintilla2_qt_INCLUDE
+ Qsci/qsciglobal.h
+ Qsci/qsciscintilla.h
+ Qsci/qsciscintillabase.h
+ Qsci/qsciabstractapis.h
+ Qsci/qsciapis.h
+ Qsci/qscicommand.h
+ Qsci/qscicommandset.h
+ Qsci/qscidocument.h
+ Qsci/qscilexer.h
+ Qsci/qscilexertcl.h
+ Qsci/qscilexerverilog.h
+ Qsci/qscilexervhdl.h
+ Qsci/qscimacro.h
+ Qsci/qscistyle.h
+ Qsci/qscistyledtext.h
+ )
+
+foreach(headerfile ${qscintilla2_qt_INCLUDE})
+add_custom_command(
+  TARGET qscintilla2_qt POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${PROJECT_SOURCE_DIR}/src/${headerfile}
+          ${CMAKE_CURRENT_BINARY_DIR}/../../include/${headerfile}
+)
+endforeach()
+
 set(QSCINTILLA_STATIC_LIB libqscintilla2_qt.a)
 if (MSVC)
   set(QSCINTILLA_STATIC_LIB qscintilla2_qt.lib)
@@ -193,22 +220,10 @@ install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${QSCINTILLA_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
+foreach(headerfile ${qscintilla2_qt_INCLUDE})
 install(
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciglobal.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciscintilla.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciscintillabase.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciabstractapis.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qsciapis.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscicommand.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscicommandset.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscidocument.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexer.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexertcl.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexerverilog.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscilexervhdl.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscimacro.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscistyle.h
-    FILES ${PROJECT_SOURCE_DIR}/src/Qsci/qscistyledtext.h
+    FILES ${PROJECT_SOURCE_DIR}/src/${headerfile}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Qsci)
+endforeach()
   
 
