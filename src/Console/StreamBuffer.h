@@ -21,12 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <iostream>
 #include <streambuf>
 
 class StreamBuffer : public QObject, public std::streambuf {
   Q_OBJECT
  public:
   explicit StreamBuffer(QObject *parent = nullptr);
+  std::ostream &getStream();
 
  signals:
   void ready(const QString &);
@@ -37,5 +39,6 @@ class StreamBuffer : public QObject, public std::streambuf {
   int underflow() override;
 
  private:
-  int last;
+  int m_last;
+  std::ostream m_stream;
 };

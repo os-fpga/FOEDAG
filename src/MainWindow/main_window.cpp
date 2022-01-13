@@ -25,8 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <fstream>
 
 #include "Console/ConsoleWidget.h"
+#include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
-#include "Console/TclController.h"
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
@@ -179,14 +179,11 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
 
-  ConsoleWidget* console = new ConsoleWidget{std::make_unique<TclConsole>()};
-  TclController* tcl = new TclController{m_interpreter};
-
-  QObject::connect(console, &ConsoleWidget::sendCommand, tcl,
-                   &TclController::runCommand);
-  QObject::connect(tcl, &TclController::sendOutput, console,
-                   &ConsoleWidget::append);
-  QObject::connect(console, &ConsoleWidget::abort, tcl, &TclController::abort);
+  StreamBuffer* buffer = new StreamBuffer;
+  ConsoleWidget* console = new ConsoleWidget{
+      std::make_unique<TclConsole>(m_interpreter, buffer->getStream()), buffer};
+  //  QObject::connect(console, &ConsoleWidget::abort, tcl,
+  //  &TclController::abort);
 
   consoleDocWidget->setWidget(console);
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);

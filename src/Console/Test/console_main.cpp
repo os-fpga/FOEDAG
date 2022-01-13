@@ -20,36 +20,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Compiler.h"
 #include "Compiler/Design.h"
 #include "ConsoleWidget.h"
+#include "Main/Foedag.h"
+#include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
-#include "TclController.h"
 
-void worker(int argc, char **argv, Tcl_Interp *interp) {
-  auto init = [](Tcl_Interp *interp) -> int {
+FOEDAG::Session* GlobalSession;
+
+void worker(int argc, char** argv, Tcl_Interp* interp) {
+  auto init = [](Tcl_Interp* interp) -> int {
     // init here
     return 0;
   };
   Tcl_MainEx(argc, argv, init, interp);
 }
 
-int main(int argc, char **argv) {
-  QApplication a{argc, argv};
-  FOEDAG::TclInterpreter *interpreter = new FOEDAG::TclInterpreter{argv[0]};
-  ConsoleWidget *console = new ConsoleWidget{std::make_unique<TclConsole>()};
-  TclController *tcl = new TclController{interpreter};
+QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
+                           FOEDAG::TclInterpreter* interp) {
+  return new ConsoleWidget{std::make_unique<TclConsole>(interp, std::cout),
+                           new StreamBuffer};
+}
 
-  std::string design("Some cool design");
-  FOEDAG::Compiler *com = new FOEDAG::Compiler{
-      interpreter, new FOEDAG::Design(design), console->getStream()};
-  com->RegisterCommands(interpreter, false);
+void registerExampleCommands(FOEDAG::Session* session) {
+  auto console_open = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Q_UNUSED(interp);
+    Q_UNUSED(argv);
+    Q_UNUSED(argc);
+    auto interpreter = static_cast<FOEDAG::TclInterpreter*>(clientData);
+    auto console = new ConsoleWidget{
+        std::make_unique<TclConsole>(interpreter, std::cout), new StreamBuffer};
+    console->show();
+    return 0;
+  };
+  session->TclInterp()->registerCmd("console_open", console_open,
+                                    GlobalSession->TclInterp(), 0);
+}
 
-  QObject::connect(console, &ConsoleWidget::sendCommand, tcl,
-                   &TclController::runCommand);
-  QObject::connect(tcl, &TclController::sendOutput, console,
-                   &ConsoleWidget::append);
-  QObject::connect(console, &ConsoleWidget::abort, tcl, &TclController::abort);
-  console->show();
-  std::thread work{&worker, argc, argv, interpreter->getInterp()};
-  work.detach();
-  return a.exec();
+int main(int argc, char** argv) {
+  FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
+  cmd->processArgs();
+
+  if (!cmd->WithQt()) {
+    // Batch mode
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, nullptr, registerExampleCommands);
+    return foedag->initBatch();
+  } else {
+    // Gui mode
+    FOEDAG::Foedag* foedag =
+        new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
+    return foedag->initGui();
+  }
 }

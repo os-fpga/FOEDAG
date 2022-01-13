@@ -43,19 +43,19 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST
   ConsoleWidget.cpp
   ConsoleInterface.cpp
-  TclController.cpp
   TclConsole.cpp
   TclWorker.cpp
   StreamBuffer.cpp
+  FileInfo.cpp
 )
 
 set (SRC_H_LIST
   ConsoleWidget.h
   ConsoleInterface.h
-  TclController.h
   TclConsole.h
   TclWorker.h
   StreamBuffer.h
+  FileInfo.h
 )
 
 set (SRC_UI_LIST
@@ -81,14 +81,17 @@ install (
 
 install(
    FILES ${PROJECT_SOURCE_DIR}/../Console/ConsoleWidget.h
-         ${PROJECT_SOURCE_DIR}/../Console/TclController.h
+         ${PROJECT_SOURCE_DIR}/../Console/StreamBuffer.h
          ${PROJECT_SOURCE_DIR}/../Console/ConsoleInterface.h
          ${PROJECT_SOURCE_DIR}/../Console/TclConsole.h
    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
+set(CMAKE_CXX_FLAGS_DEBUG
+"${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
+
 add_executable(console_bin
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
-target_link_libraries(console_bin foedag compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_bin foedag foedagcore compiler tcl_stubb tcl_static zlib console)
 set_target_properties(console_bin PROPERTIES OUTPUT_NAME console)

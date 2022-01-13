@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class TclInterpreterHandler;
 class Compiler {
  public:
   enum Action {
@@ -57,8 +58,12 @@ class Compiler {
     BistreamGenerated
   };
 
-  Compiler(TclInterpreter* interp, Design* design, std::ostream& out)
-      : m_interp(interp), m_design(design), m_out(out) {}
+  Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
+           TclInterpreterHandler* tclInterpreterHandler = nullptr)
+      : m_interp(interp),
+        m_design(design),
+        m_out(out),
+        m_tclInterpreterHandler(tclInterpreterHandler) {}
 
   ~Compiler();
   void BatchScript(const std::string& script) { m_batchScript = script; }
@@ -87,6 +92,7 @@ class Compiler {
   std::ostream& m_out;
   std::string m_batchScript;
   std::string m_result;
+  TclInterpreterHandler* m_tclInterpreterHandler;
 };
 
 }  // namespace FOEDAG

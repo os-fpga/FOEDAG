@@ -18,28 +18,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "StreamBuffer.h"
+#pragma once
 
-StreamBuffer::StreamBuffer(QObject *parent)
-    : QObject{parent}, m_last{traits_type::eof()}, m_stream(this) {}
+#include "Tcl/TclInterpreter.h"
 
-std::ostream &StreamBuffer::getStream() { return m_stream; }
+namespace FOEDAG {
+class TclInterpreterHandler {
+ public:
+  virtual ~TclInterpreterHandler() = default;
+  virtual void initIterpreter(FOEDAG::TclInterpreter *interp) = 0;
+};
 
-int StreamBuffer::overflow(int c) {
-  if (c == traits_type::eof()) {
-    return traits_type::eof();
-  }
-
-  char_type ch = static_cast<char_type>(c);
-  emit ready(QString(ch));
-
-  return ch;
-}
-
-int StreamBuffer::uflow() {
-  const int c = underflow();
-  m_last = traits_type::eof();
-  return c;
-}
-
-int StreamBuffer::underflow() { return m_last; }
+}  // namespace FOEDAG

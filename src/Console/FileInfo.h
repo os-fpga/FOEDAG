@@ -18,28 +18,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "StreamBuffer.h"
+#pragma once
 
-StreamBuffer::StreamBuffer(QObject *parent)
-    : QObject{parent}, m_last{traits_type::eof()}, m_stream(this) {}
+#include <QString>
 
-std::ostream &StreamBuffer::getStream() { return m_stream; }
-
-int StreamBuffer::overflow(int c) {
-  if (c == traits_type::eof()) {
-    return traits_type::eof();
-  }
-
-  char_type ch = static_cast<char_type>(c);
-  emit ready(QString(ch));
-
-  return ch;
-}
-
-int StreamBuffer::uflow() {
-  const int c = underflow();
-  m_last = traits_type::eof();
-  return c;
-}
-
-int StreamBuffer::underflow() { return m_last; }
+class FileInfo {
+ public:
+  FileInfo();
+  QString getRefString(const QString &filePath) const;
+};
