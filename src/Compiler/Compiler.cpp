@@ -89,6 +89,7 @@ static std::string TclInterpCloneVar() {
     return $script  
 }
 tcl_interp_clone
+
     )";
 
   return script;
@@ -246,11 +247,11 @@ bool Compiler::GlobalPlacement() {
 }
 
 bool Compiler::RunBatch() {
-  std::cout << "Running batch..." << std::endl;
+  m_out << "Running batch..." << std::endl;
   TclInterpreter* batchInterp = new TclInterpreter("batchInterp");
   RegisterCommands(batchInterp, true);
   m_out << batchInterp->evalCmd(m_batchScript);
-  std::cout << std::endl << "Batch Done." << std::endl;
+  m_out << std::endl << "Batch Done." << std::endl;
 
   // Save resulting state
   batchInterp->evalCmd("set tcl_interactive false");
