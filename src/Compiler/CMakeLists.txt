@@ -43,7 +43,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST Design.cpp Compiler.cpp WorkerThread.cpp
 )
 
-set (SRC_H_LIST Design.h Compiler.h WorkerThread.h
+set (SRC_H_LIST Design.h Compiler.h WorkerThread.h TclInterpreterHandler.h
 )
 
 

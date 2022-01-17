@@ -1,23 +1,26 @@
 #pragma once
 
-#include <QObject>
+#include <QThread>
 
 namespace FOEDAG {
 class TclInterpreter;
 }
 
-class TclWorker : public QObject {
+class TclWorker : public QThread {
   Q_OBJECT
  public:
-  TclWorker(FOEDAG::TclInterpreter *interpreter, QObject *parent = nullptr);
+  TclWorker(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
+            QObject *parent = nullptr);
   QString output() const;
+
+  void run() override;
 
  public slots:
   void runCommand(const QString &command);
   void abort();
 
  signals:
-  void ready();
+  void tclFinished();
 
  private:
   void init();
@@ -25,6 +28,8 @@ class TclWorker : public QObject {
 
  private:
   FOEDAG::TclInterpreter *m_interpreter{nullptr};
+  std::ostream &m_out;
   QString m_output;
   QString m_putsOutput;
+  QString m_cmd;
 };

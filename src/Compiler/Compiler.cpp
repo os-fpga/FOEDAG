@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 
 using namespace FOEDAG;
@@ -249,6 +250,8 @@ bool Compiler::GlobalPlacement() {
 bool Compiler::RunBatch() {
   m_out << "Running batch..." << std::endl;
   TclInterpreter* batchInterp = new TclInterpreter("batchInterp");
+  if (m_tclInterpreterHandler)
+    m_tclInterpreterHandler->initIterpreter(batchInterp);
   RegisterCommands(batchInterp, true);
   m_out << batchInterp->evalCmd(m_batchScript);
   m_out << std::endl << "Batch Done." << std::endl;

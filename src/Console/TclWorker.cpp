@@ -4,6 +4,8 @@
 
 #include "Tcl/TclInterpreter.h"
 
+static const char *FOEDAG_Channel{"FOEDAG_Channel"};
+
 int DriverClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
   return 0;
 }
@@ -22,19 +24,13 @@ int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
 
 int DriverBlockModeProc(ClientData instanceData, int mode) { return 0; }
 
-TclWorker::TclWorker(FOEDAG::TclInterpreter *interpreter, QObject *parent)
-    : QObject(parent), m_interpreter(interpreter) {
+TclWorker::TclWorker(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
+                     QObject *parent)
+    : QThread(parent), m_interpreter(interpreter), m_out(out) {
   init();
 }
 
-void TclWorker::runCommand(const QString &command) {
-  m_putsOutput.clear();
-  auto cmd = command.toStdString();
-  QString output = m_interpreter->evalCmd(cmd).c_str();
-  if (m_putsOutput.isEmpty()) {
-    setOutput(output);
-  }
-}
+void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
   auto resultObjPtr = Tcl_NewObj();
@@ -48,14 +44,30 @@ void TclWorker::abort() {
 
 QString TclWorker::output() const { return m_output; }
 
+void TclWorker::run() {
+  m_putsOutput.clear();
+  auto cmd = m_cmd.toStdString();
+  QString output = m_interpreter->evalCmd(cmd).c_str();
+  if (m_putsOutput.isEmpty()) {
+    setOutput(output);
+  }
+  emit tclFinished();
+}
+
 void TclWorker::setOutput(const QString &out) {
   m_output = out;
-  emit ready();
+  m_out << m_output.toLatin1().data();
+  if (!m_output.isEmpty()) m_out << std::endl;
 }
 
 void TclWorker::init() {
-  Tcl_ChannelType ChannelType = {
-      "MyChannelOut",
+  Tcl_Channel channel =
+      Tcl_GetChannel(m_interpreter->getInterp(), FOEDAG_Channel, nullptr);
+  if (channel != nullptr)  // already registered
+    return;
+
+  Tcl_ChannelType *ChannelType = new Tcl_ChannelType{
+      FOEDAG_Channel,
       (Tcl_ChannelTypeVersion)TCL_CHANNEL_VERSION_5,
       NULL,
       DriverInputProc,
@@ -69,13 +81,15 @@ void TclWorker::init() {
       NULL, /*ChannelBlockMode,*/
       NULL /*ChannelFlush*/,
       NULL /*ChannelHandler*/,
-      NULL /*ChannelWideSeek*/
+      NULL /*ChannelWideSeek*/,
+      NULL /*DriverThreadAction*/,
+      NULL /*DriverTruncate*/,
   };
 
   void *chData = reinterpret_cast<void *>(this);
   auto stdout_ = Tcl_GetStdChannel(TCL_STDOUT);
-  Tcl_Channel m_channel = Tcl_CreateChannel(
-      &ChannelType, "MyChannelOut", chData, TCL_WRITABLE | TCL_READABLE);
+  Tcl_Channel m_channel = Tcl_CreateChannel(ChannelType, FOEDAG_Channel, chData,
+                                            TCL_WRITABLE | TCL_READABLE);
   Tcl_RegisterChannel(m_interpreter->getInterp(), m_channel);
   Tcl_SetStdChannel(m_channel, TCL_STDOUT);
   Tcl_UnregisterChannel(m_interpreter->getInterp(), stdout_);

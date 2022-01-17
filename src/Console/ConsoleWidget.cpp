@@ -8,43 +8,55 @@
 
 #include "StreamBuffer.h"
 
-constexpr auto begin = "% ";
-
 ConsoleWidget::ConsoleWidget(std::unique_ptr<ConsoleInterface> iConsole,
-                             QWidget *parent)
+                             StreamBuffer *buffer, QWidget *parent)
     : QPlainTextEdit(parent),
       m_console(std::move(iConsole)),
-      m_buffer{new StreamBuffer{this}},
-      m_stream(m_buffer) {
+      m_buffer{buffer},
+      m_startWith(m_console ? m_console->startWith() : QString()) {
   connect(m_buffer, &StreamBuffer::ready, this, &ConsoleWidget::put);
+  if (m_console) {
+    connect(m_console.get(), &ConsoleInterface::done, this,
+            &ConsoleWidget::commandDone);
+  }
+  commandDone();
+  setMouseTracking(true);
 }
-
-std::ostream &ConsoleWidget::getStream() { return m_stream; }
 
 void ConsoleWidget::append(const QString &text) {
   if (!text.isEmpty()) {
-    const QString tmp = text.simplified() + "\n";
-    insertPlainText(tmp);
+    auto prev = textCursor().position();
+    const QString tmp = text.simplified() /* + "\n"*/;
+    appendHtml(tmp);
+    m_beginPosition = textCursor().position() - prev;
+    m_lastPos = textCursor().position();
     updateScroll();
   }
 }
 
 void ConsoleWidget::put(const QString &str) {
-  textCursor().insertText(str);
-  updateScroll();
+  if (!str.isEmpty()) {
+    auto prev = textCursor().position();
+    insertPlainText(str);
+    m_beginPosition = textCursor().position() - prev;
+    m_lastPos = textCursor().position();
+
+    updateScroll();
+  }
 }
+
+void ConsoleWidget::commandDone() { put(m_startWith); }
 
 void ConsoleWidget::keyPressEvent(QKeyEvent *e) {
   switch (e->key()) {
     case Qt::Key_Return:
-    case Qt::Key_Enter:
-      if (m_console) m_console->run(document()->lastBlock().text().toUtf8());
-      emit sendCommand(document()->lastBlock().text().toUtf8());
+    case Qt::Key_Enter: {
+      QString cmd = getCommand();
       QPlainTextEdit::keyPressEvent(e);
-      break;
+      if (m_console) m_console->run(cmd.toUtf8());
+    } break;
     case Qt::Key_Backspace:
-      if (document()->lastBlock().begin() != document()->lastBlock().end())
-        QPlainTextEdit::keyPressEvent(e);
+      if (m_lastPos < textCursor().position()) QPlainTextEdit::keyPressEvent(e);
       break;
     case Qt::Key_Up:
     case Qt::Key_Down:
@@ -73,7 +85,42 @@ void ConsoleWidget::mouseDoubleClickEvent(QMouseEvent *event) {
   event->ignore();
 }
 
+void ConsoleWidget::mouseMoveEvent(QMouseEvent *e) {
+  // Cursor was dragged to make a selection, deactivate links
+  if (m_mouseButtonPressed != Qt::NoButton && textCursor().hasSelection())
+    m_linkActivated = false;
+
+  if (!m_linkActivated || anchorAt(e->pos()).isEmpty())
+    viewport()->setCursor(Qt::IBeamCursor);
+  else
+    viewport()->setCursor(Qt::PointingHandCursor);
+  QPlainTextEdit::mouseMoveEvent(e);
+}
+
+void ConsoleWidget::mousePressEvent(QMouseEvent *e) {
+  m_mouseButtonPressed = e->button();
+  QPlainTextEdit::mousePressEvent(e);
+}
+
+void ConsoleWidget::mouseReleaseEvent(QMouseEvent *e) {
+  if (m_linkActivated && m_mouseButtonPressed == Qt::LeftButton)
+    handleLink(e->pos());
+
+  // Mouse was released, activate links again
+  m_linkActivated = true;
+  m_mouseButtonPressed = Qt::NoButton;
+
+  QPlainTextEdit::mouseReleaseEvent(e);
+}
+
 void ConsoleWidget::updateScroll() {
   QScrollBar *bar = verticalScrollBar();
   bar->setValue(bar->maximum());
 }
+
+QString ConsoleWidget::getCommand() const {
+  QString cmd = document()->lastBlock().text();
+  return cmd.mid(m_beginPosition - 1);
+}
+
+void ConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
