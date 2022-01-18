@@ -1,1 +1,2 @@
 puts "Hello!"
+exit
