@@ -26,6 +26,7 @@
 #include <QScrollBar>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <QScreen>
 
 //#define USE_POPUP_COMPLETER
 #define WRITE_ONLY QIODevice::WriteOnly
@@ -126,7 +127,11 @@ int PopupCompleter::exec(QTextEdit *parent) {
   QRect cursorRect = parent->cursorRect();
   QPoint globalPt = parent->mapToGlobal(cursorRect.bottomRight());
   QDesktopWidget *dsk = QApplication::desktop();
-  QRect screenGeom = dsk->screenGeometry(dsk->screenNumber(this));
+  int screeNumber = dsk->screenNumber(this);
+  auto screens = QApplication::screens();
+  QRect screenGeom;
+  if (screeNumber < screens.count() && screeNumber >= 0)
+    screenGeom = screens.at(screeNumber)->geometry();
   if (globalPt.y() + popupSizeHint.height() > screenGeom.height()) {
     globalPt = parent->mapToGlobal(cursorRect.topRight());
     globalPt.setY(globalPt.y() - popupSizeHint.height());
@@ -221,8 +226,8 @@ QConsole::QConsole(QWidget *parent, const QString &welcomeText)
 
   // resets the console
   reset(welcomeText);
-  const int tabwidth = QFontMetrics(currentFont()).width('a') * 4;
-  setTabStopWidth(tabwidth);
+  const int tabwidth = QFontMetrics(currentFont()).horizontalAdvance('a') * 4;
+  setTabStopDistance(tabwidth);
 }
 
 // Sets the prompt and cache the prompt length to optimize the processing speed
@@ -615,7 +620,7 @@ void QConsole::insertFromMimeData(const QMimeData *source) {
 // Implement paste with middle mouse button
 void QConsole::mousePressEvent(QMouseEvent *event) {
   oldPosition = textCursor().position();
-  if (event->button() == Qt::MidButton) {
+  if (event->button() == Qt::MiddleButton) {
     copy();
     QTextCursor cursor = cursorForPosition(event->pos());
     setTextCursor(cursor);
