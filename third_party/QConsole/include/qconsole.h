@@ -70,6 +70,7 @@ class PopupListWidget : public QListWidget {
  */
 class PopupCompleter : public QDialog {
   Q_OBJECT
+      using QDialog::exec;
 
  public:
   PopupCompleter(const QStringList &, QWidget *parent = 0);

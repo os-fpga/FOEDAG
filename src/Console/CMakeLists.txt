@@ -67,7 +67,7 @@ add_library(console STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml QConsole)
+target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
 
 install (

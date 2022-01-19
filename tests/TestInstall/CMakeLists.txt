@@ -129,42 +129,24 @@ target_link_directories(test_hellofoedag
     PRIVATE ${INSTALL_DIR}/lib/foedag
 )
 
-if (FOEDAG_WITH_PYTHON)
-  target_link_libraries(test_hellofoedag
-    foedagcore
-    foedag
-    newfile
-    newproject
-    projnavigator
-    designruns
-    texteditor
-    console
-    qscintilla2_qt
-    tcl_stubb
-    tcl_static
-    zlib
-    ${Python3_LIBRARIES}
-    Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml 
-    $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
+target_link_libraries(test_hellofoedag
+  foedagcore
+  foedag
+  newfile
+  newproject
+  projnavigator
+  designruns
+  texteditor
+  console
+  QConsole
+  qscintilla2_qt
+  tcl_stubb
+  tcl_static
+  zlib
+  $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
+  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
+  $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
-else()
-  target_link_libraries(test_hellofoedag
-    foedagcore
-    foedag
-    newfile
-    newproject
-    projnavigator
-    designruns
-    texteditor
-    console
-    qscintilla2_qt
-    tcl_stubb
-    tcl_static
-    zlib
-    Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
-    $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
-)
-endif()
 
 if(MSVC)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES

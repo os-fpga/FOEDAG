@@ -432,6 +432,7 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
 
       case Qt::Key_Home:
         setHome(e->modifiers() & Qt::ShiftModifier);
+        [[fallthrough]];
       case Qt::Key_Down:
         if (isInEditionZone()) {
           handleDownKeyPress();

@@ -6,7 +6,7 @@
 #include <ostream>
 
 #include "ConsoleInterface.h"
-#include "include/qconsole.h"
+#include "QConsole/qconsole.h"
 
 class StreamBuffer;
 class ConsoleWidget : public QConsole {

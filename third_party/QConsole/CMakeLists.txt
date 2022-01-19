@@ -53,14 +53,20 @@ add_library(QConsole STATIC
 )
 
 target_link_libraries(QConsole PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+add_custom_command(
+  TARGET QConsole POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${PROJECT_SOURCE_DIR}/include/qconsole.h
+          ${CMAKE_CURRENT_BINARY_DIR}/../../include/QConsole/qconsole.h
+)
 
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:QConsole>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-   FILES ${PROJECT_SOURCE_DIR}/src/qconsole.h
-   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/)
+   FILES ${PROJECT_SOURCE_DIR}/include/qconsole.h
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/QConsole)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
