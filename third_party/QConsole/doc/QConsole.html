@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>QConsole</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+ 
+<body>
+<h1 align="center">QConsole</h1>
+<h2>Description</h2>
+<p>The QConsole class is a custom widget that implements a basic console, completely written
+  in C++ and relying on Qt (both 3.x & 4.x). It implements  several features
+  and is intended to be inherited from in order to have a "real" console for a specific
+  scripting language, shell, etc...  The class relies as much as possible on the features
+  offered by QTextEdit (from which it inherits) and this implied a very simple and light code.</p>
+<p>QtclConsole inherits from QConsole and emulates a TCL shell in a Qt application.
+  So basically, the user is able to execute any TCL built-in command and also any other
+  user-defined commands created using the TCL C-API. These commands should represent
+  all the features of a given application, so the user will be able to execute them
+  using the GUI and also in the embedded TCL shell.
+  This is very useful in the EDA (Electronic Design Automation) field where most of the
+  tools are using TCL scripting and Qt as well.</p>
+<p>This application shows how to embed the QtclConsole widget in a main window.
+  It is composed of the base custom widget (qconsole.h, qconsole.cpp), the Tcl implementation
+  (qtclconsole.h, qtconsole.cpp), some custom Tcl commands (commands.h and commands.cpp), the
+  commands class manager (commandsManager.h and commandsManager.cpp), the stdout/stderr
+  interceptor class (interceptor.h and interceptor.cpp) and the main.cpp file.</p>
+<h2>Features</h2>
+<ul>
+  <li>
+    <p>QConsole is a custom widget that can be easily integrated in any interface.<br>
+    It is able to execute any command (implementated in child classes)
+    and then displays its result in blue or red whether it has failed or not. It also displays the
+    stdout/stderr output produced by these commands with the same colorization schema.</p>
+  </li>
+  <li>
+    <p>QConsole supports multi-line commands. In fact, when an incomplete command (e.g., unclosed
+    braces) is validated, the cursor is set at the beginning of a new line.</p>
+  </li>
+  <li>
+    <p>QConsole supports specifying a different prompt.</p>
+  </li>
+  <li>
+    <p> Navigation: </p>
+  </li>
+  <ul>
+    <li>
+      <p> Left and right keys to move the cursor in the edition zone (from the prompt to the end of the paragraph plus all the extra lines in multi-line command mode). </p>
+    </li>
+    <ul>
+      <li>
+        <p>Associated with the shift key, selection is then possible.</p>
+      </li>
+      <li>
+        <p> Associated with ctrl key, the cursor is moved between the words.</p>
+      </li>
+      <li>
+        <p> Ctrl and shift keys can be used together.</p>
+      </li>
+    </ul>
+    <li>
+      <p>If not in multi-line mode, up and down keys permit the user to navigate in the commands' history as with advanced shells, otherwise they permit to navigate in the edition zone.</p>
+    </li>
+    <li>
+      <p>Home and end keys allow moving the cursor respectively just after the
+        prompt and at the end of the current line.</p>
+    </li>
+    <ul>
+      <li>
+        <p>Associated with the shift key, selection is then possible.</p>
+      </li>
+    </ul>
+  </ul>
+  <li>
+    <p> Edition: </p>
+  </li>
+  <ul>
+    <li>
+      <p>Simple key strokes work as expected and the 'enter' will place the command into the history list, validate it and 'execute' it giving us back the result (this is in case the command is complete, otherwise the cursor will move to a new line).</p>
+    </li>
+    <li>
+      <p>Pressing Ctrl + C key sequence will cancel the current command
+        and shows the prompt again.</p>
+    </li>
+    <li>
+      <p>Pressing the Tab key will try to autocomplete the current command.
+      If there are many possibilities, they should be all shown.</p>
+    </li>
+    <li>
+      <p>The Delete and Backspace keys will delete selected text or simply one
+        character in the limits of the edition zone. The ctrl key can be associated with them
+	to delete whole words.</p>
+    </li>
+    <li>
+      <p> Copy & Paste are always enabled, but Cut is only possible in the edition zone.</p>
+    </li>
+  </ul>
+  <li>
+    <p> Mouse usage: </p>
+  </li>
+  <ul>
+    <li>
+      <p>If the cursor is not placed in the edition zone, its position is undone.</p>
+    </li>
+    <li>
+      <p>Selection using the mouse is possible everywhere.</p>
+    </li>
+  </ul>
+</ul>
+<h2>QtclConsole specific features</h2>
+<ul>
+  <li>
+    <p>Adding custom Tcl commands is eased through the singleton class commandsManager
+      and its registerFunction() method. Besides, this class is responsible of holding
+      the Tcl_Interp instance. Several examples showing its usage were implemented and can
+      be tested in the console:</p>
+  </li>
+      <ul>
+      <li>
+      <p>The help command shows all the custom TCL commands registered through
+      the commandsManager class (as well as via the TclCallBack class).</p>
+      </li>
+      </ul>
+      <ul>
+      <li>
+      <p>The msgbox sample command was added in the commands.cpp file and implements the Qt
+      QMessageBox::warning() static method.</p>
+      </li>
+      </ul>
+      <ul>
+      <li>
+      <p>The history command directly implemented in the QtclConsole class. It shows the history
+      list of all validated commands.</p>
+      </li>
+      </ul>
+      <ul>
+      <li>
+      <p>The set_prompt command directly implemented in the QtclConsole class. It allows changing
+      the prompt of the console.</p>
+      </li>
+      </ul>
+      <ul>
+      <li>
+      <p>The save_script command saves the last entered commands in a script file.</p>
+      </li>
+      </ul>
+</ul>
+<h2>QpyConsole specific features</h2>
+<ul>
+</ul>
+</body>
+</html>
