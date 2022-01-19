@@ -67,16 +67,11 @@ add_library(console STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml QConsole)
 target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
 
-set(CONSOLE_STATIC_LIB libconsole.a)
-if (MSVC)
-  set(CONSOLE_STATIC_LIB console.lib)
-endif()
-
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${CONSOLE_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:console>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(

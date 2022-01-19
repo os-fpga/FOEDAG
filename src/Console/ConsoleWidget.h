@@ -6,9 +6,10 @@
 #include <ostream>
 
 #include "ConsoleInterface.h"
+#include "include/qconsole.h"
 
 class StreamBuffer;
-class ConsoleWidget : public QPlainTextEdit {
+class ConsoleWidget : public QConsole {
   Q_OBJECT
  public:
   explicit ConsoleWidget(std::unique_ptr<ConsoleInterface> iConsole,
@@ -18,18 +19,15 @@ class ConsoleWidget : public QPlainTextEdit {
   /*!
    * \brief append - append \a text into the end and insert new line.
    */
-  void append(const QString &text);
+  //  void append(const QString &text);
 
  signals:
   void sendCommand(QString);
   void abort();
 
  protected:
-  void keyPressEvent(QKeyEvent *e) override;
-  void mouseDoubleClickEvent(QMouseEvent *event) override;
-  void mouseMoveEvent(QMouseEvent *e) override;
-  void mousePressEvent(QMouseEvent *e) override;
-  void mouseReleaseEvent(QMouseEvent *e) override;
+  QString interpretCommand(const QString &command, int *res) override;
+  QStringList suggestCommand(const QString &cmd, QString &prefix) override;
 
  private slots:
   void put(const QString &str);
