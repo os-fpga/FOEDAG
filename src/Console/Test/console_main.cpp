@@ -17,8 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <thread>
 
-#include "Compiler/Compiler.h"
-#include "Compiler/Design.h"
 #include "ConsoleWidget.h"
 #include "Main/Foedag.h"
 #include "StreamBuffer.h"
@@ -26,14 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclConsole.h"
 
 FOEDAG::Session* GlobalSession;
-
-void worker(int argc, char** argv, Tcl_Interp* interp) {
-  auto init = [](Tcl_Interp* interp) -> int {
-    // init here
-    return 0;
-  };
-  Tcl_MainEx(argc, argv, init, interp);
-}
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
