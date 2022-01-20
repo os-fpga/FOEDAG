@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(console LANGUAGES CXX)
+project(QConsole LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -34,64 +34,41 @@ else()
 endif()
 
 include (../../cmake/cmake_qt.txt)
-include (../../cmake/cmake_tcl.txt)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  TclConsoleWidget.cpp
-  ConsoleInterface.cpp
-  TclConsole.cpp
-  TclWorker.cpp
-  StreamBuffer.cpp
-  FileInfo.cpp
+  src/qconsole.cpp
 )
 
 set (SRC_H_LIST
-  TclConsoleWidget.h
-  ConsoleInterface.h
-  TclConsole.h
-  TclWorker.h
-  StreamBuffer.h
-  FileInfo.h
+  include/qconsole.h
 )
 
-set (SRC_UI_LIST
-)
-
-add_library(console STATIC
+add_library(QConsole STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
-  ${SRC_UI_LIST}
 )
 
-target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
-target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
+target_link_libraries(QConsole PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+add_custom_command(
+  TARGET QConsole POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${PROJECT_SOURCE_DIR}/include/qconsole.h
+          ${CMAKE_CURRENT_BINARY_DIR}/../../include/QConsole/qconsole.h
+)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:console>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:QConsole>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-   FILES ${PROJECT_SOURCE_DIR}/../Console/TclConsoleWidget.h
-         ${PROJECT_SOURCE_DIR}/../Console/StreamBuffer.h
-         ${PROJECT_SOURCE_DIR}/../Console/ConsoleInterface.h
-         ${PROJECT_SOURCE_DIR}/../Console/TclConsole.h
-   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
+   FILES ${PROJECT_SOURCE_DIR}/include/qconsole.h
+   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/QConsole)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 set(CMAKE_CXX_FLAGS_DEBUG
 "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
-
-add_executable(console_test
-  ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
-target_link_libraries(console_test foedag foedagcore compiler tcl_stubb tcl_static zlib console)
-set_target_properties(console_test PROPERTIES OUTPUT_NAME console_test)
-
-add_executable(console_debug
-  ${PROJECT_SOURCE_DIR}/../Console/Test/console_standalone.cpp)
-target_link_libraries(console_debug foedag foedagcore compiler tcl_stubb tcl_static zlib console)
-set_target_properties(console_debug PROPERTIES OUTPUT_NAME console)

@@ -23,11 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/TclInterpreterHandler.h"
-#include "ConsoleWidget.h"
 #include "Main/Foedag.h"
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
+#include "TclConsoleWidget.h"
 
 class Handler : public FOEDAG::TclInterpreterHandler {
   TclConsole *console;
@@ -54,7 +54,8 @@ int main(int argc, char **argv) {
   auto tclConsole =
       std::make_unique<TclConsole>(interpreter, buffer->getStream());
   TclConsole *c = tclConsole.get();
-  ConsoleWidget *console = new ConsoleWidget{std::move(tclConsole), buffer};
+  TclConsoleWidget *console = new TclConsoleWidget{
+      interpreter->getInterp(), std::move(tclConsole), buffer};
 
   std::string design("Some cool design");
   FOEDAG::Compiler *com =

@@ -41,4 +41,5 @@ class StreamBuffer : public QObject, public std::streambuf {
  private:
   int m_last;
   std::ostream m_stream;
+  QString m_buffer;
 };

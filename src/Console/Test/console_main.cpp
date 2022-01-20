@@ -17,18 +17,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <thread>
 
-#include "ConsoleWidget.h"
 #include "Main/Foedag.h"
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
+#include "TclConsoleWidget.h"
 
 FOEDAG::Session* GlobalSession;
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
-  return new ConsoleWidget{std::make_unique<TclConsole>(interp, std::cout),
-                           new StreamBuffer};
+  return new TclConsoleWidget{interp->getInterp(),
+                              std::make_unique<TclConsole>(interp, std::cout),
+                              new StreamBuffer};
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
@@ -38,7 +39,8 @@ void registerExampleCommands(FOEDAG::Session* session) {
     Q_UNUSED(argv);
     Q_UNUSED(argc);
     auto interpreter = static_cast<FOEDAG::TclInterpreter*>(clientData);
-    auto console = new ConsoleWidget{
+    auto console = new TclConsoleWidget{
+        interpreter->getInterp(),
         std::make_unique<TclConsole>(interpreter, std::cout), new StreamBuffer};
     console->show();
     return 0;

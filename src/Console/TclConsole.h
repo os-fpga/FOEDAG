@@ -17,7 +17,9 @@ class TclConsole : public ConsoleInterface {
   void registerInterpreter(FOEDAG::TclInterpreter *interpreter);
   ~TclConsole();
   void run(const QString &command) override;
-  QString startWith() const override;
+  int returnCode() const override;
+  QStringList suggestCommand(const QString &cmd, QString &prefix) override;
+  bool isCommandComplete(const QString &command) override;
 
  public slots:
   void abort();

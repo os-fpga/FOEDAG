@@ -52,8 +52,9 @@ std::string TclInterpreter::evalFile(const std::string &filename) {
   return std::string(Tcl_GetStringResult(interp));
 }
 
-std::string TclInterpreter::evalCmd(const std::string cmd) {
+std::string TclInterpreter::evalCmd(const std::string cmd, int *ret) {
   int code = Tcl_Eval(interp, cmd.c_str());
+  if (ret) *ret = code;
 
   if (code >= TCL_ERROR) {
     return std::string("Tcl Error: " +
