@@ -7,19 +7,18 @@
 
 #include "ConsoleInterface.h"
 #include "QConsole/qconsole.h"
+#include "Tcl/TclInterpreter.h"
 
 class StreamBuffer;
-class ConsoleWidget : public QConsole {
+class TclConsoleWidget : public QConsole {
   Q_OBJECT
  public:
-  explicit ConsoleWidget(std::unique_ptr<ConsoleInterface> iConsole,
-                         StreamBuffer *buffer, QWidget *parent = nullptr);
+  explicit TclConsoleWidget(Tcl_Interp *interp,
+                            std::unique_ptr<ConsoleInterface> iConsole,
+                            StreamBuffer *buffer, QWidget *parent = nullptr);
 
  public slots:
-  /*!
-   * \brief append - append \a text into the end and insert new line.
-   */
-  //  void append(const QString &text);
+  void clearText();
 
  signals:
   void sendCommand(QString);
@@ -28,6 +27,7 @@ class ConsoleWidget : public QConsole {
  protected:
   QString interpretCommand(const QString &command, int *res) override;
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
+  bool isCommandComplete(const QString &command) override;
 
  private slots:
   void put(const QString &str);
@@ -37,11 +37,11 @@ class ConsoleWidget : public QConsole {
   void updateScroll();
   QString getCommand() const;
   void handleLink(const QPoint &p);
+  void registerCommands(Tcl_Interp *interp);
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;
-  const QString m_startWith;
 
   Qt::MouseButton m_mouseButtonPressed = Qt::NoButton;
   bool m_linkActivated{false};

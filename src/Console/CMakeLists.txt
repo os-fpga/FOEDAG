@@ -41,7 +41,7 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  ConsoleWidget.cpp
+  TclConsoleWidget.cpp
   ConsoleInterface.cpp
   TclConsole.cpp
   TclWorker.cpp
@@ -50,7 +50,7 @@ set (SRC_CPP_LIST
 )
 
 set (SRC_H_LIST
-  ConsoleWidget.h
+  TclConsoleWidget.h
   ConsoleInterface.h
   TclConsole.h
   TclWorker.h
@@ -75,7 +75,7 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
-   FILES ${PROJECT_SOURCE_DIR}/../Console/ConsoleWidget.h
+   FILES ${PROJECT_SOURCE_DIR}/../Console/TclConsoleWidget.h
          ${PROJECT_SOURCE_DIR}/../Console/StreamBuffer.h
          ${PROJECT_SOURCE_DIR}/../Console/ConsoleInterface.h
          ${PROJECT_SOURCE_DIR}/../Console/TclConsole.h

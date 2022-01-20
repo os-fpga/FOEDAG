@@ -47,12 +47,16 @@ QString TclWorker::output() const { return m_output; }
 void TclWorker::run() {
   m_putsOutput.clear();
   auto cmd = m_cmd.toStdString();
-  QString output = m_interpreter->evalCmd(cmd).c_str();
+  QString output = m_interpreter->evalCmd(cmd, &m_returnCode).c_str();
   if (m_putsOutput.isEmpty()) {
     setOutput(output);
   }
   emit tclFinished();
 }
+
+int TclWorker::returnCode() const { return m_returnCode; }
+
+FOEDAG::TclInterpreter *TclWorker::getInterpreter() { return m_interpreter; }
 
 void TclWorker::setOutput(const QString &out) {
   m_output = out;
@@ -100,6 +104,7 @@ void TclWorker::init() {
     TclWorker *worker = reinterpret_cast<TclWorker *>(clientData);
     if (worker) {
       worker->m_putsOutput = putOut;
+      worker->m_returnCode = TCL_OK;
       worker->setOutput(putOut);
     }
     return 0;

@@ -576,10 +576,12 @@ bool QConsole::execCommand(const QString &command, bool writeCommand,
     *result = strRes;
   }
   if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-  append(strRes);
-  moveCursor(QTextCursor::End);
-  // Display the prompt again
-  if (showPrompt) displayPrompt();
+  if (command.isEmpty()) {  // prevent empty line after command
+    append(strRes);
+    moveCursor(QTextCursor::End);
+    // Display the prompt again
+    if (showPrompt) displayPrompt();
+  }
   return !res;
 }
 

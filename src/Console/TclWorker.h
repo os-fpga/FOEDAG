@@ -14,6 +14,8 @@ class TclWorker : public QThread {
   QString output() const;
 
   void run() override;
+  int returnCode() const;
+  FOEDAG::TclInterpreter *getInterpreter();
 
  public slots:
   void runCommand(const QString &command);
@@ -30,6 +32,7 @@ class TclWorker : public QThread {
   FOEDAG::TclInterpreter *m_interpreter{nullptr};
   std::ostream &m_out;
   QString m_output;
+  int m_returnCode{0};
   QString m_putsOutput;
   QString m_cmd;
 };

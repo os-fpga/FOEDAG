@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Tcl/TclInterpreter.h"
+
 TclConsole::TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
@@ -28,7 +30,33 @@ void TclConsole::run(const QString &command) {
   m_tclWorker->start();
 }
 
-QString TclConsole::startWith() const { return "# "; }
+int TclConsole::returnCode() const { return m_tclWorker->returnCode(); }
+
+QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
+  QString commandToComplete = cmd;
+  QStringList suggestions;
+  prefix = "";
+  int i = cmd.lastIndexOf(QRegExp("[\[{;\n]"));
+  if (i != -1) {
+    commandToComplete = cmd.right(cmd.length() - i - 1);
+    prefix = cmd.left(i + 1);
+  }
+  auto interp = m_tclWorker->getInterpreter()->getInterp();
+  int res = Tcl_Eval(
+      interp, qPrintable("info commands [join {" + commandToComplete + "*}]"));
+  if (!res) {
+    // Get the string result of the executed command
+    QString result = Tcl_GetString(Tcl_GetObjResult(interp));
+    if (!result.isEmpty()) {
+      suggestions = result.split(" ");
+    }
+  }
+  return suggestions;
+}
+
+bool TclConsole::isCommandComplete(const QString &command) {
+  return Tcl_CommandComplete(qPrintable(command));
+}
 
 void TclConsole::abort() {
   //

@@ -31,11 +31,10 @@ int StreamBuffer::overflow(int c) {
   }
 
   char_type ch = static_cast<char_type>(c);
-  m_buffer[m_buffer_index++] = ch;
+  m_buffer.append(ch);
   if (ch == 10) {
-    m_buffer[m_buffer_index++] = '\0';
-    m_buffer_index = 0;
-    emit ready(QString::fromLatin1(m_buffer));
+    emit ready(m_buffer);
+    m_buffer.clear();
   }
 
   return ch;
