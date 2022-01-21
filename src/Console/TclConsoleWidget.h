@@ -16,6 +16,7 @@ class TclConsoleWidget : public QConsole {
   explicit TclConsoleWidget(Tcl_Interp *interp,
                             std::unique_ptr<ConsoleInterface> iConsole,
                             StreamBuffer *buffer, QWidget *parent = nullptr);
+  bool isRunning() const override;
 
  public slots:
   void clearText();
@@ -35,16 +36,14 @@ class TclConsoleWidget : public QConsole {
 
  private:
   void updateScroll();
-  QString getCommand() const;
   void handleLink(const QPoint &p);
   void registerCommands(Tcl_Interp *interp);
+  bool hasPrompt() const;
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;
 
-  Qt::MouseButton m_mouseButtonPressed = Qt::NoButton;
   bool m_linkActivated{false};
-  int m_beginPosition{0};
-  int m_lastPos;
+  bool m_command_done{true};
 };

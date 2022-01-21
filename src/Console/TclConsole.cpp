@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "FileInfo.h"
 #include "Tcl/TclInterpreter.h"
 
 TclConsole::TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
@@ -35,7 +36,7 @@ int TclConsole::returnCode() const { return m_tclWorker->returnCode(); }
 QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
   QString commandToComplete = cmd;
   QStringList suggestions;
-  prefix = "";
+  prefix = QString();
   int i = cmd.lastIndexOf(QRegExp("[\[{;\n]"));
   if (i != -1) {
     commandToComplete = cmd.right(cmd.length() - i - 1);
@@ -44,13 +45,19 @@ QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
   auto interp = m_tclWorker->getInterpreter()->getInterp();
   int res = Tcl_Eval(
       interp, qPrintable("info commands [join {" + commandToComplete + "*}]"));
-  if (!res) {
+  if (res == TCL_OK) {
     // Get the string result of the executed command
     QString result = Tcl_GetString(Tcl_GetObjResult(interp));
     if (!result.isEmpty()) {
       suggestions = result.split(" ");
     }
   }
+
+  if (suggestions.isEmpty()) {
+    suggestions +=
+        getFilesCompletion(m_tclWorker->getInterpreter(), cmd, prefix);
+  }
+
   return suggestions;
 }
 
@@ -64,4 +71,41 @@ void TclConsole::abort() {
 
 void TclConsole::tclFinished() {
   //
+}
+
+QStringList TclConsole::getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
+                                           const QString &cmd,
+                                           QString &prefix) const {
+  QStringList suggestions;
+  auto interp = interpreter->getInterp();
+  if (cmd.startsWith("source ")) {
+    int res = Tcl_Eval(interp, qPrintable("pwd"));
+    if (res == TCL_OK) {
+      // Get the string result of the executed command
+      QString currPath = Tcl_GetString(Tcl_GetObjResult(interp));
+      currPath += FileInfo::separator();
+      auto args = cmd.split(" ");
+      if (args.count() > 1) {
+        currPath += args.at(1);
+
+        auto filter =
+            currPath.mid(currPath.lastIndexOf(FileInfo::separator()) + 1);
+
+        currPath = currPath.mid(0, currPath.lastIndexOf(FileInfo::separator()));
+        auto files = FileInfo::getFileList(currPath, {"*.tcl"});
+        for (const auto &fileName : files) {
+          if (fileName.startsWith(filter)) suggestions.append(fileName);
+        }
+
+        if (!suggestions.isEmpty()) {
+          auto cutSeperator =
+              cmd.mid(0, cmd.lastIndexOf(FileInfo::separator()) + 1);
+          if (cutSeperator.isEmpty())
+            cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
+          prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
+        }
+      }
+    }
+  }
+  return suggestions;
 }
