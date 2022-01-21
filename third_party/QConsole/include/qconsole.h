@@ -141,6 +141,10 @@ class QConsole : public QTextEdit {
   // @}
 
   void correctPathName(QString &pathName);
+  virtual bool isRunning() const;
+
+  bool isTabAllowed() const;
+  void setTabAllowed(bool newIsTabAllowed);
 
  private:
   void dropEvent(QDropEvent *event);
@@ -214,11 +218,14 @@ class QConsole : public QTextEdit {
 
  private:
   void handleTabKeyPress();
-  void handleReturnKeyPress();
+  void handleReturnKeyPress(const QString &command);
   bool handleBackspaceKeyPress();
   void handleUpKeyPress();
   void handleDownKeyPress();
   void setHome(bool);
+
+ private:
+  bool tabAllowed{true};
 };
 
 #endif

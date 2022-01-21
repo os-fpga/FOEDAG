@@ -32,6 +32,10 @@ class TclConsole : public ConsoleInterface {
   void abort_();
 
  private:
+  QStringList getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
+                                 const QString &cmd, QString &prefix) const;
+
+ private:
   TclWorker *m_tclWorker;
   std::vector<TclWorker *> m_tclWorkers;
   std::ostream &m_out;

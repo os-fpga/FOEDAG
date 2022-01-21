@@ -277,9 +277,9 @@ void QConsole::handleTabKeyPress() {
   QString command = getCurrentCommand();
   QString commandPrefix;
   QStringList sl = suggestCommand(command, commandPrefix);
-  if (sl.count() == 0)
-    textCursor().insertText("\t");
-  else {
+  if (sl.count() == 0) {
+    if (isTabAllowed()) textCursor().insertText("\t");
+  } else {
     if (sl.count() == 1)
       replaceCurrentCommand(commandPrefix + sl[0]);
     else {
@@ -304,9 +304,7 @@ void QConsole::handleTabKeyPress() {
 }
 
 // If return pressed, do the evaluation and append the result
-void QConsole::handleReturnKeyPress() {
-  // Get the command to validate
-  QString command = getCurrentCommand();
+void QConsole::handleReturnKeyPress(const QString &command) {
   // execute the command and get back its text result and its return value
   if (isCommandComplete(command))
     execCommand(command, false);
@@ -365,6 +363,12 @@ void QConsole::setHome(bool select) {
   setTextCursor(cursor);
 }
 
+bool QConsole::isTabAllowed() const { return tabAllowed; }
+
+void QConsole::setTabAllowed(bool newIsTabAllowed) {
+  tabAllowed = newIsTabAllowed;
+}
+
 // Reimplemented key press event
 void QConsole::keyPressEvent(QKeyEvent *e) {
   // If the user wants to copy or cut outside
@@ -420,8 +424,11 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
 
       case Qt::Key_Enter:
       case Qt::Key_Return:
+        if (isRunning()) break;
         if (isSelectionInEditionZone()) {
-          handleReturnKeyPress();
+          QString command = getCurrentCommand();
+          QTextEdit::keyPressEvent(e);
+          handleReturnKeyPress(command);
         }
         // ignore return key
         return;
@@ -577,7 +584,7 @@ bool QConsole::execCommand(const QString &command, bool writeCommand,
   }
   if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
   if (command.isEmpty()) {  // prevent empty line after command
-    append(strRes);
+    textCursor().insertText(strRes);
     moveCursor(QTextCursor::End);
     // Display the prompt again
     if (showPrompt) displayPrompt();
@@ -738,3 +745,5 @@ void QConsole::correctPathName(QString &pathName) {
     pathName.replace('\\', tr("/"));
   }
 }
+
+bool QConsole::isRunning() const { return false; }

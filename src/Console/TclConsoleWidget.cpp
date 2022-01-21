@@ -19,9 +19,11 @@ TclConsoleWidget::TclConsoleWidget(Tcl_Interp *interp,
             &TclConsoleWidget::commandDone);
     registerCommands(interp);
   }
-  commandDone();
   setPrompt("# ");
+  setTabAllowed(false);
 }
+
+bool TclConsoleWidget::isRunning() const { return !m_command_done; }
 
 void TclConsoleWidget::clearText() {
   clear();
@@ -30,6 +32,8 @@ void TclConsoleWidget::clearText() {
 
 QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
   if (!command.isEmpty()) {
+    setUndoRedoEnabled(false);
+    m_command_done = false;
     if (m_console) m_console->run(command.toUtf8());
     return QConsole::interpretCommand(command, res);
   }
@@ -54,23 +58,19 @@ void TclConsoleWidget::put(const QString &str) {
     setTextColor((res == 0) ? outColor_ : errColor_);
 
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    append(strRes);
+    textCursor().insertText(strRes);
     moveCursor(QTextCursor::End);
-    // Display the prompt again
-    displayPrompt();
   }
 }
 
-void TclConsoleWidget::commandDone() {}
+void TclConsoleWidget::commandDone() {
+  m_command_done = true;
+  if (!hasPrompt()) displayPrompt();
+}
 
 void TclConsoleWidget::updateScroll() {
   QScrollBar *bar = verticalScrollBar();
   bar->setValue(bar->maximum());
-}
-
-QString TclConsoleWidget::getCommand() const {
-  QString cmd = document()->lastBlock().text();
-  return cmd.mid(m_beginPosition - 1);
 }
 
 void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
@@ -138,4 +138,9 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
   };
 
   Tcl_CreateCommand(interp, "clear", clear_, this, nullptr);
+}
+
+bool TclConsoleWidget::hasPrompt() const {
+  auto lastBlock = document()->lastBlock();
+  return !lastBlock.text().isEmpty();
 }

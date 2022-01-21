@@ -26,4 +26,7 @@ class FileInfo {
  public:
   FileInfo();
   QString getRefString(const QString &filePath) const;
+  static QStringList getFileList(const QString &path,
+                                 const QStringList &filter);
+  static QChar separator();
 };
