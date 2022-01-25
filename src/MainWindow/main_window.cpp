@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
+#include "Console/TclConsoleBuilder.h"
 #include "Console/TclConsoleWidget.h"
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
@@ -180,12 +181,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   consoleDocWidget->setObjectName("consoledocwidget");
 
   StreamBuffer* buffer = new StreamBuffer;
-  TclConsoleWidget* console = new TclConsoleWidget{
+  QWidget* w = FOEDAG::createConsole(
       m_interpreter->getInterp(),
-      std::make_unique<TclConsole>(m_interpreter, buffer->getStream()), buffer};
-  //  QObject::connect(console, &ConsoleWidget::abort, tcl,
-  //  &TclController::abort);
-
-  consoleDocWidget->setWidget(console);
+      std::make_unique<TclConsole>(m_interpreter, buffer->getStream()), buffer);
+  consoleDocWidget->setWidget(w);
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }

@@ -146,6 +146,8 @@ class QConsole : public QTextEdit {
   bool isTabAllowed() const;
   void setTabAllowed(bool newIsTabAllowed);
 
+  virtual void handleSearch() {}
+
  private:
   void dropEvent(QDropEvent *event);
   void dragMoveEvent(QDragMoveEvent *event);

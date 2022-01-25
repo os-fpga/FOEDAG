@@ -294,7 +294,7 @@ void QConsole::handleTabKeyPress() {
 #else
 
       setTextColor(completionColor);
-      append(sl.join(", ") + "\n");
+      append(sl.join("\n") + "\n");
       setTextColor(cmdColor());
       displayPrompt();
       textCursor().insertText(commandPrefix + command);
@@ -387,10 +387,19 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
         e->accept();
         copy();
       } else {
+        if (e->matches(QKeySequence::Find)) {
+          handleSearch();
+        }
         QTextEdit::keyPressEvent(e);
         return;
       }
     }
+  }
+
+  if (e->matches(QKeySequence::Find)) {
+    handleSearch();
+    QTextEdit::keyPressEvent(e);
+    return;
   }
   /*
           // if the cursor out of editing zone put it back first
