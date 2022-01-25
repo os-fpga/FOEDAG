@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <QMetaMethod>
 #include <QScrollBar>
+#include <QStack>
 #include <QTextBlock>
 
 #include "StreamBuffer.h"
@@ -39,6 +40,7 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
     if (handleCommandFromHistory(command, histCommand))
       prepareCommand = histCommand;
     if (m_console) m_console->run(prepareCommand.toUtf8());
+    setMultiLine(false);
     return QConsole::interpretCommand(prepareCommand, res);
   }
   return QString();
@@ -50,6 +52,16 @@ QStringList TclConsoleWidget::suggestCommand(const QString &cmd,
 }
 
 bool TclConsoleWidget::isCommandComplete(const QString &command) {
+  if (isMultiLine()) {
+    const bool complete = command.endsWith('}');
+    if (complete) setMultiLine(false);
+    return complete;
+  } else {
+    if (hasOpenBracket(command)) {
+      setMultiLine(true);
+      return false;
+    }
+  }
   return m_console ? m_console->isCommandComplete(command) : true;
 }
 
@@ -164,4 +176,18 @@ bool TclConsoleWidget::handleCommandFromHistory(const QString &command,
     }
   }
   return false;
+}
+
+bool TclConsoleWidget::hasOpenBracket(const QString &str) const {
+  QStack<int> stack;
+  for (const auto &ch : str) {
+    if (ch == '{') stack.push(0);
+    if (ch == '}') {
+      if (stack.isEmpty())
+        return false;
+      else
+        stack.pop();
+    }
+  }
+  return !stack.isEmpty();
 }

@@ -296,7 +296,7 @@ void QConsole::handleTabKeyPress() {
       setTextColor(completionColor);
       append(sl.join("\n") + "\n");
       setTextColor(cmdColor());
-      displayPrompt();
+      if (!isMultiLine()) displayPrompt();
       textCursor().insertText(commandPrefix + command);
 #endif
     }
@@ -306,10 +306,16 @@ void QConsole::handleTabKeyPress() {
 // If return pressed, do the evaluation and append the result
 void QConsole::handleReturnKeyPress(const QString &command) {
   // execute the command and get back its text result and its return value
-  if (isCommandComplete(command))
-    execCommand(command, false);
-  else {
-    append("");
+  if (command.isEmpty()) {
+    if (!isMultiLine()) displayPrompt();
+    return;
+  }
+  multiLineCommand.append(command);
+  if (isCommandComplete(command)) {
+    if (!multiLineCommand.isEmpty())
+      execCommand(multiLineCommand.join(" "), false);
+    multiLineCommand.clear();
+  } else {
     moveCursor(QTextCursor::EndOfLine);
   }
 }
@@ -492,7 +498,7 @@ QString QConsole::getCurrentCommand() {
       textCursor();  // Get the current command: we just remove the prompt
   cursor.movePosition(QTextCursor::StartOfLine);
   cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      promptLength);
+                      isMultiLine() ? 0 : promptLength);
   cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
   QString command = cursor.selectedText();
   cursor.clearSelection();
@@ -504,7 +510,7 @@ void QConsole::replaceCurrentCommand(const QString &newCommand) {
   QTextCursor cursor = textCursor();
   cursor.movePosition(QTextCursor::StartOfLine);
   cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      promptLength);
+                      isMultiLine() ? 0 : promptLength);
   cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
   cursor.insertText(newCommand);
 }
@@ -635,6 +641,10 @@ void QConsole::insertFromMimeData(const QMimeData *source) {
     QTextEdit::insertFromMimeData(source);
   }
 }
+
+bool QConsole::isMultiLine() const { return multiLine; }
+
+void QConsole::setMultiLine(bool newMultiLine) { multiLine = newMultiLine; }
 
 // Implement paste with middle mouse button
 void QConsole::mousePressEvent(QMouseEvent *event) {
