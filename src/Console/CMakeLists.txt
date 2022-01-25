@@ -47,6 +47,7 @@ set (SRC_CPP_LIST
   TclWorker.cpp
   StreamBuffer.cpp
   FileInfo.cpp
+  SearchWidget.cpp
 )
 
 set (SRC_H_LIST
@@ -56,6 +57,8 @@ set (SRC_H_LIST
   TclWorker.h
   StreamBuffer.h
   FileInfo.h
+  SearchWidget.h
+  TclConsoleBuilder.h
 )
 
 set (SRC_UI_LIST
@@ -79,6 +82,7 @@ install(
          ${PROJECT_SOURCE_DIR}/../Console/StreamBuffer.h
          ${PROJECT_SOURCE_DIR}/../Console/ConsoleInterface.h
          ${PROJECT_SOURCE_DIR}/../Console/TclConsole.h
+         ${PROJECT_SOURCE_DIR}/../Console/TclConsoleBuilder.h
    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

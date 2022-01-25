@@ -34,8 +34,12 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
   if (!command.isEmpty()) {
     setUndoRedoEnabled(false);
     m_command_done = false;
-    if (m_console) m_console->run(command.toUtf8());
-    return QConsole::interpretCommand(command, res);
+    QString prepareCommand = command;
+    QString histCommand;
+    if (handleCommandFromHistory(command, histCommand))
+      prepareCommand = histCommand;
+    if (m_console) m_console->run(prepareCommand.toUtf8());
+    return QConsole::interpretCommand(prepareCommand, res);
   }
   return QString();
 }
@@ -48,6 +52,8 @@ QStringList TclConsoleWidget::suggestCommand(const QString &cmd,
 bool TclConsoleWidget::isCommandComplete(const QString &command) {
   return m_console ? m_console->isCommandComplete(command) : true;
 }
+
+void TclConsoleWidget::handleSearch() { emit searchEnable(); }
 
 void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
@@ -91,12 +97,14 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
     }
 
     uint index = 1;
+    QStringList history{};
     for (QStringList::Iterator it = console->history.begin();
          it != console->history.end(); ++it) {
-      Tcl_AppendResult(interp,
-                       qPrintable(QString("%1\t%2\n").arg(index).arg(*it)),
-                       (char *)NULL);
+      history.append(QString("%1\t%2").arg(index).arg(*it));
       index++;
+    }
+    if (!history.isEmpty()) {
+      Tcl_AppendResult(interp, qPrintable(history.join("\n")), (char *)NULL);
     }
     return TCL_OK;
   };
@@ -143,4 +151,17 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
 bool TclConsoleWidget::hasPrompt() const {
   auto lastBlock = document()->lastBlock();
   return !lastBlock.text().isEmpty();
+}
+
+bool TclConsoleWidget::handleCommandFromHistory(const QString &command,
+                                                QString &commandFromHist) {
+  if (command.startsWith("!")) {
+    bool ok;
+    int cmdNumber = command.midRef(1).toInt(&ok);
+    if (ok && cmdNumber >= 1 && cmdNumber <= historyIndex) {
+      commandFromHist = history.at(cmdNumber - 1);
+      return true;
+    }
+  }
+  return false;
 }

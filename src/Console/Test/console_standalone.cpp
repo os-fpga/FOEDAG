@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
+#include "TclConsoleBuilder.h"
 #include "TclConsoleWidget.h"
 
 class Handler : public FOEDAG::TclInterpreterHandler {
@@ -54,8 +55,8 @@ int main(int argc, char **argv) {
   auto tclConsole =
       std::make_unique<TclConsole>(interpreter, buffer->getStream());
   TclConsole *c = tclConsole.get();
-  TclConsoleWidget *console = new TclConsoleWidget{
-      interpreter->getInterp(), std::move(tclConsole), buffer};
+  QWidget *w = FOEDAG::createConsole(interpreter->getInterp(),
+                                     std::move(tclConsole), buffer);
 
   std::string design("Some cool design");
   FOEDAG::Compiler *com =
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
                            buffer->getStream(), new Handler{c}};
   com->RegisterCommands(interpreter, false);
 
-  console->show();
+  w->show();
   std::thread work{&worker, argc, argv, interpreter->getInterp()};
   work.detach();
   return a.exec();

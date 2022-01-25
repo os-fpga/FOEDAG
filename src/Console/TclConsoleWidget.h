@@ -22,6 +22,7 @@ class TclConsoleWidget : public QConsole {
   void clearText();
 
  signals:
+  void searchEnable();
   void sendCommand(QString);
   void abort();
 
@@ -29,6 +30,7 @@ class TclConsoleWidget : public QConsole {
   QString interpretCommand(const QString &command, int *res) override;
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
   bool isCommandComplete(const QString &command) override;
+  void handleSearch() override;
 
  private slots:
   void put(const QString &str);
@@ -39,6 +41,8 @@ class TclConsoleWidget : public QConsole {
   void handleLink(const QPoint &p);
   void registerCommands(Tcl_Interp *interp);
   bool hasPrompt() const;
+  bool handleCommandFromHistory(const QString &command,
+                                QString &commandFromHist);
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;
