@@ -44,6 +44,8 @@ class TclConsoleWidget : public QConsole {
   bool handleCommandFromHistory(const QString &command,
                                 QString &commandFromHist);
 
+  bool hasOpenBracket(const QString &str) const;
+
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;

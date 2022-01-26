@@ -146,7 +146,7 @@ class QConsole : public QTextEdit {
   bool isTabAllowed() const;
   void setTabAllowed(bool newIsTabAllowed);
 
-  virtual void handleSearch() {}
+  bool isMultiLine() const;
 
  private:
   void dropEvent(QDropEvent *event);
@@ -193,9 +193,14 @@ class QConsole : public QTextEdit {
   // handling)
   int promptParagraph;
 
+  bool multiLine{false};
+  QStringList multiLineCommand;
+
  protected:
   // Implement paste with middle mouse button
   void mousePressEvent(QMouseEvent *);
+
+  virtual void handleSearch() {}
 
   // execute a validated command (should be reimplemented and called at the end)
   // the return value of the function is the string result
@@ -205,6 +210,8 @@ class QConsole : public QTextEdit {
   // the return value of the function is the string list of all suggestions
   // the returned prefix is useful to complete "sub-commands"
   virtual QStringList suggestCommand(const QString &cmd, QString &prefix);
+  // enable/disable multiline
+  void setMultiLine(bool newMultiLine);
 
  public Q_SLOTS:
   // Contextual menu slots
