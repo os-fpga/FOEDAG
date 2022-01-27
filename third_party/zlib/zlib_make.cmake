@@ -1,5 +1,5 @@
 execute_process(
-    COMMAND ./configure  --prefix=${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ./configure  --prefix=${CMAKE_CURRENT_BINARY_DIR}/..
     ERROR_QUIET
 )
 execute_process(
