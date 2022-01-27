@@ -193,12 +193,7 @@ if(MSVC)
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
 
-  ADD_LIBRARY(zlib STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
-  set_target_properties(zlib PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )  
+  # Do not add zlib library, it is imported above
 
   set_target_properties(foedag PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
