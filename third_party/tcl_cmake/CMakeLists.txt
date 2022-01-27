@@ -44,33 +44,74 @@ if(NOT NO_TCMALLOC)
 endif()
 
 set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_STUBB_LIB libtclstub9.0.a)
+set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
-  set(TCL_STATIC_LIB tcl90sx.lib)
+  set(TCL_STUBB_LIB tclstub90.lib)
+  set(TCL_STATIC_LIB tcl90s.lib)
+  set(ZLIB_STATIC_LIB zlib.lib)
 endif()
-
 
 if(MSVC)
-  add_custom_command(
-    OUTPUT ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB}
+  add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
-    COMMAND nmake -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static
+    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/win"
+    WORKING_DIRECTORY "../../../third_party/tcl/win"
+    DEPENDS ../../../third_party/tcl/generic/tcl.h
   )
-else ()
-  add_custom_command(
-    OUTPUT ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB}
+  # Copy the tcl lib from source to build directory
+  add_custom_command(TARGET tcl_build POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+            ../../../third_party/tcl/win/Release_AMD64_VC1929/${TCL_STATIC_LIB}
+            ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STATIC_LIB}
+  )
+  add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
+    COMMAND echo "       Compiling Tcl Stubb"
+    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR} OPTS=static,nomsvcrt
+    COMMAND echo "       Tcl Stubb Compilation completed"
+    WORKING_DIRECTORY "../../../third_party/tcl/win"
+    DEPENDS ../../../third_party/tcl/generic/tcl.h
+  )
+  # Copy the tcl lib from source to build directory
+  add_custom_command(TARGET tcl_stubb_build POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+            ../../../third_party/tcl/win/Release_AMD64_VC1929/${TCL_STUBB_LIB}
+            ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}         
+  )
+else()
+  add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB}
+    COMMAND echo "       Compiling Zlib"
+    COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
+    COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+    COMMAND echo "       Zlib Compilation completed"
+    WORKING_DIRECTORY "../../../third_party/zlib"
+    DEPENDS ../zlib/zlib.h
+  )
+  add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
-    COMMAND ./configure --enable-shared=off --prefix=${PWD}/../../../build
+    COMMAND rm -rf configure
+    COMMAND autoconf configure.ac  > configure
+    COMMAND chmod 755 configure
+    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
+    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tcl/unix"
+    WORKING_DIRECTORY "../../../third_party/tcl/unix"
+    DEPENDS ../../../third_party/tcl/generic/tcl.h
+  )
+  add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
+    COMMAND echo "       Compiling Tcl Stubb"
+    COMMAND echo "       Tcl Stubb Compilation completed"
+    DEPENDS ../../../third_party/tcl/generic/tcl.h
   )
 endif()
-
-ADD_LIBRARY(tcl_static STATIC IMPORTED)
-SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
-    IMPORTED_LOCATION ../../build/third_party/tcl_cmake/lib/${TCL_STATIC_LIB})
 
 if(MSVC)
   add_compile_definitions(_CRT_NONSTDC_NO_WARNINGS)
@@ -103,27 +144,12 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${GENDIR}/src)
 
-
-#add_library(tcl_static STATIC ${tcl_static_SRC})
-#set_target_properties(tcl_static PROPERTIES PUBLIC_HEADER src/tcl.h)
-
-# Installation target
-#install(
-#  TARGETS tcl_static
-#  EXPORT TclStatic
-#  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/tcl
-#  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tcl)
-
 if (WIN32 AND $<CONFIG:Debug>)
   install(
     FILES ${TCL_BINARY_DIR}/runtime/CMakeFiles/tcl_static.dir/tcl_static.pdb
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/tcl_static)
 endif()
 
-#install(
-#  EXPORT TclStatic
-#  FILE TclStatic.cmake
-#  DESTINATION cmake)
 include(CMakePackageConfigHelpers)
 
 # generate the config file that is includes the exports
