@@ -1,6 +1,9 @@
 # -*- mode:cmake -*-
 cmake_minimum_required(VERSION 3.15)
 
+# This cmake encapsulates Tcl, TclStub and Zlib old make builds
+# It makes those builds incremental
+
 # Detect build type, fallback to release and throw a warning if use didn't
 # specify any
 if(NOT CMAKE_BUILD_TYPE)
