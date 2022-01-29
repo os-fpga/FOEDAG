@@ -1,10 +1,10 @@
 # -*- mode:cmake -*-
 
-# Copyright 2021 The Foedag team
+# Copyright 2021-2022 The Foedag team
 
 # GPL License
 
-# Copyright (c) 2021 The Open-Source FPGA Foundation
+# Copyright (c) 2021-2022 The Open-Source FPGA Foundation
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -178,17 +178,19 @@ if (MSVC)
   set(ZLIB_STATIC_LIB zlib.lib)
 endif()
 
+add_library(tcl_static STATIC IMPORTED)
+set_target_properties(tcl_static PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+
+add_library(tcl_stubb STATIC IMPORTED)
+set_target_properties(tcl_stubb PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
+
 if(MSVC)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
 
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )
@@ -200,15 +202,10 @@ if(MSVC)
   )
   target_link_libraries(foedag-bin PUBLIC Netapi32)
   target_link_libraries(foedag  PUBLIC Netapi32)
+
 else()
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(zlib PROPERTIES
+  add_library(zlib STATIC IMPORTED)
+  set_target_properties(zlib PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})       
 endif()
 
@@ -405,6 +402,6 @@ install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/FoedagConfig.cmake
   DESTINATION cmake)
 
-ADD_CUSTOM_TARGET(link_target ALL
+add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
