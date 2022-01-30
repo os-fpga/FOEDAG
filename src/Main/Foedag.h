@@ -31,28 +31,38 @@ void registerBasicBatchCommands(FOEDAG::Session* session);
 
 namespace FOEDAG {
 
-typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine,
-                                    FOEDAG::TclInterpreter* tclInterp);
-
 typedef void(RegisterTclFunc)(FOEDAG::Session* session);
 
+enum class GUI_TYPE {
+  GT_NONE,
+  GT_MAIN_WINDOW,
+  GT_NEW_FILE,
+  GT_DESIGN_RUNS,
+  GT_TEXT_EDITOR,
+  GT_PRO_NAVIGATOR,
+  GT_NEW_PROJECT,
+  GT_TCL_CONSOLE
+};
+
 class Foedag {
- private:
  public:
-  Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
+  Foedag(FOEDAG::CommandLine* cmdLine, GUI_TYPE guiType,
          RegisterTclFunc* registerTclFunc = nullptr)
       : m_cmdLine(cmdLine),
-        m_mainWinBuilder(mainWinBuilder),
+        m_guiType(guiType),
         m_registerTclFunc(registerTclFunc) {}
+  virtual ~Foedag() = default;
+
+  bool init(bool initWithGui);
+
+ private:
   bool initGui();
   bool initBatch();
-
-  virtual ~Foedag() {}
 
  protected:
   FOEDAG::CommandLine* m_cmdLine = nullptr;
   FOEDAG::MainWindow* m_mainWin = nullptr;
-  MainWindowBuilder* m_mainWinBuilder = nullptr;
+  GUI_TYPE m_guiType = GUI_TYPE::GT_NONE;
   RegisterTclFunc* m_registerTclFunc = nullptr;
 };
 

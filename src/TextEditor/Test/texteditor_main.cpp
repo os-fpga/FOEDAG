@@ -28,13 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(cmd);
-  Q_UNUSED(interp);
-  return new FOEDAG::TextEditor();
-}
-
 void registerTextEditorCommands(FOEDAG::Session* session) {
   auto texteditorshow = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
@@ -83,16 +76,7 @@ void registerTextEditorCommands(FOEDAG::Session* session) {
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
-
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerTextEditorCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, textEditorBuilder, registerTextEditorCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, FOEDAG::GUI_TYPE::GT_TEXT_EDITOR, registerTextEditorCommands);
+  return foedag->init(cmd->WithQt());
 }

@@ -25,13 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  return new TclConsoleWidget{interp->getInterp(),
-                              std::make_unique<TclConsole>(interp, std::cout),
-                              new StreamBuffer};
-}
-
 void registerExampleCommands(FOEDAG::Session* session) {
   auto console_open = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -53,15 +46,7 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerExampleCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, FOEDAG::GUI_TYPE::GT_TCL_CONSOLE, registerExampleCommands);
+  return foedag->init(cmd->WithQt());
 }
