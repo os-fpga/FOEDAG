@@ -55,6 +55,9 @@ $body
         if {$gl == {tcl_interactive}} {
           continue
         }
+        if {$gl == {errorInfo}} {
+          continue
+        }
         upvar $gl x
         if [array exist x] {
         } else {
@@ -171,11 +174,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Tcl_Eval(interp, interpStateScript.c_str());
       script = Tcl_GetStringResult(interp);
       Tcl_Eval(interp, "set tcl_interactive true");
-
+      std::string payload;
       // Build batch script
       for (int i = 1; i < argc; i++) {
-        script += argv[i] + std::string(" ");
+        payload += argv[i] + std::string(" ");
       }
+      script += payload;
+
       compiler->BatchScript(script);
       WorkerThread* wthread =
           new WorkerThread("batch_th", Action::Batch, compiler);
