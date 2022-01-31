@@ -34,7 +34,6 @@ extern "C" {
 }
 
 #include <QApplication>
-#include <QGuiApplication>
 #include <QLabel>
 #include <fstream>
 #include <iostream>
