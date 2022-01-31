@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,27 +18,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-
-#include <QGridLayout>
 
 #include "ConsoleDefines.h"
-#include "SearchWidget.h"
-#include "TclConsoleWidget.h"
 
 namespace FOEDAG {
 
-class TclConsoleGLobal {
- public:
-  static TclConsoleWidget *tclConsole();
-  static void setTclConsole(TclConsoleWidget *tclConsole);
+int TclEval(TclInterp *interp, const char *cmd) {
+  return Tcl_Eval(interp, cmd);
+}
 
- private:
-  static TclConsoleWidget *m_tclConsole;
-};
+const char *TclGetStringResult(TclInterp *interp) {
+  return Tcl_GetStringResult(interp);
+}
 
-QWidget *createConsole(TclInterp *interp,
-                       std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent = nullptr);
+const char *TclGetString(Tcl_Obj *obj) { return Tcl_GetString(obj); }
+
+void TclAppendResult(TclInterp *interp, const char *str) {
+  Tcl_AppendResult(interp, str, (char *)NULL);
+}
 
 }  // namespace FOEDAG

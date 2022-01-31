@@ -5,15 +5,17 @@
 #include <memory>
 #include <ostream>
 
+#include "ConsoleDefines.h"
 #include "ConsoleInterface.h"
 #include "QConsole/qconsole.h"
-#include "Tcl/TclInterpreter.h"
+
+namespace FOEDAG {
 
 class StreamBuffer;
 class TclConsoleWidget : public QConsole {
   Q_OBJECT
  public:
-  explicit TclConsoleWidget(Tcl_Interp *interp,
+  explicit TclConsoleWidget(TclInterp *interp,
                             std::unique_ptr<ConsoleInterface> iConsole,
                             StreamBuffer *buffer, QWidget *parent = nullptr);
   bool isRunning() const override;
@@ -23,8 +25,6 @@ class TclConsoleWidget : public QConsole {
 
  signals:
   void searchEnable();
-  void sendCommand(QString);
-  void abort();
 
  protected:
   QString interpretCommand(const QString &command, int *res) override;
@@ -38,9 +38,8 @@ class TclConsoleWidget : public QConsole {
   void commandDone();
 
  private:
-  void updateScroll();
   void handleLink(const QPoint &p);
-  void registerCommands(Tcl_Interp *interp);
+  void registerCommands(TclInterp *interp);
   bool hasPrompt() const;
   bool handleCommandFromHistory(const QString &command,
                                 QString &commandFromHist);
@@ -54,3 +53,5 @@ class TclConsoleWidget : public QConsole {
   bool m_linkActivated{false};
   bool m_command_done{true};
 };
+
+}  // namespace FOEDAG
