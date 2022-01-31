@@ -63,7 +63,7 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "../../../third_party/tcl/win"
-    DEPENDS ../../../third_party/tcl/generic/tcl.h
+    DEPENDS ../tcl/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_build POST_BUILD
@@ -78,7 +78,7 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Stubb Compilation completed"
     WORKING_DIRECTORY "../../../third_party/tcl/win"
-    DEPENDS ../../../third_party/tcl/generic/tcl.h
+    DEPENDS ../tcl/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_stubb_build POST_BUILD
@@ -106,13 +106,13 @@ else()
     COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "../../../third_party/tcl/unix"
-    DEPENDS ../../../third_party/tcl/generic/tcl.h
+    DEPENDS ../tcl/generic/tcl.h
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
     COMMAND echo "       Compiling Tcl Stubb"
     COMMAND echo "       Tcl Stubb Compilation completed"
-    DEPENDS ../../../third_party/tcl/generic/tcl.h
+    DEPENDS ../tcl/generic/tcl.h
   )
 endif()
 
