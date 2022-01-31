@@ -15,14 +15,15 @@ class TclConsole : public ConsoleInterface {
   TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
              QObject *parent = nullptr);
   void registerInterpreter(FOEDAG::TclInterpreter *interpreter);
-  ~TclConsole();
+  ~TclConsole() override;
   void run(const QString &command) override;
   int returnCode() const override;
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
   bool isCommandComplete(const QString &command) override;
+  void abort() override;
 
- public slots:
-  void abort();
+  // public slots:
+  //  void abort();
 
  private slots:
   void tclFinished();

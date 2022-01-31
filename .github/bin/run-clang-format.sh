@@ -21,7 +21,7 @@ FORMAT_OUT=${TMPDIR:-/tmp}/clang-format-diff.out
 #   files here.
 find src -name "*.h" -o -name "*.cpp"  \
     | grep -v "path_to_skip" \
-    | xargs clang-format --style=Google -i
+    | xargs clang-format --style=file -i
 
 # Check if we got any diff, then print it out in in the CI.
 # TODO: make these suggested diffs in the pull request.

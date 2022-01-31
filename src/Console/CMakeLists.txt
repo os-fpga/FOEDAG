@@ -48,6 +48,7 @@ set (SRC_CPP_LIST
   StreamBuffer.cpp
   FileInfo.cpp
   SearchWidget.cpp
+  TclConsoleBuilder.cpp
 )
 
 set (SRC_H_LIST

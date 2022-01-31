@@ -66,7 +66,7 @@ bool TclConsole::isCommandComplete(const QString &command) {
 }
 
 void TclConsole::abort() {
-  //
+  QMetaObject::invokeMethod(m_tclWorker, "abort", Qt::DirectConnection);
 }
 
 void TclConsole::tclFinished() {

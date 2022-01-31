@@ -27,24 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class TclConsoleGLobal {
+ public:
+  static TclConsoleWidget *tclConsole();
+  static void setTclConsole(TclConsoleWidget *tclConsole);
+
+ private:
+  static TclConsoleWidget *m_tclConsole;
+};
+
 QWidget *createConsole(Tcl_Interp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent = nullptr) {
-  QWidget *w = new QWidget{parent};
-  w->setLayout(new QGridLayout);
-  TclConsoleWidget *console =
-      new TclConsoleWidget{interp, std::move(iConsole), buffer};
+                       StreamBuffer *buffer, QWidget *parent = nullptr);
 
-  SearchWidget *search = new SearchWidget{console};
-  QObject::connect(console, &TclConsoleWidget::searchEnable, search,
-                   &SearchWidget::search);
-
-  w->layout()->addWidget(console);
-  w->layout()->addWidget(search);
-  w->layout()->setSpacing(0);
-  w->layout()->setContentsMargins(0, 0, 0, 0);
-  w->setGeometry(0, 0, 730, 440);
-
-  return w;
-}
 }  // namespace FOEDAG
