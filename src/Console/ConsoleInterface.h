@@ -2,6 +2,8 @@
 
 #include <QObject>
 
+namespace FOEDAG {
+
 class ConsoleInterface : public QObject {
   Q_OBJECT
  public:
@@ -18,3 +20,5 @@ class ConsoleInterface : public QObject {
   void done();
   void sendOutput(const QString &);
 };
+
+}  // namespace FOEDAG

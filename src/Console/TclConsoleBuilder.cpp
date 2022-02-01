@@ -9,7 +9,7 @@ void TclConsoleGLobal::setTclConsole(TclConsoleWidget *tclConsole) {
   m_tclConsole = tclConsole;
 }
 
-QWidget *createConsole(Tcl_Interp *interp,
+QWidget *createConsole(TclInterp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
                        StreamBuffer *buffer, QWidget *parent) {
   QWidget *w = new QWidget{parent};

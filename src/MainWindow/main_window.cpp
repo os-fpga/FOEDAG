@@ -183,7 +183,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   StreamBuffer* buffer = new StreamBuffer;
   QWidget* w = FOEDAG::createConsole(
       m_interpreter->getInterp(),
-      std::make_unique<TclConsole>(m_interpreter, buffer->getStream()), buffer);
+      std::make_unique<TclConsole>(m_interpreter->getInterp(),
+                                   buffer->getStream()),
+      buffer);
   consoleDocWidget->setWidget(w);
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }

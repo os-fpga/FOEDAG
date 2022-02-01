@@ -3,8 +3,9 @@
 #include <QDebug>
 #include <QMetaMethod>
 
-#include "Tcl/TclInterpreter.h"
 #include "TclConsoleBuilder.h"
+
+namespace FOEDAG {
 
 int DriverClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
   Q_UNUSED(instanceData)
@@ -46,16 +47,15 @@ int DriverBlockModeProc(ClientData instanceData, int mode) {
   return 0;
 }
 
-TclWorker::TclWorker(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
-                     QObject *parent)
+TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
     : QThread(parent), m_interpreter(interpreter), m_out(out) {}
 
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
   auto resultObjPtr = Tcl_NewObj();
-  int ret =
-      Tcl_CancelEval(m_interpreter->getInterp(), resultObjPtr, nullptr, 0);
+  //  Tcl_Interp *in = m_interpreter;
+  int ret = Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
   qDebug() << ret;
   if (ret != TCL_OK) {
     m_output = Tcl_GetString(resultObjPtr);
@@ -70,9 +70,9 @@ void TclWorker::run() {
   init();
 
   m_putsOutput.clear();
-  auto cmd = m_cmd.toStdString();
-  m_returnCode = 0;
-  QString output = m_interpreter->evalCmd(cmd, &m_returnCode).c_str();
+  m_returnCode = Tcl_Eval(m_interpreter, qPrintable(m_cmd));
+
+  QString output = Tcl_GetStringResult(m_interpreter);
   if (m_putsOutput.isEmpty()) {
     setOutput(output);
   }
@@ -81,7 +81,7 @@ void TclWorker::run() {
 
 int TclWorker::returnCode() const { return m_returnCode; }
 
-FOEDAG::TclInterpreter *TclWorker::getInterpreter() { return m_interpreter; }
+TclInterp *TclWorker::getInterpreter() { return m_interpreter; }
 
 void TclWorker::setOutput(const QString &out) {
   m_output = out;
@@ -119,7 +119,7 @@ void TclWorker::init() {
     if (m_channel) {
       Tcl_SetChannelOption(nullptr, m_channel, "-translation", "lf");
       Tcl_SetChannelOption(nullptr, m_channel, "-buffering", "none");
-      Tcl_RegisterChannel(m_interpreter->getInterp(), m_channel);
+      Tcl_RegisterChannel(m_interpreter, m_channel);
       Tcl_SetStdChannel(m_channel, TCL_STDOUT);
     }
   } else {
@@ -133,10 +133,12 @@ void TclWorker::init() {
     if (errConsoleChannel) {
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-translation", "lf");
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-buffering", "none");
-      Tcl_RegisterChannel(m_interpreter->getInterp(), errConsoleChannel);
+      Tcl_RegisterChannel(m_interpreter, errConsoleChannel);
       Tcl_SetStdChannel(errConsoleChannel, TCL_STDERR);
     }
   } else {
     Tcl_SetStdChannel(errConsoleChannel, TCL_STDERR);
   }
 }
+
+}  // namespace FOEDAG

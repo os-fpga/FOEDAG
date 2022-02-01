@@ -8,9 +8,12 @@
 #include <QStack>
 #include <QTextBlock>
 
+#include "ConsoleDefines.h"
 #include "StreamBuffer.h"
 
-TclConsoleWidget::TclConsoleWidget(Tcl_Interp *interp,
+namespace FOEDAG {
+
+TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    std::unique_ptr<ConsoleInterface> iConsole,
                                    StreamBuffer *buffer, QWidget *parent)
     : QConsole(parent), m_console(std::move(iConsole)), m_buffer{buffer} {
@@ -97,7 +100,7 @@ void TclConsoleWidget::updateScroll() {
 
 void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
 
-void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
+void TclConsoleWidget::registerCommands(TclInterp *interp) {
   auto hist = [](ClientData clientData, Tcl_Interp *interp, int argc,
                  const char *argv[]) {
     TclConsoleWidget *console = static_cast<TclConsoleWidget *>(clientData);
@@ -120,7 +123,7 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
       index++;
     }
     if (!history.isEmpty()) {
-      Tcl_AppendResult(interp, qPrintable(history.join("\n")), (char *)NULL);
+      Tcl_AppendResult(interp, qPrintable(history.join("\n")));
     }
     return TCL_OK;
   };
@@ -195,3 +198,5 @@ bool TclConsoleWidget::hasOpenBracket(const QString &str) const {
   }
   return !stack.isEmpty();
 }
+
+}  // namespace FOEDAG

@@ -2,10 +2,12 @@
 
 #include <iostream>
 
+#include "ConsoleDefines.h"
 #include "FileInfo.h"
-#include "Tcl/TclInterpreter.h"
 
-TclConsole::TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
+namespace FOEDAG {
+
+TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
       m_tclWorker(new TclWorker{interpreter, out, parent}),
@@ -16,7 +18,7 @@ TclConsole::TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
   connect(m_tclWorker, &TclWorker::tclFinished, this, &TclConsole::done);
 }
 
-void TclConsole::registerInterpreter(FOEDAG::TclInterpreter *interpreter) {
+void TclConsole::registerInterpreter(TclInterp *interpreter) {
   m_tclWorkers.push_back(new TclWorker{interpreter, m_out});
 }
 
@@ -42,7 +44,7 @@ QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
     commandToComplete = cmd.right(cmd.length() - i - 1);
     prefix = cmd.left(i + 1);
   }
-  auto interp = m_tclWorker->getInterpreter()->getInterp();
+  auto interp = m_tclWorker->getInterpreter();
   int res = Tcl_Eval(
       interp, qPrintable("info commands [join {" + commandToComplete + "*}]"));
   if (res == TCL_OK) {
@@ -73,16 +75,15 @@ void TclConsole::tclFinished() {
   //
 }
 
-QStringList TclConsole::getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
+QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,
                                            const QString &cmd,
                                            QString &prefix) const {
   QStringList suggestions;
-  auto interp = interpreter->getInterp();
   if (cmd.startsWith("source ")) {
-    int res = Tcl_Eval(interp, qPrintable("pwd"));
+    int res = Tcl_Eval(interpreter, qPrintable("pwd"));
     if (res == TCL_OK) {
       // Get the string result of the executed command
-      QString currPath = Tcl_GetString(Tcl_GetObjResult(interp));
+      QString currPath = Tcl_GetString(Tcl_GetObjResult(interpreter));
       currPath += FileInfo::separator();
       auto args = cmd.split(" ");
       if (args.count() > 1) {
@@ -109,3 +110,5 @@ QStringList TclConsole::getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
   }
   return suggestions;
 }
+
+}  // namespace FOEDAG

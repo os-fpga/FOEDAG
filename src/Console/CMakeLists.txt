@@ -60,6 +60,7 @@ set (SRC_H_LIST
   FileInfo.h
   SearchWidget.h
   TclConsoleBuilder.h
+  ConsoleDefines.h
 )
 
 set (SRC_UI_LIST
