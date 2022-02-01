@@ -31,6 +31,7 @@ class TclConsoleWidget : public QConsole {
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
   bool isCommandComplete(const QString &command) override;
   void handleSearch() override;
+  void handleTerminateCommand() override;
 
  private slots:
   void put(const QString &str);

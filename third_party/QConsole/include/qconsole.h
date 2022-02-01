@@ -201,6 +201,7 @@ class QConsole : public QTextEdit {
   void mousePressEvent(QMouseEvent *);
 
   virtual void handleSearch() {}
+  virtual void handleTerminateCommand() {}
 
   // execute a validated command (should be reimplemented and called at the end)
   // the return value of the function is the string result

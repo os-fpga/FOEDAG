@@ -65,9 +65,7 @@ bool TclConsole::isCommandComplete(const QString &command) {
   return Tcl_CommandComplete(qPrintable(command));
 }
 
-void TclConsole::abort() {
-  //
-}
+void TclConsole::abort() { m_tclWorker->abort(); }
 
 void TclConsole::tclFinished() {
   //
