@@ -25,8 +25,6 @@ class TclConsoleWidget : public QConsole {
 
  signals:
   void searchEnable();
-  void sendCommand(QString);
-  void abort();
 
  protected:
   QString interpretCommand(const QString &command, int *res) override;
@@ -40,7 +38,6 @@ class TclConsoleWidget : public QConsole {
   void commandDone();
 
  private:
-  void updateScroll();
   void handleLink(const QPoint &p);
   void registerCommands(TclInterp *interp);
   bool hasPrompt() const;

@@ -11,7 +11,6 @@ class TclWorker : public QThread {
  public:
   TclWorker(TclInterp *interpreter, std::ostream &out,
             QObject *parent = nullptr);
-  QString output() const;
 
   void run() override;
   int returnCode() const;
@@ -31,10 +30,9 @@ class TclWorker : public QThread {
  private:
   TclInterp *m_interpreter{nullptr};
   std::ostream &m_out;
-  QString m_output;
   int m_returnCode{0};
-  QString m_putsOutput;
   QString m_cmd;
+  Tcl_ChannelType *channelOut{nullptr};
 };
 
 }  // namespace FOEDAG

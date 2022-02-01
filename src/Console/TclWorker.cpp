@@ -34,7 +34,9 @@ int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
       int methodIndex =
           console->metaObject()->indexOfMethod(normalizedSignature);
       QMetaMethod method = console->metaObject()->method(methodIndex);
-      method.invoke(console, Qt::QueuedConnection, Q_ARG(QString, buf));
+      bool ok =
+          method.invoke(console, Qt::QueuedConnection, Q_ARG(QString, buf));
+      if (ok && errorCodePtr) *errorCodePtr = 0;
     }
   }
   done = !done;
@@ -48,53 +50,10 @@ int DriverBlockModeProc(ClientData instanceData, int mode) {
 }
 
 TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
-    : QThread(parent), m_interpreter(interpreter), m_out(out) {}
-
-void TclWorker::runCommand(const QString &command) { m_cmd = command; }
-
-void TclWorker::abort() {
-  auto resultObjPtr = Tcl_NewObj();
-  //  Tcl_Interp *in = m_interpreter;
-  int ret = Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
-  qDebug() << ret;
-  if (ret != TCL_OK) {
-    m_output = Tcl_GetString(resultObjPtr);
-  } else {
-    runCommand("error \"aborted by user\"");
-  }
-}
-
-QString TclWorker::output() const { return m_output; }
-
-void TclWorker::run() {
-  init();
-
-  m_putsOutput.clear();
-  m_returnCode = Tcl_Eval(m_interpreter, qPrintable(m_cmd));
-
-  QString output = Tcl_GetStringResult(m_interpreter);
-  if (m_putsOutput.isEmpty()) {
-    setOutput(output);
-  }
-  emit tclFinished();
-}
-
-int TclWorker::returnCode() const { return m_returnCode; }
-
-TclInterp *TclWorker::getInterpreter() { return m_interpreter; }
-
-void TclWorker::setOutput(const QString &out) {
-  m_output = out;
-  m_out << m_output.toLatin1().data();
-  if (!m_output.isEmpty()) m_out << std::endl;
-}
-
-void TclWorker::init() {
-  static Tcl_Channel m_channel;
-  static Tcl_Channel errConsoleChannel;
-  Tcl_ChannelType *channelOut = new Tcl_ChannelType{
+    : QThread(parent), m_interpreter(interpreter), m_out(out) {
+  channelOut = new Tcl_ChannelType{
       "outconsole",
-      static_cast<Tcl_ChannelTypeVersion>(TCL_CHANNEL_VERSION_5),
+      CHANNEL_VERSION_5,
       nullptr,
       nullptr,  // DriverInputProc,
       DriverOutputProc,
@@ -111,6 +70,43 @@ void TclWorker::init() {
       nullptr /*DriverThreadAction*/,
       nullptr /*DriverTruncate*/,
   };
+}
+
+void TclWorker::runCommand(const QString &command) { m_cmd = command; }
+
+void TclWorker::abort() {
+  // according to docs cancelation must be done in current thread
+  auto resultObjPtr = Tcl_NewObj();
+  Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
+  setOutput(TclGetString(resultObjPtr));
+
+  // this eval is necessary. It declines previous if it was canceled.
+  TclEval(m_interpreter, qPrintable("error aborted by user"));
+}
+
+void TclWorker::run() {
+  init();
+
+  m_returnCode = 0;
+  m_returnCode = TclEval(m_interpreter, qPrintable(m_cmd));
+
+  QString output = TclGetStringResult(m_interpreter);
+  setOutput(output);
+  emit tclFinished();
+}
+
+int TclWorker::returnCode() const { return m_returnCode; }
+
+TclInterp *TclWorker::getInterpreter() { return m_interpreter; }
+
+void TclWorker::setOutput(const QString &out) {
+  m_out << out.toLatin1().data();
+  if (!out.isEmpty()) m_out << std::endl;
+}
+
+void TclWorker::init() {
+  static Tcl_Channel m_channel;
+  static Tcl_Channel errConsoleChannel;
 
   if (!m_channel) {
     m_channel = Tcl_CreateChannel(channelOut, "stdout",

@@ -12,9 +12,6 @@ TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
     : ConsoleInterface(parent),
       m_tclWorker(new TclWorker{interpreter, out, parent}),
       m_out(out) {
-  connect(this, &TclConsole::sendCommand, m_tclWorker, &TclWorker::runCommand);
-  //  connect(this, &TclController::abort_, &m_tclWorker, &TclWorker::abort,
-  //          Qt::DirectConnection);
   connect(m_tclWorker, &TclWorker::tclFinished, this, &TclConsole::done);
 }
 
@@ -39,17 +36,17 @@ QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
   QString commandToComplete = cmd;
   QStringList suggestions;
   prefix = QString();
-  int i = cmd.lastIndexOf(QRegExp("[\[{;\n]"));
+  int i = cmd.lastIndexOf(QRegExp("[[{;\n]"));
   if (i != -1) {
     commandToComplete = cmd.right(cmd.length() - i - 1);
     prefix = cmd.left(i + 1);
   }
   auto interp = m_tclWorker->getInterpreter();
-  int res = Tcl_Eval(
+  int res = TclEval(
       interp, qPrintable("info commands [join {" + commandToComplete + "*}]"));
   if (res == TCL_OK) {
     // Get the string result of the executed command
-    QString result = Tcl_GetString(Tcl_GetObjResult(interp));
+    QString result = TclGetString(Tcl_GetObjResult(interp));
     if (!result.isEmpty()) {
       suggestions = result.split(" ");
     }
@@ -67,9 +64,7 @@ bool TclConsole::isCommandComplete(const QString &command) {
   return Tcl_CommandComplete(qPrintable(command));
 }
 
-void TclConsole::abort() {
-  QMetaObject::invokeMethod(m_tclWorker, "abort", Qt::DirectConnection);
-}
+void TclConsole::abort() { m_tclWorker->abort(); }
 
 void TclConsole::tclFinished() {
   //
@@ -80,10 +75,10 @@ QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,
                                            QString &prefix) const {
   QStringList suggestions;
   if (cmd.startsWith("source ")) {
-    int res = Tcl_Eval(interpreter, qPrintable("pwd"));
+    int res = TclEval(interpreter, qPrintable("pwd"));
     if (res == TCL_OK) {
       // Get the string result of the executed command
-      QString currPath = Tcl_GetString(Tcl_GetObjResult(interpreter));
+      QString currPath = TclGetString(Tcl_GetObjResult(interpreter));
       currPath += FileInfo::separator();
       auto args = cmd.split(" ");
       if (args.count() > 1) {

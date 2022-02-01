@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,20 +17,24 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#pragma once
+*/
 
-extern "C" {
-#include <tcl.h>
-}
-using TclInterp = Tcl_Interp;
+#include "ConsoleDefines.h"
 
 namespace FOEDAG {
-static const Tcl_ChannelTypeVersion CHANNEL_VERSION_5 =
-    reinterpret_cast<Tcl_ChannelTypeVersion>(TCL_CHANNEL_VERSION_5);
 
-int TclEval(TclInterp *interp, const char *cmd);
-const char *TclGetStringResult(TclInterp *interp);
-const char *TclGetString(Tcl_Obj *obj);
-void TclAppendResult(TclInterp *interp, const char *str);
+int TclEval(TclInterp *interp, const char *cmd) {
+  return Tcl_Eval(interp, cmd);
+}
+
+const char *TclGetStringResult(TclInterp *interp) {
+  return Tcl_GetStringResult(interp);
+}
+
+const char *TclGetString(Tcl_Obj *obj) { return Tcl_GetString(obj); }
+
+void TclAppendResult(TclInterp *interp, const char *str) {
+  Tcl_AppendResult(interp, str, (char *)NULL);
+}
+
 }  // namespace FOEDAG

@@ -49,6 +49,7 @@ set (SRC_CPP_LIST
   FileInfo.cpp
   SearchWidget.cpp
   TclConsoleBuilder.cpp
+  ConsoleDefines.cpp
 )
 
 set (SRC_H_LIST

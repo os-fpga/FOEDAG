@@ -80,22 +80,17 @@ void TclConsoleWidget::put(const QString &str) {
     QString strRes = str;
     // According to the return value, display the result either in red or in
     // blue
+    moveCursor(QTextCursor::End);
     setTextColor((res == 0) ? outColor_ : errColor_);
 
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
     textCursor().insertText(strRes);
-    moveCursor(QTextCursor::End);
   }
 }
 
 void TclConsoleWidget::commandDone() {
   m_command_done = true;
   if (!hasPrompt()) displayPrompt();
-}
-
-void TclConsoleWidget::updateScroll() {
-  QScrollBar *bar = verticalScrollBar();
-  bar->setValue(bar->maximum());
 }
 
 void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
@@ -111,7 +106,7 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
     // Help message in case of wrong parameters
     if (argc != 1) {
       QString usageMsg = QString("Usage: %1\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
 
@@ -123,7 +118,7 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
       index++;
     }
     if (!history.isEmpty()) {
-      Tcl_AppendResult(interp, qPrintable(history.join("\n")));
+      TclAppendResult(interp, qPrintable(history.join("\n")));
     }
     return TCL_OK;
   };
@@ -139,7 +134,7 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
     // Help message in case of wrong parameters
     if (argc != 2) {
       QString usageMsg = QString("Usage: %1 new_prompt\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
     console->setPrompt(argv[1], false);
@@ -154,7 +149,7 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
     Tcl_ResetResult(interp);
     if (argc != 1) {
       QString usageMsg = QString("Usage: %1 clear\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
     // need to put it the event queue otherwise it will crash

@@ -26,10 +26,6 @@ class TclConsole : public ConsoleInterface {
  private slots:
   void tclFinished();
 
- signals:
-  void sendCommand(QString);
-  void abort_();
-
  private:
   QStringList getFilesCompletion(TclInterp *interpreter, const QString &cmd,
                                  QString &prefix) const;
