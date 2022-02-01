@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "StreamBuffer.h"
 
+namespace FOEDAG {
+
 StreamBuffer::StreamBuffer(QObject *parent)
     : QObject{parent}, m_last{traits_type::eof()}, m_stream(this) {}
 
@@ -47,3 +49,5 @@ int StreamBuffer::uflow() {
 }
 
 int StreamBuffer::underflow() { return m_last; }
+
+}  // namespace FOEDAG

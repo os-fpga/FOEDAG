@@ -31,17 +31,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclConsoleWidget.h"
 
 class Handler : public FOEDAG::TclInterpreterHandler {
-  TclConsole *console;
+  FOEDAG::TclConsole *console;
 
  public:
-  Handler(TclConsole *c) : console{c} {}
+  Handler(FOEDAG::TclConsole *c) : console{c} {}
   void initIterpreter(FOEDAG::TclInterpreter *interp) override {
-    console->registerInterpreter(interp);
+    console->registerInterpreter(interp->getInterp());
   }
 };
 
 void worker(int argc, char **argv, Tcl_Interp *interp) {
   auto init = [](Tcl_Interp *interp) -> int {
+    Q_UNUSED(interp)
     // init here
     return 0;
   };
@@ -51,10 +52,10 @@ void worker(int argc, char **argv, Tcl_Interp *interp) {
 int main(int argc, char **argv) {
   QApplication a{argc, argv};
   FOEDAG::TclInterpreter *interpreter = new FOEDAG::TclInterpreter{argv[0]};
-  StreamBuffer *buffer = new StreamBuffer;
-  auto tclConsole =
-      std::make_unique<TclConsole>(interpreter, buffer->getStream());
-  TclConsole *c = tclConsole.get();
+  auto buffer = new FOEDAG::StreamBuffer;
+  auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
+      interpreter->getInterp(), buffer->getStream());
+  FOEDAG::TclConsole *c = tclConsole.get();
   QWidget *w = FOEDAG::createConsole(interpreter->getInterp(),
                                      std::move(tclConsole), buffer);
 

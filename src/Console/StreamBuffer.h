@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <streambuf>
 
+namespace FOEDAG {
+
 class StreamBuffer : public QObject, public std::streambuf {
   Q_OBJECT
  public:
@@ -43,3 +45,5 @@ class StreamBuffer : public QObject, public std::streambuf {
   std::ostream m_stream;
   QString m_buffer;
 };
+
+}  // namespace FOEDAG
