@@ -20,9 +20,7 @@ class TclConsole : public ConsoleInterface {
   int returnCode() const override;
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
   bool isCommandComplete(const QString &command) override;
-
- public slots:
-  void abort();
+  void abort() override;
 
  private slots:
   void tclFinished();

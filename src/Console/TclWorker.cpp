@@ -33,13 +33,12 @@ TclWorker::TclWorker(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
+  // according to docs cancelation must be done in current thread
   auto resultObjPtr = Tcl_NewObj();
-  int ret = Tcl_CancelEval(m_interpreter->getInterp(), resultObjPtr, NULL, 0);
-  if (ret != TCL_OK) {
-    m_output = Tcl_GetString(resultObjPtr);
-  } else {
-    runCommand("error \"aborted by user\"");
-  }
+  Tcl_CancelEval(m_interpreter->getInterp(), resultObjPtr, nullptr, 0);
+  setOutput(Tcl_GetString(resultObjPtr));
+  // this eval is necessary. It declines previous if it was canceled.
+  Tcl_Eval(m_interpreter->getInterp(), qPrintable("error aborted by user"));
 }
 
 QString TclWorker::output() const { return m_output; }

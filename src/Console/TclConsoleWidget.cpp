@@ -67,6 +67,10 @@ bool TclConsoleWidget::isCommandComplete(const QString &command) {
 
 void TclConsoleWidget::handleSearch() { emit searchEnable(); }
 
+void TclConsoleWidget::handleTerminateCommand() {
+  if (m_console) m_console->abort();
+}
+
 void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
     int res = m_console ? m_console->returnCode() : 0;
