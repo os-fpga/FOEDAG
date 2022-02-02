@@ -23,10 +23,11 @@
 #include <QDebug>
 #include <QDesktopWidget>
 #include <QFile>
+#include <QScreen>
 #include <QScrollBar>
+#include <QTextBlock>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QScreen>
 
 //#define USE_POPUP_COMPLETER
 #define WRITE_ONLY QIODevice::WriteOnly
@@ -313,7 +314,7 @@ void QConsole::handleReturnKeyPress(const QString &command) {
   multiLineCommand.append(command);
   if (isCommandComplete(command)) {
     if (!multiLineCommand.isEmpty())
-      execCommand(multiLineCommand.join(" "), false);
+      execCommand(multiLineCommand.join("\n"), false);
     multiLineCommand.clear();
   } else {
     moveCursor(QTextCursor::EndOfLine);
@@ -338,7 +339,7 @@ void QConsole::handleUpKeyPress() {
         break;
       }
     } while (history[historyIndex] == command);
-    replaceCurrentCommand(history[historyIndex]);
+    replaceCurrentCommandFromHistory(history[historyIndex]);
   }
 }
 
@@ -351,7 +352,7 @@ void QConsole::handleDownKeyPress() {
         break;
       }
     } while (history[historyIndex] == command);
-    replaceCurrentCommand(history[historyIndex]);
+    replaceCurrentCommandFromHistory(history[historyIndex]);
   }
 }
 
@@ -448,6 +449,12 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
         if (isRunning()) break;
         if (isSelectionInEditionZone()) {
           QString command = getCurrentCommand();
+
+          // move cursore to avoid break line
+          auto cursore = textCursor();
+          cursore.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+          setTextCursor(cursore);
+
           QTextEdit::keyPressEvent(e);
           handleReturnKeyPress(command);
         }
@@ -499,16 +506,34 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
 }
 
 // Get the current command
-QString QConsole::getCurrentCommand() {
+QString QConsole::getCurrentCommand() const {
   QTextCursor cursor =
       textCursor();  // Get the current command: we just remove the prompt
+  QString blockText = cursor.block().text();
+  // paste command or from history
+  if (!blockText.startsWith(prompt) && !isMultiLine()) {
+    return getAllBeforePromt();
+  }
   cursor.movePosition(QTextCursor::StartOfLine);
   cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      isMultiLine() ? 0 : promptLength);
+                      getPromptLength());
   cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
   QString command = cursor.selectedText();
   cursor.clearSelection();
   return command;
+}
+
+QString QConsole::getAllBeforePromt() const {
+  QStringList strings;
+  QTextCursor cursor = textCursor();
+  cursor.movePosition(QTextCursor::End);
+  cursor.movePosition(QTextCursor::StartOfLine);
+  while (!cursor.block().text().startsWith(prompt)) {
+    strings.push_front(cursor.block().text());
+    cursor.movePosition(QTextCursor::Up);
+  }
+  strings.push_front(cursor.block().text().mid(promptLength));
+  return strings.join("\n");
 }
 
 // Replace current command with a new one
@@ -516,8 +541,20 @@ void QConsole::replaceCurrentCommand(const QString &newCommand) {
   QTextCursor cursor = textCursor();
   cursor.movePosition(QTextCursor::StartOfLine);
   cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
-                      isMultiLine() ? 0 : promptLength);
+                      getPromptLength());
   cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+  cursor.insertText(newCommand);
+}
+
+void QConsole::replaceCurrentCommandFromHistory(const QString &newCommand) {
+  QTextCursor cursor = textCursor();
+  cursor.movePosition(QTextCursor::StartOfLine);
+  while (!cursor.block().text().startsWith(prompt)) {
+    cursor.movePosition(QTextCursor::Up);
+  }
+  cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor,
+                      promptLength);
+  cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
   cursor.insertText(newCommand);
 }
 
@@ -569,12 +606,10 @@ QString QConsole::interpretCommand(const QString &command, int *res) {
   // Add the command to the recordedScript list
   if (!*res) recordedScript.append(command);
   // update the history and its index
-  QString modifiedCommand = command;
-  modifiedCommand.replace("\n", "\\n");
-  history.append(modifiedCommand);
+  history.append(command);
   historyIndex = history.size();
   // emit the commandExecuted signal
-  Q_EMIT commandExecuted(modifiedCommand);
+  Q_EMIT commandExecuted(command);
   return "";
 }
 
@@ -651,6 +686,10 @@ void QConsole::insertFromMimeData(const QMimeData *source) {
 bool QConsole::isMultiLine() const { return multiLine; }
 
 void QConsole::setMultiLine(bool newMultiLine) { multiLine = newMultiLine; }
+
+int QConsole::getPromptLength() const {
+  return isMultiLine() ? 0 : promptLength;
+}
 
 // Implement paste with middle mouse button
 void QConsole::mousePressEvent(QMouseEvent *event) {

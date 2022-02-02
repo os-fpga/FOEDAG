@@ -118,9 +118,11 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
 
     uint index = 1;
     QStringList history{};
-    for (QStringList::Iterator it = console->history.begin();
+    for (QStringList::const_iterator it = console->history.begin();
          it != console->history.end(); ++it) {
-      history.append(QString("%1\t%2").arg(index).arg(*it));
+      QString cmd = *it;
+      cmd.replace("\n", "\n\t");  // for multiline commands
+      history.append(QString("%1\t%2").arg(index).arg(cmd));
       index++;
     }
     if (!history.isEmpty()) {
