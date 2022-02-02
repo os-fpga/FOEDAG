@@ -21,11 +21,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/Session.h"
 
+#include "Main/Foedag.h"
+
 using namespace FOEDAG;
 
 Session::~Session() {
-  delete m_mainWindow;
+  m_mainWindow->deleteLater();
   delete m_interp;
   delete m_stack;
   delete m_cmdLine;
 }
+
+void Session::mainWindowShow() {
+  // if (m_guiType != FOEDAG::GUI_TYPE::GT_MAIN_WINDOW)
+  m_mainWindow->show();
+  // else {  // TODO: qml model show()
+  //}
+}
+
+void Session::mainWindowHide() {
+  // if (m_guiType != FOEDAG::GUI_TYPE::GT_MAIN_WINDOW)
+  m_mainWindow->hide();
+  // else {  // TODO: qml model hide()
+  //}
+}
+
+void Session::setGuiType(GUI_TYPE newGuiType) { m_guiType = newGuiType; }

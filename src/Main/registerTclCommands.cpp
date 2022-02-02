@@ -52,7 +52,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     GlobalSession->CmdStack()->CmdLogger()->log("gui_start");
-    GlobalSession->MainWindow()->show();
+    GlobalSession->mainWindowShow();
     return 0;
   };
   session->TclInterp()->registerCmd("gui_start", gui_start, 0, 0);
@@ -60,7 +60,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_stop = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     GlobalSession->CmdStack()->CmdLogger()->log("gui_stop");
-    GlobalSession->MainWindow()->hide();
+    GlobalSession->mainWindowHide();
     return 0;
   };
   session->TclInterp()->registerCmd("gui_stop", gui_stop, 0, 0);

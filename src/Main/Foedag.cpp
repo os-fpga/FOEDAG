@@ -71,27 +71,37 @@ bool Foedag::init(bool initWithGui) {
 bool Foedag::initGui() {
   // Gui mode
   int argc = m_cmdLine->Argc();
-
-  //#############################################################
-  QGuiApplication app1(argc, m_cmdLine->Argv());
-
-  QQmlApplicationEngine engine;
-
-  const QUrl url(QStringLiteral(
-      "/home/work/OpenEDA/FOEDAG/src/MainWindow/main_window.qml"));
-  QObject::connect(
-      &engine, &QQmlApplicationEngine::objectCreated, &app1,
-      [url](QObject* obj, const QUrl& objUrl) {
-        if (!obj && url == objUrl) QCoreApplication::exit(-1);
-      },
-      Qt::QueuedConnection);
-  engine.load(url);
-  //#############################################################
-
   QApplication app(argc, m_cmdLine->Argv());
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  QQmlApplicationEngine engine;
+
+  switch (m_guiType) {
+    case GUI_TYPE::GT_NONE:
+      break;
+
+    case GUI_TYPE::GT_MAIN_WINDOW: {
+      engine.addImportPath(QStringLiteral("qrc:/"));
+      const QUrl url(QStringLiteral("qrc:/main_window.qml"));
+      QObject::connect(
+          &engine, &QQmlApplicationEngine::objectCreated, &app,
+          [url](QObject* obj, const QUrl& objUrl) {
+            if (!obj && url == objUrl) QCoreApplication::exit(-1);
+          },
+          Qt::QueuedConnection);
+      engine.load(url);
+      break;
+    }
+    case GUI_TYPE::GT_NEW_FILE:       // fall-through
+    case GUI_TYPE::GT_DESIGN_RUNS:    // fall-through
+    case GUI_TYPE::GT_TEXT_EDITOR:    // fall-through
+    case GUI_TYPE::GT_PRO_NAVIGATOR:  // fall-through
+    case GUI_TYPE::GT_NEW_PROJECT:    // fall-through
+    case GUI_TYPE::GT_TCL_CONSOLE: {
+      break;
+    }
+  }
 
   QWidget* mainWin = nullptr;
   switch (m_guiType) {
@@ -134,6 +144,7 @@ bool Foedag::initGui() {
   if (mainWin)
     GlobalSession =
         new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine);
+  GlobalSession->setGuiType(m_guiType);
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(GlobalSession);

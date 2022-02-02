@@ -99,6 +99,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Command/CommandStack.cpp
   ../Command/Logger.cpp
   ../MainWindow/main_window.cpp
+  ../MainWindow/mainwindowmodel.cpp
   ../MainWindow/Session.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
@@ -110,6 +111,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Command/CommandStack.h
   ../Command/Logger.h
   ../MainWindow/main_window.h
+  ../MainWindow/mainwindowmodel.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
   ../Main/CommandLine.h)
