@@ -8,9 +8,12 @@
 #include <QStack>
 #include <QTextBlock>
 
+#include "ConsoleDefines.h"
 #include "StreamBuffer.h"
 
-TclConsoleWidget::TclConsoleWidget(Tcl_Interp *interp,
+namespace FOEDAG {
+
+TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    std::unique_ptr<ConsoleInterface> iConsole,
                                    StreamBuffer *buffer, QWidget *parent)
     : QConsole(parent), m_console(std::move(iConsole)), m_buffer{buffer} {
@@ -67,17 +70,21 @@ bool TclConsoleWidget::isCommandComplete(const QString &command) {
 
 void TclConsoleWidget::handleSearch() { emit searchEnable(); }
 
+void TclConsoleWidget::handleTerminateCommand() {
+  if (m_console) m_console->abort();
+}
+
 void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
     int res = m_console ? m_console->returnCode() : 0;
     QString strRes = str;
     // According to the return value, display the result either in red or in
     // blue
+    moveCursor(QTextCursor::End);
     setTextColor((res == 0) ? outColor_ : errColor_);
 
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
     textCursor().insertText(strRes);
-    moveCursor(QTextCursor::End);
   }
 }
 
@@ -86,14 +93,9 @@ void TclConsoleWidget::commandDone() {
   if (!hasPrompt()) displayPrompt();
 }
 
-void TclConsoleWidget::updateScroll() {
-  QScrollBar *bar = verticalScrollBar();
-  bar->setValue(bar->maximum());
-}
-
 void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
 
-void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
+void TclConsoleWidget::registerCommands(TclInterp *interp) {
   auto hist = [](ClientData clientData, Tcl_Interp *interp, int argc,
                  const char *argv[]) {
     TclConsoleWidget *console = static_cast<TclConsoleWidget *>(clientData);
@@ -104,7 +106,7 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
     // Help message in case of wrong parameters
     if (argc != 1) {
       QString usageMsg = QString("Usage: %1\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
 
@@ -116,7 +118,7 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
       index++;
     }
     if (!history.isEmpty()) {
-      Tcl_AppendResult(interp, qPrintable(history.join("\n")), (char *)NULL);
+      TclAppendResult(interp, qPrintable(history.join("\n")));
     }
     return TCL_OK;
   };
@@ -132,7 +134,7 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
     // Help message in case of wrong parameters
     if (argc != 2) {
       QString usageMsg = QString("Usage: %1 new_prompt\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
     console->setPrompt(argv[1], false);
@@ -147,7 +149,7 @@ void TclConsoleWidget::registerCommands(Tcl_Interp *interp) {
     Tcl_ResetResult(interp);
     if (argc != 1) {
       QString usageMsg = QString("Usage: %1 clear\n").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char *)NULL);
+      TclAppendResult(interp, qPrintable(usageMsg));
       return TCL_ERROR;
     }
     // need to put it the event queue otherwise it will crash
@@ -191,3 +193,5 @@ bool TclConsoleWidget::hasOpenBracket(const QString &str) const {
   }
   return !stack.isEmpty();
 }
+
+}  // namespace FOEDAG

@@ -28,18 +28,17 @@ FOEDAG::Session* GlobalSession;
 void registerExampleCommands(FOEDAG::Session* session) {
   auto console_open = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    auto interpreter = static_cast<FOEDAG::TclInterpreter*>(clientData);
-    auto console = new TclConsoleWidget{
-        interpreter->getInterp(),
-        std::make_unique<TclConsole>(interpreter, std::cout), new StreamBuffer};
+    Q_UNUSED(clientData)
+    Q_UNUSED(argv)
+    Q_UNUSED(argc)
+    auto console = new FOEDAG::TclConsoleWidget{
+        interp, std::make_unique<FOEDAG::TclConsole>(interp, std::cout),
+        new FOEDAG::StreamBuffer};
     console->show();
     return 0;
   };
   session->TclInterp()->registerCmd("console_open", console_open,
-                                    GlobalSession->TclInterp(), 0);
+                                    GlobalSession->TclInterp(), nullptr);
 }
 
 int main(int argc, char** argv) {

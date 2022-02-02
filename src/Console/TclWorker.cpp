@@ -1,113 +1,139 @@
 #include "TclWorker.h"
 
 #include <QDebug>
+#include <QMetaMethod>
 
-#include "Tcl/TclInterpreter.h"
+#include "TclConsoleBuilder.h"
 
-static const char *FOEDAG_Channel{"FOEDAG_Channel"};
+namespace FOEDAG {
 
 int DriverClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
+  Q_UNUSED(instanceData)
+  Q_UNUSED(interp)
+  Q_UNUSED(flags)
   return 0;
 }
 
-void DriverWatchProc(ClientData instanceData, int mask) {}
-
-int DriverInputProc(ClientData instanceData, char *buf, int bufSize,
-                    int *errorCodePtr) {
-  return 0;
+void DriverWatchProc(ClientData instanceData, int mask) {
+  Q_UNUSED(instanceData)
+  Q_UNUSED(mask)
 }
 
 int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
                      int *errorCodePtr) {
+  Q_UNUSED(instanceData)
+  Q_UNUSED(errorCodePtr)
+  static bool done{false};
+  Tcl_SetErrno(0);
+  if (!done) {
+    auto console = FOEDAG::TclConsoleGLobal::tclConsole();
+    if (console) {
+      // invoke from another thread.
+      QByteArray normalizedSignature =
+          QMetaObject::normalizedSignature("put(QString)");
+      int methodIndex =
+          console->metaObject()->indexOfMethod(normalizedSignature);
+      QMetaMethod method = console->metaObject()->method(methodIndex);
+      bool ok =
+          method.invoke(console, Qt::QueuedConnection, Q_ARG(QString, buf));
+      if (ok && errorCodePtr) *errorCodePtr = 0;
+    }
+  }
+  done = !done;
   return toWrite;
 }
 
-int DriverBlockModeProc(ClientData instanceData, int mode) { return 0; }
+int DriverBlockModeProc(ClientData instanceData, int mode) {
+  Q_UNUSED(instanceData)
+  Q_UNUSED(mode)
+  return 0;
+}
 
-TclWorker::TclWorker(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
-                     QObject *parent)
+TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
     : QThread(parent), m_interpreter(interpreter), m_out(out) {
-  init();
+  channelOut = new Tcl_ChannelType{
+      "outconsole",
+      CHANNEL_VERSION_5,
+      nullptr,
+      nullptr,  // DriverInputProc,
+      DriverOutputProc,
+      nullptr /*ChannelSeek*/,
+      nullptr,
+      nullptr,
+      DriverWatchProc,
+      nullptr, /*ChannelGetHandle,*/
+      DriverClose2Proc /*ChannelClose2*/,
+      nullptr, /*ChannelBlockMode,*/
+      nullptr /*ChannelFlush*/,
+      nullptr /*ChannelHandler*/,
+      nullptr /*ChannelWideSeek*/,
+      nullptr /*DriverThreadAction*/,
+      nullptr /*DriverTruncate*/,
+  };
 }
 
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
+  // according to docs cancelation must be done in current thread
   auto resultObjPtr = Tcl_NewObj();
-  int ret = Tcl_CancelEval(m_interpreter->getInterp(), resultObjPtr, NULL, 0);
-  if (ret != TCL_OK) {
-    m_output = Tcl_GetString(resultObjPtr);
-  } else {
-    runCommand("error \"aborted by user\"");
-  }
+  Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
+  setOutput(Tcl_GetString(resultObjPtr));
+  // this eval is necessary. It declines previous if it was canceled.
+  TclEval(m_interpreter, qPrintable("error aborted by user"));
 }
 
-QString TclWorker::output() const { return m_output; }
-
 void TclWorker::run() {
-  m_putsOutput.clear();
-  auto cmd = m_cmd.toStdString();
-  QString output = m_interpreter->evalCmd(cmd, &m_returnCode).c_str();
-  if (m_putsOutput.isEmpty()) {
-    setOutput(output);
-  }
+  init();
+
+  m_returnCode = 0;
+  m_returnCode = TclEval(m_interpreter, qPrintable(m_cmd));
+
+  QString output = TclGetStringResult(m_interpreter);
+  setOutput(output);
   emit tclFinished();
 }
 
 int TclWorker::returnCode() const { return m_returnCode; }
 
-FOEDAG::TclInterpreter *TclWorker::getInterpreter() { return m_interpreter; }
+TclInterp *TclWorker::getInterpreter() { return m_interpreter; }
 
 void TclWorker::setOutput(const QString &out) {
-  m_output = out;
-  m_out << m_output.toLatin1().data();
-  if (!m_output.isEmpty()) m_out << std::endl;
+  m_out << out.toLatin1().data();
+  if (!out.isEmpty()) m_out << std::endl;
 }
 
 void TclWorker::init() {
-  Tcl_Channel channel =
-      Tcl_GetChannel(m_interpreter->getInterp(), FOEDAG_Channel, nullptr);
-  if (channel != nullptr)  // already registered
-    return;
+  static Tcl_Channel m_channel;
+  static Tcl_Channel errConsoleChannel;
 
-  Tcl_ChannelType *ChannelType = new Tcl_ChannelType{
-      FOEDAG_Channel,
-      (Tcl_ChannelTypeVersion)TCL_CHANNEL_VERSION_5,
-      NULL,
-      DriverInputProc,
-      DriverOutputProc,
-      NULL /*ChannelSeek*/,
-      NULL,
-      NULL,
-      DriverWatchProc,
-      NULL, /*ChannelGetHandle,*/
-      DriverClose2Proc /*ChannelClose2*/,
-      NULL, /*ChannelBlockMode,*/
-      NULL /*ChannelFlush*/,
-      NULL /*ChannelHandler*/,
-      NULL /*ChannelWideSeek*/,
-      NULL /*DriverThreadAction*/,
-      NULL /*DriverTruncate*/,
-  };
-
-  void *chData = reinterpret_cast<void *>(this);
-  auto stdout_ = Tcl_GetStdChannel(TCL_STDOUT);
-  Tcl_Channel m_channel = Tcl_CreateChannel(ChannelType, FOEDAG_Channel, chData,
-                                            TCL_WRITABLE | TCL_READABLE);
-  Tcl_RegisterChannel(m_interpreter->getInterp(), m_channel);
-  Tcl_SetStdChannel(m_channel, TCL_STDOUT);
-  Tcl_UnregisterChannel(m_interpreter->getInterp(), stdout_);
-
-  auto puts = [](ClientData clientData, Tcl_Interp *interp, int objc,
-                 Tcl_Obj *const objv[]) -> int {
-    QString putOut = QString(Tcl_GetString(objv[1]));
-    TclWorker *worker = reinterpret_cast<TclWorker *>(clientData);
-    if (worker) {
-      worker->m_putsOutput = putOut;
-      worker->m_returnCode = TCL_OK;
-      worker->setOutput(putOut);
+  if (!m_channel) {
+    m_channel = Tcl_CreateChannel(channelOut, "stdout",
+                                  reinterpret_cast<ClientData>(TCL_STDOUT),
+                                  TCL_WRITABLE);
+    if (m_channel) {
+      Tcl_SetChannelOption(nullptr, m_channel, "-translation", "lf");
+      Tcl_SetChannelOption(nullptr, m_channel, "-buffering", "none");
+      Tcl_RegisterChannel(m_interpreter, m_channel);
+      Tcl_SetStdChannel(m_channel, TCL_STDOUT);
     }
-    return 0;
-  };
-  Tcl_CreateObjCommand(m_interpreter->getInterp(), "puts", puts, chData, 0);
+  } else {
+    Tcl_SetStdChannel(m_channel, TCL_STDOUT);
+  }
+
+  if (!errConsoleChannel) {
+    errConsoleChannel = Tcl_CreateChannel(
+        channelOut, "stderr", reinterpret_cast<ClientData>(TCL_STDERR),
+        TCL_WRITABLE);
+    if (errConsoleChannel) {
+      Tcl_SetChannelOption(nullptr, errConsoleChannel, "-translation", "lf");
+      Tcl_SetChannelOption(nullptr, errConsoleChannel, "-buffering", "none");
+      Tcl_RegisterChannel(m_interpreter, errConsoleChannel);
+      Tcl_SetStdChannel(errConsoleChannel, TCL_STDERR);
+    }
+  } else {
+    Tcl_SetStdChannel(errConsoleChannel, TCL_STDERR);
+  }
 }
+
+}  // namespace FOEDAG

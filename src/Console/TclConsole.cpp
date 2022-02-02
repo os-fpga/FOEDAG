@@ -2,21 +2,20 @@
 
 #include <iostream>
 
+#include "ConsoleDefines.h"
 #include "FileInfo.h"
-#include "Tcl/TclInterpreter.h"
 
-TclConsole::TclConsole(FOEDAG::TclInterpreter *interpreter, std::ostream &out,
+namespace FOEDAG {
+
+TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
       m_tclWorker(new TclWorker{interpreter, out, parent}),
       m_out(out) {
-  connect(this, &TclConsole::sendCommand, m_tclWorker, &TclWorker::runCommand);
-  //  connect(this, &TclController::abort_, &m_tclWorker, &TclWorker::abort,
-  //          Qt::DirectConnection);
   connect(m_tclWorker, &TclWorker::tclFinished, this, &TclConsole::done);
 }
 
-void TclConsole::registerInterpreter(FOEDAG::TclInterpreter *interpreter) {
+void TclConsole::registerInterpreter(TclInterp *interpreter) {
   m_tclWorkers.push_back(new TclWorker{interpreter, m_out});
 }
 
@@ -37,17 +36,17 @@ QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
   QString commandToComplete = cmd;
   QStringList suggestions;
   prefix = QString();
-  int i = cmd.lastIndexOf(QRegExp("[\[{;\n]"));
+  int i = cmd.lastIndexOf(QRegExp("[[{;\n]"));
   if (i != -1) {
     commandToComplete = cmd.right(cmd.length() - i - 1);
     prefix = cmd.left(i + 1);
   }
-  auto interp = m_tclWorker->getInterpreter()->getInterp();
-  int res = Tcl_Eval(
+  auto interp = m_tclWorker->getInterpreter();
+  int res = TclEval(
       interp, qPrintable("info commands [join {" + commandToComplete + "*}]"));
   if (res == TCL_OK) {
     // Get the string result of the executed command
-    QString result = Tcl_GetString(Tcl_GetObjResult(interp));
+    QString result = TclGetString(Tcl_GetObjResult(interp));
     if (!result.isEmpty()) {
       suggestions = result.split(" ");
     }
@@ -65,24 +64,21 @@ bool TclConsole::isCommandComplete(const QString &command) {
   return Tcl_CommandComplete(qPrintable(command));
 }
 
-void TclConsole::abort() {
-  //
-}
+void TclConsole::abort() { m_tclWorker->abort(); }
 
 void TclConsole::tclFinished() {
   //
 }
 
-QStringList TclConsole::getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
+QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,
                                            const QString &cmd,
                                            QString &prefix) const {
   QStringList suggestions;
-  auto interp = interpreter->getInterp();
   if (cmd.startsWith("source ")) {
-    int res = Tcl_Eval(interp, qPrintable("pwd"));
+    int res = TclEval(interpreter, qPrintable("pwd"));
     if (res == TCL_OK) {
       // Get the string result of the executed command
-      QString currPath = Tcl_GetString(Tcl_GetObjResult(interp));
+      QString currPath = TclGetString(Tcl_GetObjResult(interpreter));
       currPath += FileInfo::separator();
       auto args = cmd.split(" ");
       if (args.count() > 1) {
@@ -109,3 +105,5 @@ QStringList TclConsole::getFilesCompletion(FOEDAG::TclInterpreter *interpreter,
   }
   return suggestions;
 }
+
+}  // namespace FOEDAG

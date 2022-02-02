@@ -17,28 +17,20 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 #pragma once
 
-#include <QGridLayout>
-
-#include "ConsoleDefines.h"
-#include "SearchWidget.h"
-#include "TclConsoleWidget.h"
+extern "C" {
+#include <tcl.h>
+}
+using TclInterp = Tcl_Interp;
 
 namespace FOEDAG {
+static const Tcl_ChannelTypeVersion CHANNEL_VERSION_5 =
+    reinterpret_cast<Tcl_ChannelTypeVersion>(TCL_CHANNEL_VERSION_5);
 
-class TclConsoleGLobal {
- public:
-  static TclConsoleWidget *tclConsole();
-  static void setTclConsole(TclConsoleWidget *tclConsole);
-
- private:
-  static TclConsoleWidget *m_tclConsole;
-};
-
-QWidget *createConsole(TclInterp *interp,
-                       std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent = nullptr);
-
+int TclEval(TclInterp *interp, const char *cmd);
+const char *TclGetStringResult(TclInterp *interp);
+const char *TclGetString(Tcl_Obj *obj);
+void TclAppendResult(TclInterp *interp, const char *str);
 }  // namespace FOEDAG
