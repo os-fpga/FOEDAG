@@ -11,7 +11,8 @@ void TclConsoleGLobal::setTclConsole(TclConsoleWidget *tclConsole) {
 
 QWidget *createConsole(TclInterp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent) {
+                       StreamBuffer *buffer, QWidget *parent,
+                       TclConsoleWidget **consolePtr) {
   QWidget *w = new QWidget{parent};
   w->setLayout(new QGridLayout);
   TclConsoleWidget *console =
@@ -27,6 +28,8 @@ QWidget *createConsole(TclInterp *interp,
   w->layout()->setSpacing(0);
   w->layout()->setContentsMargins(0, 0, 0, 0);
   w->setGeometry(0, 0, 730, 440);
+
+  if (consolePtr) *consolePtr = console;
 
   return w;
 }

@@ -11,6 +11,11 @@
 
 namespace FOEDAG {
 
+enum class State {
+  IDLE,
+  IN_PROGRESS,
+};
+
 class StreamBuffer;
 class TclConsoleWidget : public QConsole {
   Q_OBJECT
@@ -19,12 +24,16 @@ class TclConsoleWidget : public QConsole {
                             std::unique_ptr<ConsoleInterface> iConsole,
                             StreamBuffer *buffer, QWidget *parent = nullptr);
   bool isRunning() const override;
+  QString getPrompt() const;
+
+  State state() const;
 
  public slots:
   void clearText();
 
  signals:
   void searchEnable();
+  void stateChanged(State);
 
  protected:
   QString interpretCommand(const QString &command, int *res) override;
@@ -38,6 +47,7 @@ class TclConsoleWidget : public QConsole {
   void commandDone();
 
  private:
+  void setState(const State &state);
   void handleLink(const QPoint &p);
   void registerCommands(TclInterp *interp);
   bool hasPrompt() const;
@@ -49,9 +59,9 @@ class TclConsoleWidget : public QConsole {
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;
+  State m_state;
 
   bool m_linkActivated{false};
-  bool m_command_done{true};
 };
 
 }  // namespace FOEDAG

@@ -39,6 +39,7 @@ class TclConsoleGLobal {
 
 QWidget *createConsole(TclInterp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent = nullptr);
+                       StreamBuffer *buffer, QWidget *parent = nullptr,
+                       TclConsoleWidget **consolePtr = nullptr);
 
 }  // namespace FOEDAG
