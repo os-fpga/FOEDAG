@@ -17,6 +17,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-puts "CONSOLE GUI: pwd command"    ; flush stdout ; console_pwd
-puts "CONSOLE GUI: source command" ; flush stdout ; console_proc tests/TestGui/
-puts "CONSOLE GUI: multiline"      ; flush stdout ; console_multiline
+proc my {} {
+puts "Hello world"
+}
+my

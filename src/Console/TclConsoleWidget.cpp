@@ -27,7 +27,11 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   setTabAllowed(false);
 }
 
-bool TclConsoleWidget::isRunning() const { return !m_command_done; }
+bool TclConsoleWidget::isRunning() const {
+  return state() == State::IN_PROGRESS;
+}
+
+QString TclConsoleWidget::getPrompt() const { return prompt; }
 
 void TclConsoleWidget::clearText() {
   clear();
@@ -37,7 +41,7 @@ void TclConsoleWidget::clearText() {
 QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
   if (!command.isEmpty()) {
     setUndoRedoEnabled(false);
-    m_command_done = false;
+    setState(State::IN_PROGRESS);
     QString prepareCommand = command;
     QString histCommand;
     if (handleCommandFromHistory(command, histCommand))
@@ -71,7 +75,8 @@ bool TclConsoleWidget::isCommandComplete(const QString &command) {
 void TclConsoleWidget::handleSearch() { emit searchEnable(); }
 
 void TclConsoleWidget::handleTerminateCommand() {
-  if (m_console) m_console->abort();
+  if (state() == State::IN_PROGRESS)
+    if (m_console) m_console->abort();
 }
 
 void TclConsoleWidget::put(const QString &str) {
@@ -89,8 +94,8 @@ void TclConsoleWidget::put(const QString &str) {
 }
 
 void TclConsoleWidget::commandDone() {
-  m_command_done = true;
   if (!hasPrompt()) displayPrompt();
+  setState(State::IDLE);
 }
 
 void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
@@ -192,6 +197,15 @@ bool TclConsoleWidget::hasOpenBracket(const QString &str) const {
     }
   }
   return !stack.isEmpty();
+}
+
+State TclConsoleWidget::state() const { return m_state; }
+
+void TclConsoleWidget::setState(const State &state) {
+  if (m_state != state) {
+    m_state = state;
+    emit stateChanged(m_state);
+  }
 }
 
 }  // namespace FOEDAG

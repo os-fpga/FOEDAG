@@ -15,13 +15,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <QApplication>
+#include <QDir>
 #include <thread>
 
+#include "ConsoleTestUtils.h"
 #include "Main/Foedag.h"
-#include "StreamBuffer.h"
-#include "Tcl/TclInterpreter.h"
-#include "TclConsole.h"
-#include "TclConsoleWidget.h"
 
 FOEDAG::Session* GlobalSession;
 
@@ -35,18 +33,49 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  auto console_open = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+  auto console_pwd = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
     Q_UNUSED(clientData)
     Q_UNUSED(argv)
     Q_UNUSED(argc)
-    auto console = new FOEDAG::TclConsoleWidget{
-        interp, std::make_unique<FOEDAG::TclConsole>(interp, std::cout),
-        new FOEDAG::StreamBuffer};
-    console->show();
-    return 0;
+    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
+    QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
+                  console->getPrompt();
+    CHECK_EXPECTED("pwd", res)
+    return TCL_OK;
   };
-  session->TclInterp()->registerCmd("console_open", console_open,
+  session->TclInterp()->registerCmd("console_pwd", console_pwd,
+                                    GlobalSession->TclInterp(), nullptr);
+
+  auto console_proc = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Q_UNUSED(clientData)
+    if (argc < 2) return TCL_ERROR;
+    QDir path{argv[1]};
+    QString fileName{"gui_console_proc.tcl"};
+    if (!path.exists(fileName)) return TCL_ERROR;
+    QString fullPath = path.filePath(fileName);
+    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
+    QString res = console->getPrompt() + "source " + fullPath +
+                  "\nHello world\n" + console->getPrompt();
+    CHECK_EXPECTED("source " + fullPath, res)
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("console_proc", console_proc,
+                                    GlobalSession->TclInterp(), nullptr);
+
+  auto console_multiline = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    Q_UNUSED(clientData)
+    Q_UNUSED(argv)
+    Q_UNUSED(argc)
+    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
+    QString res = console->getPrompt() + "proc test {} {\nputs test\n}\n" +
+                  "test\n" + console->getPrompt();
+    CHECK_EXPECTED("proc test {} {\nputs test\n}\ntest", res)
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("console_multiline", console_multiline,
                                     GlobalSession->TclInterp(), nullptr);
 }
 
