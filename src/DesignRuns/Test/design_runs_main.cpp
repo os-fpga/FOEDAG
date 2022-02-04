@@ -28,16 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(interp);
-  if (cmd->Argc() > 2) {
-    return new FOEDAG::RunsForm(cmd->Argv()[2]);
-  } else {
-    return new FOEDAG::RunsForm("/testproject");
-  }
-}
-
 void registerDesignRunsCommands(FOEDAG::Session* session) {
   auto design_runs_show = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -68,15 +58,7 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerDesignRunsCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, DesignRunsBuilder, registerDesignRunsCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, FOEDAG::GUI_TYPE::GT_DESIGN_RUNS, registerDesignRunsCommands);
+  return foedag->init(cmd->WithQt());
 }

@@ -34,7 +34,9 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QGuiApplication>
 #include <QLabel>
+#include <QQmlApplicationEngine>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -42,13 +44,29 @@ extern "C" {
 
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Console/StreamBuffer.h"
+#include "Console/TclConsole.h"
+#include "Console/TclConsoleBuilder.h"
+#include "Console/TclConsoleWidget.h"
+#include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewFile/new_file.h"
+#include "NewProject/new_project_dialog.h"
+#include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"
+#include "TextEditor/text_editor.h"
 #include "qttclnotifier.hpp"
 
 using namespace FOEDAG;
+
+bool Foedag::init(bool initWithGui) {
+  if (initWithGui)
+    return initGui();
+  else
+    return initBatch();
+}
 
 bool Foedag::initGui() {
   // Gui mode
@@ -57,12 +75,74 @@ bool Foedag::initGui() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  QQmlApplicationEngine engine;
+
+  switch (m_guiType) {
+    case GUI_TYPE::GT_NONE:
+      break;
+
+    case GUI_TYPE::GT_MAIN_WINDOW: {
+      engine.addImportPath(QStringLiteral("qrc:/"));
+      const QUrl url(QStringLiteral("qrc:/main_window.qml"));
+      QObject::connect(
+          &engine, &QQmlApplicationEngine::objectCreated, &app,
+          [url](QObject* obj, const QUrl& objUrl) {
+            if (!obj && url == objUrl) QCoreApplication::exit(-1);
+          },
+          Qt::QueuedConnection);
+      engine.load(url);
+      break;
+    }
+    case GUI_TYPE::GT_NEW_FILE:       // fall-through
+    case GUI_TYPE::GT_DESIGN_RUNS:    // fall-through
+    case GUI_TYPE::GT_TEXT_EDITOR:    // fall-through
+    case GUI_TYPE::GT_PRO_NAVIGATOR:  // fall-through
+    case GUI_TYPE::GT_NEW_PROJECT:    // fall-through
+    case GUI_TYPE::GT_TCL_CONSOLE: {
+      break;
+    }
+  }
+
   QWidget* mainWin = nullptr;
-  if (m_mainWinBuilder) {
-    mainWin = m_mainWinBuilder(m_cmdLine, interpreter);
+  switch (m_guiType) {
+    case GUI_TYPE::GT_NONE:
+      break;
+    case GUI_TYPE::GT_MAIN_WINDOW:
+      mainWin = new FOEDAG::MainWindow(interpreter);
+      break;
+    case GUI_TYPE::GT_NEW_FILE:
+      mainWin = new FOEDAG::NewFile();
+      break;
+    case GUI_TYPE::GT_DESIGN_RUNS: {
+      if (argc > 2)
+        mainWin = new FOEDAG::RunsForm(m_cmdLine->Argv()[2]);
+      else
+        mainWin = new FOEDAG::RunsForm("/testproject");
+      break;
+    }
+    case GUI_TYPE::GT_TEXT_EDITOR:
+      mainWin = new FOEDAG::TextEditor();
+      break;
+    case GUI_TYPE::GT_PRO_NAVIGATOR: {
+      if (argc > 2)
+        mainWin = new FOEDAG::SourcesForm(m_cmdLine->Argv()[2]);
+      else
+        mainWin = new FOEDAG::SourcesForm("/testproject");
+      break;
+    }
+    case GUI_TYPE::GT_NEW_PROJECT:
+      mainWin = new FOEDAG::newProjectDialog();
+      break;
+    case GUI_TYPE::GT_TCL_CONSOLE:
+      mainWin = new TclConsoleWidget{
+          interpreter->getInterp(),
+          std::make_unique<TclConsole>(interpreter->getInterp(), std::cout),
+          new StreamBuffer};
+      break;
   }
   GlobalSession =
       new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine);
+  GlobalSession->setGuiType(m_guiType);
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(GlobalSession);

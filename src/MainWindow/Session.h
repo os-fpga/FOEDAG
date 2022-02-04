@@ -36,6 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+enum class GUI_TYPE;
+
 class Session {
  private:
  public:
@@ -52,12 +54,17 @@ class Session {
   TclInterpreter *TclInterp() { return m_interp; }
   CommandStack *CmdStack() { return m_stack; }
   CommandLine *CmdLine() { return m_cmdLine; }
+  void mainWindowShow();
+  void mainWindowHide();
+
+  void setGuiType(GUI_TYPE newGuiType);
 
  private:
   QWidget *m_mainWindow;
   TclInterpreter *m_interp;
   CommandStack *m_stack;
   CommandLine *m_cmdLine;
+  GUI_TYPE m_guiType;
 };
 
 }  // namespace FOEDAG

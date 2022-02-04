@@ -28,13 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FOEDAG::Session* GlobalSession;
 
-QWidget* newFileBuilder(FOEDAG::CommandLine* cmd,
-                        FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(cmd);
-  Q_UNUSED(interp);
-  return new FOEDAG::NewFile();
-}
-
 void registerNewFileCommands(FOEDAG::Session* session) {
   auto newfileshow = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -81,15 +74,7 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerNewFileCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, newFileBuilder, registerNewFileCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, FOEDAG::GUI_TYPE::GT_NEW_FILE, registerNewFileCommands);
+  return foedag->init(cmd->WithQt());
 }
