@@ -24,13 +24,13 @@
             ]
         },
         {
-            "name": "(gdb) Console",
+            "name": "(gdb) Console test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dbuild/bin/console",
-            "args": [],
+            "program": "${workspaceFolder}/dbuild/bin/console_test",
+            "args": ["--replay", "tests/TestGui/gui_console.tcl"],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
