@@ -46,7 +46,7 @@ void sendCommand(const QString& command, QObject* receiver) {
       new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
 }
 
-TclConsoleWidget* Init(Tcl_Interp* interp) {
+TclConsoleWidget* InitConsole(Tcl_Interp* interp) {
   TclConsoleWidget* console{nullptr};
   StreamBuffer* buffer = new StreamBuffer;
   QWidget* w = createConsole(

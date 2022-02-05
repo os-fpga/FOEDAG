@@ -17,7 +17,12 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-proc my {} {
-puts "Hello world"
+proc my1 {} {
+puts "Hello world1"
 }
-my
+
+proc my2 {} {
+my1
+puts "Hello world2"
+}
+my2

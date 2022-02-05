@@ -38,7 +38,7 @@ void registerExampleCommands(FOEDAG::Session* session) {
     Q_UNUSED(clientData)
     Q_UNUSED(argv)
     Q_UNUSED(argc)
-    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
+    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
     QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
                   console->getPrompt();
     CHECK_EXPECTED("pwd", res)
@@ -51,14 +51,12 @@ void registerExampleCommands(FOEDAG::Session* session) {
                          const char* argv[]) -> int {
     Q_UNUSED(clientData)
     if (argc < 2) return TCL_ERROR;
-    QDir path{argv[1]};
-    QString fileName{"gui_console_proc.tcl"};
-    if (!path.exists(fileName)) return TCL_ERROR;
-    QString fullPath = path.filePath(fileName);
-    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
-    QString res = console->getPrompt() + "source " + fullPath +
-                  "\nHello world\n" + console->getPrompt();
-    CHECK_EXPECTED("source " + fullPath, res)
+    QFile file(argv[1]);
+    QString expected(argv[2]);
+    if (!file.exists()) return TCL_ERROR;
+    QString fullPath = file.fileName();
+    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
+    CHECK_EXPECTED("source " + fullPath, expected)
     return TCL_OK;
   };
   session->TclInterp()->registerCmd("console_proc", console_proc,
@@ -69,7 +67,7 @@ void registerExampleCommands(FOEDAG::Session* session) {
     Q_UNUSED(clientData)
     Q_UNUSED(argv)
     Q_UNUSED(argc)
-    FOEDAG::TclConsoleWidget* console = FOEDAG::Init(interp);
+    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
     QString res = console->getPrompt() + "proc test {} {\nputs test\n}\n" +
                   "test\n" + console->getPrompt();
     CHECK_EXPECTED("proc test {} {\nputs test\n}\ntest", res)
