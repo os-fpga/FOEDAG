@@ -25,4 +25,4 @@ proc my2 {} {
 my1
 puts "Hello world2"
 }
-my22
+my2
