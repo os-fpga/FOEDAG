@@ -72,7 +72,7 @@ void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
 std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
   std::string testHarness = R"(
   proc test_harness { gui_script } {
-    global CONT
+    global CONT errorInfo
     set fid [open $gui_script]
     set content [read $fid]
     close $fid
@@ -90,7 +90,8 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
             if {$line == ""} {
                 continue
             }
-            after $time $line process_qt_events
+            after $time $line 
+            after $time process_qt_events
             
             set time [expr $time + 500]
         }
@@ -108,6 +109,10 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
         set a 0
         after 10 set a 1
         vwait a
+        if {$errorInfo != ""} {
+          puts $errorInfo
+          exit 1
+        }
     }
     puts TEST_LOOP_EXITED
     flush stdout

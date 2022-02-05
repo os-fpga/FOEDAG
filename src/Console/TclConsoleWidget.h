@@ -59,7 +59,7 @@ class TclConsoleWidget : public QConsole {
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;
-  State m_state;
+  State m_state = State::IDLE;
 
   bool m_linkActivated{false};
 };

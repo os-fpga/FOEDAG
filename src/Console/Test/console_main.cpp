@@ -50,10 +50,20 @@ void registerExampleCommands(FOEDAG::Session* session) {
   auto console_proc = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Q_UNUSED(clientData)
-    if (argc < 2) return TCL_ERROR;
+    if (argc < 3) {
+      Tcl_Eval(interp, "error \"ERROR: Invalid arg number for console_proc\"");
+      return TCL_ERROR;
+    }
     QFile file(argv[1]);
     QString expected(argv[2]);
-    if (!file.exists()) return TCL_ERROR;
+    if (!file.exists()) {
+      Tcl_Eval(
+          interp,
+          std::string(std::string("error \"ERROR: File does not exit: \"") +
+                      argv[2])
+              .c_str());
+      return TCL_ERROR;
+    }
     QString fullPath = file.fileName();
     FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
     CHECK_EXPECTED("source " + fullPath, expected)
