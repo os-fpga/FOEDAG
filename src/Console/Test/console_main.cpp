@@ -15,13 +15,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <QApplication>
-#include <QDir>
 #include <thread>
 
-#include "ConsoleTestUtils.h"
 #include "Main/Foedag.h"
-
-FOEDAG::Session* GlobalSession;
+#include "TestingUtils.h"
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
@@ -33,58 +30,7 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  auto console_pwd = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
-    Q_UNUSED(clientData)
-    Q_UNUSED(argv)
-    Q_UNUSED(argc)
-    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
-    QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
-                  console->getPrompt();
-    CHECK_EXPECTED("pwd", res)
-    return TCL_OK;
-  };
-  session->TclInterp()->registerCmd("console_pwd", console_pwd,
-                                    GlobalSession->TclInterp(), nullptr);
-
-  auto console_proc = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    Q_UNUSED(clientData)
-    if (argc < 3) {
-      Tcl_Eval(interp, "error \"ERROR: Invalid arg number for console_proc\"");
-      return TCL_ERROR;
-    }
-    QFile file(argv[1]);
-    QString expected(argv[2]);
-    if (!file.exists()) {
-      Tcl_Eval(
-          interp,
-          std::string(std::string("error \"ERROR: File does not exit: \"") +
-                      argv[2])
-              .c_str());
-      return TCL_ERROR;
-    }
-    QString fullPath = file.fileName();
-    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
-    CHECK_EXPECTED("source " + fullPath, expected)
-    return TCL_OK;
-  };
-  session->TclInterp()->registerCmd("console_proc", console_proc,
-                                    GlobalSession->TclInterp(), nullptr);
-
-  auto console_multiline = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
-    Q_UNUSED(clientData)
-    Q_UNUSED(argv)
-    Q_UNUSED(argc)
-    FOEDAG::TclConsoleWidget* console = FOEDAG::InitConsole(interp);
-    QString res = console->getPrompt() + "proc test {} {\nputs test\n}\n" +
-                  "test\n" + console->getPrompt();
-    CHECK_EXPECTED("proc test {} {\nputs test\n}\ntest", res)
-    return TCL_OK;
-  };
-  session->TclInterp()->registerCmd("console_multiline", console_multiline,
-                                    GlobalSession->TclInterp(), nullptr);
+  FOEDAG::testing::test::initTests();
 }
 
 int main(int argc, char** argv) {

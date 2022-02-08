@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QKeyEvent>
 
+#include "Main/Foedag.h"
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
@@ -30,31 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-void sendCommand(const QString& command, QObject* receiver) {
-  for (auto ch : command) {
-    if (ch == '\n')
-      QApplication::postEvent(
-          receiver,
-          new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
-    else
-      QApplication::postEvent(
-          receiver,
-          new QKeyEvent(QEvent::KeyPress, Qt::Key_A, Qt::NoModifier, ch));
-  }
-  QApplication::postEvent(
-      receiver,
-      new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
-}
-
-TclConsoleWidget* InitConsole(Tcl_Interp* interp) {
-  TclConsoleWidget* console{nullptr};
-  StreamBuffer* buffer = new StreamBuffer;
-  QWidget* w = createConsole(
-      interp, std::make_unique<TclConsole>(interp, buffer->getStream()), buffer,
-      nullptr, &console);
-  w->show();
-  return console;
-}
+void sendCommand(const QString& command, QObject* receiver);
+TclConsoleWidget* InitConsole(Tcl_Interp* interp);
 
 class StateCheck : public QObject {
   QString m_text;
