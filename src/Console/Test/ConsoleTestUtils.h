@@ -44,6 +44,7 @@ class StateCheck : public QObject {
     connect(console, &FOEDAG::TclConsoleWidget::stateChanged, this,
             &StateCheck::stateChanged);
   }
+
  public slots:
   void stateChanged(FOEDAG::State st) {
     if (st == FOEDAG::State::IDLE) {

@@ -25,19 +25,36 @@ namespace FOEDAG {
 
 namespace testing {
 
+#define DISABLE_COPY_AND_ASSIGN(className)          \
+ private:                                           \
+  className() = default;                            \
+  className(const className &) = delete;            \
+  className(className &&) = delete;                 \
+  className &operator=(const className &) = delete; \
+  className &operator=(className &&) = delete;
+
 class test {
  public:
-  test();
-  test(const test &copy) = delete;
+  test(const char *name);
   virtual int testing(void *clientData, Tcl_Interp *interp, int argc,
                       const char *argv[]) = 0;
-  QString name() const;
-  static void initTests();
+  const char *name() const;
+  static void runAllTests(Session *session);
 
  protected:
-  QString m_name;
-  static std::vector<test *> registeredTests;
+  const char *m_name;
+  DISABLE_COPY_AND_ASSIGN(test)
 };
+
+class TestRunner {
+ public:
+  static TestRunner &instance();
+  std::vector<test *> registeredTests;
+
+  DISABLE_COPY_AND_ASSIGN(TestRunner)
+};
+
+void initTesting();
 
 #define TEST_NAME(name) TEST_##name
 #define NAME_TO_STRING(n) #n
@@ -45,7 +62,7 @@ class test {
 #define TCL_TEST(name)                                                         \
   class TEST_NAME(name) : public FOEDAG::testing::test {                       \
    public:                                                                     \
-    TEST_NAME(name)() : test() { m_name = NAME_TO_STRING(name); }              \
+    TEST_NAME(name)() : test(NAME_TO_STRING(name)) {}                          \
     int testing(void *clientData, Tcl_Interp *interp, int argc,                \
                 const char *argv[]) override;                                  \
     static TEST_NAME(name) * instance;                                         \
