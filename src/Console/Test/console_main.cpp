@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "TestingUtils.h"
 
+FOEDAG::Session* GlobalSession;
+
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(cmd)
@@ -30,10 +32,11 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  FOEDAG::testing::test::initTests();
+  FOEDAG::testing::test::runAllTests(GlobalSession);
 }
 
 int main(int argc, char** argv) {
+  FOEDAG::testing::initTesting();
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 

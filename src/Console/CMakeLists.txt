@@ -94,7 +94,6 @@ set(CMAKE_CXX_FLAGS_DEBUG
 "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
 
 add_library(console_testing_lib STATIC
-  ${PROJECT_SOURCE_DIR}/../Console/Test/console_test.cpp
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.h
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.cpp
   ${PROJECT_SOURCE_DIR}/../Console/Test/TestingUtils.h
@@ -103,7 +102,8 @@ add_library(console_testing_lib STATIC
 target_link_libraries(console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
 
 add_executable(console_test
-  ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp)
+  ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp
+  ${PROJECT_SOURCE_DIR}/../Console/Test/console_test.cpp)
 target_link_libraries(console_test console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
 set_target_properties(console_test PROPERTIES OUTPUT_NAME console_test)
 

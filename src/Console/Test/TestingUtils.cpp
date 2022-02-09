@@ -23,16 +23,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG::testing {
 
-std::vector<test *> test::registeredTests;
-test::test() { registeredTests.push_back(this); }
+test::test(const char *name) : m_name(name) {
+  TestRunner::instance().registeredTests.push_back(this);
+}
 
-QString test::name() const { return m_name; }
+const char *test::name() const { return m_name; }
 
-void FOEDAG::testing::test::initTests() {
-  auto session = GlobalSession;
-  for (auto test : registeredTests) {
-    INIT_TEST(test->name().toStdString(), test);
+void FOEDAG::testing::test::runAllTests(Session *session) {
+  for (auto test : TestRunner::instance().registeredTests) {
+    INIT_TEST(test->name(), test);
   }
 }
+
+TestRunner &TestRunner::instance() {
+  static TestRunner runner;
+  return runner;
+}
+
+void initTesting() { TestRunner::instance(); }
 
 }  // namespace FOEDAG::testing

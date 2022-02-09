@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TestingUtils.h"
 
-FOEDAG::Session *GlobalSession;
-
 TCL_TEST(console_pwd) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
   QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
