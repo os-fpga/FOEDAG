@@ -38,6 +38,8 @@ class CommandLine {
 
   bool WithQt() const { return m_withQt; }
 
+  bool WithQml() const { return m_withQml; }
+
   const std::vector<std::string>& Args() const { return m_args; }
 
   const std::string& GuiTestScript() const { return m_runGuiTest; }
@@ -57,6 +59,7 @@ class CommandLine {
   char** m_argv = nullptr;
   std::vector<std::string> m_args;
   bool m_withQt = true;
+  bool m_withQml = false;
   std::string m_runScript;
   std::string m_runGuiTest;
   std::string m_runTclCmd;

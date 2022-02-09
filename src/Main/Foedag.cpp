@@ -34,7 +34,9 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QGuiApplication>
 #include <QLabel>
+#include <QQmlApplicationEngine>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -51,7 +53,7 @@ extern "C" {
 using namespace FOEDAG;
 
 bool Foedag::initGui() {
-  // Gui mode
+  // Gui mode with Qt Widgets
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
   FOEDAG::TclInterpreter* interpreter =
@@ -102,6 +104,81 @@ bool Foedag::initGui() {
 
   delete GlobalSession;
   return 0;
+}
+
+bool Foedag::initQmlGui() {
+  // Gui mode with QML
+  int argc = m_cmdLine->Argc();
+  QApplication app(argc, m_cmdLine->Argv());
+  FOEDAG::TclInterpreter* interpreter =
+      new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
+  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+
+  QQmlApplicationEngine engine;
+  engine.addImportPath(QStringLiteral("qrc:/"));
+  const QUrl url(QStringLiteral("qrc:/mainWindow.qml"));
+  QObject::connect(
+      &engine, &QQmlApplicationEngine::objectCreated, &app,
+      [url](QObject* obj, const QUrl& objUrl) {
+        if (!obj && url == objUrl) QCoreApplication::exit(-1);
+      },
+      Qt::QueuedConnection);
+  engine.load(url);
+
+  GlobalSession =
+      new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine);
+  registerBasicGuiCommands(GlobalSession);
+  if (m_registerTclFunc) {
+    m_registerTclFunc(GlobalSession);
+  }
+
+  QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
+
+  // Tell Tcl to run Qt as the main event loop once the interpreter is
+  // initialized
+  Tcl_SetMainLoop([]() { QApplication::exec(); });
+
+  // --replay <script> Gui replay, register test
+  if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
+    interpreter->evalGuiTestFile(GlobalSession->CmdLine()->GuiTestScript());
+  }
+
+  // Tcl_AppInit
+  auto tcl_init = [](Tcl_Interp* interp) -> int {
+    // --script <script>
+    if (!GlobalSession->CmdLine()->Script().empty()) {
+      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+    }
+    // --cmd \"tcl cmd\"
+    if (!GlobalSession->CmdLine()->TclCmd().empty()) {
+      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+    }
+    // --replay <script> Gui replay, invoke test
+    if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
+      std::string proc = "call_test";
+      Tcl_EvalEx(interp, proc.c_str(), -1, 0);
+    }
+    return 0;
+  };
+
+  // Start Loop
+  Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
+
+  delete GlobalSession;
+  return 0;
+}
+
+bool Foedag::init(GUI_TYPE guiType) {
+  switch (guiType) {
+    case GUI_TYPE::GT_NONE:
+      return initBatch();
+    case GUI_TYPE::GT_WIDGET:
+      return initGui();
+    case GUI_TYPE::GT_QML:
+      return initQmlGui();
+    default:
+      return false;
+  }
 }
 
 bool Foedag::initBatch() {

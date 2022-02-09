@@ -46,6 +46,8 @@ void CommandLine::processArgs() {
     std::string token(m_argv[i]);
     if (token == "--noqt") {
       m_withQt = false;
+    } else if (token == "--qml") {
+      m_withQml = true;
     } else if (token == "--replay") {
       i++;
       m_runGuiTest = m_argv[i];

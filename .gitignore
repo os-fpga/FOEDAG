@@ -32,6 +32,7 @@ dbuild/
 
 message.txt
 deploy_key
+CMakeLists.txt.user
 
 # third party build files
 third_party/zlib/*.lo
