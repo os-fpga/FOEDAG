@@ -55,7 +55,7 @@ TCL_TEST(console_proc) {
 TCL_TEST(console_multiline) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
   QString script =
-R"("
+      R"("
 proc test {} {
   puts test
 } 
