@@ -54,8 +54,14 @@ TCL_TEST(console_proc) {
 
 TCL_TEST(console_multiline) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
-  QString res = console->getPrompt() + "proc test {} {\nputs test\n}\n" +
-                "test\n" + console->getPrompt();
-  CHECK_EXPECTED("proc test {} {\nputs test\n}\ntest", res)
+  QString script =
+      R"("
+proc test {} {
+  puts test
+} 
+test
+")";
+  QString res = console->getPrompt() + script + console->getPrompt();
+  CHECK_EXPECTED(script, res)
   return TCL_OK;
 }
