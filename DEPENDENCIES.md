@@ -2,6 +2,7 @@
 
 ```
    sudo apt-get install qt5-default g++-9 \
+      libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
       build-essential \
@@ -19,6 +20,7 @@
 
 ```
    sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
+      libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
       build-essential \
@@ -36,6 +38,7 @@
 
 ```
    sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
+      libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
       build-essential \
@@ -47,6 +50,25 @@
       valgrind \
       xorg \
       xvfb
+```
+
+#### Ubuntu 21.10
+
+```
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
+      libkf5qqc2desktopstyle-dev \
+      tclsh \
+      cmake \
+      build-essential \
+      swig \
+      google-perftools \
+      libgoogle-perftools-dev \
+      uuid-dev \
+      lcov \
+      valgrind \
+      xorg \
+      xvfb \
+      autoconf
 ```
    
 #### AlmaLinux 8.4
