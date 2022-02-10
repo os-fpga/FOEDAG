@@ -141,7 +141,7 @@ jobs:
     - name: Install dependencies
       run: |
         yum install -y centos-release-scl
-        yum install -y g++-9 
+        yum install -y gcc-c++
         yum install -y tclsh 
         yum install -y cmake 
         yum install -y build-essential 
