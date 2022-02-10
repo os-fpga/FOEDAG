@@ -38,9 +38,6 @@ void sendCommand(const QString &command, QObject *receiver) {
           receiver,
           new QKeyEvent(QEvent::KeyPress, Qt::Key_A, Qt::NoModifier, ch));
   }
-  QApplication::postEvent(
-      receiver,
-      new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
 }
 
 TclConsoleWidget *InitConsole(void *clientData) {
@@ -48,6 +45,19 @@ TclConsoleWidget *InitConsole(void *clientData) {
       static_cast<FOEDAG::TclConsoleWidget *>(clientData);
   console->clearText();
   return console;
+}
+
+StateCheck::~StateCheck() {
+  if (!m_pass) {
+    testFail(
+        "FAILED\nSomething goes wrong with events. We haven't received console "
+        "IDLE state.");
+  }
+}
+
+void StateCheck::testFail(const QString &message) {
+  if (!message.isEmpty()) qDebug().noquote() << message;
+  ::exit(1);
 }
 
 }  // namespace FOEDAG

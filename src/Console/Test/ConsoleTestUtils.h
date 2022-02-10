@@ -40,6 +40,7 @@ class StateCheck : public QObject {
   Q_OBJECT
   QString m_text;
   TclConsoleWidget* m_console;
+  bool m_pass{false};
 
  public:
   StateCheck(const QString& textToCheck, FOEDAG::TclConsoleWidget* console)
@@ -49,6 +50,7 @@ class StateCheck : public QObject {
     connect(this, &StateCheck::check, this, &StateCheck::stateChanged,
             Qt::QueuedConnection);
   }
+  ~StateCheck();
 
   /*!
    * \brief checkStateQueue. Put into the queue cheching console state
@@ -66,15 +68,19 @@ class StateCheck : public QObject {
         qDebug() << "FAILED";
         qDebug() << "Expected: " << m_text;
         qDebug() << "Actual:   " << consoleText;
-        exit(1);
+        testFail("");
       } else {
         qDebug() << "SUCCESS";
+        m_pass = true;
 
         // it is important to disconnect everything
         deleteLater();
       }
     }
   }
+
+ private:
+  void testFail(const QString& message);
 };
 
 #define CHECK_EXPECTED(cmd, expectedOut)                                    \

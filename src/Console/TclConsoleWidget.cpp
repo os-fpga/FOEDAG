@@ -60,7 +60,7 @@ QStringList TclConsoleWidget::suggestCommand(const QString &cmd,
 
 bool TclConsoleWidget::isCommandComplete(const QString &command) {
   if (isMultiLine()) {
-    const bool complete = command.endsWith('}');
+    const bool complete = hasCloseBracket(command);
     if (complete) setMultiLine(false);
     return complete;
   } else {
@@ -198,6 +198,12 @@ bool TclConsoleWidget::hasOpenBracket(const QString &str) const {
     }
   }
   return !stack.isEmpty();
+}
+
+bool TclConsoleWidget::hasCloseBracket(const QString &str) const {
+  for (auto iter = str.crbegin(); iter != str.crend(); iter++)
+    if (*iter == QChar{'}'}) return true;
+  return false;
 }
 
 State TclConsoleWidget::state() const { return m_state; }
