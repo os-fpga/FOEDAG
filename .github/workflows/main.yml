@@ -148,7 +148,6 @@ jobs:
         yum install -y google-perftools
         yum install -y gperftools gperftools-devel
         yum install -y uuid-devel
-        yum install -y lcov 
         yum install -y valgrind 
         yum install -y xorg-x11-server-Xorg xorg-x11-xauth xorg-x11-apps 
         yum install -y xorg-x11-server-Xvfb
