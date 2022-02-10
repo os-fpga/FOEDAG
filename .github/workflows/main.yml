@@ -145,8 +145,8 @@ jobs:
         yum install -y tcl
         yum install -y cmake 
         yum install -y swig 
-        yum install -y google-perftools 
-        yum install -y libgoogle-perftools-dev 
+        yum install -y google-perftools
+        yum install -y gperftools gperftools-devel
         yum install -y uuid-dev 
         yum install -y lcov 
         yum install -y valgrind 
