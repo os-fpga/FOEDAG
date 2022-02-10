@@ -141,6 +141,19 @@ jobs:
     - name: Install dependencies
       run: |
         yum install -y centos-release-scl
+        yum install -y g++-9 
+        yum install -y tclsh 
+        yum install -y cmake 
+        yum install -y build-essential 
+        yum install -y swig 
+        yum install -y google-perftools 
+        yum install -y libgoogle-perftools-dev 
+        yum install -y uuid-dev 
+        yum install -y lcov 
+        yum install -y valgrind 
+        yum install -y xorg 
+        yum install -y qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev 
+        yum install -y xvfb
 
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
