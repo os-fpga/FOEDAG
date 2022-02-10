@@ -142,7 +142,7 @@ jobs:
       run: |
         yum install -y centos-release-scl
         yum install -y devtoolset-9-toolchain
-        yum install -y tclsh 
+        yum install -y tcl
         yum install -y cmake 
         yum install -y build-essential 
         yum install -y swig 
