@@ -126,7 +126,17 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: centos:7
+      
+    steps:
 
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.9.1
+      with:
+        access_token: ${{ github.token }}
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
