@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 #include <QKeyEvent>
+#include <QMetaType>
 
 #include "Main/Foedag.h"
 #include "StreamBuffer.h"
@@ -33,8 +34,10 @@ namespace FOEDAG {
 
 void sendCommand(const QString& command, QObject* receiver);
 TclConsoleWidget* InitConsole(Tcl_Interp* interp);
+static const QChar controlC{0x3};
 
 class StateCheck : public QObject {
+  Q_OBJECT
   QString m_text;
   TclConsoleWidget* m_console;
 
@@ -43,7 +46,17 @@ class StateCheck : public QObject {
       : m_text(textToCheck), m_console(console) {
     connect(console, &FOEDAG::TclConsoleWidget::stateChanged, this,
             &StateCheck::stateChanged);
+    connect(this, &StateCheck::check, this, &StateCheck::stateChanged,
+            Qt::QueuedConnection);
   }
+
+  /*!
+   * \brief checkStateQueue. Put into the queue cheching console state
+   */
+  void checkStateQueue() { emit check(FOEDAG::State::IDLE); }
+
+ signals:
+  void check(FOEDAG::State);
 
  public slots:
   void stateChanged(FOEDAG::State st) {
@@ -66,4 +79,10 @@ class StateCheck : public QObject {
   Q_UNUSED(check)                                                           \
   sendCommand(cmd, console);
 
+#define CHECK_EXPECTED_NOW(cmd, expectedOut)                                \
+  FOEDAG::StateCheck* check = new FOEDAG::StateCheck{expectedOut, console}; \
+  sendCommand(cmd, console);                                                \
+  check->checkStateQueue();
+
 }  // namespace FOEDAG
+Q_DECLARE_METATYPE(FOEDAG::State);
