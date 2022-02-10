@@ -138,16 +138,9 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
     - name: Install dependencies
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
-
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
