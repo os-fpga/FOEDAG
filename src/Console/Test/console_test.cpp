@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <QDir>
 
+#include "ConsoleTestUtils.h"
 #include "TestingUtils.h"
 
 TCL_TEST(console_pwd) {

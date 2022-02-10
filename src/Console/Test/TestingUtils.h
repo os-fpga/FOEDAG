@@ -19,11 +19,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include "ConsoleTestUtils.h"
 
-namespace FOEDAG {
+extern "C" {
+#include <tcl.h>
+}
+#include <vector>
 
-namespace testing {
+namespace FOEDAG::testing {
 
 #define DISABLE_COPY_AND_ASSIGN(className)          \
  private:                                           \
@@ -36,10 +38,13 @@ namespace testing {
 class test {
  public:
   test(const char *name);
-  virtual int testing(void *clientData, Tcl_Interp *interp, int argc,
+  virtual int runTest(void *clientData, Tcl_Interp *interp, int argc,
                       const char *argv[]) = 0;
   const char *name() const;
-  static void runAllTests(Session *session);
+  static void runAllTests(Tcl_Interp *interp, void *clientData = nullptr);
+
+ public:
+  void *clientData;
 
  protected:
   const char *m_name;
@@ -63,23 +68,19 @@ void initTesting();
   class TEST_NAME(name) : public FOEDAG::testing::test {                       \
    public:                                                                     \
     TEST_NAME(name)() : test(NAME_TO_STRING(name)) {}                          \
-    int testing(void *clientData, Tcl_Interp *interp, int argc,                \
+    int runTest(void *clientData, Tcl_Interp *interp, int argc,                \
                 const char *argv[]) override;                                  \
     static TEST_NAME(name) * instance;                                         \
   };                                                                           \
   TEST_NAME(name) * TEST_NAME(name)::instance = new TEST_NAME(name)();         \
-  int TEST_NAME(name)::testing(void *clientData, Tcl_Interp *interp, int argc, \
+  int TEST_NAME(name)::runTest(void *clientData, Tcl_Interp *interp, int argc, \
                                const char *argv[])
 
-#define INIT_TEST(name, testPtr)                                   \
-  auto lambda = [](void *clientData, Tcl_Interp *interp, int argc, \
-                   const char *argv[]) -> int {                    \
-    FOEDAG::testing::test *t =                                     \
-        static_cast<FOEDAG::testing::test *>(clientData);          \
-    return t->testing(clientData, interp, argc, argv);             \
-  };                                                               \
-  session->TclInterp()->registerCmd(name, lambda, testPtr, nullptr);
+namespace internal {
 
-}  // namespace testing
+void INIT_TEST(const char *name, test *testPtr, Tcl_Interp *interpreter,
+               void *clientDataPtr);
 
-}  // namespace FOEDAG
+}  // namespace internal
+
+}  // namespace FOEDAG::testing

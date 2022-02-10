@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <thread>
 
+#include "ConsoleTestUtils.h"
 #include "Main/Foedag.h"
 #include "TestingUtils.h"
 
@@ -32,7 +33,7 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  FOEDAG::testing::test::runAllTests(GlobalSession);
+  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp());
 }
 
 int main(int argc, char** argv) {
