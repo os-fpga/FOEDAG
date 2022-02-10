@@ -10,3 +10,5 @@ Getting Started
    dependencies
 
    build_instructions
+
+   git_flow
