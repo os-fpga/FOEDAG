@@ -119,6 +119,45 @@ jobs:
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
 
+# Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
+  centos-gcc:
+    name: CentOS 7
+
+    runs-on: ubuntu-latest
+    container:
+      image: centos:7
+      
+    steps:
+
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.9.1
+      with:
+        access_token: ${{ github.token }}
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        yum install -y centos-release-scl
+        yum install -y devtoolset-9-toolchain
+        yum install -y tcl
+        yum install -y cmake 
+        yum install -y swig 
+        yum install -y google-perftools
+        yum install -y gperftools gperftools-devel
+        yum install -y uuid-devel
+        yum install -y valgrind 
+        yum install -y xorg-x11-server-Xorg xorg-x11-xauth xorg-x11-apps 
+        yum install -y xorg-x11-server-Xvfb
+        yum install -y qt5-qtbase
+        yum install -y qt5-qtbase-devel
+        yum install -y qt5-qtscript-devel
+        yum install -y qt5-qtsvg-devel
+        yum install -y qt5-qtdeclarative
+
+
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
     runs-on: windows-latest
