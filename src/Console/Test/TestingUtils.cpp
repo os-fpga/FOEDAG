@@ -29,9 +29,9 @@ test::test(const char *name) : m_name(name) {
 
 const char *test::name() const { return m_name; }
 
-void FOEDAG::testing::test::runAllTests(Session *session) {
+void test::runAllTests(Tcl_Interp *interp, void *clientData) {
   for (auto test : TestRunner::instance().registeredTests) {
-    INIT_TEST(test->name(), test);
+    internal::INIT_TEST(test->name(), test, interp, clientData);
   }
 }
 
@@ -41,5 +41,24 @@ TestRunner &TestRunner::instance() {
 }
 
 void initTesting() { TestRunner::instance(); }
+
+namespace internal {
+
+void INIT_TEST(const char *name, test *testPtr, Tcl_Interp *interpreter,
+               void *clientDataPtr) {
+  auto lambda = [](void *clientData, Tcl_Interp *interp, int argc,
+                   const char *argv[]) -> int {
+    test *t = static_cast<test *>(clientData);
+    if (t)
+      return t->runTest(t->clientData, interp, argc, argv);
+    else
+      return TCL_ERROR;
+  };
+  testPtr->clientData = clientDataPtr;
+  Tcl_CreateCommand(interpreter, name, lambda,
+                    reinterpret_cast<void *>(testPtr), nullptr);
+}
+
+}  // namespace internal
 
 }  // namespace FOEDAG::testing
