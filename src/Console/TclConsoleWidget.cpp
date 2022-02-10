@@ -77,6 +77,7 @@ void TclConsoleWidget::handleSearch() { emit searchEnable(); }
 void TclConsoleWidget::handleTerminateCommand() {
   if (state() == State::IN_PROGRESS)
     if (m_console) m_console->abort();
+  QConsole::handleTerminateCommand();
 }
 
 void TclConsoleWidget::put(const QString &str) {

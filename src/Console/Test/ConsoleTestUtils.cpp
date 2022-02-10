@@ -29,6 +29,10 @@ void sendCommand(const QString &command, QObject *receiver) {
       QApplication::postEvent(
           receiver,
           new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
+    else if (ch == controlC)
+      QApplication::postEvent(
+          receiver,
+          new QKeyEvent(QEvent::KeyPress, Qt::Key_C, Qt::ControlModifier, ch));
     else
       QApplication::postEvent(
           receiver,

@@ -666,6 +666,14 @@ void QConsole::mousePressEvent(QMouseEvent *event) {
   QTextEdit::mousePressEvent(event);
 }
 
+void QConsole::handleTerminateCommand() {
+  if (isMultiLine()) {  // cancel multiline
+    multiLineCommand.clear();
+    setMultiLine(false);
+    displayPrompt();
+  }
+}
+
 // Redefinition of the dropEvent to have a copy paste
 // instead of a cut paste when copying out of the
 // editable zone

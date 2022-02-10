@@ -63,3 +63,15 @@ test
   CHECK_EXPECTED(script, res)
   return TCL_OK;
 }
+
+TCL_TEST(console_cancel) {
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
+  QString command =
+      R"(proc test {} {
+)";
+  QString result = console->getPrompt() + command + console->getPrompt() +
+                   "\n" + console->getPrompt();
+  command += FOEDAG::controlC;
+  CHECK_EXPECTED_NOW(command, result)
+  return TCL_OK;
+}
