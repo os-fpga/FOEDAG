@@ -119,121 +119,14 @@ jobs:
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
 
-# Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
+# Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos-gcc:
-    name: ${{ matrix.mode }}
+    name: CentOS 7
 
     runs-on: ubuntu-latest
-    container: 'centos:latest'
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        mode:
-        - test
-        - regression
-        - coverage
-        - install
-        - valgrind
-    env:
-      MODE: ${{ matrix.mode }}
+    container:
+      image: centos:7
 
-    steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: Install dependencies
-      run: |
-        bash .github/workflows/install_ubuntu_dependencies_build.sh
-
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: linux-${{ matrix.mode }}
-
-    - name: Configure shell
-      run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
-        echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
-        echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
-        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
-
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which swig && swig -version
-        which python && python --version
-        which ninja && ninja --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which $CC && $CC --version
-        which $CXX && $CXX --version
-
-    - name: Test
-      if: matrix.mode == 'test'
-      run: |
-        make debug test/unittest-d
-        make release test/batch
-        make test/gui
-
-    - name: Regression
-      if: matrix.mode == 'regression'
-      run: |
-        make regression
-
-    - name: Coverage
-      if: matrix.mode == 'coverage'
-      run: |
-        make debug coverage-build/foedag.coverage
-
-    - name: Valgrind
-      if: matrix.mode == 'valgrind'
-      run: |
-        make debug
-        make test/valgrind
-
-    - name: Upload coverage
-      # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
-      if: matrix.mode == 'coverage'
-      uses: codecov/codecov-action@v2
-      with:
-        files: coverage-build/foedag.coverage
-        fail_ci_if_error: false
-
-    - name: Install Test
-      if: matrix.mode == 'install'
-      run: |
-        make release
-        make install
-        make clean   # make sure we only see installation artifacts
-        make test_install
-
-    - name: Archive regression artifacts
-      if: matrix.mode == 'regression' && always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: foedag-linux-gcc-regression
-        path: |
-          ${{ github.workspace }}/build/test/
-          ${{ github.workspace }}/build/tests/
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
