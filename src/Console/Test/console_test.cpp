@@ -24,10 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TestingUtils.h"
 
 TCL_TEST(console_pwd) {
-  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
                 console->getPrompt();
-  CHECK_EXPECTED("pwd", res)
+  CHECK_EXPECTED("pwd\n", res)
   return TCL_OK;
 }
 
@@ -46,33 +46,33 @@ TCL_TEST(console_proc) {
     return TCL_ERROR;
   }
   QString fullPath = file.fileName();
-  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
-  CHECK_EXPECTED("source " + fullPath, expected)
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
+  CHECK_EXPECTED("source " + fullPath + "\n", expected)
   return TCL_OK;
 }
 
 TCL_TEST(console_multiline) {
-  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString script =
-      R"("
-proc test {} {
+      R"(proc test {} {
   puts test
 } 
 test
-")";
+)";
   QString res = console->getPrompt() + script + console->getPrompt();
   CHECK_EXPECTED(script, res)
   return TCL_OK;
 }
 
 TCL_TEST(console_cancel) {
-  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(interp);
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString command =
       R"(proc test {} {
 )";
   QString result = console->getPrompt() + command + console->getPrompt() +
                    "\n" + console->getPrompt();
   command += FOEDAG::controlC;
+  command += "\n";
   CHECK_EXPECTED_NOW(command, result)
   return TCL_OK;
 }

@@ -55,6 +55,7 @@ class TclConsoleWidget : public QConsole {
                                 QString &commandFromHist);
 
   bool hasOpenBracket(const QString &str) const;
+  bool hasCloseBracket(const QString &str) const;
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;

@@ -28,15 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class TclConsoleGLobal {
- public:
-  static TclConsoleWidget *tclConsole();
-  static void setTclConsole(TclConsoleWidget *tclConsole);
-
- private:
-  static TclConsoleWidget *m_tclConsole;
-};
-
 QWidget *createConsole(TclInterp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
                        StreamBuffer *buffer, QWidget *parent = nullptr,
