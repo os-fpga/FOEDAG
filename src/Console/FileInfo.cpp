@@ -24,8 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 FileInfo::FileInfo() {}
 
-QString FileInfo::getRefString(const QString &filePath) const {
-  return QString::fromLatin1("<a href=\"%1\">%1</a>").arg(filePath);
+QString FileInfo::getRefString(const QString &filePath) {
+  const QFileInfo fileInfo {filePath};
+  return QString::fromLatin1("<a href=\"%1\">%2</a>").arg(filePath, fileInfo.fileName());
 }
 
 QStringList FileInfo::getFileList(const QString &path,

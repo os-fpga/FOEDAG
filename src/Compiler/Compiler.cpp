@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 #include "Compiler/Compiler.h"
 #include "Compiler/TclInterpreterHandler.h"
@@ -223,8 +224,16 @@ bool Compiler::Compile(Action action) {
 
 bool Compiler::Synthesize() {
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  auto currentPath = std::filesystem::current_path();
+  auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    m_out << i << "%" << std::endl;
+    m_out << i << "%";
+    if (it != std::filesystem::end(it)) {
+      m_out << " File: " << *it << std::endl;
+      it++;
+    } else {
+      m_out << std::endl;
+    }
     std::chrono::milliseconds dura(1000);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;

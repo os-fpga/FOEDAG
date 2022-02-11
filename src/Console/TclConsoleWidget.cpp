@@ -9,6 +9,7 @@
 #include <QTextBlock>
 
 #include "ConsoleDefines.h"
+#include "FileInfo.h"
 #include "StreamBuffer.h"
 
 namespace FOEDAG {
@@ -25,6 +26,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   }
   setPrompt("# ");
   setTabAllowed(false);
+  setMouseTracking(true);
 }
 
 bool TclConsoleWidget::isRunning() const {
@@ -80,6 +82,34 @@ void TclConsoleWidget::handleTerminateCommand() {
   QConsole::handleTerminateCommand();
 }
 
+void TclConsoleWidget::mouseReleaseEvent(QMouseEvent *e) {
+  if (m_linkActivated && m_mouseButtonPressed == Qt::LeftButton)
+    handleLink(e->pos());
+
+  // Mouse was released, activate links again
+  m_linkActivated = true;
+  m_mouseButtonPressed = Qt::NoButton;
+
+  QConsole::mouseReleaseEvent(e);
+}
+
+void TclConsoleWidget::mousePressEvent(QMouseEvent *e) {
+  m_mouseButtonPressed = e->button();
+  QConsole::mousePressEvent(e);
+}
+
+void TclConsoleWidget::mouseMoveEvent(QMouseEvent *e) {
+  // Cursor was dragged to make a selection, deactivate links
+  if (m_mouseButtonPressed != Qt::NoButton && textCursor().hasSelection())
+    m_linkActivated = false;
+
+  if (!m_linkActivated || anchorAt(e->pos()).isEmpty())
+    viewport()->setCursor(Qt::IBeamCursor);
+  else
+    viewport()->setCursor(Qt::PointingHandCursor);
+  QConsole::mouseMoveEvent(e);
+}
+
 void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
     int res = m_console ? m_console->returnCode() : 0;
@@ -99,7 +129,10 @@ void TclConsoleWidget::commandDone() {
   setState(State::IDLE);
 }
 
-void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
+void TclConsoleWidget::handleLink(const QPoint &p) {
+  qDebug() << anchorAt(p);
+  emit linkActivated(anchorAt(p));
+}
 
 void TclConsoleWidget::registerCommands(TclInterp *interp) {
   auto hist = [](ClientData clientData, Tcl_Interp *interp, int argc,
