@@ -26,14 +26,18 @@ FOEDAG::Session* GlobalSession;
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(cmd)
-  return new FOEDAG::TclConsoleWidget{
-      interp->getInterp(),
-      std::make_unique<FOEDAG::TclConsole>(interp->getInterp(), std::cout),
-      new FOEDAG::StreamBuffer};
+  FOEDAG::TclConsoleWidget* console{nullptr};
+  auto buffer = new FOEDAG::StreamBuffer;
+  FOEDAG::createConsole(interp->getInterp(),
+                        std::make_unique<FOEDAG::TclConsole>(
+                            interp->getInterp(), buffer->getStream()),
+                        buffer, nullptr, &console);
+  return console;
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
-  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp());
+  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp(),
+                                     GlobalSession->MainWindow());
 }
 
 int main(int argc, char** argv) {

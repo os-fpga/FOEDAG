@@ -1,9 +1,7 @@
 #include "TclWorker.h"
 
 #include <QDebug>
-#include <QMetaMethod>
-
-#include "TclConsoleBuilder.h"
+#include <iostream>
 
 namespace FOEDAG {
 
@@ -21,25 +19,10 @@ void DriverWatchProc(ClientData instanceData, int mask) {
 
 int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
                      int *errorCodePtr) {
-  Q_UNUSED(instanceData)
   Q_UNUSED(errorCodePtr)
-  static bool done{false};
   Tcl_SetErrno(0);
-  if (!done) {
-    auto console = FOEDAG::TclConsoleGLobal::tclConsole();
-    if (console) {
-      // invoke from another thread.
-      QByteArray normalizedSignature =
-          QMetaObject::normalizedSignature("put(QString)");
-      int methodIndex =
-          console->metaObject()->indexOfMethod(normalizedSignature);
-      QMetaMethod method = console->metaObject()->method(methodIndex);
-      bool ok =
-          method.invoke(console, Qt::QueuedConnection, Q_ARG(QString, buf));
-      if (ok && errorCodePtr) *errorCodePtr = 0;
-    }
-  }
-  done = !done;
+  TclWorker *worker = static_cast<TclWorker *>(instanceData);
+  worker->out() << buf;
   return toWrite;
 }
 
@@ -109,8 +92,7 @@ void TclWorker::init() {
 
   if (!m_channel) {
     m_channel = Tcl_CreateChannel(channelOut, "stdout",
-                                  reinterpret_cast<ClientData>(TCL_STDOUT),
-                                  TCL_WRITABLE);
+                                  static_cast<void *>(this), TCL_WRITABLE);
     if (m_channel) {
       Tcl_SetChannelOption(nullptr, m_channel, "-translation", "lf");
       Tcl_SetChannelOption(nullptr, m_channel, "-buffering", "none");
@@ -123,8 +105,7 @@ void TclWorker::init() {
 
   if (!errConsoleChannel) {
     errConsoleChannel = Tcl_CreateChannel(
-        channelOut, "stderr", reinterpret_cast<ClientData>(TCL_STDERR),
-        TCL_WRITABLE);
+        channelOut, "stderr", static_cast<void *>(this), TCL_WRITABLE);
     if (errConsoleChannel) {
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-translation", "lf");
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-buffering", "none");

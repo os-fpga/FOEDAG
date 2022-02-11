@@ -43,13 +43,10 @@ void sendCommand(const QString &command, QObject *receiver) {
       new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier));
 }
 
-TclConsoleWidget *InitConsole(Tcl_Interp *interp) {
-  TclConsoleWidget *console{nullptr};
-  StreamBuffer *buffer = new StreamBuffer;
-  QWidget *w = createConsole(
-      interp, std::make_unique<TclConsole>(interp, buffer->getStream()), buffer,
-      nullptr, &console);
-  w->show();
+TclConsoleWidget *InitConsole(void *clientData) {
+  FOEDAG::TclConsoleWidget *console =
+      static_cast<FOEDAG::TclConsoleWidget *>(clientData);
+  console->clearText();
   return console;
 }
 

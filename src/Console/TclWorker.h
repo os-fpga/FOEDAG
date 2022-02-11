@@ -15,6 +15,7 @@ class TclWorker : public QThread {
   void run() override;
   int returnCode() const;
   TclInterp *getInterpreter();
+  std::ostream &out() { return m_out; }
 
  public slots:
   void runCommand(const QString &command);

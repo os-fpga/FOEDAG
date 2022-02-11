@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 void sendCommand(const QString& command, QObject* receiver);
-TclConsoleWidget* InitConsole(Tcl_Interp* interp);
+TclConsoleWidget* InitConsole(void* clientData);
 static const QChar controlC{0x3};
 
 class StateCheck : public QObject {
@@ -69,6 +69,9 @@ class StateCheck : public QObject {
         exit(1);
       } else {
         qDebug() << "SUCCESS";
+
+        // it is important to disconnect everything
+        deleteLater();
       }
     }
   }
