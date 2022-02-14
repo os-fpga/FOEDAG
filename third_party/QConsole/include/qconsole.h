@@ -158,10 +158,12 @@ class QConsole : public QTextEdit {
   // Return false if the command is incomplete (e.g. unmatched braces)
   virtual bool isCommandComplete(const QString &command);
   // Get the command to validate
-  QString getCurrentCommand();
+  QString getCurrentCommand() const;
+  QString getAllBeforePromt() const;
 
   // Replace current command with a new one
   void replaceCurrentCommand(const QString &newCommand);
+  void replaceCurrentCommandFromHistory(const QString &newCommand);
 
   // Test whether the cursor is in the edition zone
   bool isInEditionZone();
@@ -186,6 +188,8 @@ class QConsole : public QTextEdit {
   QStringList history;
   // Contains the commands that has succeeded
   QStringList recordedScript;
+  // input from user
+  QStringList multiLineCommand;
   // Current history index (needed because afaik QStringList does not have such
   // an index)
   int historyIndex;
@@ -194,7 +198,6 @@ class QConsole : public QTextEdit {
   int promptParagraph;
 
   bool multiLine{false};
-  QStringList multiLineCommand;
 
  protected:
   // Implement paste with middle mouse button
@@ -213,6 +216,7 @@ class QConsole : public QTextEdit {
   virtual QStringList suggestCommand(const QString &cmd, QString &prefix);
   // enable/disable multiline
   void setMultiLine(bool newMultiLine);
+  int getPromptLength() const;
 
  public Q_SLOTS:
   // Contextual menu slots

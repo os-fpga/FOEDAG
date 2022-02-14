@@ -55,6 +55,8 @@ StateCheck::~StateCheck() {
   }
 }
 
+void StateCheck::setCommandCount(uint count) { m_commandCount = count; }
+
 void StateCheck::testFail(const QString &message) {
   if (!message.isEmpty()) qDebug().noquote() << message;
   ::exit(1);

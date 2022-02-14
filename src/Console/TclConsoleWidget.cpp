@@ -110,17 +110,27 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
     Tcl_ResetResult(interp);
 
     // Help message in case of wrong parameters
-    if (argc != 1) {
-      QString usageMsg = QString("Usage: %1\n").arg(argv[0]);
-      TclAppendResult(interp, qPrintable(usageMsg));
-      return TCL_ERROR;
+    if (argc > 1) {
+      QString secondArg = argv[1];
+      if (secondArg == "clear") {
+        console->history.clear();
+        console->historyIndex = 0;
+        return TCL_OK;
+      } else {
+        QString usageMsg = QString("Unknown subcommand: %1\n").arg(secondArg);
+        usageMsg += QString("must be: clear");
+        TclAppendResult(interp, qPrintable(usageMsg));
+        return TCL_ERROR;
+      }
     }
 
     uint index = 1;
     QStringList history{};
-    for (QStringList::Iterator it = console->history.begin();
-         it != console->history.end(); ++it) {
-      history.append(QString("%1\t%2").arg(index).arg(*it));
+    for (QStringList::const_iterator it = console->history.cbegin();
+         it != console->history.cend(); ++it) {
+      QString cmd = *it;
+      cmd.replace("\n", "\n\t");  // for multiline commands
+      history.append(QString("%1\t%2").arg(index).arg(cmd));
       index++;
     }
     if (!history.isEmpty()) {

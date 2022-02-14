@@ -76,3 +76,24 @@ TCL_TEST(console_cancel) {
   CHECK_EXPECTED_NOW(command, result)
   return TCL_OK;
 }
+
+TCL_TEST(console_history) {
+  FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
+  QString command = R"(history clear
+proc test {} {
+puts test
+}
+history
+)";
+
+  const QString pt = console->getPrompt();
+  QString result = pt + command + pt + "\n" +
+                   "1\tproc test {} {\n"
+                   "\tputs test\n"
+                   "\t}\n"
+                   "2\thistory\n" +
+                   pt;
+
+  CHECK_EXPECTED_FOR_FEW_COMMANDS(command, result, 3)
+  return TCL_OK;
+}
