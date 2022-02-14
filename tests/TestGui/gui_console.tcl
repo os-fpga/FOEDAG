@@ -21,3 +21,4 @@ puts "CONSOLE GUI: console_pwd"       ; flush stdout ; console_pwd
 puts "CONSOLE GUI: console_proc"      ; flush stdout ; console_proc tests/TestGui/gui_console_proc.tcl "\# source tests/TestGui/gui_console_proc.tcl\nHello world1\nHello world2\n\# "
 puts "CONSOLE GUI: console_multiline" ; flush stdout ; console_multiline
 puts "CONSOLE GUI: console_cancel"    ; flush stdout ; console_cancel
+puts "CONSOLE GUI: console_history"   ; flush stdout ; console_history

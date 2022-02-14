@@ -41,6 +41,7 @@ class StateCheck : public QObject {
   QString m_text;
   TclConsoleWidget* m_console;
   bool m_pass{false};
+  uint m_commandCount{1};
 
  public:
   StateCheck(const QString& textToCheck, FOEDAG::TclConsoleWidget* console)
@@ -56,6 +57,7 @@ class StateCheck : public QObject {
    * \brief checkStateQueue. Put into the queue cheching console state
    */
   void checkStateQueue() { emit check(FOEDAG::State::IDLE); }
+  void setCommandCount(uint count);
 
  signals:
   void check(FOEDAG::State);
@@ -63,6 +65,10 @@ class StateCheck : public QObject {
  public slots:
   void stateChanged(FOEDAG::State st) {
     if (st == FOEDAG::State::IDLE) {
+      m_commandCount--;
+      if (m_commandCount != 0) {
+        return;
+      }
       QString consoleText = m_console->toPlainText();
       if (consoleText != m_text) {
         qDebug() << "FAILED";
@@ -83,11 +89,27 @@ class StateCheck : public QObject {
   void testFail(const QString& message);
 };
 
+/*!
+ *  sent one command \a cmd to the console and compare with \a expectedOut
+ */
 #define CHECK_EXPECTED(cmd, expectedOut)                                    \
   FOEDAG::StateCheck* check = new FOEDAG::StateCheck{expectedOut, console}; \
   Q_UNUSED(check)                                                           \
   sendCommand(cmd, console);
 
+/*!
+ *  sent few commands \a cmd to the console and compare with \a expectedOut
+ *  only after last command done.
+ */
+#define CHECK_EXPECTED_FOR_FEW_COMMANDS(cmd, expectedOut, commandCount)     \
+  FOEDAG::StateCheck* check = new FOEDAG::StateCheck{expectedOut, console}; \
+  check->setCommandCount(commandCount);                                     \
+  sendCommand(cmd, console);
+
+/*!
+ * send one command \a cmd to the console and check the results immediately. It
+ * doesn't wait for anything.
+ */
 #define CHECK_EXPECTED_NOW(cmd, expectedOut)                                \
   FOEDAG::StateCheck* check = new FOEDAG::StateCheck{expectedOut, console}; \
   sendCommand(cmd, console);                                                \
