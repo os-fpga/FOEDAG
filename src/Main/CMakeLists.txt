@@ -27,7 +27,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
+find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Xml Quick REQUIRED)
 if (NOT Qt5Widgets_FOUND)
     message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Gui_FOUND)
@@ -100,7 +101,8 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/Session.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
-  ../Main/registerTclCommands.cpp)
+  ../Main/registerTclCommands.cpp
+  ../MainWindow/mainwindowmodel.cpp)
 
 set (SRC_H_LIST ../Main/Foedag.h
   ../Tcl/TclInterpreter.h
@@ -110,15 +112,19 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/main_window.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
-  ../Main/CommandLine.h)
+  ../Main/CommandLine.h
+  ../MainWindow/mainwindowmodel.h)
 
 set (SRC_UI_LIST "")
+
+set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc
+    ../MainWindow/qml.qrc)
 
 add_library(foedagcore STATIC
     ${SRC_CPP_LIST}
     ${SRC_H_LIST}
     ${SRC_UI_LIST}
-    ../MainWindow/main_window_resource.qrc
+    ${SRC_QRC_LIST}
 )
 
 
@@ -136,7 +142,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_compile_definitions(foedagcore PRIVATE FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
@@ -151,6 +157,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../MainWindow/main_window.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/Session.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/mainwindowmodel.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
   
 install(

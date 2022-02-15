@@ -40,19 +40,22 @@ void registerExampleCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("hello", hello, 0, 0);
 }
 
+FOEDAG::GUI_TYPE getGuiType(const bool& withQt, const bool& withQml) {
+  if (!withQt) return FOEDAG::GUI_TYPE::GT_NONE;
+  if (withQml)
+    return FOEDAG::GUI_TYPE::GT_QML;
+  else
+    return FOEDAG::GUI_TYPE::GT_WIDGET;
+}
+
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerExampleCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::GUI_TYPE guiType = getGuiType(cmd->WithQt(), cmd->WithQml());
+
+  FOEDAG::Foedag* foedag =
+      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
+
+  return foedag->init(guiType);
 }

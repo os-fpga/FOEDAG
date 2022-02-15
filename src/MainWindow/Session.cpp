@@ -24,8 +24,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 
 Session::~Session() {
-  delete m_mainWindow;
+  m_mainWindow->deleteLater();
   delete m_interp;
   delete m_stack;
   delete m_cmdLine;
+}
+
+void Session::windowShow() {
+  switch (m_guiType) {
+    case GUI_TYPE::GT_WIDGET:
+      m_mainWindow->show();
+      break;
+    case GUI_TYPE::GT_QML:
+      m_windowModel->setIsVisible(true);
+      break;
+    case GUI_TYPE::GT_NONE:
+      break;
+  }
+}
+
+void Session::windowHide() {
+  switch (m_guiType) {
+    case GUI_TYPE::GT_WIDGET:
+      m_mainWindow->hide();
+      break;
+    case GUI_TYPE::GT_QML:
+      m_windowModel->setIsVisible(false);
+      break;
+    case GUI_TYPE::GT_NONE:
+      break;
+  }
+}
+
+void Session::setGuiType(FOEDAG::GUI_TYPE newGuiType) {
+  m_guiType = newGuiType;
+}
+
+void Session::setWindowModel(MainWindowModel *newWindowModel) {
+  m_windowModel = newWindowModel;
 }

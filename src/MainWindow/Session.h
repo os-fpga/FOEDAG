@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
+#include "MainWindow/mainwindowmodel.h"
 #include "Tcl/TclInterpreter.h"
 
 #ifndef SESSION_H
@@ -36,8 +37,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
+
 class Session {
- private:
  public:
   Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
           CommandLine *cmdLine)
@@ -53,11 +55,20 @@ class Session {
   CommandStack *CmdStack() { return m_stack; }
   CommandLine *CmdLine() { return m_cmdLine; }
 
+  void windowShow();
+  void windowHide();
+
+  void setGuiType(FOEDAG::GUI_TYPE newGuiType);
+
+  void setWindowModel(MainWindowModel *newWindowModel);
+
  private:
   QWidget *m_mainWindow;
+  MainWindowModel *m_windowModel;
   TclInterpreter *m_interp;
   CommandStack *m_stack;
   CommandLine *m_cmdLine;
+  FOEDAG::GUI_TYPE m_guiType = GUI_TYPE::GT_NONE;
 };
 
 }  // namespace FOEDAG
