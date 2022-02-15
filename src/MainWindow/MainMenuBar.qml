@@ -11,7 +11,10 @@ MenuBar
             text: qsTr("&New")
             icon.source: "qrc:/images/icon_newfile.png"
             icon.color: "transparent"
-            onTriggered: console.log("New triggered")
+            onTriggered:
+            {
+                console.log("New triggered")
+            }
 
             Shortcut{
                 sequence: StandardKey.New

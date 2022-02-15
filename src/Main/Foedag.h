@@ -31,8 +31,6 @@ void registerBasicBatchCommands(FOEDAG::Session* session);
 
 namespace FOEDAG {
 
-enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
-
 typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine,
                                     FOEDAG::TclInterpreter* tclInterp);
 

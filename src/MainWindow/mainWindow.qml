@@ -6,7 +6,7 @@ ApplicationWindow
 {
     width: 350
     height: 250
-    visible: true
+    visible: windowModel.visible
     title: qsTr("FOEDAG")
 
     menuBar: MainMenuBar
@@ -22,7 +22,7 @@ ApplicationWindow
     {
         Text {
             id: status
-            text: qsTr("Status")
+            text: windowModel.statusBarMessage
         }
     }
 
@@ -30,5 +30,10 @@ ApplicationWindow
    {
        anchors.fill: parent
        color: "green"
+
+      Text
+      {
+          text: "Visible is " + windowModel.visible
+      }
    }
 }

@@ -37,6 +37,7 @@ extern "C" {
 #include <QGuiApplication>
 #include <QLabel>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -65,6 +66,8 @@ bool Foedag::initGui() {
   }
   GlobalSession =
       new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine);
+  GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
+
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(GlobalSession);
@@ -114,6 +117,8 @@ bool Foedag::initQmlGui() {
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
 
+  MainWindowModel* windowModel = new MainWindowModel(interpreter);
+
   QQmlApplicationEngine engine;
   engine.addImportPath(QStringLiteral("qrc:/"));
   const QUrl url(QStringLiteral("qrc:/mainWindow.qml"));
@@ -123,10 +128,17 @@ bool Foedag::initQmlGui() {
         if (!obj && url == objUrl) QCoreApplication::exit(-1);
       },
       Qt::QueuedConnection);
+
+  engine.rootContext()->setContextProperty(QStringLiteral("windowModel"),
+                                           windowModel);
+
   engine.load(url);
 
   GlobalSession =
       new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine);
+  GlobalSession->setGuiType(GUI_TYPE::GT_QML);
+  GlobalSession->setWindowModel(windowModel);
+
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(GlobalSession);
@@ -169,16 +181,21 @@ bool Foedag::initQmlGui() {
 }
 
 bool Foedag::init(GUI_TYPE guiType) {
+  bool result;
   switch (guiType) {
     case GUI_TYPE::GT_NONE:
-      return initBatch();
+      result = initBatch();
+      break;
     case GUI_TYPE::GT_WIDGET:
-      return initGui();
+      result = initGui();
+      break;
     case GUI_TYPE::GT_QML:
-      return initQmlGui();
+      result = initQmlGui();
+      break;
     default:
-      return false;
+      break;
   }
+  return result;
 }
 
 bool Foedag::initBatch() {
@@ -188,6 +205,8 @@ bool Foedag::initBatch() {
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine);
+  GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
+
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(GlobalSession);

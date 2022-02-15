@@ -101,7 +101,8 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/Session.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
-  ../Main/registerTclCommands.cpp)
+  ../Main/registerTclCommands.cpp
+  ../MainWindow/mainwindowmodel.cpp)
 
 set (SRC_H_LIST ../Main/Foedag.h
   ../Tcl/TclInterpreter.h
@@ -111,7 +112,8 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/main_window.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
-  ../Main/CommandLine.h)
+  ../Main/CommandLine.h
+  ../MainWindow/mainwindowmodel.h)
 
 set (SRC_UI_LIST "")
 
@@ -155,6 +157,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../MainWindow/main_window.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/Session.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/mainwindowmodel.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
   
 install(
