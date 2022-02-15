@@ -50,6 +50,8 @@ set (SRC_CPP_LIST
   SearchWidget.cpp
   TclConsoleBuilder.cpp
   ConsoleDefines.cpp
+  OutputFormatter.cpp
+  DummyParser.cpp
 )
 
 set (SRC_H_LIST
@@ -62,6 +64,8 @@ set (SRC_H_LIST
   SearchWidget.h
   TclConsoleBuilder.h
   ConsoleDefines.h
+  OutputFormatter.h
+  DummyParser.h
 )
 
 set (SRC_UI_LIST
@@ -86,6 +90,7 @@ install(
          ${PROJECT_SOURCE_DIR}/../Console/ConsoleInterface.h
          ${PROJECT_SOURCE_DIR}/../Console/TclConsole.h
          ${PROJECT_SOURCE_DIR}/../Console/TclConsoleBuilder.h
+         ${PROJECT_SOURCE_DIR}/../Console/OutputFormatter.h
    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Console)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

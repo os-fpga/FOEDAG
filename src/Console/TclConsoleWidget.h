@@ -7,6 +7,7 @@
 
 #include "ConsoleDefines.h"
 #include "ConsoleInterface.h"
+#include "OutputFormatter.h"
 #include "QConsole/qconsole.h"
 
 namespace FOEDAG {
@@ -27,6 +28,15 @@ class TclConsoleWidget : public QConsole {
   QString getPrompt() const;
 
   State state() const;
+
+  /*!
+   * \brief setParsers. Console will take ownership of the parsers
+   */
+  void setParsers(const std::vector<LineParser *> &parsers);
+  /*!
+   * \brief addParser. Add parser to the list and take ownership of the pointer
+   */
+  void addParser(LineParser *parser);
 
  public slots:
   void clearText();
@@ -66,8 +76,9 @@ class TclConsoleWidget : public QConsole {
   StreamBuffer *m_buffer;
   State m_state = State::IDLE;
 
-  bool m_linkActivated{false};
+  bool m_linkActivated{true};
   Qt::MouseButton m_mouseButtonPressed{Qt::NoButton};
+  OutputFormatter m_formatter;
 };
 
 }  // namespace FOEDAG

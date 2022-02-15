@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,19 +18,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "FileInfo.h"
+#pragma once
 
-#include <QDir>
+#include "OutputFormatter.h"
 
-FileInfo::FileInfo() {}
+namespace FOEDAG {
 
-QStringList FileInfo::getFileList(const QString &path,
-                                  const QStringList &filter) {
-  QDir dir{QDir::toNativeSeparators(path)};
-  auto fileInfo = dir.entryInfoList(filter, QDir::Files);
-  QStringList files;
-  for (const auto &fInfo : fileInfo) files.append(fInfo.fileName());
-  return files;
-}
-
-QChar FileInfo::separator() { return QDir::separator(); }
+class DummyParser : public LineParser {
+ public:
+  DummyParser();
+  Result handleLine(const QString &message, OutputFormat format) override;
+};
+}  // namespace FOEDAG

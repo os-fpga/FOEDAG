@@ -1,6 +1,7 @@
 #include "TclConsoleWidget.h"
 
 #include <QDebug>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMetaMethod>
@@ -19,6 +20,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    StreamBuffer *buffer, QWidget *parent)
     : QConsole(parent), m_console(std::move(iConsole)), m_buffer{buffer} {
   connect(m_buffer, &StreamBuffer::ready, this, &TclConsoleWidget::put);
+  m_formatter.setTextEdit(this);
   if (m_console) {
     connect(m_console.get(), &ConsoleInterface::done, this,
             &TclConsoleWidget::commandDone);
@@ -114,13 +116,9 @@ void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
     int res = m_console ? m_console->returnCode() : 0;
     QString strRes = str;
-    // According to the return value, display the result either in red or in
-    // blue
     moveCursor(QTextCursor::End);
-    setTextColor((res == 0) ? outColor_ : errColor_);
-
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    textCursor().insertText(strRes);
+    m_formatter.appendMessage(strRes, (res == 0) ? Output : Error);
   }
 }
 
@@ -250,6 +248,14 @@ bool TclConsoleWidget::hasCloseBracket(const QString &str) const {
 }
 
 State TclConsoleWidget::state() const { return m_state; }
+
+void TclConsoleWidget::setParsers(const std::vector<LineParser *> &parsers) {
+  m_formatter.setParsers(parsers);
+}
+
+void TclConsoleWidget::addParser(LineParser *parser) {
+  m_formatter.addParser(parser);
+}
 
 void TclConsoleWidget::setState(const State &state) {
   if (m_state != state) {
