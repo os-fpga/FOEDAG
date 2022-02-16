@@ -160,7 +160,7 @@ jobs:
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
-    runs-on: windows-latest
+    runs-on: windows-2022
     defaults:
       run:
         shell: msys2 {0}
@@ -274,7 +274,7 @@ jobs:
 #        make regression
 
   windows-msvc:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     defaults:
       run:
@@ -319,7 +319,7 @@ jobs:
 
     - name: Build & Test
       run: |
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
 
         set CMAKE_GENERATOR=Ninja
         set CC=cl
