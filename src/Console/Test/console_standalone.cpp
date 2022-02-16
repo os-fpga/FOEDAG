@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/TclInterpreterHandler.h"
+#include "DummyParser.h"
 #include "Main/Foedag.h"
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
@@ -56,8 +57,12 @@ int main(int argc, char **argv) {
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
       interpreter->getInterp(), buffer->getStream());
   FOEDAG::TclConsole *c = tclConsole.get();
-  QWidget *w = FOEDAG::createConsole(interpreter->getInterp(),
-                                     std::move(tclConsole), buffer);
+  FOEDAG::TclConsoleWidget *console = nullptr;
+  QWidget *w =
+      FOEDAG::createConsole(interpreter->getInterp(), std::move(tclConsole),
+                            buffer, nullptr, &console);
+
+  if (console) console->setParsers({new FOEDAG::DummyParser});
 
   std::string design("Some cool design");
   FOEDAG::Compiler *com =

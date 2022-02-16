@@ -1,6 +1,7 @@
 #include "TclConsoleWidget.h"
 
 #include <QDebug>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMetaMethod>
@@ -9,6 +10,7 @@
 #include <QTextBlock>
 
 #include "ConsoleDefines.h"
+#include "FileInfo.h"
 #include "StreamBuffer.h"
 
 namespace FOEDAG {
@@ -18,6 +20,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    StreamBuffer *buffer, QWidget *parent)
     : QConsole(parent), m_console(std::move(iConsole)), m_buffer{buffer} {
   connect(m_buffer, &StreamBuffer::ready, this, &TclConsoleWidget::put);
+  m_formatter.setTextEdit(this);
   if (m_console) {
     connect(m_console.get(), &ConsoleInterface::done, this,
             &TclConsoleWidget::commandDone);
@@ -25,6 +28,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   }
   setPrompt("# ");
   setTabAllowed(false);
+  setMouseTracking(true);
 }
 
 bool TclConsoleWidget::isRunning() const {
@@ -80,17 +84,41 @@ void TclConsoleWidget::handleTerminateCommand() {
   QConsole::handleTerminateCommand();
 }
 
+void TclConsoleWidget::mouseReleaseEvent(QMouseEvent *e) {
+  if (m_linkActivated && m_mouseButtonPressed == Qt::LeftButton)
+    handleLink(e->pos());
+
+  // Mouse was released, activate links again
+  m_linkActivated = true;
+  m_mouseButtonPressed = Qt::NoButton;
+
+  QConsole::mouseReleaseEvent(e);
+}
+
+void TclConsoleWidget::mousePressEvent(QMouseEvent *e) {
+  m_mouseButtonPressed = e->button();
+  QConsole::mousePressEvent(e);
+}
+
+void TclConsoleWidget::mouseMoveEvent(QMouseEvent *e) {
+  // Cursor was dragged to make a selection, deactivate links
+  if (m_mouseButtonPressed != Qt::NoButton && textCursor().hasSelection())
+    m_linkActivated = false;
+
+  if (!m_linkActivated || anchorAt(e->pos()).isEmpty())
+    viewport()->setCursor(Qt::IBeamCursor);
+  else
+    viewport()->setCursor(Qt::PointingHandCursor);
+  QConsole::mouseMoveEvent(e);
+}
+
 void TclConsoleWidget::put(const QString &str) {
   if (!str.isEmpty()) {
     int res = m_console ? m_console->returnCode() : 0;
     QString strRes = str;
-    // According to the return value, display the result either in red or in
-    // blue
     moveCursor(QTextCursor::End);
-    setTextColor((res == 0) ? outColor_ : errColor_);
-
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    textCursor().insertText(strRes);
+    m_formatter.appendMessage(strRes, (res == 0) ? Output : Error);
   }
 }
 
@@ -99,7 +127,10 @@ void TclConsoleWidget::commandDone() {
   setState(State::IDLE);
 }
 
-void TclConsoleWidget::handleLink(const QPoint &p) { qDebug() << anchorAt(p); }
+void TclConsoleWidget::handleLink(const QPoint &p) {
+  qDebug() << anchorAt(p);
+  emit linkActivated(anchorAt(p));
+}
 
 void TclConsoleWidget::registerCommands(TclInterp *interp) {
   auto hist = [](ClientData clientData, Tcl_Interp *interp, int argc,
@@ -217,6 +248,14 @@ bool TclConsoleWidget::hasCloseBracket(const QString &str) const {
 }
 
 State TclConsoleWidget::state() const { return m_state; }
+
+void TclConsoleWidget::setParsers(const std::vector<LineParser *> &parsers) {
+  m_formatter.setParsers(parsers);
+}
+
+void TclConsoleWidget::addParser(LineParser *parser) {
+  m_formatter.addParser(parser);
+}
 
 void TclConsoleWidget::setState(const State &state) {
   if (m_state != state) {

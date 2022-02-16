@@ -25,7 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class FileInfo {
  public:
   FileInfo();
-  QString getRefString(const QString &filePath) const;
   static QStringList getFileList(const QString &path,
                                  const QStringList &filter);
   static QChar separator();

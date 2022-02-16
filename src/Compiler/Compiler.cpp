@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #endif
 #include <chrono>
+#include <filesystem>
 #include <thread>
 
 #include "Compiler/Compiler.h"
@@ -223,8 +224,15 @@ bool Compiler::Compile(Action action) {
 
 bool Compiler::Synthesize() {
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  auto currentPath = std::filesystem::current_path();
+  auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    m_out << i << "%" << std::endl;
+    m_out << std::setw(2) << i << "%";
+    if (it != std::filesystem::end(it)) {
+      m_out << " File: " << (*it).path().filename().c_str() << " just for test";
+      it++;
+    }
+    m_out << std::endl;
     std::chrono::milliseconds dura(1000);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
