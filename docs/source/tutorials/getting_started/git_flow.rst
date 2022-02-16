@@ -30,18 +30,18 @@ To keep your fork always in sync:
 
  git fetch upstream
 
-4. Checkout your fork’s local branch that you want to sync and merge chenges from upstream branch. For example 'master'
+4. Checkout your fork’s local branch that you want to sync and merge chenges from upstream branch. For example 'main'
 
 .. code-block:: git
 
- git checkout master
- git merge upstream/master
+ git checkout main
+ git merge upstream/main
 
 5. Push changes to update your fork
 
 .. code-block:: git
 
- git push origin master
+ git push origin main
 
 Branch
 ======
@@ -58,7 +58,7 @@ With a regular rebase you can update your feature branch with the default branch
 .. code-block:: git
 
  git checkout feature-branch
- git fetch main
+ git fetch origin main:main
  git rebase main
  git push --force origin feature-branch
 
