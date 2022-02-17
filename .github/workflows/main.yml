@@ -120,13 +120,26 @@ jobs:
           ${{ github.workspace }}/build/tests/
 
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
-  centos-gcc:
-    name: CentOS 7
+  centos7-gcc:
+    name:  ${{ matrix.mode }}
 
     runs-on: ubuntu-latest
     container:
       image: centos:7
-      
+    defaults:
+      run:
+        shell: bash
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        mode:
+#        - test
+#        - regression
+#        - install
+#        - valgrind
+    env:
+      MODE: ${{ matrix.mode }}
+
     steps:
 
     - name: Cancel previous
@@ -138,25 +151,92 @@ jobs:
       with:
         python-version: 3.8
 
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+
     - name: Install dependencies
       run: |
+        yum update -y
+        yum group install -y "Development Tools" 
+        yum install -y epel-release 
+        curl -C - -O https://cmake.org/files/v3.15/cmake-3.15.7-Linux-x86_64.tar.gz
+        tar xzf cmake-3.15.7-Linux-x86_64.tar.gz
+        ln -s $PWD/cmake-3.15.7-Linux-x86_64/bin/cmake /usr/bin/cmake
         yum install -y centos-release-scl
+        yum install -y devtoolset-9
         yum install -y devtoolset-9-toolchain
+        yum install -y devtoolset-9-gcc-c++
+        scl enable devtoolset-9 bash
         yum install -y tcl
-        yum install -y cmake 
-        yum install -y swig 
+        yum install -y make
+        yum install -y swig
+        yum install -y which
         yum install -y google-perftools
         yum install -y gperftools gperftools-devel
         yum install -y uuid-devel
         yum install -y valgrind 
         yum install -y xorg-x11-server-Xorg xorg-x11-xauth xorg-x11-apps 
         yum install -y xorg-x11-server-Xvfb
-        yum install -y qt5-qtbase
-        yum install -y qt5-qtbase-devel
-        yum install -y qt5-qtscript-devel
-        yum install -y qt5-qtsvg-devel
-        yum install -y qt5-qtdeclarative
+        yum install -y mesa-libGL-devel
+        yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
+        yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
+        curl -L http://download.qt.io/official_releases/qt/5.15/5.15.0/single/qt-everywhere-src-5.15.0.tar.xz --output qt-everywhere-src-5.15.0.tar.xz
+        tar -xf qt-everywhere-src-5.15.0.tar.xz
+        mkdir buildqt5
+        cd buildqt5
+        ../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput
+        source /opt/rh/devtoolset-9/enable
+        echo 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
+        echo 'CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
+        echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+        make -j
+        make install
+        cd ..
 
+    - name: Show shell configuration
+      run: |
+        env
+        source /opt/rh/devtoolset-9/enable
+        which gcc 
+        which g++ 
+
+    - name: Configure shell
+      run: |
+        source /opt/rh/devtoolset-9/enable
+        echo 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
+        echo 'CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
+        echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+        echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
+        echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
+        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
+
+#    - name: Test
+#      if: matrix.mode == 'test'
+#      run: |
+#        make debug test/unittest-d
+#        make release test/batch
+#        make test/gui
+
+#    - name: Regression
+#      if: matrix.mode == 'regression'
+#      run: |
+#        make regression
+
+#    - name: Valgrind
+#      if: matrix.mode == 'valgrind'
+#      run: |
+#        make debug
+#        make test/valgrind
+
+#    - name: Install Test
+#      if: matrix.mode == 'install'
+#      run: |
+#        make release
+#        make install
+#        make clean   # make sure we only see installation artifacts
+#        make test_install
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
