@@ -629,18 +629,13 @@ bool QConsole::execCommand(const QString &command, bool writeCommand,
   // execute the command and get back its text result and its return value
   int res = 0;
   QString strRes = interpretCommand(modifiedCommand, &res);
-  // According to the return value, display the result either in red or in blue
-  if (res == 0)
-    setTextColor(outColor_);
-  else
-    setTextColor(errColor_);
 
   if (result) {
     *result = strRes;
   }
   if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
   if (command.isEmpty()) {  // prevent empty line after command
-    textCursor().insertText(strRes);
+    put(strRes);
     moveCursor(QTextCursor::End);
     // Display the prompt again
     if (showPrompt) displayPrompt();
@@ -690,6 +685,8 @@ void QConsole::setMultiLine(bool newMultiLine) { multiLine = newMultiLine; }
 int QConsole::getPromptLength() const {
   return isMultiLine() ? 0 : promptLength;
 }
+
+void QConsole::put(const QString &str) { textCursor().insertText(str); }
 
 // Implement paste with middle mouse button
 void QConsole::mousePressEvent(QMouseEvent *event) {

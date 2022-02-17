@@ -26,6 +26,8 @@ class TclConsoleWidget : public QConsole {
                             StreamBuffer *buffer, QWidget *parent = nullptr);
   bool isRunning() const override;
   QString getPrompt() const;
+  StreamBuffer *getBuffer();
+  static const char *consoleObjectName();
 
   State state() const;
 
@@ -57,7 +59,7 @@ class TclConsoleWidget : public QConsole {
   void mouseMoveEvent(QMouseEvent *e) override;
 
  private slots:
-  void put(const QString &str);
+  void put(const QString &str) override;
   void commandDone();
 
  private:

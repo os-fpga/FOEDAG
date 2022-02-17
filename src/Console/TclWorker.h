@@ -6,13 +6,13 @@
 
 namespace FOEDAG {
 
-class TclWorker : public QThread {
+class TclWorker : public QObject {
   Q_OBJECT
  public:
   TclWorker(TclInterp *interpreter, std::ostream &out,
             QObject *parent = nullptr);
 
-  void run() override;
+  void run();
   int returnCode() const;
   TclInterp *getInterpreter();
   std::ostream &out() { return m_out; }

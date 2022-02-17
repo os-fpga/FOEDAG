@@ -19,15 +19,11 @@ void TclConsole::registerInterpreter(TclInterp *interpreter) {
   m_tclWorkers.push_back(new TclWorker{interpreter, m_out});
 }
 
-TclConsole::~TclConsole() {
-  qDeleteAll(m_tclWorkers);
-  if (m_tclWorker->isRunning()) m_tclWorker->quit();
-  m_tclWorker->wait();
-}
+TclConsole::~TclConsole() { qDeleteAll(m_tclWorkers); }
 
 void TclConsole::run(const QString &command) {
   m_tclWorker->runCommand(command);
-  m_tclWorker->start();
+  m_tclWorker->run();
 }
 
 int TclConsole::returnCode() const { return m_tclWorker->returnCode(); }

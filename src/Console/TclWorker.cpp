@@ -33,7 +33,7 @@ int DriverBlockModeProc(ClientData instanceData, int mode) {
 }
 
 TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
-    : QThread(parent), m_interpreter(interpreter), m_out(out) {
+    : QObject(parent), m_interpreter(interpreter), m_out(out) {
   channelOut = new Tcl_ChannelType{
       "outconsole",
       CHANNEL_VERSION_5,
@@ -87,8 +87,8 @@ void TclWorker::setOutput(const QString &out) {
 }
 
 void TclWorker::init() {
-  static Tcl_Channel m_channel;
-  static Tcl_Channel errConsoleChannel;
+  static Tcl_Channel m_channel{nullptr};
+  static Tcl_Channel errConsoleChannel{nullptr};
 
   if (!m_channel) {
     m_channel = Tcl_CreateChannel(channelOut, "stdout",

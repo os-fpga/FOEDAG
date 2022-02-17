@@ -41,8 +41,9 @@ void sendCommand(const QString &command, QObject *receiver) {
 }
 
 TclConsoleWidget *InitConsole(void *clientData) {
-  FOEDAG::TclConsoleWidget *console =
-      static_cast<FOEDAG::TclConsoleWidget *>(clientData);
+  QWidget *w = static_cast<QWidget *>(clientData);
+  FOEDAG::TclConsoleWidget *console = w->findChild<FOEDAG::TclConsoleWidget *>(
+      FOEDAG::TclConsoleWidget::consoleObjectName());
   console->clearText();
   return console;
 }

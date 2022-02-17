@@ -25,11 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "DummyParser.h"
 #include "Main/Foedag.h"
+#include "Main/qttclnotifier.hpp"
 #include "StreamBuffer.h"
 #include "Tcl/TclInterpreter.h"
 #include "TclConsole.h"
 #include "TclConsoleBuilder.h"
 #include "TclConsoleWidget.h"
+FOEDAG::Session *GlobalSession;
 
 class Handler : public FOEDAG::TclInterpreterHandler {
   FOEDAG::TclConsole *console;
@@ -41,18 +43,8 @@ class Handler : public FOEDAG::TclInterpreterHandler {
   }
 };
 
-void worker(int argc, char **argv, Tcl_Interp *interp) {
-  auto init = [](Tcl_Interp *interp) -> int {
-    Q_UNUSED(interp)
-    // init here
-    return 0;
-  };
-  Tcl_MainEx(argc, argv, init, interp);
-}
-
-int main(int argc, char **argv) {
-  QApplication a{argc, argv};
-  FOEDAG::TclInterpreter *interpreter = new FOEDAG::TclInterpreter{argv[0]};
+QWidget *mainWindowBuilder(FOEDAG::CommandLine *cmd,
+                           FOEDAG::TclInterpreter *interpreter) {
   auto buffer = new FOEDAG::StreamBuffer;
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
       interpreter->getInterp(), buffer->getStream());
@@ -69,9 +61,17 @@ int main(int argc, char **argv) {
       new FOEDAG::Compiler{interpreter, new FOEDAG::Design(design),
                            buffer->getStream(), new Handler{c}};
   com->RegisterCommands(interpreter, false);
+  return w;
+}
 
-  w->show();
-  std::thread work{&worker, argc, argv, interpreter->getInterp()};
-  work.detach();
-  return a.exec();
+int main(int argc, char **argv) {
+  FOEDAG::CommandLine *cmd = new FOEDAG::CommandLine(argc, argv);
+  cmd->processArgs();
+
+  FOEDAG::GUI_TYPE guiType = FOEDAG::GUI_TYPE::GT_WIDGET;
+
+  FOEDAG::Foedag *foedag = new FOEDAG::Foedag(
+      cmd, mainWindowBuilder, nullptr /*registerExampleCommands*/);
+
+  return foedag->init(guiType);
 }
