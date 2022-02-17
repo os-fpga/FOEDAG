@@ -191,7 +191,7 @@ jobs:
         echo 'QMAKE_CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
         echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
         ../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput
-        make -j
+        make -j 2
         make install
         cd ..
 
