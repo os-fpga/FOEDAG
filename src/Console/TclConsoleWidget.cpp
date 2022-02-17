@@ -29,6 +29,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   setPrompt("# ");
   setTabAllowed(false);
   setMouseTracking(true);
+  setObjectName(consoleObjectName());
 }
 
 bool TclConsoleWidget::isRunning() const {
@@ -36,6 +37,10 @@ bool TclConsoleWidget::isRunning() const {
 }
 
 QString TclConsoleWidget::getPrompt() const { return prompt; }
+
+StreamBuffer *TclConsoleWidget::getBuffer() { return m_buffer; }
+
+const char *TclConsoleWidget::consoleObjectName() { return "TclConsole"; }
 
 void TclConsoleWidget::clearText() {
   clear();
@@ -50,9 +55,10 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
     QString histCommand;
     if (handleCommandFromHistory(command, histCommand))
       prepareCommand = histCommand;
+    QConsole::interpretCommand(prepareCommand, res);
     if (m_console) m_console->run(prepareCommand.toUtf8());
     setMultiLine(false);
-    return QConsole::interpretCommand(prepareCommand, res);
+    return QString();
   }
   return QString();
 }
@@ -136,7 +142,6 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
   auto hist = [](ClientData clientData, Tcl_Interp *interp, int argc,
                  const char *argv[]) {
     TclConsoleWidget *console = static_cast<TclConsoleWidget *>(clientData);
-    if (!console) return TCL_ERROR;
     // Reset result data
     Tcl_ResetResult(interp);
 

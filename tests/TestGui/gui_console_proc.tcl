@@ -18,11 +18,11 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 proc my1 {} {
-puts "Hello world1"
+debug "Hello world1"
 }
 
 proc my2 {} {
 my1
-puts "Hello world2"
+debug "Hello world2"
 }
 my2

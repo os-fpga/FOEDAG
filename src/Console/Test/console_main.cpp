@@ -28,14 +28,24 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
   Q_UNUSED(cmd)
   FOEDAG::TclConsoleWidget* console{nullptr};
   auto buffer = new FOEDAG::StreamBuffer;
-  FOEDAG::createConsole(interp->getInterp(),
-                        std::make_unique<FOEDAG::TclConsole>(
-                            interp->getInterp(), buffer->getStream()),
-                        buffer, nullptr, &console);
-  return console;
+  auto w = FOEDAG::createConsole(interp->getInterp(),
+                                 std::make_unique<FOEDAG::TclConsole>(
+                                     interp->getInterp(), buffer->getStream()),
+                                 buffer, nullptr, &console);
+  return w;
 }
 
 void registerExampleCommands(FOEDAG::Session* session) {
+  auto debug = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+    QWidget* w = static_cast<QWidget*>(clientData);
+    FOEDAG::TclConsoleWidget* console = w->findChild<FOEDAG::TclConsoleWidget*>(
+        FOEDAG::TclConsoleWidget::consoleObjectName());
+    console->getBuffer()->getStream() << argv[1] << std::endl;
+    return TCL_OK;
+  };
+  Tcl_CreateCommand(GlobalSession->TclInterp()->getInterp(), "debug", debug,
+                    GlobalSession->MainWindow(), nullptr);
   FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp(),
                                      GlobalSession->MainWindow());
 }

@@ -33,7 +33,6 @@ LineParser::Result DummyParser::handleLine(const QString &message,
   Q_UNUSED(format);
   const QRegularExpression getFile{"(?<=File: )(.*)(?= just)"};
   auto regExpMatch = getFile.match(message);
-  qDebug() << regExpMatch.hasMatch();
   if (regExpMatch.hasMatch()) {
     QString file = regExpMatch.captured();
     file.replace("\"", "");

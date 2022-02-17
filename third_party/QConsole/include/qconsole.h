@@ -218,6 +218,9 @@ class QConsole : public QTextEdit {
   void setMultiLine(bool newMultiLine);
   int getPromptLength() const;
 
+ protected slots:
+  virtual void put(const QString &str);
+
  public Q_SLOTS:
   // Contextual menu slots
   void cut();

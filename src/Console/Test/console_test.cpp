@@ -55,12 +55,14 @@ TCL_TEST(console_multiline) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString script =
       R"(proc test {} {
-  puts test
+  debug test
 } 
 test
 )";
-  QString res = console->getPrompt() + script + console->getPrompt();
-  CHECK_EXPECTED(script, res)
+  const QString pt = console->getPrompt();
+  QString res =
+      pt + "proc test {} {\n  debug test\n} \n" + pt + "test\ntest\n" + pt;
+  CHECK_EXPECTED_FOR_FEW_COMMANDS(script, res, 2)
   return TCL_OK;
 }
 
@@ -80,20 +82,21 @@ TCL_TEST(console_cancel) {
 TCL_TEST(console_history) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString command = R"(history clear
-proc test {} {
-puts test
+<pt>proc test {} {
+debug test
 }
-history
+<pt>history
 )";
 
   const QString pt = console->getPrompt();
-  QString result = pt + command + pt + "\n" +
+  QString script = command;
+  QString result = pt + command.replace("<pt>", pt) +
                    "1\tproc test {} {\n"
-                   "\tputs test\n"
+                   "\tdebug test\n"
                    "\t}\n"
                    "2\thistory\n" +
                    pt;
 
-  CHECK_EXPECTED_FOR_FEW_COMMANDS(command, result, 3)
+  CHECK_EXPECTED_FOR_FEW_COMMANDS(script.replace("<pt>", ""), result, 3)
   return TCL_OK;
 }
