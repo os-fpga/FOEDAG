@@ -13,7 +13,7 @@ MenuBar
             icon.color: "transparent"
             onTriggered:
             {
-                console.log("New triggered")
+                newFileDialog.open()
             }
 
             Shortcut{

@@ -15,15 +15,13 @@
 
 using namespace FOEDAG;
 
-MainWindowModel::MainWindowModel(QObject *parent) : QObject{parent} {}
-
-MainWindowModel::MainWindowModel(TclInterpreter *interp, QObject *parent)
+MainWindowModel::MainWindowModel(TclInterpreter* interp, QObject* parent)
     : m_interpreter(interp) {
   setStatusBarMessage("Ready");
 }
 
-void MainWindowModel::Tcl_NewProject(int argc, const char *argv[]) {
-  ProjectManager *projectManager = new ProjectManager(this);
+void MainWindowModel::Tcl_NewProject(int argc, const char* argv[]) {
+  ProjectManager* projectManager = new ProjectManager(this);
   projectManager->Tcl_CreateProject(argc, argv);
 }
 
@@ -47,13 +45,23 @@ void MainWindowModel::setIsVisible(bool newIsVisible) {
   emit visibleChanged();
 }
 
-const QString &MainWindowModel::statusBarMessage() const {
+const QString& MainWindowModel::statusBarMessage() const {
   return m_statusBarMessage;
 }
 
-void MainWindowModel::setStatusBarMessage(const QString &newStatusBarMessage) {
+void MainWindowModel::setStatusBarMessage(const QString& newStatusBarMessage) {
   if (m_statusBarMessage == newStatusBarMessage) return;
 
   m_statusBarMessage = newStatusBarMessage;
   emit statusBarMessageChanged();
+}
+
+bool MainWindowModel::createNewFile(const QUrl& fileName) {
+  QFile file(fileName.toString());
+  if (file.exists()) return false;
+
+  if (!file.open(QFile::WriteOnly | QFile::Text)) return true;
+
+  file.close();
+  return false;
 }
