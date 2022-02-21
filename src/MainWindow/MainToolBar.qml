@@ -9,6 +9,7 @@ ToolBar {
         ToolButton {
             icon.source: "qrc:/images/icon_newfile.png"
             icon.color: "transparent"
+            onClicked: newFileDialog.open()
         }
     }
 }

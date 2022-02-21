@@ -35,7 +35,8 @@ set (SRC_CPP_LIST
   ProjectManager/project_option.cpp
   ProjectManager/project_run.cpp
   ProjectManager/project.cpp
-  ProjectManager/project_manager.cpp)
+  ProjectManager/project_manager.cpp
+  newprojectmodel.cpp)
 
 set (SRC_H_LIST
   new_project_dialog.h
@@ -53,7 +54,8 @@ set (SRC_H_LIST
   ProjectManager/project_option.h
   ProjectManager/project_run.h
   ProjectManager/project.h
-  ProjectManager/project_manager.h)
+  ProjectManager/project_manager.h
+  newprojectmodel.h)
 
 set (SRC_UI_LIST
   new_project_dialog.ui
@@ -86,6 +88,7 @@ install (
 
 install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/new_project_dialog.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

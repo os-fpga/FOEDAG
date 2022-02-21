@@ -3,5 +3,6 @@
         <file>mainWindow.qml</file>
         <file>MainMenuBar.qml</file>
         <file>MainToolBar.qml</file>
+        <file>NewProjectDialog.qml</file>
     </qresource>
 </RCC>

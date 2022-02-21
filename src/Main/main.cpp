@@ -41,7 +41,6 @@ void registerExampleCommands(FOEDAG::Session* session) {
 }
 
 FOEDAG::GUI_TYPE getGuiType(const bool& withQt, const bool& withQml) {
-  return FOEDAG::GUI_TYPE::GT_QML;
   if (!withQt) return FOEDAG::GUI_TYPE::GT_NONE;
   if (withQml)
     return FOEDAG::GUI_TYPE::GT_QML;

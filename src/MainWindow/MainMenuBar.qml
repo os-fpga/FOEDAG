@@ -24,11 +24,26 @@ MenuBar
         }
         MenuItem
         {
+            id: menuItemNewProject
             text: qsTr("&NewProject")
+            onTriggered:
+            {
+                newProjectDialog.show()
+            }
         }
         MenuItem
         {
+            id: menuItemOpen
             text: qsTr("&OpenProject")
+            onTriggered:
+            {
+                openFileDialog.open()
+            }
+            Shortcut{
+                sequence: StandardKey.Open
+                enabled: true
+                onActivated: menuItemOpen.triggered()
+            }
         }
         MenuSeparator {}
         MenuItem
