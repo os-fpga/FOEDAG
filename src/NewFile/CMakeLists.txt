@@ -21,11 +21,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   new_file.cpp
-  new_file_dialog.cpp)
+  new_file_dialog.cpp
+  newfilemodel.cpp)
 
 set (SRC_H_LIST
   new_file.h
-  new_file_dialog.h)
+  new_file_dialog.h
+  newfilemodel.h)
 
 set (SRC_UI_LIST
 	)
@@ -49,6 +51,7 @@ install (
 
 install(
  FILES ${PROJECT_SOURCE_DIR}/../NewFile/new_file.h
+ FILES ${PROJECT_SOURCE_DIR}/../NewFile/newfilemodel.h
  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewFile)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

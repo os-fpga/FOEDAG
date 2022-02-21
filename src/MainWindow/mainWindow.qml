@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
-import QtQuick.Dialogs 1.1
+import Qt.labs.platform 1.1
 
 ApplicationWindow
 {
@@ -40,20 +40,35 @@ ApplicationWindow
 
    //declaration
    FileDialog
-  {
+   {
       id: newFileDialog
       title: qsTr("New File")
-      nameFilters: windowModel.fileDialogFilters()
-      selectExisting: false
+      nameFilters: windowModel.newFileDialogFilters()
+      fileMode: FileDialog.SaveFile
+      selectedNameFilter.index: 0
 
-      onAccepted:
-      {
-          windowModel.createNewFile(newFileDialog.fileUrl)
-          console.log("New file " + newFileDialog.fileUrl)
+      onAccepted:{
+          windowModel.createNewFile(newFileDialog.file,
+                                    newFileDialog.selectedNameFilter.extensions[newFileDialog.selectedNameFilter.index])
       }
-      onRejected:
-      {
+   }
 
+   FileDialog
+   {
+      id: openFileDialog
+      title: qsTr("Open Project")
+      nameFilters: windowModel.openFileDialogFilters()
+      fileMode: FileDialog.OpenFile
+      selectedNameFilter.index: 0
+
+      onAccepted:{
+          windowModel.createNewFile(newFileDialog.file,
+                                    newFileDialog.selectedNameFilter.extensions[newFileDialog.selectedNameFilter.index])
       }
-  }
+   }
+
+   NewProjectDialog
+   {
+       id: newProjectDialog
+   }
 }

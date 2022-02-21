@@ -1,7 +1,5 @@
 #include "mainwindowmodel.h"
 
-#include <fstream>
-
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
 #include "Console/TclConsoleBuilder.h"
@@ -9,15 +7,21 @@
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
+#include "NewFile/newfilemodel.h"
 #include "NewProject/new_project_dialog.h"
+#include "NewProject/newprojectmodel.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
 
 using namespace FOEDAG;
 
 MainWindowModel::MainWindowModel(TclInterpreter* interp, QObject* parent)
-    : m_interpreter(interp) {
-  setStatusBarMessage("Ready");
+    : m_interpreter(interp),
+      m_newFileModel(std::make_unique<NewFileModel>()),
+      m_newProjectModel(std::make_unique<NewProjectModel>()) {
+  connect(this, &MainWindowModel::projectNameChanged, m_newProjectModel.get(),
+          &NewProjectModel::projectNameChanged);
+  setStatusBarMessage(tr("Ready"));
 }
 
 void MainWindowModel::Tcl_NewProject(int argc, const char* argv[]) {
@@ -25,15 +29,66 @@ void MainWindowModel::Tcl_NewProject(int argc, const char* argv[]) {
   projectManager->Tcl_CreateProject(argc, argv);
 }
 
-QStringList MainWindowModel::fileDialogFilters() {
-  const QString _FILTER_VERILOG("Verilog HDL Files(*.v)");
-  const QString _FILTER_VHDL("VHDL Files(*.vhd)");
-  const QString _FILTER_TCL("Tcl Script Files(*.tcl)");
-  const QString _FILTER_CONSTR("Synopsys Design Constraints Files(*.sdc)");
-  const QString _FILTER_ALL("All Files(*.*)");
-  QStringList filters{_FILTER_VERILOG, _FILTER_VHDL, _FILTER_TCL,
-                      _FILTER_CONSTR, _FILTER_ALL};
-  return filters;
+QStringList MainWindowModel::newFileDialogFilters() {
+  return m_newFileModel->fileDialogFilters();
+}
+
+QStringList MainWindowModel::openFileDialogFilters() {
+  return QStringList() << "FOEDAG Project File(*.ospr)";
+}
+
+QString MainWindowModel::pageHeadCaption(const int index) {
+  return m_newProjectModel->pageHeadCaption(index);
+}
+
+QString MainWindowModel::locationPageMainText() {
+  return m_newProjectModel->locationPageMainText();
+}
+
+QString MainWindowModel::projectNameCaption() {
+  return m_newProjectModel->projectNameCaption();
+}
+
+QString MainWindowModel::projectLocationCaption() {
+  return m_newProjectModel->projectLocationCaption();
+}
+
+QString MainWindowModel::checkBoxSubDirectoryCaption() {
+  return m_newProjectModel->checkBoxSubDirectoryCaption();
+}
+
+QString MainWindowModel::projectFullPathCaption() {
+  return m_newProjectModel->projectFullPathCaption();
+}
+
+QString MainWindowModel::fullPathToProject() {
+  return m_newProjectModel->fullPathToProject();
+}
+
+const QString& MainWindowModel::projectName() const {
+  return m_newProjectModel->projectName();
+}
+
+void MainWindowModel::setProjectName(const QString& newProjectName) {
+  m_newProjectModel->setProjectName(newProjectName);
+}
+
+const QString& MainWindowModel::projectLocation() const {
+  return m_newProjectModel->projectLocation();
+}
+
+void MainWindowModel::setProjectLocation(const QString& newProjectLocation) {
+  m_newProjectModel->setProjectLocation(newProjectLocation);
+}
+
+bool MainWindowModel::needToCreateProjrctSubDirectory() const {
+  return m_newProjectModel->needToCreateProjrctSubDirectory();
+}
+
+void MainWindowModel::setNeedToCreateProjrctSubDirectory(
+    bool newNeedToCreateProjrctSubDirectory) {
+  m_newProjectModel->setNeedToCreateProjrctSubDirectory(
+      newNeedToCreateProjrctSubDirectory);
 }
 
 bool MainWindowModel::isVisible() const { return m_isVisible; }
@@ -56,12 +111,8 @@ void MainWindowModel::setStatusBarMessage(const QString& newStatusBarMessage) {
   emit statusBarMessageChanged();
 }
 
-bool MainWindowModel::createNewFile(const QUrl& fileName) {
-  QFile file(fileName.toString());
-  if (file.exists()) return false;
-
-  if (!file.open(QFile::WriteOnly | QFile::Text)) return true;
-
-  file.close();
-  return false;
+bool MainWindowModel::createNewFile(const QUrl& fileName,
+                                    const QString& extension) {
+  return m_newFileModel->createNewFileWithExtensionCheck(fileName.path(),
+                                                         extension);
 }
