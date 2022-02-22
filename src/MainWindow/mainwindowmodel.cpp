@@ -41,8 +41,8 @@ QString MainWindowModel::pageHeadCaption(const int index) {
   return m_newProjectModel->pageHeadCaption(index);
 }
 
-QString MainWindowModel::locationPageMainText() {
-  return m_newProjectModel->locationPageMainText();
+QString MainWindowModel::pageMainText(const int index) {
+  return m_newProjectModel->pageMainText(index);
 }
 
 QString MainWindowModel::projectNameCaption() {
@@ -59,6 +59,22 @@ QString MainWindowModel::checkBoxSubDirectoryCaption() {
 
 QString MainWindowModel::projectFullPathCaption() {
   return m_newProjectModel->projectFullPathCaption();
+}
+
+QString MainWindowModel::radioButtonRTLProjectCaption() {
+  return m_newProjectModel->radioButtonRTLProjectCaption();
+}
+
+QString MainWindowModel::textRTLProject() {
+  return m_newProjectModel->textRTLProject();
+}
+
+QString MainWindowModel::radioButtonPostSynthesisProjectCaption() {
+  return m_newProjectModel->radioButtonPostSynthesisProjectCaption();
+}
+
+QString MainWindowModel::textPostSynthesisProject() {
+  return m_newProjectModel->textPostSynthesisProject();
 }
 
 QString MainWindowModel::fullPathToProject() {
@@ -89,6 +105,14 @@ void MainWindowModel::setNeedToCreateProjrctSubDirectory(
     bool newNeedToCreateProjrctSubDirectory) {
   m_newProjectModel->setNeedToCreateProjrctSubDirectory(
       newNeedToCreateProjrctSubDirectory);
+}
+
+const QString& MainWindowModel::projectType() const {
+  return m_newProjectModel->projectType();
+}
+
+void MainWindowModel::setProjectType(const QString& newProjectType) {
+  m_newProjectModel->setProjectType(newProjectType);
 }
 
 bool MainWindowModel::isVisible() const { return m_isVisible; }

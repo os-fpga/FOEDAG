@@ -30,6 +30,9 @@ class MainWindowModel : public QObject {
           WRITE setNeedToCreateProjrctSubDirectory NOTIFY
               needToCreateProjrctSubDirectoryChanged)
 
+  Q_PROPERTY(QString projectType READ projectType WRITE setProjectType NOTIFY
+                 projectTypeChanged)
+
  public:
   explicit MainWindowModel(TclInterpreter* interp, QObject* parent = nullptr);
 
@@ -56,37 +59,61 @@ class MainWindowModel : public QObject {
    * @brief page caption for all page of New projetc dialog
    * @return Caption depending on the page index
    */
-  Q_INVOKABLE QString pageHeadCaption(const int index);
+  Q_INVOKABLE QString pageHeadCaption(const int index);  // all pages
 
   /**
-   * @brief main text on first page of New project dialog (location)
-   * @return text for first page of New project dialog (location)
+   * @brief main text for all page of New project dialog
+   * @return text for page depending on the page index
    */
-  Q_INVOKABLE QString locationPageMainText();
+  Q_INVOKABLE QString pageMainText(const int index);  // all pages
 
   /**
    * @brief Label caption. Project name
    * @return Label caption
    */
-  Q_INVOKABLE QString projectNameCaption();
+  Q_INVOKABLE QString projectNameCaption();  // 0 page
 
   /**
    * @brief Label caption. Project location
    * @return Label caption
    */
-  Q_INVOKABLE QString projectLocationCaption();
+  Q_INVOKABLE QString projectLocationCaption();  // 0 page
 
   /**
    * @brief Label caption. Checkbox
    * @return Label caption
    */
-  Q_INVOKABLE QString checkBoxSubDirectoryCaption();
+  Q_INVOKABLE QString checkBoxSubDirectoryCaption();  // 0 page
 
   /**
    * @brief Label caption. Project full path
    * @return Label caption
    */
-  Q_INVOKABLE QString projectFullPathCaption();
+  Q_INVOKABLE QString projectFullPathCaption();  // 0 page
+
+  /**
+   * @brief radio button caption. RTL Project
+   * @return radio button caption
+   */
+  Q_INVOKABLE QString radioButtonRTLProjectCaption();  // 1 page
+
+  /**
+   * @brief text under RTL Project radio button
+   * @return text
+   */
+  Q_INVOKABLE QString textRTLProject();  // 1 page
+
+  /**
+   * @brief radio button caption. Post-synthesis Project
+   * @return radio button caption
+   */
+  Q_INVOKABLE QString radioButtonPostSynthesisProjectCaption();  // 1 page
+
+  /**
+   * @brief text under PostSynthesis Project radio button
+   * @return text
+   */
+  Q_INVOKABLE QString textPostSynthesisProject();  // 1 page
 
   /**
    * @brief new project full path
@@ -103,6 +130,9 @@ class MainWindowModel : public QObject {
   bool needToCreateProjrctSubDirectory() const;
   void setNeedToCreateProjrctSubDirectory(
       bool newNeedToCreateProjrctSubDirectory);
+
+  const QString& projectType() const;
+  void setProjectType(const QString& newProjectType);
 
   // common
   bool isVisible() const;
@@ -129,6 +159,7 @@ class MainWindowModel : public QObject {
   void projectNameChanged();
   void projectLocationChanged();
   void needToCreateProjrctSubDirectoryChanged();
+  void projectTypeChanged();
 
  private:
   TclInterpreter* m_interpreter;

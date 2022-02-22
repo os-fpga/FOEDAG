@@ -12,40 +12,64 @@ class NewProjectModel : public QObject {
 
   // functions for UI
   /**
-   * @brief page caption for all page of New projetc dialog
+   * @brief page caption for all page of New project dialog
    * @return Caption depending on the page index
    */
-  QString pageHeadCaption(const int index);
+  QString pageHeadCaption(const int index);  // all pages
 
   /**
-   * @brief main text on first page of New project dialog (location)
-   * @return text for first page of New project dialog (location)
+   * @brief main text for all page of New project dialog
+   * @return text for page depending on the page index
    */
-  QString locationPageMainText();
+  QString pageMainText(const int index);  // all pages
 
   /**
    * @brief Label caption. Project name
    * @return Label caption
    */
-  QString projectNameCaption();
+  QString projectNameCaption();  // 0 page
 
   /**
    * @brief Label caption. Project location
    * @return Label caption
    */
-  QString projectLocationCaption();
+  QString projectLocationCaption();  // 0 page
 
   /**
    * @brief Label caption. Checkbox
    * @return Label caption
    */
-  QString checkBoxSubDirectoryCaption();
+  QString checkBoxSubDirectoryCaption();  // 0 page
 
   /**
    * @brief Label caption. Project full path
    * @return Label caption
    */
-  QString projectFullPathCaption();
+  QString projectFullPathCaption();  // 0 page
+
+  /**
+   * @brief radio button caption. RTL Project
+   * @return radio button caption
+   */
+  QString radioButtonRTLProjectCaption();  // 1 page
+
+  /**
+   * @brief text under RTL Project radio button
+   * @return text
+   */
+  QString textRTLProject();  // 1 page
+
+  /**
+   * @brief radio button caption. Post-synthesis Project
+   * @return radio button caption
+   */
+  QString radioButtonPostSynthesisProjectCaption();  // 1 page
+
+  /**
+   * @brief text under PostSynthesis Project radio button
+   * @return text
+   */
+  QString textPostSynthesisProject();  // 1 page
 
   /**
    * @brief new project full path
@@ -63,14 +87,19 @@ class NewProjectModel : public QObject {
   void setNeedToCreateProjrctSubDirectory(
       bool newNeedToCreateProjrctSubDirectory);
 
+  const QString &projectType() const;
+  void setProjectType(const QString &newProjectType);
+
  signals:
   void projectNameChanged();
   void projectLocationChanged();
   void needToCreateProjrctSubDirectoryChanged();
+  void projectTypeChanged();
 
  protected:
   QString m_projectName{"project_1"};
   QString m_projectLocation;
+  QString m_projectType{"RTL"};  // QString "RTL" or "Post-synthesis"
   bool m_needToCreateProjrctSubDirectory{false};
 };
 

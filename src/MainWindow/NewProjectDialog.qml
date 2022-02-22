@@ -108,14 +108,13 @@ Window
         {
             Rectangle
             {
-                id:top1
-                height: parent.height - bottom1.height
+                id:top0
+                height: parent.height - bottom0.height
 
                 Column
                 {
                     Text
                     {
-                        id: caption0
                         font.bold: true
                         font.pointSize: 12
                         text: windowModel.pageHeadCaption(currentIndex)
@@ -123,17 +122,18 @@ Window
                     Text
                     {
                         width: stackViewRect.width - marginValue*2
-                        text: windowModel.locationPageMainText()
+                        text: windowModel.pageMainText(currentIndex)
                         wrapMode: Text.Wrap
                     }
                 }
             }
             Rectangle
             {
-                id:bottom1
-                anchors.top: top1.bottom
+                id:bottom0
+                anchors.top: top0.bottom
                 anchors.margins: 20
                 height: 200
+                width: stackViewRect.width - marginValue*2
 
                 function updatePathToProject()
                 {
@@ -152,7 +152,7 @@ Window
                 GridLayout
                 {
                     id: grid
-                    width: stackViewRect.width - marginValue*2
+                    width: parent.width
                     columns: 3
                     rows: 2
                     Text{text: windowModel.projectNameCaption()}
@@ -166,7 +166,7 @@ Window
                         onTextChanged:
                         {
                             windowModel.projectName = text
-                            bottom1.updatePathToProject()
+                            bottom0.updatePathToProject()
                         }
                     }
                     Text{text: windowModel.projectLocationCaption()}
@@ -179,7 +179,7 @@ Window
                         onTextChanged:
                         {
                             windowModel.projectLocation = text
-                            bottom1.updatePathToProject()
+                            bottom0.updatePathToProject()
                         }
                     }
                     Button
@@ -198,7 +198,7 @@ Window
                        title: qsTr("Select directory")
 
                        onAccepted:{
-                            projectDirPathTextField.text = bottom1.urlToPath(dialog1.folder.toString())
+                            projectDirPathTextField.text = bottom0.urlToPath(dialog1.folder.toString())
                        }
                     }
                 }
@@ -210,7 +210,7 @@ Window
                     onCheckStateChanged:
                     {
                         windowModel.needToCreateProjrctSubDirectory = checkState
-                        bottom1.updatePathToProject()
+                        bottom0.updatePathToProject()
                     }
                 }
                 Text
@@ -226,11 +226,71 @@ Window
     Component
     {
         id: pageProjectType
-        Text {
-            id: caption0
-            font.bold: true
-            font.pointSize: 12
-            text: windowModel.pageHeadCaption(currentIndex)
+        Rectangle
+        {
+            Rectangle
+            {
+                id:top1
+                height: 100
+
+                Column
+                {
+                    Text {
+                        font.bold: true
+                        font.pointSize: 12
+                        text: windowModel.pageHeadCaption(currentIndex)
+                    }
+                    Text
+                    {
+                        width: stackViewRect.width - marginValue*2
+                        text: windowModel.pageMainText(currentIndex)
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
+            Rectangle
+            {
+                id:bottom1
+                anchors.top: top1.bottom
+                anchors.margins: 20
+                width: stackViewRect.width - marginValue*2
+
+                Component.onCompleted:
+                {
+                    if (windowModel.projectType === "RTL")
+                        radioRTL.checked = true
+                    else
+                        radioPostSynthesis.checked = true
+                }
+                Column
+                {
+                    width: parent.width
+                    RadioButton
+                    {
+                        id:radioRTL
+                        text: windowModel.radioButtonRTLProjectCaption()
+                        onClicked: windowModel.projectType = "RTL"
+                    }
+                    Text {
+                        x: 40
+                        width: parent.width - 40
+                        text: windowModel.textRTLProject()
+                        wrapMode: Text.Wrap
+                    }
+                    RadioButton
+                    {
+                        id: radioPostSynthesis
+                        text: windowModel.radioButtonPostSynthesisProjectCaption()
+                        onClicked: windowModel.projectType = "Post-synthesis"
+                    }
+                    Text {
+                        x: 40
+                        width: parent.width - 40
+                        text: windowModel.textPostSynthesisProject()
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
         }
     }
     //page 2. Add Source
