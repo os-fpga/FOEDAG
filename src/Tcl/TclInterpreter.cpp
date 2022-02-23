@@ -108,6 +108,8 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
     while {$CONT} {
         set a 0
         after 10 set a 1
+        # this delay for some reason fixes tests on CentOS
+        after 20
         vwait a
         if {$errorInfo != ""} {
           puts $errorInfo
