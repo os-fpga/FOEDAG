@@ -29,7 +29,7 @@ echo 'QMAKE_CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
 echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
-if [-d "buildqt5" ] 
+if [ -d "buildqt5" ] 
 then
   cd buildqt5  
   make install
