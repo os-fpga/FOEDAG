@@ -25,15 +25,23 @@ yum install -y mesa-libGL-devel
 yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
 ln -s $PWD/cmake-3.15.7-Linux-x86_64/bin/ctest /usr/bin/ctest
-curl -L http://download.qt.io/official_releases/qt/5.15/5.15.0/single/qt-everywhere-src-5.15.0.tar.xz --output qt-everywhere-src-5.15.0.tar.xz
-tar -xf qt-everywhere-src-5.15.0.tar.xz
-mkdir buildqt5
-cd buildqt5
-source /opt/rh/devtoolset-9/enable
 echo 'QMAKE_CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
 echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput
-make -j 2
-make install
-cd ..
+
+if [-d "buildqt5" ] 
+then
+  cd buildqt5  
+  make install
+  cd ..
+else    
+  curl -L http://download.qt.io/official_releases/qt/5.15/5.15.0/single/qt-everywhere-src-5.15.0.tar.xz --output qt-everywhere-src-5.15.0.tar.xz
+  tar -xf qt-everywhere-src-5.15.0.tar.xz
+  mkdir buildqt5
+  cd buildqt5
+  source /opt/rh/devtoolset-9/enable
+  ../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput
+  make -j 2
+  make install
+  cd ..
+fi
