@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QThread>
-
 #include "ConsoleInterface.h"
 #include "TclWorker.h"
 
@@ -20,8 +18,10 @@ class TclConsole : public ConsoleInterface {
   bool isCommandComplete(const QString &command) override;
   void abort() override;
 
+  void setTclCommandInProggress(bool inProgress);
+
  private slots:
-  void tclFinished();
+  void tclWorkerFinished();
 
  private:
   QStringList getFilesCompletion(TclInterp *interpreter, const QString &cmd,
@@ -31,6 +31,7 @@ class TclConsole : public ConsoleInterface {
   TclWorker *m_tclWorker;
   std::vector<TclWorker *> m_tclWorkers;
   std::ostream &m_out;
+  bool m_commandInProggress{false};
 };
 
 }  // namespace FOEDAG

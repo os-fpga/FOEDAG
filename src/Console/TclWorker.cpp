@@ -58,15 +58,15 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
-  // according to docs cancelation must be done in current thread
-  auto resultObjPtr = Tcl_NewObj();
-  Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
-  setOutput(Tcl_GetString(resultObjPtr));
-  // this eval is necessary. It declines previous if it was canceled.
-  TclEval(m_interpreter, qPrintable("error aborted by user"));
+  if (m_evalInProgress) {
+    auto resultObjPtr = Tcl_NewObj();
+    Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
+    setOutput(Tcl_GetString(resultObjPtr));
+  }
 }
 
 void TclWorker::run() {
+  m_evalInProgress = true;
   init();
 
   m_returnCode = 0;
@@ -75,6 +75,7 @@ void TclWorker::run() {
   QString output = TclGetStringResult(m_interpreter);
   setOutput(output);
   emit tclFinished();
+  m_evalInProgress = false;
 }
 
 int TclWorker::returnCode() const { return m_returnCode; }

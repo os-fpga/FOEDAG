@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <thread>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "DummyParser.h"
+#include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
 #include "StreamBuffer.h"
@@ -32,16 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclConsoleBuilder.h"
 #include "TclConsoleWidget.h"
 FOEDAG::Session *GlobalSession;
-
-class Handler : public FOEDAG::TclInterpreterHandler {
-  FOEDAG::TclConsole *console;
-
- public:
-  Handler(FOEDAG::TclConsole *c) : console{c} {}
-  void initIterpreter(FOEDAG::TclInterpreter *interp) override {
-    console->registerInterpreter(interp->getInterp());
-  }
-};
 
 QWidget *mainWindowBuilder(FOEDAG::CommandLine *cmd,
                            FOEDAG::TclInterpreter *interpreter) {
@@ -57,9 +49,9 @@ QWidget *mainWindowBuilder(FOEDAG::CommandLine *cmd,
   if (console) console->setParsers({new FOEDAG::DummyParser});
 
   std::string design("Some cool design");
-  FOEDAG::Compiler *com =
-      new FOEDAG::Compiler{interpreter, new FOEDAG::Design(design),
-                           buffer->getStream(), new Handler{c}};
+  FOEDAG::Compiler *com = new FOEDAG::Compiler{
+      interpreter, new FOEDAG::Design(design), buffer->getStream(),
+      new FOEDAG::CompilerNotifier{c}};
   com->RegisterCommands(interpreter, false);
   return w;
 }

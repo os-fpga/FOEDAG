@@ -34,6 +34,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+Compiler::Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
+                   TclInterpreterHandler* tclInterpreterHandler)
+    : m_interp(interp),
+      m_design(design),
+      m_out(out),
+      m_tclInterpreterHandler(tclInterpreterHandler) {
+  if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
+}
+
 Compiler::~Compiler() {}
 
 static std::string TclInterpCloneScript() {
@@ -274,6 +283,14 @@ bool Compiler::RunBatch() {
   m_result = batchInterp->evalCmd(TclInterpCloneVar());
   batchInterp->evalCmd("set tcl_interactive true");
   return true;
+}
+
+void Compiler::start() {
+  if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyStart();
+}
+
+void Compiler::finish() {
+  if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyFinish();
 }
 
 bool Compiler::Placement() { return true; }

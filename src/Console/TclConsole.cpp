@@ -12,7 +12,8 @@ TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
     : ConsoleInterface(parent),
       m_tclWorker(new TclWorker{interpreter, out, parent}),
       m_out(out) {
-  connect(m_tclWorker, &TclWorker::tclFinished, this, &TclConsole::done);
+  connect(m_tclWorker, &TclWorker::tclFinished, this,
+          &TclConsole::tclWorkerFinished);
 }
 
 void TclConsole::registerInterpreter(TclInterp *interpreter) {
@@ -60,10 +61,18 @@ bool TclConsole::isCommandComplete(const QString &command) {
   return Tcl_CommandComplete(qPrintable(command));
 }
 
-void TclConsole::abort() { m_tclWorker->abort(); }
+void TclConsole::abort() {
+  m_tclWorker->abort();
+  emit aborted();
+}
 
-void TclConsole::tclFinished() {
-  //
+void TclConsole::setTclCommandInProggress(bool inProgress) {
+  m_commandInProggress = inProgress;
+  tclWorkerFinished();
+}
+
+void TclConsole::tclWorkerFinished() {
+  if (!m_commandInProggress) emit done();
 }
 
 QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,

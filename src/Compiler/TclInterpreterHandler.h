@@ -23,10 +23,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 
 namespace FOEDAG {
+class Compiler;
 class TclInterpreterHandler {
  public:
   virtual ~TclInterpreterHandler() = default;
   virtual void initIterpreter(FOEDAG::TclInterpreter *interp) = 0;
-};
+  virtual void notifyStart() = 0;
+  virtual void notifyFinish() = 0;
 
+  Compiler *compiler() const { return m_compiler; }
+  void setCompiler(Compiler *newCompiler) { m_compiler = newCompiler; }
+
+ protected:
+  Compiler *m_compiler{nullptr};
+};
 }  // namespace FOEDAG

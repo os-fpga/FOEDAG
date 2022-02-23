@@ -38,7 +38,11 @@ WorkerThread::~WorkerThread() {}
 
 bool WorkerThread::start() {
   bool result = true;
-  m_thread = new std::thread([=] { m_compiler->Compile(m_action); });
+  m_compiler->start();
+  m_thread = new std::thread([=] {
+    m_compiler->Compile(m_action);
+    m_compiler->finish();
+  });
   return result;
 }
 

@@ -59,11 +59,7 @@ class Compiler {
   };
 
   Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
-           TclInterpreterHandler* tclInterpreterHandler = nullptr)
-      : m_interp(interp),
-        m_design(design),
-        m_out(out),
-        m_tclInterpreterHandler(tclInterpreterHandler) {}
+           TclInterpreterHandler* tclInterpreterHandler = nullptr);
 
   ~Compiler();
   void BatchScript(const std::string& script) { m_batchScript = script; }
@@ -81,6 +77,8 @@ class Compiler {
   bool TimingAnalysis();
   bool GenerateBitstream();
   bool RunBatch();
+  void start();
+  void finish();
 
   std::string& getResult() { return m_result; }
 

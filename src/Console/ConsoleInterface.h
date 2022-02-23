@@ -19,6 +19,7 @@ class ConsoleInterface : public QObject {
  signals:
   void done();
   void sendOutput(const QString &);
+  void aborted();
 };
 
 }  // namespace FOEDAG
