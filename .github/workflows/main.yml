@@ -150,6 +150,16 @@ jobs:
       with:
         submodules: true
 
+    - name: Download previously saved QT build
+      if: matrix.mode == 'test'
+      uses: actions/download-artifact@v2
+      with:
+        name: buildqt5-centos7-gcc
+        path: buildqt5-centos7-gcc.tgz
+
+    -name: Untar QT build
+      run: tar xvzf buildqt5-centos7-gcc.tgz  
+
     - name: Install dependencies and build QT
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
@@ -158,7 +168,7 @@ jobs:
       if: matrix.mode == 'test'
       run: |
         mkdir build
-        tar czvfp build/buildqt5-centos7-gcc.tgz buildqt5
+        tar czvfp ${{ github.workspace }}/build/buildqt5-centos7-gcc.tgz buildqt5
 
     - name: Archive QT build artifacts
       if: matrix.mode == 'test'
