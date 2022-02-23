@@ -40,7 +40,7 @@ else
   mkdir buildqt5
   cd buildqt5
   source /opt/rh/devtoolset-9/enable
-  ../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput
+  ../qt-everywhere-src-5.15.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -no-compile-examples -nomake examples
   make -j 2
   make install
   cd ..

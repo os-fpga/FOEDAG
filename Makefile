@@ -20,7 +20,7 @@
 # Use bash as the default shell
 SHELL := /bin/bash
 
-XVFB = xvfb-run --auto-servernum
+XVFB = xvfb-run --auto-servernum --server-args="-screen 0, 1280x1024x24"
 
 ifdef $(LC_ALL)
 	undefine LC_ALL
