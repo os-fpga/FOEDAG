@@ -154,6 +154,19 @@ jobs:
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
 
+    - name: Prepare QT build artifacts
+      if: matrix.mode == 'test'
+      run: |
+        mkdir build
+        tar czvfp build/buildqt5-centos7-gcc.tgz buildqt5
+
+    - name: Archive QT build artifacts
+      if: matrix.mode == 'test'
+      uses: actions/upload-artifact@v2
+      with:
+        name: buildqt5-centos7-gcc
+        path: ${{ github.workspace }}/build/buildqt5-centos7-gcc.tgz
+
     - name: Show shell configuration
       run: |
         env
