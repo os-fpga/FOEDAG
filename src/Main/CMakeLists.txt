@@ -102,7 +102,9 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
   ../Main/registerTclCommands.cpp
-  ../MainWindow/mainwindowmodel.cpp)
+  ../MainWindow/mainwindowmodel.cpp
+  CompilerNotifier.cpp
+)
 
 set (SRC_H_LIST ../Main/Foedag.h
   ../Tcl/TclInterpreter.h
@@ -113,7 +115,9 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
   ../Main/CommandLine.h
-  ../MainWindow/mainwindowmodel.h)
+  ../MainWindow/mainwindowmodel.h
+  CompilerNotifier.h
+)
 
 set (SRC_UI_LIST "")
 
