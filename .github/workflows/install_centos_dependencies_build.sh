@@ -29,12 +29,19 @@ echo 'QMAKE_CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
 echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
+if [ -f buildqt5-centos7-gcc.tgz ]
+then
+  echo "Found QT build artifact, untarring..."
+  tar xvzf buildqt5-centos7-gcc.tgz  
+fi
+
 if [ -d "buildqt5" ] 
 then
   cd buildqt5  
   make install
   cd ..
-else    
+else
+  echo "Downloading and building QT..."
   curl -L http://download.qt.io/official_releases/qt/5.15/5.15.0/single/qt-everywhere-src-5.15.0.tar.xz --output qt-everywhere-src-5.15.0.tar.xz
   tar -xf qt-everywhere-src-5.15.0.tar.xz
   mkdir buildqt5
