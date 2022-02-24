@@ -153,13 +153,6 @@ jobs:
     - name: Download previously saved QT build
       if: matrix.mode == 'test'
       uses: actions/download-artifact@v2
-      with:
-        name: buildqt5-centos7-gcc
-        path: buildqt5-centos7-gcc.tgz
-
-    - name: Untar QT build
-      run: |
-        tar xvzf buildqt5-centos7-gcc.tgz  
 
     - name: Install dependencies and build QT
       run: |
