@@ -98,9 +98,16 @@ bool Foedag::initGui() {
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
       std::string proc = "call_test";
       Tcl_EvalEx(interp, proc.c_str(), -1, 0);
+    } else {
+      Tcl_EvalEx(interp, "gui_start", -1, 0);
     }
     return 0;
   };
+
+  // exit tcl after last window is closed
+  QObject::connect(qApp, &QApplication::lastWindowClosed, [interpreter]() {
+    Tcl_EvalEx(interpreter->getInterp(), "exit", -1, 0);
+  });
 
   // Start Loop
   Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());

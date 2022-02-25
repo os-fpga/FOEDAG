@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "TopLevelInterface.h"
+
 class QAction;
 class QLabel;
 
@@ -31,7 +33,7 @@ namespace FOEDAG {
 
 class TclInterpreter;
 /** Main window of the program */
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
 
  public: /*-- Constructor --*/
@@ -48,8 +50,10 @@ class MainWindow : public QMainWindow {
   void createMenus();
   void createToolBars();
   void createActions();
+  void gui_start() override;
 
   void ReShowWindow(QString strProject);
+  void clearDockWidgets();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */

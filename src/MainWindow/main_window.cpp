@@ -152,7 +152,10 @@ void MainWindow::createActions() {
   });
 }
 
+void MainWindow::gui_start() { ReShowWindow("unknown"); }
+
 void MainWindow::ReShowWindow(QString strProject) {
+  clearDockWidgets();
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   SourcesForm* sourForm = new SourcesForm(strProject, this);
@@ -188,4 +191,11 @@ void MainWindow::ReShowWindow(QString strProject) {
       buffer);
   consoleDocWidget->setWidget(w);
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
+}
+
+void MainWindow::clearDockWidgets() {
+  auto docks = findChildren<QDockWidget*>();
+  for (auto dock : docks) {
+    removeDockWidget(dock);
+  }
 }
