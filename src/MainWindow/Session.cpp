@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/Session.h"
 
+#include "TopLevelInterface.h"
+
 using namespace FOEDAG;
 
 Session::~Session() {
@@ -34,6 +36,9 @@ void Session::windowShow() {
   switch (m_guiType) {
     case GUI_TYPE::GT_WIDGET:
       m_mainWindow->show();
+      if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
+        topLevel->gui_start();
+      }
       break;
     case GUI_TYPE::GT_QML:
       m_windowModel->setIsVisible(true);

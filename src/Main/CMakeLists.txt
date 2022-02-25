@@ -116,6 +116,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/qttclnotifier.hpp
   ../Main/CommandLine.h
   ../MainWindow/mainwindowmodel.h
+  ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h
 )
 
@@ -162,6 +163,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../MainWindow/main_window.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/Session.h
           ${PROJECT_SOURCE_DIR}/../MainWindow/mainwindowmodel.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/TopLevelInterface.h
           ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
           ${PROJECT_SOURCE_DIR}/../NewFile/newfilemodel.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
