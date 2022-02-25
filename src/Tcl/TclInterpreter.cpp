@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "TclInterpreter.h"
 
+#include <QString>
+#include <QSysInfo>
 #include <mutex>
 
 using namespace FOEDAG;
@@ -70,7 +72,7 @@ void TclInterpreter::registerCmd(const std::string &cmdName, Tcl_CmdProc proc,
 }
 
 std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
-  std::string testHarness = R"(
+  QString testHarness = R"(
   proc test_harness { gui_script } {
     global CONT errorInfo
     set fid [open $gui_script]
@@ -108,8 +110,7 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
     while {$CONT} {
         set a 0
         after 10 set a 1
-        # this delay for some reason fixes tests on CentOS
-        after 20
+        %1
         vwait a
         if {$errorInfo != ""} {
           puts $errorInfo
@@ -128,12 +129,18 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
   }
 
   )";
+  testHarness =
+      testHarness.arg((QSysInfo::productType() == "centos") ? R"(
+  # this delay for some reason fixes tests on CentOS but stuck on MAC
+  after 20
+)"
+                                                            : QString());
 
   std::string call_test = "proc call_test { } {\n";
   call_test += "test_harness " + filename + "\n";
   call_test += "}\n";
 
-  std::string completeScript = testHarness + "\n" + call_test;
+  std::string completeScript = testHarness.toStdString() + "\n" + call_test;
 
   int code = Tcl_Eval(interp, completeScript.c_str());
 
