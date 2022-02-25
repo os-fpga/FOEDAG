@@ -150,9 +150,12 @@ jobs:
       with:
         submodules: true
 
-    - name: Download previously saved QT build
+    - name: Download workflow artifact
       if: matrix.mode == 'test'
-      uses: actions/download-artifact@v2
+      uses: dawidd6/action-download-artifact@v2.17.0
+      with:
+        workflow: main.yml
+        repo: github.com/os-fpga/FOEDAG
 
     - name: Install dependencies and build QT
       run: |
