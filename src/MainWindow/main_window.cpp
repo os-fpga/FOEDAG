@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleBuilder.h"
 #include "Console/TclConsoleWidget.h"
 #include "DesignRuns/runs_form.h"
+#include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
 #include "NewProject/new_project_dialog.h"
@@ -184,12 +185,20 @@ void MainWindow::ReShowWindow(QString strProject) {
   consoleDocWidget->setObjectName("consoledocwidget");
 
   StreamBuffer* buffer = new StreamBuffer;
-  QWidget* w = FOEDAG::createConsole(
-      m_interpreter->getInterp(),
-      std::make_unique<TclConsole>(m_interpreter->getInterp(),
-                                   buffer->getStream()),
-      buffer);
+  auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
+      m_interpreter->getInterp(), buffer->getStream());
+  FOEDAG::TclConsole* c = tclConsole.get();
+  QWidget* w = FOEDAG::createConsole(m_interpreter->getInterp(),
+                                     std::move(tclConsole), buffer);
   consoleDocWidget->setWidget(w);
+
+  // Register fake compiler until openFPGA gets available
+  std::string design("Some cool design");
+  FOEDAG::Compiler* com = new FOEDAG::Compiler{
+      m_interpreter, new FOEDAG::Design(design), buffer->getStream(),
+      new FOEDAG::CompilerNotifier{c}};
+  com->RegisterCommands(m_interpreter, false);
+
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }
 
