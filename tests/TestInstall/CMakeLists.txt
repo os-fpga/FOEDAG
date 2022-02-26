@@ -139,6 +139,7 @@ target_link_libraries(test_hellofoedag
   designruns
   texteditor
   console
+  compiler
   QConsole
   qscintilla2_qt
   tcl_stubb
