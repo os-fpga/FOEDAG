@@ -134,8 +134,8 @@ void TclConsoleWidget::commandDone() {
 }
 
 void TclConsoleWidget::handleLink(const QPoint &p) {
-  qDebug() << anchorAt(p);
-  emit linkActivated(anchorAt(p));
+  const QString anchor{anchorAt(p)};
+  if (!anchor.isEmpty()) emit linkActivated(anchor);
 }
 
 void TclConsoleWidget::registerCommands(TclInterp *interp) {

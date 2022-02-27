@@ -58,6 +58,7 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
 
   int filetype;
   QFileInfo fileInfo(strFileName);
+  if (!fileInfo.exists()) return -1;
   QString filename = fileInfo.fileName();
   QString suffix = fileInfo.suffix();
   if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0 ||

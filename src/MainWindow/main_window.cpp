@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 #include <fstream>
 
+#include "Console/DummyParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
 #include "Console/TclConsoleBuilder.h"
@@ -188,9 +189,14 @@ void MainWindow::ReShowWindow(QString strProject) {
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
       m_interpreter->getInterp(), buffer->getStream());
   FOEDAG::TclConsole* c = tclConsole.get();
-  QWidget* w = FOEDAG::createConsole(m_interpreter->getInterp(),
-                                     std::move(tclConsole), buffer);
+  TclConsoleWidget* console{nullptr};
+  QWidget* w =
+      FOEDAG::createConsole(m_interpreter->getInterp(), std::move(tclConsole),
+                            buffer, nullptr, &console);
   consoleDocWidget->setWidget(w);
+  connect(console, &TclConsoleWidget::linkActivated, textEditor,
+          &TextEditor::SlotOpenFile);
+  console->addParser(new DummyParser{});
 
   // Register fake compiler until openFPGA gets available
   std::string design("Some cool design");
