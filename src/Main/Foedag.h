@@ -23,8 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern FOEDAG::Session* GlobalSession;
 
+namespace FOEDAG {
+class TextEditor;
+}
+
 void registerBasicGuiCommands(FOEDAG::Session* session);
 void registerBasicBatchCommands(FOEDAG::Session* session);
+void registerTextEditorCommands(FOEDAG::TextEditor* editor,
+                                FOEDAG::Session* session);
 
 #ifndef FOEDAG_H
 #define FOEDAG_H
