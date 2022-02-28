@@ -45,6 +45,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newFile();
   void newProjectDlg();
   void openProject();
+  void openFileSlot();
 
  private: /* Menu bar builders */
   void createMenus();
@@ -62,6 +63,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* newProjectAction;
   QAction* openProjectAction;
   QAction* exitAction;
+  QAction* openFile;
 
   /* Tool bar objects */
   QToolBar* fileToolBar;

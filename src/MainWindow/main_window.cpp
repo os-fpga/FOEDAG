@@ -115,9 +115,17 @@ void MainWindow::openProject() {
   }
 }
 
+void MainWindow::openFileSlot() {
+  const QString file = QFileDialog::getOpenFileName(this, tr("Open file"));
+  auto editor = findChild<TextEditor*>("textEditor");
+  if (editor) editor->SlotOpenFile(file);
+}
+
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
+  fileMenu->addAction(openFile);
+  fileMenu->addSeparator();
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
   fileMenu->addSeparator();
@@ -136,13 +144,18 @@ void MainWindow::createActions() {
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&OpenProject"), this);
+  openProjectAction = new QAction(tr("&Open Project"), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
-  newProjectAction = new QAction(tr("&NewProject"), this);
+  newProjectAction = new QAction(tr("&New Project"), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
+
+  openFile = new QAction(tr("&Open File"), this);
+  openFile->setStatusTip(tr("Open file"));
+  openFile->setIcon(QIcon(":/images/open-file.png"));
+  connect(openFile, SIGNAL(triggered()), this, SLOT(openFileSlot()));
 
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));
@@ -173,6 +186,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* editorDockWidget = new QDockWidget(this);
   editorDockWidget->setObjectName("editordockwidget");
   TextEditor* textEditor = new TextEditor(this);
+  textEditor->setObjectName("textEditor");
   editorDockWidget->setWidget(textEditor->GetTextEditor());
   addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
 
@@ -204,6 +218,8 @@ void MainWindow::ReShowWindow(QString strProject) {
       m_interpreter, new FOEDAG::Design(design), buffer->getStream(),
       new FOEDAG::CompilerNotifier{c}};
   com->RegisterCommands(m_interpreter, false);
+
+  registerTextEditorCommands(textEditor, GlobalSession);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }
