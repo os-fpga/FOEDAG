@@ -186,6 +186,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* editorDockWidget = new QDockWidget(this);
   editorDockWidget->setObjectName("editordockwidget");
   TextEditor* textEditor = new TextEditor(this);
+  textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
   editorDockWidget->setWidget(textEditor->GetTextEditor());
   addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
@@ -218,8 +219,6 @@ void MainWindow::ReShowWindow(QString strProject) {
       m_interpreter, new FOEDAG::Design(design), buffer->getStream(),
       new FOEDAG::CompilerNotifier{c}};
   com->RegisterCommands(m_interpreter, false);
-
-  FOEDAG::registerTextEditorCommands(textEditor, GlobalSession);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }
