@@ -29,8 +29,6 @@ class TextEditor;
 
 void registerBasicGuiCommands(FOEDAG::Session* session);
 void registerBasicBatchCommands(FOEDAG::Session* session);
-void registerTextEditorCommands(FOEDAG::TextEditor* editor,
-                                FOEDAG::Session* session);
 
 #ifndef FOEDAG_H
 #define FOEDAG_H
@@ -40,7 +38,7 @@ namespace FOEDAG {
 typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine,
                                     FOEDAG::TclInterpreter* tclInterp);
 
-typedef void(RegisterTclFunc)(FOEDAG::Session* session);
+typedef void(RegisterTclFunc)(QWidget* widget, FOEDAG::Session* session);
 
 class Foedag {
  public:

@@ -34,7 +34,7 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
   return new FOEDAG::MainWindow{interp};
 }
 
-void registerExampleCommands(FOEDAG::Session* session) {
+void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
   // Create a fake design
   std::string designName = "test_design";
   FOEDAG::Design* design = new FOEDAG::Design(designName);

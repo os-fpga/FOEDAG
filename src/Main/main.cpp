@@ -31,7 +31,7 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
   return new FOEDAG::MainWindow{interp};
 }
 
-void registerExampleCommands(FOEDAG::Session* session) {
+void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
   auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
     GlobalSession->TclInterp()->evalCmd("puts Hello!");

@@ -7,6 +7,7 @@
 #include "text_editor_form.h"
 
 namespace FOEDAG {
+class Session;
 
 class TextEditor : public QWidget {
   Q_OBJECT
@@ -17,6 +18,8 @@ class TextEditor : public QWidget {
   void ClosetextEditor();
   QWidget *GetTextEditor();
 
+  void RegisterCommands(FOEDAG::Session *session);
+
  signals:
   void CurrentFileChanged(QString);
 
@@ -26,5 +29,8 @@ class TextEditor : public QWidget {
  private slots:
   void SlotCurrentFileChanged(const QString &strFileName);
 };
+
+void registerTextEditorCommands(QWidget *editor, FOEDAG::Session *session);
+
 }  // namespace FOEDAG
 #endif  // TEXTEDITOR_H

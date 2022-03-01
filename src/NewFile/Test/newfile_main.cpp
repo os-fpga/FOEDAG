@@ -35,7 +35,7 @@ QWidget* newFileBuilder(FOEDAG::CommandLine* cmd,
   return new FOEDAG::NewFile();
 }
 
-void registerNewFileCommands(FOEDAG::Session* session) {
+void registerNewFileCommands(QWidget* widget, FOEDAG::Session* session) {
   auto newfileshow = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Q_UNUSED(interp);
@@ -45,8 +45,7 @@ void registerNewFileCommands(FOEDAG::Session* session) {
     newFile->StartNewFile();
     return 0;
   };
-  session->TclInterp()->registerCmd("newfile_show", newfileshow,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newfile_show", newfileshow, widget, 0);
 
   auto newfilehide = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -57,8 +56,7 @@ void registerNewFileCommands(FOEDAG::Session* session) {
     newFile->StopNewFile();
     return 0;
   };
-  session->TclInterp()->registerCmd("newfile_close", newfilehide,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newfile_close", newfilehide, widget, 0);
 
   auto newfile = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -70,8 +68,7 @@ void registerNewFileCommands(FOEDAG::Session* session) {
 
     return 0;
   };
-  session->TclInterp()->registerCmd("newfile", newfile,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newfile", newfile, widget, 0);
 
   //  session->TclInterp()->evalCmd(
   //      "puts \"Put texteditor_show to test projnavigator GUI.\"");

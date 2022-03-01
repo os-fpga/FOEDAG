@@ -35,7 +35,7 @@ QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd,
   return new FOEDAG::newProjectDialog();
 }
 
-void registerNewProjectCommands(FOEDAG::Session* session) {
+void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session) {
   auto newproject = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
     Q_UNUSED(interp);
@@ -45,8 +45,8 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
     dialog->show();
     return 0;
   };
-  session->TclInterp()->registerCmd("newproject_gui_open", newproject,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("newproject_gui_open", newproject, widget,
+                                    0);
 
   auto newprojecthide = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
@@ -58,7 +58,7 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("newproject_gui_close", newprojecthide,
-                                    GlobalSession->MainWindow(), 0);
+                                    widget, 0);
 
   auto btnnext = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -69,8 +69,7 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
     dialog->Next_TclCommand_Test();
     return 0;
   };
-  session->TclInterp()->registerCmd("next", btnnext,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("next", btnnext, widget, 0);
 
   auto createproject = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -79,11 +78,7 @@ void registerNewProjectCommands(FOEDAG::Session* session) {
     dialog->CreateProject_Tcl_Test(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("create_project", createproject,
-                                    GlobalSession->MainWindow(), 0);
-
-  session->TclInterp()->evalCmd(
-      "puts \"Put newproject_gui_open to show new project GUI.\"");
+  session->TclInterp()->registerCmd("create_project", createproject, widget, 0);
 }
 
 int main(int argc, char** argv) {
