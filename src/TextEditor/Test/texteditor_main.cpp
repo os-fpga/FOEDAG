@@ -35,51 +35,6 @@ QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd,
   return new FOEDAG::TextEditor();
 }
 
-void registerTextEditorCommands(FOEDAG::Session* session) {
-  auto texteditorshow = [](void* clientData, Tcl_Interp* interp, int argc,
-                           const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
-    textEditor->ShowTextEditor();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("texteditor_show", texteditorshow,
-                                    GlobalSession->MainWindow(), 0);
-
-  auto texteditorhide = [](void* clientData, Tcl_Interp* interp, int argc,
-                           const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
-    textEditor->ClosetextEditor();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("texteditor_close", texteditorhide,
-                                    GlobalSession->MainWindow(), 0);
-
-  auto openfile = [](void* clientData, Tcl_Interp* interp, int argc,
-                     const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::TextEditor* textEditor = (FOEDAG::TextEditor*)(clientData);
-    textEditor->GetTextEditor()->resize(850, 650);
-    textEditor->ShowTextEditor();
-    if (argc > 1) {
-      textEditor->SlotOpenFile(argv[1]);
-    }
-    return 0;
-  };
-  session->TclInterp()->registerCmd("openfile", openfile,
-                                    GlobalSession->MainWindow(), 0);
-
-  //  session->TclInterp()->evalCmd(
-  //      "puts \"Put texteditor_show to test projnavigator GUI.\"");
-}
-
 int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
@@ -87,12 +42,12 @@ int main(int argc, char** argv) {
   if (!cmd->WithQt()) {
     // Batch mode
     FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerTextEditorCommands);
+        new FOEDAG::Foedag(cmd, nullptr, FOEDAG::registerTextEditorCommands);
     return foedag->initBatch();
   } else {
     // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, textEditorBuilder, registerTextEditorCommands);
+    FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+        cmd, textEditorBuilder, FOEDAG::registerTextEditorCommands);
     return foedag->initGui();
   }
 }

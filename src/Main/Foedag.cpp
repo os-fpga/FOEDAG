@@ -70,7 +70,7 @@ bool Foedag::initGui() {
 
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
-    m_registerTclFunc(GlobalSession);
+    m_registerTclFunc(GlobalSession->MainWindow(), GlobalSession);
   }
 
   QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
@@ -148,7 +148,7 @@ bool Foedag::initQmlGui() {
 
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
-    m_registerTclFunc(GlobalSession);
+    m_registerTclFunc(GlobalSession->MainWindow(), GlobalSession);
   }
 
   QtTclNotify::QtTclNotifier::setup();  // Registers notifier with Tcl
@@ -216,7 +216,7 @@ bool Foedag::initBatch() {
 
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {
-    m_registerTclFunc(GlobalSession);
+    m_registerTclFunc(nullptr, GlobalSession);
   }
   std::string result = interpreter->evalCmd("puts \"Tcl only mode\"");
   // --script <script>

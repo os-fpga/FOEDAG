@@ -38,7 +38,7 @@ QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
   }
 }
 
-void registerDesignRunsCommands(FOEDAG::Session* session) {
+void registerDesignRunsCommands(QWidget* widget, FOEDAG::Session* session) {
   auto design_runs_show = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Q_UNUSED(interp);
@@ -49,7 +49,7 @@ void registerDesignRunsCommands(FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("design_runs_show", design_runs_show,
-                                    GlobalSession->MainWindow(), 0);
+                                    widget, 0);
 
   auto design_runs_hide = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -61,7 +61,7 @@ void registerDesignRunsCommands(FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("design_runs_hide", design_runs_hide,
-                                    GlobalSession->MainWindow(), 0);
+                                    widget, 0);
 }
 
 int main(int argc, char** argv) {

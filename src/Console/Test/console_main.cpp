@@ -35,7 +35,7 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
   return w;
 }
 
-void registerExampleCommands(FOEDAG::Session* session) {
+void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
   auto debug = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
     QWidget* w = static_cast<QWidget*>(clientData);

@@ -219,7 +219,7 @@ void MainWindow::ReShowWindow(QString strProject) {
       new FOEDAG::CompilerNotifier{c}};
   com->RegisterCommands(m_interpreter, false);
 
-  registerTextEditorCommands(textEditor, GlobalSession);
+  FOEDAG::registerTextEditorCommands(textEditor, GlobalSession);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 }

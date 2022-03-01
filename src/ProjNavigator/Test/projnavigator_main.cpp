@@ -38,7 +38,7 @@ QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
   }
 }
 
-void registerProjNavigatorCommands(FOEDAG::Session* session) {
+void registerProjNavigatorCommands(QWidget* widget, FOEDAG::Session* session) {
   auto projnavigator = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Q_UNUSED(interp);
@@ -48,8 +48,8 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->show();
     return 0;
   };
-  session->TclInterp()->registerCmd("projnavigator_show", projnavigator,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("projnavigator_show", projnavigator, widget,
+                                    0);
 
   auto projnavigatorhide = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
@@ -61,7 +61,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     return 0;
   };
   session->TclInterp()->registerCmd("projnavigator_close", projnavigatorhide,
-                                    GlobalSession->MainWindow(), 0);
+                                    widget, 0);
 
   auto openproject = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -73,8 +73,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->show();
     return 0;
   };
-  session->TclInterp()->registerCmd("open_project", openproject,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("open_project", openproject, widget, 0);
 
   auto createfileset = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -83,8 +82,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->TclCreateDesign(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("create_design", createfileset,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("create_design", createfileset, widget, 0);
 
   auto addfiles = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
@@ -93,8 +91,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->TclAddOrCreateFiles(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("add_files", addfiles,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("add_files", addfiles, widget, 0);
 
   auto setactive = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
@@ -103,8 +100,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->TclSetActiveDesign(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("set_active_design", setactive,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("set_active_design", setactive, widget, 0);
 
   auto settopmodule = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -113,8 +109,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->TclSetTopModule(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("set_top_module", settopmodule,
-                                    GlobalSession->MainWindow(), 0);
+  session->TclInterp()->registerCmd("set_top_module", settopmodule, widget, 0);
 
   auto settarget = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
@@ -123,11 +118,7 @@ void registerProjNavigatorCommands(FOEDAG::Session* session) {
     srcForm->TclSetAsTarget(argc, argv);
     return 0;
   };
-  session->TclInterp()->registerCmd("set_as_target", settarget,
-                                    GlobalSession->MainWindow(), 0);
-
-  //  session->TclInterp()->evalCmd(
-  //      "puts \"Put projnavigator_show to test projnavigator GUI.\"");
+  session->TclInterp()->registerCmd("set_as_target", settarget, widget, 0);
 }
 
 int main(int argc, char** argv) {
