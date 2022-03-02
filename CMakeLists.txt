@@ -76,10 +76,10 @@ add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
 add_subdirectory(src/ProjNavigator)
 add_subdirectory(src/DesignRuns)
-add_subdirectory(src/TextEditor)
 add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
+add_subdirectory(src/TextEditor)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -230,7 +230,7 @@ else()
   add_dependencies(tcl_build zlib_build)
 endif()
 add_dependencies(foedagcore qscintilla2_qt)
-add_dependencies(texteditor qscintilla2_qt)
+add_dependencies(texteditor qscintilla2_qt tcl_build)
 
 
 if (APPLE)

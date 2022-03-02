@@ -17,7 +17,7 @@ include (../../cmake/cmake_tcl.txt)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/../../src
-  ${CMAKE_CURRENT_BINARY_DIR}/../../include)
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
