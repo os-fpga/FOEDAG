@@ -93,7 +93,7 @@ else()
     COMMAND ${CMAKE_COMMAND} -P zlib_make.cmake
     COMMAND cp ${ZLIB_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
     COMMAND echo "       Zlib Compilation completed"
-    WORKING_DIRECTORY "../../../third_party/zlib"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../zlib"
     DEPENDS ../zlib/zlib.h
   )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
@@ -105,7 +105,7 @@ else()
     COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
     COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "../../../third_party/tcl/unix"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/unix"
     DEPENDS ../tcl/generic/tcl.h
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
