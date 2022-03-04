@@ -44,6 +44,14 @@ MainWindow::MainWindow(TclInterpreter* interp) : m_interpreter(interp) {
   setWindowTitle(tr("FOEDAG"));
   resize(350, 250);
 
+  QDesktopWidget dw;
+  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
+              dw.height() * 2 / 3);
+
+  setDockNestingEnabled(true);
+
+  setTabPosition(Qt::AllDockWidgetAreas, QTabWidget::North);
+
   /* Create actions that can be added to menu/tool bars */
   createActions();
 
@@ -167,7 +175,7 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() { ReShowWindow("unknown"); }
+void MainWindow::gui_start() { this->show(); }
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
@@ -181,20 +189,29 @@ void MainWindow::ReShowWindow(QString strProject) {
   runDockWidget->setObjectName("sourcedockwidget");
   RunsForm* runForm = new RunsForm(strProject, this);
   runDockWidget->setWidget(runForm);
-  addDockWidget(Qt::BottomDockWidgetArea, runDockWidget);
+  // addDockWidget(Qt::BottomDockWidgetArea, runDockWidget);
 
-  QDockWidget* editorDockWidget = new QDockWidget(this);
-  editorDockWidget->setObjectName("editordockwidget");
+  // QDockWidget* editorDockWidget = new QDockWidget(this);
+  // editorDockWidget->setObjectName("editordockwidget");
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
-  editorDockWidget->setWidget(textEditor->GetTextEditor());
-  addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
+  // editorDockWidget->setWidget(textEditor->GetTextEditor());
+  // addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
 
   connect(sourForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourForm,
           SLOT(SetCurrentFileItem(QString)));
+
+  QWidget* centralWidget = new QWidget(this);
+  QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, centralWidget);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(0);
+  layout->addWidget(textEditor->GetTextEditor());
+  centralWidget->setLayout(layout);
+  takeCentralWidget();
+  setCentralWidget(centralWidget);
 
   // console
   QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
@@ -221,6 +238,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   com->RegisterCommands(m_interpreter, false);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
+  tabifyDockWidget(consoleDocWidget, runDockWidget);
 }
 
 void MainWindow::clearDockWidgets() {
