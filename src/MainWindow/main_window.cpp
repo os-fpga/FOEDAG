@@ -175,10 +175,12 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() { this->show(); }
+void MainWindow::gui_start() { ReShowWindow("unknown"); }
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
+  takeCentralWidget();
+
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   SourcesForm* sourForm = new SourcesForm(strProject, this);
@@ -205,7 +207,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   layout->setSpacing(0);
   layout->addWidget(textEditor->GetTextEditor());
   centralWidget->setLayout(layout);
-  takeCentralWidget();
+
   setCentralWidget(centralWidget);
 
   // console
