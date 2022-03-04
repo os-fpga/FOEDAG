@@ -189,15 +189,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   runDockWidget->setObjectName("sourcedockwidget");
   RunsForm* runForm = new RunsForm(strProject, this);
   runDockWidget->setWidget(runForm);
-  // addDockWidget(Qt::BottomDockWidgetArea, runDockWidget);
 
-  // QDockWidget* editorDockWidget = new QDockWidget(this);
-  // editorDockWidget->setObjectName("editordockwidget");
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
-  // editorDockWidget->setWidget(textEditor->GetTextEditor());
-  // addDockWidget(Qt::RightDockWidgetArea, editorDockWidget);
 
   connect(sourForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
