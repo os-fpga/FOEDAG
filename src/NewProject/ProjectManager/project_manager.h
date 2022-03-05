@@ -183,6 +183,7 @@ class ProjectManager : public QObject {
   int CreateRunsFolder(QString strFolderName);
 
   int CreateVerilogFile(QString strFile);
+  int CreateSystemVerilogFile(QString strFile);
   int CreateVHDLFile(QString strFile);
   int CreateSDCFile(QString strFile);
 

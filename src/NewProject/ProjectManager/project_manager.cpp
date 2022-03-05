@@ -233,12 +233,14 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive) ||
+          !suffix.compare("sv", Qt::CaseInsensitive) ||
           !suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive) ||
+        !suffix.compare("sv", Qt::CaseInsensitive) ||
         !suffix.compare("vhd", Qt::CaseInsensitive)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
@@ -251,6 +253,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(strFileName);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
+        }
+      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(strFileName);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
@@ -268,6 +275,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
         }
       } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
         ret = CreateVHDLFile(filePath);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
+        }
+      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(filePath);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
@@ -1426,6 +1438,17 @@ int ProjectManager::CreateVerilogFile(QString strFile) {
   out << "endmodule \n";
 
   file.flush();
+  file.close();
+  return ret;
+}
+
+int ProjectManager::CreateSystemVerilogFile(QString strFile) {
+  int ret = 0;
+  QFile file(strFile);
+  if (file.exists()) return ret;
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
   file.close();
   return ret;
 }
