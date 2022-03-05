@@ -74,7 +74,7 @@ jobs:
     - name: Test
       if: matrix.mode == 'test'
       run: |
-        make debug VERBOSE=1 test/unittest-d
+        make debug test/unittest-d
         make release test/batch
         make test/gui
 
@@ -382,7 +382,7 @@ jobs:
         where python && python --version
         where ninja && ninja --version
 
-        make release VERBOSE=1
+        make release
         if %errorlevel% neq 0 exit /b %errorlevel%
         make install
         if %errorlevel% neq 0 exit /b %errorlevel%
