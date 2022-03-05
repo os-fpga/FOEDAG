@@ -60,6 +60,28 @@ void newProjectDialog::on_m_btnBack_clicked() {
 }
 
 void newProjectDialog::on_m_btnNext_clicked() {
+  if (INDEX_LOCATION == m_index) {
+    if ("" == m_locationForm->getProjectName()) {
+      QMessageBox::information(this, tr("Information"),
+                               tr("Please specify a project name"),
+                               QMessageBox::Ok);
+      return;
+    }
+
+    if ("" == m_locationForm->getProjectPath()) {
+      QMessageBox::information(this, tr("Information"),
+                               tr("Please select a path for your project"),
+                               QMessageBox::Ok);
+      return;
+    }
+    if (m_locationForm->IsProjectNameExit()) {
+      QMessageBox::information(
+          this, tr("Information"),
+          tr("Project name already exists,Please rename for your project"),
+          QMessageBox::Ok);
+      return;
+    }
+  }
   m_index++;
   UpdateDialogView();
 }
