@@ -62,13 +62,13 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "../../../third_party/tcl/win"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/win"
     DEPENDS ../tcl/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ../../../third_party/tcl/win/Release_AMD64_VC1931/${TCL_STATIC_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl/win/Release_AMD64_VC1931/${TCL_STATIC_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STATIC_LIB}
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
@@ -77,13 +77,13 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Stubb Compilation completed"
-    WORKING_DIRECTORY "../../../third_party/tcl/win"
-    DEPENDS ../tcl/generic/tcl.h
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/win"
+    DEPENDS ${PROJECT_SOURCE_DIR}/../tcl/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_stubb_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ../../../third_party/tcl/win/Release_AMD64_VC1931/${TCL_STUBB_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl/win/Release_AMD64_VC1931/${TCL_STUBB_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}         
   )
 else()
