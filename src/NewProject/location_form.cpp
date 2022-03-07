@@ -37,15 +37,18 @@ bool locationForm::IsCreateDir() {
 }
 
 bool locationForm::IsProjectNameExit() {
-  QString pname = ui->m_lineEditPname->text();
-  QString ppath = ui->m_labelPath1->text();
-  if ("" == pname || "" == ppath) return false;
+  QString strName = ui->m_lineEditPname->text();
+  QString strPath = ui->m_labelPath1->text();
   if (Qt::CheckState::Checked == ui->m_checkBox->checkState()) {
-    QStringList dirlist;  // = getallChildDir(ppath);
-    foreach (QString str, dirlist) {
-      if (!pname.compare(str, Qt::CaseInsensitive)) {
-        return true;
-      }
+    QFileInfo fileInfo(strPath);
+    if (fileInfo.exists()) {
+      return true;
+    }
+  } else {
+    QString strFile = strPath + "/" + strName + ".ospr";
+    QFileInfo fileInfo(strFile);
+    if (fileInfo.exists()) {
+      return true;
     }
   }
   return false;

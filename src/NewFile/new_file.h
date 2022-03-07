@@ -10,7 +10,7 @@
 #define FILTER_VERILOG "Verilog HDL Files(*.v)"
 #define FILTER_VHDL "VHDL Files(*.vhd)"
 #define FILTER_TCL "Tcl Script Files(*.tcl)"
-#define FILTER_CONSTR "Synopsys Design Constraints Files(*.sdc)"
+#define FILTER_CONSTR "Design Timing Constraints Files(*.dtc)"
 #define FILTER_ALL "All Files(*.*)"
 
 namespace FOEDAG {

@@ -37,6 +37,7 @@ void createFileDialog::initialDialog(int type) {
 
     ui->m_comboxFileType->clear();
     ui->m_comboxFileType->addItem(tr("Verilog"));
+    ui->m_comboxFileType->addItem(tr("SystemVerilog"));
     ui->m_comboxFileType->addItem(tr("VHDL"));
   } else if (GT_CONSTRAINTS == m_type) {
     setWindowTitle(tr("Create Constraints File"));
@@ -63,6 +64,10 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
         fdata.m_fileType = QString("v");
         break;
       case 1:
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".sv");
+        fdata.m_fileType = QString("sv");
+        break;
+      case 2:
         fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".vhd");
         fdata.m_fileType = QString("vhd");
         break;

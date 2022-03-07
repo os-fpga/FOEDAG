@@ -153,7 +153,7 @@ QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 void sourceGrid::AddFiles() {
   QString fileformat;
   if (GT_SOURCE == m_type) {
-    fileformat = QString(tr("Design Files(*.v *.vhd)"));
+    fileformat = QString(tr("Design Files(*.v *.sv *.vhd)"));
   } else if (GT_CONSTRAINTS == m_type) {
     fileformat = QString(tr("Design Files(*.SDC *.sdc)"));
   }

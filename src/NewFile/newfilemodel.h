@@ -12,7 +12,7 @@ class NewFileModel : public QObject {
       QStringList() << "Verilog HDL Files(*.v)"
                     << "VHDL Files(*.vhd)"
                     << "Tcl Script Files(*.tcl)"
-                    << "Synopsys Design Constraints Files(*.sdc)"
+                    << "Design Timing Constraints Files(*.dtc)"
                     << "All Files(*.*)";
 
   explicit NewFileModel(QObject* parent = nullptr);
