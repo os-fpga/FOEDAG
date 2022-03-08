@@ -42,6 +42,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void Tcl_NewProject(int argc, const char* argv[]);
   newProjectDialog* NewProjectDialog() { return newProjdialog; }
+  void MainWindowTitle(const std::string& name) { mainWindowName = name; }
  private slots: /* slots */
   void newFile();
   void newProjectDlg();
@@ -70,6 +71,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QToolBar* fileToolBar = nullptr;
 
   TclInterpreter* m_interpreter = nullptr;
+  std::string mainWindowName = "FOEDAG";
+
 };
 
 }  // namespace FOEDAG
