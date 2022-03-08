@@ -174,6 +174,7 @@ install(
   
 install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/CommandLine.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/Foedag.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(
