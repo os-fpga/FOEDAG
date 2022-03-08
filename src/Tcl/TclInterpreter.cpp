@@ -93,7 +93,7 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
                 continue
             }
             after $time $line 
-            after $time process_qt_events
+            
             
             set time [expr $time + 500]
         }

@@ -8,14 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
 else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
@@ -29,6 +29,7 @@ set (SRC_CPP_LIST
   summary_form.cpp
   create_file_dialog.cpp
   source_grid.cpp
+  Main/registerNewProjectCommands.cpp
   ProjectManager/config.cpp
   ProjectManager/project_configuration.cpp
   ProjectManager/project_fileset.cpp
@@ -49,6 +50,7 @@ set (SRC_H_LIST
   create_file_dialog.h
   source_grid.h
   ProjectManager/config.h
+  Main/registerNewProjectCommands.h
   ProjectManager/project_configuration.h
   ProjectManager/project_fileset.h
   ProjectManager/project_option.h
@@ -89,7 +91,28 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/new_project_dialog.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_constraints_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/source_grid.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_source_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/device_planner_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/location_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/project_type_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/summary_form.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject)
+
+
+install(
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/Main/registerNewProjectCommands.h
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/Main)
+
+install(
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_manager.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_configuration.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_option.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_fileset.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_run.h
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/ProjectManager)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 

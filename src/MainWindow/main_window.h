@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
 
 class QAction;
@@ -40,7 +41,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   MainWindow(TclInterpreter* interp);
 
   void Tcl_NewProject(int argc, const char* argv[]);
-
+  newProjectDialog* NewProjectDialog() { return newProjdialog; }
  private slots: /* slots */
   void newFile();
   void newProjectDlg();
@@ -58,17 +59,17 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
-  QMenu* fileMenu;
-  QAction* newAction;
-  QAction* newProjectAction;
-  QAction* openProjectAction;
-  QAction* exitAction;
-  QAction* openFile;
-
+  QMenu* fileMenu = nullptr;
+  QAction* newAction = nullptr;
+  QAction* newProjectAction = nullptr;
+  QAction* openProjectAction = nullptr;
+  QAction* exitAction = nullptr;
+  QAction* openFile = nullptr;
+  newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
-  QToolBar* fileToolBar;
+  QToolBar* fileToolBar = nullptr;
 
-  TclInterpreter* m_interpreter;
+  TclInterpreter* m_interpreter = nullptr;
 };
 
 }  // namespace FOEDAG
