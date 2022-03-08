@@ -175,7 +175,7 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() { ReShowWindow("unknown"); }
+void MainWindow::gui_start() { ReShowWindow("examples/sample_project/sample_project.ospr"); }
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
