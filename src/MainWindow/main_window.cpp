@@ -177,14 +177,14 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::gui_start() {
-  ReShowWindow("examples/sample_project/sample_project.ospr");
+  ReShowWindow("");
 }
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(tr("FOEDAG-") + strProject);
+  setWindowTitle(tr(mainWindowName.c_str()) + " - " + strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
