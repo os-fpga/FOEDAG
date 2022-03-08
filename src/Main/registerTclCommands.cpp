@@ -45,10 +45,10 @@ extern "C" {
 #include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewProject/Main/registerNewProjectCommands.h"
 #include "Tcl/TclInterpreter.h"
 #include "TextEditor/text_editor.h"
 #include "qttclnotifier.hpp"
-#include "NewProject/Main/registerNewProjectCommands.h"
 
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,

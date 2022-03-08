@@ -176,9 +176,7 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() {
-  ReShowWindow("");
-}
+void MainWindow::gui_start() { ReShowWindow(""); }
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();

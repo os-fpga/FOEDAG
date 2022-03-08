@@ -72,7 +72,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   TclInterpreter* m_interpreter = nullptr;
   std::string mainWindowName = "FOEDAG";
-
 };
 
 }  // namespace FOEDAG
