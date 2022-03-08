@@ -48,6 +48,7 @@ extern "C" {
 #include "Tcl/TclInterpreter.h"
 #include "TextEditor/text_editor.h"
 #include "qttclnotifier.hpp"
+#include "NewProject/Main/registerNewProjectCommands.h"
 
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -124,27 +125,20 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("help", help, 0, 0);
 }
 
-void registerTextEditorCommands(FOEDAG::TextEditor* editor,
-                                FOEDAG::Session* session) {
-  auto openfile = [](void* clientData, Tcl_Interp* interp, int argc,
-                     const char* argv[]) -> int {
-    Tcl_ResetResult(interp);
-    if (argc != 2) {
-      const QString usageMsg = QString("Usage: %1 ?filename?").arg(argv[0]);
-      Tcl_AppendResult(interp, qPrintable(usageMsg), (char*)nullptr);
-      return TCL_ERROR;
-    }
-    auto editor = static_cast<FOEDAG::TextEditor*>(clientData);
-    const QString file{argv[1]};
-    const QFileInfo info{file};
-    if (!info.exists()) {
-      const QString msg = QString("File \"%1\" doesn't exists").arg(file);
-      Tcl_AppendResult(interp, qPrintable(msg), (char*)nullptr);
-      return TCL_ERROR;
-    }
-    editor->SlotOpenFile(file);
-    return TCL_OK;
+void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
+  // Used in "make test_install"
+  auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+    GlobalSession->TclInterp()->evalCmd("puts Hello!");
+    return 0;
   };
-  session->TclInterp()->registerCmd(
-      "openfile", openfile, static_cast<void*>(editor), nullptr /*deleteProc*/);
+  session->TclInterp()->registerCmd("hello", hello, 0, 0);
+
+  // GUI Mode
+  if (widget) {
+    // New Project Wizard
+    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
+      registerNewProjectCommands(win->NewProjectDialog(), session);
+    }
+  }
 }

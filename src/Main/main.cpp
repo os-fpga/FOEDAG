@@ -23,31 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
-#include "NewProject/Main/registerNewProjectCommands.h"
 
 FOEDAG::Session* GlobalSession;
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   return new FOEDAG::MainWindow{interp};
-}
-
-void registerAllCommands(QWidget* widget, FOEDAG::Session* session) {
-  // Used in "make test_install"
-  auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
-                  const char* argv[]) -> int {
-    GlobalSession->TclInterp()->evalCmd("puts Hello!");
-    return 0;
-  };
-  session->TclInterp()->registerCmd("hello", hello, 0, 0);
-
-  // GUI Mode
-  if (widget) {
-    // New Project Wizard
-    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
-      registerNewProjectCommands(win->NewProjectDialog(), session);
-    }
-  }
 }
 
 FOEDAG::GUI_TYPE getGuiType(const bool& withQt, const bool& withQml) {
@@ -65,7 +46,7 @@ int main(int argc, char** argv) {
   FOEDAG::GUI_TYPE guiType = getGuiType(cmd->WithQt(), cmd->WithQml());
 
   FOEDAG::Foedag* foedag =
-      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerAllCommands);
+      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerAllFoedagCommands);
 
   return foedag->init(guiType);
 }
