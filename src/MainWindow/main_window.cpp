@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
+#include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
@@ -104,11 +105,10 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  newProjectDialog* m_dialog = new newProjectDialog(this);
-  int ret = m_dialog->exec();
-  m_dialog->close();
+  int ret = newProjdialog->exec();
+  newProjdialog->close();
   if (ret) {
-    QString strproject = m_dialog->getProject();
+    QString strproject = newProjdialog->getProject();
     newProjectAction->setEnabled(false);
     ReShowWindow(strproject);
   }
@@ -156,6 +156,7 @@ void MainWindow::createActions() {
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
+  newProjdialog = new newProjectDialog(this);
   newProjectAction = new QAction(tr("&New Project"), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
