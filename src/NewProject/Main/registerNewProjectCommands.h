@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <QApplication>
+
 #include "Main/Foedag.h"
 
 void registerNewProjectCommands(QWidget* widget, FOEDAG::Session* session);

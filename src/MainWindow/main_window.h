@@ -23,8 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_WINDOW_H
 
 #include <QMainWindow>
-#include "NewProject/new_project_dialog.h"
 
+#include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
 
 class QAction;

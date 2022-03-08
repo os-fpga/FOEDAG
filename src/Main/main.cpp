@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
- #include "NewProject/Main/registerNewProjectCommands.h"
+#include "NewProject/Main/registerNewProjectCommands.h"
 
 FOEDAG::Session* GlobalSession;
 
@@ -44,7 +44,7 @@ void registerAllCommands(QWidget* widget, FOEDAG::Session* session) {
   // GUI Mode
   if (widget) {
     // New Project Wizard
-    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*> (widget)) {
+    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       registerNewProjectCommands(win->NewProjectDialog(), session);
     }
   }

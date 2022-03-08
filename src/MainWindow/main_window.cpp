@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "NewFile/new_file.h"
-#include "NewProject/new_project_dialog.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
+#include "NewProject/new_project_dialog.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
 
