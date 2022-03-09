@@ -1001,8 +1001,13 @@ int ProjectManager::FinishedProject() { return ExportProjectData(); }
 
 int ProjectManager::ImportProjectData(QString strOspro) {
   int ret = 0;
-  QString strTemp = Project::Instance()->projectPath() + "/" +
-                    Project::Instance()->projectName() + PROJECT_FILE_FORMAT;
+  if ("" == strOspro) {
+    return ret;
+  }
+  QString strTemp = Project::Instance()->projectPath();
+  strTemp += "/";
+  strTemp += Project::Instance()->projectName();
+  strTemp += PROJECT_FILE_FORMAT;
   if (strOspro == strTemp) {
     return ret;
   }
