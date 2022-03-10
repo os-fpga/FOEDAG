@@ -15,61 +15,6 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   m_type = type;
 
   m_lisFileData.clear();
-  //    m_toolBar = new QToolBar(this);
-  //    m_toolBar->setIconSize(QSize(32,32));
-
-  //    m_toolBtnAdd = new QToolButton(this);
-  //    m_toolBtnAdd->setIcon(QIcon(":/img/img/add.png"));
-  //    m_toolBtnAdd->setToolButtonStyle( Qt::ToolButtonIconOnly);
-  //    m_toolBtnAdd->setPopupMode(QToolButton::InstantPopup);
-
-  //    QMenu* tmenu = new QMenu(this);
-  //    QAction* tactAddFile = new QAction(tr("Add Files"),this);
-  //    connect(tactAddFile,&QAction::triggered,this,&sourceGrid::slot_addfiles);
-  //    tmenu->addAction(tactAddFile);
-
-  //    if(GT_CONSTRAINTS != m_type)
-  //    {
-  //        QAction* tactAddDir = new QAction(tr("Add Directories"),this);
-  //        connect(tactAddDir,&QAction::triggered,this,&sourceGrid::slot_adddirectories);
-  //        tmenu->addAction(tactAddDir);
-  //    }
-
-  //    if(GT_NETLIST != m_type)
-  //    {
-  //        QAction* tactCreate = new QAction(tr("Create File"),this);
-  //        connect(tactCreate,&QAction::triggered,this,&sourceGrid::slot_createfile);
-  //        tmenu->addAction(tactCreate);
-  //    }
-
-  /*    tmenu->setStyleSheet("QMenu{padding:6px 16px;
-  spacing:5;font-size:20px;}\
-  //                          QMenu::item{padding:6px 16px;font-size:20px;}\
-  // QMenu::item:selected{background-color:rgb(204,222,253);}");
-       m_toolBtnAdd->setMenu(tmenu);*/
-
-  //    m_toolBar->addWidget(m_toolBtnAdd);
-  //    m_toolBar->addSeparator();
-
-  //    m_actDel = new QAction(this);
-  //    m_actDel->setIcon( QIcon(":/img/img/del.png"));
-  //    m_actDel->setEnabled(false);
-  //    connect(m_actDel,&QAction::triggered,this,&sourceGrid::slot_deletegriditem);
-  //    m_toolBar->addAction(m_actDel);
-  //    m_toolBar->addSeparator();
-
-  //    m_actUp = new QAction(this);
-  //    m_actUp->setIcon(QIcon(":/img/img/up.png"));
-  //    m_actUp->setEnabled(false);
-  //    connect(m_actUp,&QAction::triggered,this,&sourceGrid::slot_upgriditem);
-  //    m_toolBar->addAction(m_actUp);
-  //    m_toolBar->addSeparator();
-
-  //    m_actDown = new QAction(this);
-  //    m_actDown->setIcon(QIcon(":/img/img/down.png"));
-  //    m_actDown->setEnabled(false);
-  //    connect(m_actDown,&QAction::triggered,this,&sourceGrid::slot_downgriditem);
-  //    m_toolBar->addAction(m_actDown);
   m_btnAddFile = new QPushButton(tr("AddFile"), this);
   connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
   m_btnAddDri = new QPushButton(tr("AddDir"), this);
