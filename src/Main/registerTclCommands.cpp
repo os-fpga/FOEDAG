@@ -103,6 +103,94 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("process_qt_events", process_qt_events, 0,
                                     0);
+
+  auto qt_getWidget = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    if (argc < 2) return TCL_ERROR;
+
+    const QString widgetName{argv[1]};
+    QWidget* w = static_cast<QWidget*>(clientData);
+    QWidget* topWidget = QApplication::topLevelAt(w->mapToGlobal(QPoint()));
+    if (!topWidget) topWidget = w;
+    if (!topWidget) {
+      Tcl_AppendResult(interp, qPrintable("topWidget == nullptr"), (char*)NULL);
+      return TCL_ERROR;
+    }
+
+    QWidget* widget = topWidget->findChild<QWidget*>(widgetName);
+    if (!widget) {
+      Tcl_AppendResult(interp, qPrintable("No such widget"), (char*)NULL);
+      return TCL_ERROR;
+    }
+    QString result =
+        QString("QWidget(0x%1)")
+            .arg(QString::number(reinterpret_cast<ulong>(widget), 16));
+    Tcl_AppendResult(interp, qPrintable(result), (char*)NULL);
+
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_getWidget", qt_getWidget,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_showAllQtObjects = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    QWidget* w = static_cast<QWidget*>(clientData);
+    QWidget* topWidget = QApplication::topLevelAt(w->mapToGlobal(QPoint()));
+    if (topWidget) {
+      auto children = topWidget->findChildren<QObject*>();
+      QStringList objectsNames;
+      for (auto child : children) {
+        if (!child->objectName().isEmpty()) objectsNames += child->objectName();
+      }
+      Tcl_AppendResult(interp, qPrintable(objectsNames.join(" ")), nullptr);
+    }
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_showAllQtObjects", qt_showAllQtObjects,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_testWidget = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    if (argc < 2) {
+      Tcl_AppendResult(interp, qPrintable("Usage: qt_testWidget ?widget?"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+    QString widgetStr{argv[1]};
+    widgetStr.remove("QWidget(");
+    widgetStr.remove(")");
+    bool ok{false};
+    ulong widgetPtr = widgetStr.toULong(&ok, 16);
+    if (!ok || (widgetPtr == 0)) {
+      Tcl_AppendResult(
+          interp, qPrintable("Wrong format. Expetced: QWidget(0x?number?)"),
+          nullptr);
+      return TCL_ERROR;
+    }
+    QWidget* widget = reinterpret_cast<QWidget*>(widgetPtr);
+
+    QWidget* w = static_cast<QWidget*>(clientData);
+    QWidget* topWidget = QApplication::topLevelAt(w->mapToGlobal(QPoint()));
+    if (!topWidget) topWidget = w;
+    if (!topWidget) {
+      Tcl_AppendResult(interp, qPrintable("topWidget == nullptr"), nullptr);
+      return TCL_ERROR;
+    }
+    auto children = topWidget->findChildren<QWidget*>();
+    if (!children.contains(widget)) {
+      Tcl_AppendResult(interp, qPrintable("Unknown widget"), nullptr);
+      return TCL_ERROR;
+    }
+
+    Tcl_AppendResult(
+        interp,
+        qPrintable(
+            QString("QWidget object name = %1").arg(widget->objectName())),
+        nullptr);
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_testWidget", qt_testWidget,
+                                    GlobalSession->MainWindow(), nullptr);
 }
 
 void registerBasicBatchCommands(FOEDAG::Session* session) {

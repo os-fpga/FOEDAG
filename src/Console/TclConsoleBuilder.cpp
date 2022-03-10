@@ -9,7 +9,7 @@ QWidget *createConsole(TclInterp *interp,
   QWidget *w = new QWidget{parent};
   w->setLayout(new QGridLayout);
   TclConsoleWidget *console =
-      new TclConsoleWidget{interp, std::move(iConsole), buffer};
+      new TclConsoleWidget{interp, std::move(iConsole), buffer, w};
 
   SearchWidget *search = new SearchWidget{console};
   QObject::connect(console, &TclConsoleWidget::searchEnable, search,
