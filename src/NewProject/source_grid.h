@@ -43,11 +43,6 @@ class sourceGrid : public QWidget {
 
  private:
   GridType m_type;
-  //  QToolBar* m_toolBar;
-  //  QToolButton* m_toolBtnAdd;
-  //  QAction* m_actDel;
-  //  QAction* m_actUp;
-  //  QAction* m_actDown;
   QPushButton *m_btnAddFile;
   QPushButton *m_btnAddDri;
   QPushButton *m_btnCreateFile;

@@ -13,12 +13,12 @@ addSourceForm::addSourceForm(QWidget *parent)
          "your project."
          "Create a new source file on disk and add it to your project."));
 
-  m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_groupBox);
-  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
+  m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_frame);
+  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);
   box->setSpacing(0);
-  ui->m_groupBox->setLayout(box);
+  ui->m_frame->setLayout(box);
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);

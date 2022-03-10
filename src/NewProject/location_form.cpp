@@ -24,7 +24,7 @@ locationForm::locationForm(QWidget *parent)
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
   ui->m_lineEditPname->setText("project_1");
-  ui->m_lineEditPpath->setText(QDir::homePath());
+  ui->m_lineEditPpath->setText(QDir::currentPath());
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
 }

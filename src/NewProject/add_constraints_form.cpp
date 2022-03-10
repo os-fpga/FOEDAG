@@ -12,12 +12,12 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
       tr("Specify or create constraint file for physical and timing "
          "constraints."));
 
-  m_widgetGrid = new sourceGrid(GT_CONSTRAINTS, ui->m_groupBox);
-  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_groupBox);
+  m_widgetGrid = new sourceGrid(GT_CONSTRAINTS, ui->m_frame);
+  QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);
   box->setSpacing(0);
-  ui->m_groupBox->setLayout(box);
+  ui->m_frame->setLayout(box);
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
