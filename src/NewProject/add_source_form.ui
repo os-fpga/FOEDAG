@@ -74,12 +74,12 @@
         <number>25</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="m_groupBox">
-         <property name="styleSheet">
-          <string notr="true"/>
+        <widget class="QFrame" name="m_frame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
          </property>
-         <property name="title">
-          <string/>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
          </property>
         </widget>
        </item>

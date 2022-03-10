@@ -78,7 +78,7 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   m_btnCreateFile = new QPushButton(tr("CreateFile"), this);
   connect(m_btnCreateFile, &QPushButton::clicked, this,
           &sourceGrid::CreateFile);
-  m_btnDelete = new QPushButton(tr("Delete"), this);
+  m_btnDelete = new QPushButton(tr("Remove"), this);
   m_btnDelete->setEnabled(false);
   connect(m_btnDelete, &QPushButton::clicked, this,
           &sourceGrid::DeleteTableItem);

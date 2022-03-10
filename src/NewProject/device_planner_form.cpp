@@ -45,11 +45,11 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   m_tableView->setModel(m_model);
   m_tableView->setSelectionModel(m_selectmodel);
 
-  QVBoxLayout *vbox = new QVBoxLayout(ui->m_groupBoxGrid);
+  QVBoxLayout *vbox = new QVBoxLayout(ui->m_frame);
   vbox->addWidget(m_tableView);
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
-  ui->m_groupBoxGrid->setLayout(vbox);
+  ui->m_frame->setLayout(vbox);
 
   connect(ui->m_comboBoxFamily, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onFamilytextChanged);
