@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/qttclnotifier.hpp"
 #include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"
+#include "tcltest/TestingUtils.h"
 
 FOEDAG::Session* GlobalSession;
 
@@ -39,89 +40,12 @@ QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerProjNavigatorCommands(QWidget* widget, FOEDAG::Session* session) {
-  auto projnavigator = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->show();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("projnavigator_show", projnavigator, widget,
-                                    0);
-
-  auto projnavigatorhide = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->hide();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("projnavigator_close", projnavigatorhide,
-                                    widget, 0);
-
-  auto openproject = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TestOpenProject(argc, argv);
-    srcForm->show();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("open_project", openproject, widget, 0);
-
-  auto createfileset = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TclCreateDesign(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("create_design", createfileset, widget, 0);
-
-  auto addfiles = [](void* clientData, Tcl_Interp* interp, int argc,
-                     const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TclAddOrCreateFiles(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("add_files", addfiles, widget, 0);
-
-  auto setactive = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TclSetActiveDesign(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("set_active_design", setactive, widget, 0);
-
-  auto settopmodule = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TclSetTopModule(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("set_top_module", settopmodule, widget, 0);
-
-  auto settarget = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-    srcForm->TclSetAsTarget(argc, argv);
-    return 0;
-  };
-  session->TclInterp()->registerCmd("set_as_target", settarget, widget, 0);
+  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp(),
+                                     GlobalSession->MainWindow());
 }
 
 int main(int argc, char** argv) {
+  FOEDAG::testing::initTesting();
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 

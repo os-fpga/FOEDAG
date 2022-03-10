@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ConsoleTestUtils.h"
 #include "Main/Foedag.h"
-#include "TestingUtils.h"
+#include "tcltest/TestingUtils.h"
 
 FOEDAG::Session* GlobalSession;
 

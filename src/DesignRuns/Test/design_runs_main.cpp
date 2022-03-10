@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
+#include "tcltest/TestingUtils.h"
 
 FOEDAG::Session* GlobalSession;
 
@@ -39,32 +40,12 @@ QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerDesignRunsCommands(QWidget* widget, FOEDAG::Session* session) {
-  auto design_runs_show = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::RunsForm* runForm = (FOEDAG::RunsForm*)(clientData);
-    runForm->show();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("design_runs_show", design_runs_show,
-                                    widget, 0);
-
-  auto design_runs_hide = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::RunsForm* runForm = (FOEDAG::RunsForm*)(clientData);
-    runForm->hide();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("design_runs_hide", design_runs_hide,
-                                    widget, 0);
+  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp(),
+                                     GlobalSession->MainWindow());
 }
 
 int main(int argc, char** argv) {
+  FOEDAG::testing::initTesting();
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 

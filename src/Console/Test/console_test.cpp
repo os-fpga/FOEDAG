@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 
 #include "ConsoleTestUtils.h"
-#include "TestingUtils.h"
+#include "tcltest/TestingUtils.h"
 
 TCL_TEST(console_pwd) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
