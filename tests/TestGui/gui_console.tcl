@@ -22,3 +22,4 @@ puts "CONSOLE GUI: console_proc"      ; flush stdout ; console_proc tests/TestGu
 puts "CONSOLE GUI: console_multiline" ; flush stdout ; console_multiline
 puts "CONSOLE GUI: console_cancel"    ; flush stdout ; console_cancel
 puts "CONSOLE GUI: console_history"   ; flush stdout ; console_history
+puts "CONSOLE GUI: qt_getWidget"      ; flush stdout ; qt_getWidget TclConsole
