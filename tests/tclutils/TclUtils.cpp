@@ -19,46 +19,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "TestingUtils.h"
+#include "TclUtils.h"
 
-namespace FOEDAG::testing {
+namespace FOEDAG::utils {
 
-test::test(const char *name) : m_name(name) {
-  TestRunner::instance().registeredTests.push_back(this);
+Command::Command(const char *name) : m_name(name) {
+  CommandRegister::instance().registeredCommands.push_back(this);
 }
 
-const char *test::name() const { return m_name; }
+const char *Command::name() const { return m_name; }
 
-void test::runAllTests(Tcl_Interp *interp, void *clientData) {
-  for (auto test : TestRunner::instance().registeredTests) {
-    internal::INIT_TEST(test->name(), test, interp, clientData);
+void Command::registerAllcommands(Tcl_Interp *interp, void *clientData) {
+  for (auto cmd : CommandRegister::instance().registeredCommands) {
+    internal::INIT_COMMAND(cmd->name(), cmd, interp, clientData);
   }
 }
 
-TestRunner &TestRunner::instance() {
-  static TestRunner runner;
+CommandRegister &CommandRegister::instance() {
+  static CommandRegister runner;
   return runner;
 }
 
-void initTesting() { TestRunner::instance(); }
+void initCommandRegister() { CommandRegister::instance(); }
 
 namespace internal {
 
-void INIT_TEST(const char *name, test *testPtr, Tcl_Interp *interpreter,
+void INIT_COMMAND(const char *name, Command *cmdPtr, Tcl_Interp *interpreter,
                void *clientDataPtr) {
   auto lambda = [](void *clientData, Tcl_Interp *interp, int argc,
                    const char *argv[]) -> int {
-    test *t = static_cast<test *>(clientData);
-    if (t)
-      return t->runTest(t->clientData, interp, argc, argv);
-    else
-      return TCL_ERROR;
+    Command *t = static_cast<Command *>(clientData);
+    return t->command(t->clientData, interp, argc, argv);
   };
-  testPtr->clientData = clientDataPtr;
-  Tcl_CreateCommand(interpreter, name, lambda,
-                    reinterpret_cast<void *>(testPtr), nullptr);
+  cmdPtr->clientData = clientDataPtr;
+  Tcl_CreateCommand(interpreter, name, lambda, reinterpret_cast<void *>(cmdPtr),
+                    nullptr);
 }
 
 }  // namespace internal
 
-}  // namespace FOEDAG::testing
+}  // namespace FOEDAG::utils

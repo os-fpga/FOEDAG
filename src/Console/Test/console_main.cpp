@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ConsoleTestUtils.h"
 #include "Main/Foedag.h"
-#include "TestingUtils.h"
+#include "tclutils/TclUtils.h"
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
@@ -34,22 +34,12 @@ QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {
-  auto debug = [](void* clientData, Tcl_Interp* interp, int argc,
-                  const char* argv[]) -> int {
-    QWidget* w = static_cast<QWidget*>(clientData);
-    FOEDAG::TclConsoleWidget* console = w->findChild<FOEDAG::TclConsoleWidget*>(
-        FOEDAG::TclConsoleWidget::consoleObjectName());
-    console->getBuffer()->getStream() << argv[1] << std::endl;
-    return TCL_OK;
-  };
-  Tcl_CreateCommand(GlobalSession->TclInterp()->getInterp(), "debug", debug,
-                    GlobalSession->MainWindow(), nullptr);
-  FOEDAG::testing::test::runAllTests(GlobalSession->TclInterp()->getInterp(),
-                                     GlobalSession->MainWindow());
+  FOEDAG::utils::Command::registerAllcommands(
+      GlobalSession->TclInterp()->getInterp(), GlobalSession->MainWindow());
 }
 
 int main(int argc, char** argv) {
-  FOEDAG::testing::initTesting();
+  FOEDAG::utils::initCommandRegister();
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 

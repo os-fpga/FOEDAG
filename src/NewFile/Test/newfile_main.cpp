@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/qttclnotifier.hpp"
 #include "NewFile/new_file.h"
 #include "Tcl/TclInterpreter.h"
+#include "tclutils/TclUtils.h"
 
 QWidget* newFileBuilder(FOEDAG::CommandLine* cmd,
                         FOEDAG::TclInterpreter* interp) {
@@ -34,45 +35,12 @@ QWidget* newFileBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerNewFileCommands(QWidget* widget, FOEDAG::Session* session) {
-  auto newfileshow = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::NewFile* newFile = (FOEDAG::NewFile*)(clientData);
-    newFile->StartNewFile();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("newfile_show", newfileshow, widget, 0);
-
-  auto newfilehide = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::NewFile* newFile = (FOEDAG::NewFile*)(clientData);
-    newFile->StopNewFile();
-    return 0;
-  };
-  session->TclInterp()->registerCmd("newfile_close", newfilehide, widget, 0);
-
-  auto newfile = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    if (argc > 1) {
-      FOEDAG::NewFile* newFile = (FOEDAG::NewFile*)(clientData);
-      newFile->TclNewFile(argv[1]);
-    }
-
-    return 0;
-  };
-  session->TclInterp()->registerCmd("newfile", newfile, widget, 0);
-
-  //  session->TclInterp()->evalCmd(
-  //      "puts \"Put texteditor_show to test projnavigator GUI.\"");
+  FOEDAG::utils::Command::registerAllcommands(
+      GlobalSession->TclInterp()->getInterp(), GlobalSession->MainWindow());
 }
 
 int main(int argc, char** argv) {
+  FOEDAG::utils::initCommandRegister();
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 

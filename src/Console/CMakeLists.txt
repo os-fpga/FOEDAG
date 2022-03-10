@@ -101,14 +101,12 @@ set(CMAKE_CXX_FLAGS_DEBUG
 add_library(console_testing_lib STATIC
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.h
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.cpp
-  ${PROJECT_SOURCE_DIR}/../Console/Test/TestingUtils.h
-  ${PROJECT_SOURCE_DIR}/../Console/Test/TestingUtils.cpp
 )
-target_link_libraries(console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console tclutils)
 
 add_executable(console_test
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp
-  ${PROJECT_SOURCE_DIR}/../Console/Test/console_test.cpp)
+  ${PROJECT_SOURCE_DIR}/../Console/Test/console_commands.cpp)
 target_link_libraries(console_test console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
 set_target_properties(console_test PROPERTIES OUTPUT_NAME console_test)
 

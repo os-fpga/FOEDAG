@@ -21,9 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 
 #include "ConsoleTestUtils.h"
-#include "TestingUtils.h"
+#include "tclutils/TclUtils.h"
 
-TCL_TEST(console_pwd) {
+TCL_COMMAND(console_pwd) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString res = console->getPrompt() + "pwd\n" + QDir::currentPath() + "\n" +
                 console->getPrompt();
@@ -31,7 +31,7 @@ TCL_TEST(console_pwd) {
   return TCL_OK;
 }
 
-TCL_TEST(console_proc) {
+TCL_COMMAND(console_proc) {
   if (argc < 3) {
     Tcl_Eval(interp, "error \"ERROR: Invalid arg number for console_proc\"");
     return TCL_ERROR;
@@ -51,7 +51,7 @@ TCL_TEST(console_proc) {
   return TCL_OK;
 }
 
-TCL_TEST(console_multiline) {
+TCL_COMMAND(console_multiline) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString script =
       R"(proc test {} {
@@ -66,7 +66,7 @@ test
   return TCL_OK;
 }
 
-TCL_TEST(console_cancel) {
+TCL_COMMAND(console_cancel) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString command =
       R"(proc test {} {
@@ -79,7 +79,7 @@ TCL_TEST(console_cancel) {
   return TCL_OK;
 }
 
-TCL_TEST(console_history) {
+TCL_COMMAND(console_history) {
   FOEDAG::TclConsoleWidget *console = FOEDAG::InitConsole(clientData);
   QString command = R"(history clear
 <pt>proc test {} {
@@ -98,5 +98,13 @@ debug test
                    pt;
 
   CHECK_EXPECTED_FOR_FEW_COMMANDS(script.replace("<pt>", ""), result, 3)
+  return TCL_OK;
+}
+
+TCL_COMMAND(debug) {
+  QWidget *w = static_cast<QWidget *>(clientData);
+  FOEDAG::TclConsoleWidget *console = w->findChild<FOEDAG::TclConsoleWidget *>(
+      FOEDAG::TclConsoleWidget::consoleObjectName());
+  console->getBuffer()->getStream() << argv[1] << std::endl;
   return TCL_OK;
 }
