@@ -63,6 +63,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 add_executable(texteditor_bin
  ${PROJECT_SOURCE_DIR}/../TextEditor/Test/texteditor_main.cpp
  )
-target_link_libraries(texteditor_bin foedag tcl_stubb tcl_static zlib)
+target_link_libraries(texteditor_bin foedag tcl_stubb -ltcl9.0 zlib)
 set_target_properties(texteditor_bin PROPERTIES OUTPUT_NAME texteditor)
 

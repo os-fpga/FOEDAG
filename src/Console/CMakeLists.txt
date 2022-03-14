@@ -104,15 +104,15 @@ add_library(console_testing_lib STATIC
   ${PROJECT_SOURCE_DIR}/../Console/Test/TestingUtils.h
   ${PROJECT_SOURCE_DIR}/../Console/Test/TestingUtils.cpp
 )
-target_link_libraries(console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_testing_lib foedag compiler tcl_stubb -ltcl9.0 zlib console)
 
 add_executable(console_test
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_test.cpp)
-target_link_libraries(console_test console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_test console_testing_lib foedag foedagcore tcl_stubb -ltcl9.0 zlib compiler console)
 set_target_properties(console_test PROPERTIES OUTPUT_NAME console_test)
 
 add_executable(console_debug
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_standalone.cpp)
-target_link_libraries(console_debug foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_debug console foedag compiler tcl_stubb -ltcl9.0 zlib)
 set_target_properties(console_debug PROPERTIES OUTPUT_NAME console)

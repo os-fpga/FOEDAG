@@ -46,7 +46,7 @@ if(NOT NO_TCMALLOC)
   endif()
 endif()
 
-set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_STATIC_LIB libtcl9.0.so)
 set(TCL_STUBB_LIB libtclstub9.0.a)
 set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
@@ -96,13 +96,13 @@ else()
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../zlib"
     DEPENDS ../zlib/zlib.h
   )
-  add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
+  add_custom_target(tcl_build DEPENDS ${TCL_STATIC_LIB})
+  add_custom_command(OUTPUT ${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND rm -rf configure
     COMMAND autoconf configure.ac  > configure
     COMMAND chmod 755 configure
-    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
+    COMMAND ./configure --enable-shared --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
     COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/unix"

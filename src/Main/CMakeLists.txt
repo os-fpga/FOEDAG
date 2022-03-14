@@ -71,10 +71,10 @@ if(MSVC)
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
 else()
-  set(TCL_STATIC_LIB libtcl9.0.a)
+  set(TCL_STATIC_LIB libtcl9.0.so)
   set(TCL_STUBB_LIB libtclstub9.0.a)
   set(ZLIB_STATIC_LIB libz.a)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
+  ADD_LIBRARY(tcl_static SHARED IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
@@ -147,8 +147,9 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+target_link_libraries(foedagcore PUBLIC tcl_stubb -ltcl9.0 zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_compile_definitions(foedagcore PRIVATE FOEDAG_CORE_LIBRARY)
+target_link_directories(foedagcore PUBLIC ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
 if (MSVC)

@@ -38,6 +38,7 @@ option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
   On)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 project(FOEDAG)
 
@@ -172,18 +173,18 @@ else()
 endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
-set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_SHARED_LIB libtcl9.0.so)
 set(TCL_STUBB_LIB libtclstub9.0.a)
 set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  set(TCL_SHARED_LIB tcl90s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
 endif()
 
-add_library(tcl_static STATIC IMPORTED)
+add_library(tcl_static SHARED IMPORTED)
 set_target_properties(tcl_static PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+  IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_SHARED_LIB})
 
 add_library(tcl_stubb STATIC IMPORTED)
 set_target_properties(tcl_stubb PROPERTIES
@@ -223,7 +224,7 @@ add_dependencies(foedag foedagcore)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
-add_dependencies(newproject tcl_stubb_build)
+add_dependencies(newproject tcl_stubb_build tcl_build)
 add_dependencies(tcl_stubb_build tcl_build)
 add_dependencies(console QConsole)
 if(MSVC)
@@ -232,6 +233,11 @@ else()
 endif()
 add_dependencies(foedagcore qscintilla2_qt)
 add_dependencies(texteditor qscintilla2_qt tcl_build)
+add_dependencies(tcl_static tcl_build)
+add_dependencies(foedag-bin tcl_build)
+add_dependencies(foedagcore tcl_build)
+add_dependencies(console_debug tcl_build)
+add_dependencies(newfile tcl_build)
 
 
 if (APPLE)
@@ -257,8 +263,12 @@ if(MSVC OR WIN32)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
 
-target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb tcl_static zlib)
-target_link_libraries(foedag  PUBLIC tcl_stubb tcl_static zlib)
+message("HERE:")
+message(${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
+target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb #[[tcl_static]] zlib)
+target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
+target_link_libraries(foedag-bin PUBLIC -ltcl9.0)
+target_link_libraries(foedag  PUBLIC tcl_stubb zlib)
 target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
@@ -356,8 +366,11 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
 
+#target_link_directories(foedag-bin PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
+#message(${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
+
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_SHARED_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB}

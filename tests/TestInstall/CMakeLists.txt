@@ -68,19 +68,19 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
-set(TCL_STATIC_LIB libtcl9.0.a)
+set(TCL_STATIC_LIB libtcl9.0.so)
 set(TCL_STUBB_LIB libtclstub9.0.a)
 set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  set(TCL_STATIC_LIB tcl90s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
 endif()
 
-ADD_LIBRARY(tcl_static STATIC IMPORTED)
+ADD_LIBRARY(tcl_static SHARED IMPORTED)
 ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
 
-SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
+SET_TARGET_PROPERTIES(tcl_static PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STATIC_LIB})
 SET_TARGET_PROPERTIES(tcl_stubb  PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STUBB_LIB})   
@@ -143,12 +143,13 @@ target_link_libraries(test_hellofoedag
   QConsole
   qscintilla2_qt
   tcl_stubb
-  tcl_static
+  -ltcl9.0
   zlib
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
   Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
+target_link_directories(test_hellofoedag PUBLIC ${INSTALL_DIR}/lib/foedag/lib)
 
 if(MSVC)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
