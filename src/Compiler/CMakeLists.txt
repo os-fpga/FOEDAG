@@ -77,6 +77,8 @@ set(CMAKE_CXX_FLAGS_DEBUG
 
 add_executable(compiler_bin
 	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
-target_link_libraries(compiler_bin foedag tcl_stubb -ltcl9.0 zlib compiler)
+target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler)
 set_target_properties(compiler_bin PROPERTIES OUTPUT_NAME compiler_test)
+get_filename_component(ABSOLUTE_PATH ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} ABSOLUTE)
+target_link_directories(compiler_bin PUBLIC ${ABSOLUTE_PATH})
 

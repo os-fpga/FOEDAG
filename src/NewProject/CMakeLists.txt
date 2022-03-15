@@ -119,6 +119,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 add_executable(newproject_bin
 	${PROJECT_SOURCE_DIR}/../NewProject/Main/newproject_main.cpp
 	${PROJECT_SOURCE_DIR}/../NewProject/newproject.qrc)
-target_link_libraries(newproject_bin foedag tcl_stubb -ltcl9.0 zlib)
+target_link_libraries(newproject_bin foedag tcl_stubb tcl_static zlib)
 set_target_properties(newproject_bin PROPERTIES OUTPUT_NAME newproject)
 
+get_filename_component(ABSOLUTE_PATH ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} ABSOLUTE)
+target_link_directories(newproject_bin PUBLIC ${ABSOLUTE_PATH})

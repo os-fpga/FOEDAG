@@ -58,8 +58,10 @@ elseif(APPLE)
 endif()
 
 if(MSVC)
-  add_custom_target(tcl_build DEPENDS ${TCL_STATIC_LIB})
-  add_custom_command(OUTPUT ${TCL_STATIC_LIB}
+  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+                         REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib/)
+  add_custom_target(tcl_build DEPENDS ${buildDirRelFilePath})
+  add_custom_command(OUTPUT ${buildDirRelFilePath}
     COMMAND echo "       Compiling Tcl"
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=shared,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=shared,nomsvcrt
@@ -98,8 +100,8 @@ else()
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../zlib"
     DEPENDS ../zlib/zlib.h
   )
-  add_custom_target(tcl_build DEPENDS ${TCL_STATIC_LIB})
-  add_custom_command(OUTPUT ${TCL_STATIC_LIB}
+  add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND rm -rf configure
     COMMAND autoconf configure.ac  > configure

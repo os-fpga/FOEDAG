@@ -45,11 +45,15 @@ endif()
 
 if(MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.dll)
+  set(TCL_STATIC_LIB tcl90.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
+  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+                         REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
   ADD_LIBRARY(tcl_static SHARED IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+    IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+    IMPORTED_IMPLIB ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
@@ -75,11 +79,13 @@ else()
   if(APPLE)
     set(TCL_STATIC_LIB libtcl9.0.dylib)
   endif()
+  get_filename_component(buildDirRelFilePath "${TCL_STATIC_LIB}"
+                         REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}/../../lib/")
   set(TCL_STUBB_LIB libtclstub9.0.a)
   set(ZLIB_STATIC_LIB libz.a)
   ADD_LIBRARY(tcl_static SHARED IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+    IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
@@ -150,7 +156,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC tcl_stubb -ltcl9.0 zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_compile_definitions(foedagcore PRIVATE FOEDAG_CORE_LIBRARY)
 target_link_directories(foedagcore PUBLIC ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
