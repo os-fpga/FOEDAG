@@ -45,9 +45,9 @@ endif()
 
 if(MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  set(TCL_STATIC_LIB tcl90s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
+  ADD_LIBRARY(tcl_static SHARED IMPORTED)
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
