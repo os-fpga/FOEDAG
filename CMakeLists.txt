@@ -180,6 +180,8 @@ if (MSVC)
   set(TCL_STUBB_LIB tclstub90.lib)
   set(TCL_SHARED_LIB tcl90s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
+elseif(APPLE)
+  set(TCL_SHARED_LIB libtcl9.0.dylib)
 endif()
 
 add_library(tcl_static SHARED IMPORTED)
@@ -263,8 +265,6 @@ if(MSVC OR WIN32)
   set_target_properties(foedag-bin PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 endif()
 
-message("HERE:")
-message(${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
 target_link_libraries(foedag-bin PUBLIC foedag tcl_stubb #[[tcl_static]] zlib)
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
 target_link_libraries(foedag-bin PUBLIC -ltcl9.0)
@@ -365,9 +365,6 @@ install(
   EXPORT Foedag
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
-
-#target_link_directories(foedag-bin PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-#message(${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
 
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_SHARED_LIB}
