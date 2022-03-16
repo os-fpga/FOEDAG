@@ -18,6 +18,8 @@ include (../../cmake/cmake_tcl.txt)
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+get_filename_component(ABSOLUTE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../ ABSOLUTE)
+link_directories(${ABSOLUTE_PATH})
 
 set (SRC_CPP_LIST
   new_project_dialog.cpp

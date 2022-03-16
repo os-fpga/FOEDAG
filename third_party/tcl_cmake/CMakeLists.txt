@@ -63,8 +63,8 @@ if(MSVC)
   add_custom_target(tcl_build DEPENDS ${buildDirRelFilePath})
   add_custom_command(OUTPUT ${buildDirRelFilePath}
     COMMAND echo "       Compiling Tcl"
-    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=shared,nomsvcrt
-    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=shared,nomsvcrt
+    COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../
+    COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../
     COMMAND echo "       Tcl Compilation completed"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/win"
     DEPENDS ../tcl/generic/tcl.h
@@ -88,7 +88,7 @@ if(MSVC)
   add_custom_command(TARGET tcl_stubb_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
             ${PROJECT_SOURCE_DIR}/../tcl/win/Release_AMD64_VC1931/${TCL_STUBB_LIB}
-            ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}         
+            ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}
   )
 else()
   add_custom_target(zlib_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})
