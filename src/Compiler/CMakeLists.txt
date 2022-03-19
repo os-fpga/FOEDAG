@@ -47,7 +47,7 @@ set (SRC_H_LIST Design.h Compiler.h WorkerThread.h TclInterpreterHandler.h
 )
 
 
-add_library(compiler STATIC
+add_library(compiler SHARED
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
 )
@@ -55,13 +55,13 @@ add_library(compiler STATIC
 target_link_libraries(compiler)
 target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 
-set(COMPILER_STATIC_LIB libcompiler.a)
+set(COMPILER_STATIC_LIB libcompiler.so)
 if (MSVC)
   set(COMPILER_STATIC_LIB compiler.lib)
 endif()
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${COMPILER_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${COMPILER_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(

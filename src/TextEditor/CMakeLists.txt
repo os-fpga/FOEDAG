@@ -36,7 +36,7 @@ set (SRC_H_LIST
 set (SRC_UI_LIST
   )
 
-add_library(texteditor STATIC
+add_library(texteditor SHARED
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${SRC_UI_LIST}
@@ -45,13 +45,13 @@ add_library(texteditor STATIC
 target_link_libraries(texteditor  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
 
-set(TEXTEDITOR_STATIC_LIB libtexteditor.a)
+set(TEXTEDITOR_STATIC_LIB libtexteditor.so)
 if (MSVC)
 	set(TEXTEDITOR_STATIC_LIB texteditor.lib)
 endif()
 
 install (
-	FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TEXTEDITOR_STATIC_LIB}
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/${TEXTEDITOR_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(

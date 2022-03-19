@@ -44,16 +44,18 @@ else()
 endif()
 
 if(MSVC)
-  set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
-  set(ZLIB_STATIC_LIB zlib.lib)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
+  set(TCL_STUBB_LIB tclstub86.dll)
+  set(TCL_STATIC_LIB tcl86.dll)
+  set(ZLIB_STATIC_LIB zlib.dll)
+  ADD_LIBRARY(tcl_static SHARED IMPORTED)
+  #SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+  #  IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+    IMPORTED_LOCATION ${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
+  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
@@ -71,19 +73,27 @@ if(MSVC)
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
 else()
-  set(TCL_STATIC_LIB libtcl9.0.a)
-  set(TCL_STUBB_LIB libtclstub9.0.a)
-  set(ZLIB_STATIC_LIB libz.a)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
+  set(TCL_STATIC_LIB libtcl8.6.so)
+  set(TCL_STUBB_LIB libtclstub8.6.a)
+  set(ZLIB_STATIC_LIB libz.so)
+  
+  ADD_LIBRARY(tcl_static SHARED IMPORTED)
+  
+find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/)
+
   SET_TARGET_PROPERTIES(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
+ # SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+ #   IMPORTED_LOCATION ${TCL_STATIC_LIB})
+  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib STATIC IMPORTED)
+  ADD_LIBRARY(zlib SHARED IMPORTED )
   SET_TARGET_PROPERTIES(zlib PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
 endif()
+
+
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/../../src
@@ -125,7 +135,7 @@ set (SRC_UI_LIST "")
 set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc
     ../MainWindow/qml.qrc)
 
-add_library(foedagcore STATIC
+add_library(foedagcore SHARED
     ${SRC_CPP_LIST}
     ${SRC_H_LIST}
     ${SRC_UI_LIST}
@@ -147,16 +157,16 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC tcl_stubb tcl_static zlib Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
-target_compile_definitions(foedagcore PRIVATE FOEDAG_CORE_LIBRARY)
+target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
-set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
+set(FOEDAG_CORE_STATIC_LIB libfoedagcore.so)
 if (MSVC)
   set(FOEDAG_CORE_STATIC_LIB foedagcore.lib)
 endif()
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${FOEDAG_CORE_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/${FOEDAG_CORE_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
