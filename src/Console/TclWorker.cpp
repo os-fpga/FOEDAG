@@ -5,14 +5,12 @@
 
 namespace FOEDAG {
 
-
 int DriverCloseProc(ClientData instanceData, Tcl_Interp *interp) {
   Q_UNUSED(instanceData)
   Q_UNUSED(interp)
   return 0;
 }
 
-  
 int DriverClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
   Q_UNUSED(instanceData)
   Q_UNUSED(interp)
