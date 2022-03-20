@@ -58,6 +58,8 @@ target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 set(COMPILER_STATIC_LIB libcompiler.so)
 if (MSVC)
   set(COMPILER_STATIC_LIB compiler.lib)
+elseif(APPLE)
+  set(COMPILER_STATIC_LIB compiler.dylib)
 endif()
 
 install (
