@@ -50,13 +50,13 @@ if(MSVC)
   
   get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
      REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
-  add_library(tcl_static SHARED IMPORTED GLOBAL)
+  add_library(tcl_static SHARED IMPORTED)
   set_target_properties(tcl_static PROPERTIES
      IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
-  
+
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
