@@ -26,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"
 
-//FOEDAG::Session* GlobalSession;
-
 QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
                              FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(interp);
