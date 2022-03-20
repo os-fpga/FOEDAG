@@ -71,17 +71,17 @@ set (SRC_H_LIST
 set (SRC_UI_LIST
 )
 
-add_library(console SHARED
+add_library(console STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(console PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui tcl_stubb tcl_static zlib)
 target_compile_definitions(console PRIVATE CONSOLE_LIBRARY)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:console>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:console>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
