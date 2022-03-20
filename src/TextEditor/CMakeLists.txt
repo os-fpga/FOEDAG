@@ -36,7 +36,7 @@ set (SRC_H_LIST
 set (SRC_UI_LIST
   )
 
-add_library(texteditor SHARED
+add_library(texteditor STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${SRC_UI_LIST}
@@ -45,7 +45,7 @@ add_library(texteditor SHARED
 target_link_libraries(texteditor  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(texteditor PRIVATE TEXTEDITOR_LIBRARY)
 
-set(TEXTEDITOR_STATIC_LIB libtexteditor.so)
+set(TEXTEDITOR_STATIC_LIB libtexteditor.a)
 if (MSVC)
 	set(TEXTEDITOR_STATIC_LIB texteditor.lib)
 endif()
