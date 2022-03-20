@@ -55,7 +55,7 @@ add_library(compiler STATIC
 target_link_libraries(compiler)
 target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 
-set(COMPILER_STATIC_LIB libcompiler.so)
+set(COMPILER_STATIC_LIB libcompiler.a)
 if (MSVC)
   set(COMPILER_STATIC_LIB compiler.lib)
 endif()
