@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "Tcl/TclInterpreter.h"
 
-FOEDAG::Session* GlobalSession;
+//FOEDAG::Session* GlobalSession;
 
 QWidget* newFileBuilder(FOEDAG::CommandLine* cmd,
                         FOEDAG::TclInterpreter* interp) {

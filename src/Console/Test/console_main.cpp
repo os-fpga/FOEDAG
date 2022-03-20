@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "TestingUtils.h"
 
-FOEDAG::Session* GlobalSession;
+//FOEDAG::Session* GlobalSession;
 
 QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {

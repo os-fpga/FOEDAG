@@ -27,74 +27,78 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Widgets Xml Quick REQUIRED)
-if (NOT Qt5Widgets_FOUND)
-    message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Gui_FOUND)
-    message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Core_FOUND)
-    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Xml_FOUND)
-    message(STATUS "Failed to find Qt5Xml required (on debian/ubuntu try 'sudo apt install qt5-default')")
-else()
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTOUIC ON)
-    set(CMAKE_AUTORCC ON)
-endif()
 
-if(MSVC)
-  set(TCL_STUBB_LIB tclstub86.lib)
-  set(TCL_STATIC_LIB tcl86s.dll)
-  set(ZLIB_STATIC_LIB zlib.lib)
+include (../../cmake/cmake_qt.txt)
+include (../../cmake/cmake_tcl.txt)
+
+#find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
+#find_package(Qt5 COMPONENTS Core Gui Widgets Xml Quick REQUIRED)
+#if (NOT Qt5Widgets_FOUND)
+#    message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
+#elseif (NOT Qt5Gui_FOUND)
+#    message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
+#elseif (NOT Qt5Core_FOUND)
+#    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
+#elseif (NOT Qt5Xml_FOUND)
+#    message(STATUS "Failed to find Qt5Xml required (on debian/ubuntu try 'sudo apt install qt5-default')")
+#else()
+#    set(CMAKE_AUTOMOC ON)
+#    set(CMAKE_AUTOUIC ON)
+#    set(CMAKE_AUTORCC ON)
+#endif()
+
+#if(MSVC)
+#  set(TCL_STUBB_LIB tclstub86.lib)
+#  set(TCL_STATIC_LIB tcl86s.dll)
+#  set(ZLIB_STATIC_LIB zlib.lib)
   
-  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
-     REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
-  add_library(tcl_static SHARED IMPORTED)
-  set_target_properties(tcl_static PROPERTIES
-     IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
-  set_target_properties(tcl_static PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )  
+#  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+#     REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+#  add_library(tcl_static SHARED IMPORTED)
+#  set_target_properties(tcl_static PROPERTIES
+#     IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+#  set_target_properties(tcl_static PROPERTIES
+#    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+#  )  
 
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  set_target_properties(tcl_stubb PROPERTIES
-    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-  )  
+#  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
+#  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+#    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+#  set_target_properties(tcl_stubb PROPERTIES
+#    COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
+#  )  
 
-  set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
-  )
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
-  )
-  set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
-  )
-  set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
-else()
-  set(TCL_STATIC_LIB libtcl8.6.so)
-  set(TCL_STUBB_LIB libtclstub8.6.a)
-  set(ZLIB_STATIC_LIB libz.a)
-  if(APPLE) 
-  set(TCL_STATIC_LIB libtcl8.6.dylib)
-  endif()
+#  set(CMAKE_CXX_FLAGS_DEBUG
+#      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+#  )
+#  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO
+#      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+#  )
+#  set(CMAKE_CXX_FLAGS_RELEASE
+#      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
+#  )
+#  set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+#else()
+#  set(TCL_STATIC_LIB libtcl8.6.so)
+#  set(TCL_STUBB_LIB libtclstub8.6.a)
+#  set(ZLIB_STATIC_LIB libz.a)
+#  if(APPLE) 
+#  set(TCL_STATIC_LIB libtcl8.6.dylib)
+#  endif()
 
-  ADD_LIBRARY(tcl_static SHARED IMPORTED)
+#  ADD_LIBRARY(tcl_static SHARED IMPORTED)
   
-  find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/)
+#  find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/)
 
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib STATIC IMPORTED )
-  SET_TARGET_PROPERTIES(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
-endif()
+#  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
+#    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+#  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
+#  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+#    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+#  ADD_LIBRARY(zlib STATIC IMPORTED )
+#  SET_TARGET_PROPERTIES(zlib PROPERTIES
+#    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
+#endif()
 
 
 
@@ -138,7 +142,7 @@ set (SRC_UI_LIST "")
 set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc
     ../MainWindow/qml.qrc)
 
-add_library(foedagcore SHARED
+add_library(foedagcore STATIC
     ${SRC_CPP_LIST}
     ${SRC_H_LIST}
     ${SRC_UI_LIST}
@@ -163,13 +167,13 @@ endif()
 target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
-set(FOEDAG_CORE_STATIC_LIB libfoedagcore.so)
+set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
 if (MSVC)
   set(FOEDAG_CORE_STATIC_LIB foedagcore.lib)
 endif()
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${FOEDAG_CORE_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${FOEDAG_CORE_STATIC_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 install(
