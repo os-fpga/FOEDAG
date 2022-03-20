@@ -45,7 +45,7 @@ endif()
 
 if(MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
-  set(TCL_STATIC_LIB tcl86.dll)
+  set(TCL_STATIC_LIB tcl86s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
   ADD_LIBRARY(tcl_static SHARED IMPORTED)
   #SET_TARGET_PROPERTIES(tcl_static PROPERTIES

@@ -456,7 +456,7 @@ jobs:
 
     - name: Build
       run: |
-        make release
+        make release VERBOSE=1
         make install
 
     - name: Unit tests
@@ -513,7 +513,7 @@ jobs:
 
     - name: Build
       run: |
-        make release
+        make release VERBOSE=1
         make install
 
     - name: Unit tests
