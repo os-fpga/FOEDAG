@@ -53,6 +53,8 @@ if (MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
   set(TCL_STATIC_LIB tcl86s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
+elseif(APPLE) 
+  set(TCL_STATIC_LIB libtcl8.6.dylib)
 endif()
 
 if(MSVC)
