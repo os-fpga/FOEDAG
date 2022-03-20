@@ -47,14 +47,16 @@ if(MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
   set(TCL_STATIC_LIB tcl86s.dll)
   set(ZLIB_STATIC_LIB zlib.lib)
-  ADD_LIBRARY(tcl_static SHARED IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${TCL_STATIC_LIB})
+  
+  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+     REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+  add_library(tcl_static SHARED IMPORTED GLOBAL)
+  set_target_properties(tcl_static PROPERTIES
+     IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
+  
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
