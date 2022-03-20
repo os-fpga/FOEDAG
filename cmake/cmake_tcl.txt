@@ -49,7 +49,7 @@ if(MSVC)
 else()
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
-  set(ZLIB_STATIC_LIB libz.so)
+  set(ZLIB_STATIC_LIB libz.a)
 
   get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                        REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
@@ -60,7 +60,7 @@ else()
   ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
   SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib SHARED IMPORTED )
+  ADD_LIBRARY(zlib STATIC IMPORTED )
   SET_TARGET_PROPERTIES(zlib PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
 endif()

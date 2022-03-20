@@ -48,7 +48,7 @@ endif()
 
 set(TCL_STATIC_LIB libtcl8.6.so)
 set(TCL_STUBB_LIB libtclstub8.6.a)
-set(ZLIB_STATIC_LIB libz.so)
+set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub86.dll)
   set(TCL_STATIC_LIB tcl86.dll)

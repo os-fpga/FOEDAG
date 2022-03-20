@@ -174,11 +174,13 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 set(TCL_STATIC_LIB libtcl8.6.so)
 set(TCL_STUBB_LIB libtclstub8.6.a)
-set(ZLIB_STATIC_LIB libz.so)
+set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub86.dll)
   set(TCL_STATIC_LIB tcl96.dll)
   set(ZLIB_STATIC_LIB zlib.dll)
+elseif(APPLE) 
+  set(TCL_STATIC_LIB libtcl8.6.dylib)
 endif()
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
@@ -213,7 +215,7 @@ if(MSVC)
   target_link_libraries(foedag  PUBLIC Netapi32)
 
 else()
-  add_library(zlib SHARED IMPORTED GLOBAL)
+  add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})       
 endif()
