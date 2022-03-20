@@ -25,16 +25,16 @@ if(MSVC)
   set(ZLIB_STATIC_LIB zlib.lib)
 
   get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
-                       REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+                       ABSOLUTE BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
   add_library(tcl_static SHARED IMPORTED)
   set_target_properties(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+    IMPORTED_LOCATION ${buildDirRelFilePath})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
 
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+  add_library(tcl_stubb STATIC IMPORTED)
+  set_target_properties(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
@@ -50,7 +50,9 @@ if(MSVC)
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+
 else()
+
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
@@ -60,14 +62,16 @@ else()
 
   get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                        REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)                   
-  ADD_LIBRARY(tcl_static SHARED IMPORTED )
+  add_library(tcl_static SHARED IMPORTED )
   set_target_properties(tcl_static PROPERTIES
     IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
 
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED )
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+  add_library(tcl_stubb STATIC IMPORTED )
+  set_target_properties(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib STATIC IMPORTED )
-  SET_TARGET_PROPERTIES(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
+
+  add_library(zlib STATIC IMPORTED )
+  set_target_properties(zlib PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB}) 
+
 endif()
