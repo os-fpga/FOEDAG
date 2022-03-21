@@ -191,7 +191,7 @@ else()
   
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
-  if(MINGW)
+  if(CMAKE_SYSTEM_NAME STREQUAL MSYS)
   
     set(TCL_STATIC_LIB libtcl8.6.a)
     add_library(tcl_static STATIC IMPORTED )

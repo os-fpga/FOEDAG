@@ -104,7 +104,7 @@ else()
   )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
 
-  if(MINGW)
+  if(CMAKE_SYSTEM_NAME STREQUAL MSYS)
     set(STATIC_LINK --enable-shared=off)
   else()
     set(STATIC_LINK )
