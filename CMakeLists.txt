@@ -174,7 +174,7 @@ set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 if (MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
-  set(TCL_STATIC_LIB tcl86s.lib)
+  set(TCL_STATIC_LIB tcl86ts.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
 
   add_library(tcl_static STATIC IMPORTED GLOBAL)
