@@ -59,7 +59,7 @@ else()
     set(TCL_STATIC_LIB libtcl8.6.dylib)
   endif()  
 
-  if(CMAKE_SYSTEM_NAME STREQUAL MSYS)
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "MSYS")
     message("MSYS MODE")
     set(TCL_STATIC_LIB libtcl8.6.a)
     add_library(tcl_static STATIC IMPORTED )

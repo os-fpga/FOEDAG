@@ -84,7 +84,7 @@ else()
   
   add_library(tcl_static SHARED IMPORTED)
 
-  if(CMAKE_SYSTEM_NAME STREQUAL MSYS)
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "MSYS")
     set(TCL_STATIC_LIB libtcl8.6.a)
     add_library(tcl_static STATIC IMPORTED)
   endif()
