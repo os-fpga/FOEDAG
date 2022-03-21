@@ -191,13 +191,24 @@ else()
   
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
-  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+  if(MINGW)
+  
+    set(TCL_STATIC_LIB libtcl8.6.a)
+    add_library(tcl_static STATIC IMPORTED GLOBAL)
+    set_target_properties(tcl_static PROPERTIES
+      IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+
+  else()
+
+    get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
   
-  add_library(tcl_static SHARED IMPORTED GLOBAL)
-  find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
-  set_target_properties(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+    add_library(tcl_static SHARED IMPORTED GLOBAL)
+    find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
+    set_target_properties(tcl_static PROPERTIES
+      IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+
+  endif()
   
 endif()
 

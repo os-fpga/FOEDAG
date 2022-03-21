@@ -77,10 +77,18 @@ else()
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
+
   if(APPLE) 
     set(TCL_STATIC_LIB libtcl8.6.dylib)
   endif()
+  
   add_library(tcl_static SHARED IMPORTED)
+
+  if(MINGW)
+    set(TCL_STATIC_LIB libtcl8.6.a)
+    add_library(tcl_static STATIC IMPORTED)
+  endif()
+  
 endif()
 
 ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
