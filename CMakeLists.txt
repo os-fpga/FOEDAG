@@ -173,6 +173,7 @@ endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
 if (MSVC)
+  message("WINDOWS MODE")
   set(TCL_STUBB_LIB tclstub86.lib)
   set(TCL_STATIC_LIB tcl86ts.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
@@ -192,14 +193,14 @@ else()
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
   if(CMAKE_SYSTEM_NAME STREQUAL MSYS)
-  
+    message("MSYS MODE")
     set(TCL_STATIC_LIB libtcl8.6.a)
     add_library(tcl_static STATIC IMPORTED )
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
   else()
-
+    message("LINUX MODE")
     get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
   
