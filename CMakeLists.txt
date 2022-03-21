@@ -172,26 +172,34 @@ else()
 endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
-set(TCL_STATIC_LIB libtcl8.6.so)
-set(TCL_STUBB_LIB libtclstub8.6.a)
-set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
-  set(TCL_STATIC_LIB tcl86s.dll)
+  set(TCL_STATIC_LIB tcl86.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
-elseif(APPLE) 
-  set(TCL_STATIC_LIB libtcl8.6.dylib)
+
+  add_library(tcl_static STATIC IMPORTED GLOBAL)
+  set_target_properties(tcl_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
+
+else()
+  set(TCL_STATIC_LIB libtcl8.6.so)
+  set(TCL_STUBB_LIB libtclstub8.6.a)
+  set(ZLIB_STATIC_LIB libz.a)
+  if(APPLE) 
+    set(TCL_STATIC_LIB libtcl8.6.dylib)
+  endif()
+  
+  link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
+
+  get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+                         REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
+  
+  add_library(tcl_static SHARED IMPORTED GLOBAL)
+  find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
+  set_target_properties(tcl_static PROPERTIES
+    IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+  
 endif()
-
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
-
-get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
-                       REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
-
-add_library(tcl_static SHARED IMPORTED GLOBAL)
-find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
-set_target_properties(tcl_static PROPERTIES
-  IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
 
 add_library(tcl_stubb STATIC IMPORTED GLOBAL)
 set_target_properties(tcl_stubb PROPERTIES
