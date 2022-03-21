@@ -243,7 +243,7 @@ endif()
 # Copy the init.tcl file from source to build directory
 add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
-          ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl/library/init.tcl
+          ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
 # Explicit lib build order
