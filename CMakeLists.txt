@@ -177,7 +177,7 @@ if (MSVC)
   set(TCL_STATIC_LIB tcl86ts.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
 
-  add_library(tcl_static STATIC IMPORTED GLOBAL)
+  add_library(tcl_static STATIC IMPORTED )
   set_target_properties(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
@@ -194,7 +194,7 @@ else()
   if(MINGW)
   
     set(TCL_STATIC_LIB libtcl8.6.a)
-    add_library(tcl_static STATIC IMPORTED GLOBAL)
+    add_library(tcl_static STATIC IMPORTED )
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
@@ -203,7 +203,7 @@ else()
     get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
   
-    add_library(tcl_static SHARED IMPORTED GLOBAL)
+    add_library(tcl_static SHARED IMPORTED )
     find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
@@ -212,7 +212,7 @@ else()
   
 endif()
 
-add_library(tcl_stubb STATIC IMPORTED GLOBAL)
+add_library(tcl_stubb STATIC IMPORTED )
 set_target_properties(tcl_stubb PROPERTIES
   IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STUBB_LIB})
 
