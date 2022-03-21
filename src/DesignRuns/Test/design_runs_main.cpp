@@ -26,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
 
-FOEDAG::Session* GlobalSession;
-
 QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(interp);

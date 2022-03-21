@@ -5,6 +5,12 @@
 
 namespace FOEDAG {
 
+int DriverCloseProc(ClientData instanceData, Tcl_Interp *interp) {
+  Q_UNUSED(instanceData)
+  Q_UNUSED(interp)
+  return 0;
+}
+
 int DriverClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
   Q_UNUSED(instanceData)
   Q_UNUSED(interp)
@@ -37,7 +43,7 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
   channelOut = new Tcl_ChannelType{
       "outconsole",
       CHANNEL_VERSION_5,
-      nullptr,
+      DriverCloseProc /*ChannelClose */,
       nullptr,  // DriverInputProc,
       DriverOutputProc,
       nullptr /*ChannelSeek*/,

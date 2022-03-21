@@ -46,13 +46,19 @@ if(NOT NO_TCMALLOC)
   endif()
 endif()
 
-set(TCL_STATIC_LIB libtcl9.0.a)
-set(TCL_STUBB_LIB libtclstub9.0.a)
+set(TCL_STATIC_LIB libtcl8.6.so)
+set(TCL_STUBB_LIB libtclstub8.6.a)
 set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
-  set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  set(TCL_STUBB_LIB tclstub86.lib)
+  set(TCL_STATIC_LIB tcl86ts.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
+elseif(APPLE) 
+  set(TCL_STATIC_LIB libtcl8.6.dylib)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+  set(TCL_STATIC_LIB libtcl8.6.a)
 endif()
 
 if(MSVC)
@@ -62,13 +68,13 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/win"
-    DEPENDS ../tcl/generic/tcl.h
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/win"
+    DEPENDS ../tcl8.6.12/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ${PROJECT_SOURCE_DIR}/../tcl/win/Release_AMD64_VC1931/${TCL_STATIC_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/Release_AMD64_VC1931/${TCL_STATIC_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STATIC_LIB}
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
@@ -77,13 +83,13 @@ if(MSVC)
     COMMAND nmake verbose=1 -f makefile.vc INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND nmake verbose=1 -f makefile.vc install INSTALLDIR=${CMAKE_CURRENT_BINARY_DIR}/../../ OPTS=static,nomsvcrt
     COMMAND echo "       Tcl Stubb Compilation completed"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/win"
-    DEPENDS ../tcl/generic/tcl.h
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/win"
+    DEPENDS ../tcl8.6.12/generic/tcl.h
   )
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_stubb_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ${PROJECT_SOURCE_DIR}/../tcl/win/Release_AMD64_VC1931/${TCL_STUBB_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/Release_AMD64_VC1931/${TCL_STUBB_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}         
   )
 else()
@@ -97,22 +103,29 @@ else()
     DEPENDS ../zlib/zlib.h
   )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+
+  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+    set(STATIC_LINK --enable-shared=off)
+  else()
+    set(STATIC_LINK )
+  endif()
+
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
     COMMAND echo "       Compiling Tcl"
     COMMAND rm -rf configure
-    COMMAND autoconf configure.ac  > configure
+    COMMAND autoconf configure.in  > configure
     COMMAND chmod 755 configure
-    COMMAND ./configure --enable-shared=off --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
+    COMMAND ./configure ${STATIC_LINK} --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
     COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
     COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl/unix"
-    DEPENDS ../tcl/generic/tcl.h
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
+    DEPENDS ../tcl8.6.12/generic/tcl.h
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
     COMMAND echo "       Compiling Tcl Stubb"
     COMMAND echo "       Tcl Stubb Compilation completed"
-    DEPENDS ../tcl/generic/tcl.h
+    DEPENDS ../tcl8.6.12/generic/tcl.h
   )
 endif()
 

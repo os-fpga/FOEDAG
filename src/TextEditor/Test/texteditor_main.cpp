@@ -26,8 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 #include "TextEditor/text_editor.h"
 
-FOEDAG::Session* GlobalSession;
-
 QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(cmd);

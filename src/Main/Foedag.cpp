@@ -51,6 +51,8 @@ extern "C" {
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
+FOEDAG::Session* GlobalSession;
+
 using namespace FOEDAG;
 
 bool Foedag::initGui() {

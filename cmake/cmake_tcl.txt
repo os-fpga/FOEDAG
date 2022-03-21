@@ -18,19 +18,23 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
 if(MSVC)
-  set(TCL_STUBB_LIB tclstub90.lib)
-  set(TCL_STATIC_LIB tcl90s.lib)
+  message("WINDOWS MODE")
+  set(TCL_STUBB_LIB tclstub86.lib)
+  set(TCL_STATIC_LIB tcl86ts.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+
+  add_library(tcl_static STATIC IMPORTED)
+  set_target_properties(tcl_static PROPERTIES
+   IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
   set_target_properties(tcl_static PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
   )  
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+
+  add_library(tcl_stubb STATIC IMPORTED)
+  set_target_properties(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
   set_target_properties(tcl_stubb PROPERTIES
     COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
@@ -46,17 +50,39 @@ if(MSVC)
       "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} /Zc:__cplusplus /W0 /bigobj /Zl /GL- /MT /DSTATIC_BUILD ${MY_CXX_WARNING_FLAGS}"
   )
   set(CMAKE_EXE_LINKER_FLAGS /STACK:8388608)  # 8MB stack size
+
 else()
-  set(TCL_STATIC_LIB libtcl9.0.a)
-  set(TCL_STUBB_LIB libtclstub9.0.a)
+
+  set(TCL_STATIC_LIB libtcl8.6.so)
+  set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
-  ADD_LIBRARY(tcl_static STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
-  ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
+  if(APPLE) 
+    set(TCL_STATIC_LIB libtcl8.6.dylib)
+  endif()  
+
+  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+    message("MSYS MODE")
+    set(TCL_STATIC_LIB libtcl8.6.a)
+    add_library(tcl_static STATIC IMPORTED )
+    set_target_properties(tcl_static PROPERTIES
+      IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
+
+  else()
+    message("LINUX MODE")
+    get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
+                       REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/../../lib)                   
+    add_library(tcl_static SHARED IMPORTED )
+    set_target_properties(tcl_static PROPERTIES
+      IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
+
+  endif()
+  
+  add_library(tcl_stubb STATIC IMPORTED )
+  set_target_properties(tcl_stubb PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  ADD_LIBRARY(zlib STATIC IMPORTED)
-  SET_TARGET_PROPERTIES(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB})       
+
+  add_library(zlib STATIC IMPORTED )
+  set_target_properties(zlib PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${ZLIB_STATIC_LIB}) 
+
 endif()

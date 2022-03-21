@@ -27,8 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 #include "registerNewProjectCommands.h"
 
-FOEDAG::Session* GlobalSession;
-
 QWidget* newProjectBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(cmd);

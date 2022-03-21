@@ -33,7 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclConsole.h"
 #include "TclConsoleBuilder.h"
 #include "TclConsoleWidget.h"
-FOEDAG::Session *GlobalSession;
 
 QWidget *mainWindowBuilder(FOEDAG::CommandLine *cmd,
                            FOEDAG::TclInterpreter *interpreter) {

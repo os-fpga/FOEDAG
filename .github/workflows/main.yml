@@ -296,7 +296,7 @@ jobs:
         # export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
         export Qt5_DIR=$Qt5_Dir
         export PATH=$Qt5_DIR:$PATH
-        make lib-only
+        make lib-only CPU_CORES=1
 # There are Qt linkage issues, so build only the libs for now        
 #        make VERBOSE=1 release
 #        make debug 
@@ -513,7 +513,7 @@ jobs:
 
     - name: Build
       run: |
-        make release
+        make release 
         make install
 
     - name: Unit tests
