@@ -57,7 +57,7 @@ elseif(APPLE)
   set(TCL_STATIC_LIB libtcl8.6.dylib)
 endif()
 
-if(MINGW)
+if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
   set(TCL_STATIC_LIB libtcl8.6.a)
 endif()
 
