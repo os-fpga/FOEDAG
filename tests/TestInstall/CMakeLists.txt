@@ -68,22 +68,26 @@ message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python3_RUNTIME_LIBRARY_DIRS = ${Python3_RUNTIME_LIBRARY_DIRS}")
 endif()
 
-set(TCL_STATIC_LIB libtcl8.6.so)
-set(TCL_STUBB_LIB libtclstub8.6.a)
-set(ZLIB_STATIC_LIB libz.a)
 if (MSVC)
   set(TCL_STUBB_LIB tclstub86.lib)
   set(TCL_STATIC_LIB tcl86s.lib)
   set(ZLIB_STATIC_LIB zlib.lib)
-elseif(APPLE) 
-  set(TCL_STATIC_LIB libtcl8.6.dylib)
+  add_library(tcl_static static IMPORTED)
+else()
+  set(TCL_STATIC_LIB libtcl8.6.so)
+  set(TCL_STUBB_LIB libtclstub8.6.a)
+  set(ZLIB_STATIC_LIB libz.a)
+  if(APPLE) 
+    set(TCL_STATIC_LIB libtcl8.6.dylib)
+  endif()
+  add_library(tcl_static SHARED IMPORTED)
 endif()
 
-ADD_LIBRARY(tcl_static SHARED IMPORTED)
 ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
 
 SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STATIC_LIB})
+  
 SET_TARGET_PROPERTIES(tcl_stubb  PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STUBB_LIB})   
 
