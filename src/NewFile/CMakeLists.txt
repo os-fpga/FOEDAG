@@ -57,7 +57,8 @@ install(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(newfile_bin
- ${PROJECT_SOURCE_DIR}/../NewFile/Test/newfile_main.cpp)
-target_link_libraries(newfile_bin foedag tcl_stubb tcl_static zlib)
+ ${PROJECT_SOURCE_DIR}/../NewFile/Test/newfile_main.cpp
+ ${PROJECT_SOURCE_DIR}/../NewFile/Test/newfile_commands.cpp)
+target_link_libraries(newfile_bin foedag tcl_stubb tcl_static zlib tclutils)
 set_target_properties(newfile_bin PROPERTIES OUTPUT_NAME newfile)
 

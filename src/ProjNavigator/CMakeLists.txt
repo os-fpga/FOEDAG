@@ -63,8 +63,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(projnavigator_bin
  ${PROJECT_SOURCE_DIR}/../ProjNavigator/Test/projnavigator_main.cpp
+ ${PROJECT_SOURCE_DIR}/../ProjNavigator/Test/projectnavigator_commands.cpp
  #${PROJECT_SOURCE_DIR}/../ProjNavigator/projnavigator.qrc
  )
-target_link_libraries(projnavigator_bin foedag tcl_stubb tcl_static zlib)
+target_link_libraries(projnavigator_bin foedag tcl_stubb tcl_static zlib tclutils)
 set_target_properties(projnavigator_bin PROPERTIES OUTPUT_NAME projnavigator)
 

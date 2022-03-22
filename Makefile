@@ -139,6 +139,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
+	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
