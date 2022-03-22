@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/Design.h"
 #include "Main/CommandLine.h"
+#include "TaskManager.h"
 #include "Tcl/TclInterpreter.h"
 
 #ifndef COMPILER_H
@@ -65,7 +66,7 @@ class Compiler {
   void BatchScript(const std::string& script) { m_batchScript = script; }
   State CompilerState() { return m_state; }
   bool Compile(Action action);
-  void Stop() { m_stop = true; }
+  void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   Design* GetDesign() { return m_design; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
@@ -82,6 +83,8 @@ class Compiler {
 
   std::string& getResult() { return m_result; }
 
+  void setTaskManager(TaskManager* newTaskManager);
+
  private:
   TclInterpreter* m_interp = nullptr;
   Design* m_design = nullptr;
@@ -91,6 +94,9 @@ class Compiler {
   std::string m_batchScript;
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler;
+  TaskManager* m_taskManager{nullptr};
+
+  static constexpr uint SYNTH_TASK{0};
 };
 
 }  // namespace FOEDAG

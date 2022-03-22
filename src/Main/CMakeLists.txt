@@ -92,7 +92,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-deprecated-declarations -Werror")
 endif()
 
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)

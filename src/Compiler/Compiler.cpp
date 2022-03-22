@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include <unistd.h>
 #endif
+#include <QDebug>
 #include <chrono>
 #include <filesystem>
 #include <thread>
@@ -43,7 +44,7 @@ Compiler::Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
 }
 
-Compiler::~Compiler() {}
+Compiler::~Compiler() { delete m_taskManager; }
 
 static std::string TclInterpCloneScript() {
   std::string script = R"(
@@ -231,6 +232,12 @@ bool Compiler::Compile(Action action) {
   return false;
 }
 
+void Compiler::Stop() {
+  m_stop = true;
+  if (m_taskManager)
+    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::None);
+}
+
 bool Compiler::Synthesize() {
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   auto currentPath = std::filesystem::current_path();
@@ -287,10 +294,20 @@ bool Compiler::RunBatch() {
 
 void Compiler::start() {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyStart();
+  if (m_taskManager)
+    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::InProgress);
 }
 
 void Compiler::finish() {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyFinish();
+  if (m_taskManager)
+    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::Success);
+}
+
+void Compiler::setTaskManager(TaskManager* newTaskManager) {
+  m_taskManager = newTaskManager;
+  QObject::connect(m_taskManager->tasks().at(SYNTH_TASK), &Task::taskTriggered,
+                   [this]() { Tcl_Eval(m_interp->getInterp(), "synth"); });
 }
 
 bool Compiler::Placement() { return true; }

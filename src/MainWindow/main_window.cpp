@@ -24,6 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 #include <fstream>
 
+#include "Compiler/TaskManager.h"
+#include "Compiler/TaskModel.h"
+#include "Compiler/TaskTableView.h"
 #include "Console/DummyParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
@@ -239,6 +242,16 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
+
+  TaskManager* taskManager = new TaskManager;
+  TaskModel* model = new TaskModel{taskManager};
+  TaskTableView* view = new TaskTableView;
+  view->setModel(model);
+  QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
+  taskDocWidget->setWidget(view);
+  tabifyDockWidget(sourceDockWidget, taskDocWidget);
+
+  com->setTaskManager(taskManager);
 }
 
 void MainWindow::clearDockWidgets() {
