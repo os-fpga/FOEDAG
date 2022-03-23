@@ -39,6 +39,15 @@ void TaskModel::appendTask(Task *newTask) {
   connect(newTask, &Task::statusChanged, this, &TaskModel::taskStatusChanged);
 }
 
+bool TaskModel::hasChildren(const QModelIndex &parent) const {
+  if (parent.isValid()) return m_taskManager->task(parent.row())->hasSubTask();
+  return false;
+}
+
+Qt::ItemFlags TaskModel::flags(const QModelIndex &index) const {
+  return QAbstractItemModel::flags(index);
+}
+
 int TaskModel::rowCount(const QModelIndex &parent) const {
   return m_taskManager ? m_taskManager->tasks().count() : 0;
 }
@@ -50,16 +59,43 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
     return m_taskManager->tasks().at(index.row())->title();
-  } else if (role == Qt::DecorationRole && index.column() == STATUS_COL) {
-    switch (m_taskManager->tasks().at(index.row())->status()) {
-      case TaskStatus::Success:
-        return QIcon(":/checked.png");
-      case TaskStatus::Fail:
-        return QIcon(":/failed.png");
-      case TaskStatus::InProgress:
-        return QIcon(":/loading.png");
-      default:
-        return QVariant();
+  } else if (role == Qt::DecorationRole) {
+    if (index.column() == STATUS_COL) {
+      switch (m_taskManager->tasks().at(index.row())->status()) {
+        case TaskStatus::Success:
+          return QIcon(":/checked.png");
+        case TaskStatus::Fail:
+          return QIcon(":/failed.png");
+        case TaskStatus::InProgress:
+          return QIcon(":/loading.png");
+        default:
+          return QVariant();
+      }
+    } else if (index.column() == TITLE_COL) {
+      if (hasChildren(index)) {
+        if (m_expanded.contains(index)) {
+          if (m_expanded[index])
+            return QIcon(":/next.png");
+          else
+            return QIcon(":/down-arrow.png");
+        } else {
+          return QIcon(":/down-arrow.png");
+        }
+      }
+    }
+  } else if (role == RowVisibilityRole) {
+    if (auto task = m_taskManager->task(index.row())) {
+      if (auto p = task->parentTask()) {
+        uint id = m_taskManager->taskId(p);
+        if (id != TaskManager::invalid_id) {
+          return m_expanded.value(createIndex(id, index.column()), true);
+        }
+      }
+    }
+    return false;
+  } else if (role == ParentDataRole) {
+    if (auto task = m_taskManager->task(index.row())) {
+      return task->parentTask() != nullptr;
     }
   }
   return QVariant();
@@ -92,18 +128,24 @@ TaskManager *TaskModel::taskManager() const { return m_taskManager; }
 void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   if (!newTaskManager) return;
   m_taskManager = newTaskManager;
-  for (auto task : m_taskManager->tasks()) {
+  for (const auto &task : m_taskManager->tasks()) {
     appendTask(task);
   }
 }
 
 bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
-  if (role == (Qt::UserRole + 1)) {
-    if (value.toUInt() == 0) {
-      m_taskManager->tasks().at(0)->trigger();
-    }
+  if (role == UserActionRole) {
+    if (auto task = m_taskManager->task(index.row())) task->trigger();
     return true;
+  } else if (role == ExpandAreaRole && hasChildren(index)) {
+    if (!m_expanded.contains(index)) {
+      m_expanded.insert(index, true);
+    } else {
+      m_expanded[index] = !m_expanded[index];
+    }
+    emit dataChanged(index, createIndex(index.row() + 1, index.column()),
+                     {Qt::DecorationRole});
   }
   return QAbstractTableModel::setData(index, value, role);
 }

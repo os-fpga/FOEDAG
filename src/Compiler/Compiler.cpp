@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Compiler.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
+#include "CompilerDefines.h"
 
 using namespace FOEDAG;
 
@@ -234,11 +235,12 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
-  if (m_taskManager)
-    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::None);
+  if (m_taskManager) m_taskManager->stopCurrentTask();
 }
 
 bool Compiler::Synthesize() {
+  if (m_taskManager)
+    m_taskManager->task(SYNTH_TASK)->setStatus(TaskStatus::InProgress);
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
@@ -255,14 +257,21 @@ bool Compiler::Synthesize() {
   }
   m_state = State::Synthesized;
   m_out << "Design " << m_design->Name() << " is synthesized!" << std::endl;
+
+  if (m_taskManager)
+    m_taskManager->task(SYNTH_TASK)->setStatus(TaskStatus::Success);
   return true;
 }
 
 bool Compiler::GlobalPlacement() {
   if (m_state != State::Synthesized) {
     m_out << "ERROR: Design needs to be in synthesized state" << std::endl;
+    if (m_taskManager)
+      m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::Fail);
     return false;
   }
+  if (m_taskManager)
+    m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::InProgress);
   m_out << "Global Placement for design: " << m_design->Name() << "..."
         << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
@@ -273,6 +282,8 @@ bool Compiler::GlobalPlacement() {
   }
   m_state = State::GloballyPlaced;
   m_out << "Design " << m_design->Name() << " is globally placed!" << std::endl;
+  if (m_taskManager)
+    m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::Success);
   return true;
 }
 
@@ -294,20 +305,24 @@ bool Compiler::RunBatch() {
 
 void Compiler::start() {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyStart();
-  if (m_taskManager)
-    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::InProgress);
 }
 
 void Compiler::finish() {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyFinish();
-  if (m_taskManager)
-    m_taskManager->tasks().at(SYNTH_TASK)->setStatus(TaskStatus::Success);
 }
 
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
-  QObject::connect(m_taskManager->tasks().at(SYNTH_TASK), &Task::taskTriggered,
-                   [this]() { Tcl_Eval(m_interp->getInterp(), "synth"); });
+  QObject::connect(m_taskManager->task(SYNTH_TASK), &Task::taskTriggered,
+                   [this](UserAction action) {
+                     if (action == UserAction::Run)
+                       Tcl_Eval(m_interp->getInterp(), "synth");
+                   });
+  QObject::connect(m_taskManager->task(PLACEMENT_TASK), &Task::taskTriggered,
+                   [this](UserAction action) {
+                     if (action == UserAction::Run)
+                       Tcl_Eval(m_interp->getInterp(), "globp");
+                   });
 }
 
 bool Compiler::Placement() { return true; }

@@ -3,5 +3,7 @@
         <file>checked.png</file>
         <file>failed.png</file>
         <file>loading.png</file>
+        <file>down-arrow.png</file>
+        <file>next.png</file>
     </qresource>
 </RCC>

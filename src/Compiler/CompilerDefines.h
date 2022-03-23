@@ -19,31 +19,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <qnamespace.h>
 
-#include <QList>
-#include <QMap>
-#include <QObject>
-
-#include "Task.h"
+#include <QtGlobal>
 
 namespace FOEDAG {
 
-class TaskManager : public QObject {
-  Q_OBJECT
- public:
-  static constexpr uint invalid_id{1000};
-  explicit TaskManager(QObject *parent = nullptr);
-  ~TaskManager();
-  QList<Task *> tasks() const;
-  Task *task(uint id) const;
-  uint taskId(Task *t) const;
-
-  void stopCurrentTask();
-
- signals:
-
- private:
-  QMap<uint, Task *> m_tasks;
+enum UserAction {
+  Run,
+  Settings,
 };
+
+static constexpr uint SYNTH_TASK{0};
+static constexpr uint SYNTH_TASK_SETTINGS{1};
+static constexpr uint PLACEMENT_TASK{2};
+static constexpr uint PLACEMENT_TASK_SETTINGS{3};
+
+static constexpr uint UserActionRole = Qt::UserRole + 1;
+static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
+static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
+static constexpr uint ParentDataRole = Qt::UserRole + 4;
 
 }  // namespace FOEDAG

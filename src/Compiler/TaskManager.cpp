@@ -23,12 +23,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
-  m_tasks.append(new Task{"Synthesis"});
-  m_tasks.append(new Task{"Place and Route"});
+  m_tasks.insert(SYNTH_TASK, new Task{UserAction::Run, "Synthesis"});
+  m_tasks.insert(SYNTH_TASK_SETTINGS,
+                 new Task{UserAction::Settings, "Edit settings"});
+  m_tasks.insert(PLACEMENT_TASK, new Task{UserAction::Run, "Placement"});
+  m_tasks.insert(PLACEMENT_TASK_SETTINGS,
+                 new Task{UserAction::Settings, "Edit settings"});
+
+  m_tasks[SYNTH_TASK]->appendSubTask(m_tasks[SYNTH_TASK_SETTINGS]);
+  m_tasks[PLACEMENT_TASK]->appendSubTask(m_tasks[PLACEMENT_TASK_SETTINGS]);
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
 
-const QVector<Task *> &TaskManager::tasks() const { return m_tasks; }
+QList<Task *> TaskManager::tasks() const { return m_tasks.values(); }
+
+Task *TaskManager::task(uint id) const { return m_tasks.value(id, nullptr); }
+
+uint TaskManager::taskId(Task *t) const { return m_tasks.key(t, invalid_id); }
+
+void TaskManager::stopCurrentTask() {
+  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    if ((*task)->status() == TaskStatus::InProgress)
+      (*task)->setStatus(TaskStatus::Fail);
+  }
+}
 
 }  // namespace FOEDAG
