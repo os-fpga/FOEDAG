@@ -33,6 +33,7 @@ else()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
+include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
@@ -40,36 +41,54 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 # TODO: add the list of files
-set (SRC_CPP_LIST Design.cpp Compiler.cpp WorkerThread.cpp
+set (SRC_CPP_LIST
+  Design.cpp
+  Compiler.cpp
+  WorkerThread.cpp
+  TaskTableView.cpp
+  TaskModel.cpp
+  Task.cpp
+  TaskManager.cpp
 )
 
-set (SRC_H_LIST Design.h Compiler.h WorkerThread.h TclInterpreterHandler.h
+set (SRC_H_INSTALL_LIST
+  Design.h
+  Compiler.h
+  WorkerThread.h
+  TaskTableView.h
+  TaskModel.h
+  Task.h
+  TaskManager.h
 )
 
+set (SRC_H_LIST
+  ${SRC_H_INSTALL_LIST}
+  TclInterpreterHandler.h
+)
+
+set (res_LIST
+  compiler_resources.qrc
+)
 
 add_library(compiler STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
+  ${res_LIST}
 )
 
-target_link_libraries(compiler)
+target_link_libraries(compiler PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 
-set(COMPILER_STATIC_LIB libcompiler.a)
-if (MSVC)
-  set(COMPILER_STATIC_LIB compiler.lib)
-endif()
-
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${COMPILER_STATIC_LIB}
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:compiler>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
-install(
-    FILES ${PROJECT_SOURCE_DIR}/../Compiler/Design.h
-          ${PROJECT_SOURCE_DIR}/../Compiler/Compiler.h
-          ${PROJECT_SOURCE_DIR}/../Compiler/WorkerThread.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Compiler)
-  
+foreach(file ${SRC_H_INSTALL_LIST})
+  install(
+      FILES ${PROJECT_SOURCE_DIR}/../Compiler/${file}
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Compiler)
+endforeach()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 set(CMAKE_CXX_FLAGS_DEBUG
