@@ -38,6 +38,7 @@ extern "C" {
 #include <QLabel>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -46,14 +47,93 @@ extern "C" {
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
 #include "Main/Foedag.h"
+#include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
+#if defined(_MSC_VER)
+#include <direct.h>
+#define PATH_MAX _MAX_PATH
+#else
+#include <sys/param.h>
+#include <unistd.h>
+#endif
+
 FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
+
+bool getFullPath(const std::filesystem::path& path,
+                 std::filesystem::path* result) {
+  std::error_code ec;
+  std::filesystem::path fullPath = std::filesystem::canonical(path, ec);
+  bool found = (!ec && std::filesystem::is_regular_file(fullPath));
+  if (result != nullptr) {
+    *result = found ? fullPath : path;
+  }
+  return found;
+}
+
+// Try to find the full absolute path of the program currently running.
+static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__)
+  const char PATH_DELIMITER = ';';
+#else
+  char buf[PATH_MAX];
+  // If the executable is invoked with a path, we can extract it from there,
+  // otherwise, we use some operating system trick to find that path:
+  // In Linux, the current running binary is symbolically linked from
+  // /proc/self/exe which we can resolve.
+  // It won't resolve anything on other platforms, but doesnt harm either.
+  for (const char* testpath : {progname, "/proc/self/exe"}) {
+    const char* const program_name = realpath(testpath, buf);
+    if (program_name != nullptr) return program_name;
+  }
+  const char PATH_DELIMITER = ':';
+#endif
+
+  // Still not found, let's go through the $PATH and see what comes up first.
+  const char* const path = std::getenv("PATH");
+  if (path != nullptr) {
+    std::stringstream search_path(path);
+    std::string path_element;
+    std::filesystem::path program_path;
+    while (std::getline(search_path, path_element, PATH_DELIMITER)) {
+      const std::filesystem::path testpath =
+          path_element / std::filesystem::path(progname);
+      if (getFullPath(testpath, &program_path)) {
+        return program_path;
+      }
+    }
+  }
+
+  return progname;  // Didn't find anything, return progname as-is.
+}
+
+Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
+               RegisterTclFunc* registerTclFunc, ToolContext* context)
+    : m_cmdLine(cmdLine),
+      m_mainWinBuilder(mainWinBuilder),
+      m_registerTclFunc(registerTclFunc),
+      m_context(context) {
+  if (context == nullptr)
+    m_context = new ToolContext("Foedag", "OpenFPGA", "foedag");
+  if (m_context->BinaryPath().empty()) {
+    std::filesystem::path exePath =
+        GetProgramNameAbsolutePath(m_cmdLine->Argv()[0]);
+    std::filesystem::path exeDirPath = exePath.parent_path();
+    m_context->BinaryPath(exeDirPath);
+    std::filesystem::path installDir = exeDirPath.parent_path();
+    const std::string separator(1, std::filesystem::path::preferred_separator);
+    std::filesystem::path dataDir =
+        installDir.string() + std::filesystem::path::preferred_separator +
+        std::string("share") + std::filesystem::path::preferred_separator +
+        m_context->ExecutableName();
+    m_context->DataPath(dataDir);
+  }
+}
 
 bool Foedag::initGui() {
   // Gui mode with Qt Widgets
@@ -67,7 +147,7 @@ bool Foedag::initGui() {
     mainWin = m_mainWinBuilder(m_cmdLine, interpreter);
   }
   GlobalSession =
-      new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine);
+      new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine, m_context);
   GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
 
   registerBasicGuiCommands(GlobalSession);
@@ -144,7 +224,7 @@ bool Foedag::initQmlGui() {
   engine.load(url);
 
   GlobalSession =
-      new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine);
+      new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine, m_context);
   GlobalSession->setGuiType(GUI_TYPE::GT_QML);
   GlobalSession->setWindowModel(windowModel);
 
@@ -212,8 +292,8 @@ bool Foedag::initBatch() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-  GlobalSession =
-      new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine);
+  GlobalSession = new FOEDAG::Session(m_mainWin, interpreter, commands,
+                                      m_cmdLine, m_context);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
 
   registerBasicBatchCommands(GlobalSession);

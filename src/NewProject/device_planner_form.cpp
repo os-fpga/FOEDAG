@@ -58,7 +58,7 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
 
-  QString devicexml = QDir::currentPath() + "/device.xml";
+  QString devicexml = QDir::currentPath() + "/etc/device.xml";
   if (0 == Config::Instance()->InitConfig(devicexml)) {
     InitSeriesComboBox();
   }

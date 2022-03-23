@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 
@@ -44,10 +45,8 @@ typedef void(RegisterTclFunc)(QWidget* widget, FOEDAG::Session* session);
 class Foedag {
  public:
   Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
-         RegisterTclFunc* registerTclFunc = nullptr)
-      : m_cmdLine(cmdLine),
-        m_mainWinBuilder(mainWinBuilder),
-        m_registerTclFunc(registerTclFunc) {}
+         RegisterTclFunc* registerTclFunc = nullptr,
+         ToolContext* context = nullptr);
   virtual ~Foedag() = default;
 
   bool init(GUI_TYPE guiType);
@@ -58,12 +57,14 @@ class Foedag {
  public:
   bool initGui();
   bool initBatch();
+  const ToolContext* Context() { return m_context; }
 
  protected:
   FOEDAG::CommandLine* m_cmdLine = nullptr;
   FOEDAG::MainWindow* m_mainWin = nullptr;
   MainWindowBuilder* m_mainWinBuilder = nullptr;
   RegisterTclFunc* m_registerTclFunc = nullptr;
+  ToolContext* m_context = nullptr;
 };
 
 }  // namespace FOEDAG

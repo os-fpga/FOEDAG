@@ -423,8 +423,7 @@ install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclDecls.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclPlatDecls.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include)
-
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include) 
 #install(
 #  EXPORT Foedag
 #  FILE Foedag.cmake
@@ -443,6 +442,9 @@ configure_package_config_file(
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/FoedagConfig.cmake
   DESTINATION cmake)
+
+install(
+  FILES etc/device.xml DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
 
 add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
