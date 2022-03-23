@@ -59,6 +59,7 @@ set (SRC_H_INSTALL_LIST
   TaskModel.h
   Task.h
   TaskManager.h
+  CompilerDefines.h
 )
 
 set (SRC_H_LIST

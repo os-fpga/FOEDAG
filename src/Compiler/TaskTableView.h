@@ -20,37 +20,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QMouseEvent>
 #include <QStyledItemDelegate>
 #include <QTableView>
 
+#include "CompilerDefines.h"
+
 namespace FOEDAG {
 
-class AlignPicCenterDelegate : public QStyledItemDelegate {
+class ChildItemDelegate : public QStyledItemDelegate {
  public:
  protected:
-  void initStyleOption(QStyleOptionViewItem *option,
-                       const QModelIndex &index) const override {
-    QStyledItemDelegate::initStyleOption(option, index);
-    option->displayAlignment = Qt::AlignCenter;
-    option->features = QStyleOptionViewItem::ViewItemFeature::HasDecoration;
-    option->decorationSize = {50, 25};
-  }
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const override;
 };
 
-enum UserAction {
-  Start,
+struct TaskTableViewInternal {
+  QMap<QModelIndex, bool> expand;
 };
 
 class TaskTableView : public QTableView {
   Q_OBJECT
  public:
   TaskTableView(QWidget *parent = nullptr);
+  void setModel(QAbstractItemModel *model) override;
 
  signals:
-  void actionTrigger(FOEDAG::UserAction action, const QModelIndex &index);
+  void actionTrigger(const QModelIndex &index);
+
+ protected:
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
 
  private slots:
   void customMenuRequested(const QPoint &pos);
-  void userActionHandle(FOEDAG::UserAction action, const QModelIndex &index);
+  void userActionHandle(const QModelIndex &index);
+  void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                   const QVector<int> &roles = QVector<int>()) override;
+
+ private:
+  QRect expandArea(const QModelIndex &index) const;
+
+ private:
+  TaskTableViewInternal m_internal;
 };
 }  // namespace FOEDAG

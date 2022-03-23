@@ -95,8 +95,6 @@ class Compiler {
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler;
   TaskManager* m_taskManager{nullptr};
-
-  static constexpr uint SYNTH_TASK{0};
 };
 
 }  // namespace FOEDAG

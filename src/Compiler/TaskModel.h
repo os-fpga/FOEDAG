@@ -52,12 +52,15 @@ class TaskModel : public QAbstractTableModel {
 
  private:
   void appendTask(Task *newTask);
+  bool hasChildren(const QModelIndex &parent) const override;
+  Qt::ItemFlags flags(const QModelIndex &index) const override;
 
  private:
   TaskManager *m_taskManager{nullptr};
   static constexpr uint STATUS_COL{0};
   static constexpr uint TITLE_COL{1};
   static constexpr uint TIMING_COL{2};
+  QMap<QModelIndex, bool> m_expanded;
 };
 
 }  // namespace FOEDAG

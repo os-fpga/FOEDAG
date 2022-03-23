@@ -21,6 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <QVector>
+
+#include "Compiler/CompilerDefines.h"
 
 namespace FOEDAG {
 
@@ -34,23 +37,32 @@ enum class TaskStatus {
 class Task : public QObject {
   Q_OBJECT
  public:
-  explicit Task(QObject *parent = nullptr);
-  explicit Task(const QString &title, QObject *parent = nullptr);
+  explicit Task(UserAction act, QObject *parent = nullptr);
+  explicit Task(UserAction act, const QString &title,
+                QObject *parent = nullptr);
   const QString &title() const;
   void setTitle(const QString &newTitle);
+  bool hasSubTask() const;
+  void appendSubTask(Task *t);
+  Task *parentTask() const;
 
   TaskStatus status() const;
   void setStatus(TaskStatus newStatus);
 
   void trigger();
 
+  UserAction action() const;
+
  signals:
   void statusChanged();
-  void taskTriggered();
+  void taskTriggered(FOEDAG::UserAction);
 
  private:
   QString m_title;
   TaskStatus m_status{TaskStatus::None};
+  QVector<Task *> m_subTask;
+  Task *m_parent{nullptr};
+  UserAction m_action;
 };
 
 }  // namespace FOEDAG
