@@ -6,7 +6,7 @@
 
 #include "NewProject/ProjectManager/project_manager.h"
 #include "add_file_dialog.h"
-#include "create_design_dialog.h"
+#include "create_fileset_dialog.h"
 
 #define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
 #define SRC_TREE_CONSTR_TOP_ITEM "constrtopitem"
@@ -32,8 +32,10 @@ class SourcesForm : public QWidget {
   Q_OBJECT
 
  public:
-  explicit SourcesForm(QString strprojpath, QWidget* parent = nullptr);
+  explicit SourcesForm(QWidget* parent = nullptr);
   ~SourcesForm();
+
+  void InitSourcesForm(const QString& strFile);
 
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
@@ -41,18 +43,18 @@ class SourcesForm : public QWidget {
  signals:
   void OpenFile(QString);
 
- public slots:
-  void SetCurrentFileItem(const QString& strFileName);
-
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
   void SlotItemDoubleClicked(QTreeWidgetItem* item, int column);
 
+  void SetCurrentFileItem(const QString& strFileName);
   void SlotRefreshSourceTree();
-  void SlotCreateDesign();
+  void SlotCreateDesignSet();
+  void SlotCreateConstrSet();
+  void SlotCreateSimSet();
   void SlotAddFile();
   void SlotOpenFile();
-  void SlotRemoveDesign();
+  void SlotRemoveFileSet();
   void SlotRemoveFile();
   void SlotSetAsTop();
   void SlotSetAsTarget();
@@ -63,10 +65,12 @@ class SourcesForm : public QWidget {
 
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
-  QAction* m_actCreateDesign;
+  QAction* m_actEditDesignSets;
+  QAction* m_actEditConstrsSets;
+  QAction* m_actEditSimulSets;
   QAction* m_actAddFile;
   QAction* m_actOpenFile;
-  QAction* m_actRemoveDesign;
+  QAction* m_actRemoveFileset;
   QAction* m_actRemoveFile;
   QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
@@ -81,9 +85,9 @@ class SourcesForm : public QWidget {
   bool TclCheckType(QString strType);
 
  public:
-  void TclCreateDesign(int argc, const char* argv[]);
+  void TclCreateFileSet(int argc, const char* argv[]);
   void TclAddOrCreateFiles(int argc, const char* argv[]);
-  void TclSetActiveDesign(int argc, const char* argv[]);
+  void TclSetActive(int argc, const char* argv[]);
   void TclSetTopModule(int argc, const char* argv[]);
   void TclSetAsTarget(int argc, const char* argv[]);
 };

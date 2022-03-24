@@ -68,6 +68,10 @@ project object is singleton mode.
 #define PROJECT_FILE_CONFIG_TOP "TopModule"
 #define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
+#define PROJECT_RUN_OPTION_FLOW "Compilation Flow"
+#define PROJECT_RUN_OPTION_LANGUAGEVER "LanguageVersion"
+#define PROJECT_RUN_OPTION_TARGETLANG "TargetLanguage"
+
 #define RUN_STATE_CURRENT "current"
 
 #define RUN_TYPE_SYNTHESIS "Synthesis"
@@ -80,6 +84,8 @@ project object is singleton mode.
 #define DEFAULT_FOLDER_SYNTH "synth_1"
 
 #define PROJECT_FILE_FORMAT ".ospr"
+
+#define PROJECT_OSRCDIR "$OSRCDIR"
 
 namespace FOEDAG {
 
@@ -110,7 +116,7 @@ class ProjectManager : public QObject {
   int deleteFile(const QString &strFileName);
 
   // Please set currentfileset before using this function
-  int setTopModule(const QString &strFileName);
+  int setTopModule(const QString &strModuleName);
   // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
 
@@ -147,12 +153,15 @@ class ProjectManager : public QObject {
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setRunSrcSet(const QString &strSrcSet);
+  QString getRunSrcSet(const QString &strRunName) const;
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setRunConstrSet(const QString &strConstrSet);
+  QString getRunConstrSet(const QString &strRunName) const;
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setRunSynthRun(const QString &strSynthRunName);
+  QString getRunSynthRun(const QString &strRunName) const;
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
@@ -161,6 +170,8 @@ class ProjectManager : public QObject {
 
   QString getActiveRunDevice() const;
   QString getActiveSynthRunName() const;
+  QString getActiveImpleRunName() const;
+  QString getRunType(const QString &strRunName) const;
 
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRunName);

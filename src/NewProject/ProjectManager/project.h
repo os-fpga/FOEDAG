@@ -26,11 +26,11 @@ class Project : public QObject {
   ProjectConfiguration *projectConfig() const;
 
   ProjectFileSet *getProjectFileset(const QString &strName) const;
-  int setProjectFileset(ProjectFileSet *projectFileset);
+  int setProjectFileset(const ProjectFileSet &projectFileset);
   void deleteProjectFileset(const QString &strName);
 
   ProjectRun *getProjectRun(const QString &strName) const;
-  int setProjectRun(ProjectRun *projectRun);
+  int setProjectRun(const ProjectRun &projectRun);
   void deleteprojectRun(const QString &strName);
 
   QMap<QString, ProjectFileSet *> getMapProjectFileset() const;

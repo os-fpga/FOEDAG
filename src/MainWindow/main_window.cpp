@@ -188,7 +188,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
-  SourcesForm* sourForm = new SourcesForm(strProject, this);
+  SourcesForm* sourForm = new SourcesForm(this);
+  sourForm->InitSourcesForm(strProject);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 

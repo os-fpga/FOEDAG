@@ -26,8 +26,9 @@ class sourceGrid : public QWidget {
   Q_OBJECT
 
  public:
-  explicit sourceGrid(GridType type, QWidget *parent = nullptr);
+  explicit sourceGrid(QWidget *parent = nullptr);
 
+  void setGridType(GridType type);
   QList<filedata> getTableViewData();
 
  public slots:

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CreateDesignDialog</class>
- <widget class="QDialog" name="CreateDesignDialog">
+ <class>CreateFileSetDialog</class>
+ <widget class="QDialog" name="CreateFileSetDialog">
   <property name="geometry">
    <rect>
     <x>0</x>

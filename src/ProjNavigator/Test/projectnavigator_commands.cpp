@@ -41,9 +41,9 @@ TCL_COMMAND(open_project) {
   return TCL_OK;
 }
 
-TCL_COMMAND(create_design) {
+TCL_COMMAND(create_fileset) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclCreateDesign(argc, argv);
+  srcForm->TclCreateFileSet(argc, argv);
   return TCL_OK;
 }
 
@@ -53,9 +53,9 @@ TCL_COMMAND(add_files) {
   return TCL_OK;
 }
 
-TCL_COMMAND(set_active_design) {
+TCL_COMMAND(set_active) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclSetActiveDesign(argc, argv);
+  srcForm->TclSetActive(argc, argv);
   return TCL_OK;
 }
 

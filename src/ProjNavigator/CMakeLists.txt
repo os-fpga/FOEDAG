@@ -21,21 +21,24 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   sources_form.cpp
-  create_design_dialog.cpp
+  create_fileset_dialog.cpp
   add_file_dialog.cpp
-  add_file_form.cpp)
+  add_file_form.cpp
+  select_file_type_form.cpp)
 
 set (SRC_H_LIST
   sources_form.h
-  create_design_dialog.h
+  create_fileset_dialog.h
   add_file_dialog.h
-  add_file_form.h)
+  add_file_form.h
+  select_file_type_form.h)
 
 set (SRC_UI_LIST
   sources_form.ui
-  create_design_dialog.ui
+  create_fileset_dialog.ui
   add_file_dialog.ui
-  add_file_form.ui)
+  add_file_form.ui
+  select_file_type_form.ui)
 
 add_library(projnavigator STATIC
   ${SRC_CPP_LIST}

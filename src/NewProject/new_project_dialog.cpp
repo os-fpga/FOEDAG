@@ -108,12 +108,13 @@ void newProjectDialog::on_m_btnFinish_clicked() {
   }
 
   if ("" != strDefaultSrc) {
-    m_projectManager->setTopModule(strDefaultSrc);
+    QString module = strDefaultSrc.left(strDefaultSrc.lastIndexOf("."));
+    m_projectManager->setTopModule(module);
 
     // set default simulation source
     m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SIM);
     m_projectManager->setDesignFile("sim_" + strDefaultSrc, false);
-    m_projectManager->setTopModule("sim_" + strDefaultSrc);
+    m_projectManager->setTopModule("sim_" + module);
   }
 
   m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);

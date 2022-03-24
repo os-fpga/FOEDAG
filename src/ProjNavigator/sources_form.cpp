@@ -9,7 +9,7 @@
 
 using namespace FOEDAG;
 
-SourcesForm::SourcesForm(QString strproject, QWidget *parent)
+SourcesForm::SourcesForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::SourcesForm) {
   ui->setupUi(this);
 
@@ -26,9 +26,6 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
   CreateActions();
 
   m_projManager = new ProjectManager(this);
-  m_projManager->StartProject(strproject);
-
-  UpdateSrcHierachyTree();
 
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
@@ -39,6 +36,12 @@ SourcesForm::SourcesForm(QString strproject, QWidget *parent)
 }
 
 SourcesForm::~SourcesForm() { delete ui; }
+
+void SourcesForm::InitSourcesForm(const QString &strFile) {
+  m_projManager->StartProject(strFile);
+
+  UpdateSrcHierachyTree();
+}
 
 void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
   QTextStream out(stdout);
@@ -87,51 +90,95 @@ void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
 void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);
   if (qApp->mouseButtons() == Qt::RightButton) {
-    QMenu *menu = new QMenu(m_treeSrcHierachy);
-    menu->addAction(m_actRefresh);
-    menu->addSeparator();
-
     QString strPropertyRole =
         (item->data(0, Qt::WhatsThisPropertyRole)).toString();
     QString strName = item->text(0);
 
+    QMenu *menu = new QMenu(m_treeSrcHierachy);
+    menu->setMinimumWidth(200);
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
-      menu->addAction(m_actCreateDesign);
+      menu->addAction(m_actRefresh);
+      menu->addSeparator();
+      menu->addAction(m_actEditDesignSets);
+      menu->addAction(m_actEditConstrsSets);
+      menu->addAction(m_actEditSimulSets);
+      menu->addSeparator();
+      menu->addAction(m_actAddFile);
 
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_ACTIVE)) {
+        menu->addAction(m_actRefresh);
+        menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
         menu->addAction(m_actAddFile);
       } else {
-        menu->addAction(m_actRemoveDesign);
-        menu->addAction(m_actAddFile);
+        menu->addAction(m_actRemoveFileset);
+        menu->addAction(m_actRefresh);
         menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
+        menu->addAction(m_actAddFile);
         menu->addAction(m_actMakeActive);
       }
     } else if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
                SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
-      menu->addAction(m_actOpenFile);
-
-      if (!strName.contains(SRC_TREE_FLG_TOP)) {
-        menu->addAction(m_actRemoveFile);
+      if (strName.contains(SRC_TREE_FLG_TOP)) {
+        menu->addAction(m_actOpenFile);
+        menu->addAction(m_actRefresh);
         menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
+        menu->addAction(m_actAddFile);
+      } else {
+        menu->addAction(m_actOpenFile);
+        menu->addAction(m_actRemoveFile);
+        menu->addAction(m_actRefresh);
+        menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
+        menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTop);
       }
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
-      menu->addAction(m_actOpenFile);
-
-      if (!strName.contains(SRC_TREE_FLG_TARGET)) {
-        menu->addAction(m_actRemoveFile);
+      if (strName.contains(SRC_TREE_FLG_TARGET)) {
+        menu->addAction(m_actOpenFile);
+        menu->addAction(m_actRefresh);
         menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
+        menu->addAction(m_actAddFile);
+      } else {
+        menu->addAction(m_actOpenFile);
+        menu->addAction(m_actRemoveFile);
+        menu->addAction(m_actRefresh);
+        menu->addSeparator();
+        menu->addAction(m_actEditDesignSets);
+        menu->addAction(m_actEditConstrsSets);
+        menu->addAction(m_actEditSimulSets);
+        menu->addSeparator();
+        menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
       }
     }
 
     QPoint p = QCursor::pos();
     menu->exec(QPoint(p.rx(), p.ry() + 3));
+    menu->deleteLater();
   }
 }
 
@@ -148,37 +195,13 @@ void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
 
 void SourcesForm::SlotRefreshSourceTree() { UpdateSrcHierachyTree(); }
 
-void SourcesForm::SlotCreateDesign() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
-  }
-  QString strPropertyRole =
-      (item->data(0, Qt::WhatsThisPropertyRole)).toString();
-  QString strContent;
-  if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Design Set Name");
-  } else if (SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Constraints Set Name");
-  } else if (SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Simulation Set Name");
-  } else {
-    return;
-  }
-
-  CreateDesignDialog *createdialog = new CreateDesignDialog(this);
-  createdialog->InitDialog(strContent);
+void SourcesForm::SlotCreateDesignSet() {
+  CreateFileSetDialog *createdialog = new CreateFileSetDialog(this);
+  createdialog->InitDialog(FST_DESIGN);
 
   while (createdialog->exec()) {
     QString strName = createdialog->getDesignName();
-    int ret = 0;
-    if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole) {
-      ret = m_projManager->setDesignFileSet(strName);
-    } else if (SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole) {
-      ret = m_projManager->setConstrFileSet(strName);
-    } else if (SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
-      ret = m_projManager->setSimulationFileSet(strName);
-    }
+    int ret = m_projManager->setDesignFileSet(strName);
     if (1 == ret) {
       QMessageBox::information(this, tr("Information"),
                                tr("The set name is already exists!"),
@@ -190,10 +213,52 @@ void SourcesForm::SlotCreateDesign() {
     }
   }
   createdialog->close();
+  createdialog->deleteLater();
+}
+
+void SourcesForm::SlotCreateConstrSet() {
+  CreateFileSetDialog *createdialog = new CreateFileSetDialog(this);
+  createdialog->InitDialog(FST_CONSTR);
+
+  while (createdialog->exec()) {
+    QString strName = createdialog->getDesignName();
+    int ret = m_projManager->setConstrFileSet(strName);
+    if (1 == ret) {
+      QMessageBox::information(this, tr("Information"),
+                               tr("The set name is already exists!"),
+                               QMessageBox::Ok);
+    } else if (0 == ret) {
+      UpdateSrcHierachyTree();
+      m_projManager->FinishedProject();
+      break;
+    }
+  }
+  createdialog->close();
+  createdialog->deleteLater();
+}
+
+void SourcesForm::SlotCreateSimSet() {
+  CreateFileSetDialog *createdialog = new CreateFileSetDialog(this);
+  createdialog->InitDialog(FST_SIM);
+
+  while (createdialog->exec()) {
+    QString strName = createdialog->getDesignName();
+    int ret = m_projManager->setSimulationFileSet(strName);
+    if (1 == ret) {
+      QMessageBox::information(this, tr("Information"),
+                               tr("The set name is already exists!"),
+                               QMessageBox::Ok);
+    } else if (0 == ret) {
+      UpdateSrcHierachyTree();
+      m_projManager->FinishedProject();
+      break;
+    }
+  }
+  createdialog->close();
+  createdialog->deleteLater();
 }
 
 void SourcesForm::SlotAddFile() {
-  int ret = 0;
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {
     return;
@@ -204,52 +269,30 @@ void SourcesForm::SlotAddFile() {
   QString strFielSetName = (item->data(0, Qt::UserRole)).toString();
 
   AddFileDialog *addFileDialog = new AddFileDialog(this);
-  if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
-    addFileDialog->InitDialog(GT_SOURCE);
-  } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
-    addFileDialog->InitDialog(GT_CONSTRAINTS);
-  } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
-    addFileDialog->InitDialog(GT_SIM);
+  if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
+      SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
+      SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole) {
+    addFileDialog->setSelected(GT_SOURCE);
+  } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
+             SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
+             SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+    addFileDialog->setSelected(GT_CONSTRAINTS);
+  } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole ||
+             SRC_TREE_SIM_TOP_ITEM == strPropertyRole ||
+             SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
+    addFileDialog->setSelected(GT_SIM);
   } else {
+    addFileDialog->deleteLater();
     return;
   }
-
-  if (addFileDialog->exec()) {
-    m_projManager->setCurrentFileSet(strFielSetName);
-    QList<filedata> listFile = addFileDialog->m_fileForm->getFileData();
-    foreach (filedata fdata, listFile) {
-      if ("<Local to Project>" == fdata.m_filePath) {
-        if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
-          ret = m_projManager->setDesignFile(fdata.m_fileName, false);
-        } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
-          ret = m_projManager->setConstrsFile(fdata.m_fileName, false);
-        } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
-          ret = m_projManager->setSimulationFile(fdata.m_fileName, false);
-        }
-      } else {
-        if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
-          m_projManager->setDesignFile(
-              fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog->m_fileForm->IsCopySource());
-        } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole) {
-          m_projManager->setConstrsFile(
-              fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog->m_fileForm->IsCopySource());
-        } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
-          m_projManager->setSimulationFile(
-              fdata.m_filePath + "/" + fdata.m_fileName,
-              addFileDialog->m_fileForm->IsCopySource());
-        }
-      }
-    }
-  }
+  connect(addFileDialog, SIGNAL(RefreshFiles()), this,
+          SLOT(SlotRefreshSourceTree()));
+  addFileDialog->exec();
 
   addFileDialog->close();
 
-  if (0 == ret) {
-    UpdateSrcHierachyTree();
-    m_projManager->FinishedProject();
-  }
+  disconnect(addFileDialog, SIGNAL(RefreshFiles()), this,
+             SLOT(SlotRefreshSourceTree()));
 }
 
 void SourcesForm::SlotOpenFile() {
@@ -261,15 +304,15 @@ void SourcesForm::SlotOpenFile() {
 
   QString strPath = m_projManager->getProjectPath();
 
-  emit OpenFile(strFileName.replace("$OSRCDIR", strPath));
+  emit OpenFile(strFileName.replace(PROJECT_OSRCDIR, strPath));
 }
 
-void SourcesForm::SlotRemoveDesign() {
+void SourcesForm::SlotRemoveFileSet() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {
     return;
   }
-  QString strName = item->text(0);
+  QString strName = (item->data(0, Qt::UserRole)).toString();
 
   int ret = m_projManager->deleteFileSet(strName);
   if (0 == ret) {
@@ -307,7 +350,8 @@ void SourcesForm::SlotSetAsTop() {
   QString strFileSetName = (itemparent->data(0, Qt::UserRole)).toString();
 
   m_projManager->setCurrentFileSet(strFileSetName);
-  int ret = m_projManager->setTopModule(strFileName);
+  QString module = strFileName.left(strFileName.lastIndexOf("."));
+  int ret = m_projManager->setTopModule(module);
   if (0 == ret) {
     UpdateSrcHierachyTree();
     m_projManager->FinishedProject();
@@ -341,7 +385,7 @@ void SourcesForm::SlotSetActive() {
 
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
-  QString strName = item->text(0);
+  QString strName = (item->data(0, Qt::UserRole)).toString();
 
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
     ret = m_projManager->setDesignActive(strName);
@@ -364,9 +408,19 @@ void SourcesForm::CreateActions() {
   connect(m_actRefresh, SIGNAL(triggered()), this,
           SLOT(SlotRefreshSourceTree()));
 
-  m_actCreateDesign = new QAction(tr("Create Design"), m_treeSrcHierachy);
-  connect(m_actCreateDesign, SIGNAL(triggered()), this,
-          SLOT(SlotCreateDesign()));
+  m_actEditDesignSets = new QAction(tr("Create Design Set"), m_treeSrcHierachy);
+  connect(m_actEditDesignSets, SIGNAL(triggered()), this,
+          SLOT(SlotCreateDesignSet()));
+
+  m_actEditConstrsSets =
+      new QAction(tr("Create Constraints Set"), m_treeSrcHierachy);
+  connect(m_actEditConstrsSets, SIGNAL(triggered()), this,
+          SLOT(SlotCreateConstrSet()));
+
+  m_actEditSimulSets =
+      new QAction(tr("Create Simulation Set"), m_treeSrcHierachy);
+  connect(m_actEditSimulSets, SIGNAL(triggered()), this,
+          SLOT(SlotCreateSimSet()));
 
   m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
   connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));
@@ -374,9 +428,9 @@ void SourcesForm::CreateActions() {
   m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);
   connect(m_actOpenFile, SIGNAL(triggered()), this, SLOT(SlotOpenFile()));
 
-  m_actRemoveDesign = new QAction(tr("Remove Design"), m_treeSrcHierachy);
-  connect(m_actRemoveDesign, SIGNAL(triggered()), this,
-          SLOT(SlotRemoveDesign()));
+  m_actRemoveFileset = new QAction(tr("Remove File Set"), m_treeSrcHierachy);
+  connect(m_actRemoveFileset, SIGNAL(triggered()), this,
+          SLOT(SlotRemoveFileSet()));
 
   m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
@@ -401,20 +455,15 @@ void SourcesForm::UpdateSrcHierachyTree() {
 
   // Initialize design sources tree
   QTreeWidgetItem *topitemDS = new QTreeWidgetItem(m_treeSrcHierachy);
-  topitemDS->setText(0, tr("Design Sources"));
-  topitemDS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_TOP_ITEM);
   m_treeSrcHierachy->addTopLevelItem(topitemDS);
+  topitemDS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_TOP_ITEM);
 
   QStringList listDesFset = m_projManager->getDesignFileSets();
   QString strDesAct = m_projManager->getDesignActiveFileSet();
+  int iFileSum = 0;
   foreach (auto str, listDesFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemDS);
-    if (str == strDesAct) {
-      itemfolder->setText(0, str + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
+    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
     itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_SET_ITEM);
 
     QStringList listDesFile = m_projManager->getDesignFiles(str);
@@ -424,33 +473,39 @@ void SourcesForm::UpdateSrcHierachyTree() {
       QString filename =
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (filename == strTop) {
+      QString module = filename.left(filename.lastIndexOf("."));
+      if (module == strTop) {
         itemf->setText(0, filename + SRC_TREE_FLG_TOP);
       } else {
         itemf->setText(0, filename);
       }
+      itemf->setIcon(0, QIcon(":/img/file.png"));
       itemf->setData(0, Qt::UserRole, strfile);
       itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
     }
+
+    QString strNum = QString("(%1)").arg(listDesFile.size());
+    iFileSum += listDesFile.size();
+    if (str == strDesAct) {
+      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
+    } else {
+      itemfolder->setText(0, str + strNum);
+    }
+    itemfolder->setData(0, Qt::UserRole, str);
   }
+  topitemDS->setText(0, tr("Design Sources") + QString("(%1)").arg(iFileSum));
 
   // Initialize Constraints sources tree
   QTreeWidgetItem *topitemCS = new QTreeWidgetItem(m_treeSrcHierachy);
   m_treeSrcHierachy->addTopLevelItem(topitemCS);
-  topitemCS->setText(0, tr("Constraints"));
   topitemCS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_TOP_ITEM);
 
   QStringList listConstrFset = m_projManager->getConstrFileSets();
   QString strConstrAct = m_projManager->getConstrActiveFileSet();
-
+  iFileSum = 0;
   foreach (auto str, listConstrFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemCS);
-    if (str == strConstrAct) {
-      itemfolder->setText(0, str + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
+    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
     itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_SET_ITEM);
 
     QStringList listConstrFile = m_projManager->getConstrFiles(str);
@@ -466,27 +521,32 @@ void SourcesForm::UpdateSrcHierachyTree() {
         itemf->setText(0, filename);
       }
       itemf->setData(0, Qt::UserRole, strfile);
+      itemf->setIcon(0, QIcon(":/img/file.png"));
       itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
     }
+
+    QString strNum = QString("(%1)").arg(listConstrFile.size());
+    iFileSum += listConstrFile.size();
+    if (str == strConstrAct) {
+      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
+    } else {
+      itemfolder->setText(0, str + strNum);
+    }
+    itemfolder->setData(0, Qt::UserRole, str);
   }
+  topitemCS->setText(0, tr("Constraints") + QString("(%1)").arg(iFileSum));
 
   // Initialize simulation sources tree
   QTreeWidgetItem *topitemSS = new QTreeWidgetItem(m_treeSrcHierachy);
   m_treeSrcHierachy->addTopLevelItem(topitemSS);
-  topitemSS->setText(0, tr("Simulation Sources"));
   topitemSS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_TOP_ITEM);
 
   QStringList listSimFset = m_projManager->getSimulationFileSets();
   QString strSimAct = m_projManager->getSimulationActiveFileSet();
-
+  iFileSum = 0;
   foreach (auto str, listSimFset) {
     QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemSS);
-    if (str == strSimAct) {
-      itemfolder->setText(0, str + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
+    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
     itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_SET_ITEM);
 
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
@@ -496,15 +556,28 @@ void SourcesForm::UpdateSrcHierachyTree() {
       QString filename =
           strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
       QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (filename == strTop) {
+      QString module = filename.left(filename.lastIndexOf("."));
+      if (module == strTop) {
         itemf->setText(0, filename + SRC_TREE_FLG_TOP);
       } else {
         itemf->setText(0, filename);
       }
       itemf->setData(0, Qt::UserRole, strfile);
+      itemf->setIcon(0, QIcon(":/img/file.png"));
       itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
     }
+
+    QString strNum = QString("(%1)").arg(listSimFile.size());
+    iFileSum += listSimFile.size();
+    if (str == strSimAct) {
+      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
+    } else {
+      itemfolder->setText(0, str + strNum);
+    }
+    itemfolder->setData(0, Qt::UserRole, str);
   }
+  topitemSS->setText(0,
+                     tr("Simulation Sources") + QString("(%1)").arg(iFileSum));
 
   m_treeSrcHierachy->setHeaderHidden(true);
   m_treeSrcHierachy->expandAll();
@@ -538,7 +611,7 @@ bool SourcesForm::TclCheckType(QString strType) {
   }
 }
 
-void SourcesForm::TclCreateDesign(int argc, const char *argv[]) {
+void SourcesForm::TclCreateFileSet(int argc, const char *argv[]) {
   if (argc < 3 || TclCheckType(QString(argv[1]))) {
     TclHelper();
     return;
@@ -604,7 +677,7 @@ void SourcesForm::TclAddOrCreateFiles(int argc, const char *argv[]) {
   }
 }
 
-void SourcesForm::TclSetActiveDesign(int argc, const char *argv[]) {
+void SourcesForm::TclSetActive(int argc, const char *argv[]) {
   if (argc < 3 || TclCheckType(QString(argv[1]))) {
     TclHelper();
     return;
@@ -648,7 +721,8 @@ void SourcesForm::TclSetTopModule(int argc, const char *argv[]) {
 
   QString strFileName = QString(argv[2]);
   m_projManager->setCurrentFileSet(strSetName);
-  int ret = m_projManager->setTopModule(strFileName);
+  QString module = strFileName.left(strFileName.lastIndexOf("."));
+  int ret = m_projManager->setTopModule(module);
   if (0 == ret) {
     m_projManager->FinishedProject();
   }

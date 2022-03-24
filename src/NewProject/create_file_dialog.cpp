@@ -101,6 +101,7 @@ void createFileDialog::on_m_comboxFileLocation_currentIndexChanged(int index) {
         this, tr("Select Directory"), "",
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if ("" == pathName) {
+      ui->m_comboxFileLocation->setCurrentIndex(index - 1);
       return;
     }
     // pathName.replace("/", "\\");

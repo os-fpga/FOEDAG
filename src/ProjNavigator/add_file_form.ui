@@ -63,7 +63,7 @@
       <number>30</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="10,80,10">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -77,9 +77,42 @@
         <number>25</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="m_groupBox">
-         <property name="title">
-          <string/>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="m_labelSets">
+           <property name="text">
+            <string>Specify constraints file set:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="m_comboBoxSets"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QFrame" name="m_frame">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
          </property>
         </widget>
        </item>
