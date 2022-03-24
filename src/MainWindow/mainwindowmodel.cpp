@@ -12,7 +12,6 @@
 #include "NewProject/newprojectmodel.h"
 #include "ProjNavigator/sources_form.h"
 #include "TextEditor/text_editor.h"
-
 using namespace FOEDAG;
 
 MainWindowModel::MainWindowModel(TclInterpreter* interp, QObject* parent)
