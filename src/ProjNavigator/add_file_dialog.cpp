@@ -18,7 +18,7 @@ AddFileDialog::AddFileDialog(QWidget *parent)
 
   // One thirds of desktop size
   QDesktopWidget dw;
-  int w = dw.width() / 4;
+  int w = dw.width() / 3;
   int h = dw.height() / 3;
   setGeometry(w, h, w, h);
 

@@ -92,7 +92,9 @@ void AddFileForm::initSetComboBox(int itype) {
     strCreate = QString(tr("Create Simulation Set"));
   }
 
-  foreach (QString str, listFileSet) { ui->m_comboBoxSets->addItem(str); }
+  foreach (QString str, listFileSet) {
+    ui->m_comboBoxSets->addItem(QIcon(":/images/open-file.png"), str);
+  }
   ui->m_comboBoxSets->addItem(strCreate);
 }
 
@@ -135,7 +137,7 @@ void AddFileForm::on_m_comboBoxSets_currentIndexChanged(const QString &arg1) {
     } else {
       int index = ui->m_comboBoxSets->findText(arg1);
       ui->m_comboBoxSets->removeItem(index);
-      ui->m_comboBoxSets->addItem(strName);
+      ui->m_comboBoxSets->addItem(QIcon(":/images/open-file.png"), strName);
       ui->m_comboBoxSets->addItem(arg1);
       ui->m_comboBoxSets->setCurrentText(strName);
       m_pm->FinishedProject();
