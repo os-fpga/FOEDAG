@@ -611,7 +611,7 @@ bool SourcesForm::TclCheckType(QString strType) {
   }
 }
 
-void SourcesForm::TclCreateDesign(int argc, const char *argv[]) {
+void SourcesForm::TclCreateFileSet(int argc, const char *argv[]) {
   if (argc < 3 || TclCheckType(QString(argv[1]))) {
     TclHelper();
     return;
@@ -677,7 +677,7 @@ void SourcesForm::TclAddOrCreateFiles(int argc, const char *argv[]) {
   }
 }
 
-void SourcesForm::TclSetActiveDesign(int argc, const char *argv[]) {
+void SourcesForm::TclSetActive(int argc, const char *argv[]) {
   if (argc < 3 || TclCheckType(QString(argv[1]))) {
     TclHelper();
     return;

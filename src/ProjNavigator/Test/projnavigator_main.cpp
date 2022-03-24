@@ -38,6 +38,8 @@ QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
 }
 
 void registerProjNavigatorCommands(QWidget* widget, FOEDAG::Session* session) {
+  Q_UNUSED(widget);
+  Q_UNUSED(session);
   FOEDAG::utils::Command::registerAllcommands(
       GlobalSession->TclInterp()->getInterp(), GlobalSession->MainWindow());
 }
