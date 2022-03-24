@@ -30,11 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
                              FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(interp);
+  FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm();
   if (cmd->Argc() > 2) {
-    return new FOEDAG::SourcesForm(cmd->Argv()[2]);
-  } else {
-    return new FOEDAG::SourcesForm("/testproject");
+    srcForm->InitSourcesForm(cmd->Argv()[2]);
   }
+  return srcForm;
 }
 
 void registerProjNavigatorCommands(QWidget* widget, FOEDAG::Session* session) {

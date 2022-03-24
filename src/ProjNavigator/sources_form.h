@@ -32,8 +32,10 @@ class SourcesForm : public QWidget {
   Q_OBJECT
 
  public:
-  explicit SourcesForm(QString strprojpath, QWidget* parent = nullptr);
+  explicit SourcesForm(QWidget* parent = nullptr);
   ~SourcesForm();
+
+  void InitSourcesForm(const QString& strFile);
 
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
@@ -41,15 +43,15 @@ class SourcesForm : public QWidget {
  signals:
   void OpenFile(QString);
 
- public slots:
-  void SetCurrentFileItem(const QString& strFileName);
-
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
   void SlotItemDoubleClicked(QTreeWidgetItem* item, int column);
 
+  void SetCurrentFileItem(const QString& strFileName);
   void SlotRefreshSourceTree();
-  void SlotCreateFileSet();
+  void SlotCreateDesignSet();
+  void SlotCreateConstrSet();
+  void SlotCreateSimSet();
   void SlotAddFile();
   void SlotOpenFile();
   void SlotRemoveDesign();
@@ -63,7 +65,9 @@ class SourcesForm : public QWidget {
 
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
-  QAction* m_actCreateFileSet;
+  QAction* m_actEditDesignSets;
+  QAction* m_actEditConstrsSets;
+  QAction* m_actEditSimulSets;
   QAction* m_actAddFile;
   QAction* m_actOpenFile;
   QAction* m_actRemoveDesign;

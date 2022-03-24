@@ -10,13 +10,22 @@ CreateFileSetDialog::CreateFileSetDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::CreateFileSetDialog) {
   ui->setupUi(this);
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
-  setWindowTitle(tr("Create File Set"));
 }
 
 CreateFileSetDialog::~CreateFileSetDialog() { delete ui; }
 
-void CreateFileSetDialog::InitDialog(QString strContent) {
-  ui->m_labelContent->setText(strContent);
+void CreateFileSetDialog::InitDialog(int itype) {
+  if (FST_DESIGN == itype) {
+    setWindowTitle(tr("Create Design File Set"));
+    ui->m_labelContent->setText(tr("Enter Design File Set Name"));
+
+  } else if (FST_CONSTR == itype) {
+    setWindowTitle(tr("Create Constraint File Set"));
+    ui->m_labelContent->setText(tr("Enter Constraint File Set Name"));
+  } else if (FST_SIM == itype) {
+    setWindowTitle(tr("Create Simulation File Set"));
+    ui->m_labelContent->setText(tr("Enter Simulation File Set Name"));
+  }
 }
 
 QString CreateFileSetDialog::getDesignName() const {

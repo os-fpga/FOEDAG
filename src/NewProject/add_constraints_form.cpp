@@ -12,7 +12,8 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
       tr("Specify or create constraint file for physical and timing "
          "constraints."));
 
-  m_widgetGrid = new sourceGrid(GT_CONSTRAINTS, ui->m_frame);
+  m_widgetGrid = new sourceGrid(ui->m_frame);
+  m_widgetGrid->setGridType(GT_CONSTRAINTS);
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);

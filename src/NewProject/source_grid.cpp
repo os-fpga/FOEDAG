@@ -11,9 +11,7 @@
 
 using namespace FOEDAG;
 
-sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
-  m_type = type;
-
+sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
   m_btnAddFile = new QPushButton(tr("AddFile"), this);
   connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
@@ -38,9 +36,6 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   QHBoxLayout *hbox = new QHBoxLayout();
   hbox->addWidget(m_btnAddFile);
   hbox->addWidget(m_btnAddDri);
-  if (GT_CONSTRAINTS == m_type) {
-    m_btnAddDri->setVisible(false);
-  }
   hbox->addWidget(m_btnCreateFile);
   hbox->addWidget(m_btnDelete);
   hbox->addWidget(m_btnMoveUp);
@@ -92,6 +87,12 @@ sourceGrid::sourceGrid(GridType type, QWidget *parent) : QWidget(parent) {
   vbox->setSpacing(1);
   setLayout(vbox);
 }
+void sourceGrid::setGridType(GridType type) {
+  m_type = type;
+  if (GT_CONSTRAINTS == m_type) {
+    m_btnAddDri->setVisible(false);
+  }
+}
 
 QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 
@@ -100,7 +101,7 @@ void sourceGrid::AddFiles() {
   if (GT_SOURCE == m_type) {
     fileformat = QString(tr("Design Files(*.v *.sv *.vhd)"));
   } else if (GT_CONSTRAINTS == m_type) {
-    fileformat = QString(tr("Design Files(*.SDC *.sdc)"));
+    fileformat = QString(tr("Constraint Files(*.SDC *.sdc)"));
   }
   QStringList fileNames =
       QFileDialog::getOpenFileNames(this, tr("Select File"), "", fileformat);

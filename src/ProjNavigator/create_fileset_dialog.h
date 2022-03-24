@@ -1,5 +1,5 @@
-#ifndef CREATE_DESIGN_DIALOG_H
-#define CREATE_DESIGN_DIALOG_H
+#ifndef CREATE_FILESET_DIALOG_H
+#define CREATE_FILESET_DIALOG_H
 
 #include <QDialog>
 
@@ -9,6 +9,8 @@ class CreateFileSetDialog;
 
 namespace FOEDAG {
 
+enum FileSetType { FST_DESIGN, FST_CONSTR, FST_SIM };
+
 class CreateFileSetDialog : public QDialog {
   Q_OBJECT
 
@@ -16,7 +18,7 @@ class CreateFileSetDialog : public QDialog {
   explicit CreateFileSetDialog(QWidget *parent = nullptr);
   ~CreateFileSetDialog();
 
-  void InitDialog(QString strContent);
+  void InitDialog(int itype);
   QString getDesignName() const;
 
  private slots:

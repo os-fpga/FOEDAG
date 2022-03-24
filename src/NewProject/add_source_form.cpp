@@ -13,7 +13,8 @@ addSourceForm::addSourceForm(QWidget *parent)
          "your project."
          "Create a new source file on disk and add it to your project."));
 
-  m_widgetGrid = new sourceGrid(GT_SOURCE, ui->m_frame);
+  m_widgetGrid = new sourceGrid(ui->m_frame);
+  m_widgetGrid->setGridType(GT_SOURCE);
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetGrid);
   box->setContentsMargins(0, 0, 0, 1);
