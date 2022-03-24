@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
+#include "Main/ToolContext.h"
 #include "MainWindow/mainwindowmodel.h"
 #include "Tcl/TclInterpreter.h"
 
@@ -42,11 +43,12 @@ enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
 class Session {
  public:
   Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
-          CommandLine *cmdLine)
+          CommandLine *cmdLine, ToolContext *context)
       : m_mainWindow(mainWindow),
         m_interp(interp),
         m_stack(stack),
-        m_cmdLine(cmdLine) {}
+        m_cmdLine(cmdLine),
+        m_context(context) {}
 
   ~Session();
 
@@ -54,7 +56,7 @@ class Session {
   TclInterpreter *TclInterp() { return m_interp; }
   CommandStack *CmdStack() { return m_stack; }
   CommandLine *CmdLine() { return m_cmdLine; }
-
+  ToolContext *Context() { return m_context; }
   void windowShow();
   void windowHide();
 
@@ -63,12 +65,13 @@ class Session {
   void setWindowModel(MainWindowModel *newWindowModel);
 
  private:
-  QWidget *m_mainWindow;
-  MainWindowModel *m_windowModel;
-  TclInterpreter *m_interp;
-  CommandStack *m_stack;
-  CommandLine *m_cmdLine;
+  QWidget *m_mainWindow = nullptr;
+  MainWindowModel *m_windowModel = nullptr;
+  TclInterpreter *m_interp = nullptr;
+  CommandStack *m_stack = nullptr;
+  CommandLine *m_cmdLine = nullptr;
   FOEDAG::GUI_TYPE m_guiType = GUI_TYPE::GT_NONE;
+  ToolContext *m_context = nullptr;
 };
 
 }  // namespace FOEDAG

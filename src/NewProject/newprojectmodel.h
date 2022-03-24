@@ -1,6 +1,5 @@
 #ifndef NEWPROJECTMODEL_H
 #define NEWPROJECTMODEL_H
-
 #include <QObject>
 
 namespace FOEDAG {

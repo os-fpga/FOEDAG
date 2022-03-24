@@ -91,7 +91,6 @@ MainWindow::MainWindow(TclInterpreter* interp) : m_interpreter(interp) {
   //  mainSplitter->setStretchFactor(1, 1);
 
   //  setCentralWidget(mainSplitter);
-
   statusBar()->showMessage("Ready");
 }
 
