@@ -4,17 +4,17 @@
 #include <QDialog>
 
 namespace Ui {
-class CreateDesignDialog;
+class CreateFileSetDialog;
 }
 
 namespace FOEDAG {
 
-class CreateDesignDialog : public QDialog {
+class CreateFileSetDialog : public QDialog {
   Q_OBJECT
 
  public:
-  explicit CreateDesignDialog(QWidget *parent = nullptr);
-  ~CreateDesignDialog();
+  explicit CreateFileSetDialog(QWidget *parent = nullptr);
+  ~CreateFileSetDialog();
 
   void InitDialog(QString strContent);
   QString getDesignName() const;
@@ -24,7 +24,7 @@ class CreateDesignDialog : public QDialog {
   void on_m_btnOK_clicked();
 
  private:
-  Ui::CreateDesignDialog *ui;
+  Ui::CreateFileSetDialog *ui;
 };
 }  // namespace FOEDAG
 #endif  // CREATE_DESIGN_DIALOG_H

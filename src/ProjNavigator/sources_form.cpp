@@ -98,7 +98,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
-      menu->addAction(m_actCreateDesign);
+      menu->addAction(m_actCreateFileSet);
 
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
@@ -148,7 +148,7 @@ void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
 
 void SourcesForm::SlotRefreshSourceTree() { UpdateSrcHierachyTree(); }
 
-void SourcesForm::SlotCreateDesign() {
+void SourcesForm::SlotCreateFileSet() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {
     return;
@@ -157,16 +157,16 @@ void SourcesForm::SlotCreateDesign() {
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   QString strContent;
   if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Design Set Name");
+    strContent = tr("Enter Design File Set Name");
   } else if (SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Constraints Set Name");
+    strContent = tr("Enter Constraints File Set Name");
   } else if (SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
-    strContent = tr("Enter Simulation Set Name");
+    strContent = tr("Enter Simulation File Set Name");
   } else {
     return;
   }
 
-  CreateDesignDialog *createdialog = new CreateDesignDialog(this);
+  CreateFileSetDialog *createdialog = new CreateFileSetDialog(this);
   createdialog->InitDialog(strContent);
 
   while (createdialog->exec()) {
@@ -364,9 +364,9 @@ void SourcesForm::CreateActions() {
   connect(m_actRefresh, SIGNAL(triggered()), this,
           SLOT(SlotRefreshSourceTree()));
 
-  m_actCreateDesign = new QAction(tr("Create Design"), m_treeSrcHierachy);
-  connect(m_actCreateDesign, SIGNAL(triggered()), this,
-          SLOT(SlotCreateDesign()));
+  m_actCreateFileSet = new QAction(tr("Create FileSet"), m_treeSrcHierachy);
+  connect(m_actCreateFileSet, SIGNAL(triggered()), this,
+          SLOT(SlotCreateFileSet()));
 
   m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
   connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));

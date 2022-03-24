@@ -6,7 +6,7 @@
 
 #include "NewProject/ProjectManager/project_manager.h"
 #include "add_file_dialog.h"
-#include "create_design_dialog.h"
+#include "create_fileset_dialog.h"
 
 #define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
 #define SRC_TREE_CONSTR_TOP_ITEM "constrtopitem"
@@ -49,7 +49,7 @@ class SourcesForm : public QWidget {
   void SlotItemDoubleClicked(QTreeWidgetItem* item, int column);
 
   void SlotRefreshSourceTree();
-  void SlotCreateDesign();
+  void SlotCreateFileSet();
   void SlotAddFile();
   void SlotOpenFile();
   void SlotRemoveDesign();
@@ -63,7 +63,7 @@ class SourcesForm : public QWidget {
 
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
-  QAction* m_actCreateDesign;
+  QAction* m_actCreateFileSet;
   QAction* m_actAddFile;
   QAction* m_actOpenFile;
   QAction* m_actRemoveDesign;
