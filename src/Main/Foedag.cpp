@@ -129,10 +129,9 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     m_context->BinaryPath(exeDirPath);
     std::filesystem::path installDir = exeDirPath.parent_path();
     const std::string separator(1, std::filesystem::path::preferred_separator);
-    std::filesystem::path dataDir =
-        installDir.string() + separator +
-        std::string("share") + separator +
-        m_context->ExecutableName();
+    std::filesystem::path dataDir = installDir.string() + separator +
+                                    std::string("share") + separator +
+                                    m_context->ExecutableName();
     m_context->DataPath(dataDir);
   }
 }
