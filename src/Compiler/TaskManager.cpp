@@ -20,18 +20,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "TaskManager.h"
 
+#include <QDebug>
+
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
-  m_tasks.insert(SYNTH_TASK, new Task{UserAction::Run, "Synthesis"});
-  m_tasks.insert(SYNTH_TASK_SETTINGS,
+  m_tasks.insert(IP_GENERATE, new Task{UserAction::Run, "Ip Generate"});
+  m_tasks.insert(SYNTHESIS, new Task{UserAction::Run, "Synthesis"});
+  m_tasks.insert(SYNTHESIS_SETTINGS,
                  new Task{UserAction::Settings, "Edit settings"});
-  m_tasks.insert(PLACEMENT_TASK, new Task{UserAction::Run, "Placement"});
-  m_tasks.insert(PLACEMENT_TASK_SETTINGS,
+  m_tasks.insert(SYNTHESIS_WRITE_NETLIST,
+                 new Task{UserAction::None, "Write netlist"});
+  m_tasks.insert(SYNTHESIS_TIMING_REPORT,
+                 new Task{UserAction::None, "Timing report"});
+  m_tasks.insert(PLACEMENT, new Task{UserAction::Run, "Placement"});
+  m_tasks.insert(PLACEMENT_SETTINGS,
                  new Task{UserAction::Settings, "Edit settings"});
+  m_tasks.insert(PLACEMENT_WRITE_NETLIST,
+                 new Task{UserAction::None, "Write netlist"});
+  m_tasks.insert(PLACEMENT_TIMING_REPORT,
+                 new Task{UserAction::None, "Timing report"});
+  m_tasks.insert(ROUTING, new Task{UserAction::Run, "Rounting"});
+  m_tasks.insert(ROUTING_SETTINGS,
+                 new Task{UserAction::Settings, "Edit settings"});
+  m_tasks.insert(ROUTING_WRITE_NETLIST,
+                 new Task{UserAction::None, "Write netlist"});
+  m_tasks.insert(TIMING_SIGN_OFF, new Task{UserAction::Run, "Timing sign off"});
+  m_tasks.insert(POWER, new Task{UserAction::Run, "Power"});
+  m_tasks.insert(BITSTREAM, new Task{UserAction::Run, "Bitstream"});
 
-  m_tasks[SYNTH_TASK]->appendSubTask(m_tasks[SYNTH_TASK_SETTINGS]);
-  m_tasks[PLACEMENT_TASK]->appendSubTask(m_tasks[PLACEMENT_TASK_SETTINGS]);
+  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
+  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_WRITE_NETLIST]);
+  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_TIMING_REPORT]);
+  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_SETTINGS]);
+  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_WRITE_NETLIST]);
+  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_TIMING_REPORT]);
+  m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
+  m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
+
+  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    connect((*task), &Task::statusChanged, this,
+            &TaskManager::taskStateChanged);
+  }
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -46,6 +76,68 @@ void TaskManager::stopCurrentTask() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     if ((*task)->status() == TaskStatus::InProgress)
       (*task)->setStatus(TaskStatus::Fail);
+  }
+}
+
+TaskStatus TaskManager::status() const {
+  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    if ((*task)->status() == TaskStatus::InProgress)
+      return TaskStatus::InProgress;
+  }
+  return TaskStatus::None;
+}
+
+void TaskManager::startAll() {
+  if (!m_runStack.isEmpty()) return;
+  reset();
+  m_runStack.append(m_tasks[SYNTHESIS]);
+  m_runStack.append(m_tasks[PLACEMENT]);
+  run();
+}
+
+void TaskManager::startTask(Task *t) {
+  if (!m_runStack.isEmpty()) return;
+  reset();
+  m_runStack.append(t);
+  run();
+}
+
+void TaskManager::startTask(uint id) {
+  if (auto t = task(id)) {
+    startTask(t);
+  }
+}
+
+void TaskManager::runNext() {
+  Task *t = m_runStack.isEmpty() ? nullptr : m_runStack.first();
+  if (t) {
+    if (t->status() == TaskStatus::Success) {
+      disconnect(t, &Task::statusChanged, this, &TaskManager::runNext);
+      m_runStack.takeFirst();
+      if (!m_runStack.isEmpty()) {
+        connect(m_runStack.first(), &Task::statusChanged, this,
+                &TaskManager::runNext);
+        m_runStack.first()->trigger();
+      }
+    } else if (t->status() == TaskStatus::Fail) {
+      disconnect(t, &Task::statusChanged, this, &TaskManager::runNext);
+      m_runStack.clear();
+    }
+  }
+
+  if (m_runStack.isEmpty()) emit done();
+}
+
+void TaskManager::run() {
+  connect(m_runStack.first(), &Task::statusChanged, this,
+          &TaskManager::runNext);
+  m_runStack.first()->trigger();
+  emit started();
+}
+
+void TaskManager::reset() {
+  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    (*task)->setStatus(TaskStatus::None);
   }
 }
 

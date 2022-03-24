@@ -61,17 +61,23 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
+  QMenu* processMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;
+  QAction* startAction = nullptr;
+  QAction* stopAction = nullptr;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
+  QToolBar* debugToolBar = nullptr;
 
   TclInterpreter* m_interpreter = nullptr;
   std::string mainWindowName = "FOEDAG";
+  class TaskManager* m_taskManager{nullptr};
+  class Compiler* m_compiler{nullptr};
 };
 
 }  // namespace FOEDAG

@@ -53,6 +53,8 @@ class Task : public QObject {
 
   UserAction action() const;
 
+  const QVector<Task *> &subTask() const;
+
  signals:
   void statusChanged();
   void taskTriggered(FOEDAG::UserAction);

@@ -25,9 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 #include <QMenu>
 
+#include "TaskManager.h"
+
 namespace FOEDAG {
 
-TaskTableView::TaskTableView(QWidget *parent) : QTableView(parent) {
+TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
+    : QTableView(parent), m_taskManager(tManager) {
   verticalHeader()->hide();
   setItemDelegateForColumn(1, new ChildItemDelegate);
   setContextMenuPolicy(Qt::CustomContextMenu);
@@ -37,6 +40,9 @@ TaskTableView::TaskTableView(QWidget *parent) : QTableView(parent) {
           &TaskTableView::userActionHandle);
   setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+  connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
+    setEnabled(m_taskManager->status() != TaskStatus::InProgress);
+  });
 }
 
 void TaskTableView::setModel(QAbstractItemModel *model) {
@@ -83,8 +89,12 @@ void TaskTableView::dataChanged(const QModelIndex &topLeft,
                                 const QModelIndex &bottomRight,
                                 const QVector<int> &roles) {
   if (roles.contains(Qt::DecorationRole)) {
-    setRowHidden(bottomRight.row(),
-                 model()->data(bottomRight, RowVisibilityRole).toBool());
+    auto indexRow = topLeft.row();
+    while (indexRow <= bottomRight.row()) {
+      setRowHidden(indexRow,
+                   model()->data(bottomRight, RowVisibilityRole).toBool());
+      indexRow++;
+    }
   }
   QTableView::dataChanged(topLeft, bottomRight, roles);
 }

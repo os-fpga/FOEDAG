@@ -55,4 +55,6 @@ void Task::trigger() {
 
 UserAction Task::action() const { return m_action; }
 
+const QVector<Task *> &Task::subTask() const { return m_subTask; }
+
 }  // namespace FOEDAG

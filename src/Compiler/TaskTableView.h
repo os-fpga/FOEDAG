@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class TaskManager;
 class ChildItemDelegate : public QStyledItemDelegate {
  public:
  protected:
@@ -42,7 +43,7 @@ struct TaskTableViewInternal {
 class TaskTableView : public QTableView {
   Q_OBJECT
  public:
-  TaskTableView(QWidget *parent = nullptr);
+  explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
   void setModel(QAbstractItemModel *model) override;
 
  signals:
@@ -62,6 +63,7 @@ class TaskTableView : public QTableView {
   QRect expandArea(const QModelIndex &index) const;
 
  private:
+  TaskManager *m_taskManager{nullptr};
   TaskTableViewInternal m_internal;
 };
 }  // namespace FOEDAG

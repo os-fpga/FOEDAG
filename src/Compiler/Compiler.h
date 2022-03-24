@@ -71,19 +71,22 @@ class Compiler {
   Design* GetDesign() { return m_design; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
-  bool Synthesize();
-  bool GlobalPlacement();
-  bool Placement();
-  bool Route();
-  bool TimingAnalysis();
-  bool GenerateBitstream();
-  bool RunBatch();
   void start();
   void finish();
 
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
+
+ protected:
+  virtual bool Synthesize();
+  virtual bool GlobalPlacement();
+  virtual bool Placement();
+  virtual bool Route();
+  virtual bool TimingAnalysis();
+  virtual bool GenerateBitstream();
+  virtual bool RunBatch();
+  bool RunCompileTask(Action action);
 
  private:
   TclInterpreter* m_interp = nullptr;

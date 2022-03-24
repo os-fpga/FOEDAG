@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>images/icon_newfile.png</file>
         <file>images/open-file.png</file>
+        <file>images/play.png</file>
+        <file>images/stop.png</file>
     </qresource>
 </RCC>
