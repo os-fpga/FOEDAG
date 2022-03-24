@@ -42,14 +42,16 @@ ProjectFileSet *Project::getProjectFileset(const QString &strName) const {
   return retProFileSet;
 }
 
-int Project::setProjectFileset(ProjectFileSet *projectFileset) {
+int Project::setProjectFileset(const ProjectFileSet &projectFileset) {
   int ret = 0;
-  if (nullptr != projectFileset) {
-    auto iter = m_mapProjectFileset.find(projectFileset->getSetName());
+  ProjectFileSet *pf = new ProjectFileSet;
+  if (nullptr != pf) {
+    *pf = projectFileset;
+    auto iter = m_mapProjectFileset.find(pf->getSetName());
     if (iter != m_mapProjectFileset.end()) {
       ret = 1;
     } else {
-      m_mapProjectFileset.insert(projectFileset->getSetName(), projectFileset);
+      m_mapProjectFileset.insert(pf->getSetName(), pf);
     }
   } else {
     ret = -1;
@@ -76,14 +78,16 @@ ProjectRun *Project::getProjectRun(const QString &strName) const {
   return retProRun;
 }
 
-int Project::setProjectRun(ProjectRun *projectRun) {
+int Project::setProjectRun(const ProjectRun &projectRun) {
   int ret = 0;
-  if (nullptr != projectRun) {
-    auto iter = m_mapProjectRun.find(projectRun->runName());
+  ProjectRun *pr = new ProjectRun;
+  if (nullptr != pr) {
+    *pr = projectRun;
+    auto iter = m_mapProjectRun.find(pr->runName());
     if (iter != m_mapProjectRun.end()) {
       ret = 1;
     } else {
-      m_mapProjectRun.insert(projectRun->runName(), projectRun);
+      m_mapProjectRun.insert(pr->runName(), pr);
     }
   } else {
     ret = -1;
