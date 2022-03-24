@@ -27,8 +27,6 @@ SourcesForm::SourcesForm(QWidget *parent)
 
   m_projManager = new ProjectManager(this);
 
-  UpdateSrcHierachyTree();
-
   connect(m_treeSrcHierachy, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
   connect(m_treeSrcHierachy, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)),
@@ -306,7 +304,7 @@ void SourcesForm::SlotOpenFile() {
 
   QString strPath = m_projManager->getProjectPath();
 
-  emit OpenFile(strFileName.replace("$OSRCDIR", strPath));
+  emit OpenFile(strFileName.replace(PROJECT_OSRCDIR, strPath));
 }
 
 void SourcesForm::SlotRemoveFileSet() {
@@ -365,7 +363,7 @@ void SourcesForm::SlotSetAsTarget() {
   if (item == nullptr) {
     return;
   }
-  QString strFileName = (item->data(0, Qt::UserRole)).toString();
+  QString strFileName = item->text(0);
 
   QTreeWidgetItem *itemparent = item->parent();
   QString strFileSetName = (itemparent->data(0, Qt::UserRole)).toString();
@@ -387,7 +385,7 @@ void SourcesForm::SlotSetActive() {
 
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
-  QString strName = item->text(0);
+  QString strName = (item->data(0, Qt::UserRole)).toString();
 
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole) {
     ret = m_projManager->setDesignActive(strName);
@@ -483,6 +481,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
       }
       itemf->setIcon(0, QIcon(":/img/file.png"));
       itemf->setData(0, Qt::UserRole, strfile);
+      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
     }
 
     QString strNum = QString("(%1)").arg(listDesFile.size());
