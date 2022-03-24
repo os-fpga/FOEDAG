@@ -121,7 +121,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actAddFile);
       } else {
-        menu->addAction(m_actRemoveDesign);
+        menu->addAction(m_actRemoveFileset);
         menu->addAction(m_actRefresh);
         menu->addSeparator();
         menu->addAction(m_actEditDesignSets);
@@ -309,7 +309,7 @@ void SourcesForm::SlotOpenFile() {
   emit OpenFile(strFileName.replace("$OSRCDIR", strPath));
 }
 
-void SourcesForm::SlotRemoveDesign() {
+void SourcesForm::SlotRemoveFileSet() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) {
     return;
@@ -410,17 +410,17 @@ void SourcesForm::CreateActions() {
   connect(m_actRefresh, SIGNAL(triggered()), this,
           SLOT(SlotRefreshSourceTree()));
 
-  m_actEditDesignSets = new QAction(tr("Edit Design Sets"), m_treeSrcHierachy);
+  m_actEditDesignSets = new QAction(tr("Create Design Set"), m_treeSrcHierachy);
   connect(m_actEditDesignSets, SIGNAL(triggered()), this,
           SLOT(SlotCreateDesignSet()));
 
   m_actEditConstrsSets =
-      new QAction(tr("Edit Constraints Sets"), m_treeSrcHierachy);
+      new QAction(tr("Create Constraints Set"), m_treeSrcHierachy);
   connect(m_actEditConstrsSets, SIGNAL(triggered()), this,
           SLOT(SlotCreateConstrSet()));
 
   m_actEditSimulSets =
-      new QAction(tr("Edit Simulation Sets"), m_treeSrcHierachy);
+      new QAction(tr("Create Simulation Set"), m_treeSrcHierachy);
   connect(m_actEditSimulSets, SIGNAL(triggered()), this,
           SLOT(SlotCreateSimSet()));
 
@@ -430,9 +430,9 @@ void SourcesForm::CreateActions() {
   m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);
   connect(m_actOpenFile, SIGNAL(triggered()), this, SLOT(SlotOpenFile()));
 
-  m_actRemoveDesign = new QAction(tr("Remove Design"), m_treeSrcHierachy);
-  connect(m_actRemoveDesign, SIGNAL(triggered()), this,
-          SLOT(SlotRemoveDesign()));
+  m_actRemoveFileset = new QAction(tr("Remove File Set"), m_treeSrcHierachy);
+  connect(m_actRemoveFileset, SIGNAL(triggered()), this,
+          SLOT(SlotRemoveFileSet()));
 
   m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));

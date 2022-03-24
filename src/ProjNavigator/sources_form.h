@@ -54,7 +54,7 @@ class SourcesForm : public QWidget {
   void SlotCreateSimSet();
   void SlotAddFile();
   void SlotOpenFile();
-  void SlotRemoveDesign();
+  void SlotRemoveFileSet();
   void SlotRemoveFile();
   void SlotSetAsTop();
   void SlotSetAsTarget();
@@ -70,7 +70,7 @@ class SourcesForm : public QWidget {
   QAction* m_actEditSimulSets;
   QAction* m_actAddFile;
   QAction* m_actOpenFile;
-  QAction* m_actRemoveDesign;
+  QAction* m_actRemoveFileset;
   QAction* m_actRemoveFile;
   QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
