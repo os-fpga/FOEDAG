@@ -144,7 +144,6 @@ bool Foedag::initGui() {
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   Config::Instance()->dataPath(m_context->DataPath());
-  std::cout << "REGISTER: " << m_context->DataPath() << std::endl;
   QWidget* mainWin = nullptr;
   if (m_mainWinBuilder) {
     mainWin = m_mainWinBuilder(m_cmdLine, interpreter);
