@@ -449,3 +449,10 @@ install(
 add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
+                  COMMAND ${CMAKE_COMMAND} -E copy 
+                  ${PROJECT_SOURCE_DIR}/etc/device.xml        
+                          ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
+            

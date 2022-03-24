@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QObject>
 #include <QSet>
+#include <filesystem>
 
 namespace FOEDAG {
 
@@ -21,6 +22,8 @@ class Config : public QObject {
                              const QString &family) const;
   QList<QStringList> getDevicelist(QString series = "", QString family = "",
                                    QString package = "") const;
+  void dataPath(const std::filesystem::path &path) { m_dataPath = path; }
+  std::filesystem::path dataPath() { return m_dataPath; }
 
  private:
   QString m_device_xml = "";
@@ -29,6 +32,7 @@ class Config : public QObject {
   QMap<QString, QStringList> m_map_device_info;
 
   void MakeDeviceMap(QString series, QString family, QString package);
+  std::filesystem::path m_dataPath;
 };
 }  // namespace FOEDAG
 #endif  // CONFIG_H

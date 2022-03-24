@@ -41,6 +41,7 @@ extern "C" {
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -50,6 +51,7 @@ extern "C" {
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewProject/ProjectManager/config.h"
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
@@ -126,7 +128,6 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     std::filesystem::path exeDirPath = exePath.parent_path();
     m_context->BinaryPath(exeDirPath);
     std::filesystem::path installDir = exeDirPath.parent_path();
-    const std::string separator(1, std::filesystem::path::preferred_separator);
     std::filesystem::path dataDir =
         installDir.string() + std::filesystem::path::preferred_separator +
         std::string("share") + std::filesystem::path::preferred_separator +
@@ -142,6 +143,8 @@ bool Foedag::initGui() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  Config::Instance()->dataPath(m_context->DataPath());
+  std::cout << "REGISTER: " << m_context->DataPath() << std::endl;
   QWidget* mainWin = nullptr;
   if (m_mainWinBuilder) {
     mainWin = m_mainWinBuilder(m_cmdLine, interpreter);

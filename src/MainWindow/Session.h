@@ -56,7 +56,7 @@ class Session {
   TclInterpreter *TclInterp() { return m_interp; }
   CommandStack *CmdStack() { return m_stack; }
   CommandLine *CmdLine() { return m_cmdLine; }
-  const ToolContext *Context() { return m_context; }
+  ToolContext *Context() { return m_context; }
   void windowShow();
   void windowHide();
 

@@ -4,6 +4,8 @@
 #include <QFile>
 #include <QHeaderView>
 #include <QTextStream>
+#include <filesystem>
+#include <iostream>
 
 #include "ProjectManager/config.h"
 #include "ui_device_planner_form.h"
@@ -57,8 +59,12 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
           &devicePlannerForm::onSeriestextChanged);
   connect(ui->m_comboBoxPackage, &QComboBox::currentTextChanged, this,
           &devicePlannerForm::onPackagetextChanged);
-
-  QString devicexml = QDir::currentPath() + "/etc/device.xml";
+  std::string devicefile =
+      Config::Instance()->dataPath().string() +
+      std::filesystem::path::preferred_separator + std::string("etc") +
+      std::filesystem::path::preferred_separator + std::string("device.xml");
+  QString devicexml = devicefile.c_str();
+  std::cout << "PATH:" << devicefile << std::endl;
   if (0 == Config::Instance()->InitConfig(devicexml)) {
     InitSeriesComboBox();
   }
