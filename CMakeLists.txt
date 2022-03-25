@@ -464,3 +464,4 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
                   ${PROJECT_SOURCE_DIR}/examples
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/examples/)
+
