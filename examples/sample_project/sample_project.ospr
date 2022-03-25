@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--Product Version:  FOEDAG   V1.0.0.0                -->
 <!--                                                   -->
-<!--Copyright (c) 2021 The Open-Source FPGA Foundation.-->
+<!--Copyright (c) 2021-2022 The Open-Source FPGA Foundation.-->
 <Project Path="/workspace/FOEDAG/examples/sample_project/sample_project.ospr">
     <Configuration>
         <Option Name="ID" Val="20220307182328757"/>
@@ -24,7 +24,7 @@
         <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="/sample_project.srcs/sources_1">
             <File Path="$OSRCDIR/sample_project.srcs/sources_1/led.v"/>
             <Config>
-                <Option Name="TopModule" Val="led.v"/>
+                <Option Name="TopModule" Val="led"/>
             </Config>
         </FileSet>
     </FileSets>

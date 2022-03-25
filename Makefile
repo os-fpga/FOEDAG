@@ -170,4 +170,5 @@ uninstall:
 	$(RM) -r $(PREFIX)/bin/foedag
 	$(RM) -r $(PREFIX)/lib/foedag
 	$(RM) -r $(PREFIX)/include/foedag
+	$(RM) -r $(PREFIX)/share/foedag
 
