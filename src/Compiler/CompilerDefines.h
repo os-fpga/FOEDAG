@@ -21,15 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <qnamespace.h>
 
+#include <QWidget>
 #include <QtGlobal>
 
 namespace FOEDAG {
 
-enum UserAction {
-  None,
-  Run,
-  Settings,
-};
+class Compiler;
+class TaskManager;
 
 static constexpr uint IP_GENERATE{0};
 static constexpr uint SYNTHESIS{1};
@@ -51,5 +49,15 @@ static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
 static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
 static constexpr uint ParentDataRole = Qt::UserRole + 4;
+
+/*!
+ * \brief prepareCompilerView
+ * Create app parts of the compiler task view.
+ * \param compiler
+ * \param taskManager - output parameter to receive pointer to task manager.
+ * \return widget with compiler task view
+ */
+QWidget *prepareCompilerView(Compiler *compiler,
+                             TaskManager **taskManager = nullptr);
 
 }  // namespace FOEDAG

@@ -49,6 +49,7 @@ set (SRC_CPP_LIST
   TaskModel.cpp
   Task.cpp
   TaskManager.cpp
+  CompilerDefines.cpp
 )
 
 set (SRC_H_INSTALL_LIST

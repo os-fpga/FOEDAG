@@ -28,6 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+/*!
+ * \brief The TaskManager class
+ * Contains all tasks for the compiler and manage running of the tasks.
+ */
 class TaskManager : public QObject {
   Q_OBJECT
  public:
@@ -35,19 +39,61 @@ class TaskManager : public QObject {
   explicit TaskManager(QObject *parent = nullptr);
   ~TaskManager();
   QList<Task *> tasks() const;
+  /*!
+   * \brief task
+   * \return task by id.
+   */
   Task *task(uint id) const;
+  /*!
+   * \brief taskId
+   * \return return id of the task \a t.
+   */
   uint taskId(Task *t) const;
 
+  /*!
+   * \brief stopCurrentTask. Stop all tasks that are in progress.
+   */
   void stopCurrentTask();
+  /*!
+   * \brief status
+   * \return InProgress if some of the tasks has status InProgress, otherwise
+   * return None.
+   */
   TaskStatus status() const;
 
+  /*!
+   * \brief startAll. Starts chain of all tasks. They will run one by one.
+   */
   void startAll();
+
+  /*!
+   * \brief startTask. Start task \a t.
+   */
   void startTask(Task *t);
+
+  /*!
+   * \brief startTask. Start task with id \a id.
+   */
   void startTask(uint id);
 
+  /*!
+   * \brief bindTaskCommand
+   * Bind command \a cmd to task \a t. Command will be run when task triggered.
+   */
+  void bindTaskCommand(Task *t, const std::function<void()> &cmd);
+
  signals:
+  /*!
+   * \brief taskStateChanged. Emits whenever any task change its status.
+   */
   void taskStateChanged();
+  /*!
+   * \brief started. Emits when tasks has started running.
+   */
   void started();
+  /*!
+   * \brief done. Emits when all tasks done.
+   */
   void done();
 
  private slots:
