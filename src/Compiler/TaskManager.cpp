@@ -25,29 +25,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
-  m_tasks.insert(IP_GENERATE, new Task{UserAction::Run, "Ip Generate"});
-  m_tasks.insert(SYNTHESIS, new Task{UserAction::Run, "Synthesis"});
-  m_tasks.insert(SYNTHESIS_SETTINGS,
-                 new Task{UserAction::Settings, "Edit settings"});
-  m_tasks.insert(SYNTHESIS_WRITE_NETLIST,
-                 new Task{UserAction::None, "Write netlist"});
-  m_tasks.insert(SYNTHESIS_TIMING_REPORT,
-                 new Task{UserAction::None, "Timing report"});
-  m_tasks.insert(PLACEMENT, new Task{UserAction::Run, "Placement"});
-  m_tasks.insert(PLACEMENT_SETTINGS,
-                 new Task{UserAction::Settings, "Edit settings"});
-  m_tasks.insert(PLACEMENT_WRITE_NETLIST,
-                 new Task{UserAction::None, "Write netlist"});
-  m_tasks.insert(PLACEMENT_TIMING_REPORT,
-                 new Task{UserAction::None, "Timing report"});
-  m_tasks.insert(ROUTING, new Task{UserAction::Run, "Rounting"});
-  m_tasks.insert(ROUTING_SETTINGS,
-                 new Task{UserAction::Settings, "Edit settings"});
-  m_tasks.insert(ROUTING_WRITE_NETLIST,
-                 new Task{UserAction::None, "Write netlist"});
-  m_tasks.insert(TIMING_SIGN_OFF, new Task{UserAction::Run, "Timing sign off"});
-  m_tasks.insert(POWER, new Task{UserAction::Run, "Power"});
-  m_tasks.insert(BITSTREAM, new Task{UserAction::Run, "Bitstream"});
+  m_tasks.insert(IP_GENERATE, new Task{"Ip Generate"});
+  m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
+  m_tasks.insert(SYNTHESIS_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
+  m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
+  m_tasks.insert(PLACEMENT, new Task{"Placement"});
+  m_tasks.insert(PLACEMENT_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
+  m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
+  m_tasks.insert(ROUTING, new Task{"Rounting"});
+  m_tasks.insert(ROUTING_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
+  m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing sign off"});
+  m_tasks.insert(POWER, new Task{"Power"});
+  m_tasks.insert(BITSTREAM, new Task{"Bitstream"});
 
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_WRITE_NETLIST]);
@@ -93,34 +85,37 @@ void TaskManager::startAll() {
   m_runStack.append(m_tasks[SYNTHESIS]);
   m_runStack.append(m_tasks[PLACEMENT]);
   run();
+  emit started();
 }
 
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
+  if (!t->isValid()) return;
   reset();
   m_runStack.append(t);
   run();
+  emit started();
 }
 
 void TaskManager::startTask(uint id) {
-  if (auto t = task(id)) {
-    startTask(t);
-  }
+  if (auto t = task(id)) startTask(t);
+}
+
+void TaskManager::bindTaskCommand(Task *t, const std::function<void()> &cmd) {
+  connect(t, &Task::taskTriggered, [cmd]() { cmd(); });
+  t->setValid(true);
 }
 
 void TaskManager::runNext() {
   Task *t = m_runStack.isEmpty() ? nullptr : m_runStack.first();
   if (t) {
+    disconnect(t, &Task::finished, this, &TaskManager::runNext);
     if (t->status() == TaskStatus::Success) {
-      disconnect(t, &Task::statusChanged, this, &TaskManager::runNext);
       m_runStack.takeFirst();
       if (!m_runStack.isEmpty()) {
-        connect(m_runStack.first(), &Task::statusChanged, this,
-                &TaskManager::runNext);
-        m_runStack.first()->trigger();
+        run();
       }
     } else if (t->status() == TaskStatus::Fail) {
-      disconnect(t, &Task::statusChanged, this, &TaskManager::runNext);
       m_runStack.clear();
     }
   }
@@ -129,10 +124,8 @@ void TaskManager::runNext() {
 }
 
 void TaskManager::run() {
-  connect(m_runStack.first(), &Task::statusChanged, this,
-          &TaskManager::runNext);
+  connect(m_runStack.first(), &Task::finished, this, &TaskManager::runNext);
   m_runStack.first()->trigger();
-  emit started();
 }
 
 void TaskManager::reset() {

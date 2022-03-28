@@ -22,10 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-Task::Task(UserAction act, QObject *parent) : QObject{parent}, m_action(act) {}
+Task::Task(QObject *parent) : QObject{parent} {}
 
-Task::Task(UserAction act, const QString &title, QObject *parent)
-    : QObject(parent), m_title(title), m_action(act) {}
+Task::Task(const QString &title, QObject *parent)
+    : QObject(parent), m_title(title) {}
 
 const QString &Task::title() const { return m_title; }
 
@@ -46,15 +46,19 @@ void Task::setStatus(TaskStatus newStatus) {
   if (m_status != newStatus) {
     m_status = newStatus;
     emit statusChanged();
+    if (m_status == TaskStatus::Success || m_status == TaskStatus::Fail)
+      emit finished();
   }
 }
 
 void Task::trigger() {
-  if (m_status != TaskStatus::InProgress) emit taskTriggered(m_action);
+  if (m_status != TaskStatus::InProgress) emit taskTriggered();
 }
 
-UserAction Task::action() const { return m_action; }
-
 const QVector<Task *> &Task::subTask() const { return m_subTask; }
+
+bool Task::isValid() const { return m_valid; }
+
+void Task::setValid(bool newValid) { m_valid = newValid; }
 
 }  // namespace FOEDAG

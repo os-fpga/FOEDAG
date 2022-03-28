@@ -328,16 +328,14 @@ bool Compiler::RunCompileTask(Action action) {
 
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
-  QObject::connect(m_taskManager->task(SYNTHESIS), &Task::taskTriggered,
-                   [this](UserAction action) {
-                     if (action == UserAction::Run)
-                       Tcl_Eval(m_interp->getInterp(), "synth");
-                   });
-  QObject::connect(m_taskManager->task(PLACEMENT), &Task::taskTriggered,
-                   [this](UserAction action) {
-                     if (action == UserAction::Run)
-                       Tcl_Eval(m_interp->getInterp(), "globp");
-                   });
+  if (m_taskManager) {
+    m_taskManager->bindTaskCommand(m_taskManager->task(SYNTHESIS), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "synth");
+    });
+    m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "globp");
+    });
+  }
 }
 
 bool Compiler::Placement() { return true; }

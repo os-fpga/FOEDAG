@@ -34,12 +34,15 @@ enum class TaskStatus {
   Fail,
 };
 
+/*!
+ * \brief The Task class
+ * Implements task entity.
+ */
 class Task : public QObject {
   Q_OBJECT
  public:
-  explicit Task(UserAction act, QObject *parent = nullptr);
-  explicit Task(UserAction act, const QString &title,
-                QObject *parent = nullptr);
+  explicit Task(QObject *parent = nullptr);
+  explicit Task(const QString &title, QObject *parent = nullptr);
   const QString &title() const;
   void setTitle(const QString &newTitle);
   bool hasSubTask() const;
@@ -49,22 +52,46 @@ class Task : public QObject {
   TaskStatus status() const;
   void setStatus(TaskStatus newStatus);
 
+  /*!
+   * \brief trigger
+   * Emits \a taskTriggered() signal to notify that some commend can be run.
+   */
   void trigger();
-
-  UserAction action() const;
-
   const QVector<Task *> &subTask() const;
 
+  /*!
+   * \brief isValid
+   * \return true if task is valid. The valid task can run some command. If task
+   * not valid it will not be run.
+   */
+  bool isValid() const;
+  /*!
+   * \brief setValid
+   * Change valid state of the task.
+   */
+  void setValid(bool newValid);
+
  signals:
+  /*!
+   * \brief statusChanged. Emits whenever status has changed.
+   */
   void statusChanged();
-  void taskTriggered(FOEDAG::UserAction);
+  /*!
+   * \brief taskTriggered. Emits when user trigger the task.
+   */
+  void taskTriggered();
+  /*!
+   * \brief finished. Emits when status of the task set to Success or Fail,
+   * which means task done.
+   */
+  void finished();
 
  private:
   QString m_title;
   TaskStatus m_status{TaskStatus::None};
   QVector<Task *> m_subTask;
   Task *m_parent{nullptr};
-  UserAction m_action;
+  bool m_valid{false};
 };
 
 }  // namespace FOEDAG

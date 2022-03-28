@@ -36,22 +36,11 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this,
           SLOT(customMenuRequested(const QPoint &)));
-  connect(this, &TaskTableView::actionTrigger, this,
-          &TaskTableView::userActionHandle);
   setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
     setEnabled(m_taskManager->status() != TaskStatus::InProgress);
   });
-}
-
-void TaskTableView::setModel(QAbstractItemModel *model) {
-  QTableView::setModel(model);
-
-  setColumnWidth(0, 30);
-  setColumnWidth(1, 150);
-  horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-  horizontalHeader()->setStretchLastSection(true);
 }
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
@@ -66,7 +55,7 @@ void TaskTableView::mousePressEvent(QMouseEvent *event) {
 void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
   if (idx.isValid() && !expandArea(idx).contains(event->pos())) {
-    emit actionTrigger(idx);
+    userActionHandle(idx);
   }
   QTableView::mouseDoubleClickEvent(event);
 }
@@ -76,7 +65,7 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
   QMenu *menu = new QMenu(this);
   QAction *start = new QAction("Run", this);
   connect(start, &QAction::triggered, this,
-          [this, index]() { emit actionTrigger(index); });
+          [this, index]() { userActionHandle(index); });
   menu->addAction(start);
   menu->popup(viewport()->mapToGlobal(pos));
 }

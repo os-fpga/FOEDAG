@@ -29,6 +29,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 class TaskManager;
+
+/*!
+ * \brief The ChildItemDelegate class
+ * Implements item that has parent and it looks similar like in the tree view.
+ */
 class ChildItemDelegate : public QStyledItemDelegate {
  public:
  protected:
@@ -36,18 +41,15 @@ class ChildItemDelegate : public QStyledItemDelegate {
              const QModelIndex &index) const override;
 };
 
-struct TaskTableViewInternal {
-  QMap<QModelIndex, bool> expand;
-};
-
+/*!
+ * \brief The TaskTableView class
+ * Implements view for tasl manager. Some of the rows could be expandable like
+ * in the tree view.
+ */
 class TaskTableView : public QTableView {
   Q_OBJECT
  public:
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
-  void setModel(QAbstractItemModel *model) override;
-
- signals:
-  void actionTrigger(const QModelIndex &index);
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;
@@ -64,6 +66,5 @@ class TaskTableView : public QTableView {
 
  private:
   TaskManager *m_taskManager{nullptr};
-  TaskTableViewInternal m_internal;
 };
 }  // namespace FOEDAG
