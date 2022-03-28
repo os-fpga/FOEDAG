@@ -26,14 +26,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 enum UserAction {
+  None,
   Run,
   Settings,
 };
 
-static constexpr uint SYNTH_TASK{0};
-static constexpr uint SYNTH_TASK_SETTINGS{1};
-static constexpr uint PLACEMENT_TASK{2};
-static constexpr uint PLACEMENT_TASK_SETTINGS{3};
+static constexpr uint IP_GENERATE{0};
+static constexpr uint SYNTHESIS{1};
+static constexpr uint SYNTHESIS_SETTINGS{2};
+static constexpr uint SYNTHESIS_WRITE_NETLIST{3};
+static constexpr uint SYNTHESIS_TIMING_REPORT{4};
+static constexpr uint PLACEMENT{5};
+static constexpr uint PLACEMENT_SETTINGS{6};
+static constexpr uint PLACEMENT_WRITE_NETLIST{7};
+static constexpr uint PLACEMENT_TIMING_REPORT{8};
+static constexpr uint ROUTING{9};
+static constexpr uint ROUTING_SETTINGS{10};
+static constexpr uint ROUTING_WRITE_NETLIST{11};
+static constexpr uint TIMING_SIGN_OFF{12};
+static constexpr uint POWER{13};
+static constexpr uint BITSTREAM{14};
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;

@@ -116,7 +116,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      compiler->Synthesize();
+      compiler->Compile(Synthesis);
       return 0;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
@@ -125,7 +125,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      compiler->GlobalPlacement();
+      compiler->Compile(Global);
       return 0;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
@@ -220,17 +220,29 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
 bool Compiler::Compile(Action action) {
   m_stop = false;
+  bool res{false};
+  uint task{TaskManager::invalid_id};
   switch (action) {
     case Action::Synthesis:
-      return Synthesize();
+      task = SYNTHESIS;
+      break;
     case Action::Global:
-      return GlobalPlacement();
+      task = PLACEMENT;
+      break;
     case Action::Batch:
-      return RunBatch();
+      break;
     default:
       break;
   }
-  return false;
+  if (task != TaskManager::invalid_id && m_taskManager) {
+    m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
+  }
+  res = RunCompileTask(action);
+  if (task != TaskManager::invalid_id && m_taskManager) {
+    m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
+                                             : TaskStatus::Fail);
+  }
+  return res;
 }
 
 void Compiler::Stop() {
@@ -239,8 +251,6 @@ void Compiler::Stop() {
 }
 
 bool Compiler::Synthesize() {
-  if (m_taskManager)
-    m_taskManager->task(SYNTH_TASK)->setStatus(TaskStatus::InProgress);
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
@@ -257,21 +267,14 @@ bool Compiler::Synthesize() {
   }
   m_state = State::Synthesized;
   m_out << "Design " << m_design->Name() << " is synthesized!" << std::endl;
-
-  if (m_taskManager)
-    m_taskManager->task(SYNTH_TASK)->setStatus(TaskStatus::Success);
   return true;
 }
 
 bool Compiler::GlobalPlacement() {
   if (m_state != State::Synthesized) {
     m_out << "ERROR: Design needs to be in synthesized state" << std::endl;
-    if (m_taskManager)
-      m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::Fail);
     return false;
   }
-  if (m_taskManager)
-    m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::InProgress);
   m_out << "Global Placement for design: " << m_design->Name() << "..."
         << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
@@ -282,8 +285,6 @@ bool Compiler::GlobalPlacement() {
   }
   m_state = State::GloballyPlaced;
   m_out << "Design " << m_design->Name() << " is globally placed!" << std::endl;
-  if (m_taskManager)
-    m_taskManager->task(PLACEMENT_TASK)->setStatus(TaskStatus::Success);
   return true;
 }
 
@@ -311,14 +312,28 @@ void Compiler::finish() {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->notifyFinish();
 }
 
+bool Compiler::RunCompileTask(Action action) {
+  switch (action) {
+    case Action::Synthesis:
+      return Synthesize();
+    case Action::Global:
+      return GlobalPlacement();
+    case Action::Batch:
+      return RunBatch();
+    default:
+      break;
+  }
+  return false;
+}
+
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
-  QObject::connect(m_taskManager->task(SYNTH_TASK), &Task::taskTriggered,
+  QObject::connect(m_taskManager->task(SYNTHESIS), &Task::taskTriggered,
                    [this](UserAction action) {
                      if (action == UserAction::Run)
                        Tcl_Eval(m_interp->getInterp(), "synth");
                    });
-  QObject::connect(m_taskManager->task(PLACEMENT_TASK), &Task::taskTriggered,
+  QObject::connect(m_taskManager->task(PLACEMENT), &Task::taskTriggered,
                    [this](UserAction action) {
                      if (action == UserAction::Run)
                        Tcl_Eval(m_interp->getInterp(), "globp");

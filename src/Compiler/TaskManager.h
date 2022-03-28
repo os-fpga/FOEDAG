@@ -39,11 +39,27 @@ class TaskManager : public QObject {
   uint taskId(Task *t) const;
 
   void stopCurrentTask();
+  TaskStatus status() const;
+
+  void startAll();
+  void startTask(Task *t);
+  void startTask(uint id);
 
  signals:
+  void taskStateChanged();
+  void started();
+  void done();
+
+ private slots:
+  void runNext();
+
+ private:
+  void run();
+  void reset();
 
  private:
   QMap<uint, Task *> m_tasks;
+  QVector<Task *> m_runStack;
 };
 
 }  // namespace FOEDAG

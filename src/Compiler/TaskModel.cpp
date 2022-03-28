@@ -110,7 +110,7 @@ QVariant TaskModel::headerData(int section, Qt::Orientation orientation,
       case 1:
         return "Task";
       case 2:
-        return "Timing";
+        return "Stats";
     }
   }
   return QAbstractTableModel::headerData(section, orientation, role);
@@ -136,7 +136,7 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
 bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
   if (role == UserActionRole) {
-    if (auto task = m_taskManager->task(index.row())) task->trigger();
+    m_taskManager->startTask(index.row());
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
     if (!m_expanded.contains(index)) {
@@ -144,8 +144,11 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     } else {
       m_expanded[index] = !m_expanded[index];
     }
-    emit dataChanged(index, createIndex(index.row() + 1, index.column()),
-                     {Qt::DecorationRole});
+    auto task = m_taskManager->task(index.row());
+    emit dataChanged(
+        createIndex(index.row() + 1, index.column()),
+        createIndex(index.row() + task->subTask().count(), index.column()),
+        {Qt::DecorationRole});
   }
   return QAbstractTableModel::setData(index, value, role);
 }

@@ -140,11 +140,19 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
+
+  processMenu = menuBar()->addMenu(tr("&Processing"));
+  processMenu->addAction(startAction);
+  processMenu->addAction(stopAction);
 }
 
 void MainWindow::createToolBars() {
   fileToolBar = addToolBar(tr("&File"));
   fileToolBar->addAction(newAction);
+
+  debugToolBar = addToolBar(tr("Debug"));
+  debugToolBar->addAction(startAction);
+  debugToolBar->addAction(stopAction);
 }
 
 void MainWindow::createActions() {
@@ -171,6 +179,19 @@ void MainWindow::createActions() {
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));
   exitAction->setStatusTip(tr("Exit the application"));
+
+  startAction = new QAction(tr("Start"), this);
+  startAction->setIcon(QIcon(":/images/play.png"));
+  startAction->setStatusTip(tr("Start compilation tasks"));
+
+  stopAction = new QAction(tr("Stop"), this);
+  stopAction->setIcon(QIcon(":/images/stop.png"));
+  stopAction->setStatusTip(tr("Stop compilation tasks"));
+  stopAction->setEnabled(false);
+  connect(startAction, &QAction::triggered, this,
+          [this]() { m_taskManager->startAll(); });
+  connect(stopAction, &QAction::triggered, this,
+          [this]() { m_compiler->Stop(); });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     Command cmd("gui_stop; exit");
@@ -235,23 +256,28 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   // Register fake compiler until openFPGA gets available
   std::string design("Some cool design");
-  FOEDAG::Compiler* com = new FOEDAG::Compiler{
-      m_interpreter, new FOEDAG::Design(design), buffer->getStream(),
-      new FOEDAG::CompilerNotifier{c}};
-  com->RegisterCommands(m_interpreter, false);
+  m_compiler = new Compiler{m_interpreter, new Design(design),
+                            buffer->getStream(), new CompilerNotifier{c}};
+  m_compiler->RegisterCommands(m_interpreter, false);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 
-  TaskManager* taskManager = new TaskManager;
-  TaskModel* model = new TaskModel{taskManager};
-  TaskTableView* view = new TaskTableView;
+  m_taskManager = new TaskManager;
+  TaskModel* model = new TaskModel{m_taskManager};
+  TaskTableView* view = new TaskTableView{m_taskManager};
   view->setModel(model);
   QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
   taskDocWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDocWidget);
 
-  com->setTaskManager(taskManager);
+  connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
+    const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
+    startAction->setEnabled(!inProgress);
+    stopAction->setEnabled(inProgress);
+  });
+
+  m_compiler->setTaskManager(m_taskManager);
 }
 
 void MainWindow::clearDockWidgets() {
