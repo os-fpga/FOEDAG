@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
 #include "MainWindow/Session.h"
+#include "TaskManager.h"
 
 using namespace FOEDAG;
 
@@ -529,40 +530,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 bool Compiler::Compile(Action action) {
   m_stop = false;
   bool res{false};
-  uint task{TaskManager::invalid_id};
-  switch (action) {
-    case Action::IPGen:
-      task = IP_GENERATE;
-      break;
-    case Action::Synthesis:
-      task = SYNTHESIS;
-      break;
-    case Action::Pack:
-      task = PACKING;
-      break;
-    case Action::Global:
-      task = GLOBAL_PLACEMENT;
-      break;
-    case Action::Detailed:
-      task = PLACEMENT;
-      break;
-    case Action::Routing:
-      task = ROUTING;
-      break;
-    case Action::STA:
-      task = TIMING_SIGN_OFF;
-      break;
-    case Action::Power:
-      task = POWER;
-      break;
-    case Action::Bitstream:
-      task = BITSTREAM;
-      break;
-    case Action::Batch:
-      break;
-    default:
-      break;
-  }
+  uint task{toTaskId(action)};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
@@ -684,33 +652,26 @@ bool Compiler::RunCompileTask(Action action) {
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
-    m_taskManager->bindTaskCommand(m_taskManager->task(IP_GENERATE), [this]() {
+    m_taskManager->bindTaskCommand(IP_GENERATE, [this]() {
       Tcl_Eval(m_interp->getInterp(), "ipgenerate");
     });
-    m_taskManager->bindTaskCommand(m_taskManager->task(SYNTHESIS), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "synth");
-    });
-    m_taskManager->bindTaskCommand(m_taskManager->task(PACKING), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "packing");
+    m_taskManager->bindTaskCommand(
+        SYNTHESIS, [this]() { Tcl_Eval(m_interp->getInterp(), "synth"); });
+    m_taskManager->bindTaskCommand(
+        PACKING, [this]() { Tcl_Eval(m_interp->getInterp(), "packing"); });
+    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, [this]() {
+      Tcl_Eval(m_interp->getInterp(), "globp");
     });
     m_taskManager->bindTaskCommand(
-        m_taskManager->task(GLOBAL_PLACEMENT),
-        [this]() { Tcl_Eval(m_interp->getInterp(), "globp"); });
-    m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "place");
-    });
-    m_taskManager->bindTaskCommand(m_taskManager->task(ROUTING), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "route");
-    });
+        PLACEMENT, [this]() { Tcl_Eval(m_interp->getInterp(), "place"); });
     m_taskManager->bindTaskCommand(
-        m_taskManager->task(TIMING_SIGN_OFF),
-        [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
-    m_taskManager->bindTaskCommand(m_taskManager->task(POWER), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "power");
-    });
-    m_taskManager->bindTaskCommand(m_taskManager->task(BITSTREAM), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "bitstream");
-    });
+        ROUTING, [this]() { Tcl_Eval(m_interp->getInterp(), "route"); });
+    m_taskManager->bindTaskCommand(
+        TIMING_SIGN_OFF, [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
+    m_taskManager->bindTaskCommand(
+        POWER, [this]() { Tcl_Eval(m_interp->getInterp(), "power"); });
+    m_taskManager->bindTaskCommand(
+        BITSTREAM, [this]() { Tcl_Eval(m_interp->getInterp(), "bitstream"); });
   }
 }
 
