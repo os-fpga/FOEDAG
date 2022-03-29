@@ -585,7 +585,7 @@ Design* Compiler::GetDesign(const std::string name) {
 
 bool Compiler::ExecuteSystemCommand(const std::string& command) {
 #if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
- // TODO: Windows System call 
+  // TODO: Windows System call
 #else
   int result = system(command.c_str());
   if (result == 0) {
