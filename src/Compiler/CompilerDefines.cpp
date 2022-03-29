@@ -44,3 +44,23 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   if (taskManager) *taskManager = tManager;
   return view;
 }
+
+uint FOEDAG::toTaskId(Compiler::Action action) {
+  switch (action) {
+    case Compiler::Synthesis:
+      return SYNTHESIS;
+    case Compiler::Global:
+      return PLACEMENT;
+    case Compiler::Routing:
+      return ROUTING;
+    case Compiler::STA:
+      return TIMING_SIGN_OFF;
+    case Compiler::Bitstream:
+      return BITSTREAM;
+    case Compiler::NoAction:
+    case Compiler::Detailed:
+    case Compiler::Batch:
+      return TaskManager::invalid_id;
+  }
+  return TaskManager::invalid_id;
+}

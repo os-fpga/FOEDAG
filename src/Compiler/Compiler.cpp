@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "TaskManager.h"
 
 using namespace FOEDAG;
 
@@ -334,7 +335,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
-          new WorkerThread("bitstream_th", Action::STA, compiler);
+          new WorkerThread("bitstream_th", Action::Bitstream, compiler);
       wthread->start();
       return 0;
     };
@@ -397,19 +398,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 bool Compiler::Compile(Action action) {
   m_stop = false;
   bool res{false};
-  uint task{TaskManager::invalid_id};
-  switch (action) {
-    case Action::Synthesis:
-      task = SYNTHESIS;
-      break;
-    case Action::Global:
-      task = PLACEMENT;
-      break;
-    case Action::Batch:
-      break;
-    default:
-      break;
-  }
+  uint task{toTaskId(action)};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
@@ -523,12 +512,16 @@ bool Compiler::RunCompileTask(Action action) {
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
-    m_taskManager->bindTaskCommand(m_taskManager->task(SYNTHESIS), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "synth");
-    });
-    m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "globp");
-    });
+    m_taskManager->bindTaskCommand(
+        SYNTHESIS, [this]() { Tcl_Eval(m_interp->getInterp(), "synth"); });
+    m_taskManager->bindTaskCommand(
+        PLACEMENT, [this]() { Tcl_Eval(m_interp->getInterp(), "globp"); });
+    m_taskManager->bindTaskCommand(
+        ROUTING, [this]() { Tcl_Eval(m_interp->getInterp(), "route"); });
+    m_taskManager->bindTaskCommand(
+        TIMING_SIGN_OFF, [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
+    m_taskManager->bindTaskCommand(
+        BITSTREAM, [this]() { Tcl_Eval(m_interp->getInterp(), "bitstream"); });
   }
 }
 

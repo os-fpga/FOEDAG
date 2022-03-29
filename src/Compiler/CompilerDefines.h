@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <QtGlobal>
 
+#include "Compiler/Compiler.h"
+
 namespace FOEDAG {
 
 class Compiler;
@@ -59,5 +61,7 @@ static constexpr uint ParentDataRole = Qt::UserRole + 4;
  */
 QWidget *prepareCompilerView(Compiler *compiler,
                              TaskManager **taskManager = nullptr);
+
+uint toTaskId(Compiler::Action action);
 
 }  // namespace FOEDAG
