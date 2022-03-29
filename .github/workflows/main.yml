@@ -409,6 +409,8 @@ jobs:
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
 
+
+
   macos-gcc:
     runs-on: macos-latest
 
@@ -430,6 +432,8 @@ jobs:
 
     - name: Install dependencies
       uses: jurplel/install-qt-action@v2
+      with:
+        setup-python: false
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
@@ -467,6 +471,7 @@ jobs:
       run: |
         make regression
 
+
   macos-clang:
     runs-on: macos-latest
 
@@ -483,6 +488,8 @@ jobs:
 
     - name: Install dependencies
       uses: jurplel/install-qt-action@v2
+      with:
+        setup-python: false
 
     - uses: actions/checkout@v2
       with:

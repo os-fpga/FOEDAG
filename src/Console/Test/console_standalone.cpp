@@ -47,10 +47,8 @@ QWidget *mainWindowBuilder(FOEDAG::CommandLine *cmd,
 
   if (console) console->setParsers({new FOEDAG::DummyParser});
 
-  std::string design("Some cool design");
-  FOEDAG::Compiler *com = new FOEDAG::Compiler{
-      interpreter, new FOEDAG::Design(design), buffer->getStream(),
-      new FOEDAG::CompilerNotifier{c}};
+  FOEDAG::Compiler *com = new FOEDAG::Compiler{interpreter, buffer->getStream(),
+                                               new FOEDAG::CompilerNotifier{c}};
   com->RegisterCommands(interpreter, false);
   return w;
 }

@@ -21,9 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <direct.h>
+#include <process.h>
 #else
+#include <stdlib.h>
+#include <sys/param.h>
 #include <unistd.h>
 #endif
+
 #include <QDebug>
 #include <chrono>
 #include <filesystem>
@@ -36,10 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-Compiler::Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
+Compiler::Compiler(TclInterpreter* interp, std::ostream& out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),
-      m_design(design),
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
@@ -112,12 +116,116 @@ tcl_interp_clone
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = "noname";
+    if (argc == 2) {
+      name = argv[1];
+    }
+    if (compiler->GetDesign(name)) {
+      Tcl_AppendResult(interp, "ERROR: design already exists", (char*)NULL);
+      return TCL_ERROR;
+    } else {
+      Design* design = new Design(name);
+      compiler->SetDesign(design);
+      compiler->Message(std::string("Created design: ") + name +
+                        std::string("\n"));
+    }
+    return 0;
+  };
+  interp->registerCmd("create_design", create_design, this, 0);
+
+  auto set_active_design = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = "noname";
+    if (argc != 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify a design name", (char*)NULL);
+      return TCL_ERROR;
+    }
+    if (compiler->GetDesign(argv[1])) {
+      compiler->SetActiveDesign(argv[1]);
+    } else {
+      Tcl_AppendResult(interp,
+                       std::string(std::string("ERROR: design ") + name +
+                                   std::string(" does not exist\n"))
+                           .c_str(),
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    return 0;
+  };
+  interp->registerCmd("set_active_design", set_active_design, this, 0);
+
+  auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    if (design == nullptr) {
+      Tcl_AppendResult(interp,
+                       "ERROR: create a design first: create_design <name>",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    if (argc < 2 || argc > 3) {
+      Tcl_AppendResult(interp,
+                       "ERROR: Incorrect syntax for add_design_file <file> "
+                       "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
+                       "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    std::string actualType = "VERILOG_2001";
+    Design::Language language = Design::Language::VERILOG_2001;
+    const std::string file = argv[1];
+    if (strstr(file.c_str(), ".vhd")) {
+      language = Design::Language::VHDL_2008;
+      actualType = "VHDL_2008";
+    }
+    if (argc == 3) {
+      const std::string type = argv[2];
+      if (type == "VHDL_1987") {
+        language = Design::Language::VHDL_1987;
+        actualType = "VHDL_1987";
+      } else if (type == "VHDL_1993") {
+        language = Design::Language::VHDL_1993;
+        actualType = "VHDL_1993";
+      } else if (type == "VHDL_2008") {
+        language = Design::Language::VHDL_2008;
+        actualType = "VHDL_2008";
+      } else if (type == "V_1995") {
+        language = Design::Language::VERILOG_1995;
+        actualType = "VERILOG_1995";
+      } else if (type == "V_2001") {
+        language = Design::Language::VERILOG_2001;
+        actualType = "VERILOG_2001";
+      } else if (type == "V_2005") {
+        language = Design::Language::SYSTEMVERILOG_2005;
+        actualType = "SV_2005";
+      } else if (type == "SV_2009") {
+        language = Design::Language::SYSTEMVERILOG_2009;
+        actualType = "SV_2009";
+      } else if (type == "SV_2012") {
+        language = Design::Language::SYSTEMVERILOG_2012;
+        actualType = "SV_2012";
+      } else if (type == "SV_2017") {
+        language = Design::Language::SYSTEMVERILOG_2017;
+        actualType = "SV_2017";
+      }
+    }
+    compiler->Message(std::string("Adding ") + actualType + " " + file +
+                      std::string("\n"));
+    design->AddFile(language, file);
+    return 0;
+  };
+  interp->registerCmd("add_design_file", add_design_file, this, 0);
+
   if (batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      compiler->Compile(Synthesis);
-      return 0;
+      return compiler->Compile(Synthesis);
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -125,11 +233,39 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      compiler->Compile(Global);
-      return 0;
+      return compiler->Compile(Global);
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
+
+    auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(Detailed);
+    };
+    interp->registerCmd("detailed_placement", placement, this, 0);
+    interp->registerCmd("placement", placement, this, 0);
+
+    auto route = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(Routing);
+    };
+    interp->registerCmd("route", route, this, 0);
+
+    auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(STA);
+    };
+    interp->registerCmd("sta", sta, this, 0);
+
+    auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(Bitstream);
+    };
+    interp->registerCmd("bitstream", bitstream, this, 0);
 
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
@@ -163,6 +299,46 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
+
+    auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("place_th", Action::Detailed, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("detailed_placement", placement, this, 0);
+    interp->registerCmd("placement", placement, this, 0);
+
+    auto route = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("route_th", Action::Routing, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("route", route, this, 0);
+
+    auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread = new WorkerThread("sta_th", Action::STA, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("sta", sta, this, 0);
+
+    auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("bitstream_th", Action::STA, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("bitstream", bitstream, this, 0);
 
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
@@ -251,6 +427,12 @@ void Compiler::Stop() {
 }
 
 bool Compiler::Synthesize() {
+  if (m_design == nullptr) {
+    std::string name = "noname";
+    Design* design = new Design(name);
+    SetDesign(design);
+    Message(std::string("Created design: ") + name + std::string("\n"));
+  }
   m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
@@ -271,6 +453,10 @@ bool Compiler::Synthesize() {
 }
 
 bool Compiler::GlobalPlacement() {
+  if (m_design == nullptr) {
+    m_out << "ERROR: No design specified" << std::endl;
+    return false;
+  }
   if (m_state != State::Synthesized) {
     m_out << "ERROR: Design needs to be in synthesized state" << std::endl;
     return false;
@@ -315,11 +501,19 @@ void Compiler::finish() {
 bool Compiler::RunCompileTask(Action action) {
   switch (action) {
     case Action::Synthesis:
-      return Synthesize();
+      return !Synthesize();
     case Action::Global:
-      return GlobalPlacement();
+      return !GlobalPlacement();
+    case Action::Detailed:
+      return !Placement();
+    case Action::Routing:
+      return !Route();
+    case Action::STA:
+      return !TimingAnalysis();
+    case Action::Bitstream:
+      return !GenerateBitstream();
     case Action::Batch:
-      return RunBatch();
+      return !RunBatch();
     default:
       break;
   }
@@ -338,10 +532,66 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
   }
 }
 
-bool Compiler::Placement() { return true; }
+bool Compiler::Placement() {
+  if (m_design == nullptr) {
+    m_out << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
 
-bool Compiler::Route() { return true; }
+bool Compiler::Route() {
+  if (m_design == nullptr) {
+    m_out << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
 
-bool Compiler::TimingAnalysis() { return true; }
+bool Compiler::TimingAnalysis() {
+  if (m_design == nullptr) {
+    m_out << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
 
-bool Compiler::GenerateBitstream() { return true; }
+bool Compiler::GenerateBitstream() {
+  if (m_design == nullptr) {
+    m_out << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool Compiler::SetActiveDesign(const std::string name) {
+  for (Design* design : m_designs) {
+    if (design->Name() == name) {
+      m_design = design;
+      return true;
+    }
+  }
+  return false;
+}
+
+Design* Compiler::GetDesign(const std::string name) {
+  for (Design* design : m_designs) {
+    if (design->Name() == name) {
+      return design;
+    }
+  }
+  return nullptr;
+}
+
+bool Compiler::ExecuteSystemCommand(const std::string& command) {
+#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+  // TODO: Windows System call
+#else
+  int result = system(command.c_str());
+  if (result == 0) {
+    return true;
+  }
+#endif
+
+  return false;
+}
