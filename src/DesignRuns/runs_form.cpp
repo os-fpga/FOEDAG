@@ -4,11 +4,15 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include "Compiler/Compiler.h"
+#include "Compiler/TclInterpreterHandler.h"
+#include "Compiler/WorkerThread.h"
 #include "create_runs_dialog.h"
 
 using namespace FOEDAG;
 
-RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
+RunsForm::RunsForm(std::ostream &out, QWidget *parent)
+    : QWidget(parent), m_out(out) {
   m_treeRuns = new QTreeWidget(this);
   m_treeRuns->setSelectionMode(
       QAbstractItemView::SelectionMode::SingleSelection);
@@ -22,12 +26,23 @@ RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
   CreateActions();
 
   m_projManager = new ProjectManager(this);
-  m_projManager->StartProject(strProPath);
 
   UpdateDesignRunsTree();
 
   connect(m_treeRuns, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
+}
+
+void RunsForm::InitRunsForm(const QString &strFile) {
+  m_projManager->StartProject(strFile);
+
+  UpdateDesignRunsTree();
+}
+
+void RunsForm::setCompiler(TclInterpreter *interp,
+                           TclInterpreterHandler *tclInterpreterHandler) {
+  m_interp = interp;
+  m_tclInterpreterHandler = tclInterpreterHandler;
 }
 
 void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
@@ -94,7 +109,30 @@ void RunsForm::SlotMakeActive() {
   }
 }
 
-void RunsForm::SlotLaunchRuns() {}
+void RunsForm::SlotLaunchRuns() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = item->text(0);
+  if (strRunName.contains(RUNS_TREE_ACTIVE)) {
+    m_interp->evalCmd("synth");
+
+  } else {
+    Compiler *compiler = new Compiler(m_interp, m_out, m_tclInterpreterHandler);
+    std::string name = strRunName.toStdString();
+    Design *design = new Design(name);
+    compiler->SetDesign(design);
+    WorkerThread *wthread =
+        new WorkerThread("synth_th", Compiler::Action::Synthesis, compiler);
+    wthread->start();
+  }
+  item->setIcon(0, QIcon(":/loading.png"));
+  item->setText(3, tr("Running..."));
+}
 
 void RunsForm::SlotReSetRuns() {}
 
@@ -110,6 +148,7 @@ void RunsForm::CreateActions() {
   connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotMakeActive()));
 
   m_actLaunchRuns = new QAction(tr("Launch Runs"), m_treeRuns);
+  m_actLaunchRuns->setIcon(QIcon(":/images/play.png"));
   connect(m_actLaunchRuns, SIGNAL(triggered()), this, SLOT(SlotLaunchRuns()));
 
   m_actResetRuns = new QAction(tr("Reset Runs"), m_treeRuns);
@@ -174,6 +213,8 @@ void RunsForm::UpdateDesignRunsTree() {
     } else {
       itemSynth->setText(0, strSynthName);
     }
+    itemSynth->setIcon(0, QIcon(":/images/play.png"));
+
     itemSynth->setText(3, RUNS_TREE_STATUS);
 
     // Start creating the implementation view
@@ -200,6 +241,7 @@ void RunsForm::UpdateDesignRunsTree() {
       } else {
         itemImple->setText(0, strImpleName);
       }
+      itemImple->setIcon(0, QIcon(":/images/play.png"));
 
       itemImple->setText(3, RUNS_TREE_STATUS);
     }
