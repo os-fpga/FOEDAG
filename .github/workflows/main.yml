@@ -349,7 +349,6 @@ jobs:
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
--qt-action@v2
 
     - run: git config --global core.autocrlf input
       shell: bash
@@ -565,6 +564,62 @@ jobs:
 
     - name: Install dependencies
       uses: jurplel/install-qt-action@v2
+jurplel/install-qt-action@v2
+
+    - name: Use ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: macos-gcc
+
+    - name: Configure shell
+      run: |
+        echo 'CC=gcc-9' >> $GITHUB_ENV
+        echo 'CXX=g++-9' >> $GITHUB_ENV
+        echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
+        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
+
+    - name: Show shell configuration
+      run: |
+        env
+        which cmake && cmake --version
+        which make && make --version
+        which swig && swig -version
+        which python && python --version
+        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
+        which $CC && $CC --version
+        which $CXX && $CXX --version
+
+    - name: Build
+      run: |
+        make release
+        make install
+
+    - name: Unit tests
+      run: |
+        make test_install
+
+    - name: Regression tests
+      run: |
+        make regression
+
+  macos-clang:
+    runs-on: macos-latest
+
+    steps:
+
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.9.1
+      with:
+        access_token: ${{ github.token }}
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      uses: jurplel/install-qt-action@v2
+      with:
+        setup-python: false
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1
