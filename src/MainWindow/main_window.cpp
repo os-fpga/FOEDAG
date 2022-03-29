@@ -253,10 +253,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &TextEditor::SlotOpenFile);
   console->addParser(new DummyParser{});
 
-  // Register fake compiler until openFPGA gets available
-  std::string design("Some cool design");
-  m_compiler = new Compiler{m_interpreter, new Design(design),
-                            buffer->getStream(), new CompilerNotifier{c}};
+  m_compiler =
+      new Compiler{m_interpreter, buffer->getStream(), new CompilerNotifier{c}};
   m_compiler->RegisterCommands(m_interpreter, false);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);

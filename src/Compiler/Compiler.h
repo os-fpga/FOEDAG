@@ -46,7 +46,7 @@ class Compiler {
     Detailed,
     Routing,
     STA,
-    Bitream,
+    Bitstream,
     Batch
   };
   enum State {
@@ -59,7 +59,7 @@ class Compiler {
     BistreamGenerated
   };
 
-  Compiler(TclInterpreter* interp, Design* design, std::ostream& out,
+  Compiler(TclInterpreter* interp, std::ostream& out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
 
   ~Compiler();
@@ -68,7 +68,13 @@ class Compiler {
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  Design* GetDesign() { return m_design; }
+  Design* GetActiveDesign() { return m_design; }
+  Design* GetDesign(const std::string name);
+  void SetDesign(Design* design) {
+    m_design = design;
+    m_designs.push_back(design);
+  }
+  bool SetActiveDesign(const std::string name);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -87,6 +93,8 @@ class Compiler {
   virtual bool GenerateBitstream();
   virtual bool RunBatch();
   bool RunCompileTask(Action action);
+  virtual bool ExecuteSystemCommand(const std::string& command);
+  void Message(const std::string& message) { m_out << message << std::flush; }
 
  private:
   TclInterpreter* m_interp = nullptr;
@@ -98,6 +106,7 @@ class Compiler {
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler;
   TaskManager* m_taskManager{nullptr};
+  std::vector<Design*> m_designs;
 };
 
 }  // namespace FOEDAG
