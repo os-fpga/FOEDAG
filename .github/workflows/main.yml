@@ -409,139 +409,7 @@ jobs:
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
 
-  macos-gcc:
-    runs-on: macos-latest
 
-    steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
-
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: macos-gcc
-
-    - name: Configure shell
-      run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
-        echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
-
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which swig && swig -version
-        which python && python --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which $CC && $CC --version
-        which $CXX && $CXX --version
-
-    - name: Build
-      run: |
-        make release
-        make install
-
-    - name: Unit tests
-      run: |
-        make test_install
-
-    - name: Regression tests
-      run: |
-        make regression
-
-  macos-clang:
-    runs-on: macos-latest
-
-    steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
-
-    - run: git config --global core.autocrlf input
-      shell: bash
-
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: Build & Test
-      run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-
-        set CMAKE_GENERATOR=Ninja
-        set CC=cl
-        set CXX=cl
-        set NO_TCMALLOC=On
-        set PREFIX=%GITHUB_WORKSPACE%\install
-        set CPU_CORES=%NUMBER_OF_PROCESSORS%
-
-        set MAKE_DIR=C:\make\bin
-        #set TCL_DIR=%PROGRAMFILES%\Git\mingw64\bin
-        set SWIG_DIR=%PROGRMDATA%\chocolatey\lib\swig\tools\install\swigwin-3.0.12
-        set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%PATH%
-        #set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%TCL_DIR%;%PATH%
-
-        set
-        where cmake && cmake --version
-        where make && make --version
-        where swig && swig -version
-        where python && python --version
-        where ninja && ninja --version
-
-        make release
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        make install
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        make test/unittest
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        make test_install
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        make regression
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        make test/batch
-
-    - name: Archive build artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: foedag-windows-msvc
-        path: ${{ github.workspace }}/install
-
-    - name: Archive regression artifacts
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: foedag-windows-msvc-regression
-        path: |
-          ${{ github.workspace }}/build/test/
-          ${{ github.workspace }}/build/tests/
 
   macos-gcc:
     runs-on: macos-latest
@@ -561,60 +429,6 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
-jurplel/install-qt-action@v2
-
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: macos-gcc
-
-    - name: Configure shell
-      run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
-        echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
-
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which swig && swig -version
-        which python && python --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which $CC && $CC --version
-        which $CXX && $CXX --version
-
-    - name: Build
-      run: |
-        make release
-        make install
-
-    - name: Unit tests
-      run: |
-        make test_install
-
-    - name: Regression tests
-      run: |
-        make regression
-
-  macos-clang:
-    runs-on: macos-latest
-
-    steps:
-
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
 
     - name: Install dependencies
       uses: jurplel/install-qt-action@v2
@@ -656,6 +470,7 @@ jurplel/install-qt-action@v2
     - name: Regression tests
       run: |
         make regression
+
 
   macos-clang:
     runs-on: macos-latest
