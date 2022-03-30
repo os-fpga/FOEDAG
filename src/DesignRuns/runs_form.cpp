@@ -1,15 +1,22 @@
 #include "runs_form.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QMenu>
+#include <QProcess>
 #include <QTextStream>
+#include <QTime>
 #include <QVBoxLayout>
 
+#include "MainWindow/Session.h"
 #include "create_runs_dialog.h"
 
 using namespace FOEDAG;
 
-RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
+RunsForm::RunsForm(QWidget *parent) : QWidget(parent) {
   m_treeRuns = new QTreeWidget(this);
+  m_treeRuns->setObjectName("m_treeRuns");
   m_treeRuns->setSelectionMode(
       QAbstractItemView::SelectionMode::SingleSelection);
 
@@ -22,13 +29,20 @@ RunsForm::RunsForm(QString strProPath, QWidget *parent) : QWidget(parent) {
   CreateActions();
 
   m_projManager = new ProjectManager(this);
-  m_projManager->StartProject(strProPath);
 
   UpdateDesignRunsTree();
 
   connect(m_treeRuns, SIGNAL(itemPressed(QTreeWidgetItem *, int)), this,
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
 }
+
+void RunsForm::InitRunsForm(const QString &strFile) {
+  m_projManager->StartProject(strFile);
+
+  UpdateDesignRunsTree();
+}
+
+void RunsForm::RegisterCommands(Session *session) { m_session = session; }
 
 void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);
@@ -38,8 +52,8 @@ void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     menu->addAction(m_actMakeActive);
     menu->addAction(m_actLaunchRuns);
     menu->addAction(m_actResetRuns);
-    menu->addAction(m_actCreateSynthRuns);
-    menu->addAction(m_actCreateImpleRuns);
+    menu->addAction(m_actCreateRuns);
+    menu->addAction(m_actOpenRunDir);
     QString strName = item->text(0);
     if (strName.contains(RUNS_TREE_ACTIVE)) {
       m_actDelete->setEnabled(false);
@@ -50,14 +64,17 @@ void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     }
     QString strStatus = item->text(3);
     if (strStatus == RUNS_TREE_STATUS) {
-      m_actResetRuns->setEnabled(false);
+      m_actResetRuns->setEnabled(true);
     } else {
       m_actResetRuns->setEnabled(true);
     }
     QPoint p = QCursor::pos();
     menu->exec(QPoint(p.rx(), p.ry() + 3));
+    menu->deleteLater();
   }
 }
+
+void RunsForm::SlotRefreshRuns() { UpdateDesignRunsTree(); }
 
 void RunsForm::SlotDelete() {
   if (m_treeRuns == nullptr) {
@@ -67,7 +84,7 @@ void RunsForm::SlotDelete() {
   if (item == nullptr) {
     return;
   }
-  QString strRunName = item->text(0);
+  QString strRunName = (item->data(0, SaveDataRole)).toString();
 
   int ret = m_projManager->deleteRun(strRunName);
   if (0 == ret) {
@@ -85,22 +102,74 @@ void RunsForm::SlotMakeActive() {
     return;
   }
 
-  QString strRunName = item->text(0);
+  QString strRunName = (item->data(0, SaveDataRole)).toString();
 
   int ret = m_projManager->setRunActive(strRunName);
   if (0 == ret) {
     UpdateDesignRunsTree();
     m_projManager->FinishedProject();
   }
+  if (m_session) {
+    std::string name = strRunName.toStdString();
+    Design *ds = new Design(name);
+    m_session->GetCompiler()->SetDesign(ds);
+  }
 }
 
-void RunsForm::SlotLaunchRuns() {}
+void RunsForm::SlotLaunchRuns() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = (item->data(0, SaveDataRole)).toString();
+  // To do
 
-void RunsForm::SlotReSetRuns() {}
+  item->setIcon(0, QIcon(":/loading.png"));
+  item->setText(3, tr("Running..."));
+}
 
-void RunsForm::SlotCreateSynthRuns() { CreateRuns(RT_SYNTH); }
+void RunsForm::SlotReSetRuns() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = (item->data(0, SaveDataRole)).toString();
 
-void RunsForm::SlotCreateImpleRuns() { CreateRuns(RT_IMPLE); }
+  QString strProPath = m_projManager->getProjectPath();
+  QString strProName = m_projManager->getProjectName();
+  QString strImplePath = strProPath + "/" + strProName + ".runs/" + strRunName;
+  RemoveFolderContent(strImplePath);
+}
+
+void RunsForm::SlotCreateRuns() {
+  CreateRunsDialog *createRunsDlg = new CreateRunsDialog(this);
+  connect(createRunsDlg, SIGNAL(RefreshRuns()), this, SLOT(SlotRefreshRuns()));
+  createRunsDlg->exec();
+  createRunsDlg->close();
+  disconnect(createRunsDlg, SIGNAL(RefreshRuns()), this,
+             SLOT(SlotRefreshRuns()));
+}
+
+void RunsForm::SlotOpenRunDir() {
+  if (m_treeRuns == nullptr) {
+    return;
+  }
+  QTreeWidgetItem *item = m_treeRuns->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString strRunName = (item->data(0, SaveDataRole)).toString();
+  QString strProPath = m_projManager->getProjectPath();
+  QString strProName = m_projManager->getProjectName();
+  QString strPath = strProPath + "/" + strProName + ".runs/" + strRunName + "/";
+  // QProcess::startDetached("nautilus " + strPath);
+}
 
 void RunsForm::CreateActions() {
   m_actDelete = new QAction(tr("Delete"), m_treeRuns);
@@ -110,18 +179,18 @@ void RunsForm::CreateActions() {
   connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotMakeActive()));
 
   m_actLaunchRuns = new QAction(tr("Launch Runs"), m_treeRuns);
+  m_actLaunchRuns->setIcon(QIcon(":/images/play.png"));
   connect(m_actLaunchRuns, SIGNAL(triggered()), this, SLOT(SlotLaunchRuns()));
 
   m_actResetRuns = new QAction(tr("Reset Runs"), m_treeRuns);
   connect(m_actResetRuns, SIGNAL(triggered()), this, SLOT(SlotReSetRuns()));
 
-  m_actCreateSynthRuns = new QAction(tr("Create Synthesis"), m_treeRuns);
-  connect(m_actCreateSynthRuns, SIGNAL(triggered()), this,
-          SLOT(SlotCreateSynthRuns()));
+  m_actCreateRuns = new QAction(tr("Create Runs"), m_treeRuns);
+  m_actCreateRuns->setIcon(QIcon(":/images/add.png"));
+  connect(m_actCreateRuns, SIGNAL(triggered()), this, SLOT(SlotCreateRuns()));
 
-  m_actCreateImpleRuns = new QAction(tr("Create Implement"), m_treeRuns);
-  connect(m_actCreateImpleRuns, SIGNAL(triggered()), this,
-          SLOT(SlotCreateImpleRuns()));
+  m_actOpenRunDir = new QAction(tr("Open Directory"), m_treeRuns);
+  connect(m_actOpenRunDir, SIGNAL(triggered()), this, SLOT(SlotOpenRunDir()));
 }
 
 void RunsForm::UpdateDesignRunsTree() {
@@ -131,9 +200,9 @@ void RunsForm::UpdateDesignRunsTree() {
 
   m_treeRuns->clear();
   QStringList strList;
-  strList << "Name"
-          << "Sources"
-          << "Constraints"
+  strList << "Design Name"
+          << "Sources set"
+          << "Constraints set"
           << "Status"
           << "Device"
           << "Start"
@@ -145,6 +214,7 @@ void RunsForm::UpdateDesignRunsTree() {
           << "DSP"
           << "CLBs";
   m_treeRuns->setHeaderLabels(strList);
+  m_treeRuns->setColumnWidth(0, 200);
 
   // gets all run names of type synth
   QStringList listSynthRunNames = m_projManager->getSynthRunsNames();
@@ -174,6 +244,9 @@ void RunsForm::UpdateDesignRunsTree() {
     } else {
       itemSynth->setText(0, strSynthName);
     }
+    itemSynth->setIcon(0, QIcon(":/images/play.png"));
+    itemSynth->setData(0, SaveDataRole, strSynthName);
+
     itemSynth->setText(3, RUNS_TREE_STATUS);
 
     // Start creating the implementation view
@@ -200,6 +273,8 @@ void RunsForm::UpdateDesignRunsTree() {
       } else {
         itemImple->setText(0, strImpleName);
       }
+      itemImple->setIcon(0, QIcon(":/images/play.png"));
+      itemSynth->setData(0, SaveDataRole, strSynthName);
 
       itemImple->setText(3, RUNS_TREE_STATUS);
     }
@@ -207,31 +282,43 @@ void RunsForm::UpdateDesignRunsTree() {
   m_treeRuns->expandAll();
 }
 
-void RunsForm::CreateRuns(int type) {
-  CreateRunsDialog *createRunsDlg = new CreateRunsDialog(this);
-  createRunsDlg->InitDialog(type);
-  if (createRunsDlg->exec()) {
-    QList<rundata> listRun = createRunsDlg->getRunDataList();
-    if (listRun.size()) {
-      foreach (auto rd, listRun) {
-        if (rd.m_iRunType == RT_SYNTH) {
-          m_projManager->setSynthRun(rd.m_runName);
-          QList<QPair<QString, QString>> listParam;
-          QPair<QString, QString> pair;
-          pair.first = PROJECT_PART_DEVICE;
-          pair.second = rd.m_device;
-          listParam.append(pair);
-          m_projManager->setSynthesisOption(listParam);
+void RunsForm::RemoveFolderContent(const QString &folderDir) {
+  QDir dir(folderDir);
+  QFileInfoList fileList;
+  QFileInfo curFile;
+  if (!dir.exists()) {
+    return;
+  }
+  fileList = dir.entryInfoList(QDir::Dirs | QDir::Files | QDir::Readable |
+                                   QDir::Writable | QDir::Hidden |
+                                   QDir::NoDotAndDotDot,
+                               QDir::Name);
+  while (fileList.size() > 0) {
+    int infoNum = fileList.size();
+    for (int i = infoNum - 1; i >= 0; i--) {
+      curFile = fileList[i];
+      if (curFile.isFile()) {
+        QFile fileTemp(curFile.filePath());
+        fileTemp.remove();
+        fileList.removeAt(i);
+      }
+      if (curFile.isDir()) {
+        QDir dirTemp(curFile.filePath());
+        QFileInfoList fileList1 = dirTemp.entryInfoList(
+            QDir::Dirs | QDir::Files | QDir::Readable | QDir::Writable |
+                QDir::Hidden | QDir::NoDotAndDotDot,
+            QDir::Name);
+        if (fileList1.size() == 0) {
+          dirTemp.rmdir(".");
+          fileList.removeAt(i);
         } else {
-          m_projManager->setImpleRun(rd.m_runName);
-          m_projManager->setRunSynthRun(rd.m_synthName);
+          for (int j = 0; j < fileList1.size(); j++) {
+            if (!(fileList.contains(fileList1[j])))
+              fileList.append(fileList1[j]);
+          }
         }
-        m_projManager->setRunSrcSet(rd.m_srcSet);
-        m_projManager->setRunConstrSet(rd.m_constrSet);
       }
     }
-    UpdateDesignRunsTree();
-    m_projManager->FinishedProject();
   }
-  createRunsDlg->close();
+  return;
 }

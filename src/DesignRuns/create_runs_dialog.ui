@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
    <property name="spacing">
-    <number>10</number>
+    <number>0</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -30,17 +30,10 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0">
-     <property name="spacing">
-      <number>15</number>
-     </property>
-     <property name="leftMargin">
-      <number>10</number>
-     </property>
-     <item>
-      <widget class="QWidget" name="m_widgetForm" native="true"/>
-     </item>
-    </layout>
+    <widget class="QStackedWidget" name="m_stackedWidget">
+     <widget class="QWidget" name="page"/>
+     <widget class="QWidget" name="page_2"/>
+    </widget>
    </item>
    <item>
     <widget class="QWidget" name="m_widget_bottom" native="true">
@@ -49,7 +42,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,10,10">
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,10,10,10">
         <property name="spacing">
          <number>15</number>
         </property>
@@ -71,6 +64,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btnBack">
+          <property name="text">
+           <string>back</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="m_btnOK">

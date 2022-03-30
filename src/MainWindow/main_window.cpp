@@ -216,11 +216,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 
-  QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
-  runDockWidget->setObjectName("sourcedockwidget");
-  RunsForm* runForm = new RunsForm(strProject, this);
-  runDockWidget->setWidget(runForm);
-
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
@@ -261,6 +256,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
+
+  QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
+  runDockWidget->setObjectName("sourcedockwidget");
+  RunsForm* runForm = new RunsForm(this);
+  runForm->InitRunsForm(strProject);
+  runForm->RegisterCommands(GlobalSession);
+  runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 
   // compiler task view

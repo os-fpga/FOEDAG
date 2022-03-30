@@ -14,20 +14,28 @@
 
 namespace FOEDAG {
 
+static constexpr uint SaveDataRole = Qt::UserRole + 1;
+
+class Session;
+
 class RunsForm : public QWidget {
   Q_OBJECT
  public:
-  explicit RunsForm(QString strProPath, QWidget* parent = nullptr);
+  explicit RunsForm(QWidget* parent = nullptr);
+
+  void InitRunsForm(const QString& strFile);
+  void RegisterCommands(Session* session);
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
 
+  void SlotRefreshRuns();
   void SlotDelete();
   void SlotMakeActive();
   void SlotLaunchRuns();
   void SlotReSetRuns();
-  void SlotCreateSynthRuns();
-  void SlotCreateImpleRuns();
+  void SlotCreateRuns();
+  void SlotOpenRunDir();
 
  signals:
 
@@ -38,14 +46,16 @@ class RunsForm : public QWidget {
   QAction* m_actMakeActive;
   QAction* m_actLaunchRuns;
   QAction* m_actResetRuns;
-  QAction* m_actCreateSynthRuns;
-  QAction* m_actCreateImpleRuns;
+  QAction* m_actCreateRuns;
+  QAction* m_actOpenRunDir;
 
   ProjectManager* m_projManager;
+  Session* m_session = nullptr;
 
   void CreateActions();
   void UpdateDesignRunsTree();
-  void CreateRuns(int type);
+
+  void RemoveFolderContent(const QString& strPath);
 };
 }  // namespace FOEDAG
 #endif  // RUNSFORM_H

@@ -91,6 +91,8 @@ void sourceGrid::setGridType(GridType type) {
   m_type = type;
   if (GT_CONSTRAINTS == m_type) {
     m_btnAddDri->setVisible(false);
+  } else {
+    m_btnAddDri->setVisible(true);
   }
 }
 
