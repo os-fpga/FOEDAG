@@ -16,7 +16,7 @@ AddFileForm::AddFileForm(QWidget *parent)
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetGrid);
-  box->setContentsMargins(0, 0, 0, 1);
+  box->setContentsMargins(0, 0, 0, 0);
   box->setSpacing(0);
   ui->m_frame->setLayout(box);
 

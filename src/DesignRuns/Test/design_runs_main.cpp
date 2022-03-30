@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 
+#include "Console/StreamBuffer.h"
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
@@ -28,12 +29,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "tclutils/TclUtils.h"
 
 QWidget* DesignRunsBuilder(FOEDAG::Session* session) {
-  Q_UNUSED(session);
+  FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm();
   if (session->CmdLine()->Argc() > 2) {
-    return new FOEDAG::RunsForm(session->CmdLine()->Argv()[2]);
-  } else {
-    return new FOEDAG::RunsForm("/testproject");
+    runForm->InitRunsForm(session->CmdLine()->Argv()[2]);
   }
+  return runForm;
 }
 
 void registerDesignRunsCommands(QWidget* widget, FOEDAG::Session* session) {

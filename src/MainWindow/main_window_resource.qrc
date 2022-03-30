@@ -4,5 +4,6 @@
         <file>images/open-file.png</file>
         <file>images/play.png</file>
         <file>images/stop.png</file>
+        <file>images/add.png</file>
     </qresource>
 </RCC>

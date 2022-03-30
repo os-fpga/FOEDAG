@@ -42,9 +42,18 @@ QString DevicePlannerDialog::getSelectedDevice() {
   return strDevice;
 }
 
-void FOEDAG::DevicePlannerDialog::on_m_btnOK_clicked() {
+QString DevicePlannerDialog::getSelectedPackage() {
+  QStringList strlist = m_deviceForm->getSelectedDevice();
+  QString strPackage = "";
+  if (strlist.count() > 2) {
+    strPackage = strlist.at(2);
+  }
+  return strPackage;
+}
+
+void DevicePlannerDialog::on_m_btnOK_clicked() {
   this->setResult(1);
   this->hide();
 }
 
-void FOEDAG::DevicePlannerDialog::on_m_btnCancel_clicked() { this->hide(); }
+void DevicePlannerDialog::on_m_btnCancel_clicked() { this->hide(); }

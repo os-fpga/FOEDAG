@@ -19,6 +19,7 @@ class DevicePlannerDialog : public QDialog {
   ~DevicePlannerDialog();
 
   QString getSelectedDevice();
+  QString getSelectedPackage();
 
  private slots:
   void on_m_btnCancel_clicked();

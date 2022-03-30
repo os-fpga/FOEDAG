@@ -19,7 +19,10 @@ class CreateRunsForm : public QWidget {
   ~CreateRunsForm();
 
   void InitForm(int itype);
-  QList<rundata> getRunDataList();
+  void setNewSynth(const QStringList &listNewSynth);
+  QList<rundata> getRunDataList() const;
+  int getRunDataSize() const;
+  void ClearData();
 
  private slots:
   void SlotGridRowsChanged();

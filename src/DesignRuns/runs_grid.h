@@ -30,7 +30,10 @@ class RunsGrid : public QWidget {
  public:
   explicit RunsGrid(RunsType type, QWidget *parent = nullptr);
 
+  void setNewSynth(const QStringList &listNewSynth);
   QList<rundata> getRunDataList();
+  int getRunDataSize();
+  void ClearGrid();
  signals:
   void RowsChanged();
 

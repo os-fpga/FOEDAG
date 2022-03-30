@@ -423,6 +423,7 @@ void SourcesForm::CreateActions() {
           SLOT(SlotCreateSimSet()));
 
   m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
+  m_actAddFile->setIcon(QIcon(":/images/add.png"));
   connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));
 
   m_actOpenFile = new QAction(tr("Open File"), m_treeSrcHierachy);

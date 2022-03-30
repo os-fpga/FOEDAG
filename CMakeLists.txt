@@ -263,6 +263,7 @@ else()
 endif()
 add_dependencies(foedagcore qscintilla2_qt)
 add_dependencies(texteditor qscintilla2_qt tcl_build)
+add_dependencies(designruns tcl_build)
 
 add_dependencies(tcl_static tcl_build)
 add_dependencies(foedag-bin tcl_build)

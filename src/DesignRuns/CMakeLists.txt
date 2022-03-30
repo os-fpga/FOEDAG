@@ -15,7 +15,9 @@ endif()
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(
+  ${PROJECT_SOURCE_DIR}/../../src
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
@@ -23,6 +25,8 @@ set (SRC_CPP_LIST
  runs_form.cpp
  create_runs_dialog.cpp
  create_runs_form.cpp
+ select_design_type_form.cpp
+ runs_summary_form.cpp
  runs_grid.cpp
  runs_grid_delegate.cpp
  device_planner_dialog.cpp)
@@ -31,6 +35,8 @@ set (SRC_H_LIST
  runs_form.h
  create_runs_dialog.h
  create_runs_form.h
+ select_design_type_form.h
+ runs_summary_form.h
  runs_grid.h
  runs_grid_delegate.h
  device_planner_dialog.h)
@@ -38,7 +44,9 @@ set (SRC_H_LIST
 set (SRC_UI_LIST
  create_runs_dialog.ui
  create_runs_form.ui
- device_planner_dialog.ui)
+ device_planner_dialog.ui
+ select_design_type_form.ui
+ runs_summary_form.ui)
 
 add_library(designruns STATIC
   ${SRC_CPP_LIST}
@@ -60,6 +68,11 @@ install (
 
 install(
     FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/runs_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/create_runs_dialog.h
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/create_runs_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/runs_grid.h
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/runs_grid_delegate.h
+    FILES ${PROJECT_SOURCE_DIR}/../DesignRuns/device_planner_dialog.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/DesignRuns)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
