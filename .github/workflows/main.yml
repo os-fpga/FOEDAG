@@ -77,6 +77,7 @@ jobs:
         make debug test/unittest-d
         make release test/batch
         make test/gui
+        make test/openfpga
 
     - name: Regression
       if: matrix.mode == 'regression'
