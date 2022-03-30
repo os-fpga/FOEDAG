@@ -32,13 +32,14 @@ class QLabel;
 
 namespace FOEDAG {
 
+class Session;
 class TclInterpreter;
 /** Main window of the program */
 class MainWindow : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
 
  public: /*-- Constructor --*/
-  MainWindow(TclInterpreter* interp);
+  MainWindow(Session* session);
 
   void Tcl_NewProject(int argc, const char* argv[]);
   newProjectDialog* NewProjectDialog() { return newProjdialog; }
@@ -73,7 +74,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
   QToolBar* debugToolBar = nullptr;
-
+  Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
   std::string mainWindowName = "FOEDAG";
   class TaskManager* m_taskManager{nullptr};

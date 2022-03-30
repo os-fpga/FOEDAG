@@ -27,12 +27,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 #include "tclutils/TclUtils.h"
 
-QWidget* proNavigatorBuilder(FOEDAG::CommandLine* cmd,
-                             FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(interp);
+QWidget* proNavigatorBuilder(FOEDAG::Session* session) {
   FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm();
-  if (cmd->Argc() > 2) {
-    srcForm->InitSourcesForm(cmd->Argv()[2]);
+  if (session->CmdLine()->Argc() > 2) {
+    srcForm->InitSourcesForm(session->CmdLine()->Argv()[2]);
   }
   return srcForm;
 }
@@ -49,15 +47,13 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerProjNavigatorCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag = new FOEDAG::Foedag(cmd, proNavigatorBuilder,
-                                                registerProjNavigatorCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+
+  FOEDAG::GUI_TYPE guiType =
+      FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
+
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, proNavigatorBuilder, registerProjNavigatorCommands, compiler);
+
+  return foedag->init(guiType);
 }
