@@ -55,8 +55,8 @@ bool CompilerOpenFPGA::Synthesize() {
    synth -flatten -top <TOP_MODULE>
    abc -lut 6
    opt_clean
-   write_verilog openfpga_synth_out.v
-   write_blif openfpga_synth_out.blif
+   write_verilog <NETLIST_NAME>.v
+   write_blif <NETLIST_NAME>.blif
    stat
   )";
   std::string fileList;
@@ -66,10 +66,12 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string yosysScript = basicYosysScript;
   yosysScript = replaceAll(yosysScript, "<FILE_LIST>", fileList);
   yosysScript = replaceAll(yosysScript, "<TOP_MODULE>", m_design->TopLevel());
-  std::ofstream ofs("openfpga.ys");
+  yosysScript = replaceAll(yosysScript, "<NETLIST_NAME>", "foedag_post_synth");
+  std::ofstream ofs("foedag.ys");
   ofs << yosysScript;
   ofs.close();
-  ExecuteAndMonitorSystemCommand("./yosys -s openfpga.ys");
+  std::string command = m_yosysExecutablePath.string() + " -s foedag.ys";
+  ExecuteAndMonitorSystemCommand(command);
 
   m_state = State::Synthesized;
   (*m_out) << "Design " << m_design->Name() << " is synthesized!" << std::endl;

@@ -324,9 +324,9 @@ bool Foedag::initBatch() {
   // Tcl_AppInit
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
-    if (!GlobalSession->CmdLine()->Script().empty()) {
-      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
-    }
+ //   if (!GlobalSession->CmdLine()->Script().empty()) {
+  //    Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+  //  }
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
       Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "Compiler/Compiler.h"
 
@@ -33,7 +34,7 @@ namespace FOEDAG {
 class CompilerOpenFPGA : public Compiler {
  public:
   CompilerOpenFPGA();
-
+  void setYosysExecPath(const std::filesystem::path& path) { m_yosysExecutablePath = path; }
   ~CompilerOpenFPGA();
 
  protected:
@@ -46,6 +47,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool GenerateBitstream();
 
  private:
+ std::filesystem::path m_yosysExecutablePath = "yosys";
 };
 
 }  // namespace FOEDAG

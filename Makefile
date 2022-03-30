@@ -112,6 +112,8 @@ test-parallel: release test/unittest
 #	cmake -S build/test -B build/test/build
 #	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
 
+test/openfpga: run-cmake-release
+	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/raygentop/raygentop.tcl
 
 regression: release
 	cmake -E make_directory build/tests

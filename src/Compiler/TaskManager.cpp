@@ -34,7 +34,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(PLACEMENT_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
-  m_tasks.insert(ROUTING, new Task{"Rounting"});
+  m_tasks.insert(ROUTING, new Task{"Routing"});
   m_tasks.insert(ROUTING_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing sign off"});

@@ -37,10 +37,11 @@ int main(int argc, char** argv) {
   FOEDAG::GUI_TYPE guiType =
       FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
-  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
-
-  // WIP:
-  // FOEDAG::Compiler* compiler = new FOEDAG::CompilerOpenFPGA();
+  FOEDAG::Compiler* compiler = nullptr;
+  if (cmd->CompilerName() == "openfpga")
+    compiler = new FOEDAG::CompilerOpenFPGA();
+  else 
+    compiler = new FOEDAG::Compiler();
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);

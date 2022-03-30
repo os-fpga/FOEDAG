@@ -37,10 +37,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 class TclInterpreterHandler;
+class Session;
 class Compiler {
  public:
   enum Action {
     NoAction,
+    IPGen,
     Synthesis,
     Global,
     Detailed,
@@ -52,6 +54,7 @@ class Compiler {
   };
   enum State {
     None,
+    IPGenerated,
     Synthesized,
     GloballyPlaced,
     Placed,
@@ -70,6 +73,8 @@ class Compiler {
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler) {
     m_tclInterpreterHandler = nullptr;
   }
+  void SetSession(Session* session) { m_session = session; }
+  Session* GetSession() { return m_session; }
   ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
@@ -92,6 +97,7 @@ class Compiler {
 
  protected:
   /* Methods that can be customized for each new compiler flow */
+  virtual bool IPGenerate();
   virtual bool Synthesize();
   virtual bool GlobalPlacement();
   virtual bool Placement();
@@ -106,11 +112,13 @@ class Compiler {
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
   void Message(const std::string& message) {
+    //m_interp->evalCmd("puts " + message + "; flush stdout; ");
     if (m_out) (*m_out) << message << std::flush;
   }
   std::string replaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   TclInterpreter* m_interp = nullptr;
+  Session* m_session = nullptr;
   Design* m_design = nullptr;
   bool m_stop = false;
   State m_state = None;

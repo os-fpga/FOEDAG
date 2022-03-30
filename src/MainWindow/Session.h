@@ -49,7 +49,9 @@ class Session {
         m_stack(stack),
         m_cmdLine(cmdLine),
         m_context(context),
-        m_compiler(compiler) {}
+        m_compiler(compiler) {
+    m_compiler->SetSession(this);
+  }
 
   ~Session();
   void MainWindow(QWidget *window) { m_mainWindow = window; }
