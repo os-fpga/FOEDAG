@@ -46,6 +46,7 @@ class Compiler {
     Detailed,
     Routing,
     STA,
+    Power,
     Bitstream,
     Batch
   };
@@ -56,13 +57,21 @@ class Compiler {
     Placed,
     Routed,
     TimingAnalyzed,
+    PowerAnalyzed,
     BistreamGenerated
   };
+  // Most common use case, create the compiler in your main
+  Compiler() {}
 
-  Compiler(TclInterpreter* interp, std::ostream& out,
+  Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
-
+  void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
+  void SetOutStream(std::ostream* out) { m_out = out; };
+  void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler) {
+    m_tclInterpreterHandler = nullptr;
+  }
   ~Compiler();
+
   void BatchScript(const std::string& script) { m_batchScript = script; }
   State CompilerState() { return m_state; }
   bool Compile(Action action);
@@ -82,26 +91,33 @@ class Compiler {
   void setTaskManager(TaskManager* newTaskManager);
 
  protected:
+  /* Methods that can be customized for each new compiler flow */
   virtual bool Synthesize();
   virtual bool GlobalPlacement();
   virtual bool Placement();
   virtual bool Route();
   virtual bool TimingAnalysis();
+  virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-  virtual bool RunBatch();
+
+  /* Compiler class utilities */
+  bool RunBatch();
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
-  void Message(const std::string& message) { m_out << message << std::flush; }
-
- private:
+  virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
+  void Message(const std::string& message) {
+    if (m_out) (*m_out) << message << std::flush;
+  }
+  std::string replaceAll(std::string_view str, std::string_view from,
+                         std::string_view to);
   TclInterpreter* m_interp = nullptr;
   Design* m_design = nullptr;
   bool m_stop = false;
   State m_state = None;
-  std::ostream& m_out;
+  std::ostream* m_out = &std::cout;
   std::string m_batchScript;
   std::string m_result;
-  TclInterpreterHandler* m_tclInterpreterHandler;
+  TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
   std::vector<Design*> m_designs;
 };

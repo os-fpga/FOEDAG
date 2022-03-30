@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtWidgets>
 #include <fstream>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/TaskManager.h"
 #include "Console/DummyParser.h"
@@ -34,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -42,11 +44,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-MainWindow::MainWindow(TclInterpreter* interp) : m_interpreter(interp) {
+MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
   resize(350, 250);
-
+  m_compiler = session->GetCompiler();
+  m_interpreter = session->TclInterp();
   QDesktopWidget dw;
   setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
               dw.height() * 2 / 3);
@@ -253,9 +256,9 @@ void MainWindow::ReShowWindow(QString strProject) {
           &TextEditor::SlotOpenFile);
   console->addParser(new DummyParser{});
 
-  m_compiler =
-      new Compiler{m_interpreter, buffer->getStream(), new CompilerNotifier{c}};
-  m_compiler->RegisterCommands(m_interpreter, false);
+  m_compiler->SetInterpreter(m_interpreter);
+  m_compiler->SetOutStream(&buffer->getStream());
+  m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
   tabifyDockWidget(consoleDocWidget, runDockWidget);

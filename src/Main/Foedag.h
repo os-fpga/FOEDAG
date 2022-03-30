@@ -37,8 +37,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session);
 
 namespace FOEDAG {
 
-typedef QWidget*(MainWindowBuilder)(FOEDAG::CommandLine* cmdLine,
-                                    FOEDAG::TclInterpreter* tclInterp);
+typedef QWidget*(MainWindowBuilder)(FOEDAG::Session* session);
 
 typedef void(RegisterTclFunc)(QWidget* widget, FOEDAG::Session* session);
 
@@ -46,7 +45,7 @@ class Foedag {
  public:
   Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
          RegisterTclFunc* registerTclFunc = nullptr,
-         ToolContext* context = nullptr);
+         Compiler* compiler = nullptr, ToolContext* context = nullptr);
   virtual ~Foedag() = default;
 
   bool init(GUI_TYPE guiType);
@@ -55,6 +54,7 @@ class Foedag {
   bool initQmlGui();
 
  public:
+  static FOEDAG::GUI_TYPE getGuiType(const bool& withQt, const bool& withQml);
   bool initGui();
   bool initBatch();
   const ToolContext* Context() { return m_context; }
@@ -65,6 +65,7 @@ class Foedag {
   MainWindowBuilder* m_mainWinBuilder = nullptr;
   RegisterTclFunc* m_registerTclFunc = nullptr;
   ToolContext* m_context = nullptr;
+  Compiler* m_compiler = nullptr;
 };
 
 }  // namespace FOEDAG
