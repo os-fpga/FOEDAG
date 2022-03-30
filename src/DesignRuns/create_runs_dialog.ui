@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
    <property name="spacing">
-    <number>10</number>
+    <number>0</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -42,7 +42,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,0,10,10">
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,10,10,10">
         <property name="spacing">
          <number>15</number>
         </property>

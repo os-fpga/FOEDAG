@@ -7,7 +7,7 @@ using namespace FOEDAG;
 RunsSummaryForm::RunsSummaryForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::RunsSummaryForm) {
   ui->setupUi(this);
-  ui->m_labelTitle->setText(tr("Create New Runs Summary"));
+  ui->m_labelTitle->setText(tr("Create New Design Runs Summary"));
   ui->m_labelTail->setText(tr("To create the runs,click Finish."));
 }
 
@@ -39,7 +39,8 @@ void RunsSummaryForm::setRunsCount(const int &synth, const int &imple) {
         imple ? QString("image: url(:/img/info.png);")
               : QString("image: url(:/img/warn.png);"));
     ui->m_labelImple->setText(
-        imple ? QString(tr("%1 implementation run will be created.")).arg(imple)
-              : tr("No implementation run will be created."));
+        imple
+            ? QString(tr("%1 implementation runs will be created.")).arg(imple)
+            : tr("No implementation run will be created."));
   }
 }

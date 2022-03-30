@@ -44,7 +44,7 @@
    <item>
     <widget class="QLabel" name="m_labelDetail">
      <property name="text">
-      <string>This wizard will guide you through the process of creating and launching multiple synthesis or/and implementation runs. You can then apply diffent sets of command options,or strategies, to these runs and launch them all at once.</string>
+      <string>This wizard will guide you through the process of creating multiple ynthesis or/and implementation runs. You can apply different file set and device to these design runs. </string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

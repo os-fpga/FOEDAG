@@ -11,7 +11,7 @@ using namespace FOEDAG;
 CreateRunsDialog::CreateRunsDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::CreateRunsDialog) {
   ui->setupUi(this);
-  setWindowTitle(tr("Create New Runs"));
+  setWindowTitle(tr("Create New Design Runs"));
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   m_formIndex = CRFI_SELECTTYPE;
 

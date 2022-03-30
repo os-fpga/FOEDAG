@@ -16,14 +16,14 @@ void CreateRunsForm::InitForm(int itype) {
   if (RT_SYNTH == m_formType) {
     ui->m_labelTitle->setText(tr("Configure Synthesis Runs"));
     ui->m_labelDetail->setText(
-        tr("Create and configure one or more synthesis runs using various "
-           "parts,constraints,flows and strategies."));
+        tr("Create and configure one or more synthesis runs using "
+           "sources,constraints and device."));
     ui->m_labelSummary->setText(tr("0 synthesis run will be created."));
   } else if (RT_IMPLE == m_formType) {
     ui->m_labelTitle->setText(tr("Configure Implementation Runs"));
     ui->m_labelDetail->setText(
-        tr("Create and configure one or more Implementation runs using various "
-           "parts,constraints,flows and strategies."));
+        tr("Create and configure one or more Implementation runs using "
+           "sources,constraints and device."));
     ui->m_labelSummary->setText(tr("0 Implementation run will be created."));
   }
 
@@ -34,7 +34,7 @@ void CreateRunsForm::InitForm(int itype) {
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom, ui->m_frame);
   box->addWidget(m_widgetRunsGrid);
-  box->setContentsMargins(0, 0, 0, 1);
+  box->setContentsMargins(0, 0, 0, 0);
   box->setSpacing(0);
   ui->m_frame->setLayout(box);
 }
