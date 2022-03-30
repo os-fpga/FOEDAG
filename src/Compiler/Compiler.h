@@ -70,10 +70,7 @@ class Compiler {
   TclInterpreter* TclInterp() { return m_interp; }
   Design* GetActiveDesign() { return m_design; }
   Design* GetDesign(const std::string name);
-  void SetDesign(Design* design) {
-    m_design = design;
-    m_designs.push_back(design);
-  }
+  void SetDesign(Design* design);
   bool SetActiveDesign(const std::string name);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();

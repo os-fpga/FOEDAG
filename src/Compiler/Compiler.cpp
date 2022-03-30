@@ -225,7 +225,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Synthesis);
+      return compiler->Compile(Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -233,7 +233,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Global);
+      return compiler->Compile(Global) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
@@ -241,7 +241,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Detailed);
+      return compiler->Compile(Detailed) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("placement", placement, this, 0);
@@ -249,21 +249,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Routing);
+      return compiler->Compile(Routing) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
 
     auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(STA);
+      return compiler->Compile(STA) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
 
     auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Bitstream);
+      return compiler->Compile(Bitstream) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
@@ -501,19 +501,19 @@ void Compiler::finish() {
 bool Compiler::RunCompileTask(Action action) {
   switch (action) {
     case Action::Synthesis:
-      return !Synthesize();
+      return Synthesize();
     case Action::Global:
-      return !GlobalPlacement();
+      return GlobalPlacement();
     case Action::Detailed:
-      return !Placement();
+      return Placement();
     case Action::Routing:
-      return !Route();
+      return Route();
     case Action::STA:
-      return !TimingAnalysis();
+      return TimingAnalysis();
     case Action::Bitstream:
-      return !GenerateBitstream();
+      return GenerateBitstream();
     case Action::Batch:
-      return !RunBatch();
+      return RunBatch();
     default:
       break;
   }
@@ -581,6 +581,11 @@ Design* Compiler::GetDesign(const std::string name) {
     }
   }
   return nullptr;
+}
+
+void Compiler::SetDesign(Design* design) {
+  m_design = design;
+  m_designs.push_back(design);
 }
 
 bool Compiler::ExecuteSystemCommand(const std::string& command) {
