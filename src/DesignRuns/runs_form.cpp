@@ -168,7 +168,7 @@ void RunsForm::SlotOpenRunDir() {
   QString strProPath = m_projManager->getProjectPath();
   QString strProName = m_projManager->getProjectName();
   QString strPath = strProPath + "/" + strProName + ".runs/" + strRunName + "/";
-  QProcess::startDetached("nautilus " + strPath);
+  // QProcess::startDetached("nautilus " + strPath);
 }
 
 void RunsForm::CreateActions() {
