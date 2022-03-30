@@ -222,9 +222,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("hello", hello, 0, 0);
 
-  FOEDAG::Compiler* compiler =
-      new FOEDAG::Compiler(GlobalSession->TclInterp(), std::cout);
-  compiler->RegisterCommands(GlobalSession->TclInterp(), false);
+  session->GetCompiler()->RegisterCommands(GlobalSession->TclInterp(), false);
 
   // GUI Mode
   if (widget) {

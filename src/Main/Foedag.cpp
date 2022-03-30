@@ -67,6 +67,14 @@ FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
 
+FOEDAG::GUI_TYPE Foedag::getGuiType(const bool& withQt, const bool& withQml) {
+  if (!withQt) return FOEDAG::GUI_TYPE::GT_NONE;
+  if (withQml)
+    return FOEDAG::GUI_TYPE::GT_QML;
+  else
+    return FOEDAG::GUI_TYPE::GT_WIDGET;
+}
+
 bool getFullPath(const std::filesystem::path& path,
                  std::filesystem::path* result) {
   std::error_code ec;
@@ -115,10 +123,12 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
 }
 
 Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
-               RegisterTclFunc* registerTclFunc, ToolContext* context)
+               RegisterTclFunc* registerTclFunc, Compiler* compiler,
+               ToolContext* context)
     : m_cmdLine(cmdLine),
       m_mainWinBuilder(mainWinBuilder),
       m_registerTclFunc(registerTclFunc),
+      m_compiler(compiler),
       m_context(context) {
   if (context == nullptr)
     m_context = new ToolContext("Foedag", "OpenFPGA", "foedag");
@@ -145,12 +155,14 @@ bool Foedag::initGui() {
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
-  if (m_mainWinBuilder) {
-    mainWin = m_mainWinBuilder(m_cmdLine, interpreter);
-  }
-  GlobalSession =
-      new FOEDAG::Session(mainWin, interpreter, commands, m_cmdLine, m_context);
+
+  GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
+                                      m_context, m_compiler);
   GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
+  if (m_mainWinBuilder) {
+    mainWin = m_mainWinBuilder(GlobalSession);
+    GlobalSession->MainWindow(mainWin);
+  }
 
   registerBasicGuiCommands(GlobalSession);
   if (m_registerTclFunc) {
@@ -171,9 +183,8 @@ bool Foedag::initGui() {
   // Tcl_AppInit
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
-    if (!GlobalSession->CmdLine()->Script().empty()) {
-      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
-    }
+    // Moved to after the GUI and console are created
+
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
       Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
@@ -225,8 +236,8 @@ bool Foedag::initQmlGui() {
 
   engine.load(url);
 
-  GlobalSession =
-      new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine, m_context);
+  GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
+                                      m_context, m_compiler);
   GlobalSession->setGuiType(GUI_TYPE::GT_QML);
   GlobalSession->setWindowModel(windowModel);
 
@@ -295,7 +306,7 @@ bool Foedag::initBatch() {
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   GlobalSession = new FOEDAG::Session(m_mainWin, interpreter, commands,
-                                      m_cmdLine, m_context);
+                                      m_cmdLine, m_context, m_compiler);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
 
   registerBasicBatchCommands(GlobalSession);

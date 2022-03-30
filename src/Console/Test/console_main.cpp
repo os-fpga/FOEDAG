@@ -21,15 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Foedag.h"
 #include "tclutils/TclUtils.h"
 
-QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(cmd)
+QWidget* mainWindowBuilder(FOEDAG::Session* session) {
   FOEDAG::TclConsoleWidget* console{nullptr};
   auto buffer = new FOEDAG::StreamBuffer;
-  auto w = FOEDAG::createConsole(interp->getInterp(),
-                                 std::make_unique<FOEDAG::TclConsole>(
-                                     interp->getInterp(), buffer->getStream()),
-                                 buffer, nullptr, &console);
+  auto w = FOEDAG::createConsole(
+      session->TclInterp()->getInterp(),
+      std::make_unique<FOEDAG::TclConsole>(session->TclInterp()->getInterp(),
+                                           buffer->getStream()),
+      buffer, nullptr, &console);
   return w;
 }
 
@@ -43,15 +42,13 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, registerExampleCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, mainWindowBuilder, registerExampleCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+
+  FOEDAG::GUI_TYPE guiType =
+      FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
+
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, mainWindowBuilder, registerExampleCommands, compiler);
+
+  return foedag->init(guiType);
 }

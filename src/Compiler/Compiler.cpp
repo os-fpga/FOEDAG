@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-Compiler::Compiler(TclInterpreter* interp, std::ostream& out,
+Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),
       m_out(out),
@@ -158,6 +158,26 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("set_active_design", set_active_design, this, 0);
 
+  auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::string name = "noname";
+    if (argc != 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify a top module name", (char*)NULL);
+      return TCL_ERROR;
+    }
+    Design* design = compiler->GetActiveDesign();
+    if (design == nullptr) {
+      Tcl_AppendResult(interp,
+                       "ERROR: create a design first: create_design <name>",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    design->TopLevel(argv[1]);
+    return 0;
+  };
+  interp->registerCmd("set_top_module", set_top_module, this, 0);
+
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -260,6 +280,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("sta", sta, this, 0);
 
+    auto power = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(Power) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("power", power, this, 0);
+
     auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -329,6 +356,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return 0;
     };
     interp->registerCmd("sta", sta, this, 0);
+
+    auto power = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("power_th", Action::Power, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("power", power, this, 0);
 
     auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -405,6 +442,21 @@ bool Compiler::Compile(Action action) {
     case Action::Global:
       task = PLACEMENT;
       break;
+    case Action::Detailed:
+      task = PLACEMENT;
+      break;
+    case Action::Routing:
+      task = ROUTING;
+      break;
+    case Action::STA:
+      task = TIMING_SIGN_OFF;
+      break;
+    case Action::Power:
+      task = POWER;
+      break;
+    case Action::Bitstream:
+      task = BITSTREAM;
+      break;
     case Action::Batch:
       break;
     default:
@@ -433,55 +485,57 @@ bool Compiler::Synthesize() {
     SetDesign(design);
     Message(std::string("Created design: ") + name + std::string("\n"));
   }
-  m_out << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    m_out << std::setw(2) << i << "%";
+    (*m_out) << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
-      m_out << " File: " << (*it).path().filename().c_str() << " just for test";
+      (*m_out) << " File: " << (*it).path().filename().c_str()
+               << " just for test";
       it++;
     }
-    m_out << std::endl;
+    (*m_out) << std::endl;
     std::chrono::milliseconds dura(1000);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  m_out << "Design " << m_design->Name() << " is synthesized!" << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " is synthesized!" << std::endl;
   return true;
 }
 
 bool Compiler::GlobalPlacement() {
   if (m_design == nullptr) {
-    m_out << "ERROR: No design specified" << std::endl;
+    (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
   if (m_state != State::Synthesized) {
-    m_out << "ERROR: Design needs to be in synthesized state" << std::endl;
+    (*m_out) << "ERROR: Design needs to be in synthesized state" << std::endl;
     return false;
   }
-  m_out << "Global Placement for design: " << m_design->Name() << "..."
-        << std::endl;
+  (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
+           << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
-    m_out << i << "%" << std::endl;
+    (*m_out) << i << "%" << std::endl;
     std::chrono::milliseconds dura(1000);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  m_out << "Design " << m_design->Name() << " is globally placed!" << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " is globally placed!"
+           << std::endl;
   return true;
 }
 
 bool Compiler::RunBatch() {
-  m_out << "Running batch..." << std::endl;
+  (*m_out) << "Running batch..." << std::endl;
   TclInterpreter* batchInterp = new TclInterpreter("batchInterp");
   if (m_tclInterpreterHandler)
     m_tclInterpreterHandler->initIterpreter(batchInterp);
   RegisterCommands(batchInterp, true);
-  m_out << batchInterp->evalCmd(m_batchScript);
-  m_out << std::endl << "Batch Done." << std::endl;
+  (*m_out) << batchInterp->evalCmd(m_batchScript);
+  (*m_out) << std::endl << "Batch Done." << std::endl;
 
   // Save resulting state
   batchInterp->evalCmd("set tcl_interactive false");
@@ -510,6 +564,8 @@ bool Compiler::RunCompileTask(Action action) {
       return Route();
     case Action::STA:
       return TimingAnalysis();
+    case Action::Power:
+      return PowerAnalysis();
     case Action::Bitstream:
       return GenerateBitstream();
     case Action::Batch:
@@ -534,7 +590,7 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
 
 bool Compiler::Placement() {
   if (m_design == nullptr) {
-    m_out << "ERROR: No design specified" << std::endl;
+    (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
   return true;
@@ -542,7 +598,7 @@ bool Compiler::Placement() {
 
 bool Compiler::Route() {
   if (m_design == nullptr) {
-    m_out << "ERROR: No design specified" << std::endl;
+    (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
   return true;
@@ -550,7 +606,15 @@ bool Compiler::Route() {
 
 bool Compiler::TimingAnalysis() {
   if (m_design == nullptr) {
-    m_out << "ERROR: No design specified" << std::endl;
+    (*m_out) << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool Compiler::PowerAnalysis() {
+  if (m_design == nullptr) {
+    (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
   return true;
@@ -558,7 +622,7 @@ bool Compiler::TimingAnalysis() {
 
 bool Compiler::GenerateBitstream() {
   if (m_design == nullptr) {
-    m_out << "ERROR: No design specified" << std::endl;
+    (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
   return true;
@@ -599,4 +663,37 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
 #endif
 
   return false;
+}
+
+bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
+#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+  // TODO: Windows System call
+  return false;
+#else
+  const char* cmd = command.c_str();
+  char buf[BUFSIZ];
+  FILE* ptr;
+
+  if ((ptr = popen(cmd, "r")) != nullptr) {
+    while (fgets(buf, BUFSIZ, ptr) != nullptr) {
+      (*m_out) << buf << std::flush;
+    }
+    pclose(ptr);
+  } else {
+    return false;
+  }
+
+  return true;
+#endif
+}
+
+std::string Compiler::replaceAll(std::string_view str, std::string_view from,
+                                 std::string_view to) {
+  size_t start_pos = 0;
+  std::string result(str);
+  while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
+    result.replace(start_pos, from.length(), to);
+    start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
+  }
+  return result;
 }
