@@ -13,7 +13,6 @@ namespace FOEDAG {
 
 class CreateRunsForm;
 class SelectDesignTypeForm;
-class RunsOptionsForm;
 class RunsSummaryForm;
 
 enum CreateRunsFormIndex {
