@@ -256,9 +256,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
   runDockWidget->setObjectName("sourcedockwidget");
-  RunsForm* runForm = new RunsForm(buffer->getStream(), this);
+  RunsForm* runForm = new RunsForm(this);
   runForm->InitRunsForm(strProject);
-  runForm->setCompiler(m_interpreter, new CompilerNotifier{c});
   runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 

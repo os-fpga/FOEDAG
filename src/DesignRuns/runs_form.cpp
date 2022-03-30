@@ -16,8 +16,7 @@
 
 using namespace FOEDAG;
 
-RunsForm::RunsForm(std::ostream &out, QWidget *parent)
-    : QWidget(parent), m_out(out) {
+RunsForm::RunsForm(QWidget *parent) : QWidget(parent) {
   m_treeRuns = new QTreeWidget(this);
   m_treeRuns->setObjectName("m_treeRuns");
   m_treeRuns->setSelectionMode(
@@ -43,12 +42,6 @@ void RunsForm::InitRunsForm(const QString &strFile) {
   m_projManager->StartProject(strFile);
 
   UpdateDesignRunsTree();
-}
-
-void RunsForm::setCompiler(TclInterpreter *interp,
-                           TclInterpreterHandler *tclInterpreterHandler) {
-  m_interp = interp;
-  m_tclInterpreterHandler = tclInterpreterHandler;
 }
 
 void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
@@ -128,18 +121,8 @@ void RunsForm::SlotLaunchRuns() {
     return;
   }
   QString strRunName = (item->data(0, SaveDataRole)).toString();
-  if (strRunName.contains(RUNS_TREE_ACTIVE)) {
-    m_interp->evalCmd("synth");
+  // To do
 
-  } else {
-    Compiler *compiler = new Compiler(m_interp, m_out, m_tclInterpreterHandler);
-    std::string name = strRunName.toStdString();
-    Design *design = new Design(name);
-    compiler->SetDesign(design);
-    WorkerThread *wthread =
-        new WorkerThread("synth_th", Compiler::Action::Synthesis, compiler);
-    wthread->start();
-  }
   item->setIcon(0, QIcon(":/loading.png"));
   item->setText(3, tr("Running..."));
 }

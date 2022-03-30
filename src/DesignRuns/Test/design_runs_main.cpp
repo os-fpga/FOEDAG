@@ -31,8 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* DesignRunsBuilder(FOEDAG::CommandLine* cmd,
                            FOEDAG::TclInterpreter* interp) {
   Q_UNUSED(interp);
-  FOEDAG::StreamBuffer* buffer = new FOEDAG::StreamBuffer;
-  FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm(buffer->getStream());
+  FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm();
   if (cmd->Argc() > 2) {
     runForm->InitRunsForm(cmd->Argv()[2]);
   }
