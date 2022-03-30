@@ -15,7 +15,9 @@ endif()
 include (../../cmake/cmake_qt.txt)
 include (../../cmake/cmake_tcl.txt)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(
+  ${PROJECT_SOURCE_DIR}/../../src
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
