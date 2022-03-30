@@ -35,9 +35,6 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   // m_tableViewRuns->horizontalHeader()->setStretchLastSection(true);
   m_tableViewRuns->horizontalHeader()->setSectionResizeMode(
       QHeaderView::Stretch);
-  m_tableViewRuns->setStyleSheet(
-      "QTableView {border: 1px solid rgb(230,230,230);}\
-       QTableView::item:selected{color:black;background:rgb(177,220,255);}");
 
   m_model = new QStandardItemModel(m_tableViewRuns);
   m_selectModel = new QItemSelectionModel(m_model, m_tableViewRuns);
@@ -90,6 +87,16 @@ RunsGrid::RunsGrid(RunsType type, QWidget *parent) : QWidget(parent) {
   }
 }
 
+void RunsGrid::setNewSynth(const QStringList &listNewSynth) {
+  if (listNewSynth.size()) {
+    QStringList listSynth = m_projManager->getSynthRunsNames();
+    listSynth += listNewSynth;
+    m_tableViewRuns->setItemDelegateForColumn(
+        3, new RunsGridDelegate(DT_COMBOX, listSynth, this));
+    m_strSynthName = listNewSynth.at(0);
+  }
+}
+
 QList<rundata> RunsGrid::getRunDataList() {
   QList<rundata> listRunData;
   int rows = m_model->rowCount();
@@ -109,6 +116,15 @@ QList<rundata> RunsGrid::getRunDataList() {
   return listRunData;
 }
 
+int RunsGrid::getRunDataSize() { return m_model->rowCount(); }
+
+void RunsGrid::ClearGrid() {
+  while (m_model->rowCount()) {
+    QModelIndex index = m_model->indexFromItem(m_model->item(0));
+    m_model->removeRow(index.row());
+  }
+  emit RowsChanged();
+}
 void RunsGrid::SlotAddRuns() {
   int rows = m_model->rowCount();
   QList<QStandardItem *> items;
