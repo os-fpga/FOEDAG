@@ -20,21 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "CommandLine.h"
+#include "Compiler/CompilerOpenFPGA.h"
 #include "Foedag.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 
-QWidget* mainWindowBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  return new FOEDAG::MainWindow{interp};
-}
-
-FOEDAG::GUI_TYPE getGuiType(const bool& withQt, const bool& withQml) {
-  if (!withQt) return FOEDAG::GUI_TYPE::GT_NONE;
-  if (withQml)
-    return FOEDAG::GUI_TYPE::GT_QML;
-  else
-    return FOEDAG::GUI_TYPE::GT_WIDGET;
+QWidget* mainWindowBuilder(FOEDAG::Session* session) {
+  return new FOEDAG::MainWindow{session};
 }
 
 int main(int argc, char** argv) {
@@ -42,10 +34,16 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  FOEDAG::GUI_TYPE guiType = getGuiType(cmd->WithQt(), cmd->WithQml());
+  FOEDAG::GUI_TYPE guiType =
+      FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
-  FOEDAG::Foedag* foedag =
-      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerAllFoedagCommands);
+  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+
+  // WIP:
+  // FOEDAG::Compiler* compiler = new FOEDAG::CompilerOpenFPGA();
+
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);
 
   return foedag->init(guiType);
 }

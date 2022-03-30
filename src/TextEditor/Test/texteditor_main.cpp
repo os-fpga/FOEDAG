@@ -26,10 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 #include "TextEditor/text_editor.h"
 
-QWidget* textEditorBuilder(FOEDAG::CommandLine* cmd,
-                           FOEDAG::TclInterpreter* interp) {
-  Q_UNUSED(cmd);
-  Q_UNUSED(interp);
+QWidget* textEditorBuilder(FOEDAG::Session* session) {
+  Q_UNUSED(session);
   return new FOEDAG::TextEditor();
 }
 
@@ -37,15 +35,13 @@ int main(int argc, char** argv) {
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
-  if (!cmd->WithQt()) {
-    // Batch mode
-    FOEDAG::Foedag* foedag =
-        new FOEDAG::Foedag(cmd, nullptr, FOEDAG::registerTextEditorCommands);
-    return foedag->initBatch();
-  } else {
-    // Gui mode
-    FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
-        cmd, textEditorBuilder, FOEDAG::registerTextEditorCommands);
-    return foedag->initGui();
-  }
+  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+
+  FOEDAG::GUI_TYPE guiType =
+      FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
+
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, textEditorBuilder, FOEDAG::registerTextEditorCommands, compiler);
+
+  return foedag->init(guiType);
 }

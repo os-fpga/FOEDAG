@@ -38,6 +38,9 @@ void Session::windowShow() {
       m_mainWindow->show();
       if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
         topLevel->gui_start();
+        if (!CmdLine()->Script().empty()) {
+          TclInterp()->evalFile(CmdLine()->Script().c_str());
+        }
       }
       break;
     case GUI_TYPE::GT_QML:
