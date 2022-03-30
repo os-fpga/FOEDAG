@@ -16,12 +16,16 @@ namespace FOEDAG {
 
 static constexpr uint SaveDataRole = Qt::UserRole + 1;
 
+class Session;
+
 class RunsForm : public QWidget {
   Q_OBJECT
  public:
   explicit RunsForm(QWidget* parent = nullptr);
 
   void InitRunsForm(const QString& strFile);
+  void RegisterCommands(Session* session);
+
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
 
@@ -46,6 +50,7 @@ class RunsForm : public QWidget {
   QAction* m_actOpenRunDir;
 
   ProjectManager* m_projManager;
+  Session* m_session = nullptr;
 
   void CreateActions();
   void UpdateDesignRunsTree();

@@ -261,6 +261,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   runDockWidget->setObjectName("sourcedockwidget");
   RunsForm* runForm = new RunsForm(this);
   runForm->InitRunsForm(strProject);
+  runForm->RegisterCommands(GlobalSession);
   runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 

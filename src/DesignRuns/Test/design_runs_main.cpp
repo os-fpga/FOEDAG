@@ -29,12 +29,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "tclutils/TclUtils.h"
 
 QWidget* DesignRunsBuilder(FOEDAG::Session* session) {
-  Q_UNUSED(session);
+  FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm();
   if (session->CmdLine()->Argc() > 2) {
-    return new FOEDAG::RunsForm();
-  } else {
-    return new FOEDAG::RunsForm();
+    runForm->InitRunsForm(session->CmdLine()->Argv()[2]);
   }
+  return runForm;
 }
 
 void registerDesignRunsCommands(QWidget* widget, FOEDAG::Session* session) {

@@ -9,9 +9,7 @@
 #include <QTime>
 #include <QVBoxLayout>
 
-#include "Compiler/Compiler.h"
-#include "Compiler/TclInterpreterHandler.h"
-#include "Compiler/WorkerThread.h"
+#include "MainWindow/Session.h"
 #include "create_runs_dialog.h"
 
 using namespace FOEDAG;
@@ -44,11 +42,12 @@ void RunsForm::InitRunsForm(const QString &strFile) {
   UpdateDesignRunsTree();
 }
 
+void RunsForm::RegisterCommands(Session *session) { m_session = session; }
+
 void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);
   if (qApp->mouseButtons() == Qt::RightButton) {
     QMenu *menu = new QMenu(m_treeRuns);
-    menu->setMinimumWidth(200);
     menu->addAction(m_actDelete);
     menu->addAction(m_actMakeActive);
     menu->addAction(m_actLaunchRuns);
@@ -109,6 +108,11 @@ void RunsForm::SlotMakeActive() {
   if (0 == ret) {
     UpdateDesignRunsTree();
     m_projManager->FinishedProject();
+  }
+  if (m_session) {
+    std::string name = strRunName.toStdString();
+    Design *ds = new Design(name);
+    m_session->GetCompiler()->SetDesign(ds);
   }
 }
 
@@ -182,6 +186,7 @@ void RunsForm::CreateActions() {
   connect(m_actResetRuns, SIGNAL(triggered()), this, SLOT(SlotReSetRuns()));
 
   m_actCreateRuns = new QAction(tr("Create Runs"), m_treeRuns);
+  m_actCreateRuns->setIcon(QIcon(":/images/add.png"));
   connect(m_actCreateRuns, SIGNAL(triggered()), this, SLOT(SlotCreateRuns()));
 
   m_actOpenRunDir = new QAction(tr("Open Directory"), m_treeRuns);
@@ -209,6 +214,7 @@ void RunsForm::UpdateDesignRunsTree() {
           << "DSP"
           << "CLBs";
   m_treeRuns->setHeaderLabels(strList);
+  m_treeRuns->setColumnWidth(0, 200);
 
   // gets all run names of type synth
   QStringList listSynthRunNames = m_projManager->getSynthRunsNames();
