@@ -33,14 +33,18 @@ void CommandLine::printHelp() {
   std::cout << "   --batch: Tcl only, no GUI" << std::endl;
   std::cout << "   --replay <script>: Replay GUI test" << std::endl;
   std::cout << "   --script <script>: Execute a Tcl script" << std::endl;
-  std::cout << "   --compiler <name>: Compiler name {openfpga...}, default is a dummy compiler" << std::endl;
+  std::cout << "   --compiler <name>: Compiler name {openfpga...}, default is "
+               "a dummy compiler"
+            << std::endl;
   std::cout << "Tcl commands:" << std::endl;
   std::cout << "   help" << std::endl;
   std::cout << "   gui_start" << std::endl;
   std::cout << "   gui_stop" << std::endl;
   std::cout << "   create_design <name>" << std::endl;
-  std::cout << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
-                       "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) " << std::endl;
+  std::cout << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
+               "VHDL_2008, V_1995, "
+               "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+            << std::endl;
   std::cout << "   set_top_module <top>" << std::endl;
   std::cout << "   ipgenerate" << std::endl;
   std::cout << "   synthesize" << std::endl;
@@ -63,7 +67,7 @@ void CommandLine::processArgs() {
       m_withQt = false;
     } else if (token == "--compiler") {
       i++;
-      m_compilerName =  m_argv[i];
+      m_compilerName = m_argv[i];
     } else if (token == "--qml") {
       m_withQml = true;
     } else if (token == "--replay") {

@@ -33,11 +33,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <filesystem>
 #include <thread>
-#include "MainWindow/Session.h"
+
 #include "Compiler/Compiler.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "MainWindow/Session.h"
 
 using namespace FOEDAG;
 
@@ -236,11 +237,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string expandedFile = file;
     if (!compiler->GetSession()->CmdLine()->Script().empty()) {
-      std::filesystem::path script = compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
       std::filesystem::path fullPath = scriptPath;
       fullPath.append(file);
-      expandedFile = fullPath.string();  
+      expandedFile = fullPath.string();
     }
 
     compiler->Message(std::string("Adding ") + actualType + " " + expandedFile +
@@ -617,9 +619,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(m_taskManager->task(ROUTING), [this]() {
       Tcl_Eval(m_interp->getInterp(), "routing");
     });
-    m_taskManager->bindTaskCommand(m_taskManager->task(TIMING_SIGN_OFF), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "sta");
-    });
+    m_taskManager->bindTaskCommand(
+        m_taskManager->task(TIMING_SIGN_OFF),
+        [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
     m_taskManager->bindTaskCommand(m_taskManager->task(POWER), [this]() {
       Tcl_Eval(m_interp->getInterp(), "power");
     });

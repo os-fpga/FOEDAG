@@ -113,6 +113,7 @@ test-parallel: release test/unittest
 #	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
 
 test/openfpga: run-cmake-release
+	yosys --version
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/raygentop/raygentop.tcl
 
 regression: release

@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   FOEDAG::Compiler* compiler = nullptr;
   if (cmd->CompilerName() == "openfpga")
     compiler = new FOEDAG::CompilerOpenFPGA();
-  else 
+  else
     compiler = new FOEDAG::Compiler();
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(

@@ -112,7 +112,7 @@ class Compiler {
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
   void Message(const std::string& message) {
-    //m_interp->evalCmd("puts " + message + "; flush stdout; ");
+    // m_interp->evalCmd("puts " + message + "; flush stdout; ");
     if (m_out) (*m_out) << message << std::flush;
   }
   std::string replaceAll(std::string_view str, std::string_view from,
