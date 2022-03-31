@@ -73,7 +73,8 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string command = m_yosysExecutablePath.string() + " -s foedag.ys";
   bool status = ExecuteAndMonitorSystemCommand(command);
   if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " synthesis was interrupted!" << std::endl;
+    (*m_out) << "Design " << m_design->Name() << " synthesis was interrupted!"
+             << std::endl;
     return false;
   }
   m_state = State::Synthesized;
