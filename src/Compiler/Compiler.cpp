@@ -735,6 +735,7 @@ bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
     pclose(ptr);
     if (m_stop == true) {
       Message("Execution interrupted by user!\n");
+      return false;
     }
   } else {
     return false;
