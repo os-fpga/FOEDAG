@@ -48,6 +48,8 @@ class CommandLine {
 
   const std::string& TclCmd() const { return m_runTclCmd; }
 
+  const std::string& CompilerName() const { return m_compilerName; }
+
   virtual void printHelp();
   virtual void processArgs();
 
@@ -63,6 +65,7 @@ class CommandLine {
   std::string m_runScript;
   std::string m_runGuiTest;
   std::string m_runTclCmd;
+  std::string m_compilerName;
 };
 
 }  // namespace FOEDAG

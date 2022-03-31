@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "MainWindow/Session.h"
 
 using namespace FOEDAG;
 
@@ -234,14 +235,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         actualType = "SV_2017";
       }
     }
-    compiler->Message(std::string("Adding ") + actualType + " " + file +
+    std::string expandedFile = file;
+    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+
+    compiler->Message(std::string("Adding ") + actualType + " " + expandedFile +
                       std::string("\n"));
-    design->AddFile(language, file);
+    design->AddFile(language, expandedFile);
     return 0;
   };
   interp->registerCmd("add_design_file", add_design_file, this, 0);
 
   if (batchMode) {
+    auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(IPGen) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("ipgenerate", ipgenerate, this, 0);
+
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -305,6 +323,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("stop", stop, 0, 0);
     interp->registerCmd("abort", stop, 0, 0);
   } else {
+    auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("ip_th", Action::IPGen, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("ipgenerate", ipgenerate, this, 0);
+
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -371,7 +399,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
-          new WorkerThread("bitstream_th", Action::STA, compiler);
+          new WorkerThread("bitstream_th", Action::Bitstream, compiler);
       wthread->start();
       return 0;
     };
@@ -579,13 +607,36 @@ bool Compiler::RunCompileTask(Action action) {
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
+    m_taskManager->bindTaskCommand(m_taskManager->task(IP_GENERATE), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "ipgenerate");
+    });
     m_taskManager->bindTaskCommand(m_taskManager->task(SYNTHESIS), [this]() {
       Tcl_Eval(m_interp->getInterp(), "synth");
     });
     m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
       Tcl_Eval(m_interp->getInterp(), "globp");
     });
+    m_taskManager->bindTaskCommand(m_taskManager->task(ROUTING), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "routing");
+    });
+    m_taskManager->bindTaskCommand(
+        m_taskManager->task(TIMING_SIGN_OFF),
+        [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
+    m_taskManager->bindTaskCommand(m_taskManager->task(POWER), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "power");
+    });
+    m_taskManager->bindTaskCommand(m_taskManager->task(BITSTREAM), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "bitstream");
+    });
   }
+}
+
+bool Compiler::IPGenerate() {
+  if (m_design == nullptr) {
+    (*m_out) << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
 }
 
 bool Compiler::Placement() {
@@ -676,9 +727,15 @@ bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
 
   if ((ptr = popen(cmd, "r")) != nullptr) {
     while (fgets(buf, BUFSIZ, ptr) != nullptr) {
+      if (m_stop == true) {
+        break;
+      }
       (*m_out) << buf << std::flush;
     }
     pclose(ptr);
+    if (m_stop == true) {
+      Message("Execution interrupted by user!\n");
+    }
   } else {
     return false;
   }

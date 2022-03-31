@@ -48,7 +48,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dbuild/bin/foedag",
-            "args": ["--script", "top.op"],
+            "args": ["--batch", "--script", "tests/Testcases/raygentop/raygentop.tcl"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
