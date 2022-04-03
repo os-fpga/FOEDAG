@@ -19,7 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
+
 #include "ProjNavigator/sources_form.h"
+#include "tcl_command_integration.h"
 #include "tclutils/TclUtils.h"
 
 TCL_COMMAND(projnavigator_show) {
@@ -43,30 +46,35 @@ TCL_COMMAND(open_project) {
 
 TCL_COMMAND(create_fileset) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclCreateFileSet(argc, argv);
+  auto tclCommand = srcForm->createTclCommandIntegarion();
+  tclCommand->TclCreateFileSet(argc, argv, std::cout);
   return TCL_OK;
 }
 
 TCL_COMMAND(add_files) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclAddOrCreateFiles(argc, argv);
+  auto tclCommand = srcForm->createTclCommandIntegarion();
+  tclCommand->TclAddOrCreateFiles(argc, argv, std::cout);
   return TCL_OK;
 }
 
 TCL_COMMAND(set_active) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclSetActive(argc, argv);
+  auto tclCommand = srcForm->createTclCommandIntegarion();
+  tclCommand->TclSetActive(argc, argv, std::cout);
   return TCL_OK;
 }
 
 TCL_COMMAND(set_top_module) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclSetTopModule(argc, argv);
+  auto tclCommand = srcForm->createTclCommandIntegarion();
+  tclCommand->TclSetTopModule(argc, argv, std::cout);
   return TCL_OK;
 }
 
 TCL_COMMAND(set_as_target) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TclSetAsTarget(argc, argv);
+  auto tclCommand = srcForm->createTclCommandIntegarion();
+  tclCommand->TclSetAsTarget(argc, argv, std::cout);
   return TCL_OK;
 }

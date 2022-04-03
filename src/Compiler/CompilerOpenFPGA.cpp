@@ -35,21 +35,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/CompilerOpenFPGA.h"
+#include "DesignManager.h"
 
 using namespace FOEDAG;
 
 CompilerOpenFPGA::CompilerOpenFPGA() : Compiler::Compiler() {}
 
-CompilerOpenFPGA::~CompilerOpenFPGA() { delete m_taskManager; }
+CompilerOpenFPGA::~CompilerOpenFPGA() {}
 
 bool CompilerOpenFPGA::Synthesize() {
-  if (m_design == nullptr) {
+  if (GetActiveDesign() == nullptr) {
     std::string name = "noname";
     Design* design = new Design(name);
     SetDesign(design);
     Message(std::string("Created design: ") + name + std::string("\n"));
   }
-  (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  auto design = m_designManager->activeDesign();
+  (*m_out) << "Synthesizing design: " << design->Name() << "..." << std::endl;
   const std::string basicYosysScript = R"(
    <FILE_LIST>
    synth -flatten -top <TOP_MODULE>
@@ -60,12 +62,12 @@ bool CompilerOpenFPGA::Synthesize() {
    stat
   )";
   std::string fileList;
-  for (auto lang_file : m_design->FileList()) {
+  for (auto lang_file : design->FileList()) {
     fileList += "read_verilog " + lang_file.second + "\n";
   }
   std::string yosysScript = basicYosysScript;
   yosysScript = replaceAll(yosysScript, "<FILE_LIST>", fileList);
-  yosysScript = replaceAll(yosysScript, "<TOP_MODULE>", m_design->TopLevel());
+  yosysScript = replaceAll(yosysScript, "<TOP_MODULE>", design->TopLevel());
   yosysScript = replaceAll(yosysScript, "<NETLIST_NAME>", "foedag_post_synth");
   std::ofstream ofs("foedag.ys");
   ofs << yosysScript;
@@ -73,17 +75,18 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string command = m_yosysExecutablePath.string() + " -s foedag.ys";
   bool status = ExecuteAndMonitorSystemCommand(command);
   if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " synthesis was interrupted!"
+    (*m_out) << "Design " << design->Name() << " synthesis was interrupted!"
              << std::endl;
     return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_design->Name() << " is synthesized!" << std::endl;
+  (*m_out) << "Design " << design->Name() << " is synthesized!" << std::endl;
   return true;
 }
 
 bool CompilerOpenFPGA::GlobalPlacement() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
@@ -91,17 +94,18 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     (*m_out) << "ERROR: Design needs to be in synthesized state" << std::endl;
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
+  (*m_out) << "Global Placement for design: " << design->Name() << "..."
            << std::endl;
 
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_design->Name() << " is globally placed!"
+  (*m_out) << "Design " << design->Name() << " is globally placed!"
            << std::endl;
   return true;
 }
 
 bool CompilerOpenFPGA::Placement() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
@@ -109,7 +113,8 @@ bool CompilerOpenFPGA::Placement() {
 }
 
 bool CompilerOpenFPGA::Route() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
@@ -117,7 +122,8 @@ bool CompilerOpenFPGA::Route() {
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
@@ -125,7 +131,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
@@ -133,7 +140,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
-  if (m_design == nullptr) {
+  auto design = m_designManager->activeDesign();
+  if (design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
