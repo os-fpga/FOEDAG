@@ -72,9 +72,7 @@ class Compiler {
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
-  void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler) {
-    m_tclInterpreterHandler = nullptr;
-  }
+  void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() { return m_session; }
   ~Compiler();
