@@ -254,7 +254,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
-  m_compiler->setGuiTclSync(sourForm->createTclCommandIntegarion());
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
