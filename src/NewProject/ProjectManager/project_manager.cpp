@@ -11,6 +11,81 @@ using namespace FOEDAG;
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
 
+void ProjectManager::CreateProject(const ProjectOptions& opt) {
+  if (opt.rewriteProject) {
+    QString tmpPath = opt.projectPath;
+    QDir dir(tmpPath);
+    if (dir.exists()) dir.removeRecursively();
+  }
+  CreateProject(opt.projectName, opt.projectPath, opt.currentFileSet);
+
+  setProjectType(opt.projectType);
+
+  setCurrentFileSet(opt.currentFileSet);
+  QString strDefaultSrc;
+  QList<filedata> listFile = opt.sourceFileData.fileData;
+  foreach (filedata fdata, listFile) {
+    if ("<Local to Project>" == fdata.m_filePath) {
+      setDesignFile(fdata.m_fileName, false);
+    } else {
+      setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
+                    opt.sourceFileData.isCopySource);
+    }
+    if (!fdata.m_isFolder) {
+      strDefaultSrc = fdata.m_fileName;
+    }
+  }
+
+  if (!strDefaultSrc.isEmpty()) {
+    QString module = strDefaultSrc.left(strDefaultSrc.lastIndexOf("."));
+    setTopModule(module);
+
+    // set default simulation source
+    setCurrentFileSet(DEFAULT_FOLDER_SIM);
+    setDesignFile("sim_" + strDefaultSrc, false);
+    setTopModule("sim_" + module);
+  }
+
+  setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  QString strDefaultCts;
+  listFile.clear();
+  listFile = opt.constrFileData.fileData;
+  foreach (filedata fdata, listFile) {
+    if ("<Local to Project>" == fdata.m_filePath) {
+      setConstrsFile(fdata.m_fileName, false);
+    } else {
+      setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
+                     opt.constrFileData.isCopySource);
+    }
+    strDefaultCts = fdata.m_fileName;
+  }
+
+  if (!strDefaultCts.isEmpty()) {
+    setTargetConstrs(strDefaultCts);
+  }
+
+  setCurrentRun(DEFAULT_FOLDER_SYNTH);
+
+  QStringList strlist = opt.device;
+  QList<QPair<QString, QString>> listParam;
+  QPair<QString, QString> pair;
+  pair.first = PROJECT_PART_SERIES;
+  pair.second = strlist.at(0);
+  listParam.append(pair);
+  pair.first = PROJECT_PART_FAMILY;
+  pair.second = strlist.at(1);
+  listParam.append(pair);
+  pair.first = PROJECT_PART_PACKAGE;
+  pair.second = strlist.at(2);
+  listParam.append(pair);
+  pair.first = PROJECT_PART_DEVICE;
+  pair.second = strlist.at(3);
+  listParam.append(pair);
+  setSynthesisOption(listParam);
+
+  FinishedProject();
+}
+
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   QTextStream out(stdout);
   if (argc < 3 || "--file" != QString(argv[1])) {
@@ -168,7 +243,8 @@ int ProjectManager::CreateProjectbyXml(const QString& strProXMl) {
 }
 
 int ProjectManager::CreateProject(const QString& strName,
-                                  const QString& strPath) {
+                                  const QString& strPath,
+                                  const QString& designSource) {
   int ret = 0;
   if ("" == strName || "" == strPath) {
     return -1;
@@ -181,16 +257,16 @@ int ProjectManager::CreateProject(const QString& strName,
     return ret;
   }
 
-  ret = setDesignFileSet(DEFAULT_FOLDER_SOURCE);
+  setDesignFileSet(designSource);
 
-  ret = setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
+  setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
 
   ret = setSimulationFileSet(DEFAULT_FOLDER_SIM);
 
   ProjectRun proImpRun;
   proImpRun.setRunName(DEFAULT_FOLDER_IMPLE);
   proImpRun.setRunType(RUN_TYPE_IMPLEMENT);
-  proImpRun.setSrcSet(DEFAULT_FOLDER_SOURCE);
+  proImpRun.setSrcSet(designSource);
   proImpRun.setConstrsSet(DEFAULT_FOLDER_CONSTRS);
   proImpRun.setRunState(RUN_STATE_CURRENT);
   proImpRun.setSynthRun(DEFAULT_FOLDER_SYNTH);
@@ -199,7 +275,7 @@ int ProjectManager::CreateProject(const QString& strName,
   ProjectRun proSynRun;
   proSynRun.setRunName(DEFAULT_FOLDER_SYNTH);
   proSynRun.setRunType(RUN_TYPE_SYNTHESIS);
-  proSynRun.setSrcSet(DEFAULT_FOLDER_SOURCE);
+  proSynRun.setSrcSet(designSource);
   proSynRun.setConstrsSet(DEFAULT_FOLDER_CONSTRS);
   proSynRun.setRunState(RUN_STATE_CURRENT);
   proSynRun.setOption(PROJECT_RUN_OPTION_FLOW, "Classic Flow");

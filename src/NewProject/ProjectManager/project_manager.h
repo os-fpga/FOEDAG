@@ -26,6 +26,7 @@ project object is singleton mode.
 
 #include <QObject>
 
+#include "../source_grid.h"
 #include "project.h"
 
 #define PROJECT_PROJECT "Project"
@@ -89,10 +90,26 @@ project object is singleton mode.
 
 namespace FOEDAG {
 
+struct ProjectOptions {
+  struct FileData {
+    QList<filedata> fileData;
+    bool isCopySource;
+  };
+  QString projectName;
+  QString projectPath;
+  QString projectType;
+  FileData sourceFileData;
+  FileData constrFileData;
+  QStringList device;
+  bool rewriteProject;
+  QString currentFileSet;
+};
+
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
   explicit ProjectManager(QObject *parent = nullptr);
+  void CreateProject(const ProjectOptions &opt);
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
@@ -100,7 +117,8 @@ class ProjectManager : public QObject {
   // e.g strPath:/root/Desktop/project_1   strName:project_1
   // project_1.ospr file, project_1.runs folder and project_1.srcs folder will
   // be created under the /root/Desktop/project_1 path
-  int CreateProject(const QString &strName, const QString &strPath);
+  int CreateProject(const QString &strName, const QString &strPath,
+                    const QString &designSource = DEFAULT_FOLDER_SOURCE);
   QString getProjectName() const;
   QString getProjectPath() const;
 

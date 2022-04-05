@@ -1,5 +1,6 @@
 #include "new_project_dialog.h"
 
+#include <QDebug>
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QThread>
@@ -87,75 +88,16 @@ void newProjectDialog::on_m_btnNext_clicked() {
 }
 
 void newProjectDialog::on_m_btnFinish_clicked() {
-  m_projectManager->CreateProject(m_locationForm->getProjectName(),
-                                  m_locationForm->getProjectPath());
-
-  m_projectManager->setProjectType(m_proTypeForm->getProjectType());
-
-  m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SOURCE);
-  QString strDefaultSrc = "";
-  QList<filedata> listFile = m_addSrcForm->getFileData();
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
-      m_projectManager->setDesignFile(fdata.m_fileName, false);
-    } else {
-      m_projectManager->setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                                      m_addSrcForm->IsCopySource());
-    }
-    if (!fdata.m_isFolder) {
-      strDefaultSrc = fdata.m_fileName;
-    }
-  }
-
-  if ("" != strDefaultSrc) {
-    QString module = strDefaultSrc.left(strDefaultSrc.lastIndexOf("."));
-    m_projectManager->setTopModule(module);
-
-    // set default simulation source
-    m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_SIM);
-    m_projectManager->setDesignFile("sim_" + strDefaultSrc, false);
-    m_projectManager->setTopModule("sim_" + module);
-  }
-
-  m_projectManager->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
-  QString strDefaultCts = "";
-  listFile.clear();
-  listFile = m_addConstrsForm->getFileData();
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
-      m_projectManager->setConstrsFile(fdata.m_fileName, false);
-    } else {
-      m_projectManager->setConstrsFile(
-          fdata.m_filePath + "/" + fdata.m_fileName,
-          m_addConstrsForm->IsCopySource());
-    }
-    strDefaultCts = fdata.m_fileName;
-  }
-
-  if ("" != strDefaultCts) {
-    m_projectManager->setTargetConstrs(strDefaultCts);
-  }
-
-  m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);
-
-  QStringList strlist = m_devicePlanForm->getSelectedDevice();
-  QList<QPair<QString, QString>> listParam;
-  QPair<QString, QString> pair;
-  pair.first = PROJECT_PART_SERIES;
-  pair.second = strlist.at(0);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_FAMILY;
-  pair.second = strlist.at(1);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_PACKAGE;
-  pair.second = strlist.at(2);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_DEVICE;
-  pair.second = strlist.at(3);
-  listParam.append(pair);
-  m_projectManager->setSynthesisOption(listParam);
-
-  m_projectManager->FinishedProject();
+  ProjectOptions opt{
+      m_locationForm->getProjectName(),
+      m_locationForm->getProjectPath(),
+      m_proTypeForm->getProjectType(),
+      {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
+      {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
+      m_devicePlanForm->getSelectedDevice(),
+      false /*rewrite*/,
+      DEFAULT_FOLDER_SOURCE};
+  m_projectManager->CreateProject(opt);
   this->setResult(1);
   this->hide();
 }

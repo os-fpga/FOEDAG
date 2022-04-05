@@ -155,6 +155,7 @@ bool Foedag::initGui() {
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
+  m_compiler->SetInterpreter(interpreter);
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
                                       m_context, m_compiler);
@@ -218,6 +219,7 @@ bool Foedag::initQmlGui() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  m_compiler->SetInterpreter(interpreter);
 
   MainWindowModel* windowModel = new MainWindowModel(interpreter);
 
@@ -308,6 +310,7 @@ bool Foedag::initBatch() {
   GlobalSession = new FOEDAG::Session(m_mainWin, interpreter, commands,
                                       m_cmdLine, m_context, m_compiler);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
+  m_compiler->SetInterpreter(interpreter);
 
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {

@@ -38,10 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-CompilerOpenFPGA::CompilerOpenFPGA() {}
-
-CompilerOpenFPGA::~CompilerOpenFPGA() {}
-
 // https://github.com/lnis-uofu/OpenFPGA/blob/master/openfpga_flow/misc/ys_tmpl_yosys_vpr_flow.ys
 const std::string basicYosysScript = R"( 
 # Yosys synthesis script for ${TOP_MODULE}
@@ -86,12 +82,7 @@ write_blif ${OUTPUT_BLIF}
   )";
 
 bool CompilerOpenFPGA::IPGenerate() {
-  if (m_design == nullptr) {
-    std::string name = "noname";
-    Design* design = new Design(name);
-    SetDesign(design);
-    Message(std::string("Created design: ") + name + std::string("\n"));
-  }
+  if (!CreateDesign()) return false;
   (*m_out) << "IP generation for design: " << m_design->Name() << "..."
            << std::endl;
 
@@ -102,19 +93,14 @@ bool CompilerOpenFPGA::IPGenerate() {
 }
 
 bool CompilerOpenFPGA::Synthesize() {
-  if (m_design == nullptr) {
-    std::string name = "noname";
-    Design* design = new Design(name);
-    SetDesign(design);
-    Message(std::string("Created design: ") + name + std::string("\n"));
-  }
+  if (!CreateDesign()) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
 
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
   }
   std::string fileList;
-  for (auto lang_file : m_design->FileList()) {
+  for (const auto &lang_file : m_design->FileList()) {
     fileList += lang_file.second + " ";
   }
   std::string yosysScript = m_yosysScript;
