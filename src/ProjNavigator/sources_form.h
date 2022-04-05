@@ -28,14 +28,17 @@ class SourcesForm;
 
 namespace FOEDAG {
 
+class TclCommandIntegration;
 class SourcesForm : public QWidget {
   Q_OBJECT
+  friend class TclCommandIntegration;
 
  public:
   explicit SourcesForm(QWidget* parent = nullptr);
   ~SourcesForm();
 
   void InitSourcesForm(const QString& strFile);
+  TclCommandIntegration* createTclCommandIntegarion();
 
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
@@ -80,16 +83,6 @@ class SourcesForm : public QWidget {
 
   void CreateActions();
   void UpdateSrcHierachyTree();
-
-  void TclHelper();
-  bool TclCheckType(QString strType);
-
- public:
-  void TclCreateFileSet(int argc, const char* argv[]);
-  void TclAddOrCreateFiles(int argc, const char* argv[]);
-  void TclSetActive(int argc, const char* argv[]);
-  void TclSetTopModule(int argc, const char* argv[]);
-  void TclSetAsTarget(int argc, const char* argv[]);
 };
 }  // namespace FOEDAG
 

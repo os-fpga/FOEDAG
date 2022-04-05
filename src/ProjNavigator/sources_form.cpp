@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QTextStream>
 
+#include "tcl_command_integration.h"
 #include "ui_sources_form.h"
 
 using namespace FOEDAG;
@@ -41,6 +42,10 @@ void SourcesForm::InitSourcesForm(const QString &strFile) {
   m_projManager->StartProject(strFile);
 
   UpdateSrcHierachyTree();
+}
+
+TclCommandIntegration *SourcesForm::createTclCommandIntegarion() {
+  return new TclCommandIntegration(m_projManager, this);
 }
 
 void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
@@ -455,8 +460,14 @@ void SourcesForm::UpdateSrcHierachyTree() {
   m_treeSrcHierachy->clear();
 
   // Initialize design sources tree
-  QTreeWidgetItem *topitemDS = new QTreeWidgetItem(m_treeSrcHierachy);
-  m_treeSrcHierachy->addTopLevelItem(topitemDS);
+  QTreeWidgetItem *topItem = new QTreeWidgetItem(m_treeSrcHierachy);
+  const QString topItemName = m_projManager->getProjectName().isEmpty()
+                                  ? "undefined"
+                                  : m_projManager->getProjectName();
+  topItem->setText(0, topItemName);
+  m_treeSrcHierachy->addTopLevelItem(topItem);
+
+  QTreeWidgetItem *topitemDS = new QTreeWidgetItem(topItem);
   topitemDS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_TOP_ITEM);
 
   QStringList listDesFset = m_projManager->getDesignFileSets();
@@ -497,7 +508,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemDS->setText(0, tr("Design Sources") + QString("(%1)").arg(iFileSum));
 
   // Initialize Constraints sources tree
-  QTreeWidgetItem *topitemCS = new QTreeWidgetItem(m_treeSrcHierachy);
+  QTreeWidgetItem *topitemCS = new QTreeWidgetItem(topItem);
   m_treeSrcHierachy->addTopLevelItem(topitemCS);
   topitemCS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_TOP_ITEM);
 
@@ -538,7 +549,7 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemCS->setText(0, tr("Constraints") + QString("(%1)").arg(iFileSum));
 
   // Initialize simulation sources tree
-  QTreeWidgetItem *topitemSS = new QTreeWidgetItem(m_treeSrcHierachy);
+  QTreeWidgetItem *topitemSS = new QTreeWidgetItem(topItem);
   m_treeSrcHierachy->addTopLevelItem(topitemSS);
   topitemSS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_TOP_ITEM);
 
@@ -582,163 +593,4 @@ void SourcesForm::UpdateSrcHierachyTree() {
 
   m_treeSrcHierachy->setHeaderHidden(true);
   m_treeSrcHierachy->expandAll();
-}
-
-void SourcesForm::TclHelper() {
-  QTextStream out(stdout);
-  out << " \n";
-  out << " create_design [<type>][<setname>] \n";
-  out << " set_active_design [<type>] [<setname>] \n";
-  out << "\n";
-  out << " add_files [<type>][<filename>] [...] \n";
-  out << " set_top_module [<type>][<filename>] \n";
-  out << " set_as_target [<filename>] \n";
-  out << " These three commands are valid only for active design. \n";
-  out << " \n";
-  out << " Type has three options:ds,cs and ss . \n";
-  out << " ds : design source . \n";
-  out << " cs : constraint source . \n";
-  out << " ss : simulation source . \n";
-  out << " \n";
-}
-
-bool SourcesForm::TclCheckType(QString strType) {
-  if (!strType.compare("ds", Qt::CaseInsensitive) ||
-      !strType.compare("cs", Qt::CaseInsensitive) ||
-      !strType.compare("ss", Qt::CaseInsensitive)) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-void SourcesForm::TclCreateFileSet(int argc, const char *argv[]) {
-  if (argc < 3 || TclCheckType(QString(argv[1]))) {
-    TclHelper();
-    return;
-  }
-
-  QString strType = QString(argv[1]);
-  QString strName = QString(argv[2]);
-  int ret = 0;
-  if (!strType.compare("ds", Qt::CaseInsensitive)) {
-    ret = m_projManager->setDesignFileSet(strName);
-  } else if (!strType.compare("cs", Qt::CaseInsensitive)) {
-    ret = m_projManager->setConstrFileSet(strName);
-  } else if (!strType.compare("ss", Qt::CaseInsensitive)) {
-    ret = m_projManager->setSimulationFileSet(strName);
-  }
-
-  if (1 == ret) {
-    QTextStream out(stdout);
-    out << "The set name is already exists! \n";
-  } else if (0 == ret) {
-    m_projManager->FinishedProject();
-  }
-}
-
-void SourcesForm::TclAddOrCreateFiles(int argc, const char *argv[]) {
-  if (argc < 3 || TclCheckType(QString(argv[1]))) {
-    TclHelper();
-    return;
-  }
-
-  QString strType = QString(argv[1]);
-  QString strSetName;
-  if (!strType.compare("ds", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getDesignActiveFileSet();
-  } else if (!strType.compare("cs", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getConstrActiveFileSet();
-  } else if (!strType.compare("ss", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getSimulationActiveFileSet();
-  } else {
-    return;
-  }
-
-  int ret = 0;
-  m_projManager->setCurrentFileSet(strSetName);
-  for (int i = 1; i < argc; i++) {
-    QString strFileName = argv[i];
-    if (!strType.compare("ds", Qt::CaseInsensitive)) {
-      ret = m_projManager->setDesignFile(strFileName, false);
-    } else if (!strType.compare("cs", Qt::CaseInsensitive)) {
-      ret = m_projManager->setConstrsFile(strFileName, false);
-    } else if (!strType.compare("ss", Qt::CaseInsensitive)) {
-      ret = m_projManager->setSimulationFile(strFileName, false);
-    }
-
-    if (0 != ret) {
-      QTextStream out(stdout);
-      out << "Failed to add file: " << strFileName << " \n";
-    }
-  }
-
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-  }
-}
-
-void SourcesForm::TclSetActive(int argc, const char *argv[]) {
-  if (argc < 3 || TclCheckType(QString(argv[1]))) {
-    TclHelper();
-    return;
-  }
-
-  QString strType = QString(argv[1]);
-  QString strName = QString(argv[2]);
-  int ret = 0;
-  if (!strType.compare("ds", Qt::CaseInsensitive)) {
-    ret = m_projManager->setDesignActive(strName);
-  } else if (!strType.compare("cs", Qt::CaseInsensitive)) {
-    ret = m_projManager->setConstrActive(strName);
-  } else if (!strType.compare("ss", Qt::CaseInsensitive)) {
-    ret = m_projManager->setSimulationActive(strName);
-  } else {
-    return;
-  }
-
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-  }
-}
-
-void SourcesForm::TclSetTopModule(int argc, const char *argv[]) {
-  if (argc < 3 || TclCheckType(QString(argv[1]))) {
-    TclHelper();
-    return;
-  }
-
-  QString strType = QString(argv[1]);
-  QString strSetName;
-  if (!strType.compare("ds", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getDesignActiveFileSet();
-  } else if (!strType.compare("cs", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getConstrActiveFileSet();
-  } else if (!strType.compare("ss", Qt::CaseInsensitive)) {
-    strSetName = m_projManager->getSimulationActiveFileSet();
-  } else {
-    return;
-  }
-
-  QString strFileName = QString(argv[2]);
-  m_projManager->setCurrentFileSet(strSetName);
-  QString module = strFileName.left(strFileName.lastIndexOf("."));
-  int ret = m_projManager->setTopModule(module);
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-  }
-}
-
-void SourcesForm::TclSetAsTarget(int argc, const char *argv[]) {
-  if (argc < 2) {
-    TclHelper();
-    return;
-  }
-
-  QString strFileName = QString(argv[1]);
-  m_projManager->setCurrentFileSet(m_projManager->getConstrActiveFileSet());
-  int ret = m_projManager->setTargetConstrs(strFileName);
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-  }
 }
