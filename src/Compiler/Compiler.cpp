@@ -56,6 +56,12 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
 }
 
+void Compiler::SetTclInterpreterHandler(
+    TclInterpreterHandler* tclInterpreterHandler) {
+  m_tclInterpreterHandler = tclInterpreterHandler;
+  if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
+}
+
 Compiler::~Compiler() {
   delete m_taskManager;
   delete m_designManager;
