@@ -38,8 +38,6 @@ namespace FOEDAG {
 
 class TclInterpreterHandler;
 class Session;
-class DesignManager;
-class TclCommandIntegration;
 class Compiler {
  public:
   enum Action {
@@ -66,7 +64,7 @@ class Compiler {
     BistreamGenerated
   };
   // Most common use case, create the compiler in your main
-  Compiler();
+  Compiler() {}
 
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
@@ -84,10 +82,10 @@ class Compiler {
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  Design* GetActiveDesign() const;
+  Design* GetActiveDesign() { return m_design; }
   Design* GetDesign(const std::string name);
   void SetDesign(Design* design);
-  bool SetActiveDesign(const std::string& name);
+  bool SetActiveDesign(const std::string name);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -96,7 +94,6 @@ class Compiler {
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
-  void setGuiTclSync(TclCommandIntegration* tclCommands);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -122,6 +119,7 @@ class Compiler {
                          std::string_view to);
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
+  Design* m_design = nullptr;
   bool m_stop = false;
   State m_state = None;
   std::ostream* m_out = &std::cout;
@@ -129,8 +127,7 @@ class Compiler {
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
-  DesignManager* m_designManager{nullptr};
-  TclCommandIntegration* m_guiTclSync{nullptr};
+  std::vector<Design*> m_designs;
 };
 
 }  // namespace FOEDAG
