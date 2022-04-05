@@ -67,7 +67,7 @@ class Design {
     return m_constraintFileList;
   }
 
-  void TopLevel(const std::string& topLevelModule) {
+  void SetTopLevel(const std::string& topLevelModule) {
     m_topLevelModule = topLevelModule;
   }
   const std::string& TopLevel() { return m_topLevelModule; }
