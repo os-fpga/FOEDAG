@@ -30,6 +30,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SYNTHESIS_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
+  m_tasks.insert(PACKAGE, new Task{"Package"});
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
   m_tasks.insert(PLACEMENT_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
