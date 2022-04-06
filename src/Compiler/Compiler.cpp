@@ -531,14 +531,17 @@ bool Compiler::Compile(Action action) {
   bool res{false};
   uint task{TaskManager::invalid_id};
   switch (action) {
+    case Action::IPGen:
+      task = IP_GENERATE;
+      break;
     case Action::Synthesis:
       task = SYNTHESIS;
       break;
     case Action::Pack:
-      task = PACKAGE;
+      task = PACKING;
       break;
     case Action::Global:
-      task = PLACEMENT;
+      task = GLOBAL_PLACEMENT;
       break;
     case Action::Detailed:
       task = PLACEMENT;
@@ -687,11 +690,17 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(m_taskManager->task(SYNTHESIS), [this]() {
       Tcl_Eval(m_interp->getInterp(), "synth");
     });
+    m_taskManager->bindTaskCommand(m_taskManager->task(PACKING), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "packing");
+    });
+    m_taskManager->bindTaskCommand(
+        m_taskManager->task(GLOBAL_PLACEMENT),
+        [this]() { Tcl_Eval(m_interp->getInterp(), "globp"); });
     m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "globp");
+      Tcl_Eval(m_interp->getInterp(), "place");
     });
     m_taskManager->bindTaskCommand(m_taskManager->task(ROUTING), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "routing");
+      Tcl_Eval(m_interp->getInterp(), "route");
     });
     m_taskManager->bindTaskCommand(
         m_taskManager->task(TIMING_SIGN_OFF),
@@ -701,9 +710,6 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(m_taskManager->task(BITSTREAM), [this]() {
       Tcl_Eval(m_interp->getInterp(), "bitstream");
-    });
-    m_taskManager->bindTaskCommand(m_taskManager->task(PACKAGE), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "packing");
     });
   }
 }

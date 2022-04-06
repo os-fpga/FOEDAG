@@ -116,6 +116,10 @@ test/openfpga: run-cmake-release
 	yosys -version
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/raygentop/raygentop.tcl
 
+test/openfpga_gui: run-cmake-release
+	yosys -version
+	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/raygentop/raygentop_gui.tcl
+
 regression: release
 	cmake -E make_directory build/tests
 	cmake -E remove_directory build/test
