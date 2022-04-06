@@ -36,11 +36,38 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   view->setModel(model);
 
   view->setColumnWidth(0, 30);
-  view->setColumnWidth(1, 150);
+  view->setColumnWidth(1, 160);
   view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
   view->horizontalHeader()->setStretchLastSection(true);
 
   compiler->setTaskManager(tManager);
   if (taskManager) *taskManager = tManager;
   return view;
+}
+
+uint FOEDAG::toTaskId(Compiler::Action action) {
+  switch (action) {
+    case Compiler::Synthesis:
+      return SYNTHESIS;
+    case Compiler::Global:
+      return GLOBAL_PLACEMENT;
+    case Compiler::Detailed:
+      return PLACEMENT;
+    case Compiler::Pack:
+      return PACKING;
+    case Compiler::Routing:
+      return ROUTING;
+    case Compiler::STA:
+      return TIMING_SIGN_OFF;
+    case Compiler::Bitstream:
+      return BITSTREAM;
+    case Compiler::Power:
+      return POWER;
+    case Compiler::IPGen:
+      return IP_GENERATE;
+    case Compiler::NoAction:
+    case Compiler::Batch:
+      return TaskManager::invalid_id;
+  }
+  return TaskManager::invalid_id;
 }

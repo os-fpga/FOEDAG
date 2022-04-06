@@ -81,6 +81,7 @@ class TaskManager : public QObject {
    * Bind command \a cmd to task \a t. Command will be run when task triggered.
    */
   void bindTaskCommand(Task *t, const std::function<void()> &cmd);
+  void bindTaskCommand(uint id, const std::function<void()> &cmd);
 
  signals:
   /*!

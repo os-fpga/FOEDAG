@@ -28,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/Design.h"
 #include "Main/CommandLine.h"
-#include "TaskManager.h"
 #include "Tcl/TclInterpreter.h"
 
 #ifndef COMPILER_H
@@ -36,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class TaskManager;
 class TclInterpreterHandler;
 class Session;
 class Constraints;

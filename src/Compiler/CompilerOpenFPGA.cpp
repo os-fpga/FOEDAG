@@ -38,9 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-CompilerOpenFPGA::CompilerOpenFPGA() : Compiler::Compiler() {}
+CompilerOpenFPGA::CompilerOpenFPGA() {}
 
-CompilerOpenFPGA::~CompilerOpenFPGA() { delete m_taskManager; }
+CompilerOpenFPGA::~CompilerOpenFPGA() {}
 
 // https://github.com/lnis-uofu/OpenFPGA/blob/master/openfpga_flow/misc/ys_tmpl_yosys_vpr_flow.ys
 const std::string basicYosysScript = R"( 
