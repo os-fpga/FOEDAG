@@ -21,6 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/Design.h"
 
+#include "Compiler/Constraints.h"
+
 using namespace FOEDAG;
 
 Design::~Design() {}
+
+void Design::AddConstraintFile(const std::string& fileName) {
+  m_constraintFileList.push_back(fileName);
+  if (m_constraints == nullptr) m_constraints = new Constraints();
+  m_constraints->addConstraint(fileName);
+}

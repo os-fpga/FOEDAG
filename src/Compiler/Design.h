@@ -24,15 +24,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#ifndef DESIGN_H
+#define DESIGN_H
+
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
 
-#ifndef DESIGN_H
-#define DESIGN_H
-
 namespace FOEDAG {
+class Constraints;
 
 class Design {
  public:
@@ -55,8 +56,15 @@ class Design {
   void AddFile(Language language, const std::string& fileName) {
     m_fileList.push_back(std::make_pair(language, fileName));
   }
+
+  void AddConstraintFile(const std::string& fileName);
+
   std::vector<std::pair<Language, std::string>>& FileList() {
     return m_fileList;
+  }
+
+  std::vector<std::string>& ConstraintFileList() {
+    return m_constraintFileList;
   }
 
   void TopLevel(const std::string& topLevelModule) {
@@ -64,10 +72,15 @@ class Design {
   }
   const std::string& TopLevel() { return m_topLevelModule; }
 
+  void setConstraints(Constraints* contraints) { m_constraints = contraints; }
+  Constraints* getConstraints() { return m_constraints; }
+
  private:
   std::string m_designName;
   std::string m_topLevelModule;
   std::vector<std::pair<Language, std::string>> m_fileList;
+  std::vector<std::string> m_constraintFileList;
+  Constraints* m_constraints = nullptr;
 };
 
 }  // namespace FOEDAG
