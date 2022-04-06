@@ -39,9 +39,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(ROUTING, new Task{"Routing"});
   m_tasks.insert(ROUTING_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
-  m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing sign off"});
+  m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(POWER, new Task{"Power"});
-  m_tasks.insert(BITSTREAM, new Task{"Bitstream"});
+  m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
 
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_WRITE_NETLIST]);
@@ -113,6 +113,10 @@ void TaskManager::startTask(uint id) {
 void TaskManager::bindTaskCommand(Task *t, const std::function<void()> &cmd) {
   connect(t, &Task::taskTriggered, [cmd]() { cmd(); });
   t->setValid(true);
+}
+
+void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
+  if (auto t = task(id)) bindTaskCommand(t, cmd);
 }
 
 void TaskManager::runNext() {
