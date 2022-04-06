@@ -693,9 +693,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(m_taskManager->task(PACKING), [this]() {
       Tcl_Eval(m_interp->getInterp(), "packing");
     });
-    m_taskManager->bindTaskCommand(m_taskManager->task(GLOBAL_PLACEMENT), [this]() {
-      Tcl_Eval(m_interp->getInterp(), "globp");
-    });
+    m_taskManager->bindTaskCommand(
+        m_taskManager->task(GLOBAL_PLACEMENT),
+        [this]() { Tcl_Eval(m_interp->getInterp(), "globp"); });
     m_taskManager->bindTaskCommand(m_taskManager->task(PLACEMENT), [this]() {
       Tcl_Eval(m_interp->getInterp(), "place");
     });

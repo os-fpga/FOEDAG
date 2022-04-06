@@ -92,9 +92,11 @@ bool CompilerOpenFPGA::IPGenerate() {
     SetDesign(design);
     Message(std::string("Created design: ") + name + std::string("\n"));
   }
-  (*m_out) << "IP generation for design: " << m_design->Name() << "..." << std::endl;
+  (*m_out) << "IP generation for design: " << m_design->Name() << "..."
+           << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " IPs are generated!" << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " IPs are generated!"
+           << std::endl;
   m_state = IPGenerated;
   return true;
 }
@@ -167,7 +169,8 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced && m_state != State::Placed) {
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
     (*m_out) << "ERROR: Design needs to be in packed state" << std::endl;
     return false;
   }
@@ -185,7 +188,8 @@ bool CompilerOpenFPGA::Placement() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced && m_state != State::Placed) {
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
     (*m_out) << "ERROR: Design needs to be in packed or globally placed state"
              << std::endl;
     return false;
