@@ -37,10 +37,22 @@ class CompilerOpenFPGA : public Compiler {
   void setYosysExecPath(const std::filesystem::path& path) {
     m_yosysExecutablePath = path;
   }
+  void setOpenFpgaExecPath(const std::filesystem::path& path) {
+    m_openFpgaExecutablePath = path;
+  }
+  void setVprExecPath(const std::filesystem::path& path) {
+    m_vprExecutablePath = path;
+  }
+  void setArchitectureFile(const std::filesystem::path& path) {
+    m_architectureFile = path;
+  }
+  void setYosysScript(const std::string& script) { m_yosysScript = script; }
   ~CompilerOpenFPGA();
 
  protected:
+  virtual bool IPGenerate();
   virtual bool Synthesize();
+  virtual bool Packing();
   virtual bool GlobalPlacement();
   virtual bool Placement();
   virtual bool Route();
@@ -48,8 +60,13 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
 
- private:
   std::filesystem::path m_yosysExecutablePath = "yosys";
+  std::filesystem::path m_openFpgaExecutablePath = "openfpga.sh";
+  std::filesystem::path m_vprExecutablePath = "vpr";
+  std::filesystem::path m_architectureFile =
+      "tests/Arch/k6_frac_N10_tileable_40nm.xml";
+  std::string m_yosysScript;
+  std::string getBaseVprCommand();
 };
 
 }  // namespace FOEDAG

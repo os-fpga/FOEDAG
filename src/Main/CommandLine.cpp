@@ -48,9 +48,10 @@ void CommandLine::printHelp() {
   std::cout << "   set_top_module <top>" << std::endl;
   std::cout << "   ipgenerate" << std::endl;
   std::cout << "   synthesize" << std::endl;
+  std::cout << "   packing" << std::endl;
   std::cout << "   global_placement" << std::endl;
-  std::cout << "   placement" << std::endl;
-  std::cout << "   routing" << std::endl;
+  std::cout << "   place" << std::endl;
+  std::cout << "   route" << std::endl;
   std::cout << "   sta" << std::endl;
   std::cout << "   power" << std::endl;
   std::cout << "   bitstream" << std::endl;

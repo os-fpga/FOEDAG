@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/Constraints.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
@@ -42,12 +43,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+Compiler::Compiler() {}
+
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
+  m_constraints = new Constraints();
+  m_constraints->registerCommands(interp);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -123,6 +128,9 @@ tcl_interp_clone
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  if (m_constraints == nullptr) m_constraints = new Constraints();
+  m_constraints->registerCommands(interp);
+
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -135,6 +143,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     } else {
       Design* design = new Design(name);
+      design->setConstraints(compiler->getConstraints());
+      compiler->getConstraints()->reset();
       compiler->SetDesign(design);
       compiler->Message(std::string("Created design: ") + name +
                         std::string("\n"));
@@ -258,6 +268,40 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("add_design_file", add_design_file, this, 0);
 
+  auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    if (design == nullptr) {
+      Tcl_AppendResult(interp,
+                       "ERROR: create a design first: create_design <name>",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    if (argc != 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify a constraint file name",
+                       (char*)NULL);
+      return TCL_ERROR;
+    }
+    const std::string file = argv[1];
+
+    std::string expandedFile = file;
+    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+
+    compiler->Message(std::string("Adding constraint file ") + expandedFile +
+                      std::string("\n"));
+    design->AddConstraintFile(expandedFile);
+    return 0;
+  };
+  interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
+
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -274,6 +318,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
 
+    auto packing = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      return compiler->Compile(Pack) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("packing", packing, this, 0);
+
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -288,7 +339,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return compiler->Compile(Detailed) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
-    interp->registerCmd("placement", placement, this, 0);
+    interp->registerCmd("place", placement, this, 0);
 
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -350,6 +401,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
 
+    auto packing = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      WorkerThread* wthread =
+          new WorkerThread("pack_th", Action::Pack, compiler);
+      wthread->start();
+      return 0;
+    };
+    interp->registerCmd("packing", packing, this, 0);
+
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -370,7 +431,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return 0;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
-    interp->registerCmd("placement", placement, this, 0);
+    interp->registerCmd("place", placement, this, 0);
 
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -588,8 +649,12 @@ void Compiler::finish() {
 
 bool Compiler::RunCompileTask(Action action) {
   switch (action) {
+    case Action::IPGen:
+      return IPGenerate();
     case Action::Synthesis:
       return Synthesize();
+    case Action::Pack:
+      return Packing();
     case Action::Global:
       return GlobalPlacement();
     case Action::Detailed:
@@ -638,6 +703,14 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
 }
 
 bool Compiler::IPGenerate() {
+  if (m_design == nullptr) {
+    (*m_out) << "ERROR: No design specified" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool Compiler::Packing() {
   if (m_design == nullptr) {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;

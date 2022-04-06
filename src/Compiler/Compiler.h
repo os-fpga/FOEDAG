@@ -38,12 +38,14 @@ namespace FOEDAG {
 
 class TclInterpreterHandler;
 class Session;
+class Constraints;
 class Compiler {
  public:
   enum Action {
     NoAction,
     IPGen,
     Synthesis,
+    Pack,
     Global,
     Detailed,
     Routing,
@@ -56,6 +58,7 @@ class Compiler {
     None,
     IPGenerated,
     Synthesized,
+    Packed,
     GloballyPlaced,
     Placed,
     Routed,
@@ -64,7 +67,7 @@ class Compiler {
     BistreamGenerated
   };
   // Most common use case, create the compiler in your main
-  Compiler() {}
+  Compiler();
 
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
@@ -92,11 +95,13 @@ class Compiler {
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
+  Constraints* getConstraints() { return m_constraints; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
   virtual bool Synthesize();
+  virtual bool Packing();
   virtual bool GlobalPlacement();
   virtual bool Placement();
   virtual bool Route();
@@ -126,6 +131,7 @@ class Compiler {
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
   std::vector<Design*> m_designs;
+  Constraints* m_constraints = nullptr;
 };
 
 }  // namespace FOEDAG
