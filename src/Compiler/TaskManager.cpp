@@ -25,12 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
-  m_tasks.insert(IP_GENERATE, new Task{"Ip Generate"});
+  m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
   m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
   m_tasks.insert(SYNTHESIS_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
-  m_tasks.insert(PACKAGE, new Task{"Package"});
+  m_tasks.insert(PACKING, new Task{"Packing"});
+  m_tasks.insert(GLOBAL_PLACEMENT, new Task{"Global Placement"});
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
   m_tasks.insert(PLACEMENT_SETTINGS, new Task{"Edit settings"});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
@@ -83,8 +84,15 @@ TaskStatus TaskManager::status() const {
 void TaskManager::startAll() {
   if (!m_runStack.isEmpty()) return;
   reset();
+  m_runStack.append(m_tasks[IP_GENERATE]);
   m_runStack.append(m_tasks[SYNTHESIS]);
+  m_runStack.append(m_tasks[PACKING]);
+  m_runStack.append(m_tasks[GLOBAL_PLACEMENT]);
   m_runStack.append(m_tasks[PLACEMENT]);
+  m_runStack.append(m_tasks[ROUTING]);
+  m_runStack.append(m_tasks[TIMING_SIGN_OFF]);
+  m_runStack.append(m_tasks[POWER]);
+  m_runStack.append(m_tasks[BITSTREAM]);
   run();
   emit started();
 }
