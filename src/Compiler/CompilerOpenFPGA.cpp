@@ -271,7 +271,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
   // TODO:
-  (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..." << std::endl;
-  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!" << std::endl;
+  (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
+           << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
+           << std::endl;
   return true;
 }
