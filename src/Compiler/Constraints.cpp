@@ -31,7 +31,7 @@ Constraints::Constraints() {
 Constraints::~Constraints() {}
 
 bool Constraints::evaluateConstraints(const std::filesystem::path& path) {
-  m_interp->evalFile(path);
+  m_interp->evalFile(path.string());
   return true;
 }
 
