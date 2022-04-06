@@ -534,6 +534,9 @@ bool Compiler::Compile(Action action) {
     case Action::Synthesis:
       task = SYNTHESIS;
       break;
+    case Action::Pack:
+      task = PACKAGE;
+      break;
     case Action::Global:
       task = PLACEMENT;
       break;
@@ -698,6 +701,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(m_taskManager->task(BITSTREAM), [this]() {
       Tcl_Eval(m_interp->getInterp(), "bitstream");
+    });
+    m_taskManager->bindTaskCommand(m_taskManager->task(PACKAGE), [this]() {
+      Tcl_Eval(m_interp->getInterp(), "packing");
     });
   }
 }
