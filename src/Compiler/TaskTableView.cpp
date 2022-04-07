@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TaskManager.h"
 
+inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
 
 TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
@@ -41,6 +42,7 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
   connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
     setEnabled(m_taskManager->status() != TaskStatus::InProgress);
   });
+  initializeResources();
 }
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
