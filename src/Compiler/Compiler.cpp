@@ -579,8 +579,8 @@ bool Compiler::GlobalPlacement() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
-  if (m_state != State::Synthesized) {
-    (*m_out) << "ERROR: Design needs to be in synthesized state" << std::endl;
+  if (m_state != State::Packed && m_state != State::GloballyPlaced) {
+    (*m_out) << "ERROR: Design needs to be in packed state" << std::endl;
     return false;
   }
   (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
@@ -677,9 +677,17 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
 
 bool Compiler::IPGenerate() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
-    return false;
+    std::string name = "noname";
+    Design* design = new Design(name);
+    SetDesign(design);
+    Message(std::string("Created design: ") + name + std::string("\n"));
   }
+  (*m_out) << "IP generation for design: " << m_design->Name() << "..."
+           << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " IPs are generated!"
+           << std::endl;
+  m_state = IPGenerated;
   return true;
 }
 
@@ -688,6 +696,10 @@ bool Compiler::Packing() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Packing for design: " << m_design->Name() << "..." << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " is packed!" << std::endl;
+  m_state = Packed;
   return true;
 }
 
@@ -696,6 +708,11 @@ bool Compiler::Placement() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Placement for design: " << m_design->Name() << "..."
+           << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " is placed!" << std::endl;
+  m_state = Placed;
   return true;
 }
 
@@ -704,6 +721,10 @@ bool Compiler::Route() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " is routed!" << std::endl;
+  m_state = Routed;
   return true;
 }
 
@@ -712,6 +733,10 @@ bool Compiler::TimingAnalysis() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
+           << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " is analyzed!" << std::endl;
   return true;
 }
 
@@ -720,6 +745,10 @@ bool Compiler::PowerAnalysis() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
+           << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " is analyzed!" << std::endl;
   return true;
 }
 
@@ -728,6 +757,11 @@ bool Compiler::GenerateBitstream() {
     (*m_out) << "ERROR: No design specified" << std::endl;
     return false;
   }
+  (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
+           << std::endl;
+
+  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
+           << std::endl;
   return true;
 }
 
