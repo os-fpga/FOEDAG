@@ -86,7 +86,7 @@ coverage-build/html: foedag-build/foedag.coverage
 test/regression: run-cmake-release
 
 test/valgrind: run-cmake-debug
-	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/foedag --noqt --script tests/TestBatch/hello.tcl ; 
+	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/foedag --batch --script tests/TestBatch/hello.tcl ; 
 	grep "ERROR SUMMARY: 0" valgrind.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl;
 	grep "ERROR SUMMARY: 0" valgrind_gui.log 
@@ -138,6 +138,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
+	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -157,8 +158,9 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/foedag --noqt --script tests/TestBatch/test_compiler_mt.tcl
-	./build/bin/foedag --noqt --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
+	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

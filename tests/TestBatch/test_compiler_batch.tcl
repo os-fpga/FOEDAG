@@ -19,6 +19,7 @@
 
 batch {
   synth
+  packing
   globp
 }
 
