@@ -30,7 +30,6 @@ QWidget* mainWindowBuilder(FOEDAG::Session* session) {
 }
 
 int main(int argc, char** argv) {
-  Q_INIT_RESOURCE(compiler_resources);
   FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
   cmd->processArgs();
 
