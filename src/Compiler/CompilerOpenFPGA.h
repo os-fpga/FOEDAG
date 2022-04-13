@@ -33,7 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 class CompilerOpenFPGA : public Compiler {
  public:
-  CompilerOpenFPGA();
+  CompilerOpenFPGA() = default;
+  ~CompilerOpenFPGA() = default;
+
   void setYosysExecPath(const std::filesystem::path& path) {
     m_yosysExecutablePath = path;
   }
@@ -47,7 +49,6 @@ class CompilerOpenFPGA : public Compiler {
     m_architectureFile = path;
   }
   void setYosysScript(const std::string& script) { m_yosysScript = script; }
-  ~CompilerOpenFPGA();
 
  protected:
   virtual bool IPGenerate();

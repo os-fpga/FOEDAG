@@ -38,6 +38,8 @@ namespace FOEDAG {
 class TaskManager;
 class TclInterpreterHandler;
 class Session;
+class DesignManager;
+class TclCommandIntegration;
 class Constraints;
 class Compiler {
  public:
@@ -67,7 +69,7 @@ class Compiler {
     BistreamGenerated
   };
   // Most common use case, create the compiler in your main
-  Compiler();
+  Compiler() = default;
 
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
@@ -76,17 +78,17 @@ class Compiler {
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() { return m_session; }
-  ~Compiler();
+  virtual ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
   State CompilerState() { return m_state; }
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  Design* GetActiveDesign() { return m_design; }
+  Design* GetActiveDesign() const;
   Design* GetDesign(const std::string name);
   void SetDesign(Design* design);
-  bool SetActiveDesign(const std::string name);
+  bool SetActiveDesign(const std::string& name);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -96,6 +98,7 @@ class Compiler {
 
   void setTaskManager(TaskManager* newTaskManager);
   Constraints* getConstraints() { return m_constraints; }
+  void setGuiTclSync(TclCommandIntegration* tclCommands);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -109,13 +112,14 @@ class Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
 
+  bool CreateDesign(const std::string& name);
+
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
   void Message(const std::string& message) {
-    // m_interp->evalCmd("puts " + message + "; flush stdout; ");
     if (m_out) (*m_out) << message << std::flush;
   }
   std::string replaceAll(std::string_view str, std::string_view from,
@@ -131,7 +135,9 @@ class Compiler {
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
   std::vector<Design*> m_designs;
+  TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
+  std::string m_output;
 };
 
 }  // namespace FOEDAG

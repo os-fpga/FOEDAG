@@ -49,6 +49,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newProjectDlg();
   void openProject();
   void openFileSlot();
+  void newDesignCreated(const QString& design);
 
  private: /* Menu bar builders */
   void createMenus();
