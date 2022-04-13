@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
 #include "ProjNavigator/sources_form.h"
+#include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
 
 using namespace FOEDAG;
@@ -131,6 +132,10 @@ void MainWindow::openFileSlot() {
   const QString file = QFileDialog::getOpenFileName(this, tr("Open file"));
   auto editor = findChild<TextEditor*>("textEditor");
   if (editor) editor->SlotOpenFile(file);
+}
+
+void MainWindow::newDesignCreated(const QString& design) {
+  setWindowTitle(tr(mainWindowName.c_str()) + " - " + design);
 }
 
 void MainWindow::createMenus() {
@@ -254,6 +259,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
+  auto tclCommandIntegration = sourForm->createTclCommandIntegarion();
+  m_compiler->setGuiTclSync(tclCommandIntegration);
+  connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
+          &MainWindow::newDesignCreated);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 

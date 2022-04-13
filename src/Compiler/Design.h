@@ -48,7 +48,7 @@ class Design {
     SYSTEMVERILOG_2012,
     SYSTEMVERILOG_2017,
   };
-  Design(std::string& designName) : m_designName(designName) {}
+  Design(const std::string& designName) : m_designName(designName) {}
   ~Design();
 
   const std::string& Name() { return m_designName; }
@@ -67,7 +67,7 @@ class Design {
     return m_constraintFileList;
   }
 
-  void TopLevel(const std::string& topLevelModule) {
+  void SetTopLevel(const std::string& topLevelModule) {
     m_topLevelModule = topLevelModule;
   }
   const std::string& TopLevel() { return m_topLevelModule; }
