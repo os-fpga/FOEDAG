@@ -53,18 +53,111 @@ static std::string getConstraint(uint64_t argc, const char* argv[]) {
   return command;
 }
 
-void Constraints::registerCommands(TclInterpreter* interp) {
-  // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
-  // TODO: register all SDC commands, extract the "keeps"
-  auto create_clock = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    Constraints* constraints = (Constraints*)clientData;
+static std::vector<std::string> constraint_procs = {
+    //"write_sdc",
+    "current_instance", "set_hierarchy_separator", "check_path_divider",
+    "set_units", "check_unit", "unit_prefix_scale", "check_unit_scale",
+    "set_cmd_units", "set_unit_values", "all_clocks", "all_inputs",
+    "all_outputs", "all_ports_for_direction", "port_members", "all_registers",
+    "current_design",
+    //"get_cells",
+    "filter_insts1",
+    //"get_clocks",
+    "get_lib_cells", "get_lib_pins", "check_nocase_flag", "get_libs",
+    "find_liberty_libraries_matching",
+    // "get_nets", "get_pins",
+    "filter_pins1",
+    // "get_ports",
+    "filter_ports1", "create_clock", "create_generated_clock", "group_path",
+    "check_exception_pins", "set_clock_gating_check", "set_clock_gating_check1",
+    "set_clock_groups", "set_clock_latency", "set_sense", "set_clock_sense",
+    "set_clock_sense_cmd1", "set_clock_transition", "set_clock_uncertainty",
+    "set_data_check", "set_disable_timing", "set_disable_timing_instance",
+    "parse_disable_inst_ports", "set_disable_timing_cell",
+    "parse_disable_cell_ports", "set_false_path", "set_ideal_latency",
+    "set_ideal_network", "set_ideal_transition", "set_input_delay",
+    "set_port_delay", "set_max_delay", "set_path_delay", "set_max_time_borrow",
+    "set_min_delay", "set_min_pulse_width", "set_multicycle_path",
+    "set_output_delay"
+    "set_propagated_clock"
+    "set_case_analysis",
+    "set_drive", "set_driving_cell", "set_fanout_load", "set_input_transition",
+    "set_load", "set_logic_dc", "set_logic_value", "set_logic_one",
+    "set_logic_zero", "set_max_area", "set_max_capacitance",
+    "set_capacitance_limit", "set_max_fanout", "set_fanout_limit",
+    "set_max_transition", "set_port_fanout_number", "set_resistance",
+    "set_timing_derate", "parse_from_arg", "parse_thrus_arg", "parse_to_arg",
+    "parse_to_arg1", "delete_from_thrus_to", "parse_comment_key",
+    "set_min_capacitance", "set_operating_conditions", "parse_op_cond",
+    "parse_op_cond_analysis_type", "set_wire_load_min_block_size",
+    "set_wire_load_mode", "set_wire_load_model",
+    "set_wire_load_selection_group", "create_voltage_area",
+    "set_level_shifter_strategy", "set_level_shifter_threshold",
+    "set_max_dynamic_power", "set_max_leakage_power", "define_corners",
+    "set_pvt", "set_pvt_min_max", "default_operating_conditions", "cell_regexp",
+    "cell_regexp_hsc", "port_regexp", "port_regexp_hsc"};
 
-    if (argc < 2) {
-      Tcl_AppendResult(interp, "ERROR: invalid syntax for create_clock",
-                       (char*)NULL);
-      return TCL_ERROR;
+static std::string replaceAll(std::string_view str, std::string_view from,
+                              std::string_view to) {
+  size_t start_pos = 0;
+  std::string result(str);
+  while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
+    result.replace(start_pos, from.length(), to);
+    start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
+  }
+  return result;
+}
+
+void Constraints::registerCommands(TclInterpreter* interp) {
+  // SDC constraints
+  // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
+  // Register all SDC commands, extract the "keeps"
+
+  auto name_harvesting_sdc_command = [](void* clientData, Tcl_Interp* interp,
+                                        int argc, const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name" || arg == "-from" || arg == "-to" ||
+          arg == "-through" || arg == "-fall_to" || arg == "-rise_to" ||
+          arg == "-rise_from" || arg == "-fall_from") {
+        i++;
+        constraints->addKeep(argv[i]);
+      }
     }
+    return 0;
+  };
+  for (auto proc_name : constraint_procs) {
+    interp->registerCmd(proc_name, name_harvesting_sdc_command, this, 0);
+  }
+
+  auto getter_sdc_command = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    std::string returnVal = "[";
+    returnVal += argv[0];
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      std::string tmp = replaceAll(arg, "{*}", "[*]");
+      constraints->addKeep(tmp);
+      returnVal += " ";
+      returnVal += tmp;
+    }
+    returnVal += "]";
+    Tcl_AppendResult(interp, returnVal.c_str(), (char*)NULL);
+    return TCL_OK;
+  };
+  interp->registerCmd("get_clocks", getter_sdc_command, this, 0);
+  interp->registerCmd("get_nets", getter_sdc_command, this, 0);
+  interp->registerCmd("get_pins", getter_sdc_command, this, 0);
+  interp->registerCmd("get_ports", getter_sdc_command, this, 0);
+  interp->registerCmd("get_cells", getter_sdc_command, this, 0);
+
+  // Physical constraints
+  auto pin_loc = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
     constraints->addConstraint(getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
@@ -75,7 +168,78 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     return 0;
   };
-  interp->registerCmd("create_clock", create_clock, this, 0);
+  interp->registerCmd("set_pin_loc", pin_loc, this, 0);
+  interp->registerCmd("set_property", pin_loc, this, 0);
 
-  // TODO: register all location constraints
+  auto region_loc = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        constraints->addKeep(argv[i]);
+      }
+    }
+    return 0;
+  };
+  interp->registerCmd("set_region_loc", region_loc, this, 0);
+
+  auto read_sdc = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (argc < 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
+      return TCL_ERROR;
+    }
+    std::string fileName = argv[1];
+    std::ifstream stream;
+    stream.open(fileName);
+    if (!stream.good()) {
+      Tcl_AppendResult(
+          interp,
+          std::string("ERROR: Cannot open the SDC file:" + fileName).c_str(),
+          (char*)NULL);
+      return TCL_ERROR;
+    }
+    std::string text;
+    char c = stream.get();
+    while (stream.good()) {
+      text += c;
+      c = stream.get();
+    }
+    stream.close();
+    text = replaceAll(text, "[*]", "{*}");
+    constraints->reset();
+    Tcl_Eval(interp, text.c_str());
+    return TCL_OK;
+  };
+  interp->registerCmd("read_sdc", read_sdc, this, 0);
+
+  auto write_sdc = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (argc < 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
+      return TCL_ERROR;
+    }
+    std::string fileName = argv[1];
+    std::ofstream stream;
+    stream.open(fileName);
+    if (!stream.good()) {
+      Tcl_AppendResult(
+          interp,
+          std::string("ERROR: Cannot open the SDC file for writing:" + fileName)
+              .c_str(),
+          (char*)NULL);
+      return TCL_ERROR;
+    }
+    for (auto constraint : constraints->getConstraints()) {
+      stream << constraint << "\n";
+    }
+    stream.close();
+    return TCL_OK;
+  };
+  interp->registerCmd("write_sdc", write_sdc, this, 0);
 }

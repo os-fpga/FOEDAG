@@ -46,6 +46,10 @@ void CommandLine::printHelp() {
                "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
             << std::endl;
   std::cout << "   set_top_module <top>" << std::endl;
+  std::cout << "   add_constraint_file <file>: Sets SDC + location constraints"
+            << std::endl;
+  std::cout << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
+            << std::endl;
   std::cout << "   ipgenerate" << std::endl;
   std::cout << "   synthesize" << std::endl;
   std::cout << "   packing" << std::endl;
