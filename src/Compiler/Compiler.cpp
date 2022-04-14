@@ -593,7 +593,7 @@ void Compiler::Stop() {
 Design* Compiler::GetActiveDesign() const { return m_design; }
 
 bool Compiler::Synthesize() {
-  if (!CreateDesign("noname")) return false;
+  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
@@ -726,7 +726,7 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 }
 
 bool Compiler::IPGenerate() {
-  if (!CreateDesign("noname")) return false;
+  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_design->Name() << "..."
            << std::endl;
 
@@ -821,12 +821,16 @@ bool Compiler::CreateDesign(const std::string& name) {
     }
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
-    Message(std::string("Created design source: ") + name + std::string("\n"));
+  }
+  if (GetDesign(name)) {
+    Message(std::string("ERROR: design already exists"));
+    return false;
   }
 
   Design* design = new Design(name);
   design->setConstraints(getConstraints());
   SetDesign(design);
+  Message(std::string("Created design source: ") + name + std::string("\n"));
   return true;
 }
 
