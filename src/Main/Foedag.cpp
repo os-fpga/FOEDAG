@@ -314,12 +314,6 @@ bool Foedag::initBatch() {
     m_registerTclFunc(nullptr, GlobalSession);
   }
   std::string result = interpreter->evalCmd("puts \"Tcl only mode\"");
-  // --script <script>
-  if (!m_cmdLine->Script().empty())
-    result = interpreter->evalFile(m_cmdLine->Script());
-  if (result != "") {
-    std::cout << result << '\n';
-  }
 
   // Tcl_AppInit
   auto tcl_init = [](Tcl_Interp* interp) -> int {
