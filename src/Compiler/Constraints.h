@@ -36,6 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+/* This class preprocess SDC contraints to keep all names used in the
+ * constraints and the constraints themselves */
+
 class Constraints {
  public:
   Constraints();

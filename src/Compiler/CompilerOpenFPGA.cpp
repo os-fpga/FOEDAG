@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/CompilerOpenFPGA.h"
+#include "Compiler/Constraints.h"
 
 using namespace FOEDAG;
 
@@ -95,7 +96,12 @@ bool CompilerOpenFPGA::IPGenerate() {
 bool CompilerOpenFPGA::Synthesize() {
   if (!CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
-
+  for (auto constraint : m_constraints->getConstraints()) {
+    (*m_out) << "Constraint: " << constraint << "\n";
+  }
+  for (auto keep : m_constraints->GetKeeps()) {
+    (*m_out) << "Keep name: " << keep << "\n";
+  }
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
   }

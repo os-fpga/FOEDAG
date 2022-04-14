@@ -341,6 +341,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     design->AddConstraintFile(expandedFile);
+    Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
     return 0;
   };
   interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
@@ -594,6 +595,12 @@ Design* Compiler::GetActiveDesign() const { return m_design; }
 bool Compiler::Synthesize() {
   if (!CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  for (auto constraint : m_constraints->getConstraints()) {
+    (*m_out) << "Constraint: " << constraint << "\n";
+  }
+  for (auto keep : m_constraints->GetKeeps()) {
+    (*m_out) << "Keep name: " << keep << "\n";
+  }
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
@@ -819,7 +826,6 @@ bool Compiler::CreateDesign(const std::string& name) {
 
   Design* design = new Design(name);
   design->setConstraints(getConstraints());
-  getConstraints()->reset();
   SetDesign(design);
   return true;
 }
