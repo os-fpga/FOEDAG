@@ -83,7 +83,7 @@ write_blif ${OUTPUT_BLIF}
   )";
 
 bool CompilerOpenFPGA::IPGenerate() {
-  if (!CreateDesign("noname")) return false;
+  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_design->Name() << "..."
            << std::endl;
 
@@ -94,7 +94,7 @@ bool CompilerOpenFPGA::IPGenerate() {
 }
 
 bool CompilerOpenFPGA::Synthesize() {
-  if (!CreateDesign("noname")) return false;
+  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
