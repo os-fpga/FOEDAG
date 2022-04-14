@@ -25,11 +25,11 @@
             ]
         },
         {
-            "name": "(gdb) Console test",
+            "name": "(gdb) Batch test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dbuild/bin/console_test",
-            "args": ["--replay", "tests/TestGui/gui_console.tcl"],
+            "program": "${workspaceFolder}/dbuild/bin/foedag",
+            "args": ["--batch", "--script", "tests/Testcases/raygentop/raygentop.tcl"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
