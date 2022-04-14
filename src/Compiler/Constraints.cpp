@@ -54,16 +54,18 @@ static std::string getConstraint(uint64_t argc, const char* argv[]) {
 }
 
 static std::vector<std::string> constraint_procs = {
-    "write_sdc", "current_instance", "set_hierarchy_separator",
-    "check_path_divider", "set_units", "check_unit", "unit_prefix_scale",
-    "check_unit_scale", "set_cmd_units", "set_unit_values", "all_clocks",
-    "all_inputs", "all_outputs", "all_ports_for_direction", "port_members",
-    "all_registers", "current_design",  //"get_cells",
+    //"write_sdc",
+    "current_instance", "set_hierarchy_separator", "check_path_divider",
+    "set_units", "check_unit", "unit_prefix_scale", "check_unit_scale",
+    "set_cmd_units", "set_unit_values", "all_clocks", "all_inputs",
+    "all_outputs", "all_ports_for_direction", "port_members", "all_registers",
+    "current_design",
+    //"get_cells",
     "filter_insts1",
     //"get_clocks",
     "get_lib_cells", "get_lib_pins", "check_nocase_flag", "get_libs",
     "find_liberty_libraries_matching",
-    // "get_nets",// "get_pins",
+    // "get_nets", "get_pins",
     "filter_pins1",
     // "get_ports",
     "filter_ports1", "create_clock", "create_generated_clock", "group_path",
@@ -214,4 +216,30 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     return TCL_OK;
   };
   interp->registerCmd("read_sdc", read_sdc, this, 0);
+
+  auto write_sdc = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (argc < 2) {
+      Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
+      return TCL_ERROR;
+    }
+    std::string fileName = argv[1];
+    std::ofstream stream;
+    stream.open(fileName);
+    if (!stream.good()) {
+      Tcl_AppendResult(
+          interp,
+          std::string("ERROR: Cannot open the SDC file for writing:" + fileName)
+              .c_str(),
+          (char*)NULL);
+      return TCL_ERROR;
+    }
+    for (auto constraint : constraints->getConstraints()) {
+      stream << constraint << "\n";
+    }
+    stream.close();
+    return TCL_OK;
+  };
+  interp->registerCmd("write_sdc", write_sdc, this, 0);
 }
