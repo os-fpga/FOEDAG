@@ -51,6 +51,7 @@ class Session {
         m_context(context),
         m_compiler(compiler) {
     m_compiler->SetSession(this);
+    m_compiler->SetInterpreter(interp);
   }
 
   ~Session();

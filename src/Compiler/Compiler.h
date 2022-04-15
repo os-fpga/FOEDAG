@@ -75,6 +75,7 @@ class Compiler {
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
+  std::ostream* GetOutStream() { return m_out; }
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() { return m_session; }
@@ -89,7 +90,7 @@ class Compiler {
   Design* GetDesign(const std::string name);
   void SetDesign(Design* design);
   bool SetActiveDesign(const std::string& name);
-  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
   void finish();
@@ -99,7 +100,7 @@ class Compiler {
   void setTaskManager(TaskManager* newTaskManager);
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
-
+  virtual void help(std::ostream* out);
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -119,11 +120,11 @@ class Compiler {
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
-  void Message(const std::string& message) {
-    if (m_out) (*m_out) << message << std::flush;
-  }
+  virtual void Message(const std::string& message);
+  virtual void ErrorMessage(const std::string& message); 
   std::string replaceAll(std::string_view str, std::string_view from,
-                         std::string_view to);
+                         std::string_view to);                      
+  /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
   Design* m_design = nullptr;

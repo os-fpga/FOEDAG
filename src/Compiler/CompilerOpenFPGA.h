@@ -47,9 +47,11 @@ class CompilerOpenFPGA : public Compiler {
   }
   void setArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
+    Message("Architecture file: " + path.string());
   }
   void setYosysScript(const std::string& script) { m_yosysScript = script; }
-
+  
+  void help(std::ostream* out);
  protected:
   virtual bool IPGenerate();
   virtual bool Synthesize();
@@ -60,7 +62,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-
+  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_openFpgaExecutablePath = "openfpga.sh";
   std::filesystem::path m_vprExecutablePath = "vpr";

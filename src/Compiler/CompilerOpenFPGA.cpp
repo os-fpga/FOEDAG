@@ -39,6 +39,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+void CompilerOpenFPGA::help(std::ostream* out) {
+  (*out) << "----------------------------------" << std::endl;
+  (*out) << "-----  FOEDAG OpenFPGA HELP  -----" << std::endl;
+  (*out) << "----------------------------------" << std::endl;
+  (*out) << "Options:" << std::endl;
+  (*out) << "   --help           : This help" << std::endl;
+  (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
+  (*out) << "   --replay <script>: Replay GUI test" << std::endl;
+  (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
+  (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
+               "a dummy compiler"
+            << std::endl;
+  (*out) << "Tcl commands:" << std::endl;
+  (*out) << "   help" << std::endl;
+  (*out) << "   gui_start" << std::endl;
+  (*out) << "   gui_stop" << std::endl;
+  (*out) << "   create_design <name>" << std::endl;
+  (*out) << "   architecture <file> : Sets the architecture file" << std::endl;
+  (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
+               "VHDL_2008, V_1995, "
+               "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+            << std::endl;
+  (*out) << "   set_top_module <top>" << std::endl;
+  (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
+            << std::endl;
+  (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
+            << std::endl;
+  (*out) << "   batch { cmd1 ... cmdn } : Runs compilation script using the commands below" << std::endl;
+  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   synthesize" << std::endl;
+  (*out) << "   packing" << std::endl;
+  (*out) << "   global_placement" << std::endl;
+  (*out) << "   place" << std::endl;
+  (*out) << "   route" << std::endl;
+  (*out) << "   sta" << std::endl;
+  (*out) << "   power" << std::endl;
+  (*out) << "   bitstream" << std::endl;
+  (*out) << "   tcl_exit" << std::endl;
+  (*out) << "----------------------------------" << std::endl;
+}
+
 // https://github.com/lnis-uofu/OpenFPGA/blob/master/openfpga_flow/misc/ys_tmpl_yosys_vpr_flow.ys
 const std::string basicYosysScript = R"( 
 # Yosys synthesis script for ${TOP_MODULE}
@@ -82,6 +123,29 @@ opt_clean -purge
 write_blif ${OUTPUT_BLIF}
   )";
 
+bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  Compiler::RegisterCommands(interp, batchMode);
+  auto select_architecture_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify an architecture file");
+      return TCL_ERROR;
+    }
+    std::ifstream stream(argv[1]);
+    if (!stream.good()) {
+      compiler->ErrorMessage("Cannot find architecture file: " + std::string(argv[1]));
+      return TCL_ERROR;
+    }
+    stream.close();
+    compiler->setArchitectureFile(argv[1]);
+    return TCL_OK;
+  };
+  interp->registerCmd("architecture", select_architecture_file, this, 0);
+  return true;
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_design->Name() << "..."
@@ -116,10 +180,11 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = replaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
   yosysScript = replaceAll(yosysScript, "${OUTPUT_BLIF}",
                            std::string(m_design->Name() + "_post_synth.blif"));
-  std::ofstream ofs("foedag.ys");
+  std::ofstream ofs(std::string(m_design->Name() + ".ys"));
   ofs << yosysScript;
   ofs.close();
-  std::string command = m_yosysExecutablePath.string() + " -s foedag.ys";
+  std::string command = m_yosysExecutablePath.string() + " -s " + std::string(m_design->Name() + ".ys");
+  (*m_out) << "Synthesis command: " << command << std::endl;
   bool status = ExecuteAndMonitorSystemCommand(command);
   if (status == false) {
     (*m_out) << "Design " << m_design->Name() << " synthesis was interrupted!"
@@ -140,7 +205,7 @@ std::string CompilerOpenFPGA::getBaseVprCommand() {
 
 bool CompilerOpenFPGA::Packing() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   std::string command = getBaseVprCommand() + " --pack";
@@ -158,12 +223,12 @@ bool CompilerOpenFPGA::Packing() {
 
 bool CompilerOpenFPGA::GlobalPlacement() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced &&
       m_state != State::Placed) {
-    (*m_out) << "ERROR: Design needs to be in packed state" << std::endl;
+    ErrorMessage("Design needs to be in packed state");
     return false;
   }
   (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
@@ -177,13 +242,12 @@ bool CompilerOpenFPGA::GlobalPlacement() {
 
 bool CompilerOpenFPGA::Placement() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced &&
       m_state != State::Placed) {
-    (*m_out) << "ERROR: Design needs to be in packed or globally placed state"
-             << std::endl;
+    ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
   }
   (*m_out) << "Placement for design: " << m_design->Name() << "..."
@@ -203,11 +267,11 @@ bool CompilerOpenFPGA::Placement() {
 
 bool CompilerOpenFPGA::Route() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   if (m_state != State::Placed) {
-    (*m_out) << "ERROR: Design needs to be in placed state" << std::endl;
+    ErrorMessage("Design needs to be in placed state");
     return false;
   }
   (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
@@ -226,7 +290,7 @@ bool CompilerOpenFPGA::Route() {
 
 bool CompilerOpenFPGA::TimingAnalysis() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
 
@@ -246,7 +310,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 
 bool CompilerOpenFPGA::PowerAnalysis() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
 
@@ -265,11 +329,11 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 
 bool CompilerOpenFPGA::GenerateBitstream() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   if (m_state != State::Routed) {
-    (*m_out) << "ERROR: Design needs to be in routed state" << std::endl;
+    ErrorMessage("Design needs to be in routed state");
     return false;
   }
   // TODO:

@@ -283,6 +283,10 @@ bool Foedag::initQmlGui() {
 }
 
 bool Foedag::init(GUI_TYPE guiType) {
+  if (m_cmdLine->printHelp()) {
+    m_compiler->help(&std::cout);
+    return true;
+  }
   bool result;
   switch (guiType) {
     case GUI_TYPE::GT_NONE:
