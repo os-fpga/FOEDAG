@@ -27,6 +27,7 @@ class TclConsoleWidget : public QConsole {
   bool isRunning() const override;
   QString getPrompt() const;
   StreamBuffer *getBuffer();
+  StreamBuffer *getErrorBuffer();
   static const char *consoleObjectName();
 
   State state() const;
@@ -60,6 +61,7 @@ class TclConsoleWidget : public QConsole {
 
  private slots:
   void put(const QString &str) override;
+  void putError(const QString &str);
   void commandDone();
 
  private:
@@ -76,6 +78,7 @@ class TclConsoleWidget : public QConsole {
  private:
   std::unique_ptr<ConsoleInterface> m_console;
   StreamBuffer *m_buffer;
+  StreamBuffer *m_errorBuffer;
   State m_state = State::IDLE;
 
   bool m_linkActivated{true};

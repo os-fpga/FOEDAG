@@ -44,8 +44,9 @@ TclInterpreter::~TclInterpreter() {
   if (interp) Tcl_DeleteInterp(interp);
 }
 
-std::string TclInterpreter::evalFile(const std::string &filename) {
+std::string TclInterpreter::evalFile(const std::string &filename, int *ret) {
   int code = Tcl_EvalFile(interp, filename.c_str());
+  if (ret) *ret = code;
 
   if (code >= TCL_ERROR) {
     return std::string("Tcl Error: " +

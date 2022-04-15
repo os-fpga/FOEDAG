@@ -158,7 +158,7 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-#	./build/bin/foedag --batch --script tests/Testcases/raygentop/raygentop.tcl
+	./build/bin/foedag --batch --script tests/Testcases/raygentop/raygentop.tcl
 	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
