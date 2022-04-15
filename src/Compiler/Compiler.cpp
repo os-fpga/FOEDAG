@@ -46,6 +46,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+void Compiler::help(std::ostream* out) {
+  (*out) << "-------------------------" << std::endl;
+  (*out) << "-----  FOEDAG HELP  -----" << std::endl;
+  (*out) << "-------------------------" << std::endl;
+  (*out) << "Options:" << std::endl;
+  (*out) << "   --help:  This help" << std::endl;
+  (*out) << "   --noqt:  Tcl only, no GUI" << std::endl;
+  (*out) << "   --batch: Tcl only, no GUI" << std::endl;
+  (*out) << "   --replay <script>: Replay GUI test" << std::endl;
+  (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
+  (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
+            "a dummy compiler"
+         << std::endl;
+  (*out) << "Tcl commands:" << std::endl;
+  (*out) << "   help" << std::endl;
+  (*out) << "   gui_start" << std::endl;
+  (*out) << "   gui_stop" << std::endl;
+  (*out) << "   create_design <name>" << std::endl;
+  (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
+            "VHDL_2008, V_1995, "
+            "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+         << std::endl;
+  (*out) << "   set_top_module <top>" << std::endl;
+  (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
+         << std::endl;
+  (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
+         << std::endl;
+  (*out) << "   batch { cmd1 ... cmdn } : Run compilation script using the "
+            "commands below"
+         << std::endl;
+  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   synthesize" << std::endl;
+  (*out) << "   packing" << std::endl;
+  (*out) << "   global_placement" << std::endl;
+  (*out) << "   place" << std::endl;
+  (*out) << "   route" << std::endl;
+  (*out) << "   sta" << std::endl;
+  (*out) << "   power" << std::endl;
+  (*out) << "   bitstream" << std::endl;
+  (*out) << "   tcl_exit" << std::endl;
+  (*out) << "-------------------------" << std::endl;
+}
+
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),
@@ -65,6 +109,18 @@ void Compiler::SetTclInterpreterHandler(
 Compiler::~Compiler() {
   delete m_taskManager;
   delete m_tclCmdIntegration;
+}
+
+void Compiler::Message(const std::string& message) {
+  if (m_out) (*m_out) << message << std::flush;
+}
+
+void Compiler::ErrorMessage(const std::string& message) {
+  if (m_out) (*m_out) << "ERROR: " << message << std::endl;
+  Tcl_AppendResult(m_interp->getInterp(),
+                   std::string("ERROR: " + message).c_str(), (char*)NULL);
+  // m_interp->evalCmd("flush stdout");
+  // std::cout << std::flush;
 }
 
 static std::string TclInterpCloneScript() {
@@ -135,6 +191,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_constraints == nullptr) m_constraints = new Constraints();
   m_constraints->registerCommands(interp);
 
+  auto help = [](void* clientData, Tcl_Interp* interp, int argc,
+                 const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    compiler->help(compiler->GetOutStream());
+    return TCL_OK;
+  };
+  interp->registerCmd("help", help, this, 0);
+
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -155,7 +219,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
     if (argc != 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify a design name", (char*)NULL);
+      compiler->ErrorMessage("Specify a design name");
       return TCL_ERROR;
     }
     name = argv[1];
@@ -165,16 +229,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::ostringstream out;
         bool ok = compiler->m_tclCmdIntegration->TclSetActive(argc, argv, out);
         if (!ok) {
-          Tcl_AppendResult(interp, out.str().c_str(), nullptr);
+          compiler->ErrorMessage(out.str());
           return TCL_ERROR;
         }
       }
     } else {
-      Tcl_AppendResult(interp,
-                       std::string(std::string("ERROR: design ") + name +
-                                   std::string(" does not exist\n"))
-                           .c_str(),
-                       (char*)NULL);
+      compiler->ErrorMessage(std::string(std::string("Design ") + name +
+                                         std::string(" does not exist\n")));
       return TCL_ERROR;
     }
     return TCL_OK;
@@ -186,21 +247,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
     if (argc != 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify a top module name", (char*)NULL);
+      compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
     Design* design = compiler->GetActiveDesign();
     if (design == nullptr) {
-      Tcl_AppendResult(interp,
-                       "ERROR: create a design first: create_design <name>",
-                       (char*)NULL);
+      compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclSetTopModule(argc, argv, out);
       if (!ok) {
-        Tcl_AppendResult(interp, out.str().c_str(), nullptr);
+        compiler->ErrorMessage(out.str());
         return TCL_ERROR;
       }
     }
@@ -214,17 +273,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     Design* design = compiler->GetActiveDesign();
     if (design == nullptr) {
-      Tcl_AppendResult(interp,
-                       "ERROR: create a design first: create_design <name>",
-                       (char*)NULL);
+      compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
     if (argc < 2) {
-      Tcl_AppendResult(interp,
-                       "ERROR: Incorrect syntax for add_design_file <file> "
-                       "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
-                       "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>",
-                       (char*)NULL);
+      compiler->ErrorMessage(
+          "Incorrect syntax for add_design_file <file> "
+          "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
+          "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>");
       return TCL_ERROR;
     }
     std::string actualType = "VERILOG_2001";
@@ -283,7 +339,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       bool ok =
           compiler->m_tclCmdIntegration->TclAddOrCreateFiles(argc, argv, out);
       if (!ok) {
-        Tcl_AppendResult(interp, out.str().c_str(), nullptr);
+        compiler->ErrorMessage(out.str());
         return TCL_ERROR;
       }
     }
@@ -295,15 +351,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (argc != 3) {
-      Tcl_AppendResult(interp, "Usage: set_as_target ?type? ?target name?",
-                       nullptr);
+      compiler->ErrorMessage("Usage: set_as_target ?type? ?target name?");
       return TCL_ERROR;
     }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclSetAsTarget(argc, argv, out);
       if (!ok) {
-        Tcl_AppendResult(interp, out.str().c_str(), nullptr);
+        compiler->ErrorMessage(out.str());
         return TCL_ERROR;
       }
     }
@@ -316,14 +371,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     Design* design = compiler->GetActiveDesign();
     if (design == nullptr) {
-      Tcl_AppendResult(interp,
-                       "ERROR: create a design first: create_design <name>",
-                       (char*)NULL);
+      compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
     if (argc != 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify a constraint file name",
-                       (char*)NULL);
+      compiler->ErrorMessage("Specify a constraint file name");
       return TCL_ERROR;
     }
     const std::string file = argv[1];
@@ -622,11 +674,11 @@ bool Compiler::Synthesize() {
 
 bool Compiler::GlobalPlacement() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced) {
-    (*m_out) << "ERROR: Design needs to be in packed state" << std::endl;
+    ErrorMessage("Design needs to be in packed state");
     return false;
   }
   (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
@@ -738,7 +790,7 @@ bool Compiler::IPGenerate() {
 
 bool Compiler::Packing() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Packing for design: " << m_design->Name() << "..." << std::endl;
@@ -750,7 +802,7 @@ bool Compiler::Packing() {
 
 bool Compiler::Placement() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Placement for design: " << m_design->Name() << "..."
@@ -763,7 +815,7 @@ bool Compiler::Placement() {
 
 bool Compiler::Route() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
@@ -775,7 +827,7 @@ bool Compiler::Route() {
 
 bool Compiler::TimingAnalysis() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
@@ -787,7 +839,7 @@ bool Compiler::TimingAnalysis() {
 
 bool Compiler::PowerAnalysis() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
@@ -799,7 +851,7 @@ bool Compiler::PowerAnalysis() {
 
 bool Compiler::GenerateBitstream() {
   if (m_design == nullptr) {
-    (*m_out) << "ERROR: No design specified" << std::endl;
+    ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
@@ -823,7 +875,7 @@ bool Compiler::CreateDesign(const std::string& name) {
     if (!ok) return false;
   }
   if (GetDesign(name)) {
-    Message(std::string("ERROR: design already exists"));
+    ErrorMessage("Design already exists");
     return false;
   }
 
@@ -876,6 +928,7 @@ bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   // TODO: Windows System call
   return false;
 #else
+  (*m_out) << "Command: " << command << std::endl;
   const char* cmd = command.c_str();
   char buf[BUFSIZ];
   FILE* ptr;
