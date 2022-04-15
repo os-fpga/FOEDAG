@@ -18,8 +18,13 @@ namespace FOEDAG {
 TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    std::unique_ptr<ConsoleInterface> iConsole,
                                    StreamBuffer *buffer, QWidget *parent)
-    : QConsole(parent), m_console(std::move(iConsole)), m_buffer{buffer} {
+    : QConsole(parent),
+      m_console(std::move(iConsole)),
+      m_buffer{buffer},
+      m_errorBuffer(new StreamBuffer) {
   connect(m_buffer, &StreamBuffer::ready, this, &TclConsoleWidget::put);
+  connect(m_errorBuffer, &StreamBuffer::ready, this,
+          &TclConsoleWidget::putError);
   m_formatter.setTextEdit(this);
   if (m_console) {
     connect(m_console.get(), &ConsoleInterface::done, this,
@@ -39,6 +44,8 @@ bool TclConsoleWidget::isRunning() const {
 QString TclConsoleWidget::getPrompt() const { return prompt; }
 
 StreamBuffer *TclConsoleWidget::getBuffer() { return m_buffer; }
+
+StreamBuffer *TclConsoleWidget::getErrorBuffer() { return m_errorBuffer; }
 
 const char *TclConsoleWidget::consoleObjectName() { return "TclConsole"; }
 
@@ -125,6 +132,15 @@ void TclConsoleWidget::put(const QString &str) {
     moveCursor(QTextCursor::End);
     if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
     m_formatter.appendMessage(strRes, (res == 0) ? Output : Error);
+  }
+}
+
+void TclConsoleWidget::putError(const QString &str) {
+  if (!str.isEmpty()) {
+    QString strRes = str;
+    moveCursor(QTextCursor::End);
+    if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
+    m_formatter.appendMessage(strRes, Error);
   }
 }
 

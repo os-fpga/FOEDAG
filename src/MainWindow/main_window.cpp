@@ -258,6 +258,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
+  m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
   m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
   auto tclCommandIntegration = sourForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);

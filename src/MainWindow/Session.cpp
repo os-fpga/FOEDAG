@@ -38,8 +38,17 @@ void Session::windowShow() {
       m_mainWindow->show();
       if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
         topLevel->gui_start();
-        if (!CmdLine()->Script().empty()) {
-          TclInterp()->evalFile(CmdLine()->Script().c_str());
+      }
+      if (!CmdLine()->Script().empty()) {
+        int returnCode{TCL_OK};
+        if (m_compiler) m_compiler->start();
+        auto result = TclInterp()->evalFile(CmdLine()->Script(), &returnCode);
+        if (m_compiler) {
+          if (returnCode == TCL_OK)
+            m_compiler->Message(result);
+          else
+            m_compiler->ErrorMessage(result);
+          m_compiler->finish();
         }
       }
       break;
