@@ -49,8 +49,8 @@ void CompilerOpenFPGA::help(std::ostream* out) {
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
-               "a dummy compiler"
-            << std::endl;
+            "a dummy compiler"
+         << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help" << std::endl;
   (*out) << "   gui_start" << std::endl;
@@ -58,15 +58,17 @@ void CompilerOpenFPGA::help(std::ostream* out) {
   (*out) << "   create_design <name>" << std::endl;
   (*out) << "   architecture <file> : Sets the architecture file" << std::endl;
   (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
-               "VHDL_2008, V_1995, "
-               "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
-            << std::endl;
+            "VHDL_2008, V_1995, "
+            "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+         << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
-            << std::endl;
+         << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
-            << std::endl;
-  (*out) << "   batch { cmd1 ... cmdn } : Runs compilation script using the commands below" << std::endl;
+         << std::endl;
+  (*out) << "   batch { cmd1 ... cmdn } : Runs compilation script using the "
+            "commands below"
+         << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   synthesize" << std::endl;
   (*out) << "   packing" << std::endl;
@@ -123,10 +125,11 @@ opt_clean -purge
 write_blif ${OUTPUT_BLIF}
   )";
 
-bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
+                                        bool batchMode) {
   Compiler::RegisterCommands(interp, batchMode);
-  auto select_architecture_file = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
+  auto select_architecture_file = [](void* clientData, Tcl_Interp* interp,
+                                     int argc, const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
     std::string name;
     if (argc != 2) {
@@ -135,7 +138,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp, bool batchMode) 
     }
     std::ifstream stream(argv[1]);
     if (!stream.good()) {
-      compiler->ErrorMessage("Cannot find architecture file: " + std::string(argv[1]));
+      compiler->ErrorMessage("Cannot find architecture file: " +
+                             std::string(argv[1]));
       return TCL_ERROR;
     }
     stream.close();
@@ -170,7 +174,7 @@ bool CompilerOpenFPGA::Synthesize() {
     m_yosysScript = basicYosysScript;
   }
   std::string fileList;
-  for (const auto &lang_file : m_design->FileList()) {
+  for (const auto& lang_file : m_design->FileList()) {
     fileList += lang_file.second + " ";
   }
   std::string yosysScript = m_yosysScript;
@@ -183,7 +187,8 @@ bool CompilerOpenFPGA::Synthesize() {
   std::ofstream ofs(std::string(m_design->Name() + ".ys"));
   ofs << yosysScript;
   ofs.close();
-  std::string command = m_yosysExecutablePath.string() + " -s " + std::string(m_design->Name() + ".ys");
+  std::string command = m_yosysExecutablePath.string() + " -s " +
+                        std::string(m_design->Name() + ".ys");
   (*m_out) << "Synthesis command: " << command << std::endl;
   bool status = ExecuteAndMonitorSystemCommand(command);
   if (status == false) {

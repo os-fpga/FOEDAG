@@ -50,8 +50,9 @@ class CompilerOpenFPGA : public Compiler {
     Message("Architecture file: " + path.string());
   }
   void setYosysScript(const std::string& script) { m_yosysScript = script; }
-  
+
   void help(std::ostream* out);
+
  protected:
   virtual bool IPGenerate();
   virtual bool Synthesize();

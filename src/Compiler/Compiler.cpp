@@ -57,23 +57,25 @@ void Compiler::help(std::ostream* out) {
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
-               "a dummy compiler"
-            << std::endl;
+            "a dummy compiler"
+         << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help" << std::endl;
   (*out) << "   gui_start" << std::endl;
   (*out) << "   gui_stop" << std::endl;
   (*out) << "   create_design <name>" << std::endl;
   (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
-               "VHDL_2008, V_1995, "
-               "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
-            << std::endl;
+            "VHDL_2008, V_1995, "
+            "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+         << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
-            << std::endl;
+         << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
-            << std::endl;
-  (*out) << "   batch { cmd1 ... cmdn } : Run compilation script using the commands below" << std::endl;
+         << std::endl;
+  (*out) << "   batch { cmd1 ... cmdn } : Run compilation script using the "
+            "commands below"
+         << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   synthesize" << std::endl;
@@ -115,10 +117,11 @@ void Compiler::Message(const std::string& message) {
 
 void Compiler::ErrorMessage(const std::string& message) {
   if (m_out) (*m_out) << "ERROR: " << message << std::endl;
-  Tcl_AppendResult(m_interp->getInterp(), std::string("ERROR: " + message).c_str(), (char*)NULL);
-  //m_interp->evalCmd("flush stdout");
-  //std::cout << std::flush;
-}             
+  Tcl_AppendResult(m_interp->getInterp(),
+                   std::string("ERROR: " + message).c_str(), (char*)NULL);
+  // m_interp->evalCmd("flush stdout");
+  // std::cout << std::flush;
+}
 
 static std::string TclInterpCloneScript() {
   std::string script = R"(
@@ -189,7 +192,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   m_constraints->registerCommands(interp);
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
+                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     compiler->help(compiler->GetOutStream());
     return TCL_OK;
@@ -232,7 +235,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
     } else {
       compiler->ErrorMessage(std::string(std::string("Design ") + name +
-                                   std::string(" does not exist\n")));
+                                         std::string(" does not exist\n")));
       return TCL_ERROR;
     }
     return TCL_OK;
@@ -274,9 +277,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     if (argc < 2) {
-      compiler->ErrorMessage("Incorrect syntax for add_design_file <file> "
-                       "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
-                       "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>");
+      compiler->ErrorMessage(
+          "Incorrect syntax for add_design_file <file> "
+          "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
+          "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>");
       return TCL_ERROR;
     }
     std::string actualType = "VERILOG_2001";
@@ -371,7 +375,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     if (argc != 2) {
-     compiler->ErrorMessage("Specify a constraint file name");
+      compiler->ErrorMessage("Specify a constraint file name");
       return TCL_ERROR;
     }
     const std::string file = argv[1];

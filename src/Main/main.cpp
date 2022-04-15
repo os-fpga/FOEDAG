@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     compiler = new FOEDAG::CompilerOpenFPGA();
   else
     compiler = new FOEDAG::Compiler();
-  
+
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);
 
