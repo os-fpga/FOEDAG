@@ -75,6 +75,7 @@ class Compiler {
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
+  void SetErrStream(std::ostream* err) { m_err = err; };
   std::ostream* GetOutStream() { return m_out; }
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
@@ -101,6 +102,8 @@ class Compiler {
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual void help(std::ostream* out);
+  virtual void Message(const std::string& message);
+  virtual void ErrorMessage(const std::string& message);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -121,8 +124,6 @@ class Compiler {
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
-  virtual void Message(const std::string& message);
-  virtual void ErrorMessage(const std::string& message);
   std::string replaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   /* Propected members */
@@ -132,6 +133,7 @@ class Compiler {
   bool m_stop = false;
   State m_state = None;
   std::ostream* m_out = &std::cout;
+  std::ostream* m_err = &std::cerr;
   std::string m_batchScript;
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};

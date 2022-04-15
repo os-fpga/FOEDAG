@@ -56,7 +56,7 @@ class TclInterpreter {
 
   ~TclInterpreter();
 
-  std::string evalFile(const std::string& filename);
+  std::string evalFile(const std::string& filename, int* ret = nullptr);
 
   std::string evalGuiTestFile(const std::string& filename);
 

@@ -187,7 +187,11 @@ bool Foedag::initGui() {
 
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
-      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      int res =
+          Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      if (res != TCL_OK) {
+        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+      }
     }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
@@ -261,11 +265,19 @@ bool Foedag::initQmlGui() {
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
     if (!GlobalSession->CmdLine()->Script().empty()) {
-      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+      int res =
+          Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+      if (res != TCL_OK) {
+        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+      }
     }
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
-      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      int res =
+          Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      if (res != TCL_OK) {
+        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+      }
     }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
@@ -323,11 +335,19 @@ bool Foedag::initBatch() {
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
     if (!GlobalSession->CmdLine()->Script().empty()) {
-      Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+      int res =
+          Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
+      if (res != TCL_OK) {
+        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+      }
     }
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
-      Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      int res =
+          Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      if (res != TCL_OK) {
+        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+      }
     }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
