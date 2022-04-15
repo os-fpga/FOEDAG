@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QDir>
-#include <QMetaMethod>
 #include <QString>
 
 #include "NewProject/ProjectManager/project_manager.h"
@@ -100,7 +99,7 @@ bool TclCommandIntegration::TclAddOrCreateFiles(int argc, const char *argv[],
     ret = m_projManager->setDesignFile(strFileName, false);
 
     if (0 != ret) {
-      out << "Failed to add file: " << strFileName.data() << std::endl;
+      out << "Failed to add file: " << strFileName.toStdString() << std::endl;
       return false;
     }
   }
@@ -167,9 +166,7 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
     out << "Project \"" << name.toStdString() << "\" was rewritten.";
   }
 
-  int index = metaObject()->indexOfMethod("createNewDesign(QString)");
-  auto method = metaObject()->method(index);
-  method.invoke(this, Qt::QueuedConnection, Q_ARG(QString, name));
+  createNewDesign(name);
   return true;
 }
 

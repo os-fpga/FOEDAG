@@ -112,15 +112,12 @@ Compiler::~Compiler() {
 }
 
 void Compiler::Message(const std::string& message) {
-  if (m_out) (*m_out) << message << std::flush;
+  if (m_out) (*m_out) << message << std::endl;
 }
 
 void Compiler::ErrorMessage(const std::string& message) {
-  if (m_out) (*m_out) << "ERROR: " << message << std::endl;
-  Tcl_AppendResult(m_interp->getInterp(),
-                   std::string("ERROR: " + message).c_str(), (char*)NULL);
-  // m_interp->evalCmd("flush stdout");
-  // std::cout << std::flush;
+  if (m_err) (*m_err) << "ERROR: " << message << std::endl;
+  Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 static std::string TclInterpCloneScript() {

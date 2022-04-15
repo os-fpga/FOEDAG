@@ -49,6 +49,7 @@ QWidget *mainWindowBuilder(FOEDAG::Session *session) {
   FOEDAG::Compiler *compiler = session->GetCompiler();
   compiler->SetInterpreter(session->TclInterp());
   compiler->SetOutStream(&buffer->getStream());
+  if (console) compiler->SetErrStream(&console->getErrorBuffer()->getStream());
   compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
   return w;
 }
