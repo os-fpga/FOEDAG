@@ -23,46 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-void CommandLine::printHelp() {
-  std::cout << "-------------------------" << std::endl;
-  std::cout << "-----  FOEDAG HELP  -----" << std::endl;
-  std::cout << "-------------------------" << std::endl;
-  std::cout << "Options:" << std::endl;
-  std::cout << "   --help:  This help" << std::endl;
-  std::cout << "   --noqt:  Tcl only, no GUI" << std::endl;
-  std::cout << "   --batch: Tcl only, no GUI" << std::endl;
-  std::cout << "   --replay <script>: Replay GUI test" << std::endl;
-  std::cout << "   --script <script>: Execute a Tcl script" << std::endl;
-  std::cout << "   --compiler <name>: Compiler name {openfpga...}, default is "
-               "a dummy compiler"
-            << std::endl;
-  std::cout << "Tcl commands:" << std::endl;
-  std::cout << "   help" << std::endl;
-  std::cout << "   gui_start" << std::endl;
-  std::cout << "   gui_stop" << std::endl;
-  std::cout << "   create_design <name>" << std::endl;
-  std::cout << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
-               "VHDL_2008, V_1995, "
-               "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
-            << std::endl;
-  std::cout << "   set_top_module <top>" << std::endl;
-  std::cout << "   add_constraint_file <file>: Sets SDC + location constraints"
-            << std::endl;
-  std::cout << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
-            << std::endl;
-  std::cout << "   ipgenerate" << std::endl;
-  std::cout << "   synthesize" << std::endl;
-  std::cout << "   packing" << std::endl;
-  std::cout << "   global_placement" << std::endl;
-  std::cout << "   place" << std::endl;
-  std::cout << "   route" << std::endl;
-  std::cout << "   sta" << std::endl;
-  std::cout << "   power" << std::endl;
-  std::cout << "   bitstream" << std::endl;
-  std::cout << "   tcl_exit" << std::endl;
-  std::cout << "-------------------------" << std::endl;
-}
-
 void CommandLine::processArgs() {
   for (int i = 1; i < m_argc; i++) {
     std::string token(m_argv[i]);
@@ -85,8 +45,7 @@ void CommandLine::processArgs() {
       i++;
       m_runTclCmd = m_argv[i];
     } else if (token == "--help") {
-      printHelp();
-      exit(0);
+      m_help = true;
     } else {
       std::cout << "Unknown command line option: " << m_argv[i] << std::endl;
     }
