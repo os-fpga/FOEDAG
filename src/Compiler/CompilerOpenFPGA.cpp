@@ -91,6 +91,7 @@ read_verilog -nolatches ${READ_VERILOG_OPTIONS} ${VERILOG_FILES}
 # Technology mapping
 hierarchy -top ${TOP_MODULE}
 proc
+${KEEP_NAMES}
 techmap -D NO_LUT -map +/adff2dff.v
 
 # Synthesis
@@ -164,11 +165,19 @@ bool CompilerOpenFPGA::IPGenerate() {
 bool CompilerOpenFPGA::Synthesize() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+
+  std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
+    // TODO: Massage the SDC so VPR can understand them
+    // ofssdc << constraint << "\n";
   }
+  ofssdc.close();
+
+  std::string keeps;
   for (auto keep : m_constraints->GetKeeps()) {
     (*m_out) << "Keep name: " << keep << "\n";
+    keeps += "setattr -set " + keep + " keep\n";
   }
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
@@ -178,6 +187,7 @@ bool CompilerOpenFPGA::Synthesize() {
     fileList += lang_file.second + " ";
   }
   std::string yosysScript = m_yosysScript;
+  yosysScript = replaceAll(yosysScript, "${KEEP_NAMES}", keeps);
   yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", "");
   yosysScript = replaceAll(yosysScript, "${LUT_SIZE}", std::to_string(6));
   yosysScript = replaceAll(yosysScript, "${VERILOG_FILES}", fileList);
@@ -202,9 +212,12 @@ bool CompilerOpenFPGA::Synthesize() {
 }
 
 std::string CompilerOpenFPGA::getBaseVprCommand() {
-  std::string command = m_vprExecutablePath.string() + std::string(" ") +
-                        m_architectureFile.string() + std::string(" ") +
-                        std::string(m_design->Name() + "_post_synth.blif");
+  std::string command =
+      m_vprExecutablePath.string() + std::string(" ") +
+      m_architectureFile.string() + std::string(" ") +
+      std::string(m_design->Name() + "_post_synth.blif" +
+                  std::string(" --sdc_file ") +
+                  std::string(m_design->Name() + "_openfpga.sdc"));
   return command;
 }
 
