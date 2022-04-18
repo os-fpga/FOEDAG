@@ -77,8 +77,20 @@ void TclWorker::run() {
 
   m_returnCode = 0;
   m_returnCode = TclEval(m_interpreter, qPrintable(m_cmd));
+  QString output;
+  if (m_returnCode == TCL_ERROR) {
+    Tcl_Obj *options = Tcl_GetReturnOptions(m_interpreter, m_returnCode);
+    Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
+    Tcl_Obj *stackTrace;
+    Tcl_IncrRefCount(key);
+    Tcl_DictObjGet(NULL, options, key, &stackTrace);
+    Tcl_DecrRefCount(key);
+    output = Tcl_GetString(stackTrace);
+    Tcl_DecrRefCount(options);
+  } else {
+    output = TclGetStringResult(m_interpreter);
+  }
 
-  QString output = TclGetStringResult(m_interpreter);
   setOutput(output);
   emit tclFinished();
   m_evalInProgress = false;

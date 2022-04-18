@@ -49,8 +49,7 @@ std::string TclInterpreter::evalFile(const std::string &filename, int *ret) {
   if (ret) *ret = code;
 
   if (code >= TCL_ERROR) {
-    return std::string("Tcl Error: " +
-                       std::string(Tcl_GetStringResult(interp)));
+    return TclStackTrace(code);
   }
   return std::string(Tcl_GetStringResult(interp));
 }
@@ -60,8 +59,7 @@ std::string TclInterpreter::evalCmd(const std::string cmd, int *ret) {
   if (ret) *ret = code;
 
   if (code >= TCL_ERROR) {
-    return std::string("Tcl Error: " +
-                       std::string(Tcl_GetStringResult(interp)));
+    return TclStackTrace(code);
   }
   return std::string(Tcl_GetStringResult(interp));
 }
@@ -150,4 +148,17 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
                        std::string(Tcl_GetStringResult(interp)));
   }
   return std::string(Tcl_GetStringResult(interp));
+}
+
+std::string TclInterpreter::TclStackTrace(int code) const {
+  std::string output;
+  Tcl_Obj *options = Tcl_GetReturnOptions(interp, code);
+  Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
+  Tcl_Obj *stackTrace;
+  Tcl_IncrRefCount(key);
+  Tcl_DictObjGet(NULL, options, key, &stackTrace);
+  Tcl_DecrRefCount(key);
+  output = Tcl_GetString(stackTrace);
+  Tcl_DecrRefCount(options);
+  return output;
 }
