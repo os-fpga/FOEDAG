@@ -47,8 +47,14 @@ set (SRC_H_LIST
   TclUtils.h
 )
 
+if (MSVC)
+else()
+  list(APPEND SRC_H_LIST popenRWE.h)
+  list(APPEND SRC_CPP_LIST popenRWE.cpp)
+endif()
+
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:console>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:tclutils>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
@@ -62,9 +68,11 @@ add_library(tclutils STATIC
 )
 target_link_libraries(tclutils tcl_stubb tcl_static)
 
-add_custom_command(
-  TARGET tclutils POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy
-          ${PROJECT_SOURCE_DIR}/TclUtils.h
-          ${CMAKE_CURRENT_BINARY_DIR}/../../include/tclutils/TclUtils.h
-)
+foreach(file ${SRC_H_LIST})
+  add_custom_command(
+    TARGET tclutils POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${PROJECT_SOURCE_DIR}/${file}
+            ${CMAKE_CURRENT_BINARY_DIR}/../../include/tclutils/${file}
+  )
+endforeach()

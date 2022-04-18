@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
+
+#include "tclutils/popenRWE.h"
 #endif
 
 #include <QDebug>
@@ -926,21 +928,33 @@ bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   const char* cmd = command.c_str();
   char buf[BUFSIZ];
-  FILE* ptr;
+  char errbuf[BUFSIZ];
+  FILE* out;
+  FILE* err;
 
-  if ((ptr = popen(cmd, "r")) != nullptr) {
-    while (fgets(buf, BUFSIZ, ptr) != nullptr) {
-      if (m_stop == true) {
-        break;
-      }
-      (*m_out) << buf << std::flush;
-    }
-    pclose(ptr);
+  int rwepipe[3];
+  int pid = popenRWE(rwepipe, cmd);
+  if (pid == -1) return false;
+
+  out = fdopen(rwepipe[1], "r");
+  err = fdopen(rwepipe[2], "r");
+  if (!out || !err) return false;
+
+  char *out_ptr, *error_ptr;
+  while (((out_ptr = fgets(buf, BUFSIZ, out)) != nullptr) ||
+         ((error_ptr = fgets(errbuf, BUFSIZ, err)) != nullptr)) {
     if (m_stop == true) {
-      Message("Execution interrupted by user!\n");
-      return false;
+      break;
     }
-  } else {
+    if (out_ptr)
+      (*m_out) << buf << std::flush;
+    else if (error_ptr)
+      (*m_err) << errbuf << std::flush;
+  }
+
+  pcloseRWE(pid, rwepipe);
+  if (m_stop == true) {
+    Message("Execution interrupted by user!\n");
     return false;
   }
 

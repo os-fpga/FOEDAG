@@ -249,7 +249,7 @@ add_custom_command(TARGET foedag POST_BUILD
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
-add_dependencies(compiler tcl_stubb_build)
+add_dependencies(compiler tcl_stubb_build tclutils)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
