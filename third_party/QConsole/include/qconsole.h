@@ -154,6 +154,7 @@ class QConsole : public QTextEdit {
 
   void keyPressEvent(QKeyEvent *e);
   void contextMenuEvent(QContextMenuEvent *event);
+  void moveCursorToEnd();
 
   // Return false if the command is incomplete (e.g. unmatched braces)
   virtual bool isCommandComplete(const QString &command);
