@@ -21,12 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/WorkerThread.h"
 
-#include <mutex>
-#include <thread>
+#include <QApplication>
+#include <QDebug>
 
 using namespace FOEDAG;
 
 std::set<WorkerThread*> ThreadPool::threads;
+SafeQueue<WorkerThread*> WorkerThread::m_queue{};
 
 WorkerThread::WorkerThread(const std::string& threadName,
                            Compiler::Action action, Compiler* compiler)
@@ -36,12 +37,20 @@ WorkerThread::WorkerThread(const std::string& threadName,
 
 WorkerThread::~WorkerThread() {}
 
+void WorkerThread::queueStart() { m_queue.append(this); }
+
+void WorkerThread::queueStop() {
+  m_queue.clear();
+  stop();
+}
+
 bool WorkerThread::start() {
   bool result = true;
   m_compiler->start();
   m_thread = new std::thread([=] {
     m_compiler->Compile(m_action);
     m_compiler->finish();
+    m_queue.remove(this);
   });
   return result;
 }
@@ -52,4 +61,12 @@ bool WorkerThread::stop() {
   delete m_thread;
   m_thread = nullptr;
   return true;
+}
+
+void WorkerThread::waitForFinish() {
+  while (m_queue.count() != 0) {
+    QApplication::processEvents();
+  }
+  // process all events after last thread
+  QApplication::processEvents();
 }

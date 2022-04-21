@@ -34,11 +34,17 @@ void CompilerNotifier::initIterpreter(TclInterpreter *interp) {
 }
 
 void CompilerNotifier::notifyStart() {
-  if (m_console) m_console->setTclCommandInProggress(true);
+  if (m_console) {
+    m_queue.enqueue(0);
+    if (m_queue.count() == 1) m_console->setTclCommandInProggress(true);
+  }
 }
 
 void CompilerNotifier::notifyFinish() {
-  if (m_console) m_console->setTclCommandInProggress(false);
+  if (m_console) {
+    m_queue.dequeue();
+    if (m_queue.count() == 0) m_console->setTclCommandInProggress(false);
+  }
 }
 
 void CompilerNotifier::aborted() {

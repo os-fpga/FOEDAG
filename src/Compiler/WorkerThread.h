@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <set>
 #include <string>
 #include <thread>
@@ -37,6 +38,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+template <class T>
+class SafeQueue {
+ public:
+  void append(const T& t) {
+    const std::unique_lock<std::mutex> guard{m_mutex};
+    m_queue.push_back(t);
+    if (m_queue.size() == 1) m_queue[0]->start();
+  }
+  void remove(const T& t) {
+    const std::unique_lock<std::mutex> guard{m_mutex};
+    auto iter = std::find(m_queue.begin(), m_queue.end(), t);
+    if (iter != m_queue.end()) {
+      m_queue.erase(iter);
+    }
+    if (m_queue.size() != 0) m_queue[0]->start();
+  }
+  void clear() {
+    const std::unique_lock<std::mutex> guard{m_mutex};
+    m_queue.clear();
+  }
+  int count() {
+    const std::unique_lock<std::mutex> guard{m_mutex};
+    return m_queue.size();
+  }
+
+ private:
+  std::vector<T> m_queue;
+  std::mutex m_mutex;
+};
+
 class WorkerThread {
  public:
   WorkerThread(const std::string& threadName, Compiler::Action action,
@@ -45,14 +76,19 @@ class WorkerThread {
 
   const std::string& Name() { return m_threadName; }
 
+  void queueStart();
+  void queueStop();
+
   bool start();
   bool stop();
+  static void waitForFinish();
 
  private:
   std::string m_threadName;
   Compiler::Action m_action = Compiler::Action::NoAction;
   std::thread* m_thread = nullptr;
   Compiler* m_compiler = nullptr;
+  static SafeQueue<WorkerThread*> m_queue;
 };
 
 class ThreadPool {
