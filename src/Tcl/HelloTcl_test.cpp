@@ -42,7 +42,11 @@ TEST(HelloTcl, TestTclError) {
   TclInterpreter interpreter;
   std::string result =
       interpreter.evalCmd("putsss \"Hello Foedag, you have Tcl\"");
-  EXPECT_EQ(result, "Tcl Error: invalid command name \"putsss\"");
+  std::string expected =
+      R"(invalid command name "putsss"
+    while executing
+"putsss "Hello Foedag, you have Tcl"")";
+  EXPECT_EQ(result, expected);
 }
 
 }  // namespace

@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclConsole.h"
 #include "TclConsoleBuilder.h"
 #include "TclConsoleWidget.h"
+#include "TclErrorParser.h"
 
 QWidget *mainWindowBuilder(FOEDAG::Session *session) {
   auto buffer = new FOEDAG::StreamBuffer;
@@ -44,7 +45,9 @@ QWidget *mainWindowBuilder(FOEDAG::Session *session) {
       FOEDAG::createConsole(session->TclInterp()->getInterp(),
                             std::move(tclConsole), buffer, nullptr, &console);
 
-  if (console) console->setParsers({new FOEDAG::DummyParser});
+  if (console) {
+    console->setParsers({new FOEDAG::DummyParser, new FOEDAG::TclErrorParser});
+  }
 
   FOEDAG::Compiler *compiler = session->GetCompiler();
   compiler->SetInterpreter(session->TclInterp());
