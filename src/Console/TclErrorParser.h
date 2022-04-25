@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,32 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QTextEdit>
-#include <QWidget>
+#include "OutputFormatter.h"
 
-class QLineEdit;
 namespace FOEDAG {
 
-class SearchWidget : public QWidget {
+class TclErrorParser : public LineParser {
  public:
-  SearchWidget(QTextEdit *searchEdit, QWidget *parent = nullptr,
-               Qt::WindowFlags f = Qt::WindowFlags());
-
- public slots:
-  void search();
-
- protected:
-  bool eventFilter(QObject *watched, QEvent *event) override;
-
- private slots:
-  void findNext();
-
- private:
-  QTextEdit *m_searchEdit{nullptr};
-  QString m_textToSearch;
-  bool m_enableSearch{false};
-  QTextDocument::FindFlags m_searchFlags;
-  QLineEdit *m_edit{nullptr};
+  TclErrorParser();
+  Result handleLine(const QString &message, OutputFormat format) override;
 };
 
 }  // namespace FOEDAG

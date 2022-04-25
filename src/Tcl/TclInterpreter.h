@@ -74,6 +74,7 @@ class TclInterpreter {
 
  private:
   std::string TclHistoryScript();
+  std::string TclStackTrace(int code) const;
 };
 
 }  // namespace FOEDAG

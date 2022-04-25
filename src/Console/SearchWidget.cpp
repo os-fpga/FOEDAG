@@ -41,6 +41,7 @@ SearchWidget::SearchWidget(QTextEdit *searchEdit, QWidget *parent,
   });
   edit->installEventFilter(this);
   layout->addWidget(edit);
+  m_edit = edit;
   QIcon closeIcon = style()->standardIcon(QStyle::SP_DockWidgetCloseButton);
   QPushButton *closeBtn = new QPushButton{this};
   connect(closeBtn, &QPushButton::clicked, this, [this]() {
@@ -93,12 +94,9 @@ SearchWidget::SearchWidget(QTextEdit *searchEdit, QWidget *parent,
 
 void SearchWidget::search() {
   m_enableSearch = true;
-  //  m_textToSearch.clear();
   show();
-  if (QLineEdit *edit = findChild<QLineEdit *>()) {
-    edit->selectAll();
-    edit->setFocus();
-  }
+  m_edit->selectAll();
+  m_edit->setFocus();
 }
 
 bool SearchWidget::eventFilter(QObject *watched, QEvent *event) {
@@ -121,13 +119,17 @@ void SearchWidget::findNext() {
   if (!m_searchEdit) return;
 
   if (m_enableSearch && !m_textToSearch.isEmpty()) {
+    m_edit->setStyleSheet(QString());
     if (m_searchEdit->find(m_textToSearch, m_searchFlags) == false) {
       if (m_searchFlags & QTextDocument::FindFlag::FindBackward)
         m_searchEdit->moveCursor(QTextCursor::End);
       else
         m_searchEdit->moveCursor(QTextCursor::Start);
     }
-    m_searchEdit->find(m_textToSearch, m_searchFlags);
+    bool found = m_searchEdit->find(m_textToSearch, m_searchFlags);
+    if (!found && !m_searchEdit->textCursor().hasSelection()) {
+      m_edit->setStyleSheet("QLineEdit:focus{background-color: #F0B8C4;}");
+    }
   }
 }
 
