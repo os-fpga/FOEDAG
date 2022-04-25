@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTextEdit>
 #include <QWidget>
 
+class QLineEdit;
 namespace FOEDAG {
 
 class SearchWidget : public QWidget {
@@ -44,6 +45,7 @@ class SearchWidget : public QWidget {
   QString m_textToSearch;
   bool m_enableSearch{false};
   QTextDocument::FindFlags m_searchFlags;
+  QLineEdit *m_edit{nullptr};
 };
 
 }  // namespace FOEDAG
