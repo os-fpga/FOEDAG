@@ -59,6 +59,7 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
       nullptr /*DriverThreadAction*/,
       nullptr /*DriverTruncate*/,
   };
+  init();
 }
 
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
