@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <QQueue>
 
 #include "Compiler/TclInterpreterHandler.h"
 
@@ -55,5 +56,8 @@ class CompilerNotifier : public QObject, public FOEDAG::TclInterpreterHandler {
 
  private slots:
   void aborted();
+
+ private:
+  QQueue<int> m_queue;  // handle recursive start/stop
 };
 }  // namespace FOEDAG
