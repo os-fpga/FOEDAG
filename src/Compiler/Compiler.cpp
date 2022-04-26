@@ -64,9 +64,9 @@ void Compiler::help(std::ostream* out) {
   (*out) << "   gui_start" << std::endl;
   (*out) << "   gui_stop" << std::endl;
   (*out) << "   create_design <name>" << std::endl;
-  (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
-            "VHDL_2008, V_1995, "
-            "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+  (*out) << "   add_design_file <file(s)> <type> (-VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
@@ -275,9 +275,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     if (argc < 2) {
       compiler->ErrorMessage(
-          "Incorrect syntax for add_design_file <file> "
-          "<type (VHDL_1987, VHDL_1993, VHDL_2008, V_1995, "
-          "V_2001, SV_2005, SV_2009, SV_2012, SV_2017)>");
+          "Incorrect syntax for add_design_file <file(s)> "
+          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, "
+          "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017)>");
       return TCL_ERROR;
     }
     std::string actualType = "VERILOG_2001";
@@ -287,50 +287,59 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
     }
-    if (argc == 3) {
-      const std::string type = argv[2];
-      if (type == "VHDL_1987") {
+    std::string fileList;
+    for (int i = 1; i < argc; i++) {
+      const std::string type = argv[i];
+      if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
-      } else if (type == "VHDL_1993") {
+      } else if (type == "-VHDL_1993") {
         language = Design::Language::VHDL_1993;
         actualType = "VHDL_1993";
-      } else if (type == "VHDL_2008") {
+      } else if (type == "-VHDL_2000") {
+        language = Design::Language::VHDL_2000;
+        actualType = "VHDL_2000";
+      } else if (type == "-VHDL_2008") {
         language = Design::Language::VHDL_2008;
         actualType = "VHDL_2008";
-      } else if (type == "V_1995") {
+      } else if (type == "-V_1995") {
         language = Design::Language::VERILOG_1995;
         actualType = "VERILOG_1995";
-      } else if (type == "V_2001") {
+      } else if (type == "-V_2001") {
         language = Design::Language::VERILOG_2001;
         actualType = "VERILOG_2001";
-      } else if (type == "V_2005") {
+      } else if (type == "-V_2005") {
         language = Design::Language::SYSTEMVERILOG_2005;
         actualType = "SV_2005";
-      } else if (type == "SV_2009") {
+      } else if (type == "-SV_2009") {
         language = Design::Language::SYSTEMVERILOG_2009;
         actualType = "SV_2009";
-      } else if (type == "SV_2012") {
+      } else if (type == "-SV_2012") {
         language = Design::Language::SYSTEMVERILOG_2012;
         actualType = "SV_2012";
-      } else if (type == "SV_2017") {
+      } else if (type == "-SV_2017") {
         language = Design::Language::SYSTEMVERILOG_2017;
         actualType = "SV_2017";
+      } else if (type.find("-D") != std::string::npos) {
+        fileList += type + " ";
+      } else {
+        const std::string file = argv[i];
+        std::string expandedFile = file;
+        if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+          std::filesystem::path script =
+              compiler->GetSession()->CmdLine()->Script();
+          std::filesystem::path scriptPath = script.parent_path();
+          std::filesystem::path fullPath = scriptPath;
+          fullPath.append(file);
+          expandedFile = fullPath.string();
+          fileList += expandedFile + " ";
+        }
       }
     }
-    std::string expandedFile = file;
-    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
-    }
 
-    compiler->Message(std::string("Adding ") + actualType + " " + expandedFile +
+    compiler->Message(std::string("Adding ") + actualType + " " + fileList +
                       std::string("\n"));
-    design->AddFile(language, expandedFile);
+    design->AddFile(language, fileList);
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok =

@@ -40,6 +40,7 @@ class Design {
   enum Language {
     VHDL_1987,
     VHDL_1993,
+    VHDL_2000,
     VHDL_2008,
     VERILOG_1995,
     VERILOG_2001,

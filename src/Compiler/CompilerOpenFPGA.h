@@ -52,6 +52,7 @@ class CompilerOpenFPGA : public Compiler {
   void setYosysScript(const std::string& script) { m_yosysScript = script; }
 
   void help(std::ostream* out);
+  void setKeepAllSignals(bool on) { m_keepAllSignals = on; }
 
  protected:
   virtual bool IPGenerate();
@@ -71,6 +72,7 @@ class CompilerOpenFPGA : public Compiler {
       "tests/Arch/k6_frac_N10_tileable_40nm.xml";
   std::string m_yosysScript;
   std::string getBaseVprCommand();
+  bool m_keepAllSignals = false;
 };
 
 }  // namespace FOEDAG
