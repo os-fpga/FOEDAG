@@ -119,6 +119,7 @@ void Compiler::Message(const std::string& message) {
 void Compiler::ErrorMessage(const std::string& message) {
   if (m_err) (*m_err) << "ERROR: " << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  SetHardError(true);
 }
 
 static std::string TclInterpCloneScript() {
@@ -636,6 +637,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
+  if (m_hardError) {
+    m_hardError = false;
+    return false;
+  }
   m_stop = false;
   bool res{false};
   uint task{toTaskId(action)};
@@ -934,7 +939,7 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
   return false;
 }
 
-bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
+int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   QProcess process;
   QObject::connect(&process, &QProcess::readyReadStandardOutput,
@@ -957,7 +962,8 @@ bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   QString program = args.first();
   args.pop_front();  // remove program
   process.start(program, args);
-  return process.waitForFinished(-1);
+  process.waitForFinished(-1);
+  return process.exitCode();
 }
 
 std::string Compiler::replaceAll(std::string_view str, std::string_view from,

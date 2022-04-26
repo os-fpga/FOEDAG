@@ -105,6 +105,7 @@ class Compiler {
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
+  void SetHardError(bool on) { m_hardError = on; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -124,7 +125,7 @@ class Compiler {
   bool RunBatch();
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
-  virtual bool ExecuteAndMonitorSystemCommand(const std::string& command);
+  virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string replaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   /* Propected members */
@@ -144,6 +145,7 @@ class Compiler {
   Constraints* m_constraints = nullptr;
   std::string m_output;
   bool m_useVerific = false;
+  bool m_hardError = false;
 };
 
 }  // namespace FOEDAG
