@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
     compiler = new FOEDAG::CompilerOpenFPGA();
   else
     compiler = new FOEDAG::Compiler();
+  compiler->SetUseVerific(cmd->UseVerific());
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);

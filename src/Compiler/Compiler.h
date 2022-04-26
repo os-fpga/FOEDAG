@@ -104,6 +104,7 @@ class Compiler {
   virtual void help(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
+  void SetUseVerific(bool on) { m_useVerific = on; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -142,6 +143,7 @@ class Compiler {
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;
+  bool m_useVerific = false;
 };
 
 }  // namespace FOEDAG
