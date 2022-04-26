@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <QDebug>
+#include <QProcess>
 #include <chrono>
 #include <filesystem>
 #include <sstream>
@@ -928,33 +929,29 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
 }
 
 bool Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
-  // TODO: Windows System call
-  return false;
-#else
   (*m_out) << "Command: " << command << std::endl;
-  const char* cmd = command.c_str();
-  char buf[BUFSIZ];
-  FILE* ptr;
+  QProcess process;
+  QObject::connect(&process, &QProcess::readyReadStandardOutput,
+                   [this, &process]() {
+                     QString stdout_ = process.readAllStandardOutput();
+                     if (!stdout_.isEmpty() && m_out) {
+                       (*m_out) << stdout_.toStdString();
+                     }
+                   });
+  QObject::connect(&process, &QProcess::readyReadStandardError,
+                   [this, &process]() {
+                     QString stderr_ = process.readAllStandardError();
+                     if (!stderr_.isEmpty() && m_err) {
+                       (*m_err) << stderr_.toStdString();
+                     }
+                   });
 
-  if ((ptr = popen(cmd, "r")) != nullptr) {
-    while (fgets(buf, BUFSIZ, ptr) != nullptr) {
-      if (m_stop == true) {
-        break;
-      }
-      (*m_out) << buf << std::flush;
-    }
-    pclose(ptr);
-    if (m_stop == true) {
-      Message("Execution interrupted by user!\n");
-      return false;
-    }
-  } else {
-    return false;
-  }
-
-  return true;
-#endif
+  QString cmd{command.c_str()};
+  QStringList args = cmd.split(" ");
+  QString program = args.first();
+  args.pop_front();  // remove program
+  process.start(program, args);
+  return process.waitForFinished(-1);
 }
 
 std::string Compiler::replaceAll(std::string_view str, std::string_view from,
