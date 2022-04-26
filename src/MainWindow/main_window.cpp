@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsole.h"
 #include "Console/TclConsoleBuilder.h"
 #include "Console/TclConsoleWidget.h"
+#include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
@@ -255,6 +256,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(console, &TclConsoleWidget::linkActivated, textEditor,
           &TextEditor::SlotOpenFile);
   console->addParser(new DummyParser{});
+  console->addParser(new TclErrorParser{});
 
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());

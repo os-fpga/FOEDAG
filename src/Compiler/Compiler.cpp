@@ -747,26 +747,24 @@ bool Compiler::RunCompileTask(Action action) {
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
-    m_taskManager->bindTaskCommand(IP_GENERATE, [this]() {
-      Tcl_Eval(m_interp->getInterp(), "ipgenerate");
-    });
     m_taskManager->bindTaskCommand(
-        SYNTHESIS, [this]() { Tcl_Eval(m_interp->getInterp(), "synth"); });
+        IP_GENERATE, [this]() { m_interp->evalCmd("ipgenerate"); });
+    m_taskManager->bindTaskCommand(SYNTHESIS,
+                                   [this]() { m_interp->evalCmd("synth"); });
+    m_taskManager->bindTaskCommand(PACKING,
+                                   [this]() { m_interp->evalCmd("packing"); });
+    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT,
+                                   [this]() { m_interp->evalCmd("globp"); });
+    m_taskManager->bindTaskCommand(PLACEMENT,
+                                   [this]() { m_interp->evalCmd("place"); });
+    m_taskManager->bindTaskCommand(ROUTING,
+                                   [this]() { m_interp->evalCmd("route"); });
+    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF,
+                                   [this]() { m_interp->evalCmd("sta"); });
+    m_taskManager->bindTaskCommand(POWER,
+                                   [this]() { m_interp->evalCmd("power"); });
     m_taskManager->bindTaskCommand(
-        PACKING, [this]() { Tcl_Eval(m_interp->getInterp(), "packing"); });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, [this]() {
-      Tcl_Eval(m_interp->getInterp(), "globp");
-    });
-    m_taskManager->bindTaskCommand(
-        PLACEMENT, [this]() { Tcl_Eval(m_interp->getInterp(), "place"); });
-    m_taskManager->bindTaskCommand(
-        ROUTING, [this]() { Tcl_Eval(m_interp->getInterp(), "route"); });
-    m_taskManager->bindTaskCommand(
-        TIMING_SIGN_OFF, [this]() { Tcl_Eval(m_interp->getInterp(), "sta"); });
-    m_taskManager->bindTaskCommand(
-        POWER, [this]() { Tcl_Eval(m_interp->getInterp(), "power"); });
-    m_taskManager->bindTaskCommand(
-        BITSTREAM, [this]() { Tcl_Eval(m_interp->getInterp(), "bitstream"); });
+        BITSTREAM, [this]() { m_interp->evalCmd("bitstream"); });
   }
 }
 
