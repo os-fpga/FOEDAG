@@ -50,6 +50,8 @@ class CommandLine {
 
   const std::string& CompilerName() const { return m_compilerName; }
 
+  bool UseVerific() { return m_useVerific; }
+
   bool printHelp() { return m_help; }
   virtual void processArgs();
 
@@ -67,6 +69,7 @@ class CommandLine {
   std::string m_runTclCmd;
   std::string m_compilerName;
   bool m_help = false;
+  bool m_useVerific = false;
 };
 
 }  // namespace FOEDAG

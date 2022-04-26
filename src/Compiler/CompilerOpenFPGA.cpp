@@ -51,15 +51,20 @@ void CompilerOpenFPGA::help(std::ostream* out) {
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
+  (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help" << std::endl;
   (*out) << "   gui_start" << std::endl;
   (*out) << "   gui_stop" << std::endl;
   (*out) << "   create_design <name>" << std::endl;
   (*out) << "   architecture <file> : Sets the architecture file" << std::endl;
-  (*out) << "   add_design_file <file> <type> (VHDL_1987, VHDL_1993, "
-            "VHDL_2008, V_1995, "
-            "V_2001, SV_2005, SV_2009, SV_2012, SV_2017) "
+  (*out) << "   custom_synth_script <file> : Loads a custom Yosys templatized "
+            "script"
+         << std::endl;
+  (*out) << "   add_design_file <file(s)> <type> (-VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000"
+            "-VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
@@ -85,12 +90,13 @@ void CompilerOpenFPGA::help(std::ostream* out) {
 // https://github.com/lnis-uofu/OpenFPGA/blob/master/openfpga_flow/misc/ys_tmpl_yosys_vpr_flow.ys
 const std::string basicYosysScript = R"( 
 # Yosys synthesis script for ${TOP_MODULE}
-# Read verilog files
-read_verilog -nolatches ${READ_VERILOG_OPTIONS} ${VERILOG_FILES}
+# Read source files
+${READ_DESIGN_FILES}
 
 # Technology mapping
 hierarchy -top ${TOP_MODULE}
 proc
+${KEEP_NAMES}
 techmap -D NO_LUT -map +/adff2dff.v
 
 # Synthesis
@@ -136,17 +142,57 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify an architecture file");
       return TCL_ERROR;
     }
-    std::ifstream stream(argv[1]);
+    std::string expandedFile = argv[1];
+    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(argv[1]);
+      expandedFile = fullPath.string();
+    }
+    std::ifstream stream(expandedFile);
     if (!stream.good()) {
       compiler->ErrorMessage("Cannot find architecture file: " +
-                             std::string(argv[1]));
+                             std::string(expandedFile));
       return TCL_ERROR;
     }
     stream.close();
-    compiler->setArchitectureFile(argv[1]);
+    compiler->setArchitectureFile(expandedFile);
     return TCL_OK;
   };
   interp->registerCmd("architecture", select_architecture_file, this, 0);
+
+  auto custom_synth_script = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify a Yosys script");
+      return TCL_ERROR;
+    }
+    std::string expandedFile = argv[1];
+    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(argv[1]);
+      expandedFile = fullPath.string();
+    }
+    std::ifstream stream(expandedFile);
+    if (!stream.good()) {
+      compiler->ErrorMessage("Cannot find Yosys script: " +
+                             std::string(expandedFile));
+      return TCL_ERROR;
+    }
+    std::string script((std::istreambuf_iterator<char>(stream)),
+                       std::istreambuf_iterator<char>());
+    stream.close();
+    compiler->setYosysScript(script);
+    return TCL_OK;
+  };
+  interp->registerCmd("custom_synth_script", custom_synth_script, this, 0);
   return true;
 }
 
@@ -164,23 +210,82 @@ bool CompilerOpenFPGA::IPGenerate() {
 bool CompilerOpenFPGA::Synthesize() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+
+  std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
+    // TODO: Massage the SDC so VPR can understand them
+    // ofssdc << constraint << "\n";
+  }
+  ofssdc.close();
+
+  std::string keeps;
+  if (m_keepAllSignals) {
+    keeps += "setattr -set keep 1 w:\\*\n";
   }
   for (auto keep : m_constraints->GetKeeps()) {
     (*m_out) << "Keep name: " << keep << "\n";
+    keeps += "setattr -set keep 1 " + keep + "\n";
   }
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
   }
-  std::string fileList;
-  for (const auto& lang_file : m_design->FileList()) {
-    fileList += lang_file.second + " ";
-  }
   std::string yosysScript = m_yosysScript;
-  yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", "");
+
+  if (m_useVerific) {
+    std::string fileList;
+    for (const auto& lang_file : m_design->FileList()) {
+      std::string lang;
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+          lang = "-vhdl87";
+          break;
+        case Design::Language::VHDL_1993:
+          lang = "-vhdl93";
+          break;
+        case Design::Language::VHDL_2000:
+          lang = "-vhdl2k";
+          break;
+        case Design::Language::VHDL_2008:
+          lang = "-vhdl2008";
+          break;
+        case Design::Language::VERILOG_1995:
+          lang = "-vlog95";
+          break;
+        case Design::Language::VERILOG_2001:
+          lang = "-vlog2k";
+          break;
+        case Design::Language::SYSTEMVERILOG_2005:
+          lang = "-sv2005";
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+          lang = "-sv2009";
+          break;
+        case Design::Language::SYSTEMVERILOG_2012:
+          lang = "-sv2012";
+          break;
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+      }
+      fileList += "verific " + lang + " " + lang_file.second + "\n";
+    }
+    fileList += "verific -import " + m_design->TopLevel() + "\n";
+    yosysScript = replaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
+  } else {
+    std::string fileList;
+    yosysScript = replaceAll(
+        yosysScript, "${READ_DESIGN_FILES}",
+        "read_verilog -nolatches ${READ_VERILOG_OPTIONS} ${VERILOG_FILES}");
+    for (const auto& lang_file : m_design->FileList()) {
+      fileList += lang_file.second + " ";
+    }
+    yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", "");
+    yosysScript = replaceAll(yosysScript, "${VERILOG_FILES}", fileList);
+  }
+
+  yosysScript = replaceAll(yosysScript, "${KEEP_NAMES}", keeps);
   yosysScript = replaceAll(yosysScript, "${LUT_SIZE}", std::to_string(6));
-  yosysScript = replaceAll(yosysScript, "${VERILOG_FILES}", fileList);
   yosysScript = replaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
   yosysScript = replaceAll(yosysScript, "${OUTPUT_BLIF}",
                            std::string(m_design->Name() + "_post_synth.blif"));
@@ -202,9 +307,12 @@ bool CompilerOpenFPGA::Synthesize() {
 }
 
 std::string CompilerOpenFPGA::getBaseVprCommand() {
-  std::string command = m_vprExecutablePath.string() + std::string(" ") +
-                        m_architectureFile.string() + std::string(" ") +
-                        std::string(m_design->Name() + "_post_synth.blif");
+  std::string command =
+      m_vprExecutablePath.string() + std::string(" ") +
+      m_architectureFile.string() + std::string(" ") +
+      std::string(m_design->Name() + "_post_synth.blif" +
+                  std::string(" --sdc_file ") +
+                  std::string(m_design->Name() + "_openfpga.sdc"));
   return command;
 }
 

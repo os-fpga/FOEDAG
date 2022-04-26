@@ -38,6 +38,8 @@ void CommandLine::processArgs() {
     } else if (token == "--replay") {
       i++;
       m_runGuiTest = m_argv[i];
+    } else if (token == "--verific") {
+      m_useVerific = true;
     } else if (token == "--script") {
       i++;
       m_runScript = m_argv[i];
