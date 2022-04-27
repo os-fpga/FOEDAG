@@ -70,7 +70,7 @@ void CompilerOpenFPGA::help(std::ostream* out) {
          << std::endl;
   (*out) << "   add_library_path <path1>...<pathn>: As in +libdir+"
          << std::endl;
-  (*out) << "   set_macro <name> <value>          : As in -D<macro>=<value>"
+  (*out) << "   set_macro <name>=<value>...       : As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
