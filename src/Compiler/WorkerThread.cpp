@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 
 std::set<WorkerThread*> ThreadPool::threads;
-SafeQueue<WorkerThread*> WorkerThread::m_queue{};
 
 WorkerThread::WorkerThread(const std::string& threadName,
                            Compiler::Action action, Compiler* compiler)
@@ -37,21 +36,16 @@ WorkerThread::WorkerThread(const std::string& threadName,
 
 WorkerThread::~WorkerThread() {}
 
-void WorkerThread::queueStart() { m_queue.append(this); }
-
-void WorkerThread::queueStop() {
-  m_queue.clear();
-  stop();
-}
-
 bool WorkerThread::start() {
   bool result = true;
   m_compiler->start();
+  m_inProgress = true;
   m_thread = new std::thread([=] {
     m_compiler->Compile(m_action);
     m_compiler->finish();
-    m_queue.remove(this);
+    m_inProgress = false;
   });
+  waitForFinish();
   return result;
 }
 
@@ -64,7 +58,7 @@ bool WorkerThread::stop() {
 }
 
 void WorkerThread::waitForFinish() {
-  while (m_queue.count() != 0) {
+  while (m_inProgress) {
     QApplication::processEvents();
   }
   // process all events after last thread

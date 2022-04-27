@@ -491,14 +491,15 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
-  std::string command = getBaseVprCommand() + " --analysis";
-  int status = ExecuteAndMonitorSystemCommand(command);
   if (!fileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+
+  std::string command = getBaseVprCommand() + " --analysis";
+  int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
+    ErrorMessage("Design " + m_design->Name() + " timing analysis failed!");
     return false;
   }
 
@@ -521,7 +522,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
+    ErrorMessage("Design " + m_design->Name() + " power analysis failed!");
     return false;
   }
 
