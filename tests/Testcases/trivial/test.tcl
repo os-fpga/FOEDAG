@@ -10,6 +10,7 @@ route
 sta
 power
 bitstream
+sync
 puts "done!"
 exit
 

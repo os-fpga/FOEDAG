@@ -1027,7 +1027,10 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   args.pop_front();  // remove program
   process.start(program, args);
   process.waitForFinished(-1);
-  return process.exitCode();
+  auto status = process.exitStatus();
+  if (status == QProcess::NormalExit) return process.exitCode();
+
+  return -1;
 }
 
 std::string Compiler::replaceAll(std::string_view str, std::string_view from,
