@@ -296,7 +296,7 @@ bool Foedag::initQmlGui() {
 
 bool Foedag::init(GUI_TYPE guiType) {
   if (m_cmdLine->printHelp()) {
-    m_compiler->help(&std::cout);
+    m_compiler->Help(&std::cout);
     return true;
   }
   bool result;
