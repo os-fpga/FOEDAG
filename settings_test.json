@@ -1,0 +1,58 @@
+{
+    "Tasks": 
+        {
+            "Synth": [
+                {
+                    "id": "locallyUniqueId_1",
+                    "label": "Dropdown Example",
+                    "widgetType": "dropdown",
+                    "options": [
+                        "option1",
+                        "option2",
+                        "option3"
+                    ],
+                    "default": "option1",
+                    "visible": true
+                },
+                {
+                    "id": "locallyUniqueId_2",
+                    "label": "Text Input Example",
+                    "widgetType": "input",
+                    "default": "some text",
+                    "visible": true
+                }
+            ],
+            "Placement": [
+                {
+                    "id": "placement_1",
+                    "label": "Spinbox Example",
+                    "widgetType": "spinbox",
+                    "minVal": 0.0,
+                    "maxVal": 10.0,
+                    "stepVal": 1.0,
+                    "default": 2.5,
+                    "visible": true
+                },
+                {
+                    "id": "placement_2",
+                    "label": "Radio Button Example",
+                    "widgetType": "radiobuttons",
+                    "options": [
+                        "b1",
+                        "b2",
+                        "b3"
+                    ],
+                    "default": "b2",
+                    "visible": true
+                },
+                {
+                    "id": "placement_3",
+                    "label": "Checkbox Example",
+                    "widgetType": "checkbox",
+                    "default": "unchecked",
+                    "visible": true
+                }
+            ]
+        }
+    
+}
