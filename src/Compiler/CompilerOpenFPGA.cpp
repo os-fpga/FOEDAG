@@ -295,15 +295,16 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string command = m_yosysExecutablePath.string() + " -s " +
                         std::string(m_design->Name() + ".ys");
   (*m_out) << "Synthesis command: " << command << std::endl;
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " synthesis was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " synthesis failed!");
     return false;
+  } else {
+    m_state = State::Synthesized;
+    (*m_out) << "Design " << m_design->Name() << " is synthesized!"
+             << std::endl;
+    return true;
   }
-  m_state = State::Synthesized;
-  (*m_out) << "Design " << m_design->Name() << " is synthesized!" << std::endl;
-  return true;
 }
 
 std::string CompilerOpenFPGA::getBaseVprCommand() {
@@ -322,10 +323,9 @@ bool CompilerOpenFPGA::Packing() {
     return false;
   }
   std::string command = getBaseVprCommand() + " --pack";
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " packing was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " packing failed!");
     return false;
   }
   m_state = State::Packed;
@@ -366,10 +366,9 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Placement for design: " << m_design->Name() << "..."
            << std::endl;
   std::string command = getBaseVprCommand() + " --place";
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " placement was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " placement failed!");
     return false;
   }
   m_state = State::Placed;
@@ -389,10 +388,9 @@ bool CompilerOpenFPGA::Route() {
   }
   (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --route";
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " routing was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " routing failed!");
     return false;
   }
   m_state = State::Routed;
@@ -409,10 +407,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --analysis";
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " analysis was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
     return false;
   }
 
@@ -429,10 +426,9 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --analysis";
-  bool status = ExecuteAndMonitorSystemCommand(command);
-  if (status == false) {
-    (*m_out) << "Design " << m_design->Name() << " analysis was interrupted!"
-             << std::endl;
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
     return false;
   }
 
