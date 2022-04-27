@@ -52,6 +52,7 @@ set (SRC_CPP_LIST
   Task.cpp
   TaskManager.cpp
   CompilerDefines.cpp
+  CompilerFactory.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -65,6 +66,7 @@ set (SRC_H_INSTALL_LIST
   Task.h
   TaskManager.h
   CompilerDefines.h
+  CompilerFactory.h
 )
 
 set (SRC_H_LIST

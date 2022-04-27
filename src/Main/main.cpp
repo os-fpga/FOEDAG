@@ -19,10 +19,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Compiler/CompilerOpenFPGA.h"
+#include "Compiler/CompilerFactory.h"
 #include "Main/CommandLine.h"
 #include "Main/Foedag.h"
-#include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 
@@ -37,22 +36,12 @@ int main(int argc, char** argv) {
   FOEDAG::GUI_TYPE guiType =
       FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
-  FOEDAG::Compiler* compiler = nullptr;
-  FOEDAG::CompilerOpenFPGA* opcompiler = nullptr;
-  if (cmd->CompilerName() == "openfpga") {
-    opcompiler = new FOEDAG::CompilerOpenFPGA();
-    compiler = opcompiler;
-    compiler->SetUseVerific(cmd->UseVerific());
-  } else {
-    compiler = new FOEDAG::Compiler();
-  }
+  FOEDAG::Foedag* foedag =
+      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerAllFoedagCommands);
 
-  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
-      cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);
-  if (opcompiler) {
-    const std::string& binpath = foedag->Context()->BinaryPath().string();
-    opcompiler->setYosysExecPath(binpath + "/yosys");
-    opcompiler->setVprExecPath(binpath + "/vpr");
-  }
+  FOEDAG::Compiler* compiler =
+      FOEDAG::CompilerFactory::CreateCompiler(cmd->CompilerName(), foedag);
+  compiler->SetUseVerific(cmd->UseVerific());
+  foedag->setCompiler(compiler);
   return foedag->init(guiType);
 }

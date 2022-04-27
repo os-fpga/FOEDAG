@@ -49,6 +49,7 @@ class Foedag {
   virtual ~Foedag() = default;
 
   bool init(GUI_TYPE guiType);
+  void setCompiler(Compiler* compiler);
 
  private:
   bool initQmlGui();

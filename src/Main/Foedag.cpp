@@ -316,6 +316,8 @@ bool Foedag::init(GUI_TYPE guiType) {
   return result;
 }
 
+void Foedag::setCompiler(Compiler* compiler) { m_compiler = compiler; }
+
 bool Foedag::initBatch() {
   // Batch mode
   FOEDAG::TclInterpreter* interpreter =
