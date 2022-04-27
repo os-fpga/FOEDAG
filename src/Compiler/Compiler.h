@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -128,6 +129,7 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string replaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
+  bool fileExists(const std::filesystem::path& name);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

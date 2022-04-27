@@ -66,13 +66,16 @@ void CompilerOpenFPGA::help(std::ostream* out) {
             "-VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
+  (*out) << "   add_include_path <path1>...<pathn>: As in +incdir+"
+         << std::endl;
+  (*out) << "   add_library_path <path1>...<pathn>: As in +libdir+"
+         << std::endl;
+  (*out) << "   set_macro <name>=<value>...       : As in -D<macro>=<value>"
+         << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
-         << std::endl;
-  (*out) << "   batch { cmd1 ... cmdn } : Runs compilation script using the "
-            "commands below"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   synthesize" << std::endl;
@@ -227,13 +230,33 @@ bool CompilerOpenFPGA::Synthesize() {
     (*m_out) << "Keep name: " << keep << "\n";
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
+
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
   }
   std::string yosysScript = m_yosysScript;
 
   if (m_useVerific) {
+    // Verific parser
     std::string fileList;
+    std::string includes;
+    for (auto path : m_design->IncludePathList()) {
+      includes += path + " ";
+    }
+    fileList += "verific -vlog-incdir " + includes + "\n";
+
+    std::string libraries;
+    for (auto path : m_design->LibraryPathList()) {
+      libraries += path + " ";
+    }
+    fileList += "verific -vlog-libdir " + libraries + "\n";
+
+    std::string macros;
+    for (auto& macro_value : m_design->MacroList()) {
+      macros += macro_value.first + "=" + macro_value.second + " ";
+    }
+    fileList += "verific -vlog-define " + macros + "\n";
+
     for (const auto& lang_file : m_design->FileList()) {
       std::string lang;
       switch (lang_file.first) {
@@ -273,14 +296,46 @@ bool CompilerOpenFPGA::Synthesize() {
     fileList += "verific -import " + m_design->TopLevel() + "\n";
     yosysScript = replaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
+    // Default Yosys parser
+    std::string macros = "verilog_defines ";
+    for (auto& macro_value : m_design->MacroList()) {
+      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    }
+    macros += "\n";
+    std::string includes;
+    for (auto path : m_design->IncludePathList()) {
+      includes += "-I" + path + " ";
+    }
+    yosysScript = replaceAll(yosysScript, "${READ_DESIGN_FILES}",
+                             macros +
+                                 "read_verilog ${READ_VERILOG_OPTIONS} "
+                                 "${INCLUDE_PATHS} ${VERILOG_FILES}");
     std::string fileList;
-    yosysScript = replaceAll(
-        yosysScript, "${READ_DESIGN_FILES}",
-        "read_verilog -nolatches ${READ_VERILOG_OPTIONS} ${VERILOG_FILES}");
+    std::string lang;
     for (const auto& lang_file : m_design->FileList()) {
       fileList += lang_file.second + " ";
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+        case Design::Language::VERILOG_1995:
+        case Design::Language::VERILOG_2001:
+        case Design::Language::SYSTEMVERILOG_2005:
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+        case Design::Language::SYSTEMVERILOG_2012:
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+      }
     }
-    yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", "");
+    yosysScript = replaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
+    std::string options = "-nolatches " + lang;
+
+    yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
     yosysScript = replaceAll(yosysScript, "${VERILOG_FILES}", fileList);
   }
 
@@ -292,6 +347,10 @@ bool CompilerOpenFPGA::Synthesize() {
   std::ofstream ofs(std::string(m_design->Name() + ".ys"));
   ofs << yosysScript;
   ofs.close();
+  if (!fileExists(m_yosysExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
+    return false;
+  }
   std::string command = m_yosysExecutablePath.string() + " -s " +
                         std::string(m_design->Name() + ".ys");
   (*m_out) << "Synthesis command: " << command << std::endl;
@@ -320,6 +379,10 @@ std::string CompilerOpenFPGA::getBaseVprCommand() {
 bool CompilerOpenFPGA::Packing() {
   if (m_design == nullptr) {
     ErrorMessage("No design specified");
+    return false;
+  }
+  if (!fileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
   std::string command = getBaseVprCommand() + " --pack";
@@ -365,6 +428,10 @@ bool CompilerOpenFPGA::Placement() {
   }
   (*m_out) << "Placement for design: " << m_design->Name() << "..."
            << std::endl;
+  if (!fileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
   std::string command = getBaseVprCommand() + " --place";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -387,6 +454,10 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
+  if (!fileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
   std::string command = getBaseVprCommand() + " --route";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -408,6 +479,10 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --analysis";
   int status = ExecuteAndMonitorSystemCommand(command);
+  if (!fileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " analysis failed!");
     return false;
@@ -426,6 +501,10 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --analysis";
+  if (!fileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " analysis failed!");
