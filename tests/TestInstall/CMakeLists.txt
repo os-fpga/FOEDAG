@@ -213,5 +213,5 @@ endif()
 
 add_custom_target(RunInstallTest ALL
     DEPENDS test_hellofoedag
-    COMMAND $<TARGET_FILE:test_hellofoedag> --noqt --cmd \"puts Hello!\; exit\"
+    COMMAND $<TARGET_FILE:test_hellofoedag> --noqt --cmd \"puts Hello!\"
     WORKING_DIRECTORY $<TARGET_FILE_DIR:test_hellofoedag>)
