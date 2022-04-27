@@ -36,23 +36,25 @@ class CompilerOpenFPGA : public Compiler {
   CompilerOpenFPGA() = default;
   ~CompilerOpenFPGA() = default;
 
-  void setYosysExecPath(const std::filesystem::path& path) {
+  void YosysExecPath(const std::filesystem::path& path) {
     m_yosysExecutablePath = path;
   }
-  void setOpenFpgaExecPath(const std::filesystem::path& path) {
+  void OpenFpgaExecPath(const std::filesystem::path& path) {
     m_openFpgaExecutablePath = path;
   }
-  void setVprExecPath(const std::filesystem::path& path) {
+  void VprExecPath(const std::filesystem::path& path) {
     m_vprExecutablePath = path;
   }
-  void setArchitectureFile(const std::filesystem::path& path) {
+  void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
     Message("Architecture file: " + path.string());
   }
-  void setYosysScript(const std::string& script) { m_yosysScript = script; }
+  void YosysScript(const std::string& script) { m_yosysScript = script; }
 
-  void help(std::ostream* out);
-  void setKeepAllSignals(bool on) { m_keepAllSignals = on; }
+  void Help(std::ostream* out);
+  void KeepAllSignals(bool on) { m_keepAllSignals = on; }
+
+  void ChannelWidth(uint32_t width) { m_channel_width = width; }
 
  protected:
   virtual bool IPGenerate();
@@ -73,6 +75,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_yosysScript;
   std::string getBaseVprCommand();
   bool m_keepAllSignals = false;
+  uint32_t m_channel_width = 100;
 };
 
 }  // namespace FOEDAG

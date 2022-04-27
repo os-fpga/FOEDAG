@@ -47,36 +47,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-void Compiler::help(std::ostream* out) {
+void Compiler::Help(std::ostream* out) {
   (*out) << "-------------------------" << std::endl;
   (*out) << "-----  FOEDAG HELP  -----" << std::endl;
   (*out) << "-------------------------" << std::endl;
   (*out) << "Options:" << std::endl;
-  (*out) << "   --help:  This help" << std::endl;
-  (*out) << "   --noqt:  Tcl only, no GUI" << std::endl;
-  (*out) << "   --batch: Tcl only, no GUI" << std::endl;
+  (*out) << "   --help           : This help" << std::endl;
+  (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
   (*out) << "Tcl commands:" << std::endl;
-  (*out) << "   help" << std::endl;
-  (*out) << "   gui_start" << std::endl;
-  (*out) << "   gui_stop" << std::endl;
-  (*out) << "   create_design <name>" << std::endl;
-  (*out) << "   add_design_file <file(s)> <type> (-VHDL_1987, -VHDL_1993, "
+  (*out) << "   help                       : This help" << std::endl;
+  (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
-  (*out) << "   add_include_path <path1>...<pathn>: As in +incdir+"
+  (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
+  (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
+  (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   add_library_path <path1>...<pathn>: As in +libdir+"
-         << std::endl;
-  (*out) << "   set_macro <name>=<value>...       : As in -D<macro>=<value>"
-         << std::endl;
-  (*out) << "   set_top_module <top>" << std::endl;
-  (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
+  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
@@ -195,7 +191,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    compiler->help(compiler->GetOutStream());
+    compiler->Help(compiler->GetOutStream());
     return TCL_OK;
   };
   interp->registerCmd("help", help, this, 0);
@@ -540,7 +536,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
       for (auto th : ThreadPool::threads) {
-        th->queueStop();
+        th->stop();
       }
       ThreadPool::threads.clear();
       return 0;
@@ -553,7 +549,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("ip_th", Action::IPGen, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
@@ -563,7 +559,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("synth_th", Action::Synthesis, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
@@ -574,7 +570,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("pack_th", Action::Pack, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("packing", packing, this, 0);
@@ -584,7 +580,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("glob_th", Action::Global, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
@@ -595,7 +591,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("place_th", Action::Detailed, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
@@ -606,7 +602,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("route_th", Action::Routing, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("route", route, this, 0);
@@ -615,7 +611,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread = new WorkerThread("sta_th", Action::STA, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("sta", sta, this, 0);
@@ -625,7 +621,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("power_th", Action::Power, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("power", power, this, 0);
@@ -635,7 +631,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("bitstream_th", Action::Bitstream, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
@@ -643,7 +639,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto stop = [](void* clientData, Tcl_Interp* interp, int argc,
                    const char* argv[]) -> int {
       for (auto th : ThreadPool::threads) {
-        th->queueStop();
+        th->stop();
       }
       ThreadPool::threads.clear();
       return 0;
@@ -672,7 +668,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->BatchScript(script);
       WorkerThread* wthread =
           new WorkerThread("batch_th", Action::Batch, compiler);
-      wthread->queueStart();
+      wthread->start();
       return 0;
     };
     interp->registerCmd("batch", batch, this, 0);
@@ -690,12 +686,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return 0;
     };
     interp->registerCmd("update_result", update_result, this, 0);
-    auto sync = [](void* clientData, Tcl_Interp* interp, int argc,
-                   const char* argv[]) -> int {
-      WorkerThread::waitForFinish();
-      return TCL_OK;
-    };
-    interp->registerCmd("sync", sync, 0, 0);
   }
   return true;
 }
@@ -1027,7 +1017,10 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   args.pop_front();  // remove program
   process.start(program, args);
   process.waitForFinished(-1);
-  return process.exitCode();
+  auto status = process.exitStatus();
+  if (status == QProcess::NormalExit) return process.exitCode();
+
+  return -1;
 }
 
 std::string Compiler::replaceAll(std::string_view str, std::string_view from,

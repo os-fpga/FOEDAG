@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-void CompilerOpenFPGA::help(std::ostream* out) {
+void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "----------------------------------" << std::endl;
   (*out) << "-----  FOEDAG OpenFPGA HELP  -----" << std::endl;
   (*out) << "----------------------------------" << std::endl;
@@ -53,27 +53,27 @@ void CompilerOpenFPGA::help(std::ostream* out) {
          << std::endl;
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
-  (*out) << "   help" << std::endl;
-  (*out) << "   gui_start" << std::endl;
-  (*out) << "   gui_stop" << std::endl;
-  (*out) << "   create_design <name>" << std::endl;
-  (*out) << "   architecture <file> : Sets the architecture file" << std::endl;
-  (*out) << "   custom_synth_script <file> : Loads a custom Yosys templatized "
+  (*out) << "   help                       : This help" << std::endl;
+  (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   architecture <file>        : Uses the architecture file"
+         << std::endl;
+  (*out) << "   custom_synth_script <file> : Uses a custom Yosys templatized "
             "script"
          << std::endl;
-  (*out) << "   add_design_file <file(s)> <type> (-VHDL_1987, -VHDL_1993, "
+  (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
+         << std::endl;
+  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
             "-VHDL_2000"
             "-VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
-  (*out) << "   add_include_path <path1>...<pathn>: As in +incdir+"
+  (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
+  (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
+  (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   add_library_path <path1>...<pathn>: As in +libdir+"
-         << std::endl;
-  (*out) << "   set_macro <name>=<value>...       : As in -D<macro>=<value>"
-         << std::endl;
-  (*out) << "   set_top_module <top>" << std::endl;
-  (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
+  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
@@ -161,7 +161,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     stream.close();
-    compiler->setArchitectureFile(expandedFile);
+    compiler->ArchitectureFile(expandedFile);
     return TCL_OK;
   };
   interp->registerCmd("architecture", select_architecture_file, this, 0);
@@ -192,10 +192,24 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     std::string script((std::istreambuf_iterator<char>(stream)),
                        std::istreambuf_iterator<char>());
     stream.close();
-    compiler->setYosysScript(script);
+    compiler->YosysScript(script);
     return TCL_OK;
   };
   interp->registerCmd("custom_synth_script", custom_synth_script, this, 0);
+
+  auto set_channel_width = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify a channel width");
+      return TCL_ERROR;
+    }
+    compiler->ChannelWidth(std::strtoul(argv[1], 0, 10));
+    return TCL_OK;
+  };
+  interp->registerCmd("set_channel_width", set_channel_width, this, 0);
+
   return true;
 }
 
@@ -372,7 +386,9 @@ std::string CompilerOpenFPGA::getBaseVprCommand() {
       m_architectureFile.string() + std::string(" ") +
       std::string(m_design->Name() + "_post_synth.blif" +
                   std::string(" --sdc_file ") +
-                  std::string(m_design->Name() + "_openfpga.sdc"));
+                  std::string(m_design->Name() + "_openfpga.sdc") +
+                  std::string(" --route_chan_width ") +
+                  std::to_string(m_channel_width));
   return command;
 }
 
@@ -477,14 +493,15 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
-  std::string command = getBaseVprCommand() + " --analysis";
-  int status = ExecuteAndMonitorSystemCommand(command);
   if (!fileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+
+  std::string command = getBaseVprCommand() + " --analysis";
+  int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
+    ErrorMessage("Design " + m_design->Name() + " timing analysis failed!");
     return false;
   }
 
@@ -507,7 +524,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_design->Name() + " analysis failed!");
+    ErrorMessage("Design " + m_design->Name() + " power analysis failed!");
     return false;
   }
 

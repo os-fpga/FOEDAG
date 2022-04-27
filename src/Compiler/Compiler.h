@@ -102,7 +102,7 @@ class Compiler {
   void setTaskManager(TaskManager* newTaskManager);
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
-  virtual void help(std::ostream* out);
+  virtual void Help(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
