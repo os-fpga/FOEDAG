@@ -9,6 +9,6 @@ route
 sta
 power
 bitstream
-sync
+sync # Must use for now for proper exit
 puts "done!"
 exit

@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);
   if (opcompiler) {
     const std::string& binpath = foedag->Context()->BinaryPath().string();
-    opcompiler->setYosysExecPath(binpath + "/yosys");
-    opcompiler->setVprExecPath(binpath + "/vpr");
+    opcompiler->YosysExecPath(binpath + "/yosys");
+    opcompiler->VprExecPath(binpath + "/vpr");
   }
   return foedag->init(guiType);
 }
