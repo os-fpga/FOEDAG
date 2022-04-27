@@ -329,8 +329,6 @@ bool Foedag::initBatch() {
   if (m_registerTclFunc) {
     m_registerTclFunc(nullptr, GlobalSession);
   }
-  std::string result = interpreter->evalCmd("puts \"Tcl only mode\"");
-
   // Tcl_AppInit
   auto tcl_init = [](Tcl_Interp* interp) -> int {
     // --script <script>
@@ -338,16 +336,20 @@ bool Foedag::initBatch() {
       int res =
           Tcl_EvalFile(interp, GlobalSession->CmdLine()->Script().c_str());
       if (res != TCL_OK) {
-        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+        GlobalSession->ReturnStatus(res);
+        Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
       }
+      exit(GlobalSession->ReturnStatus());
     }
     // --cmd \"tcl cmd\"
     if (!GlobalSession->CmdLine()->TclCmd().empty()) {
       int res =
           Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
       if (res != TCL_OK) {
-        std::cout << std::string(Tcl_GetStringResult(interp)) << std::endl;
+        GlobalSession->ReturnStatus(res);
+        Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
       }
+      exit(GlobalSession->ReturnStatus());
     }
     // --replay <script> Gui replay, invoke test
     if (!GlobalSession->CmdLine()->GuiTestScript().empty()) {
@@ -360,7 +362,7 @@ bool Foedag::initBatch() {
   // Start Loop
   int argc = m_cmdLine->Argc();
   Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
-
+  int returnStatus = GlobalSession->ReturnStatus();
   delete GlobalSession;
-  return 0;
+  return returnStatus;
 }

@@ -10,4 +10,3 @@ sta
 power
 bitstream
 puts "done!"
-exit

@@ -29,4 +29,3 @@ while {$CONT} {
   after 100 set a 1
   vwait a
 }
-exit

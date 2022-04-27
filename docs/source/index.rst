@@ -40,6 +40,6 @@ Indices and tables
 
 .. _vtr_doc: https://docs.verilogtorouting.org/en/latest/
 .. _vtr_github: https://github.com/verilog-to-routing/vtr-verilog-to-routing
-.. _yosys_doc: http://www.clifford.at/yosys/
+.. _yosys_doc: https://yosyshq.net/yosys/documentation.html
 .. _yosys_github: https://github.com/YosysHQ/yosys
 .. _xml_vtr: https://docs.verilogtorouting.org/en/latest/arch/reference/
