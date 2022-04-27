@@ -259,9 +259,9 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
         fprintf(stderr, "Json: %s\n",
                 qPrintable(FOEDAG::Settings::getJsonStr()));
 
-        QString filepath = "./dbuild/share/foedag/etc/settings/settings_test.json"; 
+        // QString filepath = "./dbuild/share/foedag/etc/settings/settings_test.json"; 
         // QString filepath = "./build/share/foedag/etc/settings/settings_test.json"; 
-        // QString filepath = "/usr/local/share/foedag/etc/settings/settings_test.json"; 
+        QString filepath = "/usr/local/share/foedag/etc/settings/settings_test.json"; 
         qDebug() << "Load " << filepath << " into \"Settings\" - "
                     "FOEDAG::Settings::loadJsonFile(\"" << filepath << "\", "
                     "\"Settings\")";
