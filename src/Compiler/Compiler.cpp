@@ -61,15 +61,14 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name" << std::endl;
+  (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
   (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
-  (*out) << "   add_include_path <path1>...: As in +incdir+"
-         << std::endl;
-  (*out) << "   add_library_path <path1>...: As in +libdir+"
-         << std::endl;
+  (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
+  (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;

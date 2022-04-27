@@ -54,21 +54,22 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name" << std::endl;
-  (*out) << "   architecture <file>        : Uses the architecture file" << std::endl;
+  (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   architecture <file>        : Uses the architecture file"
+         << std::endl;
   (*out) << "   custom_synth_script <file> : Uses a custom Yosys templatized "
             "script"
          << std::endl;
-  (*out) << "   set_channel_width <int>    : VPR Routing channel setting" << std::endl;
+  (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
+         << std::endl;
   (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
             "-VHDL_2000"
             "-VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
-  (*out) << "   add_include_path <path1>...: As in +incdir+"
-         << std::endl;
-  (*out) << "   add_library_path <path1>...: As in +libdir+"
-         << std::endl;
+  (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
+  (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
@@ -196,8 +197,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("custom_synth_script", custom_synth_script, this, 0);
 
-  auto set_channel_width = [](void* clientData, Tcl_Interp* interp,
-                                     int argc, const char* argv[]) -> int {
+  auto set_channel_width = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
     std::string name;
     if (argc != 2) {
@@ -385,8 +386,9 @@ std::string CompilerOpenFPGA::getBaseVprCommand() {
       m_architectureFile.string() + std::string(" ") +
       std::string(m_design->Name() + "_post_synth.blif" +
                   std::string(" --sdc_file ") +
-                  std::string(m_design->Name() + "_openfpga.sdc")
-                  + std::string(" --route_chan_width ") + std::to_string(m_channel_width));
+                  std::string(m_design->Name() + "_openfpga.sdc") +
+                  std::string(" --route_chan_width ") +
+                  std::to_string(m_channel_width));
   return command;
 }
 

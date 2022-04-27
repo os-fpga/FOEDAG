@@ -55,6 +55,7 @@ class CompilerOpenFPGA : public Compiler {
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
 
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
+
  protected:
   virtual bool IPGenerate();
   virtual bool Synthesize();
