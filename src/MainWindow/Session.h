@@ -69,6 +69,9 @@ class Session {
 
   void setWindowModel(MainWindowModel *newWindowModel);
 
+  int ReturnStatus() { return m_returnStatus; }
+  void ReturnStatus(int status) { m_returnStatus = status; }
+
  private:
   QWidget *m_mainWindow = nullptr;
   MainWindowModel *m_windowModel = nullptr;
@@ -78,6 +81,8 @@ class Session {
   FOEDAG::GUI_TYPE m_guiType = GUI_TYPE::GT_NONE;
   ToolContext *m_context = nullptr;
   Compiler *m_compiler = nullptr;
+  int m_returnStatus =
+      0;  // When running in batch mode, executable returned status
 };
 
 }  // namespace FOEDAG
