@@ -69,15 +69,17 @@ void Compiler::help(std::ostream* out) {
             "-VHDL_2000, -VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
+  (*out) << "   add_include_path <path1>...<pathn>: As in +incdir+"
+         << std::endl;
+  (*out) << "   add_library_path <path1>...<pathn>: As in +libdir+"
+         << std::endl;
+  (*out) << "   set_macro <name> <value>          : As in -D<macro>=<value>"
+         << std::endl;
   (*out) << "   set_top_module <top>" << std::endl;
   (*out) << "   add_constraint_file <file>: Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   batch { cmd1 ... cmdn } : Run compilation script using the "
-            "commands below"
-         << std::endl;
-  (*out) << "   ipgenerate" << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   synthesize" << std::endl;
   (*out) << "   packing" << std::endl;
@@ -334,8 +336,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           std::filesystem::path fullPath = scriptPath;
           fullPath.append(file);
           expandedFile = fullPath.string();
-          fileList += expandedFile + " ";
         }
+        fileList += expandedFile + " ";
       }
     }
 
@@ -354,6 +356,68 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
+
+  auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    for (int i = 1; i < argc; i++) {
+      std::string file = argv[i];
+      std::string expandedFile = file;
+      if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(file);
+        expandedFile = fullPath.string();
+      }
+      design->AddIncludePath(expandedFile);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("add_include_path", add_include_path, this, nullptr);
+
+  auto add_library_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    for (int i = 1; i < argc; i++) {
+      std::string file = argv[i];
+      std::string expandedFile = file;
+      if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(file);
+        expandedFile = fullPath.string();
+      }
+      design->AddLibraryPath(expandedFile);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("add_library_path", add_library_path, this, nullptr);
+
+  auto set_macro = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    for (int i = 1; i < argc; i++) {
+      const std::string arg = argv[i];
+      const size_t loc = arg.find('=');
+      if (loc == std::string::npos) {
+        const std::string def = arg.substr(2);
+        design->AddMacro(def, "");
+      } else {
+        const std::string def = arg.substr(0, loc);
+        const std::string value = arg.substr(loc + 1);
+        design->AddMacro(def, value);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("set_macro", set_macro, this, nullptr);
 
   auto set_as_target = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -975,4 +1039,9 @@ std::string Compiler::replaceAll(std::string_view str, std::string_view from,
     start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
   }
   return result;
+}
+
+bool Compiler::fileExists(const std::filesystem::path& name) {
+  std::error_code ec;
+  return std::filesystem::exists(name, ec);
 }

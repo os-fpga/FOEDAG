@@ -58,10 +58,30 @@ class Design {
     m_fileList.push_back(std::make_pair(language, fileName));
   }
 
+  void AddIncludePath(const std::string& pathName) {
+    m_includePathList.push_back(pathName);
+  }
+
+  void AddLibraryPath(const std::string& pathName) {
+    m_libraryPathList.push_back(pathName);
+  }
+
+  void AddMacro(const std::string& macroName, const std::string& macroValue) {
+    m_macroList.push_back(std::pair(macroName, macroValue));
+  }
+
   void AddConstraintFile(const std::string& fileName);
 
   std::vector<std::pair<Language, std::string>>& FileList() {
     return m_fileList;
+  }
+
+  std::vector<std::string>& IncludePathList() { return m_includePathList; }
+
+  std::vector<std::string>& LibraryPathList() { return m_libraryPathList; }
+
+  std::vector<std::pair<std::string, std::string>>& MacroList() {
+    return m_macroList;
   }
 
   std::vector<std::string>& ConstraintFileList() {
@@ -80,7 +100,10 @@ class Design {
   std::string m_designName;
   std::string m_topLevelModule;
   std::vector<std::pair<Language, std::string>> m_fileList;
+  std::vector<std::string> m_includePathList;
+  std::vector<std::string> m_libraryPathList;
   std::vector<std::string> m_constraintFileList;
+  std::vector<std::pair<std::string, std::string>> m_macroList;
   Constraints* m_constraints = nullptr;
 };
 

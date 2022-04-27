@@ -39,11 +39,11 @@ class ToolContext {
         m_dataPath(DataPath) {}
   ~ToolContext() {}
 
-  const std::string& ToolName() { return m_toolName; }
-  const std::string& CompanyName() { return m_companyName; }
-  const std::string& ExecutableName() { return m_executableName; }
-  const std::filesystem::path& BinaryPath() { return m_binaryPath; }
-  const std::filesystem::path& DataPath() { return m_dataPath; }
+  const std::string& ToolName() const { return m_toolName; }
+  const std::string& CompanyName() const { return m_companyName; }
+  const std::string& ExecutableName() const { return m_executableName; }
+  const std::filesystem::path& BinaryPath() const { return m_binaryPath; }
+  const std::filesystem::path& DataPath() const { return m_dataPath; }
 
   void ToolName(const std::string& name) { m_toolName = name; }
   void CompanyName(const std::string& name) { m_companyName = name; }
