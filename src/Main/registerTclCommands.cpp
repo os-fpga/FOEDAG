@@ -43,6 +43,8 @@ extern "C" {
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
 #include "Foedag.h"
+#include "Main/Settings.h"
+#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
@@ -213,6 +215,7 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("help", help, 0, 0);
 }
 
+#include <QDebug>
 void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
   // Used in "make test_install"
   auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -229,6 +232,56 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     // New Project Wizard
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       registerNewProjectCommands(win->NewProjectDialog(), session);
+    }
+    // Temp command to demo Settings prototype
+    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
+      auto DemoSettingsFn = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+        qDebug() << "Storing version number under \"Version\"";
+        FOEDAG::Settings::setValue("Version", 0.1);
+
+        qDebug() << "Example setting nested json";
+        QJsonObject nested{{"nested", "test"}};
+        QJsonObject val3{
+            {"a", "1"}, {"b", 2}, {"c", 3.3}, {"nestTest", nested}};
+        FOEDAG::Settings::setValue("testing", val3);
+        fprintf(stderr, "Json: %s\n",
+                qPrintable(FOEDAG::Settings::getJsonStr()));
+
+        QJsonObject nested2{{"nested", "test-replace"}};
+        QJsonObject val4{
+            {"a", "1_2"}, {"b", 6}, {"c", 8.8}, {"nestTest", nested2}};
+        FOEDAG::Settings::updateJson("testing", val4);
+        FOEDAG::Settings::updateJson("empty", val4);
+
+        QJsonObject user{{"user_value", 3.5}};
+        FOEDAG::Settings::updateJson("empty", user);
+        fprintf(stderr, "Json: %s\n",
+                qPrintable(FOEDAG::Settings::getJsonStr()));
+
+        qDebug() << "Load ./settings_test.json into \"Settings\" - "
+                    "FOEDAG::Settings::loadJsonFile(\"./settings_test.json\", "
+                    "\"Settings\")";
+        FOEDAG::Settings::loadJsonFile("./settings_test.json", "Settings");
+        fprintf(stderr, "Settings JSON after loadJsonFile(): %s\n",
+                qPrintable(FOEDAG::Settings::getJsonStr()));
+
+        qDebug() << "\nGet Test - FOEDAG::Settings::get(\"Version\");";
+        qDebug() << "\t" << FOEDAG::Settings::get("Version");
+
+        qDebug()
+            << "\nGetNested Test - "
+               "FOEDAG::Settings::getNested(\"Settings.Tasks.Synth\", \".\");";
+        qDebug() << "\t"
+                 << FOEDAG::Settings::getNested("Settings.Tasks.Synth", ".");
+
+        // Try reading some data
+        FOEDAG::Tasks::getTasks();
+
+        return TCL_OK;
+      };
+
+      session->TclInterp()->registerCmd("DemoSettings", DemoSettingsFn, 0, 0);
     }
   }
 }
