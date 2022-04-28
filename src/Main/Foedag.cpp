@@ -124,11 +124,12 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
 
 Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
                RegisterTclFunc* registerTclFunc, Compiler* compiler,
-               ToolContext* context)
+               Settings* settings, ToolContext* context)
     : m_cmdLine(cmdLine),
       m_mainWinBuilder(mainWinBuilder),
       m_registerTclFunc(registerTclFunc),
       m_compiler(compiler),
+      m_settings(settings),
       m_context(context) {
   if (context == nullptr)
     m_context = new ToolContext("Foedag", "OpenFPGA", "foedag");
@@ -157,7 +158,7 @@ bool Foedag::initGui() {
   QWidget* mainWin = nullptr;
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
-                                      m_context, m_compiler);
+                                      m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
   if (m_mainWinBuilder) {
     mainWin = m_mainWinBuilder(GlobalSession);
@@ -241,7 +242,7 @@ bool Foedag::initQmlGui() {
   engine.load(url);
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
-                                      m_context, m_compiler);
+                                      m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_QML);
   GlobalSession->setWindowModel(windowModel);
 
@@ -321,8 +322,9 @@ bool Foedag::initBatch() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
-  GlobalSession = new FOEDAG::Session(m_mainWin, interpreter, commands,
-                                      m_cmdLine, m_context, m_compiler);
+  GlobalSession =
+      new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
+                          m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
 
   registerBasicBatchCommands(GlobalSession);

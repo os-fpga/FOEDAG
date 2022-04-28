@@ -3,18 +3,11 @@
 #ifndef TASKS_H
 #define TASKS_H
 
+#include "Main/Settings.h"
+
 namespace FOEDAG {
 
-class Tasks {
- private:
-  Tasks();
-
-  static Tasks* m_instance;
-
- public:
-  static Tasks* getInstance();
-  static void getTasks();
-};
+void getTasks(Settings* settings);
 
 }  // namespace FOEDAG
 
