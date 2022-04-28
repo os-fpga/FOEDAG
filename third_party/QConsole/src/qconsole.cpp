@@ -447,14 +447,9 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
       case Qt::Key_Enter:
       case Qt::Key_Return:
         if (isRunning()) break;
-        if (isSelectionInEditionZone()) {
+        {
+          moveCursorToEnd();
           QString command = getCurrentCommand();
-
-          // move cursore to avoid break line
-          auto cursore = textCursor();
-          cursore.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
-          setTextCursor(cursore);
-
           QTextEdit::keyPressEvent(e);
           handleReturnKeyPress(command);
         }
@@ -556,6 +551,7 @@ void QConsole::replaceCurrentCommandFromHistory(const QString &newCommand) {
                       promptLength);
   cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
   cursor.insertText(newCommand);
+  ensureCursorVisible();
 }
 
 // default implementation: command always complete
@@ -778,6 +774,12 @@ void QConsole::contextMenuEvent(QContextMenuEvent *event) {
   menu->exec(event->globalPos());
 
   delete menu;
+}
+
+void QConsole::moveCursorToEnd() {
+  auto cursore = textCursor();
+  cursore.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+  setTextCursor(cursore);
 }
 
 void QConsole::cut() {
