@@ -64,7 +64,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
   (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000"
+            "-VHDL_2000, "
             "-VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
@@ -229,13 +229,39 @@ bool CompilerOpenFPGA::Synthesize() {
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
 
   std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
+  // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
-    // TODO: Massage the SDC so VPR can understand them
-    // ofssdc << constraint << "\n";
+    // Parse RTL and expand the get_ports, get_nets
+    // Temporary dirty filtering:
+    std::vector<std::string> tokens;
+    Tokenize(constraint, " ", tokens);
+    constraint = "";
+    // VPR Does not understand: -name <logical_name>
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      if (tok == "-name") {
+        // skip
+        i++;
+      } else {
+        constraint += tok + " ";
+      }
+    }
+    // VPR Does not understand collections commands:
+    constraint = ReplaceAll(constraint, "[get_ports", "");
+    constraint = ReplaceAll(constraint, "[get_nets", "");
+    constraint = ReplaceAll(constraint, "]", "");
+
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") != std::string::npos) {
+      continue;
+    }
+
+    ofssdc << constraint << "\n";
   }
   ofssdc.close();
 
+  // Keeps for Synthesis, preserve nodes used in constraints
   std::string keeps;
   if (m_keepAllSignals) {
     keeps += "setattr -set keep 1 w:\\*\n";
@@ -245,6 +271,7 @@ bool CompilerOpenFPGA::Synthesize() {
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
 
+  // Default or custom Yosys script
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
   }
@@ -308,7 +335,7 @@ bool CompilerOpenFPGA::Synthesize() {
       fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
     fileList += "verific -import " + m_design->TopLevel() + "\n";
-    yosysScript = replaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
+    yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
     std::string macros = "verilog_defines ";
@@ -320,7 +347,7 @@ bool CompilerOpenFPGA::Synthesize() {
     for (auto path : m_design->IncludePathList()) {
       includes += "-I" + path + " ";
     }
-    yosysScript = replaceAll(yosysScript, "${READ_DESIGN_FILES}",
+    yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
                              macros +
                                  "read_verilog ${READ_VERILOG_OPTIONS} "
                                  "${INCLUDE_PATHS} ${VERILOG_FILES}");
@@ -346,22 +373,24 @@ bool CompilerOpenFPGA::Synthesize() {
           break;
       }
     }
-    yosysScript = replaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
-    std::string options = "-nolatches " + lang;
+    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
+    std::string options = lang;
 
-    yosysScript = replaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
-    yosysScript = replaceAll(yosysScript, "${VERILOG_FILES}", fileList);
+    yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
+    yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
   }
 
-  yosysScript = replaceAll(yosysScript, "${KEEP_NAMES}", keeps);
-  yosysScript = replaceAll(yosysScript, "${LUT_SIZE}", std::to_string(6));
-  yosysScript = replaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
-  yosysScript = replaceAll(yosysScript, "${OUTPUT_BLIF}",
+  yosysScript = ReplaceAll(yosysScript, "${KEEP_NAMES}", keeps);
+  yosysScript = ReplaceAll(yosysScript, "${LUT_SIZE}", std::to_string(6));
+  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
+  yosysScript = ReplaceAll(yosysScript, "${OUTPUT_BLIF}",
                            std::string(m_design->Name() + "_post_synth.blif"));
+
+  // Create Yosys command and execute
   std::ofstream ofs(std::string(m_design->Name() + ".ys"));
   ofs << yosysScript;
   ofs.close();
-  if (!fileExists(m_yosysExecutablePath)) {
+  if (!FileExists(m_yosysExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
     return false;
   }
@@ -397,7 +426,7 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (!fileExists(m_vprExecutablePath)) {
+  if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -444,7 +473,7 @@ bool CompilerOpenFPGA::Placement() {
   }
   (*m_out) << "Placement for design: " << m_design->Name() << "..."
            << std::endl;
-  if (!fileExists(m_vprExecutablePath)) {
+  if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -470,7 +499,7 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
-  if (!fileExists(m_vprExecutablePath)) {
+  if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -493,7 +522,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
-  if (!fileExists(m_vprExecutablePath)) {
+  if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -518,7 +547,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
   std::string command = getBaseVprCommand() + " --analysis";
-  if (!fileExists(m_vprExecutablePath)) {
+  if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
