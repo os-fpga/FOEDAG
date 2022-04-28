@@ -1023,7 +1023,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   return -1;
 }
 
-std::string Compiler::replaceAll(std::string_view str, std::string_view from,
+std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
                                  std::string_view to) {
   size_t start_pos = 0;
   std::string result(str);
@@ -1034,7 +1034,34 @@ std::string Compiler::replaceAll(std::string_view str, std::string_view from,
   return result;
 }
 
-bool Compiler::fileExists(const std::filesystem::path& name) {
+bool Compiler::FileExists(const std::filesystem::path& name) {
   std::error_code ec;
   return std::filesystem::exists(name, ec);
+}
+
+void Compiler::Tokenize(std::string_view str, std::string_view separator,
+                        std::vector<std::string>& result) {
+  std::string tmp;
+  const unsigned int sepSize = separator.size();
+  const unsigned int stringSize = str.size();
+  for (unsigned int i = 0; i < stringSize; i++) {
+    bool isSeparator = false;
+    for (unsigned int j = 0; j < sepSize; j++) {
+      if (str[i] == separator[j]) {
+        isSeparator = true;
+        break;
+      }
+    }
+    if (isSeparator) {
+      result.push_back(tmp);
+      tmp = "";
+      if (i == (str.size() - 1)) result.push_back(tmp);
+    } else if (i == (str.size() - 1)) {
+      tmp += str[i];
+      result.push_back(tmp);
+      tmp = "";
+    } else {
+      tmp += str[i];
+    }
+  }
 }
