@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
@@ -275,10 +276,29 @@ void MainWindow::ReShowWindow(QString strProject) {
   runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 
+  QDockWidget* testingDockWidget = new QDockWidget(tr("Testing"), this);
+  testingDockWidget->setObjectName("testingdockwidget");
+  QWidget* container = new QWidget();
+  QHBoxLayout* containerHLayout = new QHBoxLayout();
+  container->setLayout( containerHLayout );
+
+  // Create dropdown w/o a default
+  QComboBox* test = FOEDAG::createDropDown( "test", {"blah","blah2"} );
+  containerHLayout->addWidget( test );
+
+  // Create dropdown w a default
+  QComboBox* test2 = FOEDAG::createDropDown( "test", {"blah","blah2"}, "blah2" );
+  containerHLayout->addWidget( test2 );
+
+
+
+  testingDockWidget->setWidget(container);
+  tabifyDockWidget(consoleDocWidget, testingDockWidget);
+
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
   QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
-  taskDocWidget->setWidget(view);
+    taskDocWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDocWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
