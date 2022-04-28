@@ -21,7 +21,8 @@ namespace FOEDAG {
 
 QWidget* createWidget( const QJsonObject& widgetJsonObj );
 QWidget* createWidget( const QString& widgetJsonStr );
-QComboBox* createDropDown( const QString& objectName, const QStringList& options, const QString& selectedValue = "" );
+QComboBox* createComboBox( const QString& objectName, const QStringList& options, const QString& selectedValue = "" );
+QLineEdit* createLineEdit( const QString& objectName, const QString& text = "" );
 
 
 }  // namespace FOEDAG

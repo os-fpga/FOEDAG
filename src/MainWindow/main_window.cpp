@@ -279,20 +279,22 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* testingDockWidget = new QDockWidget(tr("Testing"), this);
   testingDockWidget->setObjectName("testingdockwidget");
   QWidget* container = new QWidget();
-  QHBoxLayout* containerHLayout = new QHBoxLayout();
-  container->setLayout( containerHLayout );
+  QVBoxLayout* containerVLayout = new QVBoxLayout();
+  container->setLayout( containerVLayout );
 
   // SMA tooltips should be set-able from the settings.json file
 
   // Create dropdown w/o a default
-  QComboBox* test = FOEDAG::createDropDown( "test", {"blah","blah2"} );
-  containerHLayout->addWidget( test );
+  QComboBox* test = FOEDAG::createComboBox( "test1", {"blah","blah2"} );
+  containerVLayout->addWidget( test );
 
   // Create dropdown w a default
-  QComboBox* test2 = FOEDAG::createDropDown( "test", {"blah","blah2"}, "blah2" );
-  containerHLayout->addWidget( test2 );
+  QComboBox* test2 = FOEDAG::createComboBox( "test2", {"blah","blah2"}, "blah2" );
+  containerVLayout->addWidget( test2 );
 
-
+  // Create line edit
+  QLineEdit* test3 = FOEDAG::createLineEdit( "test3", "some text" );
+  containerVLayout->addWidget( test3 );
 
   testingDockWidget->setWidget(container);
   tabifyDockWidget(consoleDocWidget, testingDockWidget);

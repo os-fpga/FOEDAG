@@ -22,7 +22,7 @@ QWidget* FOEDAG::createWidget(const QString& widgetJsonStr) {
   return FOEDAG::createWidget(jsonObj);
 }
 
-QComboBox* FOEDAG::createDropDown( const QString& objectName, const QStringList& options, const QString& selectedValue )
+QComboBox* FOEDAG::createComboBox( const QString& objectName, const QStringList& options, const QString& selectedValue )
 {
     QComboBox* widget = new QComboBox();
     widget->setObjectName( objectName );
@@ -34,6 +34,16 @@ QComboBox* FOEDAG::createDropDown( const QString& objectName, const QStringList&
     {
         widget->setCurrentIndex(idx);
     }
+
+    return widget;
+}
+
+QLineEdit* FOEDAG::createLineEdit( const QString& objectName, const QString& text )
+{
+    QLineEdit* widget = new QLineEdit();
+    widget->setObjectName( objectName );
+
+    widget->setText(text);
 
     return widget;
 }
