@@ -127,9 +127,11 @@ class Compiler {
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
-  std::string replaceAll(std::string_view str, std::string_view from,
+  std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
-  bool fileExists(const std::filesystem::path& name);
+  bool FileExists(const std::filesystem::path& name);
+  void Tokenize(std::string_view str, std::string_view separator,
+                std::vector<std::string>& result);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

@@ -115,10 +115,10 @@ test-parallel: release test/unittest
 test/openfpga: run-cmake-release
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
-	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/raygentop/raygentop.tcl
+	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 
 test/openfpga_gui: run-cmake-release
-	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/raygentop/raygentop_gui.tcl
+	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 
 regression: release
 	cmake -E make_directory build/tests
@@ -158,7 +158,7 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/foedag --batch --script tests/Testcases/raygentop/raygentop.tcl
+	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
