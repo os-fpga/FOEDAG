@@ -282,6 +282,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   QHBoxLayout* containerHLayout = new QHBoxLayout();
   container->setLayout( containerHLayout );
 
+  // SMA tooltips should be set-able from the settings.json file
+
   // Create dropdown w/o a default
   QComboBox* test = FOEDAG::createDropDown( "test", {"blah","blah2"} );
   containerHLayout->addWidget( test );
