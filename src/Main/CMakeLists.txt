@@ -47,6 +47,8 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
   ../Main/registerTclCommands.cpp
+  ../Main/Settings.cpp
+  ../Main/Tasks.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )
@@ -60,6 +62,8 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/Session.h
   ../Main/qttclnotifier.hpp
   ../Main/CommandLine.h
+  ../Main/Settings.h
+  ../Main/Tasks.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h
