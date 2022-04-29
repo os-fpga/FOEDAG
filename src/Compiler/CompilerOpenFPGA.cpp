@@ -409,7 +409,7 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 }
 
-std::string CompilerOpenFPGA::getBaseVprCommand() {
+std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
@@ -430,7 +430,7 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-  std::string command = getBaseVprCommand() + " --pack";
+  std::string command = BaseVprCommand() + " --pack";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " packing failed!");
@@ -477,7 +477,7 @@ bool CompilerOpenFPGA::Placement() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-  std::string command = getBaseVprCommand() + " --place";
+  std::string command = BaseVprCommand() + " --place";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " placement failed!");
@@ -503,7 +503,7 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-  std::string command = getBaseVprCommand() + " --route";
+  std::string command = BaseVprCommand() + " --route";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " routing failed!");
@@ -527,14 +527,15 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
 
-  std::string command = getBaseVprCommand() + " --analysis";
+  std::string command = BaseVprCommand() + " --analysis";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " timing analysis failed!");
     return false;
   }
 
-  (*m_out) << "Design " << m_design->Name() << " is analysed!" << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " is timing analysed!"
+           << std::endl;
 
   return true;
 }
@@ -546,7 +547,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
 
   (*m_out) << "Analysis for design: " << m_design->Name() << "..." << std::endl;
-  std::string command = getBaseVprCommand() + " --analysis";
+  std::string command = BaseVprCommand() + " --analysis";
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -557,7 +558,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
 
-  (*m_out) << "Design " << m_design->Name() << " is analysed!" << std::endl;
+  (*m_out) << "Design " << m_design->Name() << " is power analysed!"
+           << std::endl;
   return true;
 }
 

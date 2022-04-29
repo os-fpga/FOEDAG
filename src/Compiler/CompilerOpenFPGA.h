@@ -73,7 +73,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_architectureFile =
       "tests/Arch/k6_frac_N10_tileable_40nm.xml";
   std::string m_yosysScript;
-  std::string getBaseVprCommand();
+  virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
   uint32_t m_channel_width = 100;
 };
