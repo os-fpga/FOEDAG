@@ -7,18 +7,8 @@
 
 using namespace FOEDAG;
 
-Tasks* Tasks::m_instance = nullptr;
-Tasks::Tasks() { fprintf(stderr, "Tasks Created\n"); }
-
-Tasks* Tasks::getInstance() {
-  if (!m_instance) {
-    m_instance = new Tasks();
-  }
-  return m_instance;
-}
-
-void Tasks::getTasks() {
-  QJsonValue tasksVal = Settings::getNested("Settings.Tasks", ".");
+void FOEDAG::getTasks(Settings* settings) {
+  QJsonValue tasksVal = settings->getNested("Settings.Tasks", ".");
   if (tasksVal.isObject()) {
     qDebug() << "\nReading tasks w/ Settings::getNested(\"Settings.Tasks\"):";
 

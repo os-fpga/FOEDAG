@@ -43,12 +43,13 @@ int main(int argc, char** argv) {
   cmd->processArgs();
 
   FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+  FOEDAG::Settings* settings = new FOEDAG::Settings();
 
   FOEDAG::GUI_TYPE guiType =
       FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
-      cmd, newFileBuilder, registerNewFileCommands, compiler);
+      cmd, newFileBuilder, registerNewFileCommands, compiler, settings);
 
   return foedag->init(guiType);
 }

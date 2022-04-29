@@ -342,8 +342,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     design->AddFile(language, fileList);
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok =
-          compiler->m_tclCmdIntegration->TclAddOrCreateFiles(argc, argv, out);
+      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+          fileList.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -462,7 +462,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       std::string("\n"));
     design->AddConstraintFile(expandedFile);
     Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
-    return 0;
+
+    if (compiler->m_tclCmdIntegration) {
+      std::ostringstream out;
+      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateConstrFiles(
+          expandedFile.c_str(), out);
+      if (!ok) {
+        compiler->ErrorMessage(out.str());
+        return TCL_ERROR;
+      }
+    }
+
+    return TCL_OK;
   };
   interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
 

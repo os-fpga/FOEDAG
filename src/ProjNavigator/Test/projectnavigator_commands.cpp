@@ -54,7 +54,7 @@ TCL_COMMAND(create_fileset) {
 TCL_COMMAND(add_files) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
   auto tclCommand = srcForm->createTclCommandIntegarion();
-  tclCommand->TclAddOrCreateFiles(argc, argv, std::cout);
+  tclCommand->TclAddOrCreateDesignFiles(argc, argv, std::cout);
   return TCL_OK;
 }
 
