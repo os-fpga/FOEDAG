@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
@@ -285,16 +286,41 @@ void MainWindow::ReShowWindow(QString strProject) {
   // SMA tooltips should be set-able from the settings.json file
 
   // Create dropdown w/o a default
-  QComboBox* test = FOEDAG::createComboBox( "test1", {"blah","blah2"} );
+  QComboBox* test = FOEDAG::createComboBox( "comboTest", {"blah","blah2"} );
   containerVLayout->addWidget( test );
 
   // Create dropdown w a default
-  QComboBox* test2 = FOEDAG::createComboBox( "test2", {"blah","blah2"}, "blah2" );
+  QComboBox* test2 = FOEDAG::createComboBox( "comboTest2", {"blah","blah2"}, "blah2" );
   containerVLayout->addWidget( test2 );
 
   // Create line edit
-  QLineEdit* test3 = FOEDAG::createLineEdit( "test3", "some text" );
+  QLineEdit* test3 = FOEDAG::createLineEdit( "lineEditTest", "some text" );
   containerVLayout->addWidget( test3 );
+
+  // Create spinbox
+  QSpinBox* test4 = FOEDAG::createSpinBox( "spinboxTest", 5, 200, 3, 4 );
+  containerVLayout->addWidget( test4 );
+
+  // Create 2 radiobuttons to test mutual exclusivity
+  QRadioButton* test5 = FOEDAG::createRadioButton( "radioButtonTest", "single radio button" );
+  containerVLayout->addWidget( test5 );
+  QRadioButton* test6 = FOEDAG::createRadioButton( "radioButtonTest", "single radio button2" );
+  containerVLayout->addWidget( test6 );
+
+  // Create radiobuttons in a QButtonGroup
+  QButtonGroup* test7 = FOEDAG::createRadioButtons( "radioGroupTest", { "b1", "b2", "b3" }, "b2" );
+  for( auto* btn : test7->buttons() )
+  {
+    containerVLayout->addWidget( btn );
+  }
+
+  // Create checkbox
+  QCheckBox* test8 = FOEDAG::createCheckBox( "checkboxTest", "checkbox", Qt::Checked );
+  containerVLayout->addWidget( test8 );
+
+  // Create TaskWidget
+  QWidget* test9 = FOEDAG::createTaskWidgets();
+  containerVLayout->addWidget( test9 );
 
   testingDockWidget->setWidget(container);
   tabifyDockWidget(consoleDocWidget, testingDockWidget);

@@ -3,6 +3,8 @@
 #ifndef TASKS_H
 #define TASKS_H
 
+#include <QWidget>
+
 namespace FOEDAG {
 
 class Tasks {
@@ -15,6 +17,8 @@ class Tasks {
   static Tasks* getInstance();
   static void getTasks();
 };
+
+QWidget* createTaskWidgets();  
 
 }  // namespace FOEDAG
 

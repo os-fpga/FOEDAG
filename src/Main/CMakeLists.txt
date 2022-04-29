@@ -127,6 +127,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/CommandLine.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/Foedag.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/ToolContext.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(
