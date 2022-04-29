@@ -39,12 +39,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+extern const char* foedag_version_number;
+extern const char* foedag_git_hash;
+void CompilerOpenFPGA::Version(std::ostream* out) {
+  (*out) << "Foedag OpenFPGA Compiler"
+         << "\n";
+  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
+    (*out) << "Version : " << foedag_version_number << "\n";
+  if (std::string(foedag_git_hash) != "${GIT_HASH}")
+    (*out) << "Git Hash: " << foedag_git_hash << "\n";
+  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+}
+
 void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "----------------------------------" << std::endl;
   (*out) << "-----  FOEDAG OpenFPGA HELP  -----" << std::endl;
   (*out) << "----------------------------------" << std::endl;
   (*out) << "Options:" << std::endl;
   (*out) << "   --help           : This help" << std::endl;
+  (*out) << "   --version        : Version" << std::endl;
   (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
@@ -132,6 +145,7 @@ synth -run check
 # Clean and output blif
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
+write_verilog ${OUTPUT_VERILOG}
   )";
 
 bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
@@ -385,6 +399,8 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
   yosysScript = ReplaceAll(yosysScript, "${OUTPUT_BLIF}",
                            std::string(m_design->Name() + "_post_synth.blif"));
+  yosysScript = ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
+                           std::string(m_design->Name() + "_post_synth.v"));
 
   // Create Yosys command and execute
   std::ofstream ofs(std::string(m_design->Name() + ".ys"));

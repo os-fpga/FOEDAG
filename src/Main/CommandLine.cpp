@@ -36,9 +36,7 @@ bool CommandLine::FileExists(const std::filesystem::path& name) {
 void CommandLine::processArgs() {
   for (int i = 1; i < m_argc; i++) {
     std::string token(m_argv[i]);
-    if (token == "--noqt") {
-      m_withQt = false;
-    } else if (token == "--batch") {
+    if (token == "--batch") {
       m_withQt = false;
     } else if (token == "--compiler") {
       i++;
@@ -77,6 +75,8 @@ void CommandLine::processArgs() {
         ErrorAndExit("Specify a Tcl command!");
     } else if (token == "--help") {
       m_help = true;
+    } else if (token == "--version") {
+      m_version = true;
     } else {
       std::cout << "Unknown command line option: " << m_argv[i] << std::endl;
     }
