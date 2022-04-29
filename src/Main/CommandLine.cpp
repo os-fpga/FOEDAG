@@ -23,6 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+void CommandLine::ErrorAndExit(const std::string& message) {
+  std::cerr << "ERROR: " << message << std::endl;
+  exit(1);
+}
+
+bool CommandLine::FileExists(const std::filesystem::path& name) {
+  std::error_code ec;
+  return std::filesystem::exists(name, ec);
+}
+
 void CommandLine::processArgs() {
   for (int i = 1; i < m_argc; i++) {
     std::string token(m_argv[i]);
@@ -32,20 +42,39 @@ void CommandLine::processArgs() {
       m_withQt = false;
     } else if (token == "--compiler") {
       i++;
-      m_compilerName = m_argv[i];
+      if (i < m_argc)
+        m_compilerName = m_argv[i];
+      else {
+        ErrorAndExit("Specify a valid compiler!");
+      }
     } else if (token == "--qml") {
       m_withQml = true;
     } else if (token == "--replay") {
       i++;
-      m_runGuiTest = m_argv[i];
+      if (i < m_argc) {
+        m_runGuiTest = m_argv[i];
+        if (!FileExists(m_runGuiTest)) {
+          ErrorAndExit("Cannot open replay file: " + m_runGuiTest);
+        }
+      } else
+        ErrorAndExit("Specify a replay file!");
     } else if (token == "--verific") {
       m_useVerific = true;
     } else if (token == "--script") {
       i++;
-      m_runScript = m_argv[i];
+      if (i < m_argc) {
+        m_runScript = m_argv[i];
+        if (!FileExists(m_runScript)) {
+          ErrorAndExit("Cannot open script file: " + m_runScript);
+        }
+      } else
+        ErrorAndExit("Specify a script file!");
     } else if (token == "--cmd") {
       i++;
-      m_runTclCmd = m_argv[i];
+      if (i < m_argc) {
+        m_runTclCmd = m_argv[i];
+      } else
+        ErrorAndExit("Specify a Tcl command!");
     } else if (token == "--help") {
       m_help = true;
     } else {

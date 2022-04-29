@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -57,6 +58,9 @@ class CommandLine {
 
   int Argc() { return m_argc; }
   char** Argv() { return m_argv; }
+
+  void ErrorAndExit(const std::string& message);
+  bool FileExists(const std::filesystem::path& name);
 
  protected:
   int m_argc = 0;
