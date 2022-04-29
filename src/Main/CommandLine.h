@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef COMMAND_LINE_H
 #define COMMAND_LINE_H
 
+extern const char* foedag_version_str;
+
 namespace FOEDAG {
 
 class CommandLine {
@@ -53,7 +55,8 @@ class CommandLine {
 
   bool UseVerific() { return m_useVerific; }
 
-  bool printHelp() { return m_help; }
+  bool PrintHelp() { return m_help; }
+  bool PrintVersion() { return m_version; }
   virtual void processArgs();
 
   int Argc() { return m_argc; }
@@ -73,6 +76,7 @@ class CommandLine {
   std::string m_runTclCmd;
   std::string m_compilerName;
   bool m_help = false;
+  bool m_version = false;
   bool m_useVerific = false;
 };
 
