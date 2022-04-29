@@ -83,8 +83,9 @@ bool TclCommandIntegration::TclCreateFileSet(const QString &name,
   return true;
 }
 
-bool TclCommandIntegration::TclAddOrCreateFiles(int argc, const char *argv[],
-                                                std::ostream &out) {
+bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
+                                                      const char *argv[],
+                                                      std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
@@ -102,6 +103,58 @@ bool TclCommandIntegration::TclAddOrCreateFiles(int argc, const char *argv[],
       out << "Failed to add file: " << strFileName.toStdString() << std::endl;
       return false;
     }
+  }
+
+  if (0 == ret) {
+    m_projManager->FinishedProject();
+    m_form->UpdateSrcHierachyTree();
+  }
+  return true;
+}
+
+bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
+                                                      std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+
+  QString strSetName = m_projManager->getDesignActiveFileSet();
+
+  int ret = 0;
+  m_projManager->setCurrentFileSet(strSetName);
+  QStringList fileList = files.split(" ");
+  for (const QString &file : fileList) {
+    ret = m_projManager->setDesignFile(file, false);
+
+    if (0 != ret) {
+      out << "Failed to add file: " << file.toStdString() << std::endl;
+      return false;
+    }
+  }
+
+  if (0 == ret) {
+    m_projManager->FinishedProject();
+    m_form->UpdateSrcHierachyTree();
+  }
+  return true;
+}
+
+bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
+                                                      std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+
+  QString strSetName = m_projManager->getConstrActiveFileSet();
+
+  m_projManager->setCurrentFileSet(strSetName);
+  int ret = m_projManager->setConstrsFile(file, false);
+
+  if (0 != ret) {
+    out << "Failed to add file: " << file.toStdString() << std::endl;
+    return false;
   }
 
   if (0 == ret) {
