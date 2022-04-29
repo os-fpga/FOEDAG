@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
+#include "Main/Settings.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/mainwindowmodel.h"
 #include "Tcl/TclInterpreter.h"
@@ -43,13 +44,15 @@ enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
 class Session {
  public:
   Session(QWidget *mainWindow, TclInterpreter *interp, CommandStack *stack,
-          CommandLine *cmdLine, ToolContext *context, Compiler *compiler)
+          CommandLine *cmdLine, ToolContext *context, Compiler *compiler,
+          Settings *settings)
       : m_mainWindow(mainWindow),
         m_interp(interp),
         m_stack(stack),
         m_cmdLine(cmdLine),
         m_context(context),
-        m_compiler(compiler) {
+        m_compiler(compiler),
+        m_settings(settings) {
     m_compiler->SetSession(this);
     m_compiler->SetInterpreter(interp);
   }
@@ -62,6 +65,7 @@ class Session {
   CommandLine *CmdLine() { return m_cmdLine; }
   ToolContext *Context() { return m_context; }
   Compiler *GetCompiler() { return m_compiler; }
+  Settings *GetSettings() { return m_settings; }
   void windowShow();
   void windowHide();
 
@@ -81,6 +85,7 @@ class Session {
   FOEDAG::GUI_TYPE m_guiType = GUI_TYPE::GT_NONE;
   ToolContext *m_context = nullptr;
   Compiler *m_compiler = nullptr;
+  Settings *m_settings = nullptr;
   int m_returnStatus =
       0;  // When running in batch mode, executable returned status
 };
