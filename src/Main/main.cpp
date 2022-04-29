@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
 
   FOEDAG::Compiler* compiler = nullptr;
   FOEDAG::CompilerOpenFPGA* opcompiler = nullptr;
+  FOEDAG::Settings* settings = new FOEDAG::Settings();
   if (cmd->CompilerName() == "openfpga") {
     opcompiler = new FOEDAG::CompilerOpenFPGA();
     compiler = opcompiler;
@@ -48,7 +49,7 @@ int main(int argc, char** argv) {
   }
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
-      cmd, mainWindowBuilder, registerAllFoedagCommands, compiler);
+      cmd, mainWindowBuilder, registerAllFoedagCommands, compiler, settings);
   if (opcompiler) {
     const std::string& binpath = foedag->Context()->BinaryPath().string();
     opcompiler->YosysExecPath(binpath + "/yosys");

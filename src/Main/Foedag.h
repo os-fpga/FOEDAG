@@ -45,7 +45,8 @@ class Foedag {
  public:
   Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
          RegisterTclFunc* registerTclFunc = nullptr,
-         Compiler* compiler = nullptr, ToolContext* context = nullptr);
+         Compiler* compiler = nullptr, Settings* settings = nullptr,
+         ToolContext* context = nullptr);
   virtual ~Foedag() = default;
 
   bool init(GUI_TYPE guiType);
@@ -66,6 +67,7 @@ class Foedag {
   RegisterTclFunc* m_registerTclFunc = nullptr;
   ToolContext* m_context = nullptr;
   Compiler* m_compiler = nullptr;
+  Settings* m_settings = nullptr;
 };
 
 }  // namespace FOEDAG
