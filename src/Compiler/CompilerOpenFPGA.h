@@ -55,8 +55,6 @@ class CompilerOpenFPGA : public Compiler {
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
 
-  void ChannelWidth(uint32_t width) { m_channel_width = width; }
-
  protected:
   virtual bool IPGenerate();
   virtual bool Synthesize();
@@ -67,6 +65,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
+
+  virtual std::string FinishSynthesisScript(const std::string& script);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_openFpgaExecutablePath = "openfpga.sh";
@@ -76,7 +76,6 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_yosysScript;
   virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
-  uint32_t m_channel_width = 100;
 };
 
 }  // namespace FOEDAG
