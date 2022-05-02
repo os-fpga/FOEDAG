@@ -91,7 +91,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
-  (*out) << "   synthesize" << std::endl;
+  (*out) << "   synthesize <optimization>  : Optional optimization (area, delay, mixed, none)" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
   (*out) << "   place" << std::endl;
@@ -242,49 +242,6 @@ bool CompilerOpenFPGA::Synthesize() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
 
-  std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
-  // TODO: Massage the SDC so VPR can understand them
-  for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
-    // Parse RTL and expand the get_ports, get_nets
-    // Temporary dirty filtering:
-    std::vector<std::string> tokens;
-    Tokenize(constraint, " ", tokens);
-    constraint = "";
-    // VPR Does not understand: -name <logical_name>
-    for (uint32_t i = 0; i < tokens.size(); i++) {
-      const std::string& tok = tokens[i];
-      if (tok == "-name") {
-        // skip
-        i++;
-      } else {
-        constraint += tok + " ";
-      }
-    }
-    // VPR Does not understand collections commands:
-    constraint = ReplaceAll(constraint, "[get_ports", "");
-    constraint = ReplaceAll(constraint, "[get_nets", "");
-    constraint = ReplaceAll(constraint, "]", "");
-
-    // pin location constraints have to be translated to .place:
-    if (constraint.find("set_pin_loc") != std::string::npos) {
-      continue;
-    }
-
-    ofssdc << constraint << "\n";
-  }
-  ofssdc.close();
-
-  // Keeps for Synthesis, preserve nodes used in constraints
-  std::string keeps;
-  if (m_keepAllSignals) {
-    keeps += "setattr -set keep 1 w:\\*\n";
-  }
-  for (auto keep : m_constraints->GetKeeps()) {
-    (*m_out) << "Keep name: " << keep << "\n";
-    keeps += "setattr -set keep 1 " + keep + "\n";
-  }
-
   // Default or custom Yosys script
   if (m_yosysScript.empty()) {
     m_yosysScript = basicYosysScript;
@@ -394,14 +351,13 @@ bool CompilerOpenFPGA::Synthesize() {
     yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
   }
 
-  yosysScript = ReplaceAll(yosysScript, "${KEEP_NAMES}", keeps);
-  yosysScript = ReplaceAll(yosysScript, "${LUT_SIZE}", std::to_string(6));
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}", m_design->TopLevel());
   yosysScript = ReplaceAll(yosysScript, "${OUTPUT_BLIF}",
                            std::string(m_design->Name() + "_post_synth.blif"));
   yosysScript = ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                            std::string(m_design->Name() + "_post_synth.v"));
 
+  yosysScript = FinishSynthesisScript(yosysScript);
   // Create Yosys command and execute
   std::ofstream ofs(std::string(m_design->Name() + ".ys"));
   ofs << yosysScript;
@@ -425,6 +381,23 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 }
 
+std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
+  std::string result = script;
+  // Keeps for Synthesis, preserve nodes used in constraints
+  std::string keeps;
+  if (m_keepAllSignals) {
+    keeps += "setattr -set keep 1 w:\\*\n";
+  }
+  for (auto keep : m_constraints->GetKeeps()) {
+    (*m_out) << "Keep name: " << keep << "\n";
+    keeps += "setattr -set keep 1 " + keep + "\n";
+  }
+  result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
+  result = ReplaceAll(result, "${OPTIMIZATION}", "");
+  result = ReplaceAll(result, "${LUT_SIZE}", std::to_string(m_lut_size));
+  return result;
+}
+
 std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
@@ -446,6 +419,40 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+
+  std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
+  // TODO: Massage the SDC so VPR can understand them
+  for (auto constraint : m_constraints->getConstraints()) {
+    (*m_out) << "Constraint: " << constraint << "\n";
+    // Parse RTL and expand the get_ports, get_nets
+    // Temporary dirty filtering:
+    std::vector<std::string> tokens;
+    Tokenize(constraint, " ", tokens);
+    constraint = "";
+    // VPR Does not understand: -name <logical_name>
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      if (tok == "-name") {
+        // skip
+        i++;
+      } else {
+        constraint += tok + " ";
+      }
+    }
+    // VPR Does not understand collections commands:
+    constraint = ReplaceAll(constraint, "[get_ports", "");
+    constraint = ReplaceAll(constraint, "[get_nets", "");
+    constraint = ReplaceAll(constraint, "]", "");
+
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") != std::string::npos) {
+      continue;
+    }
+
+    ofssdc << constraint << "\n";
+  }
+  ofssdc.close();
+
   std::string command = BaseVprCommand() + " --pack";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {

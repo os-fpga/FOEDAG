@@ -69,6 +69,12 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
+  enum SynthesisOpt {
+    NoOpt,
+    Area,
+    Delay,
+    Mixed
+  };
   // Most common use case, create the compiler in your main
   Compiler() = default;
 
@@ -108,7 +114,10 @@ class Compiler {
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
   void SetHardError(bool on) { m_hardError = on; }
-
+  void ChannelWidth(uint32_t width) { m_channel_width = width; }
+  void LutSize(uint32_t size) { m_lut_size = size; }
+  SynthesisOpt SynthOpt() { return m_synthOpt; }
+  void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -151,6 +160,9 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
+  SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
+  uint32_t m_channel_width = 100;
+  uint32_t m_lut_size = 6;
 };
 
 }  // namespace FOEDAG
