@@ -299,8 +299,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
-          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, "
-          "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017)>");
+          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd default), -V_1995, "
+          "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv default))>");
       return TCL_ERROR;
     }
     std::string actualType = "VERILOG_2001";
@@ -309,6 +309,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
+    }
+    if (strstr(file.c_str(), ".sv")) {
+      language = Design::Language::SYSTEMVERILOG_2017;
+      actualType = "SV_2017";
     }
     std::string fileList;
     for (int i = 1; i < argc; i++) {
