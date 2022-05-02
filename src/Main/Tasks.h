@@ -22,15 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TASKS_H
 #define TASKS_H
 
-#include "Main/Settings.h"
-
 #include <QWidget>
+
+#include "Main/Settings.h"
 
 namespace FOEDAG {
 
 void getTasks(Settings* settings);
 
-QWidget* createTaskWidgets(Settings* settings);  
+QWidget* createTaskWidgets(Settings* settings);
 
 }  // namespace FOEDAG
 

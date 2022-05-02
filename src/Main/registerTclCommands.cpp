@@ -291,15 +291,16 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     // Temp command to demo Settings prototype
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       auto DemoWidgetsFn = [](void* clientData, Tcl_Interp* interp, int argc,
-                               const char* argv[]) -> int {
+                              const char* argv[]) -> int {
         // create a temp dialog to show the widgets
         QDialog* dlg = new QDialog();
         dlg->setAttribute(Qt::WA_DeleteOnClose);
         QVBoxLayout* layout = new QVBoxLayout();
-        dlg->setLayout( layout );
+        dlg->setLayout(layout);
 
         // Generate tasks widget example
-        QWidget* tasks = FOEDAG::createTaskWidgets(GlobalSession->GetSettings());
+        QWidget* tasks =
+            FOEDAG::createTaskWidgets(GlobalSession->GetSettings());
         layout->addWidget(tasks);
         dlg->show();
 

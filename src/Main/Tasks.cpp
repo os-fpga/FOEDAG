@@ -59,12 +59,11 @@ void FOEDAG::getTasks(Settings* settings) {
   }
 }
 
-QWidget* FOEDAG::createTaskWidgets(Settings* settings)
-{
+QWidget* FOEDAG::createTaskWidgets(Settings* settings) {
   QWidget* widget = new QWidget();
-  widget->setObjectName( "tasksWidget" );
+  widget->setObjectName("tasksWidget");
   QVBoxLayout* VLayout = new QVBoxLayout();
-  widget->setLayout( VLayout );
+  widget->setLayout(VLayout);
 
   // load some fake data
   QString filepath = "/usr/local/share/foedag/etc/settings/settings_test.json";
@@ -76,7 +75,6 @@ QWidget* FOEDAG::createTaskWidgets(Settings* settings)
     // Convert value to object and step through object keys
     QJsonObject tasksObj = tasksVal.toObject();
     for (const QString& taskName : tasksObj.keys()) {
-
       // Get task object values
       QJsonValue taskVal = tasksObj.value(taskName);
       if (taskVal.isArray()) {
@@ -85,8 +83,8 @@ QWidget* FOEDAG::createTaskWidgets(Settings* settings)
           if (setting.isObject()) {
             QJsonObject metaObj = setting.toObject();
 
-            QWidget* subWidget = FOEDAG::createWidget( metaObj );
-            VLayout->addWidget( subWidget );
+            QWidget* subWidget = FOEDAG::createWidget(metaObj);
+            VLayout->addWidget(subWidget);
           }
         }
       }
