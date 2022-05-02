@@ -90,7 +90,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, delay, mixed, none)" << std::endl;
+  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
+            "delay, mixed, none)"
+         << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
   (*out) << "   place" << std::endl;

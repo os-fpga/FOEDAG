@@ -69,12 +69,7 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
-  enum SynthesisOpt {
-    NoOpt,
-    Area,
-    Delay,
-    Mixed
-  };
+  enum SynthesisOpt { NoOpt, Area, Delay, Mixed };
   // Most common use case, create the compiler in your main
   Compiler() = default;
 
@@ -118,6 +113,7 @@ class Compiler {
   void LutSize(uint32_t size) { m_lut_size = size; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
