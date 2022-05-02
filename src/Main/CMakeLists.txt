@@ -49,6 +49,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/registerTclCommands.cpp
   ../Main/Settings.cpp
   ../Main/Tasks.cpp
+  ../Main/WidgetFactory.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )
@@ -64,6 +65,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/CommandLine.h
   ../Main/Settings.h
   ../Main/Tasks.h
+  ../Main/WidgetFactory.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h
@@ -127,6 +129,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/ToolContext.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/Settings.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/Tasks.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(
