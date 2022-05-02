@@ -47,12 +47,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+extern const char* foedag_version_number;
+extern const char* foedag_git_hash;
+void Compiler::Version(std::ostream* out) {
+  (*out) << "Foedag FPGA Compiler"
+         << "\n";
+  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
+    (*out) << "Version : " << foedag_version_number << "\n";
+  if (std::string(foedag_git_hash) != "${GIT_HASH}")
+    (*out) << "Git Hash: " << foedag_git_hash << "\n";
+  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+}
+
 void Compiler::Help(std::ostream* out) {
   (*out) << "-------------------------" << std::endl;
   (*out) << "-----  FOEDAG HELP  -----" << std::endl;
   (*out) << "-------------------------" << std::endl;
   (*out) << "Options:" << std::endl;
   (*out) << "   --help           : This help" << std::endl;
+  (*out) << "   --version        : Version" << std::endl;
   (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
@@ -195,6 +208,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("help", help, this, 0);
+
+  auto version = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    compiler->Version(compiler->GetOutStream());
+    return TCL_OK;
+  };
+  interp->registerCmd("version", version, this, 0);
 
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {

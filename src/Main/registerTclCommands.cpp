@@ -93,7 +93,6 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     GlobalSession->CmdStack()->CmdLogger()->log("help");
-    GlobalSession->CmdLine()->printHelp();
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);
@@ -209,7 +208,6 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     GlobalSession->CmdStack()->CmdLogger()->log("help");
-    GlobalSession->CmdLine()->printHelp();
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);
