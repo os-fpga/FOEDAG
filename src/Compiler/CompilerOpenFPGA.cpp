@@ -456,6 +456,10 @@ bool CompilerOpenFPGA::Packing() {
   ofssdc.close();
 
   std::string command = BaseVprCommand() + " --pack";
+  std::ofstream ofs(std::string(m_design->Name() + "_pack.cmd"));
+  ofs << command << std::endl;
+  ofs.close();
+
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " packing failed!");
@@ -503,6 +507,9 @@ bool CompilerOpenFPGA::Placement() {
     return false;
   }
   std::string command = BaseVprCommand() + " --place";
+  std::ofstream ofs(std::string(m_design->Name() + "_place.cmd"));
+  ofs << command << std::endl;
+  ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " placement failed!");
@@ -529,6 +536,9 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   std::string command = BaseVprCommand() + " --route";
+  std::ofstream ofs(std::string(m_design->Name() + "_route.cmd"));
+  ofs << command << std::endl;
+  ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " routing failed!");
@@ -553,6 +563,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   std::string command = BaseVprCommand() + " --analysis";
+  std::ofstream ofs(std::string(m_design->Name() + "_sta.cmd"));
+  ofs << command << " --disp on" << std::endl;
+  ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_design->Name() + " timing analysis failed!");
