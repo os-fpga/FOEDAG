@@ -11,7 +11,7 @@
                         "option2",
                         "option3"
                     ],
-                    "default": "option1",
+                    "default": "option2",
                     "visible": true
                 },
                 {
@@ -20,22 +20,38 @@
                     "widgetType": "input",
                     "default": "some text",
                     "visible": true
+                },
+                {
+                    "id": "locallyUniqueId_3",
+                    "widgetType": "input",
+                    "default": "input field w/o a label provided",
+                    "visible": true
                 }
             ],
             "Placement": [
                 {
                     "id": "placement_1",
-                    "label": "Spinbox Example",
-                    "widgetType": "spinbox",
-                    "minVal": 0.0,
-                    "maxVal": 10.0,
-                    "stepVal": 1.0,
+                    "label": "Double Spinbox Example",
+                    "widgetType": "DoubleSpinbox",
+                    "minVal": 2.4,
+                    "maxVal": 11.4,
+                    "stepVal": 1.1,
                     "default": 2.5,
                     "visible": true
                 },
                 {
                     "id": "placement_2",
-                    "label": "Radio Button Example",
+                    "label": "Int Spinbox Example",
+                    "widgetType": "Spinbox",
+                    "minVal": 2.4,
+                    "maxVal": 11.4,
+                    "stepVal": 1.1,
+                    "default": 2.5,
+                    "visible": true
+                },
+                {
+                    "id": "placement_3",
+                    "label": "Radio Button Example (vertical/default)",
                     "widgetType": "radiobuttons",
                     "options": [
                         "b1",
@@ -46,8 +62,22 @@
                     "visible": true
                 },
                 {
-                    "id": "placement_3",
+                    "id": "placement_4",
+                    "label": "Radio Button Example (horizontal)",
+                    "widgetType": "radiobuttons",
+                    "options": [
+                        "b1",
+                        "b2",
+                        "b3"
+                    ],
+                    "layout" : "horizontal",
+                    "default": "b2",
+                    "visible": true
+                },
+                {
+                    "id": "placement_5",
                     "label": "Checkbox Example",
+                    "text" : "Checkbox Text",
                     "widgetType": "checkbox",
                     "default": "unchecked",
                     "visible": true
