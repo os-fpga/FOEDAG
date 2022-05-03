@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <filesystem>
 #include <thread>
+#include <sstream>
 
 #include "Compiler/CompilerOpenFPGA.h"
 #include "Compiler/Constraints.h"
