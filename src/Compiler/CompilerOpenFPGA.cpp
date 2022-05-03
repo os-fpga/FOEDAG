@@ -72,6 +72,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   architecture <file>        : Uses the architecture file"
          << std::endl;
+  (*out) << "   set_device_size XxY        : Device fabric size selection"
+         << std::endl;
   (*out) << "   custom_synth_script <file> : Uses a custom Yosys templatized "
             "script"
          << std::endl;
@@ -93,6 +95,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
+         << std::endl;
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
@@ -163,8 +167,15 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify an architecture file");
       return TCL_ERROR;
     }
+
     std::string expandedFile = argv[1];
-    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
       std::filesystem::path script =
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
@@ -192,8 +203,15 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify a Yosys script");
       return TCL_ERROR;
     }
+
     std::string expandedFile = argv[1];
-    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
       std::filesystem::path script =
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
@@ -227,6 +245,33 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
+
+  auto set_device_size = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify a device size: xXy");
+      return TCL_ERROR;
+    }
+    compiler->DeviceSize(argv[1]);
+    return TCL_OK;
+  };
+  interp->registerCmd("set_device_size", set_device_size, this, 0);
+
+  auto verific_parser = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify on/off");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    compiler->SetUseVerific((arg == "on") ? true : false);
+    return TCL_OK;
+  };
+  interp->registerCmd("verific_parser", verific_parser, this, 0);
 
   return true;
 }
@@ -311,11 +356,7 @@ bool CompilerOpenFPGA::Synthesize() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
 
-  // Default or custom Yosys script
-  if (m_yosysScript.empty()) {
-    m_yosysScript = basicYosysScript;
-  }
-  std::string yosysScript = m_yosysScript;
+  std::string yosysScript = InitSynthesisScript();
 
   if (m_useVerific) {
     // Verific parser
@@ -459,6 +500,14 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 }
 
+std::string CompilerOpenFPGA::InitSynthesisScript() {
+  // Default or custom Yosys script
+  if (m_yosysScript.empty()) {
+    m_yosysScript = basicYosysScript;
+  }
+  return m_yosysScript;
+}
+
 std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   std::string result = script;
   // Keeps for Synthesis, preserve nodes used in constraints
@@ -477,6 +526,10 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
 }
 
 std::string CompilerOpenFPGA::BaseVprCommand() {
+  std::string device_size = "";
+  if (!m_deviceSize.empty()) {
+    device_size = " --device " + m_deviceSize;
+  }
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
@@ -484,7 +537,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
                   std::string(" --sdc_file ") +
                   std::string(m_design->Name() + "_openfpga.sdc") +
                   std::string(" --route_chan_width ") +
-                  std::to_string(m_channel_width));
+                  std::to_string(m_channel_width) + device_size);
   return command;
 }
 

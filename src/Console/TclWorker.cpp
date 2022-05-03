@@ -65,15 +65,12 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
 void TclWorker::runCommand(const QString &command) { m_cmd = command; }
 
 void TclWorker::abort() {
-  if (m_evalInProgress) {
-    auto resultObjPtr = Tcl_NewObj();
-    Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
-    setOutput(Tcl_GetString(resultObjPtr));
-  }
+  auto resultObjPtr = Tcl_NewObj();
+  Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
+  setOutput(Tcl_GetString(resultObjPtr));
 }
 
 void TclWorker::run() {
-  m_evalInProgress = true;
   init();
 
   m_returnCode = 0;
@@ -94,7 +91,6 @@ void TclWorker::run() {
 
   setOutput(output);
   emit tclFinished();
-  m_evalInProgress = false;
 }
 
 int TclWorker::returnCode() const { return m_returnCode; }

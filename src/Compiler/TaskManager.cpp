@@ -143,6 +143,7 @@ void TaskManager::run() {
 
 void TaskManager::reset() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    disconnect(*task, &Task::finished, this, &TaskManager::runNext);
     (*task)->setStatus(TaskStatus::None);
   }
 }
