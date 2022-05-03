@@ -65,7 +65,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-
+  virtual bool DesignChanged(const std::string& synth_script,
+                             const std::filesystem::path& synth_scrypt_path);
   virtual std::string FinishSynthesisScript(const std::string& script);
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
