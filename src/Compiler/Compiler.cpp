@@ -358,7 +358,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else {
         const std::string file = argv[i];
         std::string expandedFile = file;
-        if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+        bool use_orig_path = false;
+        if (compiler->FileExists(expandedFile)) {
+          use_orig_path = true;
+        }
+
+        if ((!use_orig_path) &&
+            (!compiler->GetSession()->CmdLine()->Script().empty())) {
           std::filesystem::path script =
               compiler->GetSession()->CmdLine()->Script();
           std::filesystem::path scriptPath = script.parent_path();
@@ -393,7 +399,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     for (int i = 1; i < argc; i++) {
       std::string file = argv[i];
       std::string expandedFile = file;
-      if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
         std::filesystem::path script =
             compiler->GetSession()->CmdLine()->Script();
         std::filesystem::path scriptPath = script.parent_path();
@@ -414,7 +426,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     for (int i = 1; i < argc; i++) {
       std::string file = argv[i];
       std::string expandedFile = file;
-      if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
         std::filesystem::path script =
             compiler->GetSession()->CmdLine()->Script();
         std::filesystem::path scriptPath = script.parent_path();
@@ -480,9 +498,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     const std::string file = argv[1];
-
     std::string expandedFile = file;
-    if (!compiler->GetSession()->CmdLine()->Script().empty()) {
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
       std::filesystem::path script =
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
