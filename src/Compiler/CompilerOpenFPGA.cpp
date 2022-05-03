@@ -32,8 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <chrono>
 #include <filesystem>
-#include <thread>
 #include <sstream>
+#include <thread>
 
 #include "Compiler/CompilerOpenFPGA.h"
 #include "Compiler/Constraints.h"
