@@ -50,7 +50,7 @@ class CompilerOpenFPGA : public Compiler {
     Message("Architecture file: " + path.string());
   }
   void YosysScript(const std::string& script) { m_yosysScript = script; }
-
+  void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
@@ -67,13 +67,15 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool GenerateBitstream();
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
+  virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
-  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_openFpgaExecutablePath = "openfpga.sh";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_architectureFile =
       "tests/Arch/k6_frac_N10_tileable_40nm.xml";
+  std::string m_deviceSize;
   std::string m_yosysScript;
   virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
