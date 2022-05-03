@@ -59,6 +59,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
+  void startStopButtonsState();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -80,6 +81,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   std::string mainWindowName = "FOEDAG";
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
+  class TclConsoleWidget* m_console{nullptr};
 };
 
 }  // namespace FOEDAG
