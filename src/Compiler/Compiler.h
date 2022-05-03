@@ -138,6 +138,11 @@ class Compiler {
   bool FileExists(const std::filesystem::path& name);
   void Tokenize(std::string_view str, std::string_view separator,
                 std::vector<std::string>& result);
+  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
+  std::string& Ltrim(std::string& str);
+  std::string& Rtrim(std::string& str);
+
+  time_t Mtime(const std::filesystem::path& path);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

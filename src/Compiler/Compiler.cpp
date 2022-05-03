@@ -29,9 +29,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #endif
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <QDebug>
 #include <QProcess>
 #include <chrono>
+#include <ctime>
 #include <filesystem>
 #include <sstream>
 #include <thread>
@@ -299,8 +303,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
-          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd default), -V_1995, "
-          "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv default))>");
+          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
+          "default), -V_1995, "
+          "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+          "default))>");
       return TCL_ERROR;
     }
     std::string actualType = "VERILOG_2001";
@@ -1106,6 +1112,31 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
 bool Compiler::FileExists(const std::filesystem::path& name) {
   std::error_code ec;
   return std::filesystem::exists(name, ec);
+}
+
+time_t Compiler::Mtime(const std::filesystem::path& path) {
+  std::string cpath = path.string();
+  struct stat statbuf;
+  if (stat(cpath.c_str(), &statbuf) == -1) {
+    return -1;
+  }
+  return statbuf.st_mtime;
+}
+
+std::string& Compiler::Ltrim(std::string& str) {
+  auto it2 = std::find_if(str.begin(), str.end(), [](char ch) {
+    return !std::isspace<char>(ch, std::locale::classic());
+  });
+  str.erase(str.begin(), it2);
+  return str;
+}
+
+std::string& Compiler::Rtrim(std::string& str) {
+  auto it1 = std::find_if(str.rbegin(), str.rend(), [](char ch) {
+    return !std::isspace<char>(ch, std::locale::classic());
+  });
+  str.erase(it1.base(), str.end());
+  return str;
 }
 
 void Compiler::Tokenize(std::string_view str, std::string_view separator,

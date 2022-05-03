@@ -79,7 +79,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, "
             "-VHDL_2008 (.vhd default), -V_1995, "
-            "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv default)) "
+            "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+            "default)) "
          << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
@@ -240,6 +241,71 @@ bool CompilerOpenFPGA::IPGenerate() {
   return true;
 }
 
+bool CompilerOpenFPGA::DesignChanged(
+    const std::string& synth_script,
+    const std::filesystem::path& synth_scrypt_path) {
+  bool result = false;
+  std::string output = m_design->Name() + "_post_synth.blif";
+  time_t time_netlist = Mtime(output);
+  if (time_netlist == -1) {
+    return true;
+  }
+  for (const auto& lang_file : m_design->FileList()) {
+    std::vector<std::string> tokens;
+    Tokenize(lang_file.second, " ", tokens);
+    for (auto file : tokens) {
+      file = Trim(file);
+      if (file.size()) {
+        time_t tf = Mtime(file);
+        if ((tf > time_netlist) || (tf == -1)) {
+          result = true;
+          break;
+        }
+      }
+    }
+  }
+  for (auto path : m_design->IncludePathList()) {
+    std::vector<std::string> tokens;
+    Tokenize(path, " ", tokens);
+    for (auto file : tokens) {
+      file = Trim(file);
+      if (file.size()) {
+        time_t tf = Mtime(file);
+        if ((tf > time_netlist) || (tf == -1)) {
+          result = true;
+          break;
+        }
+      }
+    }
+  }
+  for (auto path : m_design->LibraryPathList()) {
+    std::vector<std::string> tokens;
+    Tokenize(path, " ", tokens);
+    for (auto file : tokens) {
+      file = Trim(file);
+      if (file.size()) {
+        time_t tf = Mtime(file);
+        if ((tf > time_netlist) || (tf == -1)) {
+          result = true;
+          break;
+        }
+      }
+    }
+  }
+
+  std::ifstream script(synth_scrypt_path);
+  if (!script.good()) {
+    return true;
+  }
+  std::stringstream buffer;
+  buffer << script.rdbuf();
+  if (synth_script != buffer.str()) {
+    return true;
+  }
+
+  return result;
+}
+
 bool CompilerOpenFPGA::Synthesize() {
   if ((m_design == nullptr) && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
@@ -360,8 +426,17 @@ bool CompilerOpenFPGA::Synthesize() {
                            std::string(m_design->Name() + "_post_synth.v"));
 
   yosysScript = FinishSynthesisScript(yosysScript);
+
+  std::string script_path = std::string(m_design->Name() + ".ys");
+  if (!DesignChanged(yosysScript, script_path)) {
+    (*m_out) << "Design didn't change: " << m_design->Name()
+             << ", skipping synthesis." << std::endl;
+    return true;
+  }
+  std::filesystem::remove(std::string(m_design->Name() + "_post_synth.blif"));
+  std::filesystem::remove(std::string(m_design->Name() + "_post_synth.v"));
   // Create Yosys command and execute
-  std::ofstream ofs(std::string(m_design->Name() + ".ys"));
+  std::ofstream ofs(script_path);
   ofs << yosysScript;
   ofs.close();
   if (!FileExists(m_yosysExecutablePath)) {
