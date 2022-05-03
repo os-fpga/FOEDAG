@@ -17,6 +17,7 @@ class ConsoleInterface : public QObject {
   virtual bool isCommandComplete(const QString &command) = 0;
 
  signals:
+  void inProgressState();
   void done();
   void sendOutput(const QString &);
   void aborted();

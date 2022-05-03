@@ -107,6 +107,9 @@ bool SearchWidget::eventFilter(QObject *watched, QEvent *event) {
         case Qt::Key_Return:
           findNext();
           break;
+        case Qt::Key_Escape:
+          hide();
+          break;
         default:
           break;
       }

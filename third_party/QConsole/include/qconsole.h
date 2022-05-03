@@ -147,6 +147,7 @@ class QConsole : public QTextEdit {
   void setTabAllowed(bool newIsTabAllowed);
 
   bool isMultiLine() const;
+  void terminate();
 
  private:
   void dropEvent(QDropEvent *event);

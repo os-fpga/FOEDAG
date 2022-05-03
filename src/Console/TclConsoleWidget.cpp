@@ -29,6 +29,8 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   if (m_console) {
     connect(m_console.get(), &ConsoleInterface::done, this,
             &TclConsoleWidget::commandDone);
+    connect(m_console.get(), &ConsoleInterface::inProgressState, this,
+            [this]() { setState(State::IN_PROGRESS); });
     registerCommands(interp);
   }
   setPrompt("# ");
