@@ -139,6 +139,13 @@ void MainWindow::newDesignCreated(const QString& design) {
   setWindowTitle(tr(mainWindowName.c_str()) + " - " + design);
 }
 
+void MainWindow::startStopButtonsState() {
+  const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
+  const bool consoleInProgress = m_console->isRunning();
+  startAction->setEnabled(!inProgress && !consoleInProgress);
+  stopAction->setEnabled(inProgress && consoleInProgress);
+}
+
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
@@ -196,10 +203,16 @@ void MainWindow::createActions() {
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this,
-          [this]() { m_taskManager->startAll(); });
-  connect(stopAction, &QAction::triggered, this,
-          [this]() { m_compiler->Stop(); });
+  connect(startAction, &QAction::triggered, this, [this]() {
+    m_compiler->SetHardError(false);
+    m_compiler->start();
+    m_taskManager->startAll();
+    m_compiler->finish();
+  });
+  connect(stopAction, &QAction::triggered, this, [this]() {
+    m_console->terminate();
+    m_compiler->Stop();
+  });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     Command cmd("gui_stop; exit");
@@ -257,6 +270,7 @@ void MainWindow::ReShowWindow(QString strProject) {
           &TextEditor::SlotOpenFile);
   console->addParser(new DummyParser{});
   console->addParser(new TclErrorParser{});
+  m_console = console;
 
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
@@ -283,11 +297,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   taskDocWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDocWidget);
 
-  connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
-    const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
-    startAction->setEnabled(!inProgress);
-    stopAction->setEnabled(inProgress);
-  });
+  connect(m_taskManager, &TaskManager::taskStateChanged, this,
+          [this]() { startStopButtonsState(); });
+  connect(console, &TclConsoleWidget::stateChanged, this,
+          [this, console]() { startStopButtonsState(); });
 }
 
 void MainWindow::clearDockWidgets() {

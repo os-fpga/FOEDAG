@@ -676,6 +676,8 @@ void QConsole::insertFromMimeData(const QMimeData *source) {
 
 bool QConsole::isMultiLine() const { return multiLine; }
 
+void QConsole::terminate() { handleTerminateCommand(); }
+
 void QConsole::setMultiLine(bool newMultiLine) { multiLine = newMultiLine; }
 
 int QConsole::getPromptLength() const {

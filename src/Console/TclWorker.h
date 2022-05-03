@@ -34,7 +34,6 @@ class TclWorker : public QObject {
   int m_returnCode{0};
   QString m_cmd;
   Tcl_ChannelType *channelOut{nullptr};
-  bool m_evalInProgress{false};
 };
 
 }  // namespace FOEDAG

@@ -68,6 +68,7 @@ void TclConsole::abort() {
 
 void TclConsole::setTclCommandInProggress(bool inProgress) {
   m_commandInProggress = inProgress;
+  if (m_commandInProggress) emit inProgressState();
   tclWorkerFinished();
 }
 
