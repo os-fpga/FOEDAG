@@ -34,12 +34,16 @@ if(NOT CMAKE_BUILD_TYPE)
             FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 0)
+set(VERSION_PATCH 0)
+
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
   On)
 
-project(FOEDAG)
+project(FOEDAG VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
@@ -246,6 +250,15 @@ add_custom_command(TARGET foedag POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy 
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
+
+execute_process(COMMAND git rev-parse --short HEAD
+  COMMAND tr -d '\n'
+  OUTPUT_VARIABLE GIT_HASH
+  ERROR_VARIABLE GIT_HASH_ERR
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+message(STATUS "GIT_HASH = ${GIT_HASH}")
+configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
