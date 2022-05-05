@@ -266,8 +266,10 @@ void MainWindow::ReShowWindow(QString strProject) {
       FOEDAG::createConsole(m_interpreter->getInterp(), std::move(tclConsole),
                             buffer, nullptr, &console);
   consoleDocWidget->setWidget(w);
-  connect(console, &TclConsoleWidget::linkActivated, textEditor,
-          &TextEditor::SlotOpenFile);
+  connect(console, &TclConsoleWidget::linkActivated, this,
+          [textEditor](const ErrorInfo& eInfo) {
+            textEditor->SlotOpenFileWithLine(eInfo.file, eInfo.line.toInt());
+          });
   console->addParser(new DummyParser{});
   console->addParser(new TclErrorParser{});
   m_console = console;

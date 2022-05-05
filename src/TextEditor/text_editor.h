@@ -25,6 +25,7 @@ class TextEditor : public QWidget {
 
  public slots:
   void SlotOpenFile(const QString &strFileName);
+  void SlotOpenFileWithLine(const QString &strFileName, int line);
 
  private slots:
   void SlotCurrentFileChanged(const QString &strFileName);
