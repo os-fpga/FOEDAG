@@ -164,6 +164,7 @@ class Compiler {
   SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
+  class QProcess* m_process;
 };
 
 }  // namespace FOEDAG
