@@ -153,7 +153,7 @@ synth -run check
 # Clean and output blif
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
-write_verilog ${OUTPUT_VERILOG}
+write_verilog -noexpr -nodec -defparam -norename ${OUTPUT_VERILOG}
   )";
 
 bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
