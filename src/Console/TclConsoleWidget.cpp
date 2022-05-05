@@ -15,6 +15,8 @@
 
 namespace FOEDAG {
 
+Q_GLOBAL_STATIC_WITH_ARGS(QString, linkSep, {"::"})
+
 TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    std::unique_ptr<ConsoleInterface> iConsole,
                                    StreamBuffer *buffer, QWidget *parent)
@@ -153,7 +155,11 @@ void TclConsoleWidget::commandDone() {
 
 void TclConsoleWidget::handleLink(const QPoint &p) {
   const QString anchor{anchorAt(p)};
-  if (!anchor.isEmpty()) emit linkActivated(anchor);
+  if (!anchor.isEmpty()) {
+    auto fileInfo = anchor.split(*linkSep());
+    if (fileInfo.count() >= 2)
+      emit linkActivated(ErrorInfo{fileInfo.at(0), fileInfo.at(1)});
+  }
 }
 
 void TclConsoleWidget::registerCommands(TclInterp *interp) {

@@ -73,6 +73,10 @@ void TextEditor::SlotOpenFile(const QString& strFileName) {
   TextEditorForm::Instance()->OpenFile(strFileName);
 }
 
+void TextEditor::SlotOpenFileWithLine(const QString& strFileName, int line) {
+  TextEditorForm::Instance()->OpenFileWithLine(strFileName, line);
+}
+
 void TextEditor::SlotCurrentFileChanged(const QString& strFileName) {
   emit CurrentFileChanged(strFileName);
 }

@@ -25,20 +25,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+Q_GLOBAL_STATIC_WITH_ARGS(QString, linkSep, {"::"})
+
 TclErrorParser::TclErrorParser() {}
 
 LineParser::Result TclErrorParser::handleLine(const QString &message,
                                               OutputFormat format) {
   Q_UNUSED(format);
   const QRegularExpression getFile{"(?<=file \")(.*)(?=\" line*)"};
+  const QRegularExpression getLine{"(line (\\d+))"};
   auto regExpMatch = getFile.match(message);
-  if (regExpMatch.hasMatch()) {
+  auto lineMatch = getLine.match(message);
+  if (regExpMatch.hasMatch() && lineMatch.hasMatch()) {
     QString file = regExpMatch.captured();
     file.replace("\"", "");
     file = file.trimmed();
     const QFileInfo fileInfo{file};
+    QString line = lineMatch.captured().remove("line ");
     LinkSpec link{regExpMatch.capturedStart(), regExpMatch.capturedLength(),
-                  fileInfo.absoluteFilePath()};
+                  fileInfo.absoluteFilePath() + linkSep() + line};
     return Result{Status::Done, message, {link}};
   }
   return Result{Status::NotHandled};

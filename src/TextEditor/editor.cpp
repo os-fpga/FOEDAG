@@ -2,6 +2,8 @@
 
 using namespace FOEDAG;
 
+#define ERROR_MARKER 4
+
 Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
     : QWidget(parent) {
   m_strFileName = strFileName;
@@ -26,6 +28,9 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
   box->addWidget(m_toolBar);
   box->addWidget(m_scintilla);
   setLayout(box);
+  QImage img(":/images/error.png");
+  img = img.scaled(15, 15);
+  m_scintilla->markerDefine(img, ERROR_MARKER);
 }
 
 QString Editor::getFileName() const { return m_strFileName; }
@@ -56,6 +61,12 @@ void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
     m_scintilla->replace(strDesWord);
   }
 }
+
+void Editor::markLine(int line) {
+  m_scintilla->markerAdd(line - 1, ERROR_MARKER);
+}
+
+void Editor::clearMarkers() { m_scintilla->markerDeleteAll(ERROR_MARKER); }
 
 void Editor::Search() {
   QString strWord = "";
