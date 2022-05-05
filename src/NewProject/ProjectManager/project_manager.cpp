@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QTime>
 #include <QXmlStreamWriter>
+#include <filesystem>
 
 using namespace FOEDAG;
 
@@ -13,9 +14,20 @@ ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
 
 void ProjectManager::CreateProject(const ProjectOptions& opt) {
   if (opt.rewriteProject) {
-    QString tmpPath = opt.projectPath;
-    QDir dir(tmpPath);
-    if (dir.exists()) dir.removeRecursively();
+    std::filesystem::path tmpPath = opt.projectPath.toStdString();
+    std::string projectName = opt.projectName.toStdString();
+    std::filesystem::path osprFile =
+        tmpPath / std::string(projectName + ".ospr");
+    std::filesystem::remove(osprFile);
+    std::filesystem::path srcsDir =
+        tmpPath / std::string(projectName + ".srcs");
+    std::filesystem::remove_all(srcsDir);
+    std::filesystem::path runsDir =
+        tmpPath / std::string(projectName + ".runs");
+    std::filesystem::remove_all(runsDir);
+    // DO NOT REMOVE FILES BLINDLY, COMPILATION RESULTS GET SAVED IN THE SAME
+    // PROJECT DIR
+    // if (dir.exists()) dir.removeRecursively();
   }
   CreateProject(opt.projectName, opt.projectPath, opt.currentFileSet);
 
