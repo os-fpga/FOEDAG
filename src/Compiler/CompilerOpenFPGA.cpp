@@ -191,6 +191,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     stream.close();
     compiler->ArchitectureFile(expandedFile);
+    compiler->Message("Architecture file: " + expandedFile);
     return TCL_OK;
   };
   interp->registerCmd("architecture", select_architecture_file, this, 0);
@@ -291,10 +292,12 @@ bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
     const std::filesystem::path& synth_scrypt_path) {
   bool result = false;
+  auto path = std::filesystem::current_path();             // getting path
+  std::filesystem::current_path(path / m_design->Name());  // setting path
   std::string output = m_design->Name() + "_post_synth.blif";
   time_t time_netlist = Mtime(output);
   if (time_netlist == -1) {
-    return true;
+    result = true;
   }
   for (const auto& lang_file : m_design->FileList()) {
     std::vector<std::string> tokens;
@@ -341,14 +344,14 @@ bool CompilerOpenFPGA::DesignChanged(
 
   std::ifstream script(synth_scrypt_path);
   if (!script.good()) {
-    return true;
+    result = true;
   }
   std::stringstream buffer;
   buffer << script.rdbuf();
   if (synth_script != buffer.str()) {
-    return true;
+    result = true;
   }
-
+  std::filesystem::current_path(path);
   return result;
 }
 
@@ -469,16 +472,19 @@ bool CompilerOpenFPGA::Synthesize() {
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
-  std::string script_path = std::string(m_design->Name() + ".ys");
+  std::string script_path = m_design->Name() + ".ys";
   if (!DesignChanged(yosysScript, script_path)) {
     (*m_out) << "Design didn't change: " << m_design->Name()
              << ", skipping synthesis." << std::endl;
     return true;
   }
-  std::filesystem::remove(std::string(m_design->Name() + "_post_synth.blif"));
-  std::filesystem::remove(std::string(m_design->Name() + "_post_synth.v"));
-  std::filesystem::remove(std::string(m_design->Name() + "_synth.log"));
+  std::filesystem::remove(std::filesystem::path(m_design->Name()) /
+                          std::string(m_design->Name() + "_post_synth.blif"));
+  std::filesystem::remove(std::filesystem::path(m_design->Name()) /
+                          std::string(m_design->Name() + "_post_synth.v"));
   // Create Yosys command and execute
+  script_path =
+      (std::filesystem::path(m_design->Name()) / script_path).string();
   std::ofstream ofs(script_path);
   ofs << yosysScript;
   ofs.close();
@@ -552,8 +558,10 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-
-  std::ofstream ofssdc(std::string(m_design->Name() + "_openfpga.sdc"));
+  const std::string sdcOut = (std::filesystem::path(m_design->Name()) /
+                              std::string(m_design->Name() + "_openfpga.sdc"))
+                                 .string();
+  std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
@@ -581,13 +589,15 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_pin_loc") != std::string::npos) {
       continue;
     }
-
+    std::cout << "CONSTRAINT: " << constraint << "\n";
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
 
   std::string command = BaseVprCommand() + " --pack";
-  std::ofstream ofs(std::string(m_design->Name() + "_pack.cmd"));
+  std::ofstream ofs((std::filesystem::path(m_design->Name()) /
+                     std::string(m_design->Name() + "_pack.cmd"))
+                        .string());
   ofs << command << std::endl;
   ofs.close();
 
@@ -638,7 +648,9 @@ bool CompilerOpenFPGA::Placement() {
     return false;
   }
   std::string command = BaseVprCommand() + " --place";
-  std::ofstream ofs(std::string(m_design->Name() + "_place.cmd"));
+  std::ofstream ofs((std::filesystem::path(m_design->Name()) /
+                     std::string(m_design->Name() + "_place.cmd"))
+                        .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
@@ -667,7 +679,9 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   std::string command = BaseVprCommand() + " --route";
-  std::ofstream ofs(std::string(m_design->Name() + "_route.cmd"));
+  std::ofstream ofs((std::filesystem::path(m_design->Name()) /
+                     std::string(m_design->Name() + "_route.cmd"))
+                        .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
@@ -694,7 +708,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   std::string command = BaseVprCommand() + " --analysis";
-  std::ofstream ofs(std::string(m_design->Name() + "_sta.cmd"));
+  std::ofstream ofs((std::filesystem::path(m_design->Name()) /
+                     std::string(m_design->Name() + "_sta.cmd"))
+                        .string());
   ofs << command << " --disp on" << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
