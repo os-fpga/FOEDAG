@@ -47,7 +47,6 @@ class CompilerOpenFPGA : public Compiler {
   }
   void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
-    Message("Architecture file: " + path.string());
   }
   void YosysScript(const std::string& script) { m_yosysScript = script; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
