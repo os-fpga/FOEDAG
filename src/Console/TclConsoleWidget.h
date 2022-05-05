@@ -17,6 +17,11 @@ enum class State {
   IN_PROGRESS,
 };
 
+struct ErrorInfo {
+  QString file;
+  QString line;
+};
+
 class StreamBuffer;
 class TclConsoleWidget : public QConsole {
   Q_OBJECT
@@ -47,7 +52,7 @@ class TclConsoleWidget : public QConsole {
  signals:
   void searchEnable();
   void stateChanged(FOEDAG::State);
-  void linkActivated(const QString &);
+  void linkActivated(const FOEDAG::ErrorInfo &);
 
  protected:
   QString interpretCommand(const QString &command, int *res) override;
@@ -87,3 +92,5 @@ class TclConsoleWidget : public QConsole {
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_METATYPE(FOEDAG::ErrorInfo)
