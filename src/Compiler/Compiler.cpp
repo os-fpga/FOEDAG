@@ -235,6 +235,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
     if (!compiler->FileExists(name)) {
+      compiler->Message("Create design directory: " + name);
       bool created = std::filesystem::create_directory(name);
       if (!created) {
         ok = created;
@@ -327,6 +328,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
+    std::string origPathFileList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
@@ -380,6 +382,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           expandedFile = fullPath.string();
         }
         std::filesystem::path the_path = expandedFile;
+        origPathFileList += expandedFile + " ";
         if (!the_path.is_absolute()) {
           expandedFile =
               std::filesystem::path(std::filesystem::path("..") / expandedFile)
@@ -395,7 +398,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
-          fileList.c_str(), out);
+          origPathFileList.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -539,10 +542,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
-    // if (!the_path.is_absolute()) {
-    //   expandedFile = std::filesystem::path(std::filesystem::path("..") /
-    //   expandedFile).string();
-    // }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     design->AddConstraintFile(expandedFile);
@@ -1146,11 +1145,11 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   QString program = args.first();
   args.pop_front();  // remove program
   m_process->start(program, args);
+  std::filesystem::current_path(path);
+  (*m_out) << "Changed path to: " << (path).string() << std::endl;
   m_process->waitForFinished(-1);
   auto status = m_process->exitStatus();
   auto exitCode = m_process->exitCode();
-  std::filesystem::current_path(path);
-  (*m_out) << "Changed path to: " << (path).string() << std::endl;
   delete m_process;
   m_process = nullptr;
   return (status == QProcess::NormalExit) ? exitCode : -1;

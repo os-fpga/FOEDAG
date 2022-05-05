@@ -589,7 +589,6 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_pin_loc") != std::string::npos) {
       continue;
     }
-    std::cout << "CONSTRAINT: " << constraint << "\n";
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
