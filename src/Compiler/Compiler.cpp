@@ -234,6 +234,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     bool ok = compiler->CreateDesign(name);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
+    if (!compiler->FileExists(name)) {
+      bool created = std::filesystem::create_directory(name);
+      if (!created) {
+        ok = created;
+        compiler->ErrorMessage("Cannot create design directory: " + name);
+      }
+    }
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_design", create_design, this, 0);
@@ -372,6 +379,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           fullPath.append(file);
           expandedFile = fullPath.string();
         }
+        std::filesystem::path the_path = expandedFile;
+        if (!the_path.is_absolute()) {
+          expandedFile =
+              std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                  .string();
+        }
         fileList += expandedFile + " ";
       }
     }
@@ -413,6 +426,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(file);
         expandedFile = fullPath.string();
       }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        expandedFile =
+            std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                .string();
+      }
       design->AddIncludePath(expandedFile);
     }
     return TCL_OK;
@@ -439,6 +458,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path fullPath = scriptPath;
         fullPath.append(file);
         expandedFile = fullPath.string();
+      }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        expandedFile =
+            std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                .string();
       }
       design->AddLibraryPath(expandedFile);
     }
@@ -513,7 +538,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       fullPath.append(file);
       expandedFile = fullPath.string();
     }
-
+    std::filesystem::path the_path = expandedFile;
+    // if (!the_path.is_absolute()) {
+    //   expandedFile = std::filesystem::path(std::filesystem::path("..") /
+    //   expandedFile).string();
+    // }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     design->AddConstraintFile(expandedFile);
@@ -1047,7 +1076,7 @@ bool Compiler::CreateDesign(const std::string& name) {
   Design* design = new Design(name);
   design->setConstraints(getConstraints());
   SetDesign(design);
-  Message(std::string("Created design source: ") + name + std::string("\n"));
+  Message(std::string("Created design: ") + name + std::string("\n"));
   return true;
 }
 
@@ -1091,9 +1120,11 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   QProcess process;
-  if (!m_session->CmdLine()->WithQt()) {
-    process.setProcessChannelMode(QProcess::ForwardedChannels);
-  }
+  auto path = std::filesystem::current_path();  // getting path
+  (*m_out) << "Path: " << path.string() << std::endl;
+  std::filesystem::current_path(path / m_design->Name());  // setting path
+  (*m_out) << "Changed path to: " << (path / m_design->Name()).string()
+           << std::endl;
   QObject::connect(&process, &QProcess::readyReadStandardOutput,
                    [this, &process]() {
                      QString stdout_ = process.readAllStandardOutput();
@@ -1116,8 +1147,13 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   process.start(program, args);
   process.waitForFinished(-1);
   auto status = process.exitStatus();
-  if (status == QProcess::NormalExit) return process.exitCode();
-
+  if (status == QProcess::NormalExit) {
+    std::filesystem::current_path(path);
+    (*m_out) << "Changed path to: " << (path).string() << std::endl;
+    return process.exitCode();
+  }
+  std::filesystem::current_path(path);
+  (*m_out) << "Changed path to: " << (path).string() << std::endl;
   return -1;
 }
 
