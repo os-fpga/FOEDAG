@@ -836,6 +836,7 @@ bool Compiler::Compile(Action action) {
 void Compiler::Stop() {
   m_stop = true;
   if (m_taskManager) m_taskManager->stopCurrentTask();
+  if (m_process) m_process->terminate();
 }
 
 Design* Compiler::GetActiveDesign() const { return m_design; }
@@ -1119,42 +1120,40 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
-  QProcess process;
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
   std::filesystem::current_path(path / m_design->Name());  // setting path
   (*m_out) << "Changed path to: " << (path / m_design->Name()).string()
            << std::endl;
-  QObject::connect(&process, &QProcess::readyReadStandardOutput,
-                   [this, &process]() {
-                     QString stdout_ = process.readAllStandardOutput();
-                     if (!stdout_.isEmpty() && m_out) {
-                       (*m_out) << stdout_.toStdString();
-                     }
-                   });
-  QObject::connect(&process, &QProcess::readyReadStandardError,
-                   [this, &process]() {
-                     QString stderr_ = process.readAllStandardError();
-                     if (!stderr_.isEmpty() && m_err) {
-                       (*m_err) << stderr_.toStdString();
-                     }
-                   });
+  // new QProcess must be created here to avoid issues related to creating
+  // QObjects in different threads
+  m_process = new QProcess;
+  QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
+    QString stdout_ = m_process->readAllStandardOutput();
+    if (!stdout_.isEmpty() && m_out) {
+      (*m_out) << stdout_.toStdString();
+    }
+  });
+  QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
+    QString stderr_ = m_process->readAllStandardError();
+    if (!stderr_.isEmpty() && m_err) {
+      (*m_err) << stderr_.toStdString();
+    }
+  });
 
   QString cmd{command.c_str()};
   QStringList args = cmd.split(" ");
   QString program = args.first();
   args.pop_front();  // remove program
-  process.start(program, args);
-  process.waitForFinished(-1);
-  auto status = process.exitStatus();
-  if (status == QProcess::NormalExit) {
-    std::filesystem::current_path(path);
-    (*m_out) << "Changed path to: " << (path).string() << std::endl;
-    return process.exitCode();
-  }
+  m_process->start(program, args);
+  m_process->waitForFinished(-1);
+  auto status = m_process->exitStatus();
+  auto exitCode = m_process->exitCode();
   std::filesystem::current_path(path);
   (*m_out) << "Changed path to: " << (path).string() << std::endl;
-  return -1;
+  delete m_process;
+  m_process = nullptr;
+  return (status == QProcess::NormalExit) ? exitCode : -1;
 }
 
 std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
