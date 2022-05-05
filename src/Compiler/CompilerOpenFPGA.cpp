@@ -493,7 +493,8 @@ bool CompilerOpenFPGA::Synthesize() {
     return false;
   }
   std::string command = m_yosysExecutablePath.string() + " -s " +
-                        std::string(m_design->Name() + ".ys");
+                        std::string(m_design->Name() + ".ys -l " +
+                                    m_design->Name() + "_synth.log");
   (*m_out) << "Synthesis command: " << command << std::endl;
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
