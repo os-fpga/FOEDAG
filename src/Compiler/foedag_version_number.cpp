@@ -1,3 +1,4 @@
+#include "foedag_version.h"
 /* These fields to be automatically filled by the make system */
-const char* foedag_version_number = "${VERSION_NUMBER}";
-const char* foedag_git_hash = "${GIT_HASH}";
+const char* foedag_version_number = TO_C_STR(FOEDAG_VERSION);
+const char* foedag_git_hash = TO_C_STR(FOEDAG_GIT_HASH);
