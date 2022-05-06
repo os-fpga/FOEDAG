@@ -157,8 +157,9 @@ void TclConsoleWidget::handleLink(const QPoint &p) {
   const QString anchor{anchorAt(p)};
   if (!anchor.isEmpty()) {
     auto fileInfo = anchor.split(*linkSep());
-    if (fileInfo.count() >= 2)
-      emit linkActivated(ErrorInfo{fileInfo.at(0), fileInfo.at(1)});
+    ErrorInfo info{fileInfo.at(0),
+                   (fileInfo.count() >= 2) ? fileInfo.at(1) : QString{"-1"}};
+    emit linkActivated(info);
   }
 }
 
