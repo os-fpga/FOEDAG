@@ -70,6 +70,7 @@ class TclConsoleWidget : public QConsole {
   void commandDone();
 
  private:
+  void putMessage(const QString &message, OutputFormat format);
   void setState(const State &state);
   void handleLink(const QPoint &p);
   void registerCommands(TclInterp *interp);

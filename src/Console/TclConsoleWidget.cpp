@@ -33,6 +33,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
             &TclConsoleWidget::commandDone);
     connect(m_console.get(), &ConsoleInterface::inProgressState, this,
             [this]() { setState(State::IN_PROGRESS); });
+    m_console->setErrorStream(&m_errorBuffer->getStream());
     registerCommands(interp);
   }
   setPrompt("# ");
@@ -129,28 +130,23 @@ void TclConsoleWidget::mouseMoveEvent(QMouseEvent *e) {
   QConsole::mouseMoveEvent(e);
 }
 
-void TclConsoleWidget::put(const QString &str) {
-  if (!str.isEmpty()) {
-    int res = m_console ? m_console->returnCode() : 0;
-    QString strRes = str;
-    moveCursor(QTextCursor::End);
-    if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    m_formatter.appendMessage(strRes, (res == 0) ? Output : Error);
-  }
-}
+void TclConsoleWidget::put(const QString &str) { putMessage(str, Output); }
 
-void TclConsoleWidget::putError(const QString &str) {
-  if (!str.isEmpty()) {
-    QString strRes = str;
-    moveCursor(QTextCursor::End);
-    if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    m_formatter.appendMessage(strRes, Error);
-  }
-}
+void TclConsoleWidget::putError(const QString &str) { putMessage(str, Error); }
 
 void TclConsoleWidget::commandDone() {
   if (!hasPrompt()) displayPrompt();
   setState(State::IDLE);
+}
+
+void FOEDAG::TclConsoleWidget::putMessage(const QString &message,
+                                          OutputFormat format) {
+  if (!message.isEmpty()) {
+    QString strRes = message;
+    moveCursor(QTextCursor::End);
+    if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
+    m_formatter.appendMessage(strRes, format);
+  }
 }
 
 void TclConsoleWidget::handleLink(const QPoint &p) {
