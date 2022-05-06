@@ -17,6 +17,7 @@ class TextEditorForm : public QWidget {
 
   void InitForm();
   int OpenFile(const QString &strFileName);
+  int OpenFileWithLine(const QString &strFileName, int line);
 
  signals:
   void CurrentFileChanged(QString);

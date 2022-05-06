@@ -153,7 +153,7 @@ synth -run check
 # Clean and output blif
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
-write_verilog ${OUTPUT_VERILOG}
+write_verilog -noexpr -nodec -defparam -norename ${OUTPUT_VERILOG}
   )";
 
 bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
@@ -493,7 +493,8 @@ bool CompilerOpenFPGA::Synthesize() {
     return false;
   }
   std::string command = m_yosysExecutablePath.string() + " -s " +
-                        std::string(m_design->Name() + ".ys");
+                        std::string(m_design->Name() + ".ys -l " +
+                                    m_design->Name() + "_synth.log");
   (*m_out) << "Synthesis command: " << command << std::endl;
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -588,7 +589,6 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_pin_loc") != std::string::npos) {
       continue;
     }
-    std::cout << "CONSTRAINT: " << constraint << "\n";
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
