@@ -43,6 +43,7 @@ option(
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
   On)
 
+cmake_policy(SET CMP0048 NEW)
 project(FOEDAG VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 # Check system 
