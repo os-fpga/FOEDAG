@@ -12,9 +12,9 @@ class ConsoleInterface : public QObject {
 
   virtual void run(const QString &command) = 0;
   virtual void abort() = 0;
-  virtual int returnCode() const = 0;
   virtual QStringList suggestCommand(const QString &cmd, QString &prefix) = 0;
   virtual bool isCommandComplete(const QString &command) = 0;
+  virtual void setErrorStream(std::ostream *err) = 0;
 
  signals:
   void inProgressState();
