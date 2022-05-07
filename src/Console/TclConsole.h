@@ -13,10 +13,10 @@ class TclConsole : public ConsoleInterface {
   void registerInterpreter(TclInterp *interpreter);
   ~TclConsole() override;
   void run(const QString &command) override;
-  int returnCode() const override;
   QStringList suggestCommand(const QString &cmd, QString &prefix) override;
   bool isCommandComplete(const QString &command) override;
   void abort() override;
+  void setErrorStream(std::ostream *err) override;
 
   void setTclCommandInProggress(bool inProgress);
 

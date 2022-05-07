@@ -38,8 +38,9 @@ LineParser::Result DummyParser::handleLine(const QString &message,
     file.replace("\"", "");
     file = file.trimmed();
     const QFileInfo fileInfo{file};
-    LinkSpec link{regExpMatch.capturedStart(), regExpMatch.capturedLength(),
-                  fileInfo.absoluteFilePath()};
+    LinkSpec link{
+        regExpMatch.capturedStart(), regExpMatch.capturedLength(),
+        addLinkSpecForAbsoluteFilePath(fileInfo.absoluteFilePath(), "-1")};
     return Result{Status::Done, message, {link}};
   }
   return Result{Status::NotHandled};

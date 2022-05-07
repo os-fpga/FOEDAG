@@ -26,9 +26,16 @@ void DriverWatchProc(ClientData instanceData, int mask) {
 int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
                      int *errorCodePtr) {
   Q_UNUSED(errorCodePtr)
-  Tcl_SetErrno(0);
   TclWorker *worker = static_cast<TclWorker *>(instanceData);
-  worker->out() << buf;
+  worker->setOutput(buf);
+  return toWrite;
+}
+
+int DriverErrorProc(ClientData instanceData, const char *buf, int toWrite,
+                    int *errorCodePtr) {
+  Q_UNUSED(errorCodePtr)
+  TclWorker *worker = static_cast<TclWorker *>(instanceData);
+  worker->setError(buf);
   return toWrite;
 }
 
@@ -38,8 +45,9 @@ int DriverBlockModeProc(ClientData instanceData, int mode) {
   return 0;
 }
 
-TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
-    : QObject(parent), m_interpreter(interpreter), m_out(out) {
+TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out,
+                     std::ostream *err, QObject *parent)
+    : QObject(parent), m_interpreter(interpreter), m_out(out), m_err(err) {
   channelOut = new Tcl_ChannelType{
       "outconsole",
       CHANNEL_VERSION_5,
@@ -59,47 +67,64 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out, QObject *parent)
       nullptr /*DriverThreadAction*/,
       nullptr /*DriverTruncate*/,
   };
+  channelErr = new Tcl_ChannelType{
+      "errconsole",
+      CHANNEL_VERSION_5,
+      DriverCloseProc /*ChannelClose */,
+      nullptr,  // DriverInputProc,
+      DriverErrorProc,
+      nullptr /*ChannelSeek*/,
+      nullptr,
+      nullptr,
+      DriverWatchProc,
+      nullptr, /*ChannelGetHandle,*/
+      DriverClose2Proc /*ChannelClose2*/,
+      nullptr, /*ChannelBlockMode,*/
+      nullptr /*ChannelFlush*/,
+      nullptr /*ChannelHandler*/,
+      nullptr /*ChannelWideSeek*/,
+      nullptr /*DriverThreadAction*/,
+      nullptr /*DriverTruncate*/,
+  };
   init();
 }
 
-void TclWorker::runCommand(const QString &command) { m_cmd = command; }
-
-void TclWorker::abort() {
-  auto resultObjPtr = Tcl_NewObj();
-  Tcl_CancelEval(m_interpreter, resultObjPtr, nullptr, 0);
-  setOutput(Tcl_GetString(resultObjPtr));
-}
-
-void TclWorker::run() {
+void TclWorker::runCommand(const QString &command) {
   init();
 
-  m_returnCode = 0;
-  m_returnCode = TclEval(m_interpreter, qPrintable(m_cmd));
-  QString output;
-  if (m_returnCode == TCL_ERROR) {
-    Tcl_Obj *options = Tcl_GetReturnOptions(m_interpreter, m_returnCode);
+  int returnCode = TclEval(m_interpreter, qPrintable(command));
+  if (returnCode == TCL_ERROR) {
+    Tcl_Obj *options = Tcl_GetReturnOptions(m_interpreter, returnCode);
     Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
     Tcl_Obj *stackTrace;
     Tcl_IncrRefCount(key);
     Tcl_DictObjGet(NULL, options, key, &stackTrace);
     Tcl_DecrRefCount(key);
-    output = Tcl_GetString(stackTrace);
+    setError(Tcl_GetString(stackTrace));
     Tcl_DecrRefCount(options);
   } else {
-    output = TclGetStringResult(m_interpreter);
+    setOutput(TclGetStringResult(m_interpreter));
   }
 
-  setOutput(output);
   emit tclFinished();
 }
 
-int TclWorker::returnCode() const { return m_returnCode; }
+void TclWorker::abort() { Tcl_CancelEval(m_interpreter, nullptr, nullptr, 0); }
 
 TclInterp *TclWorker::getInterpreter() { return m_interpreter; }
+
+void TclWorker::setErrStream(std::ostream *err) { m_err = err; }
 
 void TclWorker::setOutput(const QString &out) {
   m_out << out.toLatin1().data();
   if (!out.isEmpty()) m_out << std::endl;
+}
+
+void TclWorker::setError(const QString &err) {
+  if (m_err) {
+    *m_err << err.toLatin1().data();
+    if (!err.isEmpty()) *m_err << std::endl;
+  }
 }
 
 void TclWorker::init() {
@@ -121,7 +146,7 @@ void TclWorker::init() {
 
   if (!errConsoleChannel) {
     errConsoleChannel = Tcl_CreateChannel(
-        channelOut, "stderr", static_cast<void *>(this), TCL_WRITABLE);
+        channelErr, "stderr", static_cast<void *>(this), TCL_WRITABLE);
     if (errConsoleChannel) {
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-translation", "lf");
       Tcl_SetChannelOption(nullptr, errConsoleChannel, "-buffering", "none");

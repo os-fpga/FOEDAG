@@ -10,24 +10,21 @@ namespace FOEDAG {
 TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
-      m_tclWorker(new TclWorker{interpreter, out, parent}),
+      m_tclWorker(new TclWorker{interpreter, out, &std::cerr, parent}),
       m_out(out) {
   connect(m_tclWorker, &TclWorker::tclFinished, this,
           &TclConsole::tclWorkerFinished);
 }
 
 void TclConsole::registerInterpreter(TclInterp *interpreter) {
-  m_tclWorkers.push_back(new TclWorker{interpreter, m_out});
+  m_tclWorkers.push_back(new TclWorker{interpreter, m_out, m_tclWorker->err()});
 }
 
 TclConsole::~TclConsole() { qDeleteAll(m_tclWorkers); }
 
 void TclConsole::run(const QString &command) {
   m_tclWorker->runCommand(command);
-  m_tclWorker->run();
 }
-
-int TclConsole::returnCode() const { return m_tclWorker->returnCode(); }
 
 QStringList TclConsole::suggestCommand(const QString &cmd, QString &prefix) {
   QString commandToComplete = cmd;
@@ -64,6 +61,10 @@ bool TclConsole::isCommandComplete(const QString &command) {
 void TclConsole::abort() {
   m_tclWorker->abort();
   emit aborted();
+}
+
+void TclConsole::setErrorStream(std::ostream *err) {
+  m_tclWorker->setErrStream(err);
 }
 
 void TclConsole::setTclCommandInProggress(bool inProgress) {
