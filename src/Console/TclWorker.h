@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <iostream>
 
 #include "ConsoleDefines.h"
 
@@ -10,12 +11,15 @@ class TclWorker : public QObject {
   Q_OBJECT
  public:
   TclWorker(TclInterp *interpreter, std::ostream &out,
-            QObject *parent = nullptr);
+            std::ostream *err = &std::cerr, QObject *parent = nullptr);
 
   void run();
-  int returnCode() const;
   TclInterp *getInterpreter();
   std::ostream &out() { return m_out; }
+  std::ostream *err() { return m_err; }
+  void setErrStream(std::ostream *err);
+  void setOutput(const QString &out);
+  void setError(const QString &err);
 
  public slots:
   void runCommand(const QString &command);
@@ -26,14 +30,13 @@ class TclWorker : public QObject {
 
  private:
   void init();
-  void setOutput(const QString &out);
 
  private:
   TclInterp *m_interpreter{nullptr};
   std::ostream &m_out;
-  int m_returnCode{0};
-  QString m_cmd;
+  std::ostream *m_err;
   Tcl_ChannelType *channelOut{nullptr};
+  Tcl_ChannelType *channelErr{nullptr};
 };
 
 }  // namespace FOEDAG
