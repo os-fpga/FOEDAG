@@ -46,10 +46,7 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
   m_projManager->setCurrentFileSet(strSetName);
   QString module = strFileName.left(strFileName.lastIndexOf("."));
   int ret = m_projManager->setTopModule(module);
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  if (0 == ret) update();
   return true;
 }
 
@@ -76,10 +73,8 @@ bool TclCommandIntegration::TclCreateFileSet(const QString &name,
   if (1 == ret) {
     out << "The set name is already exists!" << std::endl;
     return false;
-  } else if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
   }
+  if (0 == ret) update();
   return true;
 }
 
@@ -105,10 +100,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
     }
   }
 
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  if (0 == ret) update();
   return true;
 }
 
@@ -133,10 +125,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
     }
   }
 
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  update();
   return true;
 }
 
@@ -157,10 +146,7 @@ bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
     return false;
   }
 
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  update();
   return true;
 }
 
@@ -174,10 +160,7 @@ bool TclCommandIntegration::TclSetActive(int argc, const char *argv[],
   QString strName = QString(argv[1]);
   int ret = m_projManager->setDesignActive(strName);
 
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  if (0 == ret) update();
   return true;
 }
 
@@ -191,10 +174,7 @@ bool TclCommandIntegration::TclSetAsTarget(int argc, const char *argv[],
   QString strFileName = QString(argv[1]);
   m_projManager->setCurrentFileSet(m_projManager->getConstrActiveFileSet());
   int ret = m_projManager->setTargetConstrs(strFileName);
-  if (0 == ret) {
-    m_projManager->FinishedProject();
-    m_form->UpdateSrcHierachyTree();
-  }
+  if (0 == ret) update();
   return true;
 }
 
@@ -227,6 +207,10 @@ QString TclCommandIntegration::getActiveDesign() const {
   return m_projManager->getProjectName();
 }
 
+ProjectManager *TclCommandIntegration::GetProjectManager() {
+  return m_projManager;
+}
+
 void TclCommandIntegration::createNewDesign(const QString &projName) {
   ProjectOptions opt{projName,
                      QString("%1/%2").arg(QDir::currentPath(), projName),
@@ -240,9 +224,14 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};
   emit newDesign(newDesignStr);
-  m_form->UpdateSrcHierachyTree();
+  update();
 }
 
-bool TclCommandIntegration::validate() const { return m_projManager && m_form; }
+bool TclCommandIntegration::validate() const { return m_projManager; }
+
+void TclCommandIntegration::update() {
+  if (m_projManager) m_projManager->FinishedProject();
+  if (m_form) m_form->UpdateSrcHierachyTree();
+}
 
 }  // namespace FOEDAG

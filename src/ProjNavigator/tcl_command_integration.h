@@ -44,6 +44,7 @@ class TclCommandIntegration : public QObject {
   bool TclCreateProject(const QString &name, std::ostream &out);
 
   QString getActiveDesign() const;
+  ProjectManager* GetProjectManager();
 
  signals:
   void newDesign(const QString &);
@@ -53,6 +54,7 @@ class TclCommandIntegration : public QObject {
 
  private:
   bool validate() const;
+  void update();
 
  private:
   ProjectManager *m_projManager;

@@ -92,9 +92,7 @@ class Compiler {
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   Design* GetActiveDesign() const;
-  Design* GetDesign(const std::string name);
   void SetDesign(Design* design);
-  bool SetActiveDesign(const std::string& name);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -161,7 +159,6 @@ class Compiler {
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
-  std::vector<Design*> m_designs;
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;

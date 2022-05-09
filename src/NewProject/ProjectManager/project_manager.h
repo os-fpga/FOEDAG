@@ -203,6 +203,16 @@ class ProjectManager : public QObject {
   QString getCurrentRun() const;
   void setCurrentRun(const QString &currentRun);
 
+  const std::vector<QString> &includePathList() const;
+  void setIncludePathList(const std::vector<QString> &newIncludePathList);
+  void addIncludePath(const QString &includePath);
+
+  const std::vector<QString> &libraryPathList() const;
+  void setLibraryPathList(const std::vector<QString> &newLibraryPathList);
+  void addLibraryPath(const QString &libraryPath);
+
+  void addMacro(const QString& macroName, const QString& macroValue);
+
  private:
   int ImportProjectData(QString strOspro);
   int ExportProjectData();
@@ -226,6 +236,9 @@ class ProjectManager : public QObject {
  private:
   QString m_currentFileSet;
   QString m_currentRun;
+  std::vector<QString> m_includePathList;
+  std::vector<QString> m_libraryPathList;
+  std::vector<std::pair<QString, QString>> m_macroList;
 };
 }  // namespace FOEDAG
 #endif  // PROJECTMANAGER_H

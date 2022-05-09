@@ -1764,6 +1764,37 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
   return true;
 }
 
+const std::vector<QString>& ProjectManager::libraryPathList() const {
+  return m_libraryPathList;
+}
+
+void ProjectManager::setLibraryPathList(
+    const std::vector<QString>& newLibraryPathList) {
+  m_libraryPathList = newLibraryPathList;
+}
+
+void ProjectManager::addLibraryPath(const QString& libraryPath) {
+  m_libraryPathList.push_back(libraryPath);
+}
+
+void ProjectManager::addMacro(const QString& macroName,
+                              const QString& macroValue) {
+  m_macroList.push_back(std::pair(macroName, macroValue));
+}
+
+const std::vector<QString>& ProjectManager::includePathList() const {
+  return m_includePathList;
+}
+
+void ProjectManager::setIncludePathList(
+    const std::vector<QString>& newIncludePathList) {
+  m_includePathList = newIncludePathList;
+}
+
+void ProjectManager::addIncludePath(const QString& includePath) {
+  m_includePathList.push_back(includePath);
+}
+
 QString ProjectManager::getCurrentRun() const { return m_currentRun; }
 
 void ProjectManager::setCurrentRun(const QString& currentRun) {
