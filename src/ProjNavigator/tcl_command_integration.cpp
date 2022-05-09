@@ -40,10 +40,8 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
     return false;
   }
 
-  QString strSetName{"ds"};
-
   QString strFileName = QString(argv[1]);
-  m_projManager->setCurrentFileSet(strSetName);
+  m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
   QString module = strFileName.left(strFileName.lastIndexOf("."));
   int ret = m_projManager->setTopModule(module);
   if (0 == ret) update();
@@ -105,6 +103,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
 }
 
 bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
+                                                      int lang,
                                                       std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -123,6 +122,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
       out << "Failed to add file: " << file.toStdString() << std::endl;
       return false;
     }
+    m_projManager->setDesignFileData(file.toStdString(), lang);
   }
 
   update();

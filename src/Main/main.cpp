@@ -66,8 +66,10 @@ int main(int argc, char** argv) {
         datapath / "Arch" / "fixed_sim_openfpga.xml";
     std::filesystem::path repackConstraintPath =
         datapath / "Arch" / "repack_design_constraint.xml";
-    opcompiler->YosysExecPath(yosysPath);
-    opcompiler->VprExecPath(vprPath);
+//    opcompiler->YosysExecPath(yosysPath);
+//    opcompiler->VprExecPath(vprPath);
+    opcompiler->YosysExecPath(std::string("/home/work/Downloads/oss-cad-suite/bin") + "/yosys");
+    opcompiler->VprExecPath(std::string("/home/work/project/vtr-verilog-to-routing/build/vpr") + "/vpr");
     opcompiler->OpenFpgaExecPath(openFpgaPath);
     opcompiler->ArchitectureFile(archPath);
     opcompiler->OpenFpgaArchitectureFile(openFpgaArchPath);

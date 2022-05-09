@@ -91,8 +91,6 @@ class Compiler {
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  Design* GetActiveDesign() const;
-  void SetDesign(Design* design);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -150,7 +148,7 @@ class Compiler {
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
-  Design* m_design = nullptr;
+  class ProjectManager* m_projManager = nullptr;
   bool m_stop = false;
   State m_state = None;
   std::ostream* m_out = &std::cout;

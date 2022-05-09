@@ -28,11 +28,15 @@ class ProjectFileSet : public ProjectOption {
 
   QMap<QString, QString> getMapFiles() const;
 
+  void addFileData(const QString &file, int data);
+  int fileData(const QString &file) const;
+
  private:
   QString m_setName;
   QString m_setType;
   QString m_relSrcDir;
   QMap<QString, QString> m_mapFiles;
+  QMap<QString, int> m_fileData;
 };
 }  // namespace FOEDAG
 #endif  // PROJECTFILESET_H

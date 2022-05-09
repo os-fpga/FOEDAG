@@ -120,7 +120,9 @@ class ProjectManager : public QObject {
   int CreateProject(const QString &strName, const QString &strPath,
                     const QString &designSource = DEFAULT_FOLDER_SOURCE);
   QString getProjectName() const;
+  std::string projectName() const;
   QString getProjectPath() const;
+  std::string projectPath() const;
 
   int setProjectType(const QString &strType);
 
@@ -143,7 +145,11 @@ class ProjectManager : public QObject {
   QString getDesignActiveFileSet() const;
   int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
+  QStringList getDesignFiles() const;
+  std::vector<std::string> DesignFiles() const;
   QString getDesignTopModule(const QString &strFileSet) const;
+  QString getDesignTopModule() const;
+  std::string DesignTopModule() const;
 
   int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
@@ -203,15 +209,19 @@ class ProjectManager : public QObject {
   QString getCurrentRun() const;
   void setCurrentRun(const QString &currentRun);
 
-  const std::vector<QString> &includePathList() const;
-  void setIncludePathList(const std::vector<QString> &newIncludePathList);
-  void addIncludePath(const QString &includePath);
+  const std::vector<std::string> &includePathList() const;
+  void setIncludePathList(const std::vector<std::string> &newIncludePathList);
+  void addIncludePath(const std::string &includePath);
 
-  const std::vector<QString> &libraryPathList() const;
-  void setLibraryPathList(const std::vector<QString> &newLibraryPathList);
-  void addLibraryPath(const QString &libraryPath);
+  const std::vector<std::string> &libraryPathList() const;
+  void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
+  void addLibraryPath(const std::string &libraryPath);
 
-  void addMacro(const QString& macroName, const QString& macroValue);
+  void addMacro(const std::string& macroName, const std::string& macroValue);
+  const std::vector<std::pair<std::string, std::string>>& macroList() const;
+
+  void setDesignFileData(const std::string &file, int data);
+  int designFileData(const std::string &file);
 
  private:
   int ImportProjectData(QString strOspro);
@@ -236,9 +246,11 @@ class ProjectManager : public QObject {
  private:
   QString m_currentFileSet;
   QString m_currentRun;
-  std::vector<QString> m_includePathList;
-  std::vector<QString> m_libraryPathList;
-  std::vector<std::pair<QString, QString>> m_macroList;
+  std::vector<std::string> m_includePathList;
+  std::vector<std::string> m_libraryPathList;
+  std::vector<std::pair<std::string, std::string>> m_macroList;
 };
+
 }  // namespace FOEDAG
+std::ostream& operator<<(std::ostream &out, const QString &text);
 #endif  // PROJECTMANAGER_H
