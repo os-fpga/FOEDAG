@@ -289,7 +289,9 @@ bool Foedag::initQmlGui() {
   };
 
   // Start Loop
-  Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
+  char** argv = new char*[1];
+  argv[0] = strdup(m_cmdLine->Argv()[0]);
+  Tcl_MainEx(argc, argv, tcl_init, interpreter->getInterp());
 
   delete GlobalSession;
   return 0;
@@ -367,7 +369,9 @@ bool Foedag::initBatch() {
 
   // Start Loop
   int argc = m_cmdLine->Argc();
-  Tcl_MainEx(argc, m_cmdLine->Argv(), tcl_init, interpreter->getInterp());
+  char** argv = new char*[1];
+  argv[0] = strdup(m_cmdLine->Argv()[0]);
+  Tcl_MainEx(1, argv, tcl_init, interpreter->getInterp());
   int returnStatus = GlobalSession->ReturnStatus();
   delete GlobalSession;
   return returnStatus;
