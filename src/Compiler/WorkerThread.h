@@ -46,14 +46,21 @@ class WorkerThread {
 
   const std::string& Name() { return m_threadName; }
 
+  void queueStart();
+  void queueStop();
+
   bool start();
   bool stop();
+
+ private:
+  void waitForFinish();
 
  private:
   std::string m_threadName;
   Compiler::Action m_action = Compiler::Action::NoAction;
   std::thread* m_thread = nullptr;
   Compiler* m_compiler = nullptr;
+  bool m_inProgress{false};
 };
 
 class ThreadPool {
