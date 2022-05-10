@@ -183,11 +183,18 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       fullPath.append(argv[1]);
       expandedFile = fullPath.string();
     }
+
     std::ifstream stream(expandedFile);
     if (!stream.good()) {
       compiler->ErrorMessage("Cannot find architecture file: " +
                              std::string(expandedFile));
       return TCL_ERROR;
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      expandedFile =
+          std::filesystem::path(std::filesystem::path("..") / expandedFile)
+              .string();
     }
     stream.close();
     compiler->ArchitectureFile(expandedFile);
