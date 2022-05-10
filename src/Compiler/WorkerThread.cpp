@@ -21,9 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/WorkerThread.h"
 
-#include <QEventLoop>
-
-#include "MainWindow/Session.h"
+#include <QApplication>
+#include <QDebug>
 
 using namespace FOEDAG;
 
@@ -40,17 +39,13 @@ WorkerThread::~WorkerThread() {}
 bool WorkerThread::start() {
   bool result = true;
   m_compiler->start();
-  QEventLoop* eventLoop{nullptr};
-  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
-                             m_compiler->GetSession()->CmdLine()->WithQml();
-  if (processEvents) eventLoop = new QEventLoop;
-  m_thread = new std::thread([&, eventLoop] {
+  m_inProgress = true;
+  m_thread = new std::thread([=] {
     m_compiler->Compile(m_action);
     m_compiler->finish();
-    if (eventLoop) eventLoop->quit();
+    m_inProgress = false;
   });
-  if (eventLoop) eventLoop->exec();
-  delete eventLoop;
+  waitForFinish();
   return result;
 }
 
@@ -60,4 +55,12 @@ bool WorkerThread::stop() {
   delete m_thread;
   m_thread = nullptr;
   return true;
+}
+
+void WorkerThread::waitForFinish() {
+  while (m_inProgress) {
+    QApplication::processEvents();
+  }
+  // process all events after last thread
+  QApplication::processEvents();
 }
