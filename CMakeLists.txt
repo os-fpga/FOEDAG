@@ -44,7 +44,7 @@ option(
   On)
 
 cmake_policy(SET CMP0048 NEW)
-project(FOEDAG VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+project(FOEDAG)
 
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
