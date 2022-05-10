@@ -35,6 +35,9 @@ enum OutputFormat {
   Count = 4,  // should be the last
 };
 
+QString addLinkSpecForAbsoluteFilePath(const QString filePath,
+                                       const QString &line);
+
 class LineParser {
  public:
   virtual ~LineParser();

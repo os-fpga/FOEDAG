@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+Q_GLOBAL_STATIC_WITH_ARGS(QString, linkSep, {"::"})
+
 OutputFormatter::OutputFormatter() {}
 
 OutputFormatter::~OutputFormatter() { qDeleteAll(m_parsers); }
@@ -121,5 +123,10 @@ void OutputFormatter::setTextEdit(QTextEdit *newTextEdit) {
 }
 
 LineParser::~LineParser() {}
+
+QString addLinkSpecForAbsoluteFilePath(const QString filePath,
+                                       const QString &line) {
+  return filePath + *linkSep() + line;
+}
 
 }  // namespace FOEDAG

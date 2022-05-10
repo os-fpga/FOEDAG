@@ -94,9 +94,11 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
 int TextEditorForm::OpenFileWithLine(const QString &strFileName, int line) {
   int res = OpenFile(strFileName);
   if (res == 0) {
-    auto pair = m_map_file_tabIndex_editor.value(strFileName);
-    pair.second->clearMarkers();
-    pair.second->markLine(line);
+    if (line != -1) {
+      auto pair = m_map_file_tabIndex_editor.value(strFileName);
+      pair.second->clearMarkers();
+      pair.second->markLine(line);
+    }
   } else
     return -1;
   return 0;
