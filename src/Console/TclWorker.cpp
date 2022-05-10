@@ -86,6 +86,9 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out,
       nullptr /*DriverThreadAction*/,
       nullptr /*DriverTruncate*/,
   };
+
+  // set to nullptr stdin to avoid prompt from TCL.
+  Tcl_SetStdChannel(nullptr, TCL_STDIN);
   init();
 }
 
