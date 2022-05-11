@@ -38,12 +38,15 @@ class Constraints;
 class Design {
  public:
   enum Language {
+    BLIF,
+    EBLIF,
     VHDL_1987,
     VHDL_1993,
     VHDL_2000,
     VHDL_2008,
     VERILOG_1995,
     VERILOG_2001,
+    VERILOG_NETLIST,
     SYSTEMVERILOG_2005,
     SYSTEMVERILOG_2009,
     SYSTEMVERILOG_2012,
