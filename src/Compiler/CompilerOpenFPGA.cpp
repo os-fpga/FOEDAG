@@ -440,6 +440,14 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::SYSTEMVERILOG_2017:
           lang = "-sv";
           break;
+        case Design::Language::VERILOG_NETLIST:
+          lang = "";
+          break;
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          lang = "BLIF";
+          ErrorMessage("Unsupported file format:" + lang);
+          return false;
       }
       fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
@@ -479,6 +487,11 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::SYSTEMVERILOG_2012:
         case Design::Language::SYSTEMVERILOG_2017:
           lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
           break;
       }
     }

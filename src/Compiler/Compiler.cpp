@@ -637,7 +637,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     std::string opts;
-    for (unsigned int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
       opts += std::string(argv[i]);
       if (i < (argc - 1)) {
         opts += " ";
