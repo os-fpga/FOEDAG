@@ -113,6 +113,8 @@ class Compiler {
   void LutSize(uint32_t size) { m_lut_size = size; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+  void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
+  const std::string& PnROpt() { return m_pnrOpt; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -162,6 +164,7 @@ class Compiler {
   bool m_useVerific = false;
   bool m_hardError = false;
   SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
+  std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
   class QProcess* m_process = nullptr;

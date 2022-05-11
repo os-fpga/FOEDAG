@@ -84,6 +84,9 @@ void Compiler::Help(std::ostream* out) {
             "-VHDL_2000, -VHDL_2008, -V_1995, "
             "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
          << std::endl;
+  (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
+            "design (Skip Synthesis)"
+         << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
@@ -97,6 +100,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
   (*out) << "   place" << std::endl;
@@ -408,6 +412,69 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
 
+  auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    if (design == nullptr) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    if (argc < 2) {
+      compiler->ErrorMessage("Incorrect syntax for read_netlist <file>");
+      return TCL_ERROR;
+    }
+
+    const std::string file = argv[1];
+    std::string actualType = "VERILOG";
+    Design::Language language = Design::Language::VERILOG_NETLIST;
+    if (strstr(file.c_str(), ".blif")) {
+      language = Design::Language::BLIF;
+      actualType = "BLIF";
+    } else if (strstr(file.c_str(), ".eblif")) {
+      language = Design::Language::EBLIF;
+      actualType = "EBLIF";
+    }
+
+    std::string expandedFile = file;
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+    std::filesystem::path the_path = expandedFile;
+    std::string origPathFileList = expandedFile;
+    if (!the_path.is_absolute()) {
+      expandedFile =
+          std::filesystem::path(std::filesystem::path("..") / expandedFile)
+              .string();
+    }
+
+    compiler->Message(std::string("Reading ") + actualType + " " +
+                      expandedFile + std::string("\n"));
+    design->AddFile(language, expandedFile);
+    if (compiler->m_tclCmdIntegration) {
+      std::ostringstream out;
+      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+          origPathFileList.c_str(), out);
+      if (!ok) {
+        compiler->ErrorMessage(out.str());
+        return TCL_ERROR;
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("read_netlist", read_netlist, this, nullptr);
+
   auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -560,6 +627,26 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
+
+  auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    Design* design = compiler->GetActiveDesign();
+    if (design == nullptr) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::string opts;
+    for (int i = 1; i < argc; i++) {
+      opts += std::string(argv[i]);
+      if (i < (argc - 1)) {
+        opts += " ";
+      }
+    }
+    compiler->PnROpt(opts);
+    return TCL_OK;
+  };
+  interp->registerCmd("pnr_options", pnr_options, this, 0);
 
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
