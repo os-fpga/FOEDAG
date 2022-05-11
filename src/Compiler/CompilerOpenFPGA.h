@@ -49,6 +49,19 @@ class CompilerOpenFPGA : public Compiler {
     m_architectureFile = path;
   }
   void YosysScript(const std::string& script) { m_yosysScript = script; }
+  void OpenFPGAScript(const std::string& script) { m_openFPGAScript = script; }
+  void OpenFpgaArchitectureFile(const std::filesystem::path& path) {
+    m_OpenFpgaArchitectureFile = path;
+  }
+  void OpenFpgaSimSettingFile(const std::filesystem::path& path) {
+    m_OpenFpgaSimSettingFile = path;
+  }
+  void OpenFpgaBitstreamSettingFile(const std::filesystem::path& path) {
+    m_OpenFpgaBitstreamSettingFile = path;
+  }
+  void OpenFpgaRepackConstraintsFile(const std::filesystem::path& path) {
+    m_OpenFpgaRepackConstraintsFile = path;
+  }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
@@ -68,14 +81,25 @@ class CompilerOpenFPGA : public Compiler {
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
+  virtual std::string InitOpenFPGAScript();
+  virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
-  std::filesystem::path m_openFpgaExecutablePath = "openfpga.sh";
+  std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_architectureFile =
       "tests/Arch/k6_frac_N10_tileable_40nm.xml";
+  std::filesystem::path m_OpenFpgaArchitectureFile =
+      "tests/Arch/k6_N10_40nm_openfpga.xml";
+  std::filesystem::path m_OpenFpgaSimSettingFile =
+      "tests/Arch/fixed_sim_openfpga.xml";
+  std::filesystem::path m_OpenFpgaBitstreamSettingFile =
+      "tests/Arch/bitstream_annotation.xml";
+  std::filesystem::path m_OpenFpgaRepackConstraintsFile =
+      "tests/Arch/repack_design_constraint.xml";
   std::string m_deviceSize;
   std::string m_yosysScript;
+  std::string m_openFPGAScript;
   virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
 };
