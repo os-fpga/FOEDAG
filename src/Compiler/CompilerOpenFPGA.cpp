@@ -85,6 +85,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
             "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
             "default)) "
          << std::endl;
+  (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
+            "design (Skip Synthesis)"
+         << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
@@ -100,6 +103,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
   (*out) << "   place" << std::endl;
@@ -368,6 +372,20 @@ bool CompilerOpenFPGA::Synthesize() {
 
   std::string yosysScript = InitSynthesisScript();
 
+  for (const auto& lang_file : m_design->FileList()) {
+    std::string lang;
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        Message("Skipping synthesis, gate-level design.");
+        return true;
+        break;
+      default:
+        break;
+    }
+  }
+
   if (m_useVerific) {
     // Verific parser
     std::string fileList;
@@ -422,6 +440,14 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::SYSTEMVERILOG_2017:
           lang = "-sv";
           break;
+        case Design::Language::VERILOG_NETLIST:
+          lang = "";
+          break;
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          lang = "BLIF";
+          ErrorMessage("Unsupported file format:" + lang);
+          return false;
       }
       fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
@@ -461,6 +487,11 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::SYSTEMVERILOG_2012:
         case Design::Language::SYSTEMVERILOG_2017:
           lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
           break;
       }
     }
@@ -545,14 +576,29 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
+  std::string netlistFile = m_design->Name() + "_post_synth.blif";
+
+  for (const auto& lang_file : m_design->FileList()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        netlistFile = lang_file.second;
+        break;
+      default:
+        break;
+    }
+  }
+
+  std::string pnrOptions = " " + PnROpt() + " ";
+
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
-      std::string(m_design->Name() + "_post_synth.blif" +
-                  std::string(" --sdc_file ") +
+      std::string(netlistFile + std::string(" --sdc_file ") +
                   std::string(m_design->Name() + "_openfpga.sdc") +
                   std::string(" --route_chan_width ") +
-                  std::to_string(m_channel_width) + device_size);
+                  std::to_string(m_channel_width) + device_size + pnrOptions);
   return command;
 }
 
@@ -754,18 +800,150 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   return true;
 }
 
+const std::string basicOpenFPGABitstreamScript = R"( 
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --absorb_buffer_luts off --write_rr_graph rr_graph.openfpga.xml --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}
+
+# Read OpenFPGA architecture definition
+read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
+
+# Read OpenFPGA simulation settings
+read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
+
+read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+
+# Annotate the OpenFPGA architecture to VPR data base
+# to debug use --verbose options
+link_openfpga_arch --sort_gsb_chan_node_in_edges 
+
+# Apply fix-up to clustering nets based on routing results
+pb_pin_fixup --verbose
+
+# Apply fix-up to Look-Up Table truth tables based on packing results
+lut_truth_table_fixup
+
+# Build the module graph
+#  - Enabled compression on routing architecture modules
+#  - Enable pin duplication on grid modules
+build_fabric --compress_routing --duplicate_grid_pin 
+
+# Repack the netlist to physical pbs
+# This must be done before bitstream generator and testbench generation
+# Strongly recommend it is done after all the fix-up have been applied
+repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
+
+#build_architecture_bitstream --write_file fabric_independent_bitstream.xml
+
+build_fabric_bitstream
+write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+write_io_mapping -f PinMapping.xml
+
+# Finish and exit OpenFPGA
+exit
+
+)";
+
+std::string CompilerOpenFPGA::InitOpenFPGAScript() {
+  // Default or custom OpenFPGA script
+  if (m_openFPGAScript.empty()) {
+    m_openFPGAScript = basicOpenFPGABitstreamScript;
+  }
+  return m_openFPGAScript;
+}
+
+std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
+  std::string result = script;
+  result = ReplaceAll(result, "${VPR_ARCH_FILE}", m_architectureFile.string());
+
+  std::string netlistFile = m_design->Name() + "_post_synth.blif";
+  for (const auto& lang_file : m_design->FileList()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        netlistFile = lang_file.second;
+        break;
+      default:
+        break;
+    }
+  }
+  result = ReplaceAll(result, "${VPR_TESTBENCH_BLIF}", netlistFile);
+
+  std::string netlistFormat = "blif";
+  result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
+  if (m_deviceSize.size()) {
+    result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}",
+                        " --device " + m_deviceSize);
+  } else {
+    result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}", "");
+  }
+  result = ReplaceAll(result, "${OPENFPGA_VPR_ROUTE_CHAN_WIDTH}",
+                      std::to_string(m_channel_width));
+  result = ReplaceAll(result, "${OPENFPGA_ARCH_FILE}",
+                      m_OpenFpgaArchitectureFile.string());
+
+  result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
+                      m_OpenFpgaSimSettingFile.string());
+  result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
+                      m_OpenFpgaBitstreamSettingFile.string());
+  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
+                      m_OpenFpgaRepackConstraintsFile.string());
+  return result;
+}
+
 bool CompilerOpenFPGA::GenerateBitstream() {
   if (m_design == nullptr) {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Routed) {
-    ErrorMessage("Design needs to be in routed state");
-    return false;
-  }
-  // TODO:
+  // if (m_state != State::Routed) {
+  //   ErrorMessage("Design needs to be in routed state");
+  //   return false;
+  // }
   (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
            << std::endl;
+
+  // This is WIP
+  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
+           << std::endl;
+  return true;
+
+  std::string command = m_openFpgaExecutablePath.string() + " -f " +
+                        m_design->Name() + ".openfpga";
+
+  std::string script = InitOpenFPGAScript();
+
+  script = FinishOpenFPGAScript(script);
+
+  std::string script_path = m_design->Name() + ".openfpga";
+
+  std::filesystem::remove(std::filesystem::path(m_design->Name()) /
+                          std::string("fabric_bitstream.bit"));
+  std::filesystem::remove(std::filesystem::path(m_design->Name()) /
+                          std::string("fabric_independent_bitstream.xml"));
+  // Create OpenFpga command and execute
+  script_path =
+      (std::filesystem::path(m_design->Name()) / script_path).string();
+  std::ofstream sofs(script_path);
+  sofs << script;
+  sofs.close();
+  if (!FileExists(m_openFpgaExecutablePath)) {
+    ErrorMessage("Cannot find executable: " +
+                 m_openFpgaExecutablePath.string());
+    return false;
+  }
+
+  std::ofstream ofs((std::filesystem::path(m_design->Name()) /
+                     std::string(m_design->Name() + "_bitstream.cmd"))
+                        .string());
+  ofs << command << std::endl;
+  ofs.close();
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_design->Name() + " bitream generation failed!");
+    return false;
+  }
+  m_state = State::BistreamGenerated;
+
   (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
            << std::endl;
   return true;
