@@ -47,6 +47,7 @@ set (SRC_CPP_LIST
   foedag_version_number.cpp
   Constraints.cpp
   CompilerOpenFPGA.cpp
+  CompilerOpenFPGA_ql.cpp
   WorkerThread.cpp
   TaskTableView.cpp
   TaskModel.cpp
@@ -60,6 +61,7 @@ set (SRC_H_INSTALL_LIST
   Compiler.h
   Constraints.cpp
   CompilerOpenFPGA.h
+  CompilerOpenFPGA_ql.h
   WorkerThread.h
   TaskTableView.h
   TaskModel.h

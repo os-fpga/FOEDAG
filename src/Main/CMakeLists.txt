@@ -36,7 +36,8 @@ include_directories(
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-set (SRC_CPP_LIST ../Main/Foedag.cpp
+#set (SRC_CPP_LIST ../Main/Foedag.cpp
+set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../Tcl/TclInterpreter.cpp
   ../Tcl/TclHistoryScript.cpp
   ../Command/Command.cpp

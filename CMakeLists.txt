@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 2)
+set(VERSION_PATCH 1)
 
 option(
   WITH_LIBCXX
@@ -169,11 +169,13 @@ target_include_directories(foedag PRIVATE
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
 if(MSVC)
-  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+  #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
   set_property(TARGET foedag-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   set_property(TARGET foedag-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
 else()
-  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+  #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
 endif()
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
 
