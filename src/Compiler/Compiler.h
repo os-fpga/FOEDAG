@@ -70,6 +70,8 @@ class Compiler {
     BistreamGenerated
   };
   enum SynthesisOpt { NoOpt, Area, Delay, Mixed };
+  enum BitstreamOpt { NoBitsOpt, Force };
+
   // Most common use case, create the compiler in your main
   Compiler() = default;
 
@@ -113,6 +115,8 @@ class Compiler {
   void LutSize(uint32_t size) { m_lut_size = size; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+  BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
+  void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
@@ -164,6 +168,7 @@ class Compiler {
   bool m_useVerific = false;
   bool m_hardError = false;
   SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
+  BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
