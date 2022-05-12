@@ -666,8 +666,6 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   Settings * currentSettings = GetSession()->GetSettings();
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path), "Settings");
 
-  std::string family = currentSettings->getNested("Settings.FAMILY", ".").toString().toStdString();
-
 // not using these as of now, as they don't match neatly with VPR.
 //   QJsonArray settingsPACKING = currentSettings->getNested("Settings.Tasks.PACKING", ".").toArray();
 //   QJsonArray settingsGLOBAL_PLACEMENT = currentSettings->getNested("Settings.Tasks.GLOBAL_PLACEMENT", ".").toArray();
