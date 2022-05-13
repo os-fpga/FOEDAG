@@ -938,7 +938,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --absorb_buffer_luts off --write_rr_graph rr_graph.openfpga.xml --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --write_rr_graph rr_graph.openfpga.xml --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}  --analysis
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -989,16 +989,47 @@ std::string CompilerOpenFPGA::InitOpenFPGAScript() {
 
 std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string result = script;
+
+  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+
+  for (const auto& lang_file : m_projManager->DesignFiles()) {
+    switch (m_projManager->designFileData(lang_file)) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        std::filesystem::path the_path = lang_file;
+        std::filesystem::path filename = the_path.filename();
+        std::filesystem::path stem = filename.stem();
+        netlistFilePrefix = stem.string();
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
   result = ReplaceAll(result, "${VPR_ARCH_FILE}", m_architectureFile.string());
+  result = ReplaceAll(result, "${NET_FILE}", netlistFilePrefix + ".net");
+  result = ReplaceAll(result, "${PLACE_FILE}", netlistFilePrefix + ".place");
+  result = ReplaceAll(result, "${ROUTE_FILE}", netlistFilePrefix + ".route");
+  result = ReplaceAll(result, "${SDC_FILE}",
+                      m_projManager->projectName() + "_openfpga.sdc");
 
   std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
   for (const auto& lang_file : m_projManager->DesignFiles()) {
     switch (m_projManager->designFileData(lang_file)) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
-      case Design::Language::EBLIF:
+      case Design::Language::EBLIF: {
         netlistFile = lang_file;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
+        }
         break;
+      }
       default:
         break;
     }
@@ -1032,9 +1063,11 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Routed) {
-    ErrorMessage("Design needs to be in routed state");
-    return false;
+  if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
+    if (m_state != State::Routed) {
+      ErrorMessage("Design needs to be in routed state");
+      return false;
+    }
   }
   (*m_out) << "Bitstream generation for design: "
            << m_projManager->projectName() << "..." << std::endl;
