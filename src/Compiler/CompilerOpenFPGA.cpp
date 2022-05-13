@@ -710,8 +710,8 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =
-            std::filesystem::path(std::filesystem::path("..") / netlistFile)
-                .string();
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
         }
         break;
       }
