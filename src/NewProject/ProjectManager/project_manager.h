@@ -123,6 +123,7 @@ class ProjectManager : public QObject {
   std::string projectName() const;
   QString getProjectPath() const;
   std::string projectPath() const;
+  bool HasDesign() const;
 
   int setProjectType(const QString &strType);
 
@@ -217,8 +218,8 @@ class ProjectManager : public QObject {
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
-  void addMacro(const std::string& macroName, const std::string& macroValue);
-  const std::vector<std::pair<std::string, std::string>>& macroList() const;
+  void addMacro(const std::string &macroName, const std::string &macroValue);
+  const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
   void setDesignFileData(const std::string &file, int data);
   int designFileData(const std::string &file);
@@ -252,5 +253,5 @@ class ProjectManager : public QObject {
 };
 
 }  // namespace FOEDAG
-std::ostream& operator<<(std::ostream &out, const QString &text);
+std::ostream &operator<<(std::ostream &out, const QString &text);
 #endif  // PROJECTMANAGER_H

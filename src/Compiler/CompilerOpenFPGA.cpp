@@ -403,11 +403,11 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
 }
 
 bool CompilerOpenFPGA::IPGenerate() {
-  if (m_projManager->getProjectName().isEmpty() && !CreateDesign("noname")) return false;
-  (*m_out) << "IP generation for design: " << m_projManager->getProjectName() << "..."
-           << std::endl;
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "IP generation for design: " << m_projManager->projectName()
+           << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " IPs are generated!"
+  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
   m_state = IPGenerated;
   return true;
@@ -417,8 +417,9 @@ bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
     const std::filesystem::path& synth_scrypt_path) {
   bool result = false;
-  auto path = std::filesystem::current_path();             // getting path
-  std::filesystem::current_path(path / m_projManager->projectName());  // setting path
+  auto path = std::filesystem::current_path();  // getting path
+  std::filesystem::current_path(path /
+                                m_projManager->projectName());  // setting path
   std::string output = m_projManager->projectName() + "_post_synth.blif";
   time_t time_netlist = Mtime(output);
   if (time_netlist == -1) {
@@ -481,8 +482,9 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Synthesize() {
-  if (m_projManager->getProjectName().isEmpty() && !CreateDesign("noname")) return false;
-  (*m_out) << "Synthesizing design: " << m_projManager->getProjectName() << "..." << std::endl;
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
+           << std::endl;
 
   std::string yosysScript = InitSynthesisScript();
 
@@ -620,24 +622,28 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(m_projManager->projectName() + "_post_synth.blif"));
-  yosysScript = ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
-                           std::string(m_projManager->projectName() + "_post_synth.v"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
+                 std::string(m_projManager->projectName() + "_post_synth.v"));
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
   std::string script_path = m_projManager->projectName() + ".ys";
   if (!DesignChanged(yosysScript, script_path)) {
-    (*m_out) << "Design didn't change: " << m_projManager->getProjectName()
+    (*m_out) << "Design didn't change: " << m_projManager->projectName()
              << ", skipping synthesis." << std::endl;
     return true;
   }
-  std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
-                          std::string(m_projManager->projectName() + "_post_synth.blif"));
-  std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
-                          std::string(m_projManager->projectName() + "_post_synth.v"));
+  std::filesystem::remove(
+      std::filesystem::path(m_projManager->projectName()) /
+      std::string(m_projManager->projectName() + "_post_synth.blif"));
+  std::filesystem::remove(
+      std::filesystem::path(m_projManager->projectName()) /
+      std::string(m_projManager->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path).string();
+      (std::filesystem::path(m_projManager->projectName()) / script_path)
+          .string();
   std::ofstream ofs(script_path);
   ofs << yosysScript;
   ofs.close();
@@ -645,17 +651,19 @@ bool CompilerOpenFPGA::Synthesize() {
     ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
     return false;
   }
-  std::string command = m_yosysExecutablePath.string() + " -s " +
-                        std::string(m_projManager->projectName() + ".ys -l " +
-                                    m_projManager->projectName() + "_synth.log");
+  std::string command =
+      m_yosysExecutablePath.string() + " -s " +
+      std::string(m_projManager->projectName() + ".ys -l " +
+                  m_projManager->projectName() + "_synth.log");
   (*m_out) << "Synthesis command: " << command << std::endl;
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " synthesis failed!");
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " synthesis failed!");
     return false;
   } else {
     m_state = State::Synthesized;
-    (*m_out) << "Design " << m_projManager->getProjectName() << " is synthesized!"
+    (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
              << std::endl;
     return true;
   }
@@ -719,7 +727,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 }
 
 bool CompilerOpenFPGA::Packing() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -727,9 +735,10 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-  const std::string sdcOut = (std::filesystem::path(m_projManager->projectName()) /
-                              std::string(m_projManager->projectName() + "_openfpga.sdc"))
-                                 .string();
+  const std::string sdcOut =
+      (std::filesystem::path(m_projManager->projectName()) /
+       std::string(m_projManager->projectName() + "_openfpga.sdc"))
+          .string();
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
@@ -771,13 +780,14 @@ bool CompilerOpenFPGA::Packing() {
     return false;
   }
   m_state = State::Packed;
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is packed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
+           << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA::GlobalPlacement() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -786,17 +796,17 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_projManager->getProjectName() << "..."
-           << std::endl;
+  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
+           << "..." << std::endl;
   // TODO:
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is globally placed!"
-           << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName()
+           << " is globally placed!" << std::endl;
   return true;
 }
 
 bool CompilerOpenFPGA::Placement() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -805,7 +815,7 @@ bool CompilerOpenFPGA::Placement() {
     ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
   }
-  (*m_out) << "Placement for design: " << m_projManager->getProjectName() << "..."
+  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
@@ -819,17 +829,19 @@ bool CompilerOpenFPGA::Placement() {
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " placement failed!");
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " placement failed!");
     return false;
   }
   m_state = State::Placed;
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is placed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
+           << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA::Route() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -837,7 +849,8 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Design needs to be in placed state");
     return false;
   }
-  (*m_out) << "Routing for design: " << m_projManager->getProjectName() << "..." << std::endl;
+  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
+           << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -854,18 +867,20 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   m_state = State::Routed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
+           << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
 
-  (*m_out) << "Analysis for design: " << m_projManager->getProjectName() << "..." << std::endl;
+  (*m_out) << "Analysis for design: " << m_projManager->projectName() << "..."
+           << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -879,23 +894,25 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " timing analysis failed!");
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " timing analysis failed!");
     return false;
   }
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is timing analysed!"
-           << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName()
+           << " is timing analysed!" << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
 
-  (*m_out) << "Analysis for design: " << m_projManager->getProjectName() << "..." << std::endl;
+  (*m_out) << "Analysis for design: " << m_projManager->projectName() << "..."
+           << std::endl;
   std::string command = BaseVprCommand() + " --analysis";
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
@@ -903,11 +920,12 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " power analysis failed!");
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " power analysis failed!");
     return false;
   }
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is power analysed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is power analysed!"
            << std::endl;
   return true;
 }
@@ -1003,7 +1021,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1011,12 +1029,12 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("Design needs to be in routed state");
     return false;
   }
-  (*m_out) << "Bitstream generation for design: " << m_projManager->getProjectName() << "..."
-           << std::endl;
+  (*m_out) << "Bitstream generation for design: "
+           << m_projManager->projectName() << "..." << std::endl;
 
   if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
-    (*m_out) << "Design " << m_projManager->getProjectName() << " bitstream is generated!"
-             << std::endl;
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " bitstream is generated!" << std::endl;
     return true;
   }
   // This is WIP, have to force it to execute (bitstream force)
@@ -1036,7 +1054,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                           std::string("fabric_independent_bitstream.xml"));
   // Create OpenFpga command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path).string();
+      (std::filesystem::path(m_projManager->projectName()) / script_path)
+          .string();
   std::ofstream sofs(script_path);
   sofs << script;
   sofs.close();
@@ -1046,19 +1065,21 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
 
-  std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
-                     std::string(m_projManager->projectName() + "_bitstream.cmd"))
-                        .string());
+  std::ofstream ofs(
+      (std::filesystem::path(m_projManager->projectName()) /
+       std::string(m_projManager->projectName() + "_bitstream.cmd"))
+          .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " bitream generation failed!");
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " bitream generation failed!");
     return false;
   }
   m_state = State::BistreamGenerated;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " bitstream is generated!"
-           << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName()
+           << " bitstream is generated!" << std::endl;
   return true;
 }

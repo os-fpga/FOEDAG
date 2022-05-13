@@ -7,7 +7,6 @@
 #include <QTime>
 #include <QXmlStreamWriter>
 #include <filesystem>
-#include <QDebug>
 
 using namespace FOEDAG;
 
@@ -318,6 +317,8 @@ QString ProjectManager::getProjectPath() const {
 std::string ProjectManager::projectPath() const {
   return getProjectPath().toStdString();
 }
+
+bool ProjectManager::HasDesign() const { return !getProjectName().isEmpty(); }
 
 int ProjectManager::setProjectType(const QString& strType) {
   int ret = 0;
@@ -1643,13 +1644,10 @@ int ProjectManager::CreateVerilogFile(QString strFile) {
 }
 
 int ProjectManager::CreateSystemVerilogFile(QString strFile) {
-  qDebug() << __PRETTY_FUNCTION__ << strFile << QDir::currentPath();
   int ret = 0;
   QFile file(strFile);
-  qDebug() << file.exists();
   if (file.exists()) return ret;
   if (!file.open(QFile::WriteOnly | QFile::Text)) {
-    qDebug() << "fail to open" << file.errorString();
     return -1;
   }
   file.close();
@@ -1717,7 +1715,6 @@ int ProjectManager::CreateVHDLFile(QString strFile) {
 }
 
 int ProjectManager::CreateSDCFile(QString strFile) {
-  qDebug() << __PRETTY_FUNCTION__ << strFile;
   int ret = 0;
   QFile file(strFile);
   if (file.exists()) return ret;
@@ -1730,14 +1727,12 @@ int ProjectManager::CreateSDCFile(QString strFile) {
 
 int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
                                              bool isFileCopy) {
-  qDebug() << strFileName;
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
     return -1;
   }
-  qDebug() << isFileCopy;
 
   QFileInfo fileInfo(strFileName);
   QString fname = fileInfo.fileName();
@@ -1797,30 +1792,31 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
   return true;
 }
 
-const std::vector<std::string> &ProjectManager::libraryPathList() const {
+const std::vector<std::string>& ProjectManager::libraryPathList() const {
   return m_libraryPathList;
 }
 
-void ProjectManager::setLibraryPathList(const std::vector<std::string> &newLibraryPathList) {
+void ProjectManager::setLibraryPathList(
+    const std::vector<std::string>& newLibraryPathList) {
   m_libraryPathList = newLibraryPathList;
 }
 
-void ProjectManager::addLibraryPath(const std::string &libraryPath) {
+void ProjectManager::addLibraryPath(const std::string& libraryPath) {
   m_libraryPathList.push_back(libraryPath);
 }
 
-void ProjectManager::addMacro(const std::string &macroName,
-                              const std::string &macroValue) {
+void ProjectManager::addMacro(const std::string& macroName,
+                              const std::string& macroValue) {
   m_macroList.push_back(std::pair(macroName, macroValue));
 }
 
-const std::vector<std::pair<std::string, std::string> > &ProjectManager::macroList()
-    const {
+const std::vector<std::pair<std::string, std::string>>&
+ProjectManager::macroList() const {
   return m_macroList;
 }
 
-void ProjectManager::setDesignFileData(const std::string &file, int data) {
-  setCurrentFileSet(getDesignActiveFileSet()); // TODO, remove after #342
+void ProjectManager::setDesignFileData(const std::string& file, int data) {
+  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -1829,8 +1825,8 @@ void ProjectManager::setDesignFileData(const std::string &file, int data) {
   proFileSet->addFileData(file.c_str(), data);
 }
 
-int ProjectManager::designFileData(const std::string &file) {
-  setCurrentFileSet(getDesignActiveFileSet()); // TODO, remove after #342
+int ProjectManager::designFileData(const std::string& file) {
+  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -1839,15 +1835,16 @@ int ProjectManager::designFileData(const std::string &file) {
   return proFileSet->fileData(file.c_str());
 }
 
-const std::vector<std::string> &ProjectManager::includePathList() const {
+const std::vector<std::string>& ProjectManager::includePathList() const {
   return m_includePathList;
 }
 
-void ProjectManager::setIncludePathList(const std::vector<std::string> &newIncludePathList) {
+void ProjectManager::setIncludePathList(
+    const std::vector<std::string>& newIncludePathList) {
   m_includePathList = newIncludePathList;
 }
 
-void ProjectManager::addIncludePath(const std::string &includePath) {
+void ProjectManager::addIncludePath(const std::string& includePath) {
   m_includePathList.push_back(includePath);
 }
 
@@ -1864,6 +1861,6 @@ void ProjectManager::setCurrentFileSet(const QString& currentFileSet) {
 }
 
 std::ostream& operator<<(std::ostream& out, const QString& text) {
-  out << text.toLatin1().constData();
+  out << text.toStdString();
   return out;
 }

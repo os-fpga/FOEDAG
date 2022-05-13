@@ -34,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QProcess>
-#include <QDir>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
@@ -252,36 +251,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("create_design", create_design, this, 0);
 
-  // TODO: no GUI functionality for this
-  //  auto set_active_design = [](void* clientData, Tcl_Interp* interp, int
-  //  argc,
-  //                              const char* argv[]) -> int {
-  //    Compiler* compiler = (Compiler*)clientData;
-  //    std::string name = "noname";
-  //    if (argc != 2) {
-  //      compiler->ErrorMessage("Specify a design name");
-  //      return TCL_ERROR;
-  //    }
-  //    name = argv[1];
-  //    if (compiler->GetDesign(name)) {
-  //      compiler->SetActiveDesign(name);
-  //      if (compiler->m_tclCmdIntegration) {
-  //        std::ostringstream out;
-  //        bool ok = compiler->m_tclCmdIntegration->TclSetActive(argc, argv,
-  //        out); if (!ok) {
-  //          compiler->ErrorMessage(out.str());
-  //          return TCL_ERROR;
-  //        }
-  //      }
-  //    } else {
-  //      compiler->ErrorMessage(std::string(std::string("Design ") + name +
-  //                                         std::string(" does not exist\n")));
-  //      return TCL_ERROR;
-  //    }
-  //    return TCL_OK;
-  //  };
-  //  interp->registerCmd("set_active_design", set_active_design, this, 0);
-
   auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -290,8 +259,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -310,8 +278,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -336,7 +303,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       actualType = "SV_2017";
     }
     std::string fileList;
-    std::string guiFileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
       if (type == "-VHDL_1987") {
@@ -389,10 +355,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           expandedFile = fullPath.string();
         }
         std::filesystem::path the_path = expandedFile;
-        guiFileList += expandedFile + " ";
         if (!the_path.is_absolute()) {
           expandedFile =
-              std::filesystem::path(compiler->m_projManager->projectPath() / std::filesystem::path("..") / expandedFile)
+              std::filesystem::path(compiler->m_projManager->projectPath() /
+                                    std::filesystem::path("..") / expandedFile)
                   .string();
         }
         fileList += expandedFile + " ";
@@ -403,11 +369,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       std::string("\n"));
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-//      auto curr = QDir::currentPath();
-//      QDir::setCurrent(compiler->m_projManager->getProjectPath());
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
           fileList.c_str(), language, out);
-//      QDir::setCurrent(curr);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -420,8 +383,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -482,8 +444,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -510,8 +471,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_tclCmdIntegration->GetProjectManager()->addIncludePath(
-          expandedFile.c_str());
+      compiler->m_projManager->addIncludePath(expandedFile);
     }
     return TCL_OK;
   };
@@ -520,8 +480,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_library_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -548,8 +507,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_tclCmdIntegration->GetProjectManager()->addLibraryPath(
-          expandedFile.c_str());
+      compiler->m_projManager->addLibraryPath(expandedFile);
     }
     return TCL_OK;
   };
@@ -558,8 +516,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto set_macro = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -569,11 +526,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       const size_t loc = arg.find('=');
       if (loc == std::string::npos) {
         const std::string def = arg.substr(2);
-        proj->addMacro(def.c_str(), "");
+        proj->addMacro(def, "");
       } else {
         const std::string def = arg.substr(0, loc);
         const std::string value = arg.substr(loc + 1);
-        proj->addMacro(def.c_str(), value.c_str());
+        proj->addMacro(def, value);
       }
     }
     return TCL_OK;
@@ -583,8 +540,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -609,22 +565,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
-    if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(std::filesystem::path(std::filesystem::path("..") / expandedFile))
-              .string();
-    }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
 
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-//      auto curr = QDir::currentPath();
-//      QDir::setCurrent(compiler->m_projManager->getProjectPath());
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateConstrFiles(
-          the_path.string().c_str(), out);
-//      QDir::setCurrent(curr);
+          expandedFile.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -638,8 +586,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    auto design = compiler->m_tclCmdIntegration->getActiveDesign();
-    if (design.isEmpty()) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -949,10 +896,9 @@ void Compiler::Stop() {
 }
 
 bool Compiler::Synthesize() {
-  if (m_projManager->getProjectName().isEmpty() && !CreateDesign("noname"))
-    return false;
-  (*m_out) << "Synthesizing design: " << m_projManager->getProjectName()
-           << "..." << std::endl;
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
+           << std::endl;
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
   }
@@ -974,13 +920,13 @@ bool Compiler::Synthesize() {
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is synthesized!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
            << std::endl;
   return true;
 }
 
 bool Compiler::GlobalPlacement() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -988,7 +934,7 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_projManager->getProjectName()
+  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
            << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
@@ -997,7 +943,7 @@ bool Compiler::GlobalPlacement() {
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->getProjectName()
+  (*m_out) << "Design " << m_projManager->projectName()
            << " is globally placed!" << std::endl;
   return true;
 }
@@ -1085,94 +1031,93 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 }
 
 bool Compiler::IPGenerate() {
-  if (m_projManager->getProjectName().isEmpty() && !CreateDesign("noname"))
-    return false;
-  (*m_out) << "IP generation for design: " << m_projManager->getProjectName()
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName()
-           << " IPs are generated!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
+           << std::endl;
   m_state = IPGenerated;
   return true;
 }
 
 bool Compiler::Packing() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Packing for design: " << m_projManager->getProjectName() << "..."
+  (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is packed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
   m_state = Packed;
   return true;
 }
 
 bool Compiler::Placement() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Placement for design: " << m_projManager->getProjectName()
-           << "..." << std::endl;
+  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
+           << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is placed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
            << std::endl;
   m_state = Placed;
   return true;
 }
 
 bool Compiler::Route() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Routing for design: " << m_projManager->getProjectName() << "..."
+  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is routed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
            << std::endl;
   m_state = Routed;
   return true;
 }
 
 bool Compiler::TimingAnalysis() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->getProjectName()
+  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
            << std::endl;
   return true;
 }
 
 bool Compiler::PowerAnalysis() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->getProjectName()
+  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
            << std::endl;
   return true;
 }
 
 bool Compiler::GenerateBitstream() {
-  if (m_projManager->getProjectName().isEmpty()) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
   (*m_out) << "Bitstream generation for design: "
-           << m_projManager->getProjectName() << "..." << std::endl;
+           << m_projManager->projectName() << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->getProjectName()
+  (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated!" << std::endl;
   return true;
 }
@@ -1210,11 +1155,10 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
-  std::filesystem::current_path(
-      path / m_projManager->projectName());  // setting path
+  std::filesystem::current_path(path /
+                                m_projManager->projectName());  // setting path
   (*m_out) << "Changed path to: "
-           << (path / m_projManager->projectName()).string()
-           << std::endl;
+           << (path / m_projManager->projectName()).string() << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
