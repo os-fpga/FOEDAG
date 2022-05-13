@@ -725,6 +725,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "force") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::Force);
+        } else {
+          compiler->ErrorMessage("Unknown bitstream option: " + arg);
+        }
+      }
       return compiler->Compile(Bitstream) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
@@ -839,6 +847,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto bitstream = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "force") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::Force);
+        } else {
+          compiler->ErrorMessage("Unknown bitstream option: " + arg);
+        }
+      }
       WorkerThread* wthread =
           new WorkerThread("bitstream_th", Action::Bitstream, compiler);
       wthread->start();

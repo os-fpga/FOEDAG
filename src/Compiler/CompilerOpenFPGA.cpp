@@ -70,11 +70,24 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   architecture <file>        : Uses the architecture file"
+  (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
+         << std::endl;
+  (*out) << "                                Uses the architecture file and "
+            "optional openfpga arch file (For bitstream generation)"
+         << std::endl;
+  (*out) << "   bitstream_config_files <bitstream_setting.xml> "
+            "?<sim_setting.xml>? ?<repack_setting.xml>? :"
+         << std::endl;
+  (*out) << "                              : Uses alternate bitstream "
+            "generation configuration files"
          << std::endl;
   (*out) << "   set_device_size XxY        : Device fabric size selection"
          << std::endl;
   (*out) << "   custom_synth_script <file> : Uses a custom Yosys templatized "
+            "script"
+         << std::endl;
+  (*out) << "   custom_openfpga_script <file> : Uses a custom OpenFPGA "
+            "templatized "
             "script"
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
@@ -95,7 +108,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
-  (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
+  (*out) << "                                Constraints: set_pin_loc, "
+            "set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
@@ -104,14 +118,14 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
             "delay, mixed, none)"
          << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   packing" << std::endl;
-  (*out) << "   global_placement" << std::endl;
-  (*out) << "   place" << std::endl;
-  (*out) << "   route" << std::endl;
-  (*out) << "   sta" << std::endl;
-  (*out) << "   power" << std::endl;
-  (*out) << "   bitstream" << std::endl;
-  (*out) << "   tcl_exit" << std::endl;
+  (*out) << "   packing                    : Packing" << std::endl;
+  (*out) << "   global_placement           : Analytical placer" << std::endl;
+  (*out) << "   place                      : Detailed placer" << std::endl;
+  (*out) << "   route                      : Router" << std::endl;
+  (*out) << "   sta                        : Statistical Timing Analysis"
+         << std::endl;
+  (*out) << "   power                      : Power estimator" << std::endl;
+  (*out) << "   bitstreamm                 : Bitstream generation" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -167,8 +181,112 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
                                      int argc, const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
     std::string name;
-    if (argc != 2) {
+    if (argc < 2) {
       compiler->ErrorMessage("Specify an architecture file");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      std::string expandedFile = argv[i];
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(argv[i]);
+        expandedFile = fullPath.string();
+      }
+
+      std::ifstream stream(expandedFile);
+      if (!stream.good()) {
+        compiler->ErrorMessage("Cannot find architecture file: " +
+                               std::string(expandedFile));
+        return TCL_ERROR;
+      }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        expandedFile =
+            std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                .string();
+      }
+      stream.close();
+      if (i == 1) {
+        compiler->ArchitectureFile(expandedFile);
+        compiler->Message("VPR Architecture file: " + expandedFile);
+      } else {
+        compiler->OpenFpgaArchitectureFile(expandedFile);
+        compiler->Message("OpenFPGA Architecture file: " + expandedFile);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("architecture", select_architecture_file, this, 0);
+
+  auto set_bitstream_config_files = [](void* clientData, Tcl_Interp* interp,
+                                       int argc, const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc < 2) {
+      compiler->ErrorMessage("Specify a bitstream config file");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      std::string expandedFile = argv[i];
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(argv[i]);
+        expandedFile = fullPath.string();
+      }
+
+      std::ifstream stream(expandedFile);
+      if (!stream.good()) {
+        compiler->ErrorMessage("Cannot find bitstream config file: " +
+                               std::string(expandedFile));
+        return TCL_ERROR;
+      }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        expandedFile =
+            std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                .string();
+      }
+      stream.close();
+      if (i == 1) {
+        compiler->OpenFpgaBitstreamSettingFile(expandedFile);
+        compiler->Message("OpenFPGA Bitstream Setting file: " + expandedFile);
+      } else if (i == 2) {
+        compiler->OpenFpgaSimSettingFile(expandedFile);
+        compiler->Message("OpenFPGA Simulation Setting file: " + expandedFile);
+      } else if (i == 3) {
+        compiler->OpenFpgaRepackConstraintsFile(expandedFile);
+        compiler->Message("OpenFPGA Repack Constraint file: " + expandedFile);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("bitstream_config_files", set_bitstream_config_files,
+                      this, 0);
+
+  auto custom_openfpga_script = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify an OpenFPGA script");
       return TCL_ERROR;
     }
 
@@ -187,25 +305,20 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       fullPath.append(argv[1]);
       expandedFile = fullPath.string();
     }
-
     std::ifstream stream(expandedFile);
     if (!stream.good()) {
-      compiler->ErrorMessage("Cannot find architecture file: " +
+      compiler->ErrorMessage("Cannot find OpenFPGA script: " +
                              std::string(expandedFile));
       return TCL_ERROR;
     }
-    std::filesystem::path the_path = expandedFile;
-    if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(std::filesystem::path("..") / expandedFile)
-              .string();
-    }
+    std::string script((std::istreambuf_iterator<char>(stream)),
+                       std::istreambuf_iterator<char>());
     stream.close();
-    compiler->ArchitectureFile(expandedFile);
-    compiler->Message("Architecture file: " + expandedFile);
+    compiler->OpenFPGAScript(script);
     return TCL_OK;
   };
-  interp->registerCmd("architecture", select_architecture_file, this, 0);
+  interp->registerCmd("custom_openfpga_script", custom_openfpga_script, this,
+                      0);
 
   auto custom_synth_script = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
@@ -590,7 +703,8 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
     }
   }
 
-  std::string pnrOptions = " " + PnROpt() + " ";
+  std::string pnrOptions;
+  if (!PnROpt().empty()) pnrOptions = " " + PnROpt();
 
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
@@ -633,10 +747,6 @@ bool CompilerOpenFPGA::Packing() {
         constraint += tok + " ";
       }
     }
-    // VPR Does not understand collections commands:
-    constraint = ReplaceAll(constraint, "[get_ports", "");
-    constraint = ReplaceAll(constraint, "[get_nets", "");
-    constraint = ReplaceAll(constraint, "]", "");
 
     // pin location constraints have to be translated to .place:
     if (constraint.find("set_pin_loc") != std::string::npos) {
@@ -895,17 +1005,19 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  // if (m_state != State::Routed) {
-  //   ErrorMessage("Design needs to be in routed state");
-  //   return false;
-  // }
+  if (m_state != State::Routed) {
+    ErrorMessage("Design needs to be in routed state");
+    return false;
+  }
   (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
            << std::endl;
 
-  // This is WIP
-  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
-           << std::endl;
-  return true;
+  if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
+    (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
+             << std::endl;
+    return true;
+  }
+  // This is WIP, have to force it to execute (bitstream force)
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
                         m_design->Name() + ".openfpga";
