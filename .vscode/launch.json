@@ -101,6 +101,25 @@
             ]
         },
         {
+            "name": "(gdb) SDC test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/dbuild/bin/foedag",
+            "args": ["--compiler", "openfpga", "--script", "tests/Testcases/oneff/oneff.tcl", "--batch", "--verific"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Bitstream test",
             "type": "cppdbg",
             "request": "launch",

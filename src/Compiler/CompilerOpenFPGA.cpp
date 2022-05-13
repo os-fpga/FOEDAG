@@ -747,10 +747,6 @@ bool CompilerOpenFPGA::Packing() {
         constraint += tok + " ";
       }
     }
-    // VPR Does not understand collections commands:
-    constraint = ReplaceAll(constraint, "[get_ports", "");
-    constraint = ReplaceAll(constraint, "[get_nets", "");
-    constraint = ReplaceAll(constraint, "]", "");
 
     // pin location constraints have to be translated to .place:
     if (constraint.find("set_pin_loc") != std::string::npos) {
