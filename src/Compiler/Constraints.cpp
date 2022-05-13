@@ -216,6 +216,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     int status = Tcl_Eval(interp, text.c_str());
     if (status) {
       Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
+      return TCL_ERROR;
     }
     return TCL_OK;
   };
