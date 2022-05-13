@@ -109,11 +109,6 @@ void RunsForm::SlotMakeActive() {
     UpdateDesignRunsTree();
     m_projManager->FinishedProject();
   }
-  if (m_session) {
-    std::string name = strRunName.toStdString();
-    Design *ds = new Design(name);
-    m_session->GetCompiler()->SetDesign(ds);
-  }
 }
 
 void RunsForm::SlotLaunchRuns() {
