@@ -705,9 +705,16 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
     switch (m_projManager->designFileData(lang_file)) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
-      case Design::Language::EBLIF:
+      case Design::Language::EBLIF: {
         netlistFile = lang_file;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+            std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                .string();
+        }
         break;
+      }
       default:
         break;
     }
