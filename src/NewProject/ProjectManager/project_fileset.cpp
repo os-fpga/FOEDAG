@@ -59,3 +59,11 @@ void ProjectFileSet::setRelSrcDir(const QString &relSrcDir) {
 QMap<QString, QString> ProjectFileSet::getMapFiles() const {
   return m_mapFiles;
 }
+
+void ProjectFileSet::addFileData(const QString &file, int data) {
+  m_fileData.insert(file, data);
+}
+
+int ProjectFileSet::fileData(const QString &file) const {
+  return m_fileData.value(file, -1);
+}

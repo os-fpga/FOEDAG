@@ -46,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
 #include "MainWindow/Session.h"
+#include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 
@@ -250,34 +251,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("create_design", create_design, this, 0);
 
-  auto set_active_design = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    std::string name = "noname";
-    if (argc != 2) {
-      compiler->ErrorMessage("Specify a design name");
-      return TCL_ERROR;
-    }
-    name = argv[1];
-    if (compiler->GetDesign(name)) {
-      compiler->SetActiveDesign(name);
-      if (compiler->m_tclCmdIntegration) {
-        std::ostringstream out;
-        bool ok = compiler->m_tclCmdIntegration->TclSetActive(argc, argv, out);
-        if (!ok) {
-          compiler->ErrorMessage(out.str());
-          return TCL_ERROR;
-        }
-      }
-    } else {
-      compiler->ErrorMessage(std::string(std::string("Design ") + name +
-                                         std::string(" does not exist\n")));
-      return TCL_ERROR;
-    }
-    return TCL_OK;
-  };
-  interp->registerCmd("set_active_design", set_active_design, this, 0);
-
   auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -286,8 +259,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
-    Design* design = compiler->GetActiveDesign();
-    if (design == nullptr) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -299,7 +271,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     }
-    design->SetTopLevel(argv[1]);
     return TCL_OK;
   };
   interp->registerCmd("set_top_module", set_top_module, this, 0);
@@ -307,8 +278,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
-    if (design == nullptr) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -332,7 +302,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
-    std::string origPathFileList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
@@ -386,10 +355,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           expandedFile = fullPath.string();
         }
         std::filesystem::path the_path = expandedFile;
-        origPathFileList += expandedFile + " ";
         if (!the_path.is_absolute()) {
           expandedFile =
-              std::filesystem::path(std::filesystem::path("..") / expandedFile)
+              std::filesystem::path(compiler->m_projManager->projectPath() /
+                                    std::filesystem::path("..") / expandedFile)
                   .string();
         }
         fileList += expandedFile + " ";
@@ -398,11 +367,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     compiler->Message(std::string("Adding ") + actualType + " " + fileList +
                       std::string("\n"));
-    design->AddFile(language, fileList);
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
-          origPathFileList.c_str(), out);
+          fileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -415,8 +383,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
-    if (design == nullptr) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -461,11 +428,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
-    design->AddFile(language, expandedFile);
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
-          origPathFileList.c_str(), out);
+          origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -478,7 +444,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
+    if (!compiler->m_projManager->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     for (int i = 1; i < argc; i++) {
       std::string file = argv[i];
       std::string expandedFile = file;
@@ -502,7 +471,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      design->AddIncludePath(expandedFile);
+      compiler->m_projManager->addIncludePath(expandedFile);
     }
     return TCL_OK;
   };
@@ -511,7 +480,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_library_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
+    if (!compiler->m_projManager->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     for (int i = 1; i < argc; i++) {
       std::string file = argv[i];
       std::string expandedFile = file;
@@ -535,7 +507,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      design->AddLibraryPath(expandedFile);
+      compiler->m_projManager->addLibraryPath(expandedFile);
     }
     return TCL_OK;
   };
@@ -544,47 +516,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto set_macro = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
+    if (!compiler->m_projManager->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    ProjectManager* proj = compiler->m_tclCmdIntegration->GetProjectManager();
     for (int i = 1; i < argc; i++) {
       const std::string arg = argv[i];
       const size_t loc = arg.find('=');
       if (loc == std::string::npos) {
         const std::string def = arg.substr(2);
-        design->AddMacro(def, "");
+        proj->addMacro(def, "");
       } else {
         const std::string def = arg.substr(0, loc);
         const std::string value = arg.substr(loc + 1);
-        design->AddMacro(def, value);
+        proj->addMacro(def, value);
       }
     }
     return TCL_OK;
   };
   interp->registerCmd("set_macro", set_macro, this, nullptr);
 
-  auto set_as_target = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    if (argc != 3) {
-      compiler->ErrorMessage("Usage: set_as_target ?type? ?target name?");
-      return TCL_ERROR;
-    }
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclSetAsTarget(argc, argv, out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
-    }
-    return TCL_OK;
-  };
-  interp->registerCmd("set_as_target", set_as_target, this, nullptr);
-
   auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
-    if (design == nullptr) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -611,9 +567,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path the_path = expandedFile;
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
-    design->AddConstraintFile(expandedFile);
-    Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
-
+    int status =
+        Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
+    if (status) {
+      return TCL_ERROR;
+    }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateConstrFiles(
@@ -631,8 +589,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    Design* design = compiler->GetActiveDesign();
-    if (design == nullptr) {
+    if (!compiler->m_projManager->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -941,11 +898,10 @@ void Compiler::Stop() {
   if (m_process) m_process->terminate();
 }
 
-Design* Compiler::GetActiveDesign() const { return m_design; }
-
 bool Compiler::Synthesize() {
-  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
-  (*m_out) << "Synthesizing design: " << m_design->Name() << "..." << std::endl;
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
+           << std::endl;
   for (auto constraint : m_constraints->getConstraints()) {
     (*m_out) << "Constraint: " << constraint << "\n";
   }
@@ -967,12 +923,13 @@ bool Compiler::Synthesize() {
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_design->Name() << " is synthesized!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
+           << std::endl;
   return true;
 }
 
 bool Compiler::GlobalPlacement() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -980,8 +937,8 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_design->Name() << "..."
-           << std::endl;
+  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
+           << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
     std::chrono::milliseconds dura(1000);
@@ -989,8 +946,8 @@ bool Compiler::GlobalPlacement() {
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_design->Name() << " is globally placed!"
-           << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName()
+           << " is globally placed!" << std::endl;
   return true;
 }
 
@@ -1072,139 +1029,116 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
 
 void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   m_tclCmdIntegration = tclCommands;
+  if (m_tclCmdIntegration)
+    m_projManager = m_tclCmdIntegration->GetProjectManager();
 }
 
 bool Compiler::IPGenerate() {
-  if ((m_design == nullptr) && !CreateDesign("noname")) return false;
-  (*m_out) << "IP generation for design: " << m_design->Name() << "..."
-           << std::endl;
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "IP generation for design: " << m_projManager->projectName()
+           << "..." << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " IPs are generated!"
+  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
   m_state = IPGenerated;
   return true;
 }
 
 bool Compiler::Packing() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Packing for design: " << m_design->Name() << "..." << std::endl;
+  (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
+           << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " is packed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
+           << std::endl;
   m_state = Packed;
   return true;
 }
 
 bool Compiler::Placement() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Placement for design: " << m_design->Name() << "..."
+  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " is placed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
+           << std::endl;
   m_state = Placed;
   return true;
 }
 
 bool Compiler::Route() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Routing for design: " << m_design->Name() << "..." << std::endl;
+  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
+           << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " is routed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
+           << std::endl;
   m_state = Routed;
   return true;
 }
 
 bool Compiler::TimingAnalysis() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
-           << std::endl;
+  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
+           << "..." << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " is analyzed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+           << std::endl;
   return true;
 }
 
 bool Compiler::PowerAnalysis() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_design->Name() << "..."
-           << std::endl;
+  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
+           << "..." << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " is analyzed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+           << std::endl;
   return true;
 }
 
 bool Compiler::GenerateBitstream() {
-  if (m_design == nullptr) {
+  if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Bitstream generation for design: " << m_design->Name() << "..."
-           << std::endl;
+  (*m_out) << "Bitstream generation for design: "
+           << m_projManager->projectName() << "..." << std::endl;
 
-  (*m_out) << "Design " << m_design->Name() << " bitstream is generated!"
-           << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName()
+           << " bitstream is generated!" << std::endl;
   return true;
 }
 
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
-    std::ostringstream out;
-    bool ok{true};
-    if (m_tclCmdIntegration->getActiveDesign().isEmpty()) {
-      ok = m_tclCmdIntegration->TclCreateProject(name.c_str(), out);
-    } else {
-      ok = m_tclCmdIntegration->TclCreateFileSet(name.c_str(), out);
+    if (!m_tclCmdIntegration->getActiveDesign().isEmpty()) {
+      ErrorMessage("Design already exists");
+      return false;
     }
+
+    std::ostringstream out;
+    bool ok = m_tclCmdIntegration->TclCreateProject(name.c_str(), out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
+    Message(std::string("Created design: ") + name + std::string("\n"));
   }
-  if (GetDesign(name)) {
-    ErrorMessage("Design already exists");
-    return false;
-  }
-
-  Design* design = new Design(name);
-  design->setConstraints(getConstraints());
-  SetDesign(design);
-  Message(std::string("Created design: ") + name + std::string("\n"));
   return true;
-}
-
-bool Compiler::SetActiveDesign(const std::string& name) {
-  for (Design* design : m_designs) {
-    if (design->Name() == name) {
-      m_design = design;
-      return true;
-    }
-  }
-  return false;
-}
-
-Design* Compiler::GetDesign(const std::string name) {
-  for (Design* design : m_designs) {
-    if (design->Name() == name) {
-      return design;
-    }
-  }
-  return nullptr;
-}
-
-void Compiler::SetDesign(Design* design) {
-  m_design = design;
-  m_designs.push_back(design);
 }
 
 bool Compiler::ExecuteSystemCommand(const std::string& command) {
@@ -1224,9 +1158,10 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
-  std::filesystem::current_path(path / m_design->Name());  // setting path
-  (*m_out) << "Changed path to: " << (path / m_design->Name()).string()
-           << std::endl;
+  std::filesystem::current_path(path /
+                                m_projManager->projectName());  // setting path
+  (*m_out) << "Changed path to: "
+           << (path / m_projManager->projectName()).string() << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
