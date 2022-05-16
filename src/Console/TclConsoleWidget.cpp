@@ -40,6 +40,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   setTabAllowed(false);
   setMouseTracking(true);
   setObjectName(consoleObjectName());
+  setLineWrapMode(QTextEdit::NoWrap);
 }
 
 bool TclConsoleWidget::isRunning() const {
