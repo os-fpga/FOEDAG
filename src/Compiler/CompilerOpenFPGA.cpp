@@ -76,8 +76,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Uses the architecture file and "
             "optional openfpga arch file (For bitstream generation)"
          << std::endl;
-  (*out) << "   bitstream_config_files <bitstream_setting.xml> "
-            "?<sim_setting.xml>? ?<repack_setting.xml>? :"
+  (*out) << "   bitstream_config_files -bitstream <bitstream_setting.xml> "
+            "-sim <sim_setting.xml> -repack <repack_setting.xml>"
          << std::endl;
   (*out) << "                              : Uses alternate bitstream "
             "generation configuration files"
@@ -237,6 +237,20 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      std::string fileType;
+      if (arg == "-bitstream") {
+        fileType = "bitstream";
+      } else if (arg == "-sim") {
+        fileType = "sim";
+      } else if (arg == "-repack") {
+        fileType = "repack";
+      } else {
+        compiler->ErrorMessage(
+            "Not a legal option for bitstream_config_files: " + arg);
+        return TCL_ERROR;
+      }
+      i++;
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
       if (compiler->FileExists(expandedFile)) {
@@ -266,13 +280,13 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
                 .string();
       }
       stream.close();
-      if (i == 1) {
+      if (fileType == "bitstream") {
         compiler->OpenFpgaBitstreamSettingFile(expandedFile);
         compiler->Message("OpenFPGA Bitstream Setting file: " + expandedFile);
-      } else if (i == 2) {
+      } else if (fileType == "sim") {
         compiler->OpenFpgaSimSettingFile(expandedFile);
         compiler->Message("OpenFPGA Simulation Setting file: " + expandedFile);
-      } else if (i == 3) {
+      } else if (fileType == "repack") {
         compiler->OpenFpgaRepackConstraintsFile(expandedFile);
         compiler->Message("OpenFPGA Repack Constraint file: " + expandedFile);
       }
@@ -968,7 +982,7 @@ build_fabric --compress_routing --duplicate_grid_pin
 # Strongly recommend it is done after all the fix-up have been applied
 repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
-#build_architecture_bitstream --write_file fabric_independent_bitstream.xml
+build_architecture_bitstream --write_file fabric_independent_bitstream.xml
 
 build_fabric_bitstream
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
