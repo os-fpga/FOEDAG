@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QJsonObject>
 #include <QJsonValue>
 
-#include "../third_party/nlohmann_json/json.hpp"
+#include "nlohmann_json/json.hpp"
 // Per https://json.nlohmann.me/features/object_order/
 // Json order is undefined in the JSON standard. As such, the developer is given
 // the option to use alphabetically sorted json w/ nlohmann::json or insertion
