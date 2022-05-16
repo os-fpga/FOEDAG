@@ -21,15 +21,75 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
-#include "Foedag.h"
+#include <QDebug>
+#include <QJsonArray>
+
+#include "Settings.h"
 #include "WidgetFactory.h"
 
 using namespace FOEDAG;
 
-QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
-  // Get widget parameters from json settings
-  json& widgetsJson =
-      GlobalSession->GetSettings()->getJson()["Tasks"][taskName.toStdString()];
+void FOEDAG::getTasks(Settings* settings) {
+  QJsonValue tasksVal = settings->getNested("Settings.Tasks", ".");
+  if (tasksVal.isObject()) {
+    qDebug() << "\nReading tasks w/ Settings::getNested(\"Settings.Tasks\"):";
 
-  return createSettingsDialog(widgetsJson, "Edit " + taskName + " Settings");
+    // Step through Tasks
+    // Convert value to object and step through object keys
+    QJsonObject tasksObj = tasksVal.toObject();
+    for (const QString& taskName : tasksObj.keys()) {
+      qDebug() << "\tTask: " << taskName;
+
+      // Get task object values
+      QJsonValue taskVal = tasksObj.value(taskName);
+      if (taskVal.isArray()) {
+        // Step through task settings
+        for (QJsonValue setting : taskVal.toArray()) {
+          if (setting.isObject()) {
+            QJsonObject metaObj = setting.toObject();
+            // Step through widget settings for current setting
+            for (const QString& metaKey : metaObj.keys()) {
+              qDebug() << "\t\t" << metaKey << "->" << metaObj.value(metaKey);
+            }
+          }
+          qDebug() << "\n";
+        }
+      }
+    }
+  }
+}
+
+QWidget* FOEDAG::createTaskWidgets(Settings* settings) {
+  QWidget* widget = new QWidget();
+  widget->setObjectName("tasksWidget");
+  QVBoxLayout* VLayout = new QVBoxLayout();
+  widget->setLayout(VLayout);
+
+  // load some fake data
+  QString filepath = "/usr/local/share/foedag/etc/settings/settings_test.json";
+  settings->loadJsonFile(filepath, "Settings");
+
+  QJsonValue tasksVal = settings->getNested("Settings.Tasks", ".");
+  if (tasksVal.isObject()) {
+    // Step through Tasks
+    // Convert value to object and step through object keys
+    QJsonObject tasksObj = tasksVal.toObject();
+    for (const QString& taskName : tasksObj.keys()) {
+      // Get task object values
+      QJsonValue taskVal = tasksObj.value(taskName);
+      if (taskVal.isArray()) {
+        // Step through task settings
+        for (QJsonValue setting : taskVal.toArray()) {
+          if (setting.isObject()) {
+            QJsonObject metaObj = setting.toObject();
+
+            QWidget* subWidget = FOEDAG::createWidget(metaObj);
+            VLayout->addWidget(subWidget);
+          }
+        }
+      }
+    }
+  }
+
+  return widget;
 }
