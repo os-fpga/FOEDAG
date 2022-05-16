@@ -1165,18 +1165,16 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
-  QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
-    QString stdout_ = m_process->readAllStandardOutput();
-    if (!stdout_.isEmpty() && m_out) {
-      (*m_out) << stdout_.toStdString();
-    }
-  });
-  QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
-    QString stderr_ = m_process->readAllStandardError();
-    if (!stderr_.isEmpty() && m_err) {
-      (*m_err) << stderr_.toStdString();
-    }
-  });
+  if (m_out)
+    QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
+      m_out->write(m_process->readAllStandardOutput(),
+                   m_process->bytesAvailable());
+    });
+  if (m_err)
+    QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
+      m_err->write(m_process->readAllStandardError(),
+                   m_process->bytesAvailable());
+    });
 
   QString cmd{command.c_str()};
   QStringList args = cmd.split(" ");
