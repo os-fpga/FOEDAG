@@ -44,7 +44,6 @@ class Settings {
 
  public:
   Settings();
-  virtual void loadSettings();
   void loadSettings(const QStringList& jsonFiles);
   QString getJsonStr(const json& object);
   QString getJsonStr();

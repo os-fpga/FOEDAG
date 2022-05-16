@@ -26,14 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-Settings::Settings() { loadSettings(); }
-
-void Settings::loadSettings() {
-  QStringList jsonFiles{
-      "/usr/local/share/foedag/etc/settings/settings_test.json",
-  };
-  loadSettings(jsonFiles);
-}
+Settings::Settings() {}
 
 void Settings::loadSettings(const QStringList& jsonFiles) {
   for (const QString& filepath : jsonFiles) {
