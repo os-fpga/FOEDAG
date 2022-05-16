@@ -45,7 +45,6 @@ extern "C" {
 #include "Foedag.h"
 #include "Main/Settings.h"
 #include "Main/Tasks.h"
-#include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
@@ -214,6 +213,7 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("help", help, 0, 0);
 }
 
+#include <QDebug>
 void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
   // Used in "make test_install"
   auto hello = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -231,29 +231,81 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       registerNewProjectCommands(win->NewProjectDialog(), session);
     }
+    // Temp command to demo Settings prototype
+    if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
+      auto DemoSettingsFn = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+        FOEDAG::Settings* settings = GlobalSession->GetSettings();
+        qDebug() << "Storing version number under \"Version\"";
+        settings->setValue("Version", 0.1);
 
+        qDebug() << "Example setting nested json";
+        QJsonObject nested{{"nested", "test"}};
+        QJsonObject val3{
+            {"a", "1"}, {"b", 2}, {"c", 3.3}, {"nestTest", nested}};
+        settings->setValue("testing", val3);
+        fprintf(stderr, "Json: %s\n", qPrintable(settings->getJsonStr()));
+
+        QJsonObject nested2{{"nested", "test-replace"}};
+        QJsonObject val4{
+            {"a", "1_2"}, {"b", 6}, {"c", 8.8}, {"nestTest", nested2}};
+        settings->updateJson("testing", val4);
+        settings->updateJson("empty", val4);
+
+        QJsonObject user{{"user_value", 3.5}};
+        settings->updateJson("empty", user);
+        fprintf(stderr, "Json: %s\n", qPrintable(settings->getJsonStr()));
+
+        // QString filepath =
+        // "./dbuild/share/foedag/etc/settings/settings_test.json"; QString
+        // filepath = "./build/share/foedag/etc/settings/settings_test.json";
+        QString filepath =
+            "/usr/local/share/foedag/etc/settings/settings_test.json";
+        qDebug() << "Load " << filepath
+                 << " into \"Settings\" - "
+                    "settings->loadJsonFile(\""
+                 << filepath
+                 << "\", "
+                    "\"Settings\")";
+        settings->loadJsonFile(filepath, "Settings");
+        fprintf(stderr, "Settings JSON after loadJsonFile(): %s\n",
+                qPrintable(settings->getJsonStr()));
+
+        qDebug() << "\nGet Test - settings->get(\"Version\");";
+        qDebug() << "\t" << settings->get("Version");
+
+        qDebug() << "\nGetNested Test - "
+                    "settings->getNested(\"Settings.Tasks.Synth\", \".\");";
+        qDebug() << "\t" << settings->getNested("Settings.Tasks.Synth", ".");
+
+        // Try reading some data
+        FOEDAG::getTasks(settings);
+
+        return TCL_OK;
+      };
+
+      session->TclInterp()->registerCmd("DemoSettings", DemoSettingsFn, 0, 0);
+    }
+    // Temp command to demo Settings prototype
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       auto DemoWidgetsFn = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-        FOEDAG::createTaskDialog("Placement")->show();
+        // create a temp dialog to show the widgets
+        QDialog* dlg = new QDialog();
+        dlg->setAttribute(Qt::WA_DeleteOnClose);
+        QVBoxLayout* layout = new QVBoxLayout();
+        dlg->setLayout(layout);
+
+        // Generate tasks widget example
+        QWidget* tasks =
+            FOEDAG::createTaskWidgets(GlobalSession->GetSettings());
+        layout->addWidget(tasks);
+        dlg->show();
+
         return TCL_OK;
       };
-      session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
 
-      auto EditTaskSettingsFn = [](void* clientData, Tcl_Interp* interp,
-                                   int argc, const char* argv[]) -> int {
-        if (argc == 2) {
-          FOEDAG::createTaskDialog(argv[1])->show();
-          return TCL_OK;
-        } else {
-          Tcl_AppendResult(
-              interp, qPrintable("Expected Syntax: EditTaskSettings TaskName"),
-              nullptr);
-          return TCL_ERROR;
-        }
-      };
-      session->TclInterp()->registerCmd("EditTaskSettings", EditTaskSettingsFn,
-                                        0, 0);
+      session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
     }
   }
 }
