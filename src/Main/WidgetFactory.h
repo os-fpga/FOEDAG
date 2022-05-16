@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtWidgets>
 
-#include "nlohmann_json/json.hpp"
+#include "../third_party/nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
