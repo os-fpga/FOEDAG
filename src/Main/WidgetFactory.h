@@ -22,13 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef WIDGET_FACTORY_H
 #define WIDGET_FACTORY_H
 
-#include <QJsonObject>
 #include <QtWidgets>
+
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
-QWidget* createWidget(const QJsonObject& widgetJsonObj);
-QWidget* createWidget(const QString& widgetJsonStr);
+QDialog* createSettingsDialog(json& widgetsJson, const QString& dialogTitle,
+                              const QString& objectNamePrefix = "");
+QWidget* createSettingsWidget(json& widgetsJson,
+                              const QString& objNamePrefix = "");
+
+QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "");
+QWidget* createWidget(const QString& widgetJsonStr,
+                      const QString& objName = "");
 QWidget* createLabelWidget(const QString& label, QWidget* widget);
 QComboBox* createComboBox(const QString& objectName, const QStringList& options,
                           const QString& selectedValue = "");
