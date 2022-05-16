@@ -145,8 +145,6 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
                                     std::string("share") + separator +
                                     m_context->ExecutableName();
     m_context->DataPath(dataDir);
-    //m_settings->loadSettings(
-    //    {"/usr/local/share/foedag/etc/settings/settings_test.json"});
   }
 }
 

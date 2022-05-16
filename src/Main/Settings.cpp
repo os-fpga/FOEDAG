@@ -1,66 +1,144 @@
-/*
-Copyright 2022 The Foedag team
-
-GPL License
-
-Copyright (c) 2022 The Open-Source FPGA Foundation
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "Settings.h"
 
+#include <QDebug>
 #include <QFile>
-#include <iostream>
+#include <QJsonArray>
+#include <QJsonDocument>
+
+#include "stdio.h"
 
 using namespace FOEDAG;
 
 Settings::Settings() {}
 
-void Settings::loadSettings(const QStringList& jsonFiles) {
-  for (const QString& filepath : jsonFiles) {
-    loadJsonFile(filepath);
+void Settings::setValue(QJsonObject& parent, const QString& key,
+                        const QJsonValue& value) {
+  parent.insert(key, value);
+}
+
+void Settings::setValue(const QString& key, const QJsonValue& value) {
+  setValue(m_data, key, value);
+}
+
+void Settings::setString(const QString& key, const QString& string) {
+  QJsonValue value = QJsonValue(string);
+  setValue(key, value);
+}
+
+void Settings::updateJson(const QString& key, QJsonObject& newJson) {
+  updateJson(m_data, key, newJson);
+}
+
+void Settings::updateJson(QJsonObject& parent, const QString& key,
+                          QJsonObject& newJson) {
+  QJsonValue val = parent.value(key);
+
+  // Change this value to an object if it isn't one already
+  // Whatever the former value was will be lost
+  if (!val.isObject()) {
+    setValue(parent, key, QJsonObject{});
   }
+
+  // Qt currently returns a value instead of a reference when calling toObject,
+  // as such we can't updated nested JSON objects and will have to manually set
+  // the new values after they are updated.
+  // https://stackoverflow.com/a/29361151
+  QJsonObject parentObj =
+      parent.value(key).toObject();  // toObject call should be superfluous from
+                                     // previous line
+
+  // Step through each new key
+  for (const QString& newKey : newJson.keys()) {
+    QJsonValue val = parentObj.value(newKey);
+    if (!val.isObject()) {
+      QJsonValue newVal = newJson.value(newKey);
+      if (newVal.isObject()) {
+        QJsonObject obj = newVal.toObject();
+        updateJson(parentObj, newKey, obj);
+      } else {
+        setValue(parentObj, newKey, newVal);
+      }
+    } else {
+      // add QJsonObject recursion
+      QJsonObject tempObj = newJson.value(newKey).toObject();
+      updateJson(parentObj, newKey, tempObj);
+      ;
+    }
+  }
+
+  // Manually update json
+  parent.insert(key, parentObj);
 }
 
-QString Settings::getJsonStr(const json& object) {
-  return QString::fromStdString(object.dump());
+QJsonValue Settings::get(QJsonObject& parent, const QString& key) {
+  return parent.value(key);
 }
 
-QString Settings::getJsonStr() { return getJsonStr(m_json); }
+QJsonValue Settings::get(const QString& key) { return m_data.value(key); }
 
-void Settings::loadJsonFile(const QString& filePath) {
-  loadJsonFile(&m_json, filePath);
+QJsonValue Settings::getNested(QJsonObject& parent, const QString& keyPath,
+                               const QString& pathSeparator) {
+  QStringList keys = keyPath.split(pathSeparator);
+  QJsonObject tempObj = parent;
+
+  QJsonValue prevVal = QJsonValue();
+  for (QString key : keys) {
+    QJsonValue val = tempObj.value(key);
+    if (!prevVal.isNull() && prevVal.isArray()) {
+      QJsonArray array = prevVal.toArray();
+      for (QJsonValue tempVal : array) {
+        if (tempVal.toObject().contains(key)) {
+          // sma might not need to check before grabbing?
+          val = tempVal.toObject().value(key);
+        }
+      }
+    } else if (val.isArray()) {
+      // If this is an array, do nothing this for this loop and wait until we
+      // read the next key
+    } else {
+      // convert the value back to an object for the next key read
+      tempObj = tempObj.value(key).toObject();
+    }
+
+    // update our previous value in case we are working with an array
+    prevVal = val;
+  }
+
+  return prevVal;
 }
 
-void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
+QJsonValue Settings::getNested(const QString& keyPath,
+                               const QString& pathSeparator) {
+  return getNested(m_data, keyPath, pathSeparator);
+}
+
+QString Settings::getJsonStr(const QJsonObject& object) {
+  QJsonDocument jsonDoc(object);
+
+  return QString(jsonDoc.toJson(QJsonDocument::Indented));
+}
+
+QString Settings::getJsonStr() { return getJsonStr(m_data); }
+
+void Settings::loadJsonFile(const QString& filePath, const QString& key) {
+  loadJsonFile(m_data, filePath, key);
+}
+
+void Settings::loadJsonFile(QJsonObject& parent, const QString& filePath,
+                            const QString& key) {
   QFile jsonFile;
   jsonFile.setFileName(filePath);
   if (jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    // Read/parse json from file and update the passed jsonObject w/ new vals
+    // Read JSON from file
     QString jsonStr = jsonFile.readAll();
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonStr.toUtf8());
+    QJsonObject jsonObj = jsonDoc.object();
+    jsonFile.close();
 
-    try {
-      jsonObject->update(json::parse(jsonStr.toStdString()));
-    } catch (json::parse_error& e) {
-      // output exception information
-      std::cerr << "Json Error: " << e.what() << '\n'
-                << "filePath: " << filePath.toStdString() << "\n"
-                << "byte position of error: " << e.byte << std::endl;
-    }
+    // Add this JSON object to the parent object under key
+    updateJson(parent, key, jsonObj);
   } else {
-    std::cerr << "ERROR - Settings::loadJsonFile - Failed to read \""
-              << filePath.toStdString() << "\"\n";
+    // SMA add proper error message
+    qDebug() << "\n\n\n FILE READ ERROR: " << filePath << "\n\n\n";
   }
 }
