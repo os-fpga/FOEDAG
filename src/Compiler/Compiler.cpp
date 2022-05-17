@@ -568,7 +568,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     int status =
-        Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
+        Tcl_Eval(interp, std::string("read_sdc {" + expandedFile + "}").c_str());
     if (status) {
       return TCL_ERROR;
     }
