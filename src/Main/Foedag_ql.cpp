@@ -52,6 +52,7 @@ extern "C" {
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/config.h"
+#include "ProjNavigator/tcl_command_integration.h"
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
@@ -339,6 +340,8 @@ bool Foedag::initBatch() {
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
+  m_compiler->setGuiTclSync(
+      new TclCommandIntegration{new ProjectManager, nullptr});
 
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {
