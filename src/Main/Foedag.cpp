@@ -158,6 +158,16 @@ bool Foedag::initGui() {
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
 
+  // Load Settings Json
+  const std::string separator(1, std::filesystem::path::preferred_separator);
+  std::string settingsPath = Config::Instance()->dataPath().string() +
+                             separator + std::string("etc") + separator +
+                             std::string("settings") + separator;
+  QString testSettingsFile =
+      QString::fromStdString(settingsPath) + "settings_test.json";
+  QStringList settingsFiles = {testSettingsFile};
+  m_settings->loadSettings(settingsFiles);
+
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
                                       m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
