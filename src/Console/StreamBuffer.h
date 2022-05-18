@@ -37,13 +37,10 @@ class StreamBuffer : public QObject, public std::streambuf {
 
  protected:
   int overflow(int c) override;
-  int uflow() override;
-  int underflow() override;
+  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
 
  private:
-  int m_last;
   std::ostream m_stream;
-  QString m_buffer;
 };
 
 }  // namespace FOEDAG

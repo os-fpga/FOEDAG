@@ -27,7 +27,7 @@ int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
                      int *errorCodePtr) {
   Q_UNUSED(errorCodePtr)
   TclWorker *worker = static_cast<TclWorker *>(instanceData);
-  worker->setOutput(buf);
+  worker->out().write(buf, toWrite);
   return toWrite;
 }
 
@@ -35,7 +35,7 @@ int DriverErrorProc(ClientData instanceData, const char *buf, int toWrite,
                     int *errorCodePtr) {
   Q_UNUSED(errorCodePtr)
   TclWorker *worker = static_cast<TclWorker *>(instanceData);
-  worker->setError(buf);
+  worker->err()->write(buf, toWrite);
   return toWrite;
 }
 
