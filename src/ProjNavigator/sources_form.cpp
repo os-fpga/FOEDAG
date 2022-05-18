@@ -1,5 +1,7 @@
 #include "sources_form.h"
 
+#include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
@@ -453,12 +455,14 @@ void SourcesForm::CreateActions() {
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
-  if (nullptr == m_projManager) {
-    return;
-  }
-
+  if (nullptr == m_projManager) return;
   m_treeSrcHierachy->clear();
+  CreateFolderHierachyTree();
+  m_treeSrcHierachy->setHeaderHidden(true);
+  m_treeSrcHierachy->expandAll();
+}
 
+void SourcesForm::CreateFolderHierachyTree() {
   // Initialize design sources tree
   QTreeWidgetItem *topItem = new QTreeWidgetItem(m_treeSrcHierachy);
   const QString topItemName = m_projManager->getProjectName().isEmpty()
@@ -471,39 +475,40 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemDS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_TOP_ITEM);
 
   QStringList listDesFset = m_projManager->getDesignFileSets();
-  QString strDesAct = m_projManager->getDesignActiveFileSet();
   int iFileSum = 0;
-  foreach (auto str, listDesFset) {
-    QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemDS);
-    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
-    itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_SET_ITEM);
-
+  for (auto &str : listDesFset) {
     QStringList listDesFile = m_projManager->getDesignFiles(str);
     QString strTop = m_projManager->getDesignTopModule(str);
 
-    foreach (auto strfile, listDesFile) {
-      QString filename =
-          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-      QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      QString module = filename.left(filename.lastIndexOf("."));
-      if (module == strTop) {
-        itemf->setText(0, filename + SRC_TREE_FLG_TOP);
-      } else {
-        itemf->setText(0, filename);
+    for (auto &strfile : listDesFile) {
+      QString filePath = strfile.left(strfile.lastIndexOf("/") + 1);
+      QTreeWidgetItem *parentItem{nullptr};
+      if (filePath.startsWith(PROJECT_OSRCDIR)) {  // inner project files
+        filePath.remove(PROJECT_OSRCDIR);
+        filePath = StripPath(filePath);
+        parentItem = CreateFolderHierachyTree(topitemDS, filePath);
+      } else {  // external project
+        filePath = StripPath(filePath);
+        parentItem = ChildByText(topitemDS, filePath);
+        if (!parentItem)
+          parentItem = CreateParentFolderItem(topitemDS, filePath);
       }
-      itemf->setIcon(0, QIcon(":/img/file.png"));
-      itemf->setData(0, Qt::UserRole, strfile);
-      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
+      if (parentItem) {
+        QString filename =
+            strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
+        QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+        QString module = filename.left(filename.lastIndexOf("."));
+        if (module == strTop) {
+          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
+        } else {
+          itemf->setText(0, filename);
+        }
+        itemf->setData(0, Qt::UserRole, strfile);
+        itemf->setIcon(0, QIcon(":/img/file.png"));
+        itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
+      }
     }
-
-    QString strNum = QString("(%1)").arg(listDesFile.size());
     iFileSum += listDesFile.size();
-    if (str == strDesAct) {
-      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str + strNum);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
   }
   topitemDS->setText(0, tr("Design Sources") + QString("(%1)").arg(iFileSum));
 
@@ -513,38 +518,38 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemCS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_TOP_ITEM);
 
   QStringList listConstrFset = m_projManager->getConstrFileSets();
-  QString strConstrAct = m_projManager->getConstrActiveFileSet();
   iFileSum = 0;
-  foreach (auto str, listConstrFset) {
-    QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemCS);
-    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
-    itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_SET_ITEM);
-
+  for (auto &str : listConstrFset) {
     QStringList listConstrFile = m_projManager->getConstrFiles(str);
     QString strTarget = m_projManager->getConstrTargetFile(str);
-
-    foreach (auto strfile, listConstrFile) {
-      QString filename =
-          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-      QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      if (filename == strTarget) {
-        itemf->setText(0, filename + SRC_TREE_FLG_TARGET);
-      } else {
-        itemf->setText(0, filename);
+    for (auto &strfile : listConstrFile) {
+      QTreeWidgetItem *parentItem{nullptr};
+      QString filePath = strfile.left(strfile.lastIndexOf("/") + 1);
+      if (filePath.startsWith(PROJECT_OSRCDIR)) {  // inner files
+        filePath.remove(PROJECT_OSRCDIR);
+        filePath = StripPath(filePath);
+        parentItem = CreateFolderHierachyTree(topitemCS, filePath);
+      } else {  // external files
+        filePath = StripPath(filePath);
+        parentItem = ChildByText(topitemCS, filePath);
+        if (!parentItem)
+          parentItem = CreateParentFolderItem(topitemCS, filePath);
       }
-      itemf->setData(0, Qt::UserRole, strfile);
-      itemf->setIcon(0, QIcon(":/img/file.png"));
-      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
+      if (parentItem) {
+        QString filename =
+            strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
+        QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+        if (filename == strTarget) {
+          itemf->setText(0, filename + SRC_TREE_FLG_TARGET);
+        } else {
+          itemf->setText(0, filename);
+        }
+        itemf->setData(0, Qt::UserRole, strfile);
+        itemf->setIcon(0, QIcon(":/img/file.png"));
+        itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
+      }
     }
-
-    QString strNum = QString("(%1)").arg(listConstrFile.size());
     iFileSum += listConstrFile.size();
-    if (str == strConstrAct) {
-      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str + strNum);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
   }
   topitemCS->setText(0, tr("Constraints") + QString("(%1)").arg(iFileSum));
 
@@ -554,43 +559,89 @@ void SourcesForm::UpdateSrcHierachyTree() {
   topitemSS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_TOP_ITEM);
 
   QStringList listSimFset = m_projManager->getSimulationFileSets();
-  QString strSimAct = m_projManager->getSimulationActiveFileSet();
   iFileSum = 0;
   foreach (auto str, listSimFset) {
-    QTreeWidgetItem *itemfolder = new QTreeWidgetItem(topitemSS);
-    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
-    itemfolder->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_SET_ITEM);
-
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
     QString strTop = m_projManager->getSimulationTopModule(str);
 
-    foreach (auto strfile, listSimFile) {
-      QString filename =
-          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-      QTreeWidgetItem *itemf = new QTreeWidgetItem(itemfolder);
-      QString module = filename.left(filename.lastIndexOf("."));
-      if (module == strTop) {
-        itemf->setText(0, filename + SRC_TREE_FLG_TOP);
+    for (auto &strfile : listSimFile) {
+      QTreeWidgetItem *parentItem{nullptr};
+      QString filePath = strfile.left(strfile.lastIndexOf("/") + 1);
+      if (filePath.startsWith(PROJECT_OSRCDIR)) {
+        filePath.remove(PROJECT_OSRCDIR);
+        filePath = StripPath(filePath);
+        parentItem = CreateFolderHierachyTree(topitemSS, filePath);
       } else {
-        itemf->setText(0, filename);
+        filePath = StripPath(filePath);
+        parentItem = ChildByText(topitemSS, filePath);
+        if (!parentItem)
+          parentItem = CreateParentFolderItem(topitemSS, filePath);
       }
-      itemf->setData(0, Qt::UserRole, strfile);
-      itemf->setIcon(0, QIcon(":/img/file.png"));
-      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
+      if (parentItem) {
+        QString filename =
+            strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
+        QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+        QString module = filename.left(filename.lastIndexOf("."));
+        if (module == strTop) {
+          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
+        } else {
+          itemf->setText(0, filename);
+        }
+        itemf->setData(0, Qt::UserRole, strfile);
+        itemf->setIcon(0, QIcon(":/img/file.png"));
+        itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
+      }
     }
-
-    QString strNum = QString("(%1)").arg(listSimFile.size());
     iFileSum += listSimFile.size();
-    if (str == strSimAct) {
-      itemfolder->setText(0, str + strNum + SRC_TREE_FLG_ACTIVE);
-    } else {
-      itemfolder->setText(0, str + strNum);
-    }
-    itemfolder->setData(0, Qt::UserRole, str);
   }
   topitemSS->setText(0,
                      tr("Simulation Sources") + QString("(%1)").arg(iFileSum));
+}
 
-  m_treeSrcHierachy->setHeaderHidden(true);
-  m_treeSrcHierachy->expandAll();
+QTreeWidgetItem *SourcesForm::CreateFolderHierachyTree(QTreeWidgetItem *topItem,
+                                                       const QString &path) {
+  if (path.isEmpty()) return nullptr;
+
+  int index = path.indexOf(QDir::separator());
+  if (index == 0) {  // skip first sepertor
+    index = path.indexOf(QDir::separator(), 1);
+  }
+  QString folder = path.mid(0, index);
+  QTreeWidgetItem *itemfolder{ChildByText(topItem, folder)};
+  if (!itemfolder) {
+    itemfolder = new QTreeWidgetItem(topItem);
+    itemfolder->setIcon(0, QIcon(":/images/open-file.png"));
+    itemfolder->setText(0, folder);
+  }
+  if (index != -1)
+    return CreateFolderHierachyTree(itemfolder,
+                                    path.right(path.size() - index - 1));
+  return itemfolder;
+}
+
+QTreeWidgetItem *SourcesForm::CreateParentFolderItem(QTreeWidgetItem *parent,
+                                                     const QString &text) {
+  auto item = new QTreeWidgetItem(parent);
+  item->setIcon(0, QIcon(":/images/open-file.png"));
+  item->setText(0, text);
+  item->setToolTip(0, text);
+  return item;
+}
+
+QTreeWidgetItem *SourcesForm::ChildByText(QTreeWidgetItem *topItem,
+                                          const QString &text) {
+  QTreeWidgetItem *itemfolder{nullptr};
+  for (size_t i = 0; i < topItem->childCount(); i++) {
+    if (topItem->child(i)->text(0) == text) {
+      return topItem->child(i);
+    }
+  }
+  return nullptr;
+}
+
+QString SourcesForm::StripPath(const QString &path) {
+  QString p = path;
+  if (p.startsWith(QDir::separator())) p.remove(0, 1);
+  if (p.endsWith(QDir::separator())) p.remove(p.size() - 1, 1);
+  return p;
 }
