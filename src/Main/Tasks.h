@@ -24,13 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QWidget>
 
-#include "Main/Settings.h"
-
 namespace FOEDAG {
 
-void getTasks(Settings* settings);
-
-QWidget* createTaskWidgets(Settings* settings);
+QDialog* createTaskDialog(const QString& taskName);
 
 }  // namespace FOEDAG
 
