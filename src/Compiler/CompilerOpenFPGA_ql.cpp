@@ -39,6 +39,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/Constraints.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "MainWindow/main_window.h"
+#include "Main/WidgetFactory.h"
+#include <QWidget>
+#include <QVBoxLayout>
 
 using namespace FOEDAG;
 
@@ -409,6 +413,71 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("verific_parser", verific_parser, this, 0);
+
+  auto demovprsettings = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+                            
+  CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+
+  //std::string settings_json_filename = compiler->m_projManager->projectName() + ".json";
+  std::string settings_json_filename = "../counter_16bit.json";
+  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+  Settings * currentSettings = compiler->GetSession()->GetSettings();
+  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path), "Settings");
+
+
+  // create a temp dialog to show the widgets
+  QDialog* dlg = new QDialog();
+  dlg->setWindowTitle("VPR Settings");
+  dlg->setAttribute(Qt::WA_DeleteOnClose);
+  QVBoxLayout* layout = new QVBoxLayout();
+  dlg->setLayout(layout);
+
+  // settings
+  //  category
+  //    subcategory
+  //      param object, has "widgetType"= in the object, can be gui'ed.
+
+  // settings is a dialog
+  // inside the dialog HLAYOUT are : 1. listview 2. QStackedWidget
+  // listview has the list of all 'categories'
+  // on selecting a 'category', QStackedWidget switches to the appropriate stacked 'page', which is each a widget
+  // use a QTabWidget for each 'page', and each 'subcategory' is represented with a tab 'page'
+  // on each tab 'page' we have a widget that contains all the settings objects.
+ 
+  QWidget* tasks = new QWidget();
+  tasks->setObjectName("tasksWidget");
+  QVBoxLayout* VLayout = new QVBoxLayout();
+  tasks->setLayout(VLayout);
+
+  QJsonValue tasksVal = currentSettings->getNested("Settings.VPR", ".");
+  if (tasksVal.isObject()) {
+    // Step through Tasks
+    // Convert value to object and step through object keys
+    QJsonObject tasksObj = tasksVal.toObject();
+    for (const QString& taskName : tasksObj.keys()) {
+      // Get task object values
+      QJsonValue taskVal = tasksObj.value(taskName);
+      if (taskVal.isArray()) {
+        // Step through task settings
+        for (QJsonValue setting : taskVal.toArray()) {
+          if (setting.isObject()) {
+            QJsonObject metaObj = setting.toObject();
+
+            QWidget* subWidget = FOEDAG::createWidget(metaObj);
+            VLayout->addWidget(subWidget);
+          }
+        }
+      }
+    }
+  }
+
+  layout->addWidget(tasks);
+  dlg->show();
+
+  return TCL_OK;
+  };
+  GetSession()->TclInterp()->registerCmd("demovprsettings", demovprsettings, 0, 0);
 
   return true;
 }
