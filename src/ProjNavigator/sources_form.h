@@ -83,6 +83,14 @@ class SourcesForm : public QWidget {
 
   void CreateActions();
   void UpdateSrcHierachyTree();
+  void CreateFolderHierachyTree();
+  static QTreeWidgetItem* CreateFolderHierachyTree(QTreeWidgetItem* topItem,
+                                                   const QString& path);
+  static QTreeWidgetItem* CreateParentFolderItem(QTreeWidgetItem* parent,
+                                                 const QString& text);
+  static QTreeWidgetItem* ChildByText(QTreeWidgetItem* topItem,
+                                      const QString& text);
+  static QString StripPath(const QString& path);
 };
 }  // namespace FOEDAG
 
