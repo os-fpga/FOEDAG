@@ -93,8 +93,7 @@ void loadSettings(FOEDAG::Settings* settings) {
     std::string settingsPath = Config::Instance()->dataPath().string() +
                                separator + std::string("etc") + separator +
                                std::string("settings") + separator;
-    QString settingsDir =
-        QString::fromStdString(settingsPath);
+    QString settingsDir = QString::fromStdString(settingsPath);
 
     QStringList settingsFiles = {settingsDir + "settings_test.json"};
     settings->loadSettings(settingsFiles);

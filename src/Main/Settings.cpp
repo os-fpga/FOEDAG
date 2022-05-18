@@ -47,7 +47,8 @@ void Settings::loadJsonFile(const QString& filePath) {
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
   QFile jsonFile;
   jsonFile.setFileName(filePath);
-  if (jsonFile.exists() && jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+  if (jsonFile.exists() &&
+      jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     // Read/parse json from file and update the passed jsonObject w/ new vals
     QString jsonStr = jsonFile.readAll();
 
