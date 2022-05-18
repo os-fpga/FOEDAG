@@ -306,9 +306,19 @@ QString ProjectManager::getProjectName() const {
   return Project::Instance()->projectName();
 }
 
+std::string ProjectManager::projectName() const {
+  return Project::Instance()->projectName().toStdString();
+}
+
 QString ProjectManager::getProjectPath() const {
   return Project::Instance()->projectPath();
 }
+
+std::string ProjectManager::projectPath() const {
+  return getProjectPath().toStdString();
+}
+
+bool ProjectManager::HasDesign() const { return !getProjectName().isEmpty(); }
 
 int ProjectManager::setProjectType(const QString& strType) {
   int ret = 0;
@@ -634,6 +644,16 @@ QStringList ProjectManager::getDesignFiles(const QString& strFileSet) const {
   return strList;
 }
 
+QStringList ProjectManager::getDesignFiles() const {
+  return getDesignFiles(getDesignActiveFileSet());
+}
+
+std::vector<std::string> ProjectManager::DesignFiles() const {
+  std::vector<std::string> vec;
+  for (auto file : getDesignFiles()) vec.push_back(file.toStdString());
+  return vec;
+}
+
 QString ProjectManager::getDesignTopModule(const QString& strFileSet) const {
   QString strTopModule;
 
@@ -644,6 +664,14 @@ QString ProjectManager::getDesignTopModule(const QString& strFileSet) const {
     strTopModule = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP);
   }
   return strTopModule;
+}
+
+QString ProjectManager::getDesignTopModule() const {
+  return getDesignTopModule(getDesignActiveFileSet());
+}
+
+std::string ProjectManager::DesignTopModule() const {
+  return getDesignTopModule().toStdString();
 }
 
 int ProjectManager::setConstrFileSet(const QString& strSetName) {
@@ -1764,6 +1792,62 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
   return true;
 }
 
+const std::vector<std::string>& ProjectManager::libraryPathList() const {
+  return m_libraryPathList;
+}
+
+void ProjectManager::setLibraryPathList(
+    const std::vector<std::string>& newLibraryPathList) {
+  m_libraryPathList = newLibraryPathList;
+}
+
+void ProjectManager::addLibraryPath(const std::string& libraryPath) {
+  m_libraryPathList.push_back(libraryPath);
+}
+
+void ProjectManager::addMacro(const std::string& macroName,
+                              const std::string& macroValue) {
+  m_macroList.push_back(std::pair(macroName, macroValue));
+}
+
+const std::vector<std::pair<std::string, std::string>>&
+ProjectManager::macroList() const {
+  return m_macroList;
+}
+
+void ProjectManager::setDesignFileData(const std::string& file, int data) {
+  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return;
+  }
+  proFileSet->addFileData(file.c_str(), data);
+}
+
+int ProjectManager::designFileData(const std::string& file) {
+  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  return proFileSet->fileData(file.c_str());
+}
+
+const std::vector<std::string>& ProjectManager::includePathList() const {
+  return m_includePathList;
+}
+
+void ProjectManager::setIncludePathList(
+    const std::vector<std::string>& newIncludePathList) {
+  m_includePathList = newIncludePathList;
+}
+
+void ProjectManager::addIncludePath(const std::string& includePath) {
+  m_includePathList.push_back(includePath);
+}
+
 QString ProjectManager::getCurrentRun() const { return m_currentRun; }
 
 void ProjectManager::setCurrentRun(const QString& currentRun) {
@@ -1774,4 +1858,9 @@ QString ProjectManager::currentFileSet() const { return m_currentFileSet; }
 
 void ProjectManager::setCurrentFileSet(const QString& currentFileSet) {
   m_currentFileSet = currentFileSet;
+}
+
+std::ostream& operator<<(std::ostream& out, const QString& text) {
+  out << text.toStdString();
+  return out;
 }

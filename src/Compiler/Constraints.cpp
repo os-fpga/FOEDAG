@@ -78,9 +78,7 @@ static std::vector<std::string> constraint_procs = {
     "set_ideal_network", "set_ideal_transition", "set_input_delay",
     "set_port_delay", "set_max_delay", "set_path_delay", "set_max_time_borrow",
     "set_min_delay", "set_min_pulse_width", "set_multicycle_path",
-    "set_output_delay"
-    "set_propagated_clock"
-    "set_case_analysis",
+    "set_output_delay", "set_propagated_clock", "set_case_analysis",
     "set_drive", "set_driving_cell", "set_fanout_load", "set_input_transition",
     "set_load", "set_logic_dc", "set_logic_value", "set_logic_one",
     "set_logic_zero", "set_max_area", "set_max_capacitance",
@@ -116,14 +114,16 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto name_harvesting_sdc_command = [](void* clientData, Tcl_Interp* interp,
                                         int argc, const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    constraints->addConstraint(getConstraint(argc, argv));
+    const std::string constraint = getConstraint(argc, argv);
+    constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
-      if (arg == "-name" || arg == "-from" || arg == "-to" ||
+      if (arg == "-clock" || arg == "-name" || arg == "-from" || arg == "-to" ||
           arg == "-through" || arg == "-fall_to" || arg == "-rise_to" ||
           arg == "-rise_from" || arg == "-fall_from") {
         i++;
-        constraints->addKeep(argv[i]);
+        arg = argv[i];
+        if (arg != "{*}") constraints->addKeep(arg);
       }
     }
     return 0;
@@ -139,8 +139,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     returnVal += argv[0];
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
-      std::string tmp = replaceAll(arg, "{*}", "[*]");
-      constraints->addKeep(tmp);
+      std::string tmp = replaceAll(arg, "@*@", "{*}");
+      if (tmp != "{*}") constraints->addKeep(tmp);
       returnVal += " ";
       returnVal += tmp;
     }
@@ -163,7 +163,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       std::string arg = argv[i];
       if (arg == "-name") {
         i++;
-        constraints->addKeep(argv[i]);
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
       }
     }
     return 0;
@@ -179,7 +179,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       std::string arg = argv[i];
       if (arg == "-name") {
         i++;
-        constraints->addKeep(argv[i]);
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
       }
     }
     return 0;
@@ -210,9 +210,14 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       c = stream.get();
     }
     stream.close();
-    text = replaceAll(text, "[*]", "{*}");
+    text = replaceAll(text, "[*]", "@*@");
+    text = replaceAll(text, "{*}", "@*@");
     constraints->reset();
-    Tcl_Eval(interp, text.c_str());
+    int status = Tcl_Eval(interp, text.c_str());
+    if (status) {
+      Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
+      return TCL_ERROR;
+    }
     return TCL_OK;
   };
   interp->registerCmd("read_sdc", read_sdc, this, 0);

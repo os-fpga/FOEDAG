@@ -70,6 +70,8 @@ class Compiler {
     BistreamGenerated
   };
   enum SynthesisOpt { NoOpt, Area, Delay, Mixed };
+  enum BitstreamOpt { NoBitsOpt, Force };
+
   // Most common use case, create the compiler in your main
   Compiler() = default;
 
@@ -89,10 +91,6 @@ class Compiler {
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  Design* GetActiveDesign() const;
-  Design* GetDesign(const std::string name);
-  void SetDesign(Design* design);
-  bool SetActiveDesign(const std::string& name);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
@@ -113,6 +111,8 @@ class Compiler {
   void LutSize(uint32_t size) { m_lut_size = size; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+  BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
+  void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
@@ -148,7 +148,7 @@ class Compiler {
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
-  Design* m_design = nullptr;
+  class ProjectManager* m_projManager = nullptr;
   bool m_stop = false;
   State m_state = None;
   std::ostream* m_out = &std::cout;
@@ -157,13 +157,13 @@ class Compiler {
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   TaskManager* m_taskManager{nullptr};
-  std::vector<Design*> m_designs;
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
   SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
+  BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
