@@ -21,6 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "WidgetFactory.h"
 
+#include <QBoxLayout>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QLabel>
 #include <QMetaEnum>
 
 using namespace FOEDAG;

@@ -22,7 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef WIDGET_FACTORY_H
 #define WIDGET_FACTORY_H
 
-#include <QtWidgets>
+#include <QButtonGroup>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QLineEdit>
+#include <QRadioButton>
 
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
