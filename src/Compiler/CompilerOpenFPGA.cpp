@@ -115,8 +115,55 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
-            "delay, mixed, none)"
+  (*out) << "   synthesize <options>       : Synthesize the RTL design with "
+            "optional synthesis options"
+         << std::endl;
+  (*out) << "                              : The following defaults exist:"
+         << std::endl;
+  (*out) << "                              : -optimization mixed"
+         << std::endl;
+  (*out) << "                              : -effort high"
+         << std::endl;
+  (*out) << "                              : -fsm_encoding binary if "
+            "optimization == area else onehot"
+         << std::endl;
+  (*out) << "                              : -carry no_const"
+         << std::endl;
+  (*out) << "     -optimization <opt_goal> : Optimization goal:"
+         << std::endl;
+  (*out) << "       area                   : minimize resource utilization"
+         << std::endl;
+  (*out) << "       delay                  : expect better frequencies in "
+            "general without respect to specific clock domains"
+         << std::endl;
+  (*out) << "       mixed                  : good compromise between 'area'"
+            " and 'delay'"
+         << std::endl;
+  (*out) << "     -effort <level>          : Optimization effort level (high,"
+            " medium, low)"
+         << std::endl;
+  (*out) << "     -fsm_encoding <encoding> : FSM encoding:"
+         << std::endl;
+  (*out) << "       binary                 : compact encoding - using minimum "
+            "of registers to cover the N states"
+         << std::endl;
+  (*out) << "       onehot                 : one hot encoding - using N "
+            "registers for N states"
+         << std::endl;
+  (*out) << "     -carry <mode>            : Carry logic inference mode:"
+         << std::endl;
+  (*out) << "       all                    : infer as much as possible"
+         << std::endl;
+  (*out) << "       no_const               : infer carries only with non "
+            "constant inputs"
+         << std::endl;
+  (*out) << "       none                   : do not infer carries"
+         << std::endl;
+  (*out) << "     -no_dsp                  : Do not use DSP blocks to "
+            "implement multipliers and associated logic"
+         << std::endl;
+  (*out) << "     -no_bram                 : Do not use Block RAM to "
+            "implement memory components"
          << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   packing                    : Packing" << std::endl;
@@ -423,7 +470,7 @@ bool CompilerOpenFPGA::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 

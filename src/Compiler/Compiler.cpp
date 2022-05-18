@@ -98,8 +98,55 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
-            "delay, mixed, none)"
+  (*out) << "   synthesize <options>       : Synthesize the RTL design with "
+            "optional synthesis options"
+         << std::endl;
+  (*out) << "                              : The following defaults exist:"
+         << std::endl;
+  (*out) << "                              : -optimization mixed"
+         << std::endl;
+  (*out) << "                              : -effort high"
+         << std::endl;
+  (*out) << "                              : -fsm_encoding binary if "
+            "optimization == area else onehot"
+         << std::endl;
+  (*out) << "                              : -carry no_const"
+         << std::endl;
+  (*out) << "     -optimization <opt_goal> : Optimization goal:"
+         << std::endl;
+  (*out) << "       area                   : minimize resource utilization"
+         << std::endl;
+  (*out) << "       delay                  : expect better frequencies in "
+            "general without respect to specific clock domains"
+         << std::endl;
+  (*out) << "       mixed                  : good compromise between 'area'"
+            " and 'delay'"
+         << std::endl;
+  (*out) << "     -effort <level>          : Optimization effort level (high,"
+            " medium, low)"
+         << std::endl;
+  (*out) << "     -fsm_encoding <encoding> : FSM encoding:"
+         << std::endl;
+  (*out) << "       binary                 : compact encoding - using minimum "
+            "of registers to cover the N states"
+         << std::endl;
+  (*out) << "       onehot                 : one hot encoding - using N "
+            "registers for N states"
+         << std::endl;
+  (*out) << "     -carry <mode>            : Carry logic inference mode:"
+         << std::endl;
+  (*out) << "       all                    : infer as much as possible"
+         << std::endl;
+  (*out) << "       no_const               : infer carries only with non "
+            "constant inputs"
+         << std::endl;
+  (*out) << "       none                   : do not infer carries"
+         << std::endl;
+  (*out) << "     -no_dsp                  : Do not use DSP blocks to "
+            "implement multipliers and associated logic"
+         << std::endl;
+  (*out) << "     -no_bram                 : Do not use Block RAM to "
+            "implement memory components"
          << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing" << std::endl;
@@ -607,30 +654,77 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(IPGen) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::IPGen) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "mixed") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
-        } else if (arg == "area") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
-        } else if (arg == "delay") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
-        } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
-        } else {
-          compiler->ErrorMessage("Unknown optimization option: " + arg);
+        if (argv[i] == "-optimization" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "mixed") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+          } else if (arg == "area") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+          } else if (arg == "delay") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+          } else {
+            compiler->ErrorMessage("Unknown optimization option: " + arg);
+          }
+          continue;
         }
+        if (argv[i] == "-fsm_encoding" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "binary") {
+            compiler->SynthFsm(Compiler::SynthesisFsmEncoding::Binary);
+          } else if (arg == "onehot") {
+            compiler->SynthFsm(Compiler::SynthesisFsmEncoding::Onehot);
+          } else {
+            compiler->ErrorMessage("Unknown fsm encoding option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-effort" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "high") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::High);
+          } else if (arg == "medium") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::Medium);
+          } else if (arg == "low") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::Low);
+          } else {
+            compiler->ErrorMessage("Unknown effort option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-carry" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "none") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::NoCarry);
+          } else if (arg == "no_const") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::NoConst);
+          } else if (arg == "all") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::All);
+          } else {
+            compiler->ErrorMessage("Unknown carry inference option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-no_dsp") {
+          compiler->SynthNoDsp(true);
+          continue;
+        }
+        if (argv[i] == "-no_bram") {
+          compiler->SynthNoBram(true);
+          continue;
+        }
+        break;
       }
-      return compiler->Compile(Synthesis) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -638,14 +732,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto packing = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Pack) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Pack) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("packing", packing, this, 0);
 
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Global) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
@@ -653,7 +747,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Detailed) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Detailed) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
@@ -661,21 +755,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Routing) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Routing) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
 
     auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(STA) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::STA) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
 
     auto power = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Power) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Power) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("power", power, this, 0);
 
@@ -690,7 +784,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
       }
-      return compiler->Compile(Bitstream) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Bitstream) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
@@ -719,18 +813,65 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "mixed") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
-        } else if (arg == "area") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
-        } else if (arg == "delay") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
-        } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
-        } else {
-          compiler->ErrorMessage("Unknown optimization option: " + arg);
+        if (argv[i] == "-optimization" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "mixed") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+          } else if (arg == "area") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+          } else if (arg == "delay") {
+            compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+          } else {
+            compiler->ErrorMessage("Unknown optimization option: " + arg);
+          }
+          continue;
         }
+        if (argv[i] == "-fsm_encoding" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "binary") {
+            compiler->SynthFsm(Compiler::SynthesisFsmEncoding::Binary);
+          } else if (arg == "onehot") {
+            compiler->SynthFsm(Compiler::SynthesisFsmEncoding::Onehot);
+          } else {
+            compiler->ErrorMessage("Unknown fsm encoding option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-effort" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "high") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::High);
+          } else if (arg == "medium") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::Medium);
+          } else if (arg == "low") {
+            compiler->SynthEffort(Compiler::SynthesisEffort::Low);
+          } else {
+            compiler->ErrorMessage("Unknown effort option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-carry" && i + 1 < argc) {
+          std::string arg = argv[++i];
+          if (arg == "none") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::NoCarry);
+          } else if (arg == "no_const") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::NoConst);
+          } else if (arg == "all") {
+            compiler->SynthCarry(Compiler::SynthesisCarryInference::All);
+          } else {
+            compiler->ErrorMessage("Unknown carry inference option: " + arg);
+          }
+          continue;
+        }
+        if (argv[i] == "-no_dsp") {
+          compiler->SynthNoDsp(true);
+          continue;
+        }
+        if (argv[i] == "-no_bram") {
+          compiler->SynthNoBram(true);
+          continue;
+        }
+        break;
       }
       WorkerThread* wthread =
           new WorkerThread("synth_th", Action::Synthesis, compiler);
@@ -1040,7 +1181,7 @@ bool Compiler::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 
@@ -1054,7 +1195,7 @@ bool Compiler::Packing() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
-  m_state = Packed;
+  m_state = State::Packed;
   return true;
 }
 
@@ -1068,7 +1209,7 @@ bool Compiler::Placement() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
            << std::endl;
-  m_state = Placed;
+  m_state = State::Placed;
   return true;
 }
 
@@ -1082,7 +1223,7 @@ bool Compiler::Route() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
            << std::endl;
-  m_state = Routed;
+  m_state = State::Routed;
   return true;
 }
 

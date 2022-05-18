@@ -5,7 +5,7 @@ add_design_file generic_muxfx.v
 add_constraint_file aes_decrypt.sdc
 architecture ../../Arch/k6_frac_N10_tileable_40nm.xml ../../Arch/k6_N10_40nm_openfpga.xml
 bitstream_config_files ../../Arch/bitstream_annotation.xml ../../Arch/fixed_sim_openfpga.xml ../../Arch/repack_design_constraint.xml
-synthesize delay
+synthesize -optimization delay
 packing
 place
 route
