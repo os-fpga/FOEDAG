@@ -1172,8 +1172,8 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
     });
   if (m_err)
     QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
-      m_err->write(m_process->readAllStandardError(),
-                   m_process->bytesAvailable());
+      QByteArray data = m_process->readAllStandardError();
+      m_err->write(data, data.size());
     });
 
   QString cmd{command.c_str()};
