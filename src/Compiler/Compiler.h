@@ -69,10 +69,6 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
-  enum class SynthesisOpt { None, Area, Delay, Mixed };
-  enum class SynthesisEffort { None, High, Low, Medium };
-  enum class SynthesisCarryInference { None, NoCarry, All, NoConst };
-  enum class SynthesisFsmEncoding { None, Binary, Onehot };
   enum class BitstreamOpt { NoBitsOpt, Force };
 
   // Most common use case, create the compiler in your main
@@ -112,18 +108,6 @@ class Compiler {
   void SetHardError(bool on) { m_hardError = on; }
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
-  SynthesisOpt SynthOpt() { return m_synthOpt; }
-  void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
-  SynthesisEffort SynthEffort() { return m_synthEffort; }
-  void SynthEffort(SynthesisEffort effort) { m_synthEffort = effort; }
-  SynthesisCarryInference SynthCarry() { return m_synthCarry; }
-  void SynthCarry(SynthesisCarryInference carry) { m_synthCarry = carry; }
-  SynthesisFsmEncoding SynthFsm() { return m_synthFsm; }
-  void SynthFsm(SynthesisFsmEncoding fsmEnc) { m_synthFsm = fsmEnc; }
-  bool SynthNoDsp() { return m_synthNoDsp; }
-  void SynthNoDsp(bool noDsp) { m_synthNoDsp = noDsp; }
-  bool SynthNoBram() { return m_synthNoBram; }
-  void SynthNoBram(bool noBram) { m_synthNoBram = noBram; }
   BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
@@ -175,12 +159,6 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
-  SynthesisOpt m_synthOpt = SynthesisOpt::None;
-  SynthesisEffort m_synthEffort = SynthesisEffort::None;
-  SynthesisCarryInference m_synthCarry = SynthesisCarryInference::None;
-  SynthesisFsmEncoding m_synthFsm = SynthesisFsmEncoding::None;
-  bool m_synthNoDsp = false;
-  bool m_synthNoBram = false;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
