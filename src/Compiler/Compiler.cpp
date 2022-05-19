@@ -874,13 +874,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
+  uint task{toTaskId(action)};
   if (m_hardError) {
+    if (task != TaskManager::invalid_id && m_taskManager) {
+      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
+    }
     m_hardError = false;
     return false;
   }
   m_stop = false;
   bool res{false};
-  uint task{toTaskId(action)};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
