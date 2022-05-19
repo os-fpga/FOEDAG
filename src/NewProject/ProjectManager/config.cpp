@@ -46,7 +46,8 @@ int Config::InitConfig(const QString &devicexml) {
     for (int i = 0; i < list.count(); i++) {
       QDomNode n = list.at(i);
       if (!n.isNull() && n.isElement()) {
-        m_lsit_device_item.append(n.toElement().attribute("type"));
+        if (n.nodeName() == "resource")
+          m_lsit_device_item.append(n.toElement().attribute("type"));
       }
     }
     m_lsit_device_item.append("series");
@@ -68,7 +69,8 @@ int Config::InitConfig(const QString &devicexml) {
       for (int i = 0; i < list.count(); i++) {
         QDomNode n = list.at(i);
         if (!n.isNull() && n.isElement()) {
-          devlist.append(n.toElement().attribute("num"));
+          if (n.nodeName() == "resource")
+            devlist.append(n.toElement().attribute("num"));
         }
       }
       QString series = e.attribute("series");
