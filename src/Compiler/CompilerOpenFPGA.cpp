@@ -769,15 +769,11 @@ bool CompilerOpenFPGA::Packing() {
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
     constraint = "";
-    // VPR Does not understand: -name <logical_name>
+    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+    // Pass the constraint as-is anyway
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
-      if (tok == "-name") {
-        // skip
-        i++;
-      } else {
-        constraint += tok + " ";
-      }
+      constraint += tok + " ";
     }
 
     // pin location constraints have to be translated to .place:

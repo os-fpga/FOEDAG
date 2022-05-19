@@ -22,32 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-StreamBuffer::StreamBuffer(QObject *parent)
-    : QObject{parent}, m_last{traits_type::eof()}, m_stream(this) {}
+StreamBuffer::StreamBuffer(QObject *parent) : QObject{parent}, m_stream(this) {}
 
 std::ostream &StreamBuffer::getStream() { return m_stream; }
 
 int StreamBuffer::overflow(int c) {
-  if (c == traits_type::eof()) {
-    return traits_type::eof();
-  }
-
   char_type ch = static_cast<char_type>(c);
-  m_buffer.append(ch);
-  if (ch == 10) {
-    emit ready(m_buffer);
-    m_buffer.clear();
-  }
-
+  if (ch == '\n') emit ready(QString{ch});
   return ch;
 }
 
-int StreamBuffer::uflow() {
-  const int c = underflow();
-  m_last = traits_type::eof();
-  return c;
+std::streamsize StreamBuffer::xsputn(const char_type *s,
+                                     std::streamsize count) {
+  const QByteArray array = QByteArray::fromRawData(s, count);
+  emit ready(QString{array});
+  return count;
 }
-
-int StreamBuffer::underflow() { return m_last; }
 
 }  // namespace FOEDAG
