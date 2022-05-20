@@ -43,7 +43,6 @@ extern "C" {
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
 #include "Foedag.h"
-#include "Main/Settings.h"
 #include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"

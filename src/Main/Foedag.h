@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "Main/Settings.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
