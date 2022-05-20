@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <QDebug>
+#include <QDomDocument>
+#include <QFile>
+#include <QTextStream>
 #include <chrono>
 #include <filesystem>
 #include <sstream>
@@ -70,6 +73,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
          << std::endl;
@@ -412,6 +417,25 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("verific_parser", verific_parser, this, 0);
+
+  auto target_device = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Please select a device");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if (compiler->LoadDeviceData(arg)) {
+      compiler->ProjManager()->setTargetDevice(arg);
+    } else {
+      compiler->ErrorMessage("Invalid target device: " + arg);
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("target_device", target_device, this, 0);
 
   return true;
 }
@@ -1132,4 +1156,86 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated!" << std::endl;
   return true;
+}
+
+bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
+  bool status = true;
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::string devicefile =
+      datapath / std::string("etc") / std::string("device.xml");
+  QFile file(devicefile.c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    ErrorMessage("Cannot open device file: " + devicefile);
+    return false;
+  }
+
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    ErrorMessage("Incorrect device file: " + devicefile);
+    return false;
+  }
+  file.close();
+
+  QDomElement docElement = doc.documentElement();
+  QDomNode node = docElement.firstChild();
+  bool foundDevice = false;
+  while (!node.isNull()) {
+    if (node.isElement()) {
+      QDomElement e = node.toElement();
+
+      std::string name = e.attribute("name").toStdString();
+      if (name == deviceName) {
+        foundDevice = true;
+        QDomNodeList list = e.childNodes();
+        for (int i = 0; i < list.count(); i++) {
+          QDomNode n = list.at(i);
+          if (!n.isNull() && n.isElement()) {
+            if (n.nodeName() == "internal") {
+              std::string file_type =
+                  n.toElement().attribute("type").toStdString();
+              std::string file = n.toElement().attribute("file").toStdString();
+              std::string fullPath;
+              if (FileExists(file)) {
+                fullPath = file;  // Absolute path
+              } else {
+                fullPath = datapath / std::string("etc") /
+                           std::string("devices") / file;
+              }
+              if (!FileExists(fullPath)) {
+                ErrorMessage("Invalid device config file: " + fullPath + "\n");
+                status = false;
+              }
+              if (file_type == "vpr_arch") {
+                ArchitectureFile(fullPath);
+              } else if (file_type == "openfpga_arch") {
+                OpenFpgaArchitectureFile(fullPath);
+              } else if (file_type == "bitstream_settings") {
+                OpenFpgaBitstreamSettingFile(fullPath);
+              } else if (file_type == "sim_settings") {
+                OpenFpgaSimSettingFile(fullPath);
+              } else if (file_type == "repack_settings") {
+                OpenFpgaRepackConstraintsFile(fullPath);
+              } else if (file_type == "pinmap_xml") {
+                OpenFpgaPinmapXMLFile(fullPath);
+              } else if (file_type == "pinmap_csv") {
+                OpenFpgaPinmapCSVFile(fullPath);
+              } else {
+                ErrorMessage("Invalid device config type: " + file_type + "\n");
+                status = false;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    node = node.nextSibling();
+  }
+  if (!foundDevice) {
+    ErrorMessage("Incorrect device: " + deviceName + "\n");
+    status = false;
+  }
+
+  return status;
 }
