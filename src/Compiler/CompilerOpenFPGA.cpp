@@ -423,7 +423,7 @@ bool CompilerOpenFPGA::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 
