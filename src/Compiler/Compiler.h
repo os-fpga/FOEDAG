@@ -44,7 +44,7 @@ class TclCommandIntegration;
 class Constraints;
 class Compiler {
  public:
-  enum Action {
+  enum class Action {
     NoAction,
     IPGen,
     Synthesis,
@@ -57,7 +57,7 @@ class Compiler {
     Bitstream,
     Batch
   };
-  enum State {
+  enum class State {
     None,
     IPGenerated,
     Synthesized,
@@ -69,8 +69,8 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
-  enum SynthesisOpt { NoOpt, Area, Delay, Mixed };
-  enum BitstreamOpt { NoBitsOpt, Force };
+  enum class SynthesisOpt { None, Area, Delay, Mixed };
+  enum class BitstreamOpt { NoBitsOpt, Force };
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
@@ -150,7 +150,7 @@ class Compiler {
   Session* m_session = nullptr;
   class ProjectManager* m_projManager = nullptr;
   bool m_stop = false;
-  State m_state = None;
+  State m_state = State::None;
   std::ostream* m_out = &std::cout;
   std::ostream* m_err = &std::cerr;
   std::string m_batchScript;
@@ -162,7 +162,7 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
-  SynthesisOpt m_synthOpt = SynthesisOpt::NoOpt;
+  SynthesisOpt m_synthOpt = SynthesisOpt::None;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
