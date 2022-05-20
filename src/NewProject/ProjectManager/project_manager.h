@@ -224,6 +224,11 @@ class ProjectManager : public QObject {
   void setDesignFileData(const std::string &file, int data);
   int designFileData(const std::string &file);
 
+  void setTargetDevice(const std::string &deviceName) {
+    m_deviceName = deviceName;
+  }
+  const std::string &getTargetDevice() { return m_deviceName; }
+
  private:
   int ImportProjectData(QString strOspro);
   int ExportProjectData();
@@ -250,6 +255,7 @@ class ProjectManager : public QObject {
   std::vector<std::string> m_includePathList;
   std::vector<std::string> m_libraryPathList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
+  std::string m_deviceName;
 };
 
 }  // namespace FOEDAG
