@@ -95,7 +95,9 @@ class Compiler {
   bool Clear();
   void start();
   void finish();
-
+  class ProjectManager* ProjManager() {
+    return m_projManager;
+  }
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);

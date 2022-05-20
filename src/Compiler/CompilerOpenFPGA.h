@@ -62,6 +62,12 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaRepackConstraintsFile(const std::filesystem::path& path) {
     m_OpenFpgaRepackConstraintsFile = path;
   }
+  void OpenFpgaPinmapXMLFile(const std::filesystem::path& path) {
+    m_OpenFpgaPinMapXml = path;
+  }
+  void OpenFpgaPinmapCSVFile(const std::filesystem::path& path) {
+    m_OpenFpgaPinMapCSV = path;
+  }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
@@ -77,6 +83,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
+  virtual bool LoadDeviceData(const std::string& deviceName);
+
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
@@ -97,6 +105,8 @@ class CompilerOpenFPGA : public Compiler {
       "tests/Arch/bitstream_annotation.xml";
   std::filesystem::path m_OpenFpgaRepackConstraintsFile =
       "tests/Arch/repack_design_constraint.xml";
+  std::filesystem::path m_OpenFpgaPinMapXml = "";
+  std::filesystem::path m_OpenFpgaPinMapCSV = "";
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
