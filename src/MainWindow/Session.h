@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
-#include "Main/Settings.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/mainwindowmodel.h"
 #include "Tcl/TclInterpreter.h"
@@ -39,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class Settings;
 enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
 
 class Session {
