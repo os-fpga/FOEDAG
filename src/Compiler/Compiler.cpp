@@ -844,13 +844,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
+  uint task{toTaskId(action)};
   if (m_hardError) {
+    if (task != TaskManager::invalid_id && m_taskManager) {
+      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
+    }
     m_hardError = false;
     return false;
   }
   m_stop = false;
   bool res{false};
-  uint task{toTaskId(action)};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
@@ -1142,8 +1145,8 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
     });
   if (m_err)
     QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
-      m_err->write(m_process->readAllStandardError(),
-                   m_process->bytesAvailable());
+      QByteArray data = m_process->readAllStandardError();
+      m_err->write(data, data.size());
     });
 
   QString cmd{command.c_str()};
