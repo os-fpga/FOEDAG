@@ -115,7 +115,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
-  (*out) << "   synthesize                 : Synthesize RTL design"
+  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
+            "delay, mixed, none)"
          << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   packing                    : Packing" << std::endl;

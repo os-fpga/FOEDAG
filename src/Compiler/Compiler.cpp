@@ -98,7 +98,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   ipgenerate" << std::endl;
-  (*out) << "   synthesize" << std::endl;
+  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
+            "delay, mixed, none)"
+         << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
@@ -614,6 +616,20 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "mixed") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+        } else if (arg == "area") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+        } else if (arg == "delay") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+        } else if (arg == "none") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
+        } else {
+          compiler->ErrorMessage("Unknown optimization option: " + arg);
+        }
+      }
       return compiler->Compile(Action::Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
@@ -702,6 +718,20 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "mixed") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
+        } else if (arg == "area") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Area);
+        } else if (arg == "delay") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
+        } else if (arg == "none") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
+        } else {
+          compiler->ErrorMessage("Unknown optimization option: " + arg);
+        }
+      }
       WorkerThread* wthread =
           new WorkerThread("synth_th", Action::Synthesis, compiler);
       wthread->start();

@@ -69,6 +69,7 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
+  enum class SynthesisOpt { None, Area, Delay, Mixed };
   enum class BitstreamOpt { NoBitsOpt, Force };
 
   // Most common use case, create the compiler in your main
@@ -108,6 +109,8 @@ class Compiler {
   void SetHardError(bool on) { m_hardError = on; }
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
+  SynthesisOpt SynthOpt() { return m_synthOpt; }
+  void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
   BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
@@ -159,6 +162,7 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
+  SynthesisOpt m_synthOpt = SynthesisOpt::None;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
   uint32_t m_channel_width = 100;
