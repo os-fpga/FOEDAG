@@ -609,7 +609,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(IPGen) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::IPGen) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
@@ -625,12 +625,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
         } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
         }
       }
-      return compiler->Compile(Synthesis) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -638,14 +638,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto packing = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Pack) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Pack) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("packing", packing, this, 0);
 
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Global) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
@@ -653,7 +653,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Detailed) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Detailed) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
@@ -661,21 +661,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Routing) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Routing) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
 
     auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(STA) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::STA) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
 
     auto power = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Power) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Power) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("power", power, this, 0);
 
@@ -690,7 +690,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
       }
-      return compiler->Compile(Bitstream) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Bitstream) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
@@ -727,7 +727,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
         } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
         }
@@ -1043,7 +1043,7 @@ bool Compiler::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 
@@ -1057,7 +1057,7 @@ bool Compiler::Packing() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
-  m_state = Packed;
+  m_state = State::Packed;
   return true;
 }
 
@@ -1071,7 +1071,7 @@ bool Compiler::Placement() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
            << std::endl;
-  m_state = Placed;
+  m_state = State::Placed;
   return true;
 }
 
@@ -1085,7 +1085,7 @@ bool Compiler::Route() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
            << std::endl;
-  m_state = Routed;
+  m_state = State::Routed;
   return true;
 }
 

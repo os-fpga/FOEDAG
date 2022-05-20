@@ -47,26 +47,26 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
 
 uint FOEDAG::toTaskId(Compiler::Action action) {
   switch (action) {
-    case Compiler::Synthesis:
+    case Compiler::Action::Synthesis:
       return SYNTHESIS;
-    case Compiler::Global:
+    case Compiler::Action::Global:
       return GLOBAL_PLACEMENT;
-    case Compiler::Detailed:
+    case Compiler::Action::Detailed:
       return PLACEMENT;
-    case Compiler::Pack:
+    case Compiler::Action::Pack:
       return PACKING;
-    case Compiler::Routing:
+    case Compiler::Action::Routing:
       return ROUTING;
-    case Compiler::STA:
+    case Compiler::Action::STA:
       return TIMING_SIGN_OFF;
-    case Compiler::Bitstream:
+    case Compiler::Action::Bitstream:
       return BITSTREAM;
-    case Compiler::Power:
+    case Compiler::Action::Power:
       return POWER;
-    case Compiler::IPGen:
+    case Compiler::Action::IPGen:
       return IP_GENERATE;
-    case Compiler::NoAction:
-    case Compiler::Batch:
+    case Compiler::Action::NoAction:
+    case Compiler::Action::Batch:
       return TaskManager::invalid_id;
   }
   return TaskManager::invalid_id;
