@@ -123,6 +123,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   packing                    : Packing" << std::endl;
   (*out) << "   global_placement           : Analytical placer" << std::endl;
@@ -727,7 +728,10 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
-  result = ReplaceAll(result, "${OPTIMIZATION}", "");
+  result = ReplaceAll(result, "${OPTIMIZATION}", SynthMoreOpt());
+  result = ReplaceAll(result, "${PLUGIN_LIB}", PluginLibName());
+  result = ReplaceAll(result, "${PLUGIN_NAME}", PluginName());
+  result = ReplaceAll(result, "${MAP_TO_TECHNOLOGY}", MapTechnology());
   result = ReplaceAll(result, "${LUT_SIZE}", std::to_string(m_lut_size));
   return result;
 }
@@ -1161,18 +1165,18 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   bool status = true;
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
-  std::string devicefile =
+  std::filesystem::path devicefile =
       datapath / std::string("etc") / std::string("device.xml");
   QFile file(devicefile.c_str());
   if (!file.open(QFile::ReadOnly)) {
-    ErrorMessage("Cannot open device file: " + devicefile);
+    ErrorMessage("Cannot open device file: " + devicefile.string());
     return false;
   }
 
   QDomDocument doc;
   if (!doc.setContent(&file)) {
     file.close();
-    ErrorMessage("Incorrect device file: " + devicefile);
+    ErrorMessage("Incorrect device file: " + devicefile.string());
     return false;
   }
   file.close();
@@ -1195,29 +1199,30 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               std::string file_type =
                   n.toElement().attribute("type").toStdString();
               std::string file = n.toElement().attribute("file").toStdString();
-              std::string fullPath;
+              std::filesystem::path fullPath;
               if (FileExists(file)) {
                 fullPath = file;  // Absolute path
               } else {
                 fullPath = datapath / std::string("etc") /
                            std::string("devices") / file;
               }
-              if (!FileExists(fullPath)) {
-                ErrorMessage("Invalid device config file: " + fullPath + "\n");
+              if (!FileExists(fullPath.string())) {
+                ErrorMessage(
+                    "Invalid device config file: " + fullPath.string() + "\n");
                 status = false;
               }
               if (file_type == "vpr_arch") {
-                ArchitectureFile(fullPath);
+                ArchitectureFile(fullPath.string());
               } else if (file_type == "openfpga_arch") {
-                OpenFpgaArchitectureFile(fullPath);
+                OpenFpgaArchitectureFile(fullPath.string());
               } else if (file_type == "bitstream_settings") {
-                OpenFpgaBitstreamSettingFile(fullPath);
+                OpenFpgaBitstreamSettingFile(fullPath.string());
               } else if (file_type == "sim_settings") {
-                OpenFpgaSimSettingFile(fullPath);
+                OpenFpgaSimSettingFile(fullPath.string());
               } else if (file_type == "repack_settings") {
-                OpenFpgaRepackConstraintsFile(fullPath);
+                OpenFpgaRepackConstraintsFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
-                OpenFpgaPinmapXMLFile(fullPath);
+                OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pinmap_csv") {
                 OpenFpgaPinmapCSVFile(fullPath);
               } else {

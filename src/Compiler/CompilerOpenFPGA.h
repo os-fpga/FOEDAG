@@ -72,6 +72,9 @@ class CompilerOpenFPGA : public Compiler {
   void Help(std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
+  const std::string PluginLibName() { return m_yosysPluginLib; }
+  const std::string PluginName() { return m_yosysPlugin; }
+  const std::string MapTechnology() { return m_mapToTechnology; }
 
  protected:
   virtual bool IPGenerate();
@@ -93,6 +96,9 @@ class CompilerOpenFPGA : public Compiler {
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
+  std::string m_yosysPluginLib = "synth-ql";
+  std::string m_yosysPlugin = "synth_ql";
+  std::string m_mapToTechnology = "generic";
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_architectureFile =
