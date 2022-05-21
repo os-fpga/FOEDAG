@@ -1167,7 +1167,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path devicefile =
       datapath / std::string("etc") / std::string("device.xml");
-  QFile file(devicefile.c_str());
+  QFile file(devicefile.string().c_str());
   if (!file.open(QFile::ReadOnly)) {
     ErrorMessage("Cannot open device file: " + devicefile.string());
     return false;
