@@ -1002,7 +1002,7 @@ build_fabric --compress_routing --duplicate_grid_pin
 # Strongly recommend it is done after all the fix-up have been applied
 repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
-build_architecture_bitstream --write_file fabric_independent_bitstream.xml
+build_architecture_bitstream
 
 build_fabric_bitstream
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
