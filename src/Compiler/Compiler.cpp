@@ -101,6 +101,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
@@ -604,6 +605,25 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("pnr_options", pnr_options, this, 0);
+
+  auto synth_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (!compiler->m_projManager->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::string opts;
+    for (int i = 1; i < argc; i++) {
+      opts += std::string(argv[i]);
+      if (i < (argc - 1)) {
+        opts += " ";
+      }
+    }
+    compiler->SynthMoreOpt(opts);
+    return TCL_OK;
+  };
+  interp->registerCmd("synth_options", synth_options, this, 0);
 
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,

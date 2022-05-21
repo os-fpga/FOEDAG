@@ -111,6 +111,8 @@ class Compiler {
   void SetHardError(bool on) { m_hardError = on; }
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
+  const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
+  void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
   BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
@@ -167,6 +169,7 @@ class Compiler {
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
   std::string m_pnrOpt;
+  std::string m_synthMoreOpt;
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
   class QProcess* m_process = nullptr;
