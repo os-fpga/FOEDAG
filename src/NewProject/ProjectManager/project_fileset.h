@@ -26,7 +26,7 @@ class ProjectFileSet : public ProjectOption {
   QString getRelSrcDir() const;
   void setRelSrcDir(const QString &relSrcDir);
 
-  QMap<QString, QString> getMapFiles() const;
+  const std::vector<std::pair<QString, QString>> &getMapFiles() const;
 
   void addFileData(const QString &file, int data);
   int fileData(const QString &file) const;
@@ -35,7 +35,7 @@ class ProjectFileSet : public ProjectOption {
   QString m_setName;
   QString m_setType;
   QString m_relSrcDir;
-  QMap<QString, QString> m_mapFiles;
+  std::vector<std::pair<QString, QString>> m_mapFiles;
   QMap<QString, int> m_fileData;
 };
 }  // namespace FOEDAG

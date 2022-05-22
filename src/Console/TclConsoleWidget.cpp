@@ -40,6 +40,7 @@ TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
   setTabAllowed(false);
   setMouseTracking(true);
   setObjectName(consoleObjectName());
+  setLineWrapMode(QTextEdit::NoWrap);
 }
 
 bool TclConsoleWidget::isRunning() const {
@@ -142,10 +143,8 @@ void TclConsoleWidget::commandDone() {
 void FOEDAG::TclConsoleWidget::putMessage(const QString &message,
                                           OutputFormat format) {
   if (!message.isEmpty()) {
-    QString strRes = message;
     moveCursor(QTextCursor::End);
-    if (!(strRes.isEmpty() || strRes.endsWith("\n"))) strRes.append("\n");
-    m_formatter.appendMessage(strRes, format);
+    m_formatter.appendMessage(message, format);
   }
 }
 

@@ -23,20 +23,26 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
 
 void ProjectFileSet::addFile(const QString &strFileName,
                              const QString &strFilePath) {
-  m_mapFiles[strFileName] = strFilePath;
+  m_mapFiles.push_back(std::make_pair(strFileName, strFilePath));
 }
 
 QString ProjectFileSet::getFilePath(const QString &strFileName) {
-  QString retStr = "";
-  auto iter = m_mapFiles.find(strFileName);
+  QString retStr;
+  auto iter = std::find_if(m_mapFiles.cbegin(), m_mapFiles.cend(),
+                           [&](const std::pair<QString, QString> &p) {
+                             return p.first == strFileName;
+                           });
   if (iter != m_mapFiles.end()) {
-    retStr = iter.value();
+    retStr = iter->second;
   }
   return retStr;
 }
 
 void ProjectFileSet::deleteFile(const QString &strFileName) {
-  auto iter = m_mapFiles.find(strFileName);
+  auto iter = std::find_if(m_mapFiles.cbegin(), m_mapFiles.cend(),
+                           [&](const std::pair<QString, QString> &p) {
+                             return p.first == strFileName;
+                           });
   if (iter != m_mapFiles.end()) {
     m_mapFiles.erase(iter);
   }
@@ -56,7 +62,8 @@ void ProjectFileSet::setRelSrcDir(const QString &relSrcDir) {
   m_relSrcDir = relSrcDir;
 }
 
-QMap<QString, QString> ProjectFileSet::getMapFiles() const {
+const std::vector<std::pair<QString, QString>> &ProjectFileSet::getMapFiles()
+    const {
   return m_mapFiles;
 }
 

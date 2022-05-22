@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include <QDebug>
+#include <QDomDocument>
+#include <QFile>
+#include <QTextStream>
 #include <chrono>
 #include <filesystem>
 #include <sstream>
@@ -71,13 +74,15 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
+  (*out) << "   target_device <name>       : Targets a device with <name> name"
+         << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
          << std::endl;
   (*out) << "                                Uses the architecture file and "
             "optional openfpga arch file (For bitstream generation)"
          << std::endl;
-  (*out) << "   bitstream_config_files <bitstream_setting.xml> "
-            "?<sim_setting.xml>? ?<repack_setting.xml>? :"
+  (*out) << "   bitstream_config_files -bitstream <bitstream_setting.xml> "
+            "-sim <sim_setting.xml> -repack <repack_setting.xml>"
          << std::endl;
   (*out) << "                              : Uses alternate bitstream "
             "generation configuration files"
@@ -118,6 +123,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   packing                    : Packing" << std::endl;
   (*out) << "   global_placement           : Analytical placer" << std::endl;
@@ -237,6 +243,20 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      std::string fileType;
+      if (arg == "-bitstream") {
+        fileType = "bitstream";
+      } else if (arg == "-sim") {
+        fileType = "sim";
+      } else if (arg == "-repack") {
+        fileType = "repack";
+      } else {
+        compiler->ErrorMessage(
+            "Not a legal option for bitstream_config_files: " + arg);
+        return TCL_ERROR;
+      }
+      i++;
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
       if (compiler->FileExists(expandedFile)) {
@@ -266,13 +286,13 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
                 .string();
       }
       stream.close();
-      if (i == 1) {
+      if (fileType == "bitstream") {
         compiler->OpenFpgaBitstreamSettingFile(expandedFile);
         compiler->Message("OpenFPGA Bitstream Setting file: " + expandedFile);
-      } else if (i == 2) {
+      } else if (fileType == "sim") {
         compiler->OpenFpgaSimSettingFile(expandedFile);
         compiler->Message("OpenFPGA Simulation Setting file: " + expandedFile);
-      } else if (i == 3) {
+      } else if (fileType == "repack") {
         compiler->OpenFpgaRepackConstraintsFile(expandedFile);
         compiler->Message("OpenFPGA Repack Constraint file: " + expandedFile);
       }
@@ -399,6 +419,25 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("verific_parser", verific_parser, this, 0);
 
+  auto target_device = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Please select a device");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if (compiler->LoadDeviceData(arg)) {
+      compiler->ProjManager()->setTargetDevice(arg);
+    } else {
+      compiler->ErrorMessage("Invalid target device: " + arg);
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("target_device", target_device, this, 0);
+
   return true;
 }
 
@@ -409,7 +448,7 @@ bool CompilerOpenFPGA::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 
@@ -689,7 +728,10 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
-  result = ReplaceAll(result, "${OPTIMIZATION}", "");
+  result = ReplaceAll(result, "${OPTIMIZATION}", SynthMoreOpt());
+  result = ReplaceAll(result, "${PLUGIN_LIB}", PluginLibName());
+  result = ReplaceAll(result, "${PLUGIN_NAME}", PluginName());
+  result = ReplaceAll(result, "${MAP_TO_TECHNOLOGY}", MapTechnology());
   result = ReplaceAll(result, "${LUT_SIZE}", std::to_string(m_lut_size));
   return result;
 }
@@ -755,15 +797,11 @@ bool CompilerOpenFPGA::Packing() {
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
     constraint = "";
-    // VPR Does not understand: -name <logical_name>
+    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+    // Pass the constraint as-is anyway
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
-      if (tok == "-name") {
-        // skip
-        i++;
-      } else {
-        constraint += tok + " ";
-      }
+      constraint += tok + " ";
     }
 
     // pin location constraints have to be translated to .place:
@@ -968,7 +1006,7 @@ build_fabric --compress_routing --duplicate_grid_pin
 # Strongly recommend it is done after all the fix-up have been applied
 repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
-#build_architecture_bitstream --write_file fabric_independent_bitstream.xml
+build_architecture_bitstream
 
 build_fabric_bitstream
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
@@ -1122,4 +1160,87 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated!" << std::endl;
   return true;
+}
+
+bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
+  bool status = true;
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::filesystem::path devicefile =
+      datapath / std::string("etc") / std::string("device.xml");
+  QFile file(devicefile.string().c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    ErrorMessage("Cannot open device file: " + devicefile.string());
+    return false;
+  }
+
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    ErrorMessage("Incorrect device file: " + devicefile.string());
+    return false;
+  }
+  file.close();
+
+  QDomElement docElement = doc.documentElement();
+  QDomNode node = docElement.firstChild();
+  bool foundDevice = false;
+  while (!node.isNull()) {
+    if (node.isElement()) {
+      QDomElement e = node.toElement();
+
+      std::string name = e.attribute("name").toStdString();
+      if (name == deviceName) {
+        foundDevice = true;
+        QDomNodeList list = e.childNodes();
+        for (int i = 0; i < list.count(); i++) {
+          QDomNode n = list.at(i);
+          if (!n.isNull() && n.isElement()) {
+            if (n.nodeName() == "internal") {
+              std::string file_type =
+                  n.toElement().attribute("type").toStdString();
+              std::string file = n.toElement().attribute("file").toStdString();
+              std::filesystem::path fullPath;
+              if (FileExists(file)) {
+                fullPath = file;  // Absolute path
+              } else {
+                fullPath = datapath / std::string("etc") /
+                           std::string("devices") / file;
+              }
+              if (!FileExists(fullPath.string())) {
+                ErrorMessage(
+                    "Invalid device config file: " + fullPath.string() + "\n");
+                status = false;
+              }
+              if (file_type == "vpr_arch") {
+                ArchitectureFile(fullPath.string());
+              } else if (file_type == "openfpga_arch") {
+                OpenFpgaArchitectureFile(fullPath.string());
+              } else if (file_type == "bitstream_settings") {
+                OpenFpgaBitstreamSettingFile(fullPath.string());
+              } else if (file_type == "sim_settings") {
+                OpenFpgaSimSettingFile(fullPath.string());
+              } else if (file_type == "repack_settings") {
+                OpenFpgaRepackConstraintsFile(fullPath.string());
+              } else if (file_type == "pinmap_xml") {
+                OpenFpgaPinmapXMLFile(fullPath.string());
+              } else if (file_type == "pinmap_csv") {
+                OpenFpgaPinmapCSVFile(fullPath);
+              } else {
+                ErrorMessage("Invalid device config type: " + file_type + "\n");
+                status = false;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    node = node.nextSibling();
+  }
+  if (!foundDevice) {
+    ErrorMessage("Incorrect device: " + deviceName + "\n");
+    status = false;
+  }
+
+  return status;
 }
