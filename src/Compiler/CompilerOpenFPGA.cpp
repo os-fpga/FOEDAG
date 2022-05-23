@@ -120,6 +120,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
+  (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
+         << std::endl;
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
@@ -437,7 +439,28 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("target_device", target_device, this, 0);
-
+  auto synthesis_type = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify type: Yosys/RS/QL");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if (arg == "Yosys") {
+      compiler->SynthType(SynthesisType::Yosys);
+    } else if (arg == "RS") {
+      compiler->SynthType(SynthesisType::RS);
+    } else if (arg == "QL") {
+      compiler->SynthType(SynthesisType::QL);
+    } else {
+      compiler->ErrorMessage("Illegal synthesis type: " + arg);
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("synthesis_type", synthesis_type, this, 0);
   return true;
 }
 
@@ -729,9 +752,9 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
   result = ReplaceAll(result, "${OPTIMIZATION}", SynthMoreOpt());
-  result = ReplaceAll(result, "${PLUGIN_LIB}", PluginLibName());
-  result = ReplaceAll(result, "${PLUGIN_NAME}", PluginName());
-  result = ReplaceAll(result, "${MAP_TO_TECHNOLOGY}", MapTechnology());
+  result = ReplaceAll(result, "${PLUGIN_LIB}", YosysPluginLibName());
+  result = ReplaceAll(result, "${PLUGIN_NAME}", YosysPluginName());
+  result = ReplaceAll(result, "${MAP_TO_TECHNOLOGY}", YosysMapTechnology());
   result = ReplaceAll(result, "${LUT_SIZE}", std::to_string(m_lut_size));
   return result;
 }
@@ -1199,6 +1222,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               std::string file_type =
                   n.toElement().attribute("type").toStdString();
               std::string file = n.toElement().attribute("file").toStdString();
+              std::string name = n.toElement().attribute("name").toStdString();
               std::filesystem::path fullPath;
               if (FileExists(file)) {
                 fullPath = file;  // Absolute path
@@ -1225,6 +1249,25 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pinmap_csv") {
                 OpenFpgaPinmapCSVFile(fullPath);
+              } else if (file_type == "plugin_lib") {
+                YosysPluginLibName(name);
+              } else if (file_type == "plugin_func") {
+                YosysPluginName(name);
+              } else if (file_type == "technology") {
+                YosysMapTechnology(name);
+              } else if (file_type == "synth_type") {
+                if (name == "QL")
+                  SynthType(SynthesisType::QL);
+                else if (name == "RS")
+                  SynthType(SynthesisType::RS);
+                else if (name == "Yosys")
+                  SynthType(SynthesisType::Yosys);
+                else {
+                  ErrorMessage("Invalid synthesis type: " + name + "\n");
+                  status = false;
+                }
+              } else if (file_type == "synth_opts") {
+                DefaultSynthOptions(name);
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;
