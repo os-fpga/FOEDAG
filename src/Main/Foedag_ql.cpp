@@ -155,7 +155,7 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     std::filesystem::path installDir = exeDirPath.parent_path();
     const std::string separator(1, std::filesystem::path::preferred_separator);
     if (m_context->DataPath().empty()) {
-      const char* const path_device_data = std::getenv("AURORA_DEVICE_DATA");
+      const char* const path_device_data = std::getenv("AURORA_DEVICE_DATA_DIR");  // this is from setup.sh
       if (path_device_data != nullptr) {
         std::filesystem::path dataDir = std::string(path_device_data);
         m_context->DataPath(dataDir);

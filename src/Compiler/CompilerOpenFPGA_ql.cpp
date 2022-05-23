@@ -1164,6 +1164,44 @@ bool CompilerOpenFPGA_ql::Packing() {
   (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
 
+  // placeholder for pin_placement process ++
+  // we are already loaded, so, no need to read the json again at this point.
+  //std::string settings_json_filename = m_projManager->projectName() + ".json";
+  //std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+  //GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
+  json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
+  
+
+  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
+  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
+  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
+  m_OpenFpgaPinMapXml = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.xml"));
+  m_OpenFpgaPinMapCSV = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.csv"));
+
+  // use script from project dir:
+  //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
+  // use script from scripts dir:
+  const char* const path_scripts = std::getenv("AURORA_SCRIPTS_DIR"); // this is from setup.sh
+  std::filesystem::path scriptsDir = std::string(path_scripts);
+  
+  std::filesystem::path python_script_path = std::filesystem::path(scriptsDir / std::string("example.py"));
+  command = std::string("python") +
+            std::string(" ") +
+            python_script_path.string() +
+            std::string(" ") +
+            m_OpenFpgaPinMapXml.string() +
+            std::string(" ") +
+            m_OpenFpgaPinMapCSV.string();
+
+  status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_projManager->projectName() + " PinPlacement failed!");
+    return false;
+  }
+  (*m_out) << "Design " << m_projManager->projectName() << " PinPlacement Done!" 
+           << std::endl;
+  // placeholder for pin_placement process --
+
   return true;
 }
 
