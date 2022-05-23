@@ -262,6 +262,12 @@ void sourceGrid::MoveTableRow(int from, int to) {
     m_model->item(i, 0)->setText(QString::number(i + 1));
     m_model->item(i, 0)->setTextAlignment(Qt::AlignCenter);
   }
+
+  if ((from >= 0 && from < m_lisFileData.size()) &&
+      (to >= 0 && to < m_lisFileData.size()))
+    m_lisFileData.move(from, to);
+  else
+    qWarning("m_lisFileData: wrong indexes!");
 }
 
 bool sourceGrid::IsFileDataExit(filedata fdata) {
