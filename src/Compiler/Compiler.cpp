@@ -611,12 +611,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(opt);
         expandedFile = fullPath.string();
       }
-      std::cout << "PATH: " << expandedFile << std::endl;
       if (compiler->FileExists(expandedFile)) {
         std::filesystem::path p = expandedFile;
         p = std::filesystem::absolute(p);
         opt = p.string();
-        std::cout << "ABSOLUTE: " << opt << std::endl;
       }
       opts += opt;
       if (i < (argc - 1)) {
