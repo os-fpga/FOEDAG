@@ -1605,40 +1605,24 @@ int ProjectManager::CreateVerilogFile(QString strFile) {
   QFile file(strFile);
   if (file.exists()) return ret;
   if (!file.open(QFile::WriteOnly | QFile::Text)) {
-    QTextStream out(stdout);
     return -1;
   }
+  QFile templ{":/templates/verilog_templ.v"};
+  if (!templ.open(QFile::ReadOnly | QFile::Text)) return -1;
+
+  QString verilog_templ{templ.readAll()};
+
   QString tempname =
       strFile.mid(strFile.lastIndexOf("/") + 1,
                   strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
-  QTextStream out(&file);
-  out << "`timescale 1 ps/ 1 ps \n";
-  out << "///////////////////////////////////////////////////////////////// \n";
-  out << "// Company: \n";
-  out << "// Engineer: \n";
-  out << "// Create Date: "
-      << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") << "\n";
-  out << "// Design Name: \n";
-  out << "// Module Name: " << tempname << "\n";
-  out << "// Project Name: \n";
-  out << "// Target Devices: \n";
-  out << "// Tool Versions: \n";
-  out << "// Description: \n";
-  out << "// \n";
-  out << "// Dependencies: \n";
-  out << "// \n";
-  out << "// Revision: \n";
-  out << "// Additional Comments:\n";
-  out << "// \n";
-  out << "///////////////////////////////////////////////////////////////// \n";
+  QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+  verilog_templ.replace("${DATE}", date);
+  verilog_templ.replace("${MODULE}", tempname);
 
-  out << "\n\n";
-  out << "module " << tempname << "( \n";
-  out << "\n";
-  out << "    ); \n";
-  out << "endmodule \n";
+  file.write(verilog_templ.toLatin1());
 
-  file.flush();
+  bool ok = file.flush();
+  if (!ok) qWarning("%s", file.errorString().toLatin1().constData());
   file.close();
   return ret;
 }
@@ -1663,53 +1647,22 @@ int ProjectManager::CreateVHDLFile(QString strFile) {
     out << "failed:" << strFile << "\n";
     return -1;
   }
+  QFile templ{":/templates/vhdl_templ.vhd"};
+  if (!templ.open(QFile::ReadOnly | QFile::Text)) return -1;
+
+  QString vhdl_templ{templ.readAll()};
   QString tempname =
       strFile.mid(strFile.lastIndexOf("/") + 1,
                   strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
-  QTextStream out(&file);
-  out << "------------------------------------------------------------------\n";
-  out << "-- Company:\n";
-  out << "-- Engineer:\n";
-  out << "-- \n";
-  out << "-- Create Date: "
-      << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + "\n";
-  out << "-- Design Name: \n";
-  out << "-- Module Name: " << tempname << " - Behavioral \n";
-  out << "-- Project Name: \n";
-  out << "-- Target Devices: \n";
-  out << "-- Tool Versions: \n";
-  out << "-- Description: \n";
-  out << "-- \n";
-  out << "-- Dependencies: \n";
-  out << "-- \n";
-  out << "-- Revision: \n";
-  out << "-- Additional Comments: \n";
-  out << "-- \n";
-  out << "------------------------------------------------------------------\n";
+  QString date{QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")};
 
-  out << "\n\n";
-  out << "library IEEE;\n";
-  out << "use IEEE.STD_LOGIC_1164.ALL;\n";
-  out << "\n";
-  out << "-- Uncomment the following library declaration if using\n";
-  out << "-- arithmetic functions with Signed or Unsigned values\n";
-  out << "--use IEEE.NUMERIC_STD.ALL;\n";
-  out << "\n";
-  out << "-- Uncomment the following library declaration if instantiating\n";
-  out << "--library UNISIM;\n";
-  out << "--use UNISIM.VComponents.all;\n";
-  out << "\n";
-  out << "entity aaa is\n";
-  out << "--  Port ( );\n";
-  out << "end aaa;\n";
-  out << "\n";
-  out << "architecture Behavioral of aaa is\n";
-  out << "\n";
-  out << "begin\n";
-  out << "\n\n";
-  out << "end Behavioral;\n";
+  vhdl_templ.replace("${DATE}", date);
+  vhdl_templ.replace("${MODULE}", tempname);
 
-  file.flush();
+  file.write(vhdl_templ.toLatin1());
+
+  bool ok = file.flush();
+  if (!ok) qWarning("%s", file.errorString().toLatin1().constData());
   file.close();
   return ret;
 }
