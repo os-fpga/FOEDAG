@@ -47,6 +47,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Settings.h"
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QStackedWidget>
+#include <QListWidget>
 
 using namespace FOEDAG;
 
@@ -479,22 +481,21 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("synthesis_type", synthesis_type, this, 0);
   
-  auto demovprsettings = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto show_settings = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
                             
   CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
 
-  //std::string settings_json_filename = compiler->m_projManager->projectName() + ".json";
-  std::string settings_json_filename = "../counter_16bit.json";
+  std::string settings_json_filename = compiler->m_projManager->projectName() + ".json";
   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
   Settings * currentSettings = compiler->GetSession()->GetSettings();
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
 
   // create a temp dialog to show the widgets
   QDialog* dlg = new QDialog();
-  dlg->setWindowTitle("VPR Settings");
+  dlg->setWindowTitle("Settings");
   dlg->setAttribute(Qt::WA_DeleteOnClose);
-  QVBoxLayout* layout = new QVBoxLayout();
+  QHBoxLayout* layout = new QHBoxLayout();
   dlg->setLayout(layout);
 
   // settings
@@ -508,41 +509,63 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   // on selecting a 'category', QStackedWidget switches to the appropriate stacked 'page', which is each a widget
   // use a QTabWidget for each 'page', and each 'subcategory' is represented with a tab 'page'
   // on each tab 'page' we have a widget that contains all the settings objects.
- 
-  QWidget* tasks = new QWidget();
-  tasks->setObjectName("tasksWidget");
-  QVBoxLayout* VLayout = new QVBoxLayout();
-  tasks->setLayout(VLayout);
+  
+  QStackedWidget *stackedWidget = new QStackedWidget();
+  //QComboBox *pageComboBox = new QComboBox();
+  QListWidget *listWidget = new QListWidget();
 
-  // change to use nlohmann json impl.
-  // QJsonValue tasksVal = currentSettings->getJson("VPR", ".");
-  // if (tasksVal.isObject()) {
-  //   // Step through Tasks
-  //   // Convert value to object and step through object keys
-  //   QJsonObject tasksObj = tasksVal.toObject();
-  //   for (const QString& taskName : tasksObj.keys()) {
-  //     // Get task object values
-  //     QJsonValue taskVal = tasksObj.value(taskName);
-  //     if (taskVal.isArray()) {
-  //       // Step through task settings
-  //       for (QJsonValue setting : taskVal.toArray()) {
-  //         if (setting.isObject()) {
-  //           QJsonObject metaObj = setting.toObject();
+  json& rootJson = currentSettings->getJson();
 
-  //           QWidget* subWidget = FOEDAG::createWidget(metaObj);
-  //           VLayout->addWidget(subWidget);
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  for (auto [categoryId, categoryJson] : rootJson.items()) {
 
-  layout->addWidget(tasks);
+    if(categoryId == "Tasks") {
+      // we don't use this section in our use-cases.
+      continue;
+    }
+
+    // container widget for each 'category' -> this will be each 'page' of the stacked widget
+    QWidget* categoryWidget = new QWidget();
+    QVBoxLayout* categoryWidgetlayout = new QVBoxLayout();
+    categoryWidget->setLayout(categoryWidgetlayout);
+
+    for (auto [subcategoryId, subcategoryJson] : categoryJson.items()) {
+
+      // container widget for each 'subcategory'  -> 'tab' widget inside the category widget
+      // TODO later.
+
+      for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
+
+        // Create and add the child widget to our parent container
+        QWidget* subWidget =
+            FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
+        categoryWidgetlayout->addWidget(subWidget);
+      }
+    }
+
+    // category widget is ready.
+    stackedWidget->addWidget(categoryWidget);
+    //pageComboBox->addItem(QString::fromStdString(categoryId));
+    new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
+  }
+
+  // stacked widget, combo box ready
+  // QObject::connect(pageComboBox, QOverload<int>::of(&QComboBox::activated),
+  //           stackedWidget, &QStackedWidget::setCurrentIndex);
+
+  QObject::connect(listWidget, QOverload<int>::of(&QListWidget::currentRowChanged),
+            stackedWidget, &QStackedWidget::setCurrentIndex);
+
+  //layout->addWidget(pageComboBox);
+  layout->addWidget(listWidget);
+  layout->addWidget(stackedWidget);
+
+  // show vpr by default first, test only.
+  listWidget->setCurrentRow(2);
   dlg->show();
 
   return TCL_OK;
   };
-  GetSession()->TclInterp()->registerCmd("demovprsettings", demovprsettings, 0, 0);
+  GetSession()->TclInterp()->registerCmd("show_settings", show_settings, this, 0);
 
   return true;
 }
