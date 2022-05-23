@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPILER_OPENFPGA_QL_H
 
 namespace FOEDAG {
+//enum class SynthesisType { Yosys, QL, RS };
+
 class CompilerOpenFPGA_ql : public Compiler {
  public:
   CompilerOpenFPGA_ql() = default;
@@ -72,9 +74,22 @@ class CompilerOpenFPGA_ql : public Compiler {
   void Help(std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
-  const std::string PluginLibName() { return m_yosysPluginLib; }
-  const std::string PluginName() { return m_yosysPlugin; }
-  const std::string MapTechnology() { return m_mapToTechnology; }
+  const std::string& YosysPluginLibName() { return m_yosysPluginLib; }
+  const std::string& YosysPluginName() { return m_yosysPlugin; }
+  const std::string& YosysMapTechnology() { return m_mapToTechnology; }
+
+  void YosysPluginLibName(const std::string& libname) {
+    m_yosysPluginLib = libname;
+  }
+  void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
+  void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
+
+  const std::string& DefaultSynthOptions() { return m_defaultSynthOptions; }
+  void DefaultSynthOptions(const std::string& options) {
+    m_defaultSynthOptions = options;
+  }
+
+  //void SynthType(SynthesisType type) { m_synthType = type; }
 
  protected:
   virtual bool IPGenerate();
@@ -96,9 +111,12 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
-  std::string m_yosysPluginLib = "synth-ql";
-  std::string m_yosysPlugin = "synth_ql";
-  std::string m_mapToTechnology = "generic";
+  //SynthesisType m_synthType = SynthesisType::Yosys;
+  std::string m_yosysPluginLib;
+  std::string m_yosysPlugin;
+  std::string m_mapToTechnology;
+  std::string m_defaultSynthOptions;
+  std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_architectureFile =
