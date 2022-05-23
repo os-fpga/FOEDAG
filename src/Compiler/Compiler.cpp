@@ -596,7 +596,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string opts;
     for (int i = 1; i < argc; i++) {
-      opts += std::string(argv[i]);
+      std::string opt = argv[i];
+      std::string expandedFile = opt;
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(opt);
+        expandedFile = fullPath.string();
+      }
+      if (compiler->FileExists(expandedFile)) {
+        std::filesystem::path p = expandedFile;
+        p = std::filesystem::absolute(p);
+        opt = p.string();
+      }
+      opts += opt;
       if (i < (argc - 1)) {
         opts += " ";
       }

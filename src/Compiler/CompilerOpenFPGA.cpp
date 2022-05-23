@@ -976,7 +976,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --write_rr_graph rr_graph.openfpga.xml --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}  --analysis
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}  --analysis
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
