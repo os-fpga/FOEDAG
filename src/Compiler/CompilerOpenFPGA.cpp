@@ -120,6 +120,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
+  (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
+         << std::endl;
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
