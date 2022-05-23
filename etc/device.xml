@@ -22,6 +22,19 @@
         <resource type="lut" num="8000"/>
         <resource type="ff" num="16000"/>
         <resource type="bram" num="48"/>
+        <resource type="dsp" num="0"/>
+        <internal type="vpr_arch" file=""/>
+        <internal type="openfpga_arch" file=""/>
+        <internal type="bitstream_settings" file=""/>
+        <internal type="sim_settings" file=""/>
+        <internal type="repack_settings" file=""/>
+        <internal type="pinmap_xml" file=""/>
+        <internal type="pinmap_csv" file=""/>
+        <internal type="plugin_lib" name="ql-qlf"/>
+        <internal type="plugin_func" name="synth_ql"/>
+        <internal type="technology" name="qlf_k6n10f"/>
+        <internal type="synth_type" name="QL"/>
+        <internal type="synth_opts" name="-no_dsp -no_bram -no_adder"/>
     </device>
     <!-- more devices …  -->
 </device_list>
