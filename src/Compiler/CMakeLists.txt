@@ -40,7 +40,6 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-# TODO: add the list of files
 set (SRC_CPP_LIST
   Design.cpp
   Compiler.cpp
@@ -85,7 +84,7 @@ add_library(compiler STATIC
   ${res_LIST}
 )
 
-target_link_libraries(compiler PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(compiler PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 
 install (

@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 3)
+set(VERSION_PATCH 5)
 
 option(
   WITH_LIBCXX
@@ -76,6 +76,7 @@ add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
+add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(tests/tclutils)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
@@ -313,7 +314,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole tcl_stubb tcl_static zlib)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole tcl_stubb tcl_static zlib nlohmann_json)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
 if(NOT NO_TCMALLOC)

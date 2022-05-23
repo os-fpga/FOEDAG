@@ -636,9 +636,9 @@ QStringList ProjectManager::getDesignFiles(const QString& strFileSet) const {
       Project::Instance()->getProjectFileset(strFileSet);
 
   if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
-    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    auto tmpMapFiles = tmpFileSet->getMapFiles();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
-      strList.append(iter.value());
+      strList.append(iter->second);
     }
   }
   return strList;
@@ -761,9 +761,9 @@ QStringList ProjectManager::getConstrFiles(const QString& strFileSet) const {
       Project::Instance()->getProjectFileset(strFileSet);
 
   if (tmpFileSet && PROJECT_FILE_TYPE_CS == tmpFileSet->getSetType()) {
-    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    auto tmpMapFiles = tmpFileSet->getMapFiles();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
-      strList.append(iter.value());
+      strList.append(iter->second);
     }
   }
   return strList;
@@ -856,9 +856,9 @@ QStringList ProjectManager::getSimulationFiles(
       Project::Instance()->getProjectFileset(strFileSet);
 
   if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
-    QMap<QString, QString> tmpMapFiles = tmpFileSet->getMapFiles();
+    auto tmpMapFiles = tmpFileSet->getMapFiles();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
-      strList.append(iter.value());
+      strList.append(iter->second);
     }
   }
   return strList;
@@ -1456,11 +1456,11 @@ int ProjectManager::ExportProjectData() {
     stream.writeAttribute(PROJECT_FILESET_RELSRCDIR,
                           tmpFileSet->getRelSrcDir());
 
-    QMap<QString, QString> tmpFileMap = tmpFileSet->getMapFiles();
+    auto tmpFileMap = tmpFileSet->getMapFiles();
     for (auto iterfile = tmpFileMap.begin(); iterfile != tmpFileMap.end();
          ++iterfile) {
       stream.writeStartElement(PROJECT_FILESET_FILE);
-      stream.writeAttribute(PROJECT_PATH, iterfile.value());
+      stream.writeAttribute(PROJECT_PATH, iterfile->second);
       stream.writeEndElement();
     }
 

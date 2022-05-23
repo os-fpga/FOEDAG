@@ -7,12 +7,12 @@ Q_GLOBAL_STATIC(Project, project)
 Project *Project::Instance() { return project(); }
 
 void Project::InitProject() {
-  m_projectName = "";
-  m_projectPath = "";
-  if (nullptr != m_projectConfig) {
-    delete m_projectConfig;
-  }
-  m_projectConfig = new ProjectConfiguration(this);
+  m_projectName.clear();
+  m_projectPath.clear();
+  delete m_projectConfig;
+  m_projectConfig = new ProjectConfiguration;
+  m_projectConfig->moveToThread(thread());
+  m_projectConfig->setParent(this);
   qDeleteAll(m_mapProjectRun);
   m_mapProjectRun.clear();
   qDeleteAll(m_mapProjectFileset);

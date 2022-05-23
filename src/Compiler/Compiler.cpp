@@ -101,6 +101,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synthesize <optimization>  : Optional optimization (area, "
             "delay, mixed, none)"
          << std::endl;
+  (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing" << std::endl;
   (*out) << "   global_placement" << std::endl;
@@ -567,8 +568,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path the_path = expandedFile;
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
-    int status =
-        Tcl_Eval(interp, std::string("read_sdc " + expandedFile).c_str());
+    int status = Tcl_Eval(
+        interp, std::string("read_sdc {" + expandedFile + "}").c_str());
     if (status) {
       return TCL_ERROR;
     }
@@ -595,7 +596,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string opts;
     for (int i = 1; i < argc; i++) {
-      opts += std::string(argv[i]);
+      std::string opt = argv[i];
+      std::string expandedFile = opt;
+      bool use_orig_path = false;
+      if (compiler->FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(opt);
+        expandedFile = fullPath.string();
+      }
+      if (compiler->FileExists(expandedFile)) {
+        std::filesystem::path p = expandedFile;
+        p = std::filesystem::absolute(p);
+        opt = p.string();
+      }
+      opts += opt;
       if (i < (argc - 1)) {
         opts += " ";
       }
@@ -605,11 +626,30 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("pnr_options", pnr_options, this, 0);
 
+  auto synth_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (!compiler->m_projManager->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::string opts;
+    for (int i = 1; i < argc; i++) {
+      opts += std::string(argv[i]);
+      if (i < (argc - 1)) {
+        opts += " ";
+      }
+    }
+    compiler->SynthMoreOpt(opts);
+    return TCL_OK;
+  };
+  interp->registerCmd("synth_options", synth_options, this, 0);
+
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(IPGen) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::IPGen) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
@@ -625,12 +665,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
         } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
         }
       }
-      return compiler->Compile(Synthesis) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -638,14 +678,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto packing = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Pack) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Pack) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("packing", packing, this, 0);
 
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Global) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
@@ -653,7 +693,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Detailed) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Detailed) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
@@ -661,21 +701,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Routing) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Routing) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
 
     auto sta = [](void* clientData, Tcl_Interp* interp, int argc,
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(STA) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::STA) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
 
     auto power = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      return compiler->Compile(Power) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Power) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("power", power, this, 0);
 
@@ -690,7 +730,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
       }
-      return compiler->Compile(Bitstream) ? TCL_OK : TCL_ERROR;
+      return compiler->Compile(Action::Bitstream) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
@@ -727,7 +767,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
         } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::NoOpt);
+          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
         }
@@ -874,13 +914,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
+  uint task{toTaskId(action)};
   if (m_hardError) {
+    if (task != TaskManager::invalid_id && m_taskManager) {
+      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
+    }
     m_hardError = false;
     return false;
   }
   m_stop = false;
   bool res{false};
-  uint task{toTaskId(action)};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
@@ -1040,7 +1083,7 @@ bool Compiler::IPGenerate() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
-  m_state = IPGenerated;
+  m_state = State::IPGenerated;
   return true;
 }
 
@@ -1054,7 +1097,7 @@ bool Compiler::Packing() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
-  m_state = Packed;
+  m_state = State::Packed;
   return true;
 }
 
@@ -1068,7 +1111,7 @@ bool Compiler::Placement() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
            << std::endl;
-  m_state = Placed;
+  m_state = State::Placed;
   return true;
 }
 
@@ -1082,7 +1125,7 @@ bool Compiler::Route() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
            << std::endl;
-  m_state = Routed;
+  m_state = State::Routed;
   return true;
 }
 
@@ -1165,18 +1208,16 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
-  QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
-    QString stdout_ = m_process->readAllStandardOutput();
-    if (!stdout_.isEmpty() && m_out) {
-      (*m_out) << stdout_.toStdString();
-    }
-  });
-  QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
-    QString stderr_ = m_process->readAllStandardError();
-    if (!stderr_.isEmpty() && m_err) {
-      (*m_err) << stderr_.toStdString();
-    }
-  });
+  if (m_out)
+    QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
+      m_out->write(m_process->readAllStandardOutput(),
+                   m_process->bytesAvailable());
+    });
+  if (m_err)
+    QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
+      QByteArray data = m_process->readAllStandardError();
+      m_err->write(data, data.size());
+    });
 
   QString cmd{command.c_str()};
   QStringList args = cmd.split(" ");

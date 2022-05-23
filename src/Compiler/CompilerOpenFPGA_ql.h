@@ -62,10 +62,19 @@ class CompilerOpenFPGA_ql : public Compiler {
   void OpenFpgaRepackConstraintsFile(const std::filesystem::path& path) {
     m_OpenFpgaRepackConstraintsFile = path;
   }
+  void OpenFpgaPinmapXMLFile(const std::filesystem::path& path) {
+    m_OpenFpgaPinMapXml = path;
+  }
+  void OpenFpgaPinmapCSVFile(const std::filesystem::path& path) {
+    m_OpenFpgaPinMapCSV = path;
+  }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
+  const std::string PluginLibName() { return m_yosysPluginLib; }
+  const std::string PluginName() { return m_yosysPlugin; }
+  const std::string MapTechnology() { return m_mapToTechnology; }
 
  protected:
   virtual bool IPGenerate();
@@ -77,6 +86,8 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
+  virtual bool LoadDeviceData(const std::string& deviceName);
+
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
@@ -85,6 +96,9 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path m_yosysExecutablePath = "yosys";
+  std::string m_yosysPluginLib = "synth-ql";
+  std::string m_yosysPlugin = "synth_ql";
+  std::string m_mapToTechnology = "generic";
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_architectureFile =
@@ -97,6 +111,8 @@ class CompilerOpenFPGA_ql : public Compiler {
       "tests/Arch/bitstream_annotation.xml";
   std::filesystem::path m_OpenFpgaRepackConstraintsFile =
       "tests/Arch/repack_design_constraint.xml";
+  std::filesystem::path m_OpenFpgaPinMapXml = "";
+  std::filesystem::path m_OpenFpgaPinMapCSV = "";
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
