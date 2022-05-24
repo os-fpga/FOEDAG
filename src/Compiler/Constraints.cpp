@@ -205,9 +205,25 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     }
     std::string text;
     char c = stream.get();
+    bool inIndex = false;
     while (stream.good()) {
       text += c;
       c = stream.get();
+      if (c == '[') {
+        c = stream.get();
+        if (isdigit(c)) {
+          inIndex = true;
+          text += "@";
+          while (c != ']') {
+            text += c;
+            c = stream.get();
+          }
+          c = stream.get();
+          text += "%";
+        } else {
+          text += '[';
+        }
+      }
     }
     stream.close();
     text = replaceAll(text, "[*]", "@*@");
