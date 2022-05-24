@@ -20,6 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "CommandLine.h"
+#include "CRFileCryptProc.hpp"
+//#include "AUEnums.hpp"
+
+enum class AUDeviceFamilyType : std::uint8_t {
+    ARCTIC_PRO = 0,
+    ARCTIC_PRO_2,
+    ARCTIC_PRO_3,
+    POLAR_PRO_3,
+    QLF_K4N8,
+    QLF_K6N10,
+    MAX_COUNT
+};
 
 using namespace FOEDAG;
 
@@ -77,6 +89,60 @@ void CommandLine::processArgs() {
       m_help = true;
     } else if (token == "--version") {
       m_version = true;
+    } else if (token == "--testcrypt") {
+      std::cout << "Testing encryption and decryption: "<< std::endl;
+
+      
+      // load the cryption db file
+      if (!CRFileCryptProc::getInstance()->loadCryptKeyDB("xmltest/QLF_K6N10_Supp.db")) {
+          std::cout << "Failed loading db file "<< std::endl;
+          //return false;
+      }
+
+      set<string> fileExtn;
+      //fileExtn.insert(dbConstIdef::VERI_EXTN);
+      //fileExtn.insert(dbConstIdef::XML_EXTN);
+      fileExtn.insert(".xml");
+      if (!CRFileCryptProc::getInstance()->encryptFiles("xmltest", fileExtn, "QLF_K6N10"))
+      {
+          std::cout << "encrypt files failed: "<< std::endl;
+          //db_1190(primDirName, lgGetOccurInfo(__FILE__, __FUNCTION__, __LINE__));
+          //return false;
+      }
+      else
+      {
+        std::cout << "encrypt files passed: "<< std::endl;    
+      }
+
+
+
+      string vprArchXmlFileEn = "xmltest/vpr.xml.en";
+      string openfpgaArchXmlFileEn = "xmltest/openfpga.xml.en";
+      string vprArchXmlFileDecrypted = "xmltest/vpr_decrypted.xml";
+      string openfpgaArchXmlFileDecrypted = "xmltest/openfpga_decrypted.xml";
+
+      stringstream vprstrm;
+      if (!CRFileCryptProc::getInstance()->decryptFile(vprArchXmlFileEn, vprstrm)) {
+        // erroe while decrypt file
+        std::cout << "decrypting vpr xml failed: "<< std::endl;
+        //return false;
+      }
+
+      std::ofstream vprofs(vprArchXmlFileDecrypted);
+      vprofs << vprstrm.str();
+      vprofs.close();
+
+      stringstream openfpgastrm;
+      if (!CRFileCryptProc::getInstance()->decryptFile(openfpgaArchXmlFileEn, openfpgastrm)) {
+        // erroe while decrypt file
+        std::cout << "decrypting openfpga xml failed: "<< std::endl;
+        //return false;
+      }
+
+      std::ofstream openfpgaofs(openfpgaArchXmlFileDecrypted);
+      openfpgaofs << openfpgastrm.str();
+      openfpgaofs.close();
+
     } else {
       std::cout << "ERROR Unknown command line option: " << m_argv[i]
                 << std::endl;

@@ -32,7 +32,10 @@ include (../../cmake/cmake_tcl.txt)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/../../src
-  ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/
+  ${PROJECT_SOURCE_DIR}/../../src/crypt
+  ${PROJECT_SOURCE_DIR}/../../third_party/cryptopp
+  ${PROJECT_SOURCE_DIR}/../../third_party/cereal/include)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 

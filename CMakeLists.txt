@@ -77,6 +77,8 @@ add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
+add_subdirectory(third_party/cryptopp)
+#add_subdirectory(third_party/cereal)
 add_subdirectory(tests/tclutils)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
@@ -86,6 +88,7 @@ add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
 add_subdirectory(src/TextEditor)
+add_subdirectory(src/crypt)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -192,6 +195,7 @@ else()
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
+  set(CRYPTOPP_LIB_STATIC_LIB libcryptopp.a)
   if(APPLE) 
     set(TCL_STATIC_LIB libtcl8.6.dylib)
   endif()
@@ -243,7 +247,10 @@ if(MSVC)
 else()
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})       
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
+  add_library(cryptopp STATIC IMPORTED)
+  set_target_properties(cryptopp PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${CRYPTOPP_LIB_STATIC_LIB})
 endif()
 
 # Copy the init.tcl file from source to build directory
@@ -278,7 +285,7 @@ endif()
 add_dependencies(foedagcore qscintilla2_qt)
 add_dependencies(texteditor qscintilla2_qt tcl_build)
 add_dependencies(designruns tcl_build)
-
+add_dependencies(foedag-bin cryptopp_build)
 add_dependencies(tcl_static tcl_build)
 add_dependencies(foedag-bin tcl_build)
 add_dependencies(designruns_bin tcl_build)
@@ -286,7 +293,7 @@ add_dependencies(foedagcore tcl_build)
 add_dependencies(console_debug tcl_build)
 add_dependencies(newfile tcl_stubb_build)
 add_dependencies(newfile_bin tcl_stubb_build)
-
+#add_dependencies(crypt cryptopp_build)
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
   # finding python dynamic libraries ref: https://gitlab.kitware.com/cmake/cmake/-/issues/21293
@@ -312,7 +319,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole tcl_stubb tcl_static zlib nlohmann_json)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole tcl_stubb tcl_static zlib nlohmann_json cryptopp cr)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
 if(NOT NO_TCMALLOC)
@@ -417,8 +424,10 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)  
-  
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
+install (
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${CRYPTOPP_LIB_STATIC_LIB}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
   
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)

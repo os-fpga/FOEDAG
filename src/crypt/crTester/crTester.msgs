@@ -1,0 +1,3 @@
+{1002} {"ERROR" "Specify mandatory options - '%s', '%s' & '%s'." "s,s,s"}
+{1003} {"ERROR" "File: '%s' %s failed. Refer to above error(s) for more information." "s,s"}
+ 

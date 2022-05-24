@@ -1,0 +1,3 @@
+{1000} {"ERROR" "Failed to read file' %s'. Check if it exists and have read permission." "s"}
+{1001} {"FATAL" "Runtime encountered during %s of file '%s' with message - %s." "s,s,s"}
+
