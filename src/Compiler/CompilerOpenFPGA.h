@@ -47,6 +47,9 @@ class CompilerOpenFPGA : public Compiler {
   void VprExecPath(const std::filesystem::path& path) {
     m_vprExecutablePath = path;
   }
+  void PinConvExecPath(const std::filesystem::path& path) {
+    m_pinConvExecutablePath = path;
+  }
   void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
   }
@@ -119,6 +122,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
+  std::filesystem::path m_pinConvExecutablePath = "pin_c";
   std::filesystem::path m_architectureFile =
       "tests/Arch/k6_frac_N10_tileable_40nm.xml";
   std::filesystem::path m_OpenFpgaArchitectureFile =

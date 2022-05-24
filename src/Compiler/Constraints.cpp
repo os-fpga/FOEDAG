@@ -208,6 +208,20 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     while (stream.good()) {
       text += c;
       c = stream.get();
+      if (c == '[') {
+        c = stream.get();
+        if (isdigit(c)) {
+          text += "@";
+          while (c != ']') {
+            text += c;
+            c = stream.get();
+          }
+          c = stream.get();
+          text += "%";
+        } else {
+          text += '[';
+        }
+      }
     }
     stream.close();
     text = replaceAll(text, "[*]", "@*@");
