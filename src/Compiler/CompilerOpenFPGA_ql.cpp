@@ -1263,7 +1263,87 @@ bool CompilerOpenFPGA_ql::Placement() {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
 //     return false;
 //   }
+#if 0 // disabling this until we have the pin_c executable
+  const std::string pcfOut =
+      (std::filesystem::path(m_projManager->projectName()) /
+       std::string(m_projManager->projectName() + "_openfpga.pcf"))
+          .string();
+  std::ofstream ofspcf(pcfOut);
+  bool pinLocConstraints = false;
+  for (auto constraint : m_constraints->getConstraints()) {
+    std::vector<std::string> tokens;
+    Tokenize(constraint, " ", tokens);
+    constraint = "";
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      constraint += tok + " ";
+    }
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") == std::string::npos) {
+      continue;
+    }
+    constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
+    ofspcf << constraint << "\n";
+    pinLocConstraints = true;
+  }
+  ofspcf.close();
+  std::string pin_loc_constraint_file;
+  if (pinLocConstraints) {
+    std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
+    for (const auto& lang_file : m_projManager->DesignFiles()) {
+      switch (m_projManager->designFileData(lang_file)) {
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF: {
+          netlistFile = lang_file;
+          std::filesystem::path the_path = netlistFile;
+          if (!the_path.is_absolute()) {
+            netlistFile =
+                std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                    .string();
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    std::string pincommand = m_pinConvExecutablePath.string();
+    if (FileExists(pincommand)) {
+      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+      pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+      pincommand += " --pcf " +
+                    std::string(m_projManager->projectName() + "_openfpga.pcf");
+      pincommand += " --blif " + netlistFile;
+      std::string pin_locFile = m_projManager->projectName() + "_pin_loc.place";
+      pincommand += " --output " + pin_locFile;
+
+      std::ofstream ofsp(
+          (std::filesystem::path(m_projManager->projectName()) /
+           std::string(m_projManager->projectName() + "_pin_loc.cmd"))
+              .string());
+      ofsp << pincommand << std::endl;
+      ofsp.close();
+      int status = ExecuteAndMonitorSystemCommand(pincommand);
+      if (status) {
+        ErrorMessage("Design " + m_projManager->projectName() +
+                     " pin conversion failed!");
+        return false;
+      } else {
+        pin_loc_constraint_file = pin_locFile;
+      }
+    }
+  }
+#endif // #if 0 // disabling this until we have the pin_c executable
   std::string command = BaseVprCommand() + " --place";
+#if 0 // disabling this until we have the pin_c executable
+  if (!pin_loc_constraint_file.empty()) {
+    command += " --fix_pins " + pin_loc_constraint_file;
+  }
+#endif // #if 0 // disabling this until we have the pin_c executable
   std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
                      std::string(m_projManager->projectName() + "_place.cmd"))
                         .string());
