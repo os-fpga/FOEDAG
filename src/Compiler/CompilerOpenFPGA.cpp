@@ -938,7 +938,7 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand)) {
+    if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +
