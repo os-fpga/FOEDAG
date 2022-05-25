@@ -1,6 +1,7 @@
 #include "TclConsoleWidget.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QKeyEvent>
@@ -232,6 +233,23 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
   };
 
   Tcl_CreateCommand(interp, "clear", clear_, this, nullptr);
+
+  auto ls = [](ClientData clientData, Tcl_Interp *interp, int argc,
+               const char *argv[]) {
+    const int res = TclEval(interp, qPrintable("pwd"));
+    if (res == TCL_OK) {
+      const QString currPath = TclGetString(Tcl_GetObjResult(interp));
+      const QDir dir{currPath};
+      const QStringList entries =
+          dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+      Tcl_ResetResult(interp);
+      Tcl_AppendResult(interp, qPrintable(entries.join("\n")), nullptr);
+      return TCL_OK;
+    }
+    return TCL_ERROR;
+  };
+
+  Tcl_CreateCommand(interp, "ls", ls, nullptr, nullptr);
 }
 
 bool TclConsoleWidget::hasPrompt() const {
