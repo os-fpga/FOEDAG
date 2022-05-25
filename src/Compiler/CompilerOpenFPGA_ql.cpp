@@ -611,6 +611,39 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
+  // placeholder for ipgenerate process ++
+  std::string settings_json_filename = m_projManager->projectName() + ".json";
+  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+  GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
+  json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
+  
+
+  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
+  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
+  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
+
+  // use script from project dir:
+  //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
+  // use script from scripts dir:
+  const char* const path_scripts = std::getenv("AURORA_SCRIPTS_DIR"); // this is from setup.sh
+  std::filesystem::path scriptsDir = std::string(path_scripts);
+  
+  std::filesystem::path python_script_path = std::filesystem::path(scriptsDir / std::string("example.py"));
+  std::string command = std::string("python3") +
+            std::string(" ") +
+            python_script_path.string() +
+            std::string(" ") +
+            std::string("IPGenerate") +
+            std::string(" ") +
+            m_projManager->projectName();
+
+  int status = ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + m_projManager->projectName() + " IP generation failed!");
+    return false;
+  }
+  // placeholder for ipgenerate process --
+
   (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
            << std::endl;
   m_state = State::IPGenerated;
@@ -1244,7 +1277,7 @@ bool CompilerOpenFPGA_ql::Packing() {
   std::filesystem::path scriptsDir = std::string(path_scripts);
   
   std::filesystem::path python_script_path = std::filesystem::path(scriptsDir / std::string("example.py"));
-  command = std::string("python") +
+  command = std::string("python3") +
             std::string(" ") +
             python_script_path.string() +
             std::string(" ") +
