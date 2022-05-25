@@ -50,3 +50,17 @@ third_party/zlib/minigzipsh
 third_party/zlib/zconf.h
 third_party/zlib/zlib.pc
 third_party/zlib/Makefile
+
+# more third party stuff
+third_party/include/
+third_party/lib/
+third_party/share/
+third_party/tcl8.6.12/unix/Makefile
+third_party/tcl8.6.12/unix/autom4te.cache/
+third_party/tcl8.6.12/unix/config.status
+third_party/tcl8.6.12/unix/dltest/Makefile
+third_party/tcl8.6.12/unix/libtcl8.6.so
+third_party/tcl8.6.12/unix/pkgs/
+third_party/tcl8.6.12/unix/tcl.pc
+third_party/tcl8.6.12/unix/tclConfig.sh
+third_party/tcl8.6.12/unix/tclsh

@@ -49,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QListWidget>
+#include <QTabWidget>
 
 using namespace FOEDAG;
 
@@ -495,23 +496,34 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   QDialog* dlg = new QDialog();
   dlg->setWindowTitle("Settings");
   dlg->setAttribute(Qt::WA_DeleteOnClose);
-  QHBoxLayout* layout = new QHBoxLayout();
-  dlg->setLayout(layout);
+  QVBoxLayout* dlg_toplevellayout = new QVBoxLayout();
+  QHBoxLayout* dlg_widgetslayout = new QHBoxLayout();
+  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
+  dlg_toplevellayout->addLayout(dlg_widgetslayout); // first the settings stuff
+  dlg_toplevellayout->addLayout(dlg_buttonslayout); // second a row of buttons for actions
+  dlg->setLayout(dlg_toplevellayout);
 
-  // settings
-  //  category
-  //    subcategory
-  //      param object, has "widgetType"= in the object, can be gui'ed.
+  // json structure:
+  //  category0
+  //    subcategory0
+  //      param0 {}
+  //      param1 {}
+  //    subcategory1
+  //      param2 {}
+  //      param3 {}
+  // category1
+  //    ... and so on.
 
-  // settings is a dialog
-  // inside the dialog HLAYOUT are : 1. listview 2. QStackedWidget
-  // listview has the list of all 'categories'
-  // on selecting a 'category', QStackedWidget switches to the appropriate stacked 'page', which is each a widget
-  // use a QTabWidget for each 'page', and each 'subcategory' is represented with a tab 'page'
-  // on each tab 'page' we have a widget that contains all the settings objects.
-  
+  // 1. settings GUI representation -> Dialog
+  // 2. split layout into 
+  //      (a) QListWidget (list of categories)
+  //      (b) QStackedWidget (content of the categories)
+  // 3. on selecting a category (QListWidget) -> corresponding widget which has the content of the category is visible
+  // 4. each widget in the category widget (QStackedWidget) will be a QTabWidget
+  //    each of the tabs in it represents a subcategory
+  //    so, all the params in a subcategory will be displayed inside a 'tab' which is the 'subcategory widget'
+
   QStackedWidget *stackedWidget = new QStackedWidget();
-  //QComboBox *pageComboBox = new QComboBox();
   QListWidget *listWidget = new QListWidget();
 
   json& rootJson = currentSettings->getJson();
@@ -523,44 +535,68 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       continue;
     }
 
-    // container widget for each 'category' -> this will be each 'page' of the stacked widget
-    QWidget* categoryWidget = new QWidget();
-    QVBoxLayout* categoryWidgetlayout = new QVBoxLayout();
-    categoryWidget->setLayout(categoryWidgetlayout);
+    // container widget for each 'category' -> this will be each 'page' of the QStackedWidget
+    // this container widget will contain all the 'subcategories' of the category -> hence a QTabWidget for each category
+    QTabWidget* categoryWidget = new QTabWidget();
 
     for (auto [subcategoryId, subcategoryJson] : categoryJson.items()) {
 
-      // container widget for each 'subcategory'  -> 'tab' widget inside the category widget
-      // TODO later.
+      // container widget for each 'subcategory'  -> 'page' widget inside the category QTabWidget
+      // the container widget will contain all the 'parameters' of this subcategory -> hence a simple QWidget will do.
+      // this should become a ScrollArea.
+      QWidget* subcategoryWidget = new QWidget();
+      QVBoxLayout* subcategoryWidgetlayout = new QVBoxLayout();
+      subcategoryWidgetlayout->setAlignment(Qt::AlignTop);
+      subcategoryWidget->setLayout(subcategoryWidgetlayout);
 
       for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
 
-        // Create and add the child widget to our parent container
+        // finally, each parameter becomes a widget according the type and properties.
         QWidget* subWidget =
             FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
-        categoryWidgetlayout->addWidget(subWidget);
+        
+        // the parameter widget is added into the 'subcategory widget' layout.
+        subcategoryWidgetlayout->addWidget(subWidget);
       }
+
+      // subcategory widget ready -> this is a 'page' or 'tab' in QTabWidget, so add to the QTabWidget directly (no layout)
+      categoryWidget->addTab(subcategoryWidget, QString::fromStdString(subcategoryId));
     }
 
-    // category widget is ready.
+    // category widget is ready -> this is a 'page' in the 'container' QStackedWidget
     stackedWidget->addWidget(categoryWidget);
-    //pageComboBox->addItem(QString::fromStdString(categoryId));
+    
+    // correspondingly, add the category 'name' into the QListWidget
     new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
   }
 
-  // stacked widget, combo box ready
-  // QObject::connect(pageComboBox, QOverload<int>::of(&QComboBox::activated),
-  //           stackedWidget, &QStackedWidget::setCurrentIndex);
-
+  // when a 'category' in the QListView is selected, corresponding 'page' widget in the QStackedWidget should be shown.
   QObject::connect(listWidget, QOverload<int>::of(&QListWidget::currentRowChanged),
             stackedWidget, &QStackedWidget::setCurrentIndex);
 
-  //layout->addWidget(pageComboBox);
-  layout->addWidget(listWidget);
-  layout->addWidget(stackedWidget);
+  // container widget for all settings, add the QListView(left side), and then QStackedWidget(right side)
+  dlg_widgetslayout->addWidget(listWidget);
+  dlg_widgetslayout->addWidget(stackedWidget);
 
   // show vpr by default first, test only.
   listWidget->setCurrentRow(2);
+
+  // make the buttons for the actions in the settings dialog
+  QPushButton *button_loadfromjson = new QPushButton("Reload");
+  button_loadfromjson->setToolTip("Reload everything from the JSON file");
+  QPushButton *button_savetojson = new QPushButton("Save");
+  button_savetojson->setToolTip("Save everything to the JSON file");
+  QPushButton *button_cancel = new QPushButton("Cancel");
+  button_cancel->setToolTip("Discard any modifications to the current session");
+  QPushButton *button_save = new QPushButton("Apply");
+  button_save->setToolTip("Keep any modifications for the current session");
+  
+  dlg_buttonslayout->addWidget(button_loadfromjson);
+  dlg_buttonslayout->addWidget(button_savetojson);
+  dlg_buttonslayout->addStretch();
+  dlg_buttonslayout->addWidget(button_cancel);
+  dlg_buttonslayout->addWidget(button_save);
+
   dlg->show();
 
   return TCL_OK;
