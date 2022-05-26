@@ -38,6 +38,7 @@ class CommandStack {
  public:
   CommandStack(TclInterpreter* interp);
   bool push_and_exec(Command* cmd);
+  void push(Command* cmd);
   bool pop_and_undo();
 
   ~CommandStack();

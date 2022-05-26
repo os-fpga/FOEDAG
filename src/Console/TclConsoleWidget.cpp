@@ -13,7 +13,10 @@
 
 #include "ConsoleDefines.h"
 #include "FileInfo.h"
+#include "MainWindow/Session.h"
 #include "StreamBuffer.h"
+
+extern FOEDAG::Session *GlobalSession;
 
 namespace FOEDAG {
 
@@ -71,7 +74,10 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
     if (handleCommandFromHistory(command, histCommand))
       prepareCommand = histCommand;
     QConsole::interpretCommand(prepareCommand, res);
-    if (m_console) m_console->run(prepareCommand.toUtf8());
+    if (m_console) {
+      GlobalSession->CmdStack()->push(new Command{command.toStdString()});
+      m_console->run(prepareCommand.toUtf8());
+    }
     setMultiLine(false);
     return QString();
   }

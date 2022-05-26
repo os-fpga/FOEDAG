@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 
+extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 
 extern const char* foedag_version_number;
@@ -1049,24 +1050,33 @@ bool Compiler::RunCompileTask(Action action) {
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
   m_taskManager = newTaskManager;
   if (m_taskManager) {
-    m_taskManager->bindTaskCommand(
-        IP_GENERATE, [this]() { m_interp->evalCmd("ipgenerate"); });
-    m_taskManager->bindTaskCommand(SYNTHESIS,
-                                   [this]() { m_interp->evalCmd("synth"); });
-    m_taskManager->bindTaskCommand(PACKING,
-                                   [this]() { m_interp->evalCmd("packing"); });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT,
-                                   [this]() { m_interp->evalCmd("globp"); });
-    m_taskManager->bindTaskCommand(PLACEMENT,
-                                   [this]() { m_interp->evalCmd("place"); });
-    m_taskManager->bindTaskCommand(ROUTING,
-                                   [this]() { m_interp->evalCmd("route"); });
-    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF,
-                                   [this]() { m_interp->evalCmd("sta"); });
-    m_taskManager->bindTaskCommand(POWER,
-                                   [this]() { m_interp->evalCmd("power"); });
-    m_taskManager->bindTaskCommand(
-        BITSTREAM, [this]() { m_interp->evalCmd("bitstream"); });
+    m_taskManager->bindTaskCommand(IP_GENERATE, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("ipgenerate"));
+    });
+    m_taskManager->bindTaskCommand(SYNTHESIS, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
+    });
+    m_taskManager->bindTaskCommand(PACKING, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("packing"));
+    });
+    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
+    });
+    m_taskManager->bindTaskCommand(PLACEMENT, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("place"));
+    });
+    m_taskManager->bindTaskCommand(ROUTING, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("route"));
+    });
+    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
+    });
+    m_taskManager->bindTaskCommand(POWER, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("power"));
+    });
+    m_taskManager->bindTaskCommand(BITSTREAM, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
+    });
   }
 }
 
