@@ -36,6 +36,11 @@ bool CommandStack::push_and_exec(Command *cmd) {
   return (result == "");
 }
 
+void CommandStack::push(Command *cmd) {
+  m_logger->log(cmd->do_cmd());
+  m_cmds.push_back(cmd);
+}
+
 bool CommandStack::pop_and_undo() {
   if (!m_cmds.empty()) {
     Command *c = m_cmds.back();
@@ -47,4 +52,7 @@ bool CommandStack::pop_and_undo() {
   return false;
 }
 
-CommandStack::~CommandStack() { m_logger->close(); }
+CommandStack::~CommandStack() {
+  m_logger->close();
+  for (auto cmd : m_cmds) delete cmd;
+}
