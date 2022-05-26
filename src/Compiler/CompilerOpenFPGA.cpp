@@ -817,6 +817,8 @@ bool CompilerOpenFPGA::Packing() {
     (*m_out) << "Constraint: " << constraint << "\n";
     // Parse RTL and expand the get_ports, get_nets
     // Temporary dirty filtering:
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
     constraint = "";
