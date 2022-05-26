@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMetaMethod>
+#include <QProcess>
 #include <QScrollBar>
 #include <QStack>
 #include <QTextBlock>
@@ -240,22 +241,42 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
 
   Tcl_CreateCommand(interp, "clear", clear_, this, nullptr);
 
-  auto ls = [](ClientData clientData, Tcl_Interp *interp, int argc,
-               const char *argv[]) {
-    const int res = TclEval(interp, qPrintable("pwd"));
-    if (res == TCL_OK) {
-      const QString currPath = TclGetString(Tcl_GetObjResult(interp));
-      const QDir dir{currPath};
-      const QStringList entries =
-          dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-      Tcl_ResetResult(interp);
-      Tcl_AppendResult(interp, qPrintable(entries.join("\n")), nullptr);
-      return TCL_OK;
+  auto unknown = [](ClientData clientData, Tcl_Interp *interp, int argc,
+                    const char *argv[]) {
+    const QString prog{argv[1]};
+    QStringList params;
+    for (int i = 2; i < argc; ++i) params << argv[i];
+    QProcess proc;
+    bool started{false};
+    Tcl_ResetResult(interp);
+    QObject::connect(&proc, &QProcess::readyReadStandardOutput, [&]() {
+      const QByteArray data = proc.readAllStandardOutput();
+      Tcl_AppendResult(interp, qPrintable(data), nullptr);
+    });
+    QObject::connect(&proc, &QProcess::readyReadStandardError, [&]() {
+      const QByteArray data = proc.readAllStandardError();
+      Tcl_AppendResult(interp, qPrintable(data), nullptr);
+    });
+    QObject::connect(&proc, &QProcess::started, [&]() { started = true; });
+    proc.start(prog, params);
+    proc.waitForFinished(-1);
+
+    if (!started) {
+      Tcl_AppendResult(
+          interp, qPrintable(QString("invalid command name \"%1\"").arg(prog)),
+          nullptr);
+      return TCL_ERROR;
+    }
+
+    auto status = proc.exitStatus();
+    auto exitCode = proc.exitCode();
+    if (status == QProcess::NormalExit) {
+      return (exitCode == 0) ? TCL_OK : TCL_ERROR;
     }
     return TCL_ERROR;
   };
 
-  Tcl_CreateCommand(interp, "ls", ls, nullptr, nullptr);
+  Tcl_CreateCommand(interp, "unknown", unknown, nullptr, nullptr);
 }
 
 bool TclConsoleWidget::hasPrompt() const {
