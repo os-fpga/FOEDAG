@@ -814,11 +814,11 @@ bool CompilerOpenFPGA::Packing() {
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
     // Parse RTL and expand the get_ports, get_nets
     // Temporary dirty filtering:
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
+    (*m_out) << "Constraint: " << constraint << "\n";
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
     constraint = "";
