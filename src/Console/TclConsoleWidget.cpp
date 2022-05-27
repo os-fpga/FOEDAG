@@ -152,6 +152,7 @@ void FOEDAG::TclConsoleWidget::putMessage(const QString &message,
                                           OutputFormat format) {
   if (!message.isEmpty()) {
     moveCursor(QTextCursor::End);
+    GlobalSession->CmdStack()->CmdLogger()->appendLog(message.toStdString());
     m_formatter.appendMessage(message, format);
   }
 }
