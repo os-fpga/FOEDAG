@@ -21,12 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CommandStack.h"
 
+#include <chrono>
+#include <ctime>
+
 using namespace FOEDAG;
 
-CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {
-  m_logger = new Logger("cmd.log");
+CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile)
+    : m_interp(interp) {
+  m_logger = new Logger(logFile.empty() ? "cmd.log" : logFile);
   m_logger->open();
-  m_logger->log("# Command log file\n");
+  auto now = std::chrono::system_clock::now();
+  std::time_t time = std::chrono::system_clock::to_time_t(now);
+  (*m_logger) << "# Command log file\n";
+  (*m_logger) << "# Created: " << std::ctime(&time) << "\n";
 }
 
 bool CommandStack::push_and_exec(Command *cmd) {
@@ -53,6 +60,6 @@ bool CommandStack::pop_and_undo() {
 }
 
 CommandStack::~CommandStack() {
-  m_logger->close();
+  delete m_logger;
   for (auto cmd : m_cmds) delete cmd;
 }

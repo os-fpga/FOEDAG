@@ -167,7 +167,9 @@ bool Foedag::initGui() {
   QApplication app(argc, m_cmdLine->Argv());
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  const std::string logFile = m_context->ExecutableName() + ".log";
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, logFile);
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
 
@@ -238,7 +240,9 @@ bool Foedag::initQmlGui() {
   QApplication app(argc, m_cmdLine->Argv());
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  const std::string logFile = m_context->ExecutableName() + ".log";
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, logFile);
 
   MainWindowModel* windowModel = new MainWindowModel(interpreter);
 
@@ -343,7 +347,9 @@ bool Foedag::initBatch() {
   // Batch mode
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  const std::string logFile = m_context->ExecutableName() + ".log";
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, logFile);
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
