@@ -751,8 +751,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("ip_th", Action::IPGen, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
@@ -775,8 +774,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       WorkerThread* wthread =
           new WorkerThread("synth_th", Action::Synthesis, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
     interp->registerCmd("synth", synthesize, this, 0);
@@ -786,8 +784,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("pack_th", Action::Pack, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("packing", packing, this, 0);
 
@@ -796,8 +793,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("glob_th", Action::Global, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("global_placement", globalplacement, this, 0);
     interp->registerCmd("globp", globalplacement, this, 0);
@@ -807,8 +803,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("place_th", Action::Detailed, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
@@ -818,8 +813,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("route_th", Action::Routing, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
 
@@ -827,8 +821,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                   const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread = new WorkerThread("sta_th", Action::STA, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
 
@@ -837,8 +830,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       WorkerThread* wthread =
           new WorkerThread("power_th", Action::Power, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("power", power, this, 0);
 
@@ -855,8 +847,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       WorkerThread* wthread =
           new WorkerThread("bitstream_th", Action::Bitstream, compiler);
-      wthread->start();
-      return 0;
+      return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("bitstream", bitstream, this, 0);
 
