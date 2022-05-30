@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
@@ -235,6 +236,16 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 
+  QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
+  PropertyWidget* propertyWidget = new PropertyWidget{sourForm->ProjManager()};
+  connect(sourForm, &SourcesForm::ShowProperty, propertyWidget,
+          &PropertyWidget::ShowProperty);
+  connect(sourForm, &SourcesForm::ShowPropertyPanel, propertiesDockWidget,
+          &QDockWidget::show);
+  propertiesDockWidget->setWidget(propertyWidget->Widget());
+  addDockWidget(Qt::LeftDockWidgetArea, propertiesDockWidget);
+  propertiesDockWidget->hide();
+
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
@@ -286,7 +297,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
   QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
-  runDockWidget->setObjectName("sourcedockwidget");
+  runDockWidget->setObjectName("designrundockwidget");
   RunsForm* runForm = new RunsForm(this);
   runForm->InitRunsForm(strProject);
   runForm->RegisterCommands(GlobalSession);
