@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 
 #include "Compiler.h"
+#include "Main/Tasks.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
 #include "TaskTableView.h"
@@ -33,6 +34,8 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   TaskManager *tManager = new TaskManager;
   TaskModel *model = new TaskModel{tManager};
   TaskTableView *view = new TaskTableView{tManager};
+  QObject::connect(view, &TaskTableView::TaskDialogRequested,
+                   FOEDAG::handleTaskDialogRequested);
   view->setModel(model);
 
   view->setColumnWidth(0, 30);

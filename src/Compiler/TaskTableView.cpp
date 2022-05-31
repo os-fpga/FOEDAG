@@ -47,11 +47,27 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
-  bool expandAreaClicked = expandArea(idx).contains(event->pos());
-  if (expandAreaClicked) {
-    model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+  auto task = m_taskManager->task(idx.row());
+  bool handled = false;
+
+  if (task && idx.data(Qt::DisplayRole).toString() == "Edit settings") {
+    auto parent = task->parentTask();
+    if (parent != nullptr) {
+      // Handle the event first so the selection moves before the modal dialog
+      QTableView::mousePressEvent(event);
+      handled = true;
+      emit TaskDialogRequested(parent->title());
+    }
+  } else {
+    bool expandAreaClicked = expandArea(idx).contains(event->pos());
+    if (expandAreaClicked) {
+      model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+    }
   }
-  QTableView::mousePressEvent(event);
+  // Handle the event if something else hasn't already
+  if (!handled) {
+    QTableView::mousePressEvent(event);
+  }
 }
 
 void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
@@ -104,7 +120,16 @@ QRect TaskTableView::expandArea(const QModelIndex &index) const {
 void ChildItemDelegate::paint(QPainter *painter,
                               const QStyleOptionViewItem &option,
                               const QModelIndex &index) const {
-  if (index.data(ParentDataRole).toBool()) {
+  if (index.data(Qt::DisplayRole).toString() == "Edit settings") {
+    QStyleOptionButton btn;
+    int padding = 4;
+    btn.rect = option.rect.adjusted(padding, padding, -padding, -padding);
+    btn.text = "Edit Settings";
+    const QWidget *widget = option.widget;
+    QStyle *style = widget ? widget->style() : QApplication::style();
+    style->drawControl(QStyle::CE_PushButton, &btn, painter, widget);
+    return;
+  } else if (index.data(ParentDataRole).toBool()) {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     const QWidget *widget = option.widget;

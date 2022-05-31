@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
@@ -235,6 +236,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
 
+  reloadSettings();  // This needs to be after
+                     // sourForm->InitSourcesForm(strProject); so the project
+                     // info exists
+
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
@@ -309,5 +314,42 @@ void MainWindow::clearDockWidgets() {
   auto docks = findChildren<QDockWidget*>();
   for (auto dock : docks) {
     removeDockWidget(dock);
+  }
+}
+
+void MainWindow::reloadSettings() {
+  FOEDAG::Settings* settings = GlobalSession->GetSettings();
+  if (settings) {
+    // Clear out old settings
+    settings->clear();
+
+    QString separator = QString::fromStdString(
+        std::string(1, std::filesystem::path::preferred_separator));
+
+    // List of json files that will get loaded
+    QStringList settingsFiles = {};
+
+    // Helper function to add all json files in a dir to settingsFiles
+    auto addFilesFromDir = [&settingsFiles](const QString& dirPath) {
+      if (!dirPath.isEmpty()) {
+        QDir dir(dirPath);
+        QFileInfoList files =
+            dir.entryInfoList(QStringList() << "*.json", QDir::Files);
+        for (auto file : files) {
+          settingsFiles << file.filePath();
+        }
+      }
+    };
+
+    // Add any json files from the system defaults json path
+    QString settingsDir =
+        GlobalSession->GetSettings()->getSystemDefaultSettingsDir();
+    addFilesFromDir(settingsDir);
+
+    // Add any json files from the [projectName].settings folder
+    addFilesFromDir(FOEDAG::getTaskUserSettingsPath());
+
+    // Load and merge all our json files
+    settings->loadSettings(settingsFiles);
   }
 }
