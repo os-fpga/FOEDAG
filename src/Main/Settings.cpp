@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 
 #define SETTINGS_DEBUG false
-auto DBG_PRINT = [](std::string printStr) {
+auto SETTINGS_DBG_PRINT = [](std::string printStr) {
   if (SETTINGS_DEBUG) {
     std::cout << printStr << std::flush;
   }
@@ -39,7 +39,7 @@ Settings::Settings() {}
 
 void Settings::clear() {
   m_json.clear();
-  DBG_PRINT("Settings: Cleared\n");
+  SETTINGS_DBG_PRINT("Settings: Cleared\n");
 }
 
 void Settings::loadSettings(const QStringList& jsonFiles) {
@@ -74,7 +74,7 @@ void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
     // Read/parse json from file and update the passed jsonObject w/ new vals
     QString jsonStr = jsonFile.readAll();
 
-    DBG_PRINT("Settings: Loading " + filePath.toStdString() + "\n");
+    SETTINGS_DBG_PRINT("Settings: Loading " + filePath.toStdString() + "\n");
     try {
       // Merge the json
       jsonObject->update(json::parse(jsonStr.toStdString()), true);

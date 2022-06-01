@@ -34,7 +34,7 @@ const QString DlgBtnBoxName{"SettingsDialogButtonBox"};
 
 // Local debug helpers
 #define WIDGET_FACTORY_DEBUG false
-auto DBG_PRINT = [](std::string printStr) {
+auto WIDGET_DBG_PRINT = [](std::string printStr) {
   if (WIDGET_FACTORY_DEBUG) {
     std::cout << printStr << std::flush;
   }
@@ -43,7 +43,7 @@ auto DBG_PRINT_VAL_SET = [](const QObject* obj, const QString& userVal) {
   std::string dbgStr = std::string(obj->metaObject()->className()) +
                        ": setting user value -> " + userVal.toStdString() +
                        "\n";
-  DBG_PRINT(dbgStr);
+  WIDGET_DBG_PRINT(dbgStr);
 };
 auto DBG_PRINT_JSON_PATCH = [](const QObject* obj, const std::string& valStr) {
   if (WIDGET_FACTORY_DEBUG) {
@@ -141,9 +141,9 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
               settingsWidget->property("settingsId").toString();
           QString patchStr = targetObject->property("jsonPatch").toString();
 
-          DBG_PRINT("createSettingsWidget: saving value " +
-                    settingsId.toStdString() + " -> " + patchStr.toStdString() +
-                    "\n");
+          WIDGET_DBG_PRINT("createSettingsWidget: saving value " +
+                           settingsId.toStdString() + " -> " +
+                           patchStr.toStdString() + "\n");
 
           patchHash[settingsId] = patchStr;
         }
