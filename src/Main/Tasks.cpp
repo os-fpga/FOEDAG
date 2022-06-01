@@ -34,7 +34,8 @@ using namespace FOEDAG;
 #define TASKS_KEY "Tasks"
 
 #define TASKS_DEBUG false
-auto DBG_PRINT = [](std::string printStr) {
+
+auto TASKS_DBG_PRINT = [](std::string printStr) {
   if (TASKS_DEBUG) {
     std::cout << printStr << std::flush;
   }
@@ -80,11 +81,12 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
               QTextStream out(&file);
               out << QString::fromStdString(cleanJson.dump());
 
-              DBG_PRINT("Saving Tasks: user values saved to " +
-                        filepath.filePath().toStdString() + "\n");
+              TASKS_DBG_PRINT("Saving Tasks: user values saved to " +
+                              filepath.filePath().toStdString() + "\n");
             }
           } else {
-            DBG_PRINT("Saving Tasks: No user settings path, skipping save.\n");
+            TASKS_DBG_PRINT(
+                "Saving Tasks: No user settings path, skipping save.\n");
           }
         }
       }
