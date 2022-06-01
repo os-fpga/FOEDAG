@@ -61,6 +61,9 @@ class TaskTableView : public QTableView {
   void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                    const QVector<int> &roles = QVector<int>()) override;
 
+ signals:
+  void TaskDialogRequested(const QString &category);
+
  private:
   QRect expandArea(const QModelIndex &index) const;
 
