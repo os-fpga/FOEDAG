@@ -747,6 +747,8 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keeps += "setattr -set keep 1 w:\\*\n";
   }
   for (auto keep : m_constraints->GetKeeps()) {
+    keep = ReplaceAll(keep, "@", "[");
+    keep = ReplaceAll(keep, "%", "]");
     (*m_out) << "Keep name: " << keep << "\n";
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
@@ -814,9 +816,11 @@ bool CompilerOpenFPGA::Packing() {
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
     // Parse RTL and expand the get_ports, get_nets
     // Temporary dirty filtering:
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    (*m_out) << "Constraint: " << constraint << "\n";
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
     constraint = "";
@@ -939,6 +943,18 @@ bool CompilerOpenFPGA::Placement() {
 
     std::string pincommand = m_pinConvExecutablePath.string();
     if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
+      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+        ErrorMessage(
+            "No pin description xml file available for this device, required "
+            "for set_pin_loc constraints");
+        return false;
+      }
+      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+        ErrorMessage(
+            "No pin description csv file available for this device, required "
+            "for set_pin_loc constraints");
+        return false;
+      }
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +

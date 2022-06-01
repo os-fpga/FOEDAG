@@ -36,8 +36,10 @@ namespace FOEDAG {
 class CommandStack {
  private:
  public:
-  CommandStack(TclInterpreter* interp);
+  CommandStack(TclInterpreter* interp,
+               const std::string& logFile = std::string{});
   bool push_and_exec(Command* cmd);
+  void push(Command* cmd);
   bool pop_and_undo();
 
   ~CommandStack();

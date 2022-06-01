@@ -26,10 +26,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QMetaEnum>
+#include <iostream>
 
 using namespace FOEDAG;
 
 const QString DlgBtnBoxName{"SettingsDialogButtonBox"};
+
+// Local debug helpers
+#define WIDGET_FACTORY_DEBUG false
+auto WIDGET_DBG_PRINT = [](std::string printStr) {
+  if (WIDGET_FACTORY_DEBUG) {
+    std::cout << printStr << std::flush;
+  }
+};
+auto DBG_PRINT_VAL_SET = [](const QObject* obj, const QString& userVal) {
+  std::string dbgStr = std::string(obj->metaObject()->className()) +
+                       ": setting user value -> " + userVal.toStdString() +
+                       "\n";
+  WIDGET_DBG_PRINT(dbgStr);
+};
+auto DBG_PRINT_JSON_PATCH = [](const QObject* obj, const std::string& valStr) {
+  if (WIDGET_FACTORY_DEBUG) {
+    std::cout << "Setting json[\"jsonPatch\"] = " << valStr << " for "
+              << obj->objectName().toStdString() << "("
+              << obj->metaObject()->className() << ")" << std::endl;
+  }
+};
 
 // Local helper function to convert a nlohmann::json array of std::strings to
 // QStringLists This assumes the json object contains an array of strings
@@ -42,13 +64,15 @@ QStringList JsonArrayToQStringList(const json& jsonArray) {
   return strings;
 }
 
-template <typename T>
-T getUserValOrDefault(const json& jsonObj) {
-  T val = jsonObj["default"].get<T>();
-  if (jsonObj.contains("userValue")) {
-    val = jsonObj["userValue"].get<T>();
-  }
+void storeJsonPatch(QObject* obj, const json& patch) {
+  DBG_PRINT_JSON_PATCH(obj, patch.dump());
+  obj->setProperty("changed", true);
+  obj->setProperty("jsonPatch", QString::fromStdString(patch.dump()));
+}
 
+template <typename T>
+T getDefault(const json& jsonObj) {
+  T val = jsonObj["default"].get<T>();
   return val;
 }
 
@@ -60,6 +84,7 @@ QDialog* FOEDAG::createSettingsDialog(
   dlg->setAttribute(Qt::WA_DeleteOnClose);
   dlg->setWindowTitle(dialogTitle);
   QVBoxLayout* layout = new QVBoxLayout();
+  layout->setContentsMargins(0, 0, 0, 0);
   dlg->setLayout(layout);
 
   QWidget* task = FOEDAG::createSettingsWidget(widgetsJson, objectNamePrefix);
@@ -83,7 +108,7 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   // Create a parent widget to contain all generated widgets
   QWidget* widget = new QWidget();
 
-  widget->setObjectName(objNamePrefix + "SettingsWidget");
+  widget->setObjectName(objNamePrefix + SETTINGS_WIDGET_SUFFIX);
   QVBoxLayout* VLayout = new QVBoxLayout();
   widget->setLayout(VLayout);
 
@@ -101,20 +126,24 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
 
   // This will collect value changes for each widget/setting, save those
   // settings to a user file and add the changes to the passed in settings
-  auto checkVals = [VLayout, &widgetsJson]() {
+  auto checkVals = [VLayout, &widgetsJson, widget]() {
     bool save = false;
     QHash<QString, QString> patchHash;
     for (int i = 0; i < VLayout->count(); i++) {
-      QWidget* widget = VLayout->itemAt(i)->widget();
-      if (widget) {
+      QWidget* settingsWidget = VLayout->itemAt(i)->widget();
+      if (settingsWidget) {
         QObject* targetObject =
-            qvariant_cast<QObject*>(widget->property("targetObject"));
+            qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
 
         if (targetObject && targetObject->property("changed").toBool()) {
           save = true;
-          QString settingsId = widget->property("settingsId").toString();
+          QString settingsId =
+              settingsWidget->property("settingsId").toString();
           QString patchStr = targetObject->property("jsonPatch").toString();
 
+          WIDGET_DBG_PRINT("createSettingsWidget: saving value " +
+                           settingsId.toStdString() + " -> " +
+                           patchStr.toStdString() + "\n");
           patchHash[settingsId] = patchStr;
         }
       }
@@ -122,6 +151,7 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
 
     // Step through each child patch and apply it to the original settings json
     QHashIterator<QString, QString> patch(patchHash);
+    json changes;
     while (patch.hasNext()) {
       patch.next();
 
@@ -129,16 +159,22 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
         std::string patchIdStr = patch.key().toStdString();
         std::string patchStr = patch.value().toStdString();
 
+        // Store clean json changes
+        changes[patchIdStr].merge_patch(json::parse(patchStr));
+
+        // Store json changes in the passed in widgetsJson
         widgetsJson[patchIdStr].merge_patch(json::parse(patchStr));
       }
     }
 
+    // If there were changes to save, store all the json changes in a property
+    // that can be retrieved and saved by whomever called this
     if (save) {
-      // sma save not yet implemented
-      // settings->saveJsonFile("./saveTest.json");
+      widget->setProperty("userPatch", QString::fromStdString(changes.dump()));
     }
   };
 
+  // Check and store value changes if the dialog is accepted
   QObject::connect(btnBox, &QDialogButtonBox::accepted, widget, checkVals);
 
   return widget;
@@ -178,58 +214,59 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj,
     // Get widget type and create respective widget if it's supported
     if (type == "input" || type == "lineedit") {
       // QLineEdit - "input" or "lineedit"
+      QString sysDefaultVal =
+          QString::fromStdString(getDefault<std::string>(widgetJsonObj));
 
-      // QString defaultVal = getStr(widgetJsonObj, "default");
-      QString defaultVal = QString::fromStdString(
-          getUserValOrDefault<std::string>(widgetJsonObj));
+      // Callback to handle value changes
+      std::function<void(QLineEdit*, const QString&)> handleChange =
+          [](QLineEdit* ptr, const QString& val) {
+            json changeJson;
+            changeJson["userValue"] = ptr->text().toStdString();
+            storeJsonPatch(ptr, changeJson);
+          };
 
-      auto ptr = createLineEdit(objName, defaultVal);
+      // Create our widget
+      auto ptr = createLineEdit(objName, sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Add value change tracking
-      auto initialVal = ptr->text();
-      QObject::connect(ptr, &QLineEdit::textChanged,
-                       [widgetJsonObj, ptr, initialVal](const QString& val) {
-                         bool changed = (val != initialVal);
-                         ptr->setProperty("changed", changed);
-                         if (changed) {
-                           // store value changes as a json string in the
-                           // widget's property system
-                           json changeJson;
-                           changeJson["userValue"] = ptr->text().toStdString();
-                           ptr->setProperty(
-                               "jsonPatch",
-                               QString::fromStdString(changeJson.dump()));
-                         }
-                       });
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        QString userVal = QString::fromStdString(
+            widgetJsonObj["userValue"].get<std::string>());
+        ptr->setText(userVal);
+
+        DBG_PRINT_VAL_SET(ptr, userVal);
+      }
 
       targetObject = createdWidget;
     } else if (type == "dropdown" || type == "combobox") {
       // QComboBox - "dropdown" or "combobox"
-      QString defaultVal = QString::fromStdString(
-          getUserValOrDefault<std::string>(widgetJsonObj));
+      QString sysDefaultVal =
+          QString::fromStdString(getDefault<std::string>(widgetJsonObj));
       QStringList comboOptions =
           JsonArrayToQStringList(widgetJsonObj["options"]);
-      auto ptr = createComboBox(objName, comboOptions, defaultVal);
+
+      // Callback to handle value changes
+      std::function<void(QComboBox*, const QString&)> handleChange =
+          [](QComboBox* ptr, const QString& val) {
+            json changeJson;
+            changeJson["userValue"] = ptr->currentText().toStdString();
+            storeJsonPatch(ptr, changeJson);
+          };
+
+      // Create Widget
+      auto ptr =
+          createComboBox(objName, comboOptions, sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Add value change tracking
-      auto initialVal = ptr->currentIndex();
-      QObject::connect(
-          ptr, qOverload<int>(&QComboBox::currentIndexChanged),
-          [ptr, initialVal](int val) {
-            //  changeJson.emplace( "userValue", ptr->currentText() );
-            bool changed = (val != initialVal);
-            ptr->setProperty("changed", changed);
-            if (changed) {
-              // store value changes as a json string in the widget's property
-              // system
-              json changeJson;
-              changeJson["userValue"] = ptr->currentText().toStdString();
-              ptr->setProperty("jsonPatch",
-                               QString::fromStdString(changeJson.dump()));
-            }
-          });
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        QString userVal = QString::fromStdString(
+            widgetJsonObj["userValue"].get<std::string>());
+        ptr->setCurrentText(userVal);
+
+        DBG_PRINT_VAL_SET(ptr, userVal);
+      }
 
       targetObject = createdWidget;
     } else if (type == "spinbox") {
@@ -238,27 +275,29 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj,
       int maxVal =
           widgetJsonObj.value("maxVal", std::numeric_limits<int>::max());
       int stepVal = widgetJsonObj.value("stepVal", 1);
-      // int defaultVal = widgetJsonObj.value("default", 0);
-      int defaultVal = getUserValOrDefault<int>(widgetJsonObj);
-      auto ptr = createSpinBox(objName, minVal, maxVal, stepVal, defaultVal);
+      int sysDefaultVal = getDefault<int>(widgetJsonObj);
+
+      // Callback to handle value changes
+      std::function<void(QSpinBox*, const int&)> handleChange =
+          [](QSpinBox* ptr, const int& val) {
+            json changeJson;
+            changeJson["userValue"] = ptr->value();
+
+            storeJsonPatch(ptr, changeJson);
+          };
+
+      // Create Widget
+      auto ptr = createSpinBox(objName, minVal, maxVal, stepVal, sysDefaultVal,
+                               handleChange);
       createdWidget = ptr;
 
-      // Add value change tracking
-      auto initialVal = ptr->value();
-      QObject::connect(ptr, qOverload<int>(&QSpinBox::valueChanged),
-                       [ptr, initialVal](int val) {
-                         bool changed = (val != initialVal);
-                         ptr->setProperty("changed", changed);
-                         if (changed) {
-                           // store value changes as a json string in the
-                           // widget's property system
-                           json changeJson;
-                           changeJson["userValue"] = ptr->value();
-                           ptr->setProperty(
-                               "jsonPatch",
-                               QString::fromStdString(changeJson.dump()));
-                         }
-                       });
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        int userVal = widgetJsonObj["userValue"].get<int>();
+        ptr->setValue(userVal);
+
+        DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+      }
 
       targetObject = createdWidget;
     } else if (type == "doublespinbox") {
@@ -267,39 +306,64 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj,
       double maxVal =
           widgetJsonObj.value("maxVal", std::numeric_limits<double>::max());
       double stepVal = widgetJsonObj.value("stepVal", 1.0);
-      double defaultVal = getUserValOrDefault<double>(widgetJsonObj);
+      double sysDefaultVal = getDefault<double>(widgetJsonObj);
 
-      auto ptr =
-          createDoubleSpinBox(objName, minVal, maxVal, stepVal, defaultVal);
+      // Callback to handle value changes
+      std::function<void(QDoubleSpinBox*, const double&)> handleChange =
+          [](QDoubleSpinBox* ptr, const double& val) {
+            json changeJson;
+            changeJson["userValue"] = ptr->value();
+
+            storeJsonPatch(ptr, changeJson);
+          };
+
+      // Create Widget
+      auto ptr = createDoubleSpinBox(objName, minVal, maxVal, stepVal,
+                                     sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Add value change tracking
-      auto initialVal = ptr->value();
-      QObject::connect(ptr, qOverload<double>(&QDoubleSpinBox::valueChanged),
-                       [ptr, initialVal](int val) {
-                         bool changed = (val != initialVal);
-                         ptr->setProperty("changed", changed);
-                         if (changed) {
-                           // store value changes as a json string in the
-                           // widget's property system
-                           json changeJson;
-                           changeJson["userValue"] = ptr->value();
-                           ptr->setProperty(
-                               "jsonPatch",
-                               QString::fromStdString(changeJson.dump()));
-                         }
-                       });
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        double userVal = widgetJsonObj["userValue"].get<double>();
+        ptr->setValue(userVal);
+
+        DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+      }
 
       targetObject = createdWidget;
     } else if (type == "radiobuttons") {
       // QButtonGroup of QRadioButtons - "radiobuttons"
-      QString defaultVal = QString::fromStdString(
-          getUserValOrDefault<std::string>(widgetJsonObj));
+      QString sysDefaultVal =
+          QString::fromStdString(getDefault<std::string>(widgetJsonObj));
       QStringList options = JsonArrayToQStringList(widgetJsonObj["options"]);
 
+      // Callback to handle value changes
+      std::function<void(QRadioButton*, QButtonGroup*, const bool&)>
+          handleChange = [](QRadioButton* btnPtr, QButtonGroup* btnGroup,
+                            const bool& checked) {
+            json changeJson;
+            changeJson["userValue"] = btnPtr->text().toStdString();
+            storeJsonPatch(btnGroup, changeJson);
+          };
+
       // Create radiobuttons in a QButtonGroup
-      QButtonGroup* btnGroup =
-          FOEDAG::createRadioButtons(objName, options, defaultVal);
+      QButtonGroup* btnGroup = FOEDAG::createRadioButtons(
+          objName, options, sysDefaultVal, handleChange);
+
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        QString userVal = QString::fromStdString(
+            widgetJsonObj["userValue"].get<std::string>());
+
+        for (auto btn : btnGroup->buttons()) {
+          if (btn->text() == userVal) {
+            btn->setChecked(true);
+          }
+        }
+
+        DBG_PRINT_VAL_SET(btnGroup, userVal);
+      }
+
       // ButtonGroups aren't real QWidgets so we need to add their child
       // radiobuttons to a container widget
       QWidget* container = new QWidget();
@@ -313,27 +377,10 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj,
         containerLayout = new QVBoxLayout();
       }
 
-      // record initial val for change tracking later
-      auto initialVal = btnGroup->checkedId();
-
       // Add radiobuttons to container widget's layout
       container->setLayout(containerLayout);
       for (auto* btn : btnGroup->buttons()) {
         containerLayout->addWidget(btn);
-        // Add value change tracking
-        QObject::connect(
-            btn, &QRadioButton::toggled, [btn, btnGroup, initialVal](bool val) {
-              bool changed = (btnGroup->checkedId() != initialVal);
-              btnGroup->setProperty("changed", changed);
-              if (changed) {
-                // store value changes as a json string in the widget's property
-                // system
-                json changeJson;
-                changeJson["userValue"] = btn->text().toStdString();
-                btnGroup->setProperty(
-                    "jsonPatch", QString::fromStdString(changeJson.dump()));
-              }
-            });
       }
 
       // RadioButtons is a non-standard case, copy another type if looking for
@@ -342,37 +389,45 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj,
       createdWidget = container;
     } else if (type == "checkbox") {
       // QCheckBox - "checkbox"
+      auto stringToCheckState = [](const QString& stateStr) -> Qt::CheckState {
+        Qt::CheckState state = Qt::Unchecked;
+        if (stateStr.toLower() == "checked") {
+          state = Qt::Checked;
+        } else if (stateStr.toLower() == "partiallychecked") {
+          state = Qt::PartiallyChecked;
+        }
+        return state;
+      };
+
+      // Determine Widget Details
       QString text = getStr(widgetJsonObj, "text");
+      QString sysDefaultVal =
+          QString::fromStdString(getDefault<std::string>(widgetJsonObj))
+              .toLower();
+      Qt::CheckState state = stringToCheckState(sysDefaultVal);
 
-      // Determine checkstate
-      QString defaultVal = QString::fromStdString(
-                               getUserValOrDefault<std::string>(widgetJsonObj))
-                               .toLower();
-      Qt::CheckState state = Qt::Unchecked;
-      if (defaultVal == "checked") {
-        state = Qt::Checked;
-      } else if (defaultVal == "partiallychecked") {
-        state = Qt::PartiallyChecked;
-      }
+      // Callback to handle value changes
+      std::function<void(QCheckBox*, const int&)> handleChange =
+          [](QCheckBox* ptr, const int& val) {
+            json changeJson;
+            changeJson["userValue"] =
+                QMetaEnum::fromType<Qt::CheckState>().valueToKey(val);
 
-      // Add value change tracking
-      auto ptr = createCheckBox(objName, text, state);
+            storeJsonPatch(ptr, changeJson);
+          };
+
+      // Create Widget
+      auto ptr = createCheckBox(objName, text, state, handleChange);
       createdWidget = ptr;
-      auto initialVal = ptr->checkState();
-      QObject::connect(
-          ptr, &QCheckBox::stateChanged, [ptr, initialVal](int val) {
-            bool changed = (val != initialVal);
-            ptr->setProperty("changed", changed);
-            if (changed) {
-              // store value changes as a json string in the widget's property
-              // system
-              json changeJson;
-              changeJson["userValue"] =
-                  QMetaEnum::fromType<Qt::CheckState>().valueToKey(val);
-              ptr->setProperty("jsonPatch",
-                               QString::fromStdString(changeJson.dump()));
-            }
-          });
+
+      // Load and set user value
+      if (widgetJsonObj.contains("userValue")) {
+        QString userVal = QString::fromStdString(
+            widgetJsonObj["userValue"].get<std::string>());
+        ptr->setCheckState(stringToCheckState(userVal));
+
+        DBG_PRINT_VAL_SET(ptr, userVal);
+      }
 
       targetObject = createdWidget;
     }
@@ -406,6 +461,7 @@ QWidget* FOEDAG::createLabelWidget(const QString& label, QWidget* widget) {
   // Create a container widget w/ an H layout
   QWidget* retVal = new QWidget();
   QHBoxLayout* HLayout = new QHBoxLayout();
+  HLayout->setContentsMargins(0, 0, 0, 0);
   retVal->setLayout(HLayout);
 
   // Add a label and our widget to the container
@@ -420,101 +476,143 @@ QWidget* FOEDAG::createLabelWidget(const QString& label, QWidget* widget) {
   return retVal;
 }
 
-QComboBox* FOEDAG::createComboBox(const QString& objectName,
-                                  const QStringList& options,
-                                  const QString& selectedValue) {
+QComboBox* FOEDAG::createComboBox(
+    const QString& objectName, const QStringList& options,
+    const QString& selectedValue,
+    std::function<void(QComboBox*, const QString&)> onChange) {
   QComboBox* widget = new QComboBox();
   widget->setObjectName(objectName);
   widget->insertItems(0, options);
+  widget->setCurrentText(selectedValue);
 
-  // Select a default if selectedValue was set
-  int idx = options.indexOf(selectedValue);
-  if (idx > -1) {
-    widget->setCurrentIndex(idx);
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void(const QString&)> changeCb =
+        [onChange, widget](const QString& newText) {
+          onChange(widget, newText);
+        };
+    QObject::connect(widget, &QComboBox::currentTextChanged, changeCb);
   }
 
   return widget;
 }
 
-QLineEdit* FOEDAG::createLineEdit(const QString& objectName,
-                                  const QString& text) {
+QLineEdit* FOEDAG::createLineEdit(
+    const QString& objectName, const QString& text,
+    std::function<void(QLineEdit*, const QString&)> onChange) {
   QLineEdit* widget = new QLineEdit();
   widget->setObjectName(objectName);
-
   widget->setText(text);
+
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void(const QString&)> changeCb =
+        [onChange, widget](const QString& newText) {
+          onChange(widget, newText);
+        };
+    QObject::connect(widget, &QLineEdit::textChanged, changeCb);
+  }
 
   return widget;
 }
 
-QDoubleSpinBox* FOEDAG::createDoubleSpinBox(const QString& objectName,
-                                            double minVal, double maxVal,
-                                            double stepVal, double defaultVal) {
+QDoubleSpinBox* FOEDAG::createDoubleSpinBox(
+    const QString& objectName, double minVal, double maxVal, double stepVal,
+    double defaultVal,
+    std::function<void(QDoubleSpinBox*, const double&)> onChange) {
   QDoubleSpinBox* widget = new QDoubleSpinBox();
   widget->setObjectName(objectName);
 
   widget->setMinimum(minVal);
   widget->setMaximum(maxVal);
   widget->setSingleStep(stepVal);
-  // SMA this will currently not set a value if a user passes a valid -1
-  if (defaultVal != -1) {
-    widget->setValue(defaultVal);
+  widget->setValue(defaultVal);
+
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void(const double&)> changeCb =
+        [onChange, widget](const double& newVal) { onChange(widget, newVal); };
+    QObject::connect(widget, qOverload<double>(&QDoubleSpinBox::valueChanged),
+                     changeCb);
   }
 
   return widget;
 }
 
-QSpinBox* FOEDAG::createSpinBox(const QString& objectName, int minVal,
-                                int maxVal, int stepVal, int defaultVal) {
+QSpinBox* FOEDAG::createSpinBox(
+    const QString& objectName, int minVal, int maxVal, int stepVal,
+    int defaultVal, std::function<void(QSpinBox*, const int&)> onChange) {
   QSpinBox* widget = new QSpinBox();
   widget->setObjectName(objectName);
 
   widget->setMinimum(minVal);
   widget->setMaximum(maxVal);
   widget->setSingleStep(stepVal);
-  // SMA this will currently not set a value if a user passes a valid -1
-  if (defaultVal != -1) {
-    widget->setValue(defaultVal);
+  widget->setValue(defaultVal);
+
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void(const int&)> changeCb =
+        [onChange, widget](const int& newVal) { onChange(widget, newVal); };
+    QObject::connect(widget, qOverload<int>(&QSpinBox::valueChanged), changeCb);
   }
 
   return widget;
 }
 
-QRadioButton* FOEDAG::createRadioButton(const QString& objectName,
-                                        const QString& text) {
-  QRadioButton* widget = new QRadioButton();
-  widget->setObjectName(objectName);
-
-  widget->setText(text);
-
-  return widget;
-}
-
-QButtonGroup* FOEDAG::createRadioButtons(const QString& objectName,
-                                         const QStringList& nameList,
-                                         const QString& selectedValue) {
+QButtonGroup* FOEDAG::createRadioButtons(
+    const QString& objectName, const QStringList& nameList,
+    const QString& selectedValue,
+    std::function<void(QRadioButton*, QButtonGroup*, const bool&)> onChange) {
   QButtonGroup* widget = new QButtonGroup();
   widget->setObjectName(objectName);
 
+  // Create QRadiobuttons and add to QButtonGroup
   for (const QString& name : nameList) {
     QRadioButton* radioBtn = new QRadioButton();
     radioBtn->setObjectName(objectName + "_" + name);
+
     radioBtn->setText(name);
     if (name == selectedValue) {
       radioBtn->setChecked(true);
     }
+
+    if (onChange != nullptr) {
+      // onChange needs the widget so we capture that in a closure we
+      // can then pass to the normal qt handler
+      std::function<void(const int&)> changeCb = [onChange, radioBtn,
+                                                  widget](const bool& newVal) {
+        onChange(radioBtn, widget, newVal);
+      };
+      QObject::connect(radioBtn, &QRadioButton::toggled, changeCb);
+    }
+
     widget->addButton(radioBtn);
   }
 
   return widget;
 }
 
-QCheckBox* FOEDAG::createCheckBox(const QString& objectName,
-                                  const QString& text, Qt::CheckState checked) {
+QCheckBox* FOEDAG::createCheckBox(
+    const QString& objectName, const QString& text, Qt::CheckState checked,
+    std::function<void(QCheckBox*, const int&)> onChange) {
   QCheckBox* widget = new QCheckBox();
   widget->setObjectName(objectName);
 
   widget->setText(text);
   widget->setCheckState(checked);
+
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void(const int&)> changeCb =
+        [onChange, widget](const int& newVal) { onChange(widget, newVal); };
+    QObject::connect(widget, &QCheckBox::stateChanged, changeCb);
+  };
 
   return widget;
 }

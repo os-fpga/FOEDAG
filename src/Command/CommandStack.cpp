@@ -21,12 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CommandStack.h"
 
+#include <chrono>
+#include <ctime>
+
 using namespace FOEDAG;
 
-CommandStack::CommandStack(TclInterpreter *interp) : m_interp(interp) {
-  m_logger = new Logger("cmd.log");
+CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile)
+    : m_interp(interp) {
+  m_logger = new Logger(logFile.empty() ? "cmd.log" : logFile);
   m_logger->open();
-  m_logger->log("# Command log file\n");
+  auto now = std::chrono::system_clock::now();
+  std::time_t time = std::chrono::system_clock::to_time_t(now);
+  (*m_logger) << "# Command log file\n";
+  (*m_logger) << "# Created: " << std::ctime(&time) << "\n";
 }
 
 bool CommandStack::push_and_exec(Command *cmd) {
@@ -34,6 +41,11 @@ bool CommandStack::push_and_exec(Command *cmd) {
   const std::string &result = m_interp->evalCmd(cmd->do_cmd());
   m_cmds.push_back(cmd);
   return (result == "");
+}
+
+void CommandStack::push(Command *cmd) {
+  m_logger->log(cmd->do_cmd());
+  m_cmds.push_back(cmd);
 }
 
 bool CommandStack::pop_and_undo() {
@@ -47,4 +59,7 @@ bool CommandStack::pop_and_undo() {
   return false;
 }
 
-CommandStack::~CommandStack() { m_logger->close(); }
+CommandStack::~CommandStack() {
+  delete m_logger;
+  for (auto cmd : m_cmds) delete cmd;
+}

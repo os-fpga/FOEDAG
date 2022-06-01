@@ -22,11 +22,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef TASKS_H
 #define TASKS_H
 
-#include <QWidget>
+#include <QDialog>
 
 namespace FOEDAG {
 
 QDialog* createTaskDialog(const QString& taskName);
+QString getTaskUserSettingsPath();
+void handleTaskDialogRequested(const QString& category);
 
 }  // namespace FOEDAG
 

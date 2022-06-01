@@ -52,6 +52,13 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
 
+  m_tasks[SYNTHESIS_SETTINGS]->setTaskType(TaskType::Settings);
+  m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
+  m_tasks[PLACEMENT_SETTINGS]->setTaskType(TaskType::Settings);
+  m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
+  m_tasks[ROUTING_SETTINGS]->setTaskType(TaskType::Settings);
+  m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
+
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this,
             &TaskManager::taskStateChanged);

@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,35 +17,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
+#pragma once
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include <QTextEdit>
+#include <QWidget>
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#include "NewProject/ProjectManager/project_manager.h"
 
 namespace FOEDAG {
 
-class Logger {
- private:
+class PropertyWidget : public QObject {
  public:
-  Logger(const std::string& filePath);
-  void open();
-  void close();
-  void log(const std::string& text);
-  void appendLog(const std::string& text);
+  PropertyWidget(ProjectManager *projectManager, QObject *parent = nullptr);
+  QWidget *Widget();
 
-  ~Logger();
-  Logger& operator<<(const std::string& log);
+ public slots:
+  void ShowProperty(const QString &file);
 
  private:
-  std::ofstream* m_stream = nullptr;
-  std::string m_fileName;
+  QWidget *m_parent;
+  QTextEdit *m_textEdit;
+  ProjectManager *m_projectManager;
 };
 
 }  // namespace FOEDAG
-
-#endif

@@ -97,6 +97,10 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (auto task = m_taskManager->task(index.row())) {
       return task->parentTask() != nullptr;
     }
+  } else if (role == TaskTypeRole) {
+    if (auto task = m_taskManager->task(index.row())) {
+      return QVariant((uint)task->type());
+    }
   }
   return QVariant();
 }
