@@ -24,8 +24,8 @@ namespace FOEDAG {
 
 Task::Task(QObject *parent) : QObject{parent} {}
 
-Task::Task(const QString &title, QObject *parent)
-    : QObject(parent), m_title(title) {}
+Task::Task(const QString &title, TaskType tType, QObject *parent)
+    : QObject(parent), m_title(title), m_type(tType) {}
 
 const QString &Task::title() const { return m_title; }
 

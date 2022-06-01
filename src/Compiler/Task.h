@@ -48,7 +48,8 @@ class Task : public QObject {
   Q_OBJECT
  public:
   explicit Task(QObject *parent = nullptr);
-  explicit Task(const QString &title, QObject *parent = nullptr);
+  explicit Task(const QString &title, TaskType tType = TaskType::Action,
+                QObject *parent = nullptr);
   const QString &title() const;
   void setTitle(const QString &newTitle);
   bool hasSubTask() const;
