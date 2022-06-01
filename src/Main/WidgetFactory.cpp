@@ -144,7 +144,6 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
           WIDGET_DBG_PRINT("createSettingsWidget: saving value " +
                            settingsId.toStdString() + " -> " +
                            patchStr.toStdString() + "\n");
-
           patchHash[settingsId] = patchStr;
         }
       }

@@ -34,6 +34,7 @@ using namespace FOEDAG;
 #define TASKS_KEY "Tasks"
 
 #define TASKS_DEBUG false
+
 auto TASKS_DBG_PRINT = [](std::string printStr) {
   if (TASKS_DEBUG) {
     std::cout << printStr << std::flush;

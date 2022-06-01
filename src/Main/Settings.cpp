@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 
 #define SETTINGS_DEBUG false
+
 auto SETTINGS_DBG_PRINT = [](std::string printStr) {
   if (SETTINGS_DEBUG) {
     std::cout << printStr << std::flush;
@@ -75,6 +76,7 @@ void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
     QString jsonStr = jsonFile.readAll();
 
     SETTINGS_DBG_PRINT("Settings: Loading " + filePath.toStdString() + "\n");
+
     try {
       // Merge the json
       jsonObject->update(json::parse(jsonStr.toStdString()), true);
