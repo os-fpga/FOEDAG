@@ -18,18 +18,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef TASKS_H
-#define TASKS_H
+#include <QTextEdit>
+#include <QWidget>
 
-#include <QDialog>
+#include "NewProject/ProjectManager/project_manager.h"
 
 namespace FOEDAG {
 
-QDialog* createTaskDialog(const QString& taskName);
-QString getTaskUserSettingsPath();
-void handleTaskDialogRequested(const QString& category);
+class PropertyWidget : public QObject {
+ public:
+  PropertyWidget(ProjectManager *projectManager, QObject *parent = nullptr);
+  QWidget *Widget();
+
+ public slots:
+  void ShowProperty(const QString &file);
+
+ private:
+  QWidget *m_parent;
+  QTextEdit *m_textEdit;
+  ProjectManager *m_projectManager;
+};
 
 }  // namespace FOEDAG
-
-#endif

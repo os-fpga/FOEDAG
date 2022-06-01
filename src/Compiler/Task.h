@@ -34,6 +34,12 @@ enum class TaskStatus {
   Fail,
 };
 
+enum class TaskType {
+  None,
+  Action,
+  Settings,
+};
+
 /*!
  * \brief The Task class
  * Implements task entity.
@@ -51,6 +57,12 @@ class Task : public QObject {
 
   TaskStatus status() const;
   void setStatus(TaskStatus newStatus);
+
+  TaskType type() const;
+  void setTaskType(TaskType newType);
+
+  QString settingsKey() const;
+  void setSettingsKey(QString key);
 
   /*!
    * \brief trigger
@@ -88,7 +100,9 @@ class Task : public QObject {
 
  private:
   QString m_title;
+  QString m_settings_key;
   TaskStatus m_status{TaskStatus::None};
+  TaskType m_type{TaskType::Action};
   QVector<Task *> m_subTask;
   Task *m_parent{nullptr};
   bool m_valid{false};

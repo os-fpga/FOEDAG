@@ -60,6 +60,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
   void startStopButtonsState();
+  void reloadSettings();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */

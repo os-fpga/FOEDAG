@@ -34,6 +34,8 @@ void AddFileForm::InitForm(int itype) {
         "Create a new source file on disk and add it to your project."));
     ui->m_labelSets->setText(tr("Specify design file set:"));
     m_widgetGrid->setGridType(GT_SOURCE);
+    ui->m_labelSets->hide();
+    ui->m_comboBoxSets->hide();
 
     ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   } else if (GT_CONSTRAINTS == itype) {

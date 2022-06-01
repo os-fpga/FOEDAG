@@ -51,6 +51,12 @@ void Task::setStatus(TaskStatus newStatus) {
   }
 }
 
+TaskType Task::type() const { return m_type; }
+void Task::setTaskType(TaskType newType) { m_type = newType; }
+
+QString Task::settingsKey() const { return m_settings_key; }
+void Task::setSettingsKey(QString key) { m_settings_key = key; }
+
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();
 }
