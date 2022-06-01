@@ -87,19 +87,6 @@ bool getFullPath(const std::filesystem::path& path,
   return found;
 }
 
-void loadSettings(FOEDAG::Settings* settings) {
-  if (settings) {
-    const std::string separator(1, std::filesystem::path::preferred_separator);
-    std::string settingsPath = Config::Instance()->dataPath().string() +
-                               separator + std::string("etc") + separator +
-                               std::string("settings") + separator;
-    QString settingsDir = QString::fromStdString(settingsPath);
-
-    QStringList settingsFiles = {settingsDir + "settings_test.json"};
-    settings->loadSettings(settingsFiles);
-  }
-}
-
 // Try to find the full absolute path of the program currently running.
 static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__)
@@ -172,8 +159,6 @@ bool Foedag::initGui() {
       new FOEDAG::CommandStack(interpreter, logFile);
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
-
-  loadSettings(m_settings);
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
                                       m_context, m_compiler, m_settings);

@@ -53,6 +53,7 @@ static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
 static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
 static constexpr uint ParentDataRole = Qt::UserRole + 4;
+static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 
 /*!
  * \brief prepareCompilerView

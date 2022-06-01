@@ -47,10 +47,23 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
-  bool expandAreaClicked = expandArea(idx).contains(event->pos());
-  if (expandAreaClicked) {
-    model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+  auto task = m_taskManager->task(idx.row());
+
+  if (task && task->type() == TaskType::Settings) {
+    auto parent = task->parentTask();
+    if (parent != nullptr) {
+      // Handle the event first so the selection moves before the modal dialog
+      QTableView::mousePressEvent(event);
+      emit TaskDialogRequested(task->settingsKey());
+      return;
+    }
+  } else {
+    bool expandAreaClicked = expandArea(idx).contains(event->pos());
+    if (expandAreaClicked) {
+      model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+    }
   }
+
   QTableView::mousePressEvent(event);
 }
 
@@ -104,7 +117,16 @@ QRect TaskTableView::expandArea(const QModelIndex &index) const {
 void ChildItemDelegate::paint(QPainter *painter,
                               const QStyleOptionViewItem &option,
                               const QModelIndex &index) const {
-  if (index.data(ParentDataRole).toBool()) {
+  if (index.data(TaskTypeRole).value<uint>() == (uint)TaskType::Settings) {
+    QStyleOptionButton btn;
+    int padding = 4;
+    btn.rect = option.rect.adjusted(padding, padding, -padding, -padding);
+    btn.text = index.data(Qt::DisplayRole).toString();
+    const QWidget *widget = option.widget;
+    QStyle *style = widget ? widget->style() : QApplication::style();
+    style->drawControl(QStyle::CE_PushButton, &btn, painter, widget);
+    return;
+  } else if (index.data(ParentDataRole).toBool()) {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     const QWidget *widget = option.widget;
