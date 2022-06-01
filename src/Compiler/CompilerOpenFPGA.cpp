@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerOpenFPGA.h"
 #include "Compiler/Constraints.h"
+#include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
 
 using namespace FOEDAG;
@@ -465,6 +466,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
 }
 
 bool CompilerOpenFPGA::IPGenerate() {
+  PERF_LOG("IPGenerate has started");
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
@@ -544,6 +546,7 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Synthesize() {
+  PERF_LOG("Synthesize has started");
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
            << std::endl;
@@ -801,6 +804,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 }
 
 bool CompilerOpenFPGA::Packing() {
+  PERF_LOG("Packing has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -859,6 +863,7 @@ bool CompilerOpenFPGA::Packing() {
 }
 
 bool CompilerOpenFPGA::GlobalPlacement() {
+  PERF_LOG("GlobalPlacement has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -878,6 +883,7 @@ bool CompilerOpenFPGA::GlobalPlacement() {
 }
 
 bool CompilerOpenFPGA::Placement() {
+  PERF_LOG("Placement has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1003,6 +1009,7 @@ bool CompilerOpenFPGA::Placement() {
 }
 
 bool CompilerOpenFPGA::Route() {
+  PERF_LOG("Route has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1036,6 +1043,7 @@ bool CompilerOpenFPGA::Route() {
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
+  PERF_LOG("TimingAnalysis has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1068,6 +1076,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
+  PERF_LOG("PowerAnalysis has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1214,6 +1223,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
+  PERF_LOG("GenerateBitstream has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
