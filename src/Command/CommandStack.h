@@ -44,11 +44,13 @@ class CommandStack {
 
   ~CommandStack();
   Logger* CmdLogger() { return m_logger; }
+  Logger* PerfLogger() { return m_perfLogger; }
 
  private:
   std::vector<Command*> m_cmds;
   TclInterpreter* m_interp = nullptr;
   Logger* m_logger = nullptr;
+  Logger* m_perfLogger = nullptr;
 };
 
 }  // namespace FOEDAG
