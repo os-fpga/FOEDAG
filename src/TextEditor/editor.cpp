@@ -117,7 +117,7 @@ void Editor::InitToolBar() {
   m_actSearch = new QAction(m_toolBar);
   // m_actSearch->setIcon( QIcon(""));
   m_actSearch->setText(tr("&Search"));
-  m_actSearch->setShortcut(tr("Ctrl+R"));
+  m_actSearch->setShortcut(tr("Ctrl+F"));
   m_toolBar->addAction(m_actSearch);
   m_toolBar->addSeparator();
 
