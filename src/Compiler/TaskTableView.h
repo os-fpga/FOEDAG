@@ -50,6 +50,7 @@ class TaskTableView : public QTableView {
   Q_OBJECT
  public:
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
+  void setModel(QAbstractItemModel *model) override;
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;
@@ -66,8 +67,10 @@ class TaskTableView : public QTableView {
 
  private:
   QRect expandArea(const QModelIndex &index) const;
+  static QWidget *PrepareLayout(QWidget *widget);
 
  private:
   TaskManager *m_taskManager{nullptr};
+  static constexpr uint TitleCol{1};
 };
 }  // namespace FOEDAG
