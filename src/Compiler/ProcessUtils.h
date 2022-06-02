@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QProcess>
-#include <QString>
 #include <thread>
 
 namespace FOEDAG {
@@ -30,6 +28,7 @@ class ProcessUtils {
  public:
   ProcessUtils() = default;
   ~ProcessUtils();
+  using uint = unsigned int;
 
   /*!
    * \brief Utilization
@@ -41,20 +40,17 @@ class ProcessUtils {
    * \brief Period sets the frequency of measurment
    */
   void Frequency(uint p);
-  void Start(qint64 processId);
+  void Start(int64_t processId);
   void Stop();
 
  private:
-  void HandleOutput(const QString &output);
-  QString Program() const;
-  QStringList Arguments(int processId) const;
   void cleanup();
 
   uint m_max_utiliation{0};
-  uint m_frequency{500};
-  QProcess *m_process{nullptr};
+  uint m_frequency{10};
   bool m_stop{false};
   std::thread *m_thread{nullptr};
+  double m_vm{0};
 };
 
 }  // namespace FOEDAG
