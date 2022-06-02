@@ -337,6 +337,7 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive) ||
           !suffix.compare("sv", Qt::CaseInsensitive) ||
+          !suffix.compare("vh", Qt::CaseInsensitive) ||
           !suffix.compare("vhd", Qt::CaseInsensitive) ||
           !suffix.compare("blif", Qt::CaseInsensitive) ||
           !suffix.compare("eblif", Qt::CaseInsensitive)) {
@@ -346,6 +347,7 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive) ||
         !suffix.compare("sv", Qt::CaseInsensitive) ||
+        !suffix.compare("vh", Qt::CaseInsensitive) ||
         !suffix.compare("vhd", Qt::CaseInsensitive) ||
         !suffix.compare("blif", Qt::CaseInsensitive) ||
         !suffix.compare("eblif", Qt::CaseInsensitive)) {
@@ -359,6 +361,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
           ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(strFileName);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
+        }
+      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
         ret = CreateSystemVerilogFile(strFileName);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
@@ -392,6 +399,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
           ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(filePath);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
+        }
+      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
         ret = CreateSystemVerilogFile(filePath);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(fileSetPath, false);
