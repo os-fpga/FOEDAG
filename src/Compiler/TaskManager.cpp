@@ -27,17 +27,20 @@ namespace FOEDAG {
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
   m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
-  m_tasks.insert(SYNTHESIS_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(SYNTHESIS_SETTINGS,
+                 new Task{"Edit settings", TaskType::Settings});
   m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(PACKING, new Task{"Packing"});
   m_tasks.insert(GLOBAL_PLACEMENT, new Task{"Global Placement"});
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
-  m_tasks.insert(PLACEMENT_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(PLACEMENT_SETTINGS,
+                 new Task{"Edit settings", TaskType::Settings});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(ROUTING, new Task{"Routing"});
-  m_tasks.insert(ROUTING_SETTINGS, new Task{"Edit settings"});
+  m_tasks.insert(ROUTING_SETTINGS,
+                 new Task{"Edit settings", TaskType::Settings});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(POWER, new Task{"Power"});
@@ -52,11 +55,8 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
 
-  m_tasks[SYNTHESIS_SETTINGS]->setTaskType(TaskType::Settings);
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
-  m_tasks[PLACEMENT_SETTINGS]->setTaskType(TaskType::Settings);
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
-  m_tasks[ROUTING_SETTINGS]->setTaskType(TaskType::Settings);
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
 
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
