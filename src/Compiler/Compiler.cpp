@@ -910,7 +910,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
-  uint task{toTaskId(action)};
+  uint task{toTaskId(static_cast<int>(action))};
   if (m_hardError) {
     if (task != TaskManager::invalid_id && m_taskManager) {
       m_taskManager->task(task)->setStatus(TaskStatus::Fail);

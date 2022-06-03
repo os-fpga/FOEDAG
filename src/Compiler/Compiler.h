@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "Compiler/Design.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
 
