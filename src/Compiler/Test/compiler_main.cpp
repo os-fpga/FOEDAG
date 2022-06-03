@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "Compiler/Compiler.h"
-#include "Compiler/Design.h"
 #include "Compiler/WorkerThread.h"
 #include "Main/CommandLine.h"
 #include "Main/Foedag.h"

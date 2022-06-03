@@ -26,6 +26,10 @@ void ProjectFileSet::addFile(const QString &strFileName,
   m_mapFiles.push_back(std::make_pair(strFileName, strFilePath));
 }
 
+void ProjectFileSet::addFiles(const QStringList &files, int language) {
+  m_langMap.push_back(std::make_pair(language, files));
+}
+
 QString ProjectFileSet::getFilePath(const QString &strFileName) {
   QString retStr;
   auto iter = std::find_if(m_mapFiles.cbegin(), m_mapFiles.cend(),
@@ -46,6 +50,7 @@ void ProjectFileSet::deleteFile(const QString &strFileName) {
   if (iter != m_mapFiles.end()) {
     m_mapFiles.erase(iter);
   }
+  // TODO delete from m_langMap
 }
 
 QString ProjectFileSet::getSetName() const { return m_setName; }
@@ -67,10 +72,6 @@ const std::vector<std::pair<QString, QString>> &ProjectFileSet::getMapFiles()
   return m_mapFiles;
 }
 
-void ProjectFileSet::addFileData(const QString &file, int data) {
-  m_fileData.insert(file, data);
-}
-
-int ProjectFileSet::fileData(const QString &file) const {
-  return m_fileData.value(file, -1);
+const std::vector<std::pair<int, QStringList>> &ProjectFileSet::Files() const {
+  return m_langMap;
 }
