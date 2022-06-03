@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 
 #include "Compiler.h"
+#include "Compiler/Compiler.h"
 #include "Main/Tasks.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
@@ -48,8 +49,8 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   return view;
 }
 
-uint FOEDAG::toTaskId(Compiler::Action action) {
-  switch (action) {
+uint FOEDAG::toTaskId(int action) {
+  switch (static_cast<Compiler::Action>(action)) {
     case Compiler::Action::Synthesis:
       return SYNTHESIS;
     case Compiler::Action::Global:
@@ -73,4 +74,11 @@ uint FOEDAG::toTaskId(Compiler::Action action) {
       return TaskManager::invalid_id;
   }
   return TaskManager::invalid_id;
+}
+
+FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type) {
+  if (type == "v") return Design::Language::VERILOG_2001;
+  if (type == "sv") return Design::Language::SYSTEMVERILOG_2017;
+  if (type == "vhd") return Design::Language::VHDL_2008;
+  return Design::Language::VERILOG_2001;  // default
 }

@@ -491,7 +491,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (const auto& lang_file : m_projManager->DesignFiles()) {
     std::vector<std::string> tokens;
-    Tokenize(lang_file, " ", tokens);
+    Tokenize(lang_file.second, " ", tokens);
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
@@ -554,7 +554,7 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string yosysScript = InitSynthesisScript();
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
@@ -589,7 +589,7 @@ bool CompilerOpenFPGA::Synthesize() {
 
     for (const auto& lang_file : m_projManager->DesignFiles()) {
       std::string lang;
-      switch (m_projManager->designFileData(lang_file)) {
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
           break;
@@ -629,7 +629,7 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file + "\n";
+      fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
     fileList += "verific -import " + m_projManager->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
@@ -651,8 +651,8 @@ bool CompilerOpenFPGA::Synthesize() {
     std::string fileList;
     std::string lang;
     for (const auto& lang_file : m_projManager->DesignFiles()) {
-      fileList += lang_file + " ";
-      switch (m_projManager->designFileData(lang_file)) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
@@ -772,11 +772,11 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =
@@ -929,11 +929,11 @@ bool CompilerOpenFPGA::Placement() {
   if (pinLocConstraints) {
     std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
     for (const auto& lang_file : m_projManager->DesignFiles()) {
-      switch (m_projManager->designFileData(lang_file)) {
+      switch (lang_file.first) {
         case Design::Language::VERILOG_NETLIST:
         case Design::Language::BLIF:
         case Design::Language::EBLIF: {
-          netlistFile = lang_file;
+          netlistFile = lang_file.second;
           std::filesystem::path the_path = netlistFile;
           if (!the_path.is_absolute()) {
             netlistFile =
@@ -1157,11 +1157,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        std::filesystem::path the_path = lang_file;
+        std::filesystem::path the_path = lang_file.second;
         std::filesystem::path filename = the_path.filename();
         std::filesystem::path stem = filename.stem();
         netlistFilePrefix = stem.string();
@@ -1181,11 +1181,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =

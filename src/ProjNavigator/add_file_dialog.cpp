@@ -2,6 +2,7 @@
 
 #include <QDesktopWidget>
 
+#include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ui_add_file_dialog.h"
 
@@ -48,7 +49,8 @@ void AddFileDialog::on_m_btnOK_clicked() {
     foreach (filedata fdata, listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (GT_SOURCE == iType) {
-          ret = m_pm->setDesignFile(fdata.m_fileName, false);
+          ret = m_pm->setDesignFiles(fdata.m_fileName,
+                                     FromFileType(fdata.m_fileType), false);
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_fileName, false);
         } else if (GT_SIM == iType) {
@@ -56,8 +58,9 @@ void AddFileDialog::on_m_btnOK_clicked() {
         }
       } else {
         if (GT_SOURCE == iType) {
-          ret = m_pm->setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                                    m_fileForm->IsCopySource());
+          ret = m_pm->setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
+                                     FromFileType(fdata.m_fileType),
+                                     m_fileForm->IsCopySource());
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
                                      m_fileForm->IsCopySource());

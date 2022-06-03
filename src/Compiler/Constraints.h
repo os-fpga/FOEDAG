@@ -59,7 +59,6 @@ class Constraints {
   std::ostream* m_out = &std::cout;
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
-  Design* m_design = nullptr;
   std::vector<std::string> m_constraints;
   std::set<std::string> m_keeps;
 };
