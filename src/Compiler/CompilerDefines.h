@@ -24,12 +24,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <QtGlobal>
 
-#include "Compiler/Compiler.h"
-
 namespace FOEDAG {
 
 class Compiler;
 class TaskManager;
+
+namespace Design {
+enum Language {
+  BLIF,
+  EBLIF,
+  VHDL_1987,
+  VHDL_1993,
+  VHDL_2000,
+  VHDL_2008,
+  VERILOG_1995,
+  VERILOG_2001,
+  VERILOG_NETLIST,
+  SYSTEMVERILOG_2005,
+  SYSTEMVERILOG_2009,
+  SYSTEMVERILOG_2012,
+  SYSTEMVERILOG_2017,
+};
+}
+
+Design::Language FromFileType(const QString &type);
 
 static constexpr uint IP_GENERATE{0};
 static constexpr uint SYNTHESIS{1};
@@ -65,6 +83,6 @@ static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 QWidget *prepareCompilerView(Compiler *compiler,
                              TaskManager **taskManager = nullptr);
 
-uint toTaskId(Compiler::Action action);
+uint toTaskId(int action);
 
 }  // namespace FOEDAG

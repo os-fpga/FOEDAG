@@ -327,6 +327,25 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
+int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
+                                   bool isFileCopy) {
+  setCurrentFileSet(getDesignActiveFileSet());
+  QStringList fileList = fileNames.split(" ");
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  proFileSet->addFiles(fileList, lang);
+
+  int result{0};
+  for (const auto& file : fileList) {
+    int res = setDesignFile(file, isFileCopy);
+    if (res != 0) result = res;
+  }
+  return result;
+}
+
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
@@ -660,9 +679,35 @@ QStringList ProjectManager::getDesignFiles() const {
   return getDesignFiles(getDesignActiveFileSet());
 }
 
-std::vector<std::string> ProjectManager::DesignFiles() const {
-  std::vector<std::string> vec;
-  for (auto file : getDesignFiles()) vec.push_back(file.toStdString());
+std::vector<std::pair<int, std::string>> ProjectManager::DesignFiles() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
+
+  std::vector<std::pair<int, std::string>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      vec.push_back(
+          std::make_pair(iter->first, iter->second.join(" ").toStdString()));
+    }
+  }
+  return vec;
+}
+
+std::vector<std::pair<int, std::vector<std::string>>>
+ProjectManager::DesignFileList() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
+
+  std::vector<std::pair<int, std::vector<std::string>>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      std::vector<std::string> files;
+      for (const auto& f : iter->second) files.push_back(f.toStdString());
+      vec.push_back(std::make_pair(iter->first, files));
+    }
+  }
   return vec;
 }
 
@@ -1778,26 +1823,6 @@ void ProjectManager::addMacro(const std::string& macroName,
 const std::vector<std::pair<std::string, std::string>>&
 ProjectManager::macroList() const {
   return m_macroList;
-}
-
-void ProjectManager::setDesignFileData(const std::string& file, int data) {
-  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) {
-    return;
-  }
-  proFileSet->addFileData(file.c_str(), data);
-}
-
-int ProjectManager::designFileData(const std::string& file) {
-  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) {
-    return -1;
-  }
-  return proFileSet->fileData(file.c_str());
 }
 
 const std::vector<std::string>& ProjectManager::includePathList() const {
