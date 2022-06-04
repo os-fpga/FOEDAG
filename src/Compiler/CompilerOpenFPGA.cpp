@@ -118,24 +118,25 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   ipgenerate ?clean?" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
-            "delay, mixed, none)"
-         << std::endl;
+  (*out)
+      << "   synthesize <optimization> ?clean? : Optional optimization (area, "
+         "delay, mixed, none)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   packing                    : Packing" << std::endl;
-  (*out) << "   global_placement           : Analytical placer" << std::endl;
-  (*out) << "   place                      : Detailed placer" << std::endl;
-  (*out) << "   route                      : Router" << std::endl;
-  (*out) << "   sta                        : Statistical Timing Analysis"
+  (*out) << "   packing ?clean?            : Packing" << std::endl;
+  (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
+  (*out) << "   place ?clean?              : Detailed placer" << std::endl;
+  (*out) << "   route ?clean?              : Router" << std::endl;
+  (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
-  (*out) << "   power                      : Power estimator" << std::endl;
-  (*out) << "   bitstreamm                 : Bitstream generation" << std::endl;
+  (*out) << "   power ?clean?              : Power estimator" << std::endl;
+  (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -546,6 +547,18 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Synthesize() {
+  if (SynthOpt() == SynthesisOpt::Clean) {
+    Message("Cleaning synthesis results for " + m_projManager->projectName());
+    m_state = State::IPGenerated;
+    SynthOpt(SynthesisOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.blif"));
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.v"));
+    return true;
+  }
   PERF_LOG("Synthesize has started");
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
@@ -804,6 +817,15 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 }
 
 bool CompilerOpenFPGA::Packing() {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + m_projManager->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.net"));
+    return true;
+  }
   PERF_LOG("Packing has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
@@ -873,6 +895,13 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            m_projManager->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
+  }
   (*m_out) << "Global Placement for design: " << m_projManager->projectName()
            << "..." << std::endl;
   // TODO:
@@ -892,6 +921,15 @@ bool CompilerOpenFPGA::Placement() {
       m_state != State::Placed) {
     ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
+  }
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + m_projManager->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.place"));
+    return true;
   }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
@@ -1017,6 +1055,15 @@ bool CompilerOpenFPGA::Route() {
   if (m_state != State::Placed) {
     ErrorMessage("Design needs to be in placed state");
     return false;
+  }
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + m_projManager->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.route"));
+    return true;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
