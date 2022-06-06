@@ -1335,8 +1335,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   (*m_out) << "Command: " << command << std::endl;
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
-  std::filesystem::current_path(path /
-                                m_projManager->projectName());  // setting path
+  std::filesystem::current_path(m_projManager->projectPath());  // setting path
   (*m_out) << "Changed path to: "
            << (path / m_projManager->projectName()).string() << std::endl;
   // new QProcess must be created here to avoid issues related to creating

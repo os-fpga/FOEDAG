@@ -40,6 +40,10 @@ project object is singleton mode.
 #define PROJECT_NAME "Name"
 #define PROJECT_VAL "Val"
 
+#define PROJECT_GROUP "Group"
+#define PROJECT_GROUP_ID "Id"
+#define PROJECT_GROUP_FILES "Files"
+
 #define PROJECT_FILESETS "FileSets"
 #define PROJECT_FILESET "FileSet"
 #define PROJECT_FILESET_NAME "Name"
@@ -249,6 +253,7 @@ class ProjectManager : public QObject {
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
+  static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
   QString m_currentFileSet;
