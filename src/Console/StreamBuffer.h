@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class Logger;
 class StreamBuffer : public QObject, public std::streambuf {
   Q_OBJECT
  public:
@@ -40,6 +41,20 @@ class StreamBuffer : public QObject, public std::streambuf {
   std::streamsize xsputn(const char_type *s, std::streamsize count) override;
 
  private:
+  std::ostream m_stream;
+};
+
+class FileLoggerBuffer : public std::streambuf {
+ public:
+  explicit FileLoggerBuffer(Logger *logger, std::streambuf *out);
+
+ protected:
+  int overflow(int c) override;
+  int sync() override;
+  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
+
+ private:
+  Logger *m_logger{nullptr};
   std::ostream m_stream;
 };
 
