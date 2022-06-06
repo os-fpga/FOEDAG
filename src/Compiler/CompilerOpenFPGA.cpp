@@ -118,24 +118,25 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   ipgenerate ?clean?" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
-            "delay, mixed, none)"
-         << std::endl;
+  (*out)
+      << "   synthesize <optimization> ?clean? : Optional optimization (area, "
+         "delay, mixed, none)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   packing                    : Packing" << std::endl;
-  (*out) << "   global_placement           : Analytical placer" << std::endl;
-  (*out) << "   place                      : Detailed placer" << std::endl;
-  (*out) << "   route                      : Router" << std::endl;
-  (*out) << "   sta                        : Statistical Timing Analysis"
+  (*out) << "   packing ?clean?            : Packing" << std::endl;
+  (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
+  (*out) << "   place ?clean?              : Detailed placer" << std::endl;
+  (*out) << "   route ?clean?              : Router" << std::endl;
+  (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
-  (*out) << "   power                      : Power estimator" << std::endl;
-  (*out) << "   bitstreamm                 : Bitstream generation" << std::endl;
+  (*out) << "   power ?clean?              : Power estimator" << std::endl;
+  (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -481,9 +482,8 @@ bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
     const std::filesystem::path& synth_scrypt_path) {
   bool result = false;
-  auto path = std::filesystem::current_path();  // getting path
-  std::filesystem::current_path(path /
-                                m_projManager->projectName());  // setting path
+  auto path = std::filesystem::current_path();                  // getting path
+  std::filesystem::current_path(m_projManager->projectPath());  // setting path
   std::string output = m_projManager->projectName() + "_post_synth.blif";
   time_t time_netlist = Mtime(output);
   if (time_netlist == -1) {
@@ -491,7 +491,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (const auto& lang_file : m_projManager->DesignFiles()) {
     std::vector<std::string> tokens;
-    Tokenize(lang_file, " ", tokens);
+    Tokenize(lang_file.second, " ", tokens);
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
@@ -546,6 +546,18 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Synthesize() {
+  if (SynthOpt() == SynthesisOpt::Clean) {
+    Message("Cleaning synthesis results for " + m_projManager->projectName());
+    m_state = State::IPGenerated;
+    SynthOpt(SynthesisOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.blif"));
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.v"));
+    return true;
+  }
   PERF_LOG("Synthesize has started");
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
@@ -554,7 +566,7 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string yosysScript = InitSynthesisScript();
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
@@ -589,7 +601,7 @@ bool CompilerOpenFPGA::Synthesize() {
 
     for (const auto& lang_file : m_projManager->DesignFiles()) {
       std::string lang;
-      switch (m_projManager->designFileData(lang_file)) {
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
           break;
@@ -629,7 +641,7 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file + "\n";
+      fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
     fileList += "verific -import " + m_projManager->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
@@ -651,8 +663,8 @@ bool CompilerOpenFPGA::Synthesize() {
     std::string fileList;
     std::string lang;
     for (const auto& lang_file : m_projManager->DesignFiles()) {
-      fileList += lang_file + " ";
-      switch (m_projManager->designFileData(lang_file)) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
@@ -707,7 +719,7 @@ bool CompilerOpenFPGA::Synthesize() {
       std::string(m_projManager->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path)
+      (std::filesystem::path(m_projManager->projectPath()) / script_path)
           .string();
   std::ofstream ofs(script_path);
   ofs << yosysScript;
@@ -772,11 +784,11 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =
@@ -804,6 +816,15 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 }
 
 bool CompilerOpenFPGA::Packing() {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + m_projManager->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.net"));
+    return true;
+  }
   PERF_LOG("Packing has started");
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
@@ -873,6 +894,13 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            m_projManager->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
+  }
   (*m_out) << "Global Placement for design: " << m_projManager->projectName()
            << "..." << std::endl;
   // TODO:
@@ -892,6 +920,15 @@ bool CompilerOpenFPGA::Placement() {
       m_state != State::Placed) {
     ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
+  }
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + m_projManager->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.place"));
+    return true;
   }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
@@ -929,11 +966,11 @@ bool CompilerOpenFPGA::Placement() {
   if (pinLocConstraints) {
     std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
     for (const auto& lang_file : m_projManager->DesignFiles()) {
-      switch (m_projManager->designFileData(lang_file)) {
+      switch (lang_file.first) {
         case Design::Language::VERILOG_NETLIST:
         case Design::Language::BLIF:
         case Design::Language::EBLIF: {
-          netlistFile = lang_file;
+          netlistFile = lang_file.second;
           std::filesystem::path the_path = netlistFile;
           if (!the_path.is_absolute()) {
             netlistFile =
@@ -1017,6 +1054,15 @@ bool CompilerOpenFPGA::Route() {
   if (m_state != State::Placed) {
     ErrorMessage("Design needs to be in placed state");
     return false;
+  }
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + m_projManager->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(m_projManager->projectName()) /
+        std::string(m_projManager->projectName() + "_post_synth.route"));
+    return true;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
@@ -1157,11 +1203,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        std::filesystem::path the_path = lang_file;
+        std::filesystem::path the_path = lang_file.second;
         std::filesystem::path filename = the_path.filename();
         std::filesystem::path stem = filename.stem();
         netlistFilePrefix = stem.string();
@@ -1181,11 +1227,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
   for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =

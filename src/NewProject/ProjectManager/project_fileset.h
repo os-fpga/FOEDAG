@@ -14,6 +14,7 @@ class ProjectFileSet : public ProjectOption {
   ProjectFileSet &operator=(const ProjectFileSet &other);
 
   void addFile(const QString &strFileName, const QString &strFilePath);
+  void addFiles(const QStringList &files, int language);
   QString getFilePath(const QString &strFileName);
   void deleteFile(const QString &strFileName);
 
@@ -27,16 +28,14 @@ class ProjectFileSet : public ProjectOption {
   void setRelSrcDir(const QString &relSrcDir);
 
   const std::vector<std::pair<QString, QString>> &getMapFiles() const;
-
-  void addFileData(const QString &file, int data);
-  int fileData(const QString &file) const;
+  const std::vector<std::pair<int, QStringList>> &Files() const;
 
  private:
   QString m_setName;
   QString m_setType;
   QString m_relSrcDir;
   std::vector<std::pair<QString, QString>> m_mapFiles;
-  QMap<QString, int> m_fileData;
+  std::vector<std::pair<int, QStringList>> m_langMap;
 };
 }  // namespace FOEDAG
 #endif  // PROJECTFILESET_H

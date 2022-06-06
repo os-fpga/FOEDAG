@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "Compiler/Design.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
 
@@ -42,6 +41,7 @@ class Session;
 class DesignManager;
 class TclCommandIntegration;
 class Constraints;
+
 class Compiler {
  public:
   enum class Action {
@@ -69,8 +69,15 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
-  enum class SynthesisOpt { None, Area, Delay, Mixed };
-  enum class BitstreamOpt { NoBitsOpt, Force };
+  enum class IPGenerateOpt { None, Clean };
+  enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
+  enum class PackingOpt { None, Clean };
+  enum class GlobalPlacementOpt { None, Clean };
+  enum class PlacementOpt { None, Clean };
+  enum class RoutingOpt { None, Clean };
+  enum class PowerOpt { None, Clean };
+  enum class STAOpt { None, Clean };
+  enum class BitstreamOpt { NoBitsOpt, Force, Clean };
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
@@ -109,14 +116,34 @@ class Compiler {
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
   void SetHardError(bool on) { m_hardError = on; }
+
+  // VPR, Yosys generic opt
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
-  const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
-  void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
+
+  IPGenerateOpt IPGenOpt() { return m_ipGenerateOpt; }
+  void IPGenOpt(IPGenerateOpt opt) { m_ipGenerateOpt = opt; }
+  PackingOpt PackOpt() { return m_packingOpt; }
+  void PackOpt(PackingOpt opt) { m_packingOpt = opt; }
   SynthesisOpt SynthOpt() { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
+  GlobalPlacementOpt GlobPlacementOpt() { return m_globalPlacementOpt; }
+  void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
+  PlacementOpt PlaceOpt() { return m_placementOpt; }
+  void PlaceOpt(PlacementOpt opt) { m_placementOpt = opt; }
+  RoutingOpt RouteOpt() { return m_routingOpt; }
+  void RouteOpt(RoutingOpt opt) { m_routingOpt = opt; }
+  STAOpt TimingAnalysisOpt() { return m_staOpt; }
+  void TimingAnalysisOpt(STAOpt opt) { m_staOpt = opt; }
+  PowerOpt PowerAnalysisOpt() { return m_powerOpt; }
+  void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
+
   BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
+  // Compiler specific opt
+  const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
+  void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
+
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
@@ -166,12 +193,26 @@ class Compiler {
   std::string m_output;
   bool m_useVerific = false;
   bool m_hardError = false;
+
+  // Tasks generic options
+  IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
+  PackingOpt m_packingOpt = PackingOpt::None;
+  GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
+  PlacementOpt m_placementOpt = PlacementOpt::None;
+  RoutingOpt m_routingOpt = RoutingOpt::None;
+  PowerOpt m_powerOpt = PowerOpt::None;
+  STAOpt m_staOpt = STAOpt::None;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
+
+  // Compiler specific options
   std::string m_pnrOpt;
   std::string m_synthMoreOpt;
+
+  // VPR, Yosys options
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
+
   class QProcess* m_process = nullptr;
 };
 

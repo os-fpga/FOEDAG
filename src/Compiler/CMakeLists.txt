@@ -41,7 +41,6 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  Design.cpp
   Compiler.cpp
   foedag_version_number.cpp
   Constraints.cpp
@@ -57,7 +56,6 @@ set (SRC_CPP_LIST
 )
 
 set (SRC_H_INSTALL_LIST
-  Design.h
   Compiler.h
   Constraints.cpp
   CompilerOpenFPGA.h

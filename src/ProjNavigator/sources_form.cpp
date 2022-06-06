@@ -11,6 +11,7 @@
 #include "ui_sources_form.h"
 
 using namespace FOEDAG;
+static constexpr int SetFileDataRole{Qt::UserRole + 1};
 
 SourcesForm::SourcesForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::SourcesForm) {
@@ -312,19 +313,17 @@ void SourcesForm::SlotRemoveFileSet() {
 
 void SourcesForm::SlotRemoveFile() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
-  }
-  QString strFileName = item->text(0);
+  if (item == nullptr) return;
 
-  QTreeWidgetItem *itemparent = item->parent();
-  QString strFileSetName = (itemparent->data(0, Qt::UserRole)).toString();
-
-  m_projManager->setCurrentFileSet(strFileSetName);
-  int ret = m_projManager->deleteFile(strFileName);
-  if (0 == ret) {
-    UpdateSrcHierachyTree();
-    m_projManager->FinishedProject();
+  auto fileSet = item->data(0, SetFileDataRole);
+  if (!fileSet.isNull()) {
+    QString strFileName = item->text(0);
+    m_projManager->setCurrentFileSet(fileSet.toString());
+    int ret = m_projManager->deleteFile(strFileName);
+    if (0 == ret) {
+      UpdateSrcHierachyTree();
+      m_projManager->FinishedProject();
+    }
   }
 }
 
@@ -505,6 +504,7 @@ void SourcesForm::CreateFolderHierachyTree() {
           itemf->setIcon(0, QIcon(":/img/file.png"));
           itemf->setData(0, Qt::WhatsThisPropertyRole,
                          SRC_TREE_DESIGN_FILE_ITEM);
+          itemf->setData(0, SetFileDataRole, str);
         }
       }
     }
@@ -536,6 +536,7 @@ void SourcesForm::CreateFolderHierachyTree() {
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
+        itemf->setData(0, SetFileDataRole, str);
       }
     }
     iFileSum += listConstrFile.size();
@@ -549,7 +550,7 @@ void SourcesForm::CreateFolderHierachyTree() {
 
   QStringList listSimFset = m_projManager->getSimulationFileSets();
   iFileSum = 0;
-  foreach (auto str, listSimFset) {
+  for (const auto &str : listSimFset) {
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
     QString strTop = m_projManager->getSimulationTopModule(str);
 
@@ -568,6 +569,7 @@ void SourcesForm::CreateFolderHierachyTree() {
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
+        itemf->setData(0, SetFileDataRole, str);
       }
     }
     iFileSum += listSimFile.size();

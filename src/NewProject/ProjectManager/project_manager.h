@@ -40,6 +40,10 @@ project object is singleton mode.
 #define PROJECT_NAME "Name"
 #define PROJECT_VAL "Val"
 
+#define PROJECT_GROUP "Group"
+#define PROJECT_GROUP_ID "Id"
+#define PROJECT_GROUP_FILES "Files"
+
 #define PROJECT_FILESETS "FileSets"
 #define PROJECT_FILESET "FileSet"
 #define PROJECT_FILESET_NAME "Name"
@@ -127,8 +131,8 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  // Please set currentfileset before using this function
-  int setDesignFile(const QString &strFileName, bool isFileCopy = true);
+  int setDesignFiles(const QString &fileNames, int lang,
+                     bool isFileCopy = true);
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
   // Please set currentfileset before using this function
@@ -147,7 +151,8 @@ class ProjectManager : public QObject {
   int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QStringList getDesignFiles() const;
-  std::vector<std::string> DesignFiles() const;
+  std::vector<std::pair<int, std::string>> DesignFiles() const;
+  std::vector<std::pair<int, std::vector<std::string>>> DesignFileList() const;
   QString getDesignTopModule(const QString &strFileSet) const;
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;
@@ -221,15 +226,15 @@ class ProjectManager : public QObject {
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
-  void setDesignFileData(const std::string &file, int data);
-  int designFileData(const std::string &file);
-
   void setTargetDevice(const std::string &deviceName) {
     m_deviceName = deviceName;
   }
   const std::string &getTargetDevice() { return m_deviceName; }
 
  private:
+  // Please set currentfileset before using this function
+  int setDesignFile(const QString &strFileName, bool isFileCopy = true);
+
   int ImportProjectData(QString strOspro);
   int ExportProjectData();
 
@@ -248,6 +253,7 @@ class ProjectManager : public QObject {
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
+  static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
   QString m_currentFileSet;
