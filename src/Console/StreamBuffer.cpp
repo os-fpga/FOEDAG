@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "StreamBuffer.h"
 
+#include "Command/Logger.h"
+
 namespace FOEDAG {
 
 StreamBuffer::StreamBuffer(QObject *parent) : QObject{parent}, m_stream(this) {}
@@ -37,6 +39,18 @@ std::streamsize StreamBuffer::xsputn(const char_type *s,
   const QByteArray array = QByteArray::fromRawData(s, count);
   emit ready(QString{array});
   return count;
+}
+
+FileLoggerBuffer::FileLoggerBuffer(Logger *logger, std::streambuf *out)
+    : m_logger(logger), stream(out) {}
+
+int FileLoggerBuffer::overflow(int c) { return c; }
+
+std::streamsize FileLoggerBuffer::xsputn(const char_type *s,
+                                         std::streamsize count) {
+  m_logger->appendLog(std::string{s});
+  stream << std::string(s, count) << std::flush;
+  return std::streambuf::xsputn(s, count);
 }
 
 }  // namespace FOEDAG
