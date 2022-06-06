@@ -48,10 +48,20 @@ void ProjectFileSet::deleteFile(const QString &strFileName) {
                            [&](const std::pair<QString, QString> &p) {
                              return p.first == strFileName;
                            });
+  QString file;
   if (iter != m_mapFiles.end()) {
+    file = iter->second;
     m_mapFiles.erase(iter);
   }
-  // TODO delete from m_langMap
+  if (!file.isEmpty()) {
+    for (auto it = m_langMap.begin(); it != m_langMap.end(); ++it) {
+      if (it->second.contains(file)) {
+        it->second.removeOne(file);
+        if (it->second.isEmpty()) m_langMap.erase(it);
+        break;
+      }
+    }
+  }
 }
 
 QString ProjectFileSet::getSetName() const { return m_setName; }

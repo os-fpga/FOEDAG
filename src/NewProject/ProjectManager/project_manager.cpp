@@ -333,7 +333,7 @@ int ProjectManager::setProjectType(const QString& strType) {
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
                                    bool isFileCopy) {
   setCurrentFileSet(getDesignActiveFileSet());
-  QStringList fileList = fileNames.split(" ");
+  QStringList fileList = StringSplit(fileNames, " ");
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -1375,7 +1375,7 @@ int ProjectManager::ImportProjectData(QString strOspro) {
                   strFile);
             }
             for (const auto& i : langList) {
-              projectFileset.addFiles(i.second.split(" "), i.first);
+              projectFileset.addFiles(StringSplit(i.second, " "), i.first);
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {
@@ -1820,6 +1820,15 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
     return false;
   }
   return true;
+}
+
+QStringList ProjectManager::StringSplit(const QString& str,
+                                        const QString& sep) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+  return str.split(sep, Qt::SkipEmptyParts);
+#else
+  return str.split(sep, QString::SkipEmptyParts);
+#endif
 }
 
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
