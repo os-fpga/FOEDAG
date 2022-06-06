@@ -482,9 +482,8 @@ bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
     const std::filesystem::path& synth_scrypt_path) {
   bool result = false;
-  auto path = std::filesystem::current_path();  // getting path
-  std::filesystem::current_path(path /
-                                m_projManager->projectName());  // setting path
+  auto path = std::filesystem::current_path();                  // getting path
+  std::filesystem::current_path(m_projManager->projectPath());  // setting path
   std::string output = m_projManager->projectName() + "_post_synth.blif";
   time_t time_netlist = Mtime(output);
   if (time_netlist == -1) {
@@ -720,7 +719,7 @@ bool CompilerOpenFPGA::Synthesize() {
       std::string(m_projManager->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path)
+      (std::filesystem::path(m_projManager->projectPath()) / script_path)
           .string();
   std::ofstream ofs(script_path);
   ofs << yosysScript;
