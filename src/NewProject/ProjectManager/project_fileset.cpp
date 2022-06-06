@@ -16,6 +16,7 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
   this->m_setType = other.m_setType;
   this->m_relSrcDir = other.m_relSrcDir;
   this->m_mapFiles = other.m_mapFiles;
+  this->m_langMap = other.m_langMap;
   ProjectOption::operator=(other);
 
   return *this;

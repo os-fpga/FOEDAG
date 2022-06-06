@@ -8,6 +8,8 @@
 #include <QXmlStreamWriter>
 #include <filesystem>
 
+#include "Compiler/CompilerDefines.h"
+
 using namespace FOEDAG;
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
@@ -38,10 +40,11 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   QList<filedata> listFile = opt.sourceFileData.fileData;
   foreach (filedata fdata, listFile) {
     if ("<Local to Project>" == fdata.m_filePath) {
-      setDesignFile(fdata.m_fileName, false);
+      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false);
     } else {
-      setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                    opt.sourceFileData.isCopySource);
+      setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
+                     FromFileType(fdata.m_fileType),
+                     opt.sourceFileData.isCopySource);
     }
     if (!fdata.m_isFolder) {
       strDefaultSrc = fdata.m_fileName;
@@ -1325,6 +1328,7 @@ int ProjectManager::ImportProjectData(QString strOspro) {
         QString strSetType;
         QString strSetSrcDir;
         QStringList listFiles;
+        std::vector<std::pair<int, QString>> langList;
         QMap<QString, QString> mapOption;
         while (true) {
           type = reader.readNext();
@@ -1351,6 +1355,12 @@ int ProjectManager::ImportProjectData(QString strOspro) {
                      reader.attributes().hasAttribute(PROJECT_VAL)) {
             mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
                              reader.attributes().value(PROJECT_VAL).toString());
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_GROUP_ID) &&
+                     reader.attributes().hasAttribute(PROJECT_GROUP_FILES)) {
+            langList.push_back(std::make_pair(
+                reader.attributes().value(PROJECT_GROUP_ID).toInt(),
+                reader.attributes().value(PROJECT_GROUP_FILES).toString()));
           } else if (type == QXmlStreamReader::EndElement &&
                      reader.name() == PROJECT_FILESET) {
             ProjectFileSet projectFileset;
@@ -1363,6 +1373,9 @@ int ProjectManager::ImportProjectData(QString strOspro) {
                   strFile.right(strFile.size() -
                                 (strFile.lastIndexOf("/") + 1)),
                   strFile);
+            }
+            for (const auto& i : langList) {
+              projectFileset.addFiles(i.second.split(" "), i.first);
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {
@@ -1518,6 +1531,13 @@ int ProjectManager::ExportProjectData() {
          ++iterfile) {
       stream.writeStartElement(PROJECT_FILESET_FILE);
       stream.writeAttribute(PROJECT_PATH, iterfile->second);
+      stream.writeEndElement();
+    }
+    auto langMap = tmpFileSet->Files();
+    for (auto it = langMap.cbegin(); it != langMap.cend(); ++it) {
+      stream.writeStartElement(PROJECT_GROUP);
+      stream.writeAttribute(PROJECT_GROUP_ID, QString::number(it->first));
+      stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
       stream.writeEndElement();
     }
 
