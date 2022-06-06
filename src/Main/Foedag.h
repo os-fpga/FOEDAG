@@ -42,13 +42,14 @@ typedef QWidget*(MainWindowBuilder)(FOEDAG::Session* session);
 
 typedef void(RegisterTclFunc)(QWidget* widget, FOEDAG::Session* session);
 
+class TclWorker;
 class Foedag {
  public:
   Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
          RegisterTclFunc* registerTclFunc = nullptr,
          Compiler* compiler = nullptr, Settings* settings = nullptr,
          ToolContext* context = nullptr);
-  virtual ~Foedag() = default;
+  virtual ~Foedag();
 
   bool init(GUI_TYPE guiType);
 
@@ -69,6 +70,7 @@ class Foedag {
   ToolContext* m_context = nullptr;
   Compiler* m_compiler = nullptr;
   Settings* m_settings = nullptr;
+  TclWorker* m_tclChannelHandler{nullptr};
 };
 
 }  // namespace FOEDAG

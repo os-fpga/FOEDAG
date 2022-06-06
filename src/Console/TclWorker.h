@@ -11,7 +11,8 @@ class TclWorker : public QObject {
   Q_OBJECT
  public:
   TclWorker(TclInterp *interpreter, std::ostream &out,
-            std::ostream *err = &std::cerr, QObject *parent = nullptr);
+            std::ostream *err = &std::cerr, bool batchMode = false,
+            QObject *parent = nullptr);
 
   void run();
   TclInterp *getInterpreter();
@@ -29,13 +30,14 @@ class TclWorker : public QObject {
   void tclFinished();
 
  private:
-  void init();
+  void init(bool batchMode);
 
  private:
   TclInterp *m_interpreter{nullptr};
   std::ostream &m_out;
   std::ostream *m_err;
   Tcl_ChannelType *channelOut{nullptr};
+  Tcl_ChannelType *channelIn{nullptr};
   Tcl_ChannelType *channelErr{nullptr};
 };
 
