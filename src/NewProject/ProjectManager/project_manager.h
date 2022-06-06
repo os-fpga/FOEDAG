@@ -253,6 +253,7 @@ class ProjectManager : public QObject {
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
+  static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
   QString m_currentFileSet;
