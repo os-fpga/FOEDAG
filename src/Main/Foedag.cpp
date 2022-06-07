@@ -47,6 +47,8 @@ extern "C" {
 
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Console/StreamBuffer.h"
+#include "Console/TclWorker.h"
 #include "Main/Foedag.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
@@ -147,6 +149,8 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     m_context->DataPath(dataDir);
   }
 }
+
+Foedag::~Foedag() { delete m_tclChannelHandler; }
 
 bool Foedag::initGui() {
   // Gui mode with Qt Widgets
@@ -339,6 +343,12 @@ bool Foedag::initBatch() {
   m_compiler->setGuiTclSync(
       new TclCommandIntegration{new ProjectManager, nullptr});
 
+  auto logger = new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
+  std::cout.rdbuf(logger);
+  std::cerr.rdbuf(logger);
+  m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
+                                              std::cout, &std::cerr, true);
+
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {
     m_registerTclFunc(nullptr, GlobalSession);
@@ -374,7 +384,6 @@ bool Foedag::initBatch() {
   };
 
   // Start Loop
-  int argc = m_cmdLine->Argc();
   char** argv = new char*[1];
   argv[0] = strdup(m_cmdLine->Argv()[0]);
   Tcl_MainEx(1, argv, tcl_init, interpreter->getInterp());

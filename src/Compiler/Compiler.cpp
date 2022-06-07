@@ -1079,8 +1079,9 @@ bool Compiler::Synthesize() {
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
-      (*m_out) << " File: " << (*it).path().filename().c_str()
-               << " just for test";
+      std::string str =
+          " File: " + (*it).path().filename().string() + " just for test";
+      (*m_out) << str;
       it++;
     }
     (*m_out) << std::endl;
