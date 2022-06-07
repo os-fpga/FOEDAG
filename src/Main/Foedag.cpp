@@ -334,8 +334,9 @@ bool Foedag::initBatch() {
   // Batch mode
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
+  const bool mute{m_cmdLine->Mute() && !m_cmdLine->Script().empty()};
   FOEDAG::CommandStack* commands =
-      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
+      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName(), mute);
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
@@ -343,11 +344,16 @@ bool Foedag::initBatch() {
   m_compiler->setGuiTclSync(
       new TclCommandIntegration{new ProjectManager, nullptr});
 
-  auto logger = new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
-  std::cout.rdbuf(logger);
-  std::cerr.rdbuf(logger);
-  m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
-                                              std::cout, &std::cerr, true);
+  if (mute) {
+    std::cout.rdbuf(nullptr);
+  } else {
+    auto logger =
+        new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
+    std::cout.rdbuf(logger);
+    std::cerr.rdbuf(logger);
+    m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
+                                                std::cout, &std::cerr, true);
+  }
 
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {

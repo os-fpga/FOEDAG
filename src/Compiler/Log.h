@@ -40,22 +40,22 @@ tm now();
 
 template <class Logger, class T>
 void log(Logger* logger, const T& msg) {
-  logger->log(msg);
+  if (logger) logger->log(msg);
 }
 
 template <class Logger>
 void log(Logger* logger, const QString& msg) {
-  logger->log(msg.toStdString());
+  if (logger) logger->log(msg.toStdString());
 }
 
 template <class Logger, class T>
 void logAppend(Logger* logger, const T& msg) {
-  logger->appendLog(msg);
+  if (logger) logger->appendLog(msg);
 }
 
 template <class Logger>
 void logAppend(Logger* logger, const QString& msg) {
-  logger->appendLog(msg.toStdString());
+  if (logger) logger->appendLog(msg.toStdString());
 }
 
 // using PERF_LOGGER() << "some message";
@@ -63,7 +63,7 @@ void logAppend(Logger* logger, const QString& msg) {
 
 // using PERF_LOG("Some message");
 #define PERF_LOG(msg)                                                    \
-  {                                                                      \
+  if (GlobalSession->CmdStack()->PerfLogger()) {                         \
     std::string t = FOEDAG::dateTimeToString(FOEDAG::now(), "%H:%M:%S"); \
     PERF_LOGGER() << "[ " << t << " ] " << msg << "\n";                  \
   }
