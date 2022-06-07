@@ -343,7 +343,7 @@ bool Foedag::initBatch() {
   m_compiler->setGuiTclSync(
       new TclCommandIntegration{new ProjectManager, nullptr});
 
-  auto logger = new FileLoggerBuffer{commands->CmdLogger(), std::cout.rdbuf()};
+  auto logger = new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
   std::cout.rdbuf(logger);
   std::cerr.rdbuf(logger);
   m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),

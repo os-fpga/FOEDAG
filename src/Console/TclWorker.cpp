@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <iostream>
 
-#include "MainWindow/Session.h"
+#include "Compiler/Log.h"
 
 extern FOEDAG::Session *GlobalSession;
 
@@ -44,13 +44,12 @@ int DriverInputProc(ClientData instanceData, char *buf, int bufSize,
   }
   std::string in;
   getline(std::cin, in);
+  LOG_CMD(in);
   in.push_back('\n');
   size_t count = in.size();
   size_t bSize = static_cast<size_t>(bufSize);
   if (in.size() > bSize) count = bSize;
-
   strncpy(buf, in.c_str(), count);
-  GlobalSession->CmdStack()->CmdLogger()->appendLog(in);
   *errorCodePtr = 0;
   return count;
 }

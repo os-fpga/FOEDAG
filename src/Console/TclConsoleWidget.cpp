@@ -11,9 +11,9 @@
 #include <QStack>
 #include <QTextBlock>
 
+#include "Compiler/Log.h"
 #include "ConsoleDefines.h"
 #include "FileInfo.h"
-#include "MainWindow/Session.h"
 #include "StreamBuffer.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -75,7 +75,7 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
       prepareCommand = histCommand;
     QConsole::interpretCommand(prepareCommand, res);
     if (m_console) {
-      GlobalSession->CmdStack()->push(new Command{command.toStdString()});
+      LOG_CMD(command);
       m_console->run(prepareCommand.toUtf8());
     }
     setMultiLine(false);
@@ -152,7 +152,7 @@ void FOEDAG::TclConsoleWidget::putMessage(const QString &message,
                                           OutputFormat format) {
   if (!message.isEmpty()) {
     moveCursor(QTextCursor::End);
-    GlobalSession->CmdStack()->CmdLogger()->appendLog(message.toStdString());
+    LOG_OUTPUT(message);
     m_formatter.appendMessage(message, format);
   }
 }
