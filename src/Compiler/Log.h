@@ -38,6 +38,26 @@ namespace FOEDAG {
 std::string dateTimeToString(const tm& t, const char* format);
 tm now();
 
+template <class Logger, class T>
+void log(Logger* logger, const T& msg) {
+  logger->log(msg);
+}
+
+template <class Logger>
+void log(Logger* logger, const QString& msg) {
+  logger->log(msg.toStdString());
+}
+
+template <class Logger, class T>
+void logAppend(Logger* logger, const T& msg) {
+  logger->appendLog(msg);
+}
+
+template <class Logger>
+void logAppend(Logger* logger, const QString& msg) {
+  logger->appendLog(msg.toStdString());
+}
+
 // using PERF_LOGGER() << "some message";
 #define PERF_LOGGER() (*GlobalSession->CmdStack()->PerfLogger())
 
@@ -47,5 +67,11 @@ tm now();
     std::string t = FOEDAG::dateTimeToString(FOEDAG::now(), "%H:%M:%S"); \
     PERF_LOGGER() << "[ " << t << " ] " << msg << "\n";                  \
   }
+
+// write log into output log file
+#define LOG_OUTPUT(out) logAppend(GlobalSession->CmdStack()->OutLogger(), out)
+
+// write cmd into replay command file
+#define LOG_CMD(cmd) log(GlobalSession->CmdStack()->CmdLogger(), cmd);
 
 }  // namespace FOEDAG

@@ -11,7 +11,7 @@ namespace FOEDAG {
 TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
-      m_tclWorker(new TclWorker{interpreter, out, &std::cerr, parent}),
+      m_tclWorker(new TclWorker{interpreter, out, &std::cerr, false, parent}),
       m_out(out) {
   connect(m_tclWorker, &TclWorker::tclFinished, this,
           &TclConsole::tclWorkerFinished);
