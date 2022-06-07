@@ -1477,15 +1477,53 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 //     return false;
 //   }
 
-  std::string command = BaseVprCommand() + " --analysis";
+  json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
+  std::string vpr_options;
+  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+
+  if( (settings_vpr_filename_obj.contains("net_file")) && 
+      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".net");
+  }
+
+  if( (settings_vpr_filename_obj.contains("place_file")) && 
+      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".place");
+  }
+
+  if( (settings_vpr_filename_obj.contains("route_file")) && 
+      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".route");
+  }
+
+  std::string command = BaseVprCommand() + vpr_options + std::string(" --analysis") + std::string(" --disp on");
+
   std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
                      std::string(m_projManager->projectName() + "_sta.cmd"))
                         .string());
-  ofs << command << " --disp on" << std::endl;
+  ofs << command << std::endl;
   ofs.close();
-
-  // testing only
-  //command = std::string("vpr ") + m_architectureFile.string() + " counter_16bit_post_synth.blif --route_chan_width 180 --analysis";
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -1508,11 +1546,54 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 
   (*m_out) << "Analysis for design: " << m_projManager->projectName() << "..."
            << std::endl;
-  std::string command = BaseVprCommand() + " --analysis";
-//   if (!FileExists(m_vprExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-//     return false;
-//   }
+  
+  //   if (!FileExists(m_vprExecutablePath)) {
+  //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+  //     return false;
+  //   }
+  
+  json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
+  std::string vpr_options;
+  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+
+  if( (settings_vpr_filename_obj.contains("net_file")) && 
+      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".net");
+  }
+
+  if( (settings_vpr_filename_obj.contains("place_file")) && 
+      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".place");
+  }
+
+  if( (settings_vpr_filename_obj.contains("route_file")) && 
+      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".route");
+  }
+
+  std::string command = BaseVprCommand() + vpr_options + std::string(" --analysis") + std::string(" --disp on");
+
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + m_projManager->projectName() +
@@ -1646,11 +1727,53 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("openfpga.xml"));
   m_OpenFpgaBitstreamSettingFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("bitstream_annotation.xml"));
   m_OpenFpgaSimSettingFile  = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("fixed_sim_openfpga.xml"));
-  // (1) call vpr to execute analysis ?
-  std::string vpr_analysis_command = BaseVprCommand();// + " --analysis";
+  // (1) call vpr to execute analysis
+
+  json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
+  std::string vpr_options;
+  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+
+  if( (settings_vpr_filename_obj.contains("net_file")) && 
+      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --net_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".net");
+  }
+
+  if( (settings_vpr_filename_obj.contains("place_file")) && 
+      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --place_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".place");
+  }
+
+  if( (settings_vpr_filename_obj.contains("route_file")) && 
+      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+  }
+  else {
+    vpr_options += std::string(" --route_file") + 
+                   std::string(" ") + 
+                   netlistFilePrefix + std::string(".route");
+  }
+
+  std::string vpr_analysis_command = BaseVprCommand() + vpr_options + std::string(" --analysis");
+
   result = ReplaceAll(result, "${VPR_ANALYSIS_COMMAND}", vpr_analysis_command);
 
-  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+  //std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
   for (const auto& lang_file : m_projManager->DesignFiles()) {
     switch (m_projManager->designFileData(lang_file)) {
