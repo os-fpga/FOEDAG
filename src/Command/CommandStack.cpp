@@ -28,7 +28,7 @@ using namespace FOEDAG;
 
 CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile)
     : m_interp(interp) {
-  m_logger = new Logger(logFile.empty() ? "cmd.log" : logFile + ".log");
+  m_logger = new Logger(logFile.empty() ? "cmd.tcl" : logFile + "_cmd.tcl");
   m_logger->open();
   std::time_t result = std::time(nullptr);
   (*m_logger) << "# Command log file\n";
@@ -39,6 +39,11 @@ CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile)
   m_perfLogger->open();
   (*m_perfLogger) << "# Perf log file\n";
   (*m_perfLogger) << "# Created: " << std::ctime(&result) << "\n";
+
+  m_outputLogger = new Logger(logFile.empty() ? "out.log" : logFile + ".log");
+  m_outputLogger->open();
+  (*m_outputLogger) << "# Out log file\n";
+  (*m_outputLogger) << "# Created: " << std::ctime(&result) << "\n";
 }
 
 bool CommandStack::push_and_exec(Command *cmd) {
@@ -67,5 +72,6 @@ bool CommandStack::pop_and_undo() {
 CommandStack::~CommandStack() {
   delete m_logger;
   delete m_perfLogger;
+  delete m_outputLogger;
   for (auto cmd : m_cmds) delete cmd;
 }
