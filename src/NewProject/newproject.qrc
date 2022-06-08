@@ -6,5 +6,6 @@
         <file>img/folder.png</file>
         <file>templates/verilog_templ.v</file>
         <file>templates/vhdl_templ.vhd</file>
+        <file>img/closetab.png</file>
     </qresource>
 </RCC>
