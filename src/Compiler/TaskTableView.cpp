@@ -77,7 +77,7 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
       auto button = new QPushButton(task->title());
       connect(button, &QPushButton::clicked, this,
               [=]() { emit TaskDialogRequested(task->settingsKey()); });
-      setIndexWidget(index, PrepareLayout(button));
+      setIndexWidget(index, button);
     }
   }
 }
@@ -124,15 +124,6 @@ QRect TaskTableView::expandArea(const QModelIndex &index) const {
   int h = rowHeight(0);
   r.setSize({h, h});
   return r;
-}
-
-QWidget *TaskTableView::PrepareLayout(QWidget *widget) {
-  auto w = new QWidget;
-  widget->setParent(w);
-  w->setLayout(new QBoxLayout(QBoxLayout::TopToBottom));
-  w->layout()->setMargin(4);
-  w->layout()->addWidget(widget);
-  return w;
 }
 
 void ChildItemDelegate::paint(QPainter *painter,
