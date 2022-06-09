@@ -64,6 +64,7 @@ class CommandLine {
 
   void ErrorAndExit(const std::string& message);
   bool FileExists(const std::filesystem::path& name);
+  bool Mute() const { return m_mute; }
 
  protected:
   int m_argc = 0;
@@ -78,6 +79,7 @@ class CommandLine {
   bool m_help = false;
   bool m_version = false;
   bool m_useVerific = false;
+  bool m_mute = false;
 };
 
 }  // namespace FOEDAG
