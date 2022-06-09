@@ -624,23 +624,32 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
 
   // use script from project dir:
   //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
-  // use script from scripts dir:
-  const char* const path_scripts = std::getenv("AURORA_SCRIPTS_DIR"); // this is from setup.sh
-  std::filesystem::path scriptsDir = std::string(path_scripts);
-  
-  std::filesystem::path python_script_path = std::filesystem::path(scriptsDir / std::string("example.py"));
-  std::string command = std::string("python3") +
-            std::string(" ") +
-            python_script_path.string() +
-            std::string(" ") +
-            std::string("IPGenerate") +
-            std::string(" ") +
-            m_projManager->projectName();
+  // use script from scripts dir: try getting from environment variable
+  const char* const path_scripts = std::getenv("AURORA2_SCRIPTS_DIR"); // this is from setup.sh
+  std::filesystem::path scriptsDir;
+  std::error_code ec;
+  if (path_scripts != nullptr) {
+    std::filesystem::path dirpath = std::string(path_scripts);
+    if (std::filesystem::exists(dirpath, ec)) {
+      scriptsDir = dirpath;
+    }
+  }
 
-  int status = ExecuteAndMonitorSystemCommand(command);
-  if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " IP generation failed!");
-    return false;
+  // proceed if we have a valid scripts directory
+  if (!scriptsDir.empty()) {
+    std::filesystem::path python_script_path =
+        std::filesystem::path(scriptsDir / std::string("example.py"));
+    std::string command = std::string("python3") + std::string(" ") +
+                          python_script_path.string() + std::string(" ") +
+                          std::string("IPGenerate") + std::string(" ") +
+                          m_projManager->projectName();
+
+    int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + m_projManager->projectName() +
+                   " IP generation failed!");
+      return false;
+    }
   }
   // placeholder for ipgenerate process --
 
@@ -1273,25 +1282,35 @@ bool CompilerOpenFPGA_ql::Packing() {
   // use script from project dir:
   //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
   // use script from scripts dir:
-  const char* const path_scripts = std::getenv("AURORA_SCRIPTS_DIR"); // this is from setup.sh
-  std::filesystem::path scriptsDir = std::string(path_scripts);
-  
-  std::filesystem::path python_script_path = std::filesystem::path(scriptsDir / std::string("example.py"));
-  command = std::string("python3") +
-            std::string(" ") +
-            python_script_path.string() +
-            std::string(" ") +
-            m_OpenFpgaPinMapXml.string() +
-            std::string(" ") +
-            m_OpenFpgaPinMapCSV.string();
-
-  status = ExecuteAndMonitorSystemCommand(command);
-  if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " PinPlacement failed!");
-    return false;
+  const char* const path_scripts =
+      std::getenv("AURORA2_SCRIPTS_DIR");  // this is from setup.sh
+  std::filesystem::path scriptsDir;
+  std::error_code ec;
+  if (path_scripts != nullptr) {
+    std::filesystem::path dirpath = std::string(path_scripts);
+    if (std::filesystem::exists(dirpath, ec)) {
+      scriptsDir = dirpath;
+    }
   }
-  (*m_out) << "Design " << m_projManager->projectName() << " PinPlacement Done!" 
-           << std::endl;
+
+  // proceed if we have a valid scripts directory
+  if (!scriptsDir.empty()) {
+    std::filesystem::path python_script_path =
+        std::filesystem::path(scriptsDir / std::string("example.py"));
+    command = std::string("python3") + std::string(" ") +
+              python_script_path.string() + std::string(" ") +
+              m_OpenFpgaPinMapXml.string() + std::string(" ") +
+              m_OpenFpgaPinMapCSV.string();
+
+    status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + m_projManager->projectName() +
+                   " PinPlacement failed!");
+      return false;
+    }
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " PinPlacement Done!" << std::endl;
+  }
   // placeholder for pin_placement process --
 
   return true;
@@ -1321,8 +1340,7 @@ bool CompilerOpenFPGA_ql::Placement() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
-      m_state != State::Placed) {
+  if (m_state != State::Packed && m_state != State::GloballyPlaced) {
     ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
   }
@@ -1846,21 +1864,16 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
+  
   if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
     if (m_state != State::Routed) {
       ErrorMessage("Design needs to be in routed state");
       return false;
     }
   }
+  
   (*m_out) << "Bitstream generation for design: "
            << m_projManager->projectName() << "..." << std::endl;
-
-  if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
-    (*m_out) << "Design " << m_projManager->projectName()
-             << " bitstream is generated!" << std::endl;
-    return true;
-  }
-  // This is WIP, have to force it to execute (bitstream force)
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
                         m_projManager->projectName() + ".openfpga";

@@ -153,16 +153,38 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
     std::filesystem::path exeDirPath = exePath.parent_path();
     m_context->BinaryPath(exeDirPath);
     std::filesystem::path installDir = exeDirPath.parent_path();
+    std::cout << exePath << std::endl;
+    
     const std::string separator(1, std::filesystem::path::preferred_separator);
+    std::error_code ec;
+    
+    // [1] prefer to take the datapath from environment variable, if set:
     if (m_context->DataPath().empty()) {
-      const char* const path_device_data = std::getenv("AURORA_DEVICE_DATA_DIR");  // this is from setup.sh
+      const char* const path_device_data = std::getenv("AURORA2_DEVICE_DATA_DIR");  // this is from setup.sh
       if (path_device_data != nullptr) {
         std::filesystem::path dataDir = std::string(path_device_data);
+        if(std::filesystem::exists(dataDir, ec)) {
+          m_context->DataPath(dataDir);
+        }
+      }
+    }
+
+    // [2] check convention, if we have device_data dir in the installation directory:
+    if (m_context->DataPath().empty()) {
+      std::filesystem::path dataDir = installDir.string() + 
+                                      separator +
+                                      std::string("device_data");
+      if(std::filesystem::exists(dataDir, ec)) {
         m_context->DataPath(dataDir);
-      } else {
-        std::filesystem::path dataDir = installDir.string() + separator +
-                                    std::string("share") + separator +
-                                    m_context->ExecutableName();
+      }
+    }
+
+    // [3] check convention, if we have share/PROGRAM_NAME dir in the installation directory:
+    if (m_context->DataPath().empty()) {
+      std::filesystem::path dataDir = installDir.string() + separator +
+                                  std::string("share") + separator +
+                                  m_context->ExecutableName();
+      if(std::filesystem::exists(dataDir, ec)) {
         m_context->DataPath(dataDir);
       }
     }
