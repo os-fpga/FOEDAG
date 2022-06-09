@@ -10,6 +10,7 @@
 #include "OutputFormatter.h"
 #include "QConsole/qconsole.h"
 
+class QProcess;
 namespace FOEDAG {
 
 enum class State {
@@ -80,6 +81,8 @@ class TclConsoleWidget : public QConsole {
 
   bool hasOpenBracket(const QString &str) const;
   bool hasCloseBracket(const QString &str) const;
+
+  static void startShellCommand(QProcess &process, const QStringList &input);
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;

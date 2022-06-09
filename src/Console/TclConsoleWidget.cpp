@@ -244,9 +244,8 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
 
   auto unknown = [](ClientData clientData, Tcl_Interp *interp, int argc,
                     const char *argv[]) {
-    const QString prog{argv[1]};
     QStringList params;
-    for (int i = 2; i < argc; ++i) params << argv[i];
+    for (int i = 1; i < argc; ++i) params << argv[i];
     QProcess proc;
     bool started{false};
     Tcl_ResetResult(interp);
@@ -259,12 +258,13 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
       Tcl_AppendResult(interp, qPrintable(data), nullptr);
     });
     QObject::connect(&proc, &QProcess::started, [&]() { started = true; });
-    proc.start(prog, params);
+    startShellCommand(proc, params);
     proc.waitForFinished(-1);
 
     if (!started) {
       Tcl_AppendResult(
-          interp, qPrintable(QString("invalid command name \"%1\"").arg(prog)),
+          interp,
+          qPrintable(QString("invalid command name \"%1\"").arg(argv[1])),
           nullptr);
       return TCL_ERROR;
     }
@@ -316,6 +316,17 @@ bool TclConsoleWidget::hasCloseBracket(const QString &str) const {
   for (auto iter = str.crbegin(); iter != str.crend(); iter++)
     if (*iter == QChar{'}'}) return true;
   return false;
+}
+
+void FOEDAG::TclConsoleWidget::startShellCommand(QProcess &process,
+                                                 const QStringList &input) {
+#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+  QStringList params{input};
+  const QString prog{params.takeFirst()};
+  process.start(prog, params);
+#else
+  process.start("/bin/sh", QStringList() << "-c" << input.join(" "));
+#endif
 }
 
 State TclConsoleWidget::state() const { return m_state; }
