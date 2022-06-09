@@ -10,70 +10,6 @@ Q_GLOBAL_STATIC(TextEditorForm, texteditor)
 
 TextEditorForm *TextEditorForm::Instance() { return texteditor(); }
 
-class CloseButton : public QAbstractButton {
- public:
-  explicit CloseButton(QWidget *parent = 0) : QAbstractButton(parent) {
-    setFocusPolicy(Qt::NoFocus);
-    setCursor(Qt::ArrowCursor);
-    setToolTip(tr("Close Tab"));
-  }
-  QSize sizeHint() const override {
-    ensurePolished();
-    int width =
-        style()->pixelMetric(QStyle::PM_TabCloseIndicatorWidth, 0, this);
-    int height =
-        style()->pixelMetric(QStyle::PM_TabCloseIndicatorHeight, 0, this);
-    return QSize(width, height);
-  }
-  QSize minimumSizeHint() const override { return sizeHint(); }
-  void enterEvent(QEvent *event) override {
-    if (isEnabled()) update();
-    QAbstractButton::enterEvent(event);
-  }
-  void leaveEvent(QEvent *event) override {
-    if (isEnabled()) update();
-    QAbstractButton::leaveEvent(event);
-  }
-  void paintEvent(QPaintEvent *event) override {
-    QPainter p(this);
-    QStyleOption opt;
-    opt.init(this);
-    opt.state |= QStyle::State_AutoRaise;
-    if (isEnabled() && underMouse() && !isChecked() && !isDown())
-      opt.state |= QStyle::State_Raised;
-    if (isChecked()) opt.state |= QStyle::State_On;
-    if (isDown()) opt.state |= QStyle::State_Sunken;
-    if (const QTabBar *tb = qobject_cast<const QTabBar *>(parent())) {
-      int index = tb->currentIndex();
-      QTabBar::ButtonPosition position =
-          (QTabBar::ButtonPosition)style()->styleHint(
-              QStyle::SH_TabBar_CloseButtonPosition, 0, tb);
-      if (tb->tabButton(index, position) == this)
-        opt.state |= QStyle::State_Selected;
-    }
-    QIcon::Mode mode =
-        opt.state & QStyle::State_Enabled
-            ? (opt.state & QStyle::State_Raised ? QIcon::Active : QIcon::Normal)
-            : QIcon::Disabled;
-    if (!(opt.state & QStyle::State_Raised) &&
-        !(opt.state & QStyle::State_Sunken) &&
-        !(opt.state & QStyle::State_Selected))
-      mode = QIcon::Disabled;
-    QIcon::State state =
-        opt.state & QStyle::State_Sunken ? QIcon::On : QIcon::Off;
-
-    if ((opt.state & QStyle::State_Enabled) &&
-        (opt.state & QStyle::State_MouseOver))
-      style()->proxy()->drawPrimitive(QStyle::PE_PanelButtonCommand, &opt, &p,
-                                      this);
-
-    QIcon pixmap{":/img/closetab.png"};
-    int size = style()->proxy()->pixelMetric(QStyle::PM_SmallIconSize);
-    auto pix = pixmap.pixmap(nullptr, QSize(size, size), mode, state);
-    style()->proxy()->drawItemPixmap(&p, opt.rect, Qt::AlignCenter, pix);
-  }
-};
-
 void TextEditorForm::InitForm() {
   static bool initForm;
   if (initForm) {
@@ -148,22 +84,6 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
-  auto closeButton = new CloseButton(m_tab_editor);
-  closeButton->resize(closeButton->sizeHint());
-  m_tab_editor->tabBar()->setTabButton(index, QTabBar::RightSide, closeButton);
-  connect(closeButton, &QAbstractButton::clicked, this, [this]() {
-    QObject *object = sender();
-    int tabToClose = -1;
-    QTabBar::ButtonPosition closeSide = QTabBar::RightSide;
-    for (int i = 0; i < m_tab_editor->count(); ++i) {
-      if (m_tab_editor->tabBar()->tabButton(i, closeSide) == object) {
-        tabToClose = i;
-        break;
-      }
-    }
-    if (tabToClose != -1)
-      emit m_tab_editor->tabBar()->tabCloseRequested(tabToClose);
-  });
 
   QPair<int, Editor *> pair;
   pair.first = index;
