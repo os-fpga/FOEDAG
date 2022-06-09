@@ -58,7 +58,9 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
-    return m_taskManager->tasks().at(index.row())->title();
+    auto task = m_taskManager->tasks().at(index.row());
+    if (task->type() == TaskType::Action) return task->title();
+    return QVariant();
   } else if (role == Qt::DecorationRole) {
     if (index.column() == STATUS_COL) {
       switch (m_taskManager->tasks().at(index.row())->status()) {
