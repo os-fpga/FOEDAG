@@ -37,7 +37,7 @@ class CommandStack {
  private:
  public:
   CommandStack(TclInterpreter* interp,
-               const std::string& logFile = std::string{});
+               const std::string& logFile = std::string{}, bool mute = false);
   bool push_and_exec(Command* cmd);
   void push(Command* cmd);
   bool pop_and_undo();
