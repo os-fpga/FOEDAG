@@ -49,6 +49,7 @@ extern "C" {
 #include "CommandLine.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclWorker.h"
+#include "FoedagStyle.h"
 #include "Main/Foedag.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
@@ -156,6 +157,7 @@ bool Foedag::initGui() {
   // Gui mode with Qt Widgets
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
+  QApplication::setStyle(new FoedagStyle(app.style()));
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands =
@@ -226,6 +228,7 @@ bool Foedag::initQmlGui() {
   // Gui mode with QML
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
+  QApplication::setStyle(new FoedagStyle(app.style()));
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands =
