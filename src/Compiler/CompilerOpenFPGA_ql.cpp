@@ -1197,14 +1197,48 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("vpr.xml"));
-  
+
+  // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
+  if(settings_general_device_obj.contains("voltage_threshold")) {
+
+    std::string voltage_threshold = settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
+
+    // if p_v_t_corner is not specified, default value is "TYPICAL"
+    std::string p_v_t_corner = "TYPICAL";
+    if(settings_general_device_obj.contains("p_v_t_corner")) {
+      p_v_t_corner = settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    }
+
+    m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                                family / 
+                                                foundry / 
+                                                node / 
+                                                voltage_threshold /
+                                                p_v_t_corner /
+                                                std::string("vpr.xml"));
+
+    Message(std::string("Using vpr.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
+
+    // this should be treated as an error!
+    if (!FileExists(m_architectureFile)) {
+      ErrorMessage("voltage_threshold and p_v_t_corner specified, but no corresponding vpr.xml!!!");
+    }    
+    // vpr will complain anyway that the specified vpr.xml was not found.
+  }
+  else {
+    
+    // use the default vpr.xml for the family/foundry/node combination
+    Message(std::string("Using default vpr.xml for: ") + family + "," + foundry + "," + node );
+    m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                               family / 
+                                               foundry / 
+                                               node / 
+                                               std::string("vpr.xml"));
+  }
 
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
-      // TODO: select architecture file from family name, from settings/tcl
       m_architectureFile.string() + std::string(" ") +
-      //std::string("aurora2/device_data/QLF_K6N10/TSMC/22nm/vpr.xml") + std::string(" ") +
       std::string(netlistFile) + // NOTE: don't add a " " here
       // TODO: sdc file needs to be taken and preprocessed before use?
       //std::string(" --sdc_file ") + std::string(m_projManager->projectName() + "_openfpga.sdc") + // NOTE: don't add a " " here
@@ -1321,9 +1355,8 @@ bool CompilerOpenFPGA_ql::GlobalPlacement() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
-      m_state != State::Placed) {
-    ErrorMessage("Design needs to be in packed state");
+  if (m_state != State::Packed) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed state"));
     return false;
   }
   (*m_out) << "Global Placement for design: " << m_projManager->projectName()
@@ -1341,7 +1374,7 @@ bool CompilerOpenFPGA_ql::Placement() {
     return false;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced) {
-    ErrorMessage("Design needs to be in packed or globally placed state");
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed/globally_placed state"));
     return false;
   }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
@@ -1455,7 +1488,7 @@ bool CompilerOpenFPGA_ql::Route() {
     return false;
   }
   if (m_state != State::Placed) {
-    ErrorMessage("Design needs to be in placed state");
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed state"));
     return false;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
@@ -1485,6 +1518,11 @@ bool CompilerOpenFPGA_ql::Route() {
 bool CompilerOpenFPGA_ql::TimingAnalysis() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
+    return false;
+  }
+
+  if (m_state != State::Routed) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
     return false;
   }
 
@@ -1559,6 +1597,11 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 bool CompilerOpenFPGA_ql::PowerAnalysis() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
+    return false;
+  }
+
+  if (m_state != State::Routed) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
     return false;
   }
 
@@ -1672,10 +1715,10 @@ ${VPR_ANALYSIS_COMMAND}
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
 
-# Read OpenFPGA simulation setting (not in aurora)
+# Read OpenFPGA simulation setting
 read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
 
-# Read OpenFPGA bitstream setting (not in aurora)
+# Read OpenFPGA bitstream setting
 read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 
 # Annotate the OpenFPGA architecture to VPR data base
@@ -1700,11 +1743,11 @@ write_gsb_to_xml --file gsb
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
 # Strongly recommend it is done after all the fix-up have been applied
-#repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS} # not in aurora
+#repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 repack
 
 # Build bitstream database
-#build_architecture_bitstream --write_file fabric_independent_bitstream.xml # not in aurora
+#build_architecture_bitstream --write_file fabric_independent_bitstream.xml
 build_architecture_bitstream
 
 # Build fabric bitstream
@@ -1742,11 +1785,59 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("openfpga.xml"));
   m_OpenFpgaBitstreamSettingFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("bitstream_annotation.xml"));
   m_OpenFpgaSimSettingFile  = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("fixed_sim_openfpga.xml"));
-  // (1) call vpr to execute analysis
+  
+  // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
+  if(settings_general_device_obj.contains("voltage_threshold")) {
 
+    std::string voltage_threshold = settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
+
+    // if p_v_t_corner is not specified, default value is "TYPICAL"
+    std::string p_v_t_corner = "TYPICAL";
+    if(settings_general_device_obj.contains("p_v_t_corner")) {
+      p_v_t_corner = settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    }
+
+    m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                                       family / 
+                                                       foundry / 
+                                                       node / 
+                                                       voltage_threshold /
+                                                       p_v_t_corner /
+                                                       std::string("openfpga.xml"));
+
+    Message(std::string("Using openfpga.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
+
+    // this should be treated as an error, but we don't have the openfpga.xml files in place yet.
+    // hence, we fall back to the default openfpga.xml for now.
+    // TODO update this logic once we have openfpga.xml files for each.
+    if (!FileExists(m_OpenFpgaArchitectureFile)) {
+      //ErrorMessage("voltage_threshold and p_v_t_corner specified, but no corresponding openfpga.xml!!!");
+      Message("voltage_threshold and p_v_t_corner specified, but no corresponding openfpga.xml!!!");
+      Message(std::string("Using default openfpga.xml for: ") + family + "," + foundry + "," + node );
+      m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                                         family / 
+                                                         foundry / 
+                                                         node / 
+                                                         std::string("openfpga.xml"));
+    }
+    // openfpga will complain anyway that the specified openfpga.xml was not found.
+  }
+  else {
+    
+    // use the default openfpga.xml for the family/foundry/node combination
+    Message(std::string("Using default openfpga.xml for: ") + family + "," + foundry + "," + node );
+    m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                                       family / 
+                                                       foundry / 
+                                                       node / 
+                                                       std::string("openfpga.xml"));
+
+  }
+
+  
+  // call vpr to execute analysis
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
   std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
@@ -1845,17 +1936,22 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   } else {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}", "");
   }
+
   result = ReplaceAll(result, "${OPENFPGA_VPR_ROUTE_CHAN_WIDTH}",
                       std::to_string(m_channel_width));
+
   result = ReplaceAll(result, "${OPENFPGA_ARCH_FILE}",
                       m_OpenFpgaArchitectureFile.string());
 
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
+
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
+
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
+
   return result;
 }
 
@@ -1867,11 +1963,11 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   
   if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
     if (m_state != State::Routed) {
-      ErrorMessage("Design needs to be in routed state");
+      ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
       return false;
     }
   }
-  
+
   (*m_out) << "Bitstream generation for design: "
            << m_projManager->projectName() << "..." << std::endl;
 
