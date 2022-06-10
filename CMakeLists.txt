@@ -253,7 +253,6 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
 execute_process(COMMAND git rev-parse --short HEAD
-  COMMAND tr -d '\n'
   OUTPUT_VARIABLE GIT_HASH
   ERROR_VARIABLE GIT_HASH_ERR
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
