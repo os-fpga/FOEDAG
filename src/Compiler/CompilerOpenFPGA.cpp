@@ -551,10 +551,10 @@ bool CompilerOpenFPGA::Synthesize() {
     m_state = State::IPGenerated;
     SynthOpt(SynthesisOpt::None);
     std::filesystem::remove(
-        std::filesystem::path(m_projManager->projectName()) /
+        std::filesystem::path(m_projManager->projectPath()) /
         std::string(m_projManager->projectName() + "_post_synth.blif"));
     std::filesystem::remove(
-        std::filesystem::path(m_projManager->projectName()) /
+        std::filesystem::path(m_projManager->projectPath()) /
         std::string(m_projManager->projectName() + "_post_synth.v"));
     return true;
   }
@@ -712,10 +712,10 @@ bool CompilerOpenFPGA::Synthesize() {
     return true;
   }
   std::filesystem::remove(
-      std::filesystem::path(m_projManager->projectName()) /
+      std::filesystem::path(m_projManager->projectPath()) /
       std::string(m_projManager->projectName() + "_post_synth.blif"));
   std::filesystem::remove(
-      std::filesystem::path(m_projManager->projectName()) /
+      std::filesystem::path(m_projManager->projectPath()) /
       std::string(m_projManager->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   script_path =
@@ -821,7 +821,7 @@ bool CompilerOpenFPGA::Packing() {
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
     std::filesystem::remove(
-        std::filesystem::path(m_projManager->projectName()) /
+        std::filesystem::path(m_projManager->projectPath()) /
         std::string(m_projManager->projectName() + "_post_synth.net"));
     return true;
   }
@@ -926,7 +926,7 @@ bool CompilerOpenFPGA::Placement() {
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
     std::filesystem::remove(
-        std::filesystem::path(m_projManager->projectName()) /
+        std::filesystem::path(m_projManager->projectPath()) /
         std::string(m_projManager->projectName() + "_post_synth.place"));
     return true;
   }
@@ -1060,7 +1060,7 @@ bool CompilerOpenFPGA::Route() {
     m_state = State::Placed;
     RouteOpt(RoutingOpt::None);
     std::filesystem::remove(
-        std::filesystem::path(m_projManager->projectName()) /
+        std::filesystem::path(m_projManager->projectPath()) /
         std::string(m_projManager->projectName() + "_post_synth.route"));
     return true;
   }
@@ -1299,6 +1299,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 
   std::string script_path = m_projManager->projectName() + ".openfpga";
 
+  // TODO, this paths doesn't work since depends on the executable path
   std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
                           std::string("fabric_bitstream.bit"));
   std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
