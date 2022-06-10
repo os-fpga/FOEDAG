@@ -40,7 +40,8 @@ void TaskModel::appendTask(Task *newTask) {
 }
 
 bool TaskModel::hasChildren(const QModelIndex &parent) const {
-  if (parent.isValid()) return m_taskManager->task(parent.row())->hasSubTask();
+  if (parent.isValid() && m_taskManager->task(parent.row()))
+    return m_taskManager->task(parent.row())->hasSubTask();
   return false;
 }
 
@@ -59,7 +60,7 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
     auto task = m_taskManager->tasks().at(index.row());
-    if (task->type() == TaskType::Action) return task->title();
+    if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
   } else if (role == Qt::DecorationRole) {
     if (index.column() == STATUS_COL) {

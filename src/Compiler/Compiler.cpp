@@ -1031,7 +1031,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
-  uint task{toTaskId(static_cast<int>(action))};
+  uint task{toTaskId(static_cast<int>(action), this)};
   if (m_hardError) {
     if (task != TaskManager::invalid_id && m_taskManager) {
       m_taskManager->task(task)->setStatus(TaskStatus::Fail);
@@ -1179,17 +1179,32 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
     });
+    m_taskManager->bindTaskCommand(SYNTHESIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("synth clean"));
+    });
     m_taskManager->bindTaskCommand(PACKING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("packing"));
+    });
+    m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
     });
     m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
     });
+    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
+    });
     m_taskManager->bindTaskCommand(PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place"));
     });
+    m_taskManager->bindTaskCommand(PLACEMENT_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("place clean"));
+    });
     m_taskManager->bindTaskCommand(ROUTING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("route"));
+    });
+    m_taskManager->bindTaskCommand(ROUTING_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("route clean"));
     });
     m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
