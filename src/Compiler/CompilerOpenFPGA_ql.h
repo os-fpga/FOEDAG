@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// clang-format off
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -145,3 +147,5 @@ class CompilerOpenFPGA_ql : public Compiler {
 }  // namespace FOEDAG
 
 #endif
+
+// clang-format on

@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #ifdef _WIN32
 #include <Windows.h>
 #include <direct.h>
@@ -2118,3 +2120,5 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
 
   return status;
 }
+
+// clang-format on

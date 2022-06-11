@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #if defined(_MSC_VER)
 #include <direct.h>
 #include <process.h>
@@ -424,3 +426,5 @@ bool Foedag::initBatch() {
   delete GlobalSession;
   return returnStatus;
 }
+
+// clang-format on
