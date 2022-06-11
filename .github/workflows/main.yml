@@ -120,8 +120,10 @@ jobs:
           ${{ github.workspace }}/build/test/
           ${{ github.workspace }}/build/tests/
 
+
 # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
   centos7-gcc:
+    if: ${{ false }}  # KK: disable this until we need it.
     name:  ${{ matrix.mode }}
 
     runs-on: ubuntu-latest
@@ -200,8 +202,10 @@ jobs:
         make test/gui
         make regression
 
+
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
+    if: ${{ false }}  # KK: disable this until we need it.
     runs-on: windows-2022
     defaults:
       run:
@@ -316,6 +320,7 @@ jobs:
 #        make regression
 
   windows-msvc:
+    if: ${{ false }}  # KK: disable this until we need it.
     runs-on: windows-2022
 
     defaults:
@@ -411,8 +416,8 @@ jobs:
           ${{ github.workspace }}/build/tests/
 
 
-
   macos-gcc:
+    if: ${{ false }}  # KK: disable this until we need it.
     runs-on: macos-latest
 
     steps:
@@ -474,6 +479,7 @@ jobs:
 
 
   macos-clang:
+    if: ${{ false }}  # KK: disable this until we need it.
     runs-on: macos-latest
 
     steps:
@@ -534,6 +540,7 @@ jobs:
       run: |
         make regression
 
+
   CodeFormatting:
     runs-on: ubuntu-20.04
 
@@ -551,6 +558,7 @@ jobs:
 
     - name: Run formatting style check
       run: ./.github/bin/run-clang-format.sh
+
 
   ClangTidy:
     runs-on: ubuntu-20.04

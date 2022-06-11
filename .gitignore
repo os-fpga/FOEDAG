@@ -64,3 +64,4 @@ third_party/tcl8.6.12/unix/pkgs/
 third_party/tcl8.6.12/unix/tcl.pc
 third_party/tcl8.6.12/unix/tclConfig.sh
 third_party/tcl8.6.12/unix/tclsh
+third_party/tcl8.6.12/unix/configure
