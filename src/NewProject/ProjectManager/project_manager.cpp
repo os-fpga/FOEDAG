@@ -1844,6 +1844,18 @@ void ProjectManager::addLibraryPath(const std::string& libraryPath) {
   m_libraryPathList.push_back(libraryPath);
 }
 
+const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
+  return m_libraryExtList;
+}
+
+void ProjectManager::setLibraryExtensionList(
+    const std::vector<std::string>& newLibraryExtensionList) {
+  m_libraryExtList = newLibraryExtensionList;
+}
+void ProjectManager::addLibraryExtension(const std::string& libraryExt) {
+  m_libraryExtList.push_back(libraryExt);
+}
+
 void ProjectManager::addMacro(const std::string& macroName,
                               const std::string& macroValue) {
   m_macroList.push_back(std::pair(macroName, macroValue));

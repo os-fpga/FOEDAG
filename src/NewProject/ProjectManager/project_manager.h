@@ -223,6 +223,11 @@ class ProjectManager : public QObject {
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
+  const std::vector<std::string> &libraryExtensionList() const;
+  void setLibraryExtensionList(
+      const std::vector<std::string> &newLibraryExtensionList);
+  void addLibraryExtension(const std::string &libraryExt);
+
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
@@ -260,6 +265,7 @@ class ProjectManager : public QObject {
   QString m_currentRun;
   std::vector<std::string> m_includePathList;
   std::vector<std::string> m_libraryPathList;
+  std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
 };

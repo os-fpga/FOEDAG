@@ -82,6 +82,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
+  (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
@@ -95,6 +96,7 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
+  (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
@@ -266,7 +268,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -285,7 +287,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -364,7 +366,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path the_path = expandedFile;
         if (!the_path.is_absolute()) {
           expandedFile =
-              std::filesystem::path(compiler->m_projManager->projectPath() /
+              std::filesystem::path(compiler->ProjManager()->projectPath() /
                                     std::filesystem::path("..") / expandedFile)
                   .string();
         }
@@ -390,7 +392,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -451,7 +453,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -478,7 +480,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_projManager->addIncludePath(expandedFile);
+      compiler->ProjManager()->addIncludePath(expandedFile);
     }
     return TCL_OK;
   };
@@ -487,7 +489,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_library_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -514,16 +516,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_projManager->addLibraryPath(expandedFile);
+      compiler->ProjManager()->addLibraryPath(expandedFile);
     }
     return TCL_OK;
   };
   interp->registerCmd("add_library_path", add_library_path, this, nullptr);
 
+  auto add_library_ext = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      std::string ext = argv[i];
+      compiler->ProjManager()->addLibraryExtension(ext);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("add_library_ext", add_library_ext, this, nullptr);
+
   auto set_macro = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -547,7 +564,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -596,7 +613,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -635,7 +652,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto synth_options = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
