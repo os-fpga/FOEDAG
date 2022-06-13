@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "NewProject/ProjectManager/project_manager.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
 
@@ -55,6 +56,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void createMenus();
   void createToolBars();
   void createActions();
+  void connectProjectManager();
   void gui_start() override;
 
   void ReShowWindow(QString strProject);
@@ -83,6 +85,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
+  /* Project Manager so we can reload settings on path change */
+  ProjectManager* m_projectManager;
 };
 
 }  // namespace FOEDAG

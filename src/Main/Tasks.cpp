@@ -41,6 +41,39 @@ auto TASKS_DBG_PRINT = [](std::string printStr) {
   }
 };
 
+// This will grab Synthesis related options from Compiler::SynthOpt &
+// Compiler::SynthMoreOpt, convert/combine them, and return them as an arg list
+// QString
+auto getSynthesisOptions = []() -> QString {
+  // Helper to convert a SynthesisOpt enum to string
+  auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
+    static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
+        {FOEDAG::Compiler::SynthesisOpt::None, "none"},
+        {FOEDAG::Compiler::SynthesisOpt::Area, "area"},
+        {FOEDAG::Compiler::SynthesisOpt::Delay, "delay"},
+        {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
+        {FOEDAG::Compiler::SynthesisOpt::Clean, "clean"}};
+    return synthOptMap[opt];
+  };
+
+  // Collect Synthesis Tcl Params
+  QString tclOptions =
+      QString::fromStdString(GlobalSession->GetCompiler()->SynthMoreOpt());
+  // Syntehsis has one top level option that doesn't get passed with
+  // SynthMoreOpt so we need to give it a fake arg and pass it
+  tclOptions +=
+      " -_SynthOpt_ " + synthOptToStr(GlobalSession->GetCompiler()->SynthOpt());
+
+  return tclOptions;
+};
+
+// Map of Task names and tcl arguement list getters
+std::map<QString, std::function<QString()>> OptionsGetterMap = {
+    {"Synthesis", getSynthesisOptions},
+    // {"Placement", getSynthesisOptions},
+    // {"Routing", getSynthesisOptions},
+};
+
 QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
   FOEDAG::Settings* settings = GlobalSession->GetSettings();
   QDialog* dlg = nullptr;
@@ -48,8 +81,18 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
     // Get widget parameters from json settings
     json& widgetsJson = settings->getJson()[TASKS_KEY][taskName.toStdString()];
 
+    // Get any task settings that have been set via tcl commands
+    QString tclArgs = "";
+    auto it = OptionsGetterMap.find(taskName);
+    if (it != OptionsGetterMap.end()) {
+      tclArgs = it->second();
+    }
+
     // Create dialog
-    dlg = createSettingsDialog(widgetsJson, "Edit " + taskName + " Settings");
+    dlg = createSettingsDialog(widgetsJson, "Edit " + taskName + " Settings",
+                               taskName, tclArgs);
+    std::cout << "***" << FOEDAG::getTaskUserSettingsPath().toStdString()
+              << std::endl;
 
     QObject::connect(dlg, &QDialog::accepted, [dlg, taskName]() {
       // Find the settings widget contained by the dialog

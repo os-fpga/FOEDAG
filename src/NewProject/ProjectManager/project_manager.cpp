@@ -12,7 +12,11 @@
 
 using namespace FOEDAG;
 
-ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
+ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
+  // Re-emit projectPathChanged signals
+  QObject::connect(Project::Instance(), &Project::projectPathChanged, this,
+                   &ProjectManager::projectPathChanged);
+}
 
 void ProjectManager::CreateProject(const ProjectOptions& opt) {
   if (opt.rewriteProject) {

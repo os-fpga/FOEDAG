@@ -55,8 +55,7 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
   QDesktopWidget dw;
-  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
-              dw.height() * 2 / 3);
+  setGeometry(50, 50, dw.width() * 1 / 3, dw.height() * 2 / 3);
 
   setDockNestingEnabled(true);
 
@@ -73,6 +72,9 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   /* Create status bar */
   statusBar();
+
+  /* Connect to the project manager */
+  connectProjectManager();
 
   //  /* Add dummy text editors */
   //  QTextEdit* editor1 = new QTextEdit;
@@ -220,6 +222,15 @@ void MainWindow::createActions() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
+}
+
+void MainWindow::connectProjectManager() {
+  m_projectManager = new ProjectManager(
+      this);  // new'd QObject, this will get delete by parent
+
+  // If the project manager path changes, reload settings
+  QObject::connect(m_projectManager, &ProjectManager::projectPathChanged,
+                   [this]() { reloadSettings(); });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
