@@ -1844,14 +1844,15 @@ void ProjectManager::addLibraryPath(const std::string& libraryPath) {
   m_libraryPathList.push_back(libraryPath);
 }
 
-const std::vector<std::string> &ProjectManager::libraryExtensionList() const {
+const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
   return m_libraryExtList;
 }
 
-void ProjectManager::setLibraryExtensionList(const std::vector<std::string> &newLibraryExtensionList) {
+void ProjectManager::setLibraryExtensionList(
+    const std::vector<std::string>& newLibraryExtensionList) {
   m_libraryExtList = newLibraryExtensionList;
 }
-void ProjectManager::addLibraryExtension(const std::string &libraryExt) {
+void ProjectManager::addLibraryExtension(const std::string& libraryExt) {
   m_libraryExtList.push_back(libraryExt);
 }
 

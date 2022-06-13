@@ -224,7 +224,8 @@ class ProjectManager : public QObject {
   void addLibraryPath(const std::string &libraryPath);
 
   const std::vector<std::string> &libraryExtensionList() const;
-  void setLibraryExtensionList(const std::vector<std::string> &newLibraryExtensionList);
+  void setLibraryExtensionList(
+      const std::vector<std::string> &newLibraryExtensionList);
   void addLibraryExtension(const std::string &libraryExt);
 
   void addMacro(const std::string &macroName, const std::string &macroValue);

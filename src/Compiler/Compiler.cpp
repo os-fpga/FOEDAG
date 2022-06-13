@@ -523,7 +523,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("add_library_path", add_library_path, this, nullptr);
 
   auto add_library_ext = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
+                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
