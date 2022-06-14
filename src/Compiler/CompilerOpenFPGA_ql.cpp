@@ -1031,6 +1031,8 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
 
 std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
+  // note: at this point, the current_path() is the project 'source' directory.
+
   // read settings -> SynthArray of Objects
   std::string settings_json_filename = m_projManager->projectName() + ".json";
   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
@@ -1114,12 +1116,57 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                    settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
   }
 
+
+  // ---------------------------------------------------------------- sdc_file ++
+  //Message(std::string("currentpath:") + std::filesystem::current_path().string());
+  std::filesystem::path sdc_file_path;
+  bool sdc_file_path_from_json = false;
+  // check if an sdc file is specified in the json:
   if( (settings_vpr_filename_obj.contains("sdc_file")) && 
       !settings_vpr_filename_obj["sdc_file"]["default"].get<std::string>().empty() ) {
+
+    sdc_file_path = 
+        std::filesystem::path(settings_vpr_filename_obj["sdc_file"]["default"].get<std::string>());
+
+    sdc_file_path_from_json = true;
+
+    //Message(std::string("[1]") + sdc_file_path.string());
+  }
+  // check if an sdc file exists with the project name (projectName.sdc) in the project source dir:
+  else {
+
+    sdc_file_path = 
+      std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
+
+    //Message(std::string("[2]") + sdc_file_path.string());
+  }
+
+  // convert to canonical path, which will also check that the path exists.
+  std::error_code ec;  
+  std::filesystem::path sdc_file_path_c = std::filesystem::canonical(sdc_file_path, ec);
+  if(!ec) {
+    // path exists, and can be used
     vpr_options += std::string(" --sdc_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["sdc_file"]["default"].get<std::string>();
+                   sdc_file_path_c.string();
   }
+  else {
+    // path does not exist, we got a filesystem error while making the canonical path.
+
+    if(sdc_file_path_from_json) {
+      // if the sdc_file comes from the json, and it is not found, that is an error.
+
+      ErrorMessage(std::string("sdc file from json: ") + sdc_file_path.string() + std::string(" does not exist!!"));
+
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    // otherwise, we just have a warning for the user, and proceed.
+    Message(std::string("no sdc file found, skipping this vpr option!"));
+  }
+  // ---------------------------------------------------------------- sdc_file --
+
 
   if( (settings_vpr_filename_obj.contains("write_rr_graph")) && 
       !settings_vpr_filename_obj["write_rr_graph"]["default"].get<std::string>().empty() ) {
@@ -1238,14 +1285,13 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                                                std::string("vpr.xml"));
   }
 
-  std::string command =
+  // construct the base vpr command with all the options here.
+  std::string base_vpr_command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
-      std::string(netlistFile) + // NOTE: don't add a " " here
-      // TODO: sdc file needs to be taken and preprocessed before use?
-      //std::string(" --sdc_file ") + std::string(m_projManager->projectName() + "_openfpga.sdc") + // NOTE: don't add a " " here
+      std::string(netlistFile) + // NOTE: don't add a " " here as vpr options start with a " "
       vpr_options;
-  return command;
+  return base_vpr_command;
 }
 
 bool CompilerOpenFPGA_ql::Packing() {
@@ -1285,7 +1331,14 @@ bool CompilerOpenFPGA_ql::Packing() {
   }
   ofssdc.close();
 
-  std::string command = BaseVprCommand() + " --pack";
+  std::string command = BaseVprCommand();
+  if(command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    return false;
+  }
+  command += std::string(" ") + 
+             std::string("--pack");
+
   std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
                      std::string(m_projManager->projectName() + "_pack.cmd"))
                         .string());
@@ -1460,7 +1513,15 @@ bool CompilerOpenFPGA_ql::Placement() {
     }
   }
 #endif // #if 0 // disabling this until we have the pin_c executable
-  std::string command = BaseVprCommand() + " --place";
+  
+  std::string command = BaseVprCommand();
+  if(command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    return false;
+  }
+  command += std::string(" ") + 
+             std::string("--place");
+
 #if 0 // disabling this until we have the pin_c executable
   if (!pin_loc_constraint_file.empty()) {
     command += " --fix_pins " + pin_loc_constraint_file;
@@ -1499,7 +1560,14 @@ bool CompilerOpenFPGA_ql::Route() {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
 //     return false;
 //   }
-  std::string command = BaseVprCommand() + " --route";
+  std::string command = BaseVprCommand();
+  if(command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    return false;
+  }
+  command += std::string(" ") + 
+             std::string("--route");
+
   std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
                      std::string(m_projManager->projectName() + "_route.cmd"))
                         .string());
@@ -1575,7 +1643,16 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                    netlistFilePrefix + std::string(".route");
   }
 
-  std::string command = BaseVprCommand() + vpr_options + std::string(" --analysis") + std::string(" --disp on");
+  std::string command = BaseVprCommand();
+  if(command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    return false;
+  }
+  command += vpr_options +
+             std::string(" ") + 
+             std::string("--analysis") +
+             std::string(" ") + 
+             std::string("--disp on");
 
   std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
                      std::string(m_projManager->projectName() + "_sta.cmd"))
@@ -1655,7 +1732,16 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
                    netlistFilePrefix + std::string(".route");
   }
 
-  std::string command = BaseVprCommand() + vpr_options + std::string(" --analysis") + std::string(" --disp on");
+  std::string command = BaseVprCommand();
+  if(command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    return false;
+  }
+  command += vpr_options +
+             std::string(" ") + 
+             std::string("--analysis") +
+             std::string(" ") + 
+             std::string("--disp on");
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -1880,7 +1966,15 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
                    netlistFilePrefix + std::string(".route");
   }
 
-  std::string vpr_analysis_command = BaseVprCommand() + vpr_options + std::string(" --analysis");
+  std::string vpr_analysis_command = BaseVprCommand();
+  if(vpr_analysis_command.empty()) {
+    ErrorMessage("Base VPR Command is empty!");
+    // empty string returned on error.
+    return std::string("");
+  }
+  vpr_analysis_command += vpr_options +
+                          std::string(" ") + 
+                          std::string("--analysis");
 
   result = ReplaceAll(result, "${VPR_ANALYSIS_COMMAND}", vpr_analysis_command);
 
@@ -1979,6 +2073,10 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   std::string script = InitOpenFPGAScript();
 
   script = FinishOpenFPGAScript(script);
+  if(script.empty()) {
+    ErrorMessage("OpenFPGA Script is empty!");
+    return false;
+  }
 
   std::string script_path = m_projManager->projectName() + ".openfpga";
 
