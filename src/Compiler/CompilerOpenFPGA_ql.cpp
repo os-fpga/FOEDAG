@@ -35,6 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDomDocument>
 #include <QFile>
 #include <QTextStream>
+#include <QJsonArray>
+#include <QDirIterator>
 #include <chrono>
 #include <filesystem>
 #include <sstream>
@@ -47,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/main_window.h"
 #include "Main/WidgetFactory.h"
 #include "Main/Settings.h"
+#include <CRFileCryptProc.hpp>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QStackedWidget>
@@ -606,7 +609,119 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
   return TCL_OK;
   };
-  GetSession()->TclInterp()->registerCmd("show_settings", show_settings, this, 0);
+  interp->registerCmd("show_settings", show_settings, this, 0);
+
+  auto encrypt = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    // if (argc != 2) {
+    //   compiler->ErrorMessage("Please select encryption or decryption");
+    //   return TCL_ERROR;
+    // }
+    std::string in_filepath = argv[1];
+    
+    compiler->Message("Encrypting xml files " + in_filepath);
+    set<string> fileExtn;
+    fileExtn.insert(".xml");
+    if (!CRFileCryptProc::getInstance()->encryptFiles(in_filepath, fileExtn, "QLF_K6N10")) {
+        compiler->ErrorMessage("encrypt files failed!");
+        return TCL_ERROR;
+    } else {
+        compiler->Message("encrypt files passed!");
+    }
+
+    // After encryption, save the supplementary device DB which
+    // contains the cryption key.
+    string cryptDBFile;
+    if (!CRFileCryptProc::getInstance()->saveCryptKeyDB(in_filepath, "QLF_K6N10", cryptDBFile)) {
+        compiler->ErrorMessage("save cryptdb failed!");
+        return TCL_ERROR;
+    }
+    else {
+        compiler->Message("save cryptdb passed!");
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("encrypt", encrypt, this, 0);
+
+  auto decrypt = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    // if (argc != 2) {
+    //   compiler->ErrorMessage("Please select encryption or decryption");
+    //   return TCL_ERROR;
+    // }
+    std::string in_filepath = argv[1];
+
+    compiler->Message("decrypting xml files in: " + in_filepath);
+    string vprArchXmlFileEn = in_filepath + std::string("/vpr.xml.en");
+    string openfpgaArchXmlFileEn = in_filepath + std::string("/openfpga.xml.en");
+    string vprArchXmlFileDecrypted = in_filepath + std::string("/vpr_decrypted.xml");
+    string openfpgaArchXmlFileDecrypted = in_filepath + std::string("/openfpga_decrypted.xml");
+
+    // load the cryption db file
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(in_filepath + std::string("/QLF_K6N10_Supp.db"))) {
+      compiler->Message("loading db file failed!");
+      return TCL_ERROR;
+    } else {
+      compiler->Message("loading db file passed!");
+    }
+
+    stringstream vprstrm;
+    if (!CRFileCryptProc::getInstance()->decryptFile(vprArchXmlFileEn, vprstrm)) {
+      compiler->ErrorMessage("decrypting vpr xml failed!");
+      return TCL_ERROR;
+    }
+    std::ofstream vprofs(vprArchXmlFileDecrypted);
+    vprofs << vprstrm.str();
+    vprofs.close();
+
+    stringstream openfpgastrm;
+    if (!CRFileCryptProc::getInstance()->decryptFile(openfpgaArchXmlFileEn, openfpgastrm)) {
+      compiler->ErrorMessage("decrypting openfpga xml failed!");
+      return TCL_ERROR;
+    }
+    std::ofstream openfpgaofs(openfpgaArchXmlFileDecrypted);
+    openfpgaofs << openfpgastrm.str();
+    openfpgaofs.close();
+
+    return TCL_OK;
+  };
+  interp->registerCmd("decrypt", decrypt, this, 0);
+
+  auto listdir = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    // if (argc != 2) {
+    //   compiler->ErrorMessage("Please select encryption or decryption");
+    //   return TCL_ERROR;
+    // }
+    std::string in_filepath = argv[1];
+
+    compiler->Message("listing files in: " + in_filepath);
+
+    QDirIterator allFilesIterator_xml(QString::fromStdString(in_filepath), QStringList() << "*.xml", QDir::Files, QDirIterator::Subdirectories);
+    while (allFilesIterator_xml.hasNext()) {
+      compiler->Message(allFilesIterator_xml.next().toStdString());
+    }
+    
+    QDirIterator allFilesIterator_xmlen(QString::fromStdString(in_filepath), QStringList() << "*.xml.en", QDir::Files, QDirIterator::Subdirectories);
+    while (allFilesIterator_xmlen.hasNext()) {
+      compiler->Message(allFilesIterator_xmlen.next().toStdString());
+    }
+
+    QDirIterator allFilesIterator_db(QString::fromStdString(in_filepath), QStringList() << "*.db", QDir::Files, QDirIterator::Subdirectories);
+    while (allFilesIterator_db.hasNext()) {
+      compiler->Message(allFilesIterator_db.next().toStdString());
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("listdir", listdir, this, 0);
 
   return true;
 }
