@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <filesystem>
 #include <sstream>
 #include <thread>
+#include <regex>
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/Constraints.h"
@@ -702,21 +703,87 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     // }
     std::string in_filepath = argv[1];
 
+    compiler->Message("");
     compiler->Message("listing files in: " + in_filepath);
 
-    QDirIterator allFilesIterator_xml(QString::fromStdString(in_filepath), QStringList() << "*.xml", QDir::Files, QDirIterator::Subdirectories);
+    // using Qt
+    compiler->Message("");
+    compiler->Message("");
+    compiler->Message(" >>> Qt");
+    QDirIterator allFilesIterator_xml(QString::fromStdString(in_filepath),
+                                      QStringList() << "*.xml",
+                                      QDir::Files,
+                                      QDirIterator::Subdirectories);
     while (allFilesIterator_xml.hasNext()) {
       compiler->Message(allFilesIterator_xml.next().toStdString());
     }
+    compiler->Message("");
     
-    QDirIterator allFilesIterator_xmlen(QString::fromStdString(in_filepath), QStringList() << "*.xml.en", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator allFilesIterator_xmlen(QString::fromStdString(in_filepath),
+                                        QStringList() << "*.xml.en",
+                                        QDir::Files,
+                                        QDirIterator::Subdirectories);
     while (allFilesIterator_xmlen.hasNext()) {
       compiler->Message(allFilesIterator_xmlen.next().toStdString());
     }
+    compiler->Message("");
 
-    QDirIterator allFilesIterator_db(QString::fromStdString(in_filepath), QStringList() << "*.db", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator allFilesIterator_db(QString::fromStdString(in_filepath),
+                                     QStringList() << "*.db",
+                                     QDir::Files,
+                                     QDirIterator::Subdirectories);
     while (allFilesIterator_db.hasNext()) {
       compiler->Message(allFilesIterator_db.next().toStdString());
+    }
+
+
+    // using std:: C++17
+    compiler->Message("");
+    compiler->Message("");
+    compiler->Message(" >>> c++17");
+    std::error_code ec;
+    std::vector<std::filesystem::path> xml_files;
+    std::vector<std::filesystem::path> xml_en_files;
+    std::vector<std::filesystem::path> db_files;
+    for (const std::filesystem::directory_entry& dir_entry : 
+        std::filesystem::recursive_directory_iterator(in_filepath, 
+                                                      std::filesystem::directory_options::skip_permission_denied,
+                                                      ec))
+    {
+        if(!ec) {
+            // no error, proceed
+            if(dir_entry.is_regular_file(ec)) {
+              if(!ec) {
+                // no error, proceed
+                if (std::regex_match(dir_entry.path().filename().string(), std::regex(".+\\.xml", std::regex::icase))) {
+                  xml_files.push_back(dir_entry.path().string());
+                }
+                if (std::regex_match(dir_entry.path().filename().string(), std::regex(".+\\.xml.en", std::regex::icase))) {
+                  xml_en_files.push_back(dir_entry.path().string());
+                }
+                if (std::regex_match(dir_entry.path().filename().string(), std::regex(".+\\.db", std::regex::icase))) {
+                  db_files.push_back(dir_entry.path().string());
+                }
+              }
+            }
+        }
+        else {
+          compiler->ErrorMessage(std::string("failed listing contents of ") + in_filepath );
+        }
+    }
+
+    for (auto file_path:  xml_files) {
+      compiler->Message(file_path.string());
+    }
+    compiler->Message("");
+
+    for (auto file_path:  xml_en_files) {
+      compiler->Message(file_path.string());
+    }
+    compiler->Message("");
+
+    for (auto file_path:  db_files) {
+      compiler->Message(file_path.string());
     }
 
     return TCL_OK;
