@@ -69,13 +69,13 @@
                 "label": "Optimization",
                 "widgetType": "dropdown",
                 "options": [
-                    "Array",
+                    "Area",
                     "Delay",
                     "Mixed",
                     "None"
                 ],
                 "optionsLookup": [
-                    "array",
+                    "area",
                     "delay",
                     "mixed",
                     "none"

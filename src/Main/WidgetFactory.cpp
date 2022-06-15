@@ -118,15 +118,15 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   QVBoxLayout* VLayout = new QVBoxLayout();
   widget->setLayout(VLayout);
 
+  // Create and add the child widget to our parent container
   QStringList tclArgList = tclArgs.split("-");
-
   for (auto [widgetId, widgetJson] : widgetsJson.items()) {
-    // Create and add the child widget to our parent container
     QWidget* subWidget = FOEDAG::createWidget(
         widgetJson, QString::fromStdString(widgetId), tclArgList);
     VLayout->addWidget(subWidget);
   }
 
+  // Add ok/cancel buttons
   QDialogButtonBox* btnBox =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   btnBox->setObjectName(DlgBtnBoxName);
@@ -134,9 +134,12 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
 
   // This will collect value changes for each widget/setting, save those
   // settings to a user file and add the changes to the passed in settings
+  // This will also build up and store a tcl arg list for these
+  // settings if the widgets have "arg" fields defined
   auto checkVals = [VLayout, &widgetsJson, widget]() {
     bool save = false;
     QHash<QString, QString> patchHash;
+    QString argsStr = "";
     for (int i = 0; i < VLayout->count(); i++) {
       QWidget* settingsWidget = VLayout->itemAt(i)->widget();
       if (settingsWidget) {
@@ -153,6 +156,11 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
                            settingsId.toStdString() + " -> " +
                            patchStr.toStdString() + "\n");
           patchHash[settingsId] = patchStr;
+
+          QString tclArg = targetObject->property("tclArg").toString();
+          if (tclArg != "") {
+            argsStr += " " + tclArg;
+          }
         }
       }
     }
@@ -174,6 +182,11 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
         widgetsJson[patchIdStr].merge_patch(json::parse(patchStr));
       }
     }
+
+    argsStr = argsStr.simplified();
+    widget->setProperty("tclArgList", argsStr);
+    WIDGET_DBG_PRINT("createSettingsWidget: storing tclArgList -> " +
+                     argsStr.toStdString() + "\n");
 
     // If there were changes to save, store all the json changes in a property
     // that can be retrieved and saved by whomever called this
@@ -244,9 +257,9 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
   // Check if an arg associated with this widget was passed
   QString argVal;
-  bool argPassed = false;
+  bool tclArgPassed = false;
   if (arg != "" && argPairs.contains(arg)) {
-    argPassed = true;
+    tclArgPassed = true;
     argVal = argPairs[arg];
   }
 
@@ -287,7 +300,6 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       QString sysDefaultVal =
           QString::fromStdString(getDefault<std::string>(widgetJsonObj));
 
-      std::cout << sysDefaultVal.toStdString() << std::endl;
       QStringList comboOptions =
           JsonArrayToQStringList(widgetJsonObj.value("options", json::array()));
       QStringList comboLookup = JsonArrayToQStringList(
@@ -295,24 +307,34 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Callback to handle value changes
       std::function<void(QComboBox*, const QString&)> handleChange =
-          [](QComboBox* ptr, const QString& val) {
+          [arg, comboOptions, comboLookup, lookupStr](QComboBox* ptr,
+                                                      const QString& val) {
             json changeJson;
-            changeJson["userValue"] = ptr->currentText().toStdString();
+            QString userVal = ptr->currentText();
+            changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
-          };
 
-      if (argPassed) {
-        // Do a reverse lookup to convert the tcl value to a display value
-        sysDefaultVal = lookupStr(comboLookup, comboOptions, argVal);
-      }
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "" && userVal != "<unset>") {
+              QString argStr = "-" + arg + " " +
+                               lookupStr(comboOptions, comboLookup, userVal);
+              ptr->setProperty("tclArg", argStr);
+              WIDGET_DBG_PRINT("combobox handleChange - Storing Tcl Arg:  " +
+                               argStr.toStdString() + "\n");
+            }
+          };
 
       // Create Widget
       auto ptr =
           createComboBox(objName, comboOptions, sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
+      if (tclArgPassed) {
+        // Do a reverse lookup to convert the tcl value to a display value
+        ptr->setCurrentText(lookupStr(comboLookup, comboOptions, argVal));
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
         ptr->setCurrentText(userVal);
@@ -459,28 +481,33 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               .toLower();
       Qt::CheckState state = stringToCheckState(sysDefaultVal);
 
-      // For boolean values like checkbox, the presence of an arg
-      // means the value is checked
-      if (argPassed) {
-        state = Qt::Checked;
-      }
-
       // Callback to handle value changes
       std::function<void(QCheckBox*, const int&)> handleChange =
-          [](QCheckBox* ptr, const int& val) {
+          [arg](QCheckBox* ptr, const int& val) {
             json changeJson;
             changeJson["userValue"] =
                 QMetaEnum::fromType<Qt::CheckState>().valueToKey(val);
-
             storeJsonPatch(ptr, changeJson);
+
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a switch style tcl arg if this is checked
+            if (arg != "" && ptr->checkState() == Qt::Checked) {
+              ptr->setProperty("tclArg", "-" + arg);
+              WIDGET_DBG_PRINT("checkbox handleChange - Storing Tcl Arg:  -" +
+                               arg.toStdString() + "\n");
+            }
           };
 
       // Create Widget
       auto ptr = createCheckBox(objName, text, state, handleChange);
       createdWidget = ptr;
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
+      // For boolean values like checkbox, the presence of an arg
+      // means the value is checked
+      if (tclArgPassed) {
+        ptr->setChecked(Qt::Checked);
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
         ptr->setCheckState(stringToCheckState(userVal));
@@ -513,7 +540,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
 QWidget* FOEDAG::createWidget(const QString& widgetJsonStr,
                               const QString& objName, const QStringList& args) {
-  return createWidget(json::parse(widgetJsonStr.toStdString()), objName);
+  return createWidget(json::parse(widgetJsonStr.toStdString()), objName, args);
 }
 
 QWidget* FOEDAG::createLabelWidget(const QString& label, QWidget* widget) {
@@ -542,8 +569,8 @@ QComboBox* FOEDAG::createComboBox(
   QComboBox* widget = new QComboBox();
   widget->setObjectName(objectName);
   widget->insertItems(0, options);
-  widget->addItem("<skip>");
-  widget->setCurrentText("<skip>");
+  widget->addItem("<unset>");
+  widget->setCurrentText("<unset>");
   widget->setCurrentText(selectedValue);
 
   if (onChange != nullptr) {
