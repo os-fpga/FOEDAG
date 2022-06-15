@@ -14,27 +14,7 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("New Project"));
 
-  // One thirds of desktop size
-  QDesktopWidget dw;
-  int w = dw.width() / 3;
-  int h = dw.height() / 3;
-  setGeometry(w, h, w, h);
-
-  m_locationForm = new locationForm(this);
-  ui->m_stackedWidget->insertWidget(1, m_locationForm);
-  m_proTypeForm = new projectTypeForm(this);
-  ui->m_stackedWidget->insertWidget(2, m_proTypeForm);
-  m_addSrcForm = new addSourceForm(this);
-  ui->m_stackedWidget->insertWidget(3, m_addSrcForm);
-  m_addConstrsForm = new addConstraintsForm(this);
-  ui->m_stackedWidget->insertWidget(4, m_addConstrsForm);
-  m_devicePlanForm = new devicePlannerForm(this);
-  ui->m_stackedWidget->insertWidget(5, m_devicePlanForm);
-  m_sumForm = new summaryForm(this);
-  ui->m_stackedWidget->insertWidget(6, m_sumForm);
-  ui->m_stackedWidget->adjustSize();
-
-  UpdateDialogView();
+  Reset();
 
   m_projectManager = new ProjectManager(this);
 }
@@ -53,6 +33,38 @@ void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
 QString newProjectDialog::getProject() {
   return m_locationForm->getProjectPath() + "/" +
          m_locationForm->getProjectName() + PROJECT_FILE_FORMAT;
+}
+
+void newProjectDialog::Reset() {
+  m_index = INDEX_LOCATION;
+
+  // One thirds of desktop size
+  QDesktopWidget dw;
+  int w = dw.width() / 3;
+  int h = dw.height() / 3;
+  setGeometry(w, h, w, h);
+
+  for (int i = 0; i < ui->m_stackedWidget->count(); i++) {
+    auto w = ui->m_stackedWidget->widget(i);
+    ui->m_stackedWidget->removeWidget(w);
+    delete w;
+  }
+
+  m_locationForm = new locationForm(this);
+  ui->m_stackedWidget->insertWidget(1, m_locationForm);
+  m_proTypeForm = new projectTypeForm(this);
+  ui->m_stackedWidget->insertWidget(2, m_proTypeForm);
+  m_addSrcForm = new addSourceForm(this);
+  ui->m_stackedWidget->insertWidget(3, m_addSrcForm);
+  m_addConstrsForm = new addConstraintsForm(this);
+  ui->m_stackedWidget->insertWidget(4, m_addConstrsForm);
+  m_devicePlanForm = new devicePlannerForm(this);
+  ui->m_stackedWidget->insertWidget(5, m_devicePlanForm);
+  m_sumForm = new summaryForm(this);
+  ui->m_stackedWidget->insertWidget(6, m_sumForm);
+  ui->m_stackedWidget->adjustSize();
+
+  UpdateDialogView();
 }
 
 void newProjectDialog::on_m_btnBack_clicked() {
