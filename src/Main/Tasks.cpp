@@ -156,8 +156,6 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
     // Create dialog
     dlg = createSettingsDialog(widgetsJson, "Edit " + taskName + " Settings",
                                taskName, tclArgs);
-    std::cout << "***" << FOEDAG::getTaskUserSettingsPath().toStdString()
-              << std::endl;
 
     QObject::connect(dlg, &QDialog::accepted, [dlg, taskName]() {
       // Find the settings widget contained by the dialog

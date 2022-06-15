@@ -55,7 +55,8 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
   QDesktopWidget dw;
-  setGeometry(50, 50, dw.width() * 1 / 3, dw.height() * 2 / 3);
+  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
+              dw.height() * 2 / 3);
 
   setDockNestingEnabled(true);
 
@@ -225,8 +226,8 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::connectProjectManager() {
-  m_projectManager = new ProjectManager(
-      this);  // new'd QObject, this will get delete by parent
+  // new'd QObject, this will get deleted by its parent
+  m_projectManager = new ProjectManager(this);
 
   // If the project manager path changes, reload settings
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged,
