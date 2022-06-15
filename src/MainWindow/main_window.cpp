@@ -74,9 +74,6 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Create status bar */
   statusBar();
 
-  /* Connect to the project manager */
-  connectProjectManager();
-
   //  /* Add dummy text editors */
   //  QTextEdit* editor1 = new QTextEdit;
   //  QTextEdit* editor2 = new QTextEdit;
@@ -239,15 +236,6 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::connectProjectManager() {
-  // new'd QObject, this will get deleted by its parent
-  m_projectManager = new ProjectManager(this);
-
-  // If the project manager path changes, reload settings
-  QObject::connect(m_projectManager, &ProjectManager::projectPathChanged,
-                   [this]() { reloadSettings(); });
-}
-
 void MainWindow::gui_start() { ReShowWindow(""); }
 
 void MainWindow::ReShowWindow(QString strProject) {
@@ -265,6 +253,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
   m_projectManager = sourForm->ProjManager();
+  // If the project manager path changes, reload settings
+  QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
+                   &MainWindow::reloadSettings, Qt::UniqueConnection);
 
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project

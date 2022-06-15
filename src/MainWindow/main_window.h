@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
-#include "NewProject/ProjectManager/project_manager.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
 
@@ -52,6 +51,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void closeProject();
   void openFileSlot();
   void newDesignCreated(const QString& design);
+  void reloadSettings();
 
  private: /* Menu bar builders */
   void createMenus();
@@ -63,7 +63,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
   void startStopButtonsState();
-  void reloadSettings();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
