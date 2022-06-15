@@ -49,6 +49,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newFile();
   void newProjectDlg();
   void openProject();
+  void closeProject();
   void openFileSlot();
   void newDesignCreated(const QString& design);
 
@@ -71,6 +72,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
+  QAction* closeProjectAction = nullptr;
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;
   QAction* startAction = nullptr;
@@ -85,8 +87,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
-  /* Project Manager so we can reload settings on path change */
-  ProjectManager* m_projectManager;
+  class ProjectManager* m_projectManager{nullptr};
 };
 
 }  // namespace FOEDAG

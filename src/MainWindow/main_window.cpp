@@ -134,6 +134,15 @@ void MainWindow::openProject() {
   }
 }
 
+void MainWindow::closeProject() {
+  if (m_projectManager && m_projectManager->HasDesign()) {
+    Project::Instance()->InitProject();
+    newProjdialog->Reset();
+    ReShowWindow("");
+    newProjectAction->setEnabled(true);
+  }
+}
+
 void MainWindow::openFileSlot() {
   const QString file = QFileDialog::getOpenFileName(this, tr("Open file"));
   auto editor = findChild<TextEditor*>("textEditor");
@@ -158,6 +167,7 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
+  fileMenu->addAction(closeProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -185,6 +195,10 @@ void MainWindow::createActions() {
   openProjectAction = new QAction(tr("&Open Project"), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
+
+  closeProjectAction = new QAction(tr("&Close Project"), this);
+  closeProjectAction->setStatusTip(tr("Close current project"));
+  connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
   newProjectAction = new QAction(tr("&New Project"), this);
@@ -245,9 +259,12 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   SourcesForm* sourForm = new SourcesForm(this);
+  connect(sourForm, &SourcesForm::CloseProject, this, &MainWindow::closeProject,
+          Qt::QueuedConnection);
   sourForm->InitSourcesForm(strProject);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+  m_projectManager = sourForm->ProjManager();
 
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project

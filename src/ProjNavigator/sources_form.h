@@ -48,6 +48,7 @@ class SourcesForm : public QWidget {
   void OpenFile(QString);
   void ShowProperty(const QString&);
   void ShowPropertyPanel();
+  void CloseProject();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -82,6 +83,7 @@ class SourcesForm : public QWidget {
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
   QAction* m_actProperties;
+  QAction* m_actCloseProject;
 
   ProjectManager* m_projManager;
 
