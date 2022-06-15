@@ -85,6 +85,7 @@ add_subdirectory(src/DesignRuns)
 add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
+add_subdirectory(src/IPGenerate)
 add_subdirectory(src/TextEditor)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
@@ -263,6 +264,7 @@ configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_ve
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
 add_dependencies(compiler tcl_stubb_build)
+add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -311,7 +313,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler console QConsole tcl_stubb tcl_static zlib nlohmann_json)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate console QConsole tcl_stubb tcl_static zlib nlohmann_json)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
 if(NOT NO_TCMALLOC)
