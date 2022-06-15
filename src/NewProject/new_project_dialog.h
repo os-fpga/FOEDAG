@@ -39,6 +39,7 @@ class newProjectDialog : public QDialog {
   void CreateProject_Tcl_Test(int argc, const char* argv[]);
 
   QString getProject();
+  void Reset();
 
  private slots:
   void on_m_btnBack_clicked();
