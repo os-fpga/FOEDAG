@@ -1246,43 +1246,37 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
+  std::string voltage_threshold = "LVT";    // default value if not specified in settings JSON
+  std::string p_v_t_corner = "TYPICAL";     // default value if not specified in settings JSON
 
   // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
   if(settings_general_device_obj.contains("voltage_threshold")) {
 
-    std::string voltage_threshold = settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
+    voltage_threshold = 
+        settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
 
-    // if p_v_t_corner is not specified, default value is "TYPICAL"
-    std::string p_v_t_corner = "TYPICAL";
     if(settings_general_device_obj.contains("p_v_t_corner")) {
-      p_v_t_corner = settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+
+      p_v_t_corner = 
+          settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
     }
-
-    m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                                family / 
-                                                foundry / 
-                                                node / 
-                                                voltage_threshold /
-                                                p_v_t_corner /
-                                                std::string("vpr.xml"));
-
-    Message(std::string("Using vpr.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
-
-    // this should be treated as an error!
-    if (!FileExists(m_architectureFile)) {
-      ErrorMessage("voltage_threshold and p_v_t_corner specified, but no corresponding vpr.xml!!!");
-    }    
-    // vpr will complain anyway that the specified vpr.xml was not found.
   }
-  else {
-    
-    // use the default vpr.xml for the family/foundry/node combination
-    Message(std::string("Using default vpr.xml for: ") + family + "," + foundry + "," + node );
-    m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                               family / 
-                                               foundry / 
-                                               node / 
-                                               std::string("vpr.xml"));
+
+  m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                              family / 
+                                              foundry / 
+                                              node / 
+                                              voltage_threshold /
+                                              p_v_t_corner /
+                                              std::string("vpr.xml"));
+
+  Message(std::string("Using vpr.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
+
+  // this should be treated as an error, the xml file does not exist.
+  if (!FileExists(m_architectureFile)) {
+    ErrorMessage(std::string("vpr.xml does not exist at expected path: ") + m_architectureFile.string());
+    // empty string returned on error.
+    return std::string("");
   }
 
   // construct the base vpr command with all the options here.
@@ -1862,7 +1856,6 @@ std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
 std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script) {
   std::string result = script;
 
-  // read settings -> SynthArray of Objects
   std::string settings_json_filename = m_projManager->projectName() + ".json";
   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
   Settings * currentSettings = GetSession()->GetSettings();
@@ -1873,58 +1866,51 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  m_OpenFpgaBitstreamSettingFile = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("bitstream_annotation.xml"));
-  m_OpenFpgaSimSettingFile  = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("fixed_sim_openfpga.xml"));
-  
+  std::string voltage_threshold = "LVT";    // default value if not specified in settings JSON
+  std::string p_v_t_corner = "TYPICAL";     // default value if not specified in settings JSON
+
   // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
   if(settings_general_device_obj.contains("voltage_threshold")) {
 
-    std::string voltage_threshold = settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
+    voltage_threshold = 
+        settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
 
-    // if p_v_t_corner is not specified, default value is "TYPICAL"
-    std::string p_v_t_corner = "TYPICAL";
     if(settings_general_device_obj.contains("p_v_t_corner")) {
-      p_v_t_corner = settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+
+      p_v_t_corner = 
+          settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
     }
-
-    m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                                       family / 
-                                                       foundry / 
-                                                       node / 
-                                                       voltage_threshold /
-                                                       p_v_t_corner /
-                                                       std::string("openfpga.xml"));
-
-    Message(std::string("Using openfpga.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
-
-    // this should be treated as an error, but we don't have the openfpga.xml files in place yet.
-    // hence, we fall back to the default openfpga.xml for now.
-    // TODO update this logic once we have openfpga.xml files for each.
-    if (!FileExists(m_OpenFpgaArchitectureFile)) {
-      //ErrorMessage("voltage_threshold and p_v_t_corner specified, but no corresponding openfpga.xml!!!");
-      Message("voltage_threshold and p_v_t_corner specified, but no corresponding openfpga.xml!!!");
-      Message(std::string("Using default openfpga.xml for: ") + family + "," + foundry + "," + node );
-      m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                                         family / 
-                                                         foundry / 
-                                                         node / 
-                                                         std::string("openfpga.xml"));
-    }
-    // openfpga will complain anyway that the specified openfpga.xml was not found.
-  }
-  else {
-    
-    // use the default openfpga.xml for the family/foundry/node combination
-    Message(std::string("Using default openfpga.xml for: ") + family + "," + foundry + "," + node );
-    m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                                       family / 
-                                                       foundry / 
-                                                       node / 
-                                                       std::string("openfpga.xml"));
-
   }
 
-  
+
+  m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
+                                                      family /
+                                                      foundry /
+                                                      node /
+                                                      voltage_threshold /
+                                                      p_v_t_corner /
+                                                      std::string("openfpga.xml"));
+
+  Message(std::string("Using openfpga.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
+
+  // this should be treated as an error, the xml file does not exist.
+  if (!FileExists(m_OpenFpgaArchitectureFile)) {
+    ErrorMessage(std::string("openfpga.xml does not exist at expected path: ") + m_OpenFpgaArchitectureFile.string());
+    // empty string returned on error.
+    return std::string("");
+  }
+
+  m_OpenFpgaBitstreamSettingFile = std::filesystem::path(GetSession()->Context()->DataPath() /
+                                                         family /
+                                                         foundry /
+                                                         node /
+                                                         std::string("bitstream_annotation.xml"));
+  m_OpenFpgaSimSettingFile  = std::filesystem::path(GetSession()->Context()->DataPath() /
+                                                    family /
+                                                    foundry /
+                                                    node /
+                                                    std::string("fixed_sim_openfpga.xml"));
+
   // call vpr to execute analysis
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
