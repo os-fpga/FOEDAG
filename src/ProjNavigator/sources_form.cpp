@@ -179,6 +179,11 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       }
     }
 
+    if (m_projManager->HasDesign()) {
+      menu->addSeparator();
+      menu->addAction(m_actCloseProject);
+    }
+
     if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole ||
         SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
         SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
@@ -444,6 +449,9 @@ void SourcesForm::CreateActions() {
   m_actProperties = new QAction(tr("Properties"), m_treeSrcHierachy);
   connect(m_actProperties, SIGNAL(triggered()), this,
           SLOT(SlotPropertiesTriggered()));
+
+  m_actCloseProject = new QAction(tr("Close project"), m_treeSrcHierachy);
+  connect(m_actCloseProject, SIGNAL(triggered()), this, SIGNAL(CloseProject()));
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {

@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "Compiler/CompilerDefines.h"
+extern const char* foedag_version_number;
 
 using namespace FOEDAG;
 
@@ -1268,6 +1269,12 @@ int ProjectManager::ImportProjectData(QString strOspro) {
     return ret;
   }
 
+  // this is starting point for backward compatibility
+  QString version = ProjectVersion(strOspro);
+  Q_UNUSED(version)
+  // reorganize code in the future to have different loaders for compatible
+  // versions
+
   QFile file(strOspro);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return -1;
@@ -1285,7 +1292,7 @@ int ProjectManager::ImportProjectData(QString strOspro) {
         QString strName = strPath.mid(
             strPath.lastIndexOf("/") + 1,
             strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
-        ;
+
         Project::Instance()->setProjectName(strName);
         Project::Instance()->setProjectPath(
             strPath.left(strPath.lastIndexOf("/")));
@@ -1478,13 +1485,12 @@ int ProjectManager::ExportProjectData() {
   stream.setAutoFormatting(true);
   stream.writeStartDocument();
   stream.writeComment(
-      tr("Product Version:  FOEDAG   V1.0.0.0                "));
-  stream.writeComment(
       tr("                                                   "));
   stream.writeComment(
       tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
   stream.writeStartElement(PROJECT_PROJECT);
   stream.writeAttribute(PROJECT_PATH, xmlPath);
+  stream.writeAttribute(PROJECT_VERSION, foedag_version_number);
 
   stream.writeStartElement(PROJECT_CONFIGURATION);
 
@@ -1829,6 +1835,32 @@ QStringList ProjectManager::StringSplit(const QString& str,
 #else
   return str.split(sep, QString::SkipEmptyParts);
 #endif
+}
+
+QString ProjectManager::ProjectVersion(const QString& filename) {
+  QFile file(filename);
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    return QString();
+  }
+
+  QXmlStreamReader reader;
+  reader.setDevice(&file);
+  while (!reader.atEnd()) {
+    QXmlStreamReader::TokenType type = reader.readNext();
+    if (type == QXmlStreamReader::StartElement) {
+      if (reader.name() == PROJECT_PROJECT) {
+        QString projectVersion =
+            reader.attributes().value(PROJECT_VERSION).toString();
+        return projectVersion;
+      }
+    }
+  }
+
+  if (reader.hasError()) {
+    return QString();
+  }
+  file.close();
+  return QString();
 }
 
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
