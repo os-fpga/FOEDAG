@@ -37,13 +37,16 @@ using json = nlohmann::ordered_json;
 namespace FOEDAG {
 
 QDialog* createSettingsDialog(json& widgetsJson, const QString& dialogTitle,
-                              const QString& objectNamePrefix = "");
+                              const QString& objectNamePrefix = "",
+                              const QString& tclArgs = "");
 QWidget* createSettingsWidget(json& widgetsJson,
-                              const QString& objNamePrefix = "");
+                              const QString& objNamePrefix = "",
+                              const QString& tclArgs = "");
 
-QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "");
-QWidget* createWidget(const QString& widgetJsonStr,
-                      const QString& objName = "");
+QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
+                      const QStringList& args = QStringList());
+QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
+                      const QStringList& args = QStringList());
 QWidget* createLabelWidget(const QString& label, QWidget* widget);
 QComboBox* createComboBox(
     const QString& objectName, const QStringList& options,
