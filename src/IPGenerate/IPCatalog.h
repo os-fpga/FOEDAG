@@ -61,10 +61,10 @@ class Parameter : public Value {
   const std::string& Name() { return m_name; }
 
  private:
+  std::string m_name;
   uint32_t m_default = 0;
   bool m_useDefault = true;
   uint32_t m_value = 0;
-  std::string m_name;
 };
 
 class Range {
@@ -156,9 +156,9 @@ class IPInstance {
 
  private:
   std::string m_name;
-  std::filesystem::path m_outputFile;
   IPDefinition* m_definition;
   std::vector<Parameter> m_parameters;
+  std::filesystem::path m_outputFile;
 };
 
 class IPCatalog {
