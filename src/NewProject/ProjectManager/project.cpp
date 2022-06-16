@@ -29,6 +29,7 @@ QString Project::projectPath() const { return m_projectPath; }
 
 void Project::setProjectPath(const QString &projectPath) {
   m_projectPath = projectPath;
+  emit projectPathChanged();
 }
 
 ProjectConfiguration *Project::projectConfig() const { return m_projectConfig; }

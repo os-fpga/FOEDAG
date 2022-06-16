@@ -270,6 +270,9 @@ class ProjectManager : public QObject {
   std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
+
+ signals:
+  void projectPathChanged();
 };
 
 }  // namespace FOEDAG

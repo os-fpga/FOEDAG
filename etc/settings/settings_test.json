@@ -69,12 +69,76 @@
                 "label": "Optimization",
                 "widgetType": "dropdown",
                 "options": [
-                    "Mixed",
-                    "Array",
+                    "Area",
                     "Delay",
+                    "Mixed",
                     "None"
                 ],
-                "default": "None"
+                "optionsLookup": [
+                    "area",
+                    "delay",
+                    "mixed",
+                    "none"
+                ],
+                "arg": "_SynthOpt_"
+            },
+            "effort_dropdown": {
+                "label": "Effort",
+                "widgetType": "dropdown",
+                "options": [
+                    "High",
+                    "Medium",
+                    "Low"
+                ],
+                "optionsLookup": [
+                    "high",
+                    "medium",
+                    "low"
+                ],
+                "arg": "effort"
+            },
+            "fsm_encoding_dropdown": {
+                "label": "FSM Encoding",
+                "widgetType": "dropdown",
+                "options": [
+                    "Binary",
+                    "One Hot"
+                ],
+                "optionsLookup": [
+                    "binary",
+                    "onehot"
+                ],
+                "arg": "fsm_encoding"
+            },
+            "carry_dropdown": {
+                "label": "Carry",
+                "widgetType": "dropdown",
+                "options": [
+                    "All",
+                    "No Const",
+                    "None"
+                ],
+                "optionsLookup": [
+                    "all",
+                    "no_const",
+                    "none"
+                ],
+                "arg": "carry"
+            },
+            "no_dsp_checkbox": {
+                "label": "No DSP Blocks",
+                "widgetType": "checkbox",
+                "arg": "no_dsp"
+            },
+            "no_bram_checkbox": {
+                "label": "No Block Ram",
+                "widgetType": "checkbox",
+                "arg": "no_bram"
+            },
+            "fast_checkbox": {
+                "label": "Fast Synthesis",
+                "widgetType": "checkbox",
+                "arg": "fast"
             }
         },
         "Placement": {

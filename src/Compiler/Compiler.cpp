@@ -46,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
 #include "Log.h"
+#include "Main/Settings.h"
+#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProcessUtils.h"
@@ -848,8 +850,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
+
+      auto setSynthOption = [compiler](std::string arg) {
         if (arg == "mixed") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
         } else if (arg == "area") {
@@ -862,6 +864,30 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+          setSynthOption(argv[i]);
+        }
+      } else {
+        // otherwise, check settings for a value
+        Settings* settings = compiler->GetSession()->GetSettings();
+        auto json = settings->getJson()["Tasks"]["Synthesis"]["opt_dropdown"];
+        std::string option = "<unset>";
+        if (json.contains("userValue")) {
+          option = json["userValue"];
+        } else if (json.contains("default")) {
+          option = json["default"].get<std::string>();
+        }
+
+        // If a valid value was specified update the SynthOpt
+        if (option != "<unset>") {
+          QString lookupVal =
+              Settings::getLookupValue(json, QString::fromStdString(option));
+          setSynthOption(lookupVal.toStdString());
         }
       }
       WorkerThread* wthread =

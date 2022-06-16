@@ -38,6 +38,7 @@ class Project : public QObject {
   QMap<QString, ProjectRun *> getMapProjectRun() const;
 
  signals:
+  void projectPathChanged();
 
  private:
   QString m_projectName;

@@ -51,17 +51,18 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void closeProject();
   void openFileSlot();
   void newDesignCreated(const QString& design);
+  void reloadSettings();
 
  private: /* Menu bar builders */
   void createMenus();
   void createToolBars();
   void createActions();
+  void connectProjectManager();
   void gui_start() override;
 
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
   void startStopButtonsState();
-  void reloadSettings();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
