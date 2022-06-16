@@ -253,6 +253,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
   m_projectManager = sourForm->ProjManager();
+  // If the project manager path changes, reload settings
+  QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
+                   &MainWindow::reloadSettings, Qt::UniqueConnection);
 
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project

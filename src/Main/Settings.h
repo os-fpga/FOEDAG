@@ -48,6 +48,10 @@ class Settings {
   void loadSettings(const QStringList& jsonFiles);
   QString getJsonStr(const json& object);
   QString getJsonStr();
+  static QString getLookupValue(
+      const json& object, const QString& option,
+      const QString& optionsArrayKey = "options",
+      const QString& lookupArrayKey = "optionsLookup");
   QString getSystemDefaultSettingsDir();
 
   void loadJsonFile(const QString& filePath);
