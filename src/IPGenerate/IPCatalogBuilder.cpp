@@ -44,7 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/ProcessUtils.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
-#include "IPGenerate/IPCatalog.h"
+#include "IPGenerate/IPCatalogBuilder.h"
 #include "MainWindow/Session.h"
 
 extern FOEDAG::Session* GlobalSession;
@@ -52,30 +52,23 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
-std::string Constant::m_name;
-
-bool IPCatalog::addIP(IPDefinition* def) {
-  if (m_definitionMap.find(def->Name()) == m_definitionMap.end()) {
-    m_definitionMap.emplace(def->Name(), def);
-    m_definitions.push_back(def);
-    return true;
-  } else {
-    return false;
-  }
+void buildMockUpIPDef(IPCatalog* catalog) {
+  std::vector<Connector*> connections;
+  Constant* lrange = new Constant(0);
+  Parameter* rrange = new Parameter("Width", 0);
+  Range range(lrange, rrange);
+  Port* port = new Port("clk", Port::Direction::Input, Port::Function::Clock,
+                        Port::Polarity::High, range);
+  connections.push_back(port);
+  IPDefinition* def =
+      new IPDefinition("MOCK_IP", "path_to_nowhere", connections);
+  catalog->addIP(def);
+  // catalog->WriteCatalog(std::cout);
 }
 
-IPDefinition* IPCatalog::Definition(const std::string& name) {
-  std::map<std::string, IPDefinition*>::iterator itr =
-      m_definitionMap.find(name);
-  if (itr == m_definitionMap.end()) {
-    return nullptr;
-  } else {
-    return (*itr).second;
-  }
-}
-
-void IPCatalog::WriteCatalog(std::ostream& out) {
-  for (auto def : m_definitions) {
-    out << "IP Name: " << def->Name() << std::endl;
-  }
+bool IPCatalogBuilder::buildLiteXCatalog(
+    IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
+  bool result = true;
+  buildMockUpIPDef(catalog);
+  return result;
 }
