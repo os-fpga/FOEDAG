@@ -154,6 +154,7 @@ target_link_libraries(test_hellofoedag
   texteditor
   console
   compiler
+  ipgenerate
   QConsole
   qscintilla2_qt
   tcl_stubb
