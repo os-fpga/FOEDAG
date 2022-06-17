@@ -51,3 +51,23 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
+
+bool IPCatalog::addIP(IPDefinition* def) {
+  if (m_definitionMap.find(def->Name()) == m_definitionMap.end()) {
+    m_definitionMap.emplace(def->Name(), def);
+    m_definitions.push_back(def);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+IPDefinition* IPCatalog::Definition(const std::string& name) {
+  std::map<std::string, IPDefinition*>::iterator itr =
+      m_definitionMap.find(name);
+  if (itr == m_definitionMap.end()) {
+    return nullptr;
+  } else {
+    return (*itr).second;
+  }
+}
