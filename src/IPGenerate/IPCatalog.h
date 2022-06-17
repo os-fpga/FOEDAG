@@ -32,6 +32,8 @@ namespace FOEDAG {
 
 class Value {
  public:
+  Value();
+  virtual ~Value();
   virtual uint32_t GetValue() = 0;
   virtual void SetValue(uint32_t value) = 0;
   virtual const std::string& Name() = 0;
@@ -40,6 +42,7 @@ class Value {
 class Constant : public Value {
  public:
   Constant(uint32_t value) : m_value(value) {}
+  ~Constant();
   uint32_t GetValue() { return m_value; }
   void SetValue(uint32_t value) { m_value = value; }
   const std::string& Name() { return m_name; }
@@ -53,6 +56,7 @@ class Parameter : public Value {
  public:
   Parameter(const std::string& name, uint32_t default_val)
       : m_name(name), m_default(default_val) {}
+  ~Parameter();
   uint32_t GetValue() { return (m_useDefault) ? m_default : m_value; }
   void SetValue(uint32_t value) {
     m_value = value;
@@ -80,6 +84,8 @@ class Range {
 
 class Connector {
  public:
+ Connector();
+ ~Connector();
 };
 
 class Port : public Connector {
@@ -103,6 +109,7 @@ class Port : public Connector {
         m_function(function),
         m_polarity(polarity),
         m_range(range){};
+  ~Port();
   const std::string& Name() { return m_name; }
 
  private:
@@ -117,6 +124,7 @@ class Interface : public Connector {
  public:
   Interface(const std::string& name, const std::vector<Connector*>& connections)
       : m_name(name), m_connections(connections) {}
+  ~Interface();
   const std::string& Name() { return m_name; }
   const std::vector<Connector*>& Connections() { return m_connections; }
 
