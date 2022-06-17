@@ -86,7 +86,7 @@ coverage-build/html: foedag-build/foedag.coverage
 test/regression: run-cmake-release
 
 test/valgrind: run-cmake-debug
-	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/aurora --batch --script tests/TestBatch/hello.tcl ; 
+	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/aurora --batch --script tests/TestBatch/hello.tcl --compiler test; 
 	grep "ERROR SUMMARY: 0" valgrind.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl;
 	grep "ERROR SUMMARY: 0" valgrind_gui.log 
@@ -140,7 +140,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl --compiler test
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -161,10 +161,10 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
-	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl --compiler test
+	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl --compiler test
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl --compiler test
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl --compiler test
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

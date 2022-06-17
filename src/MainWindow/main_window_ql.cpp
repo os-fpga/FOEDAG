@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// clang-format off
 #include "main_window.h"
 
 #include <QTextStream>
@@ -311,3 +312,5 @@ void MainWindow::clearDockWidgets() {
     removeDockWidget(dock);
   }
 }
+
+// clang-format on
