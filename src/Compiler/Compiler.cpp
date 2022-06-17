@@ -1361,7 +1361,7 @@ bool Compiler::GenerateBitstream() {
 
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
-    if (!m_tclCmdIntegration->getActiveDesign().isEmpty()) {
+    if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
       return false;
     }

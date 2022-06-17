@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <QIcon>
 
+#include "CompilerDefines.h"
 #include "TaskManager.h"
 
 namespace FOEDAG {
@@ -40,13 +41,17 @@ void TaskModel::appendTask(Task *newTask) {
 }
 
 bool TaskModel::hasChildren(const QModelIndex &parent) const {
-  if (parent.isValid() && m_taskManager->task(parent.row()))
-    return m_taskManager->task(parent.row())->hasSubTask();
+  if (parent.isValid() && m_taskManager->task(ToTaskId(parent)))
+    return m_taskManager->task(ToTaskId(parent))->hasSubTask();
   return false;
 }
 
 Qt::ItemFlags TaskModel::flags(const QModelIndex &index) const {
   return QAbstractItemModel::flags(index);
+}
+
+uint TaskModel::ToTaskId(const QModelIndex &index) const {
+  return m_taskOrder[index.row()].second;
 }
 
 int TaskModel::rowCount(const QModelIndex &parent) const {
@@ -59,12 +64,12 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
-    auto task = m_taskManager->tasks().at(index.row());
+    auto task = m_taskManager->task(ToTaskId(index));
     if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
   } else if (role == Qt::DecorationRole) {
     if (index.column() == STATUS_COL) {
-      switch (m_taskManager->tasks().at(index.row())->status()) {
+      switch (m_taskManager->task(ToTaskId(index))->status()) {
         case TaskStatus::Success:
           return QIcon(":/checked.png");
         case TaskStatus::Fail:
@@ -87,7 +92,7 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       }
     }
   } else if (role == RowVisibilityRole) {
-    if (auto task = m_taskManager->task(index.row())) {
+    if (auto task = m_taskManager->task(ToTaskId(index))) {
       if (auto p = task->parentTask()) {
         uint id = m_taskManager->taskId(p);
         if (id != TaskManager::invalid_id) {
@@ -97,11 +102,11 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     }
     return false;
   } else if (role == ParentDataRole) {
-    if (auto task = m_taskManager->task(index.row())) {
+    if (auto task = m_taskManager->task(ToTaskId(index))) {
       return task->parentTask() != nullptr;
     }
   } else if (role == TaskTypeRole && index.column() == TITLE_COL) {
-    if (auto task = m_taskManager->task(index.row())) {
+    if (auto task = m_taskManager->task(ToTaskId(index))) {
       return QVariant((uint)task->type());
     }
   }
@@ -125,8 +130,14 @@ QVariant TaskModel::headerData(int section, Qt::Orientation orientation,
 
 void TaskModel::taskStatusChanged() {
   if (auto task = dynamic_cast<Task *>(sender())) {
-    auto idx = createIndex(m_taskManager->tasks().indexOf(task), STATUS_COL);
-    emit dataChanged(idx, idx, {Qt::DisplayRole});
+    auto taskId = m_taskManager->taskId(task);
+    for (const auto &[row, id] : m_taskOrder) {
+      if (id == taskId) {
+        auto idx = createIndex(row, STATUS_COL);
+        emit dataChanged(idx, idx, {Qt::DisplayRole});
+        break;
+      }
+    }
   }
 }
 
@@ -135,15 +146,37 @@ TaskManager *TaskModel::taskManager() const { return m_taskManager; }
 void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   if (!newTaskManager) return;
   m_taskManager = newTaskManager;
-  for (const auto &task : m_taskManager->tasks()) {
-    appendTask(task);
-  }
+  int row{0};
+  m_taskOrder.push_back({row++, IP_GENERATE});
+  m_taskOrder.push_back({row++, SYNTHESIS});
+  m_taskOrder.push_back({row++, SYNTHESIS_CLEAN});
+  m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});
+  m_taskOrder.push_back({row++, SYNTHESIS_WRITE_NETLIST});
+  m_taskOrder.push_back({row++, SYNTHESIS_TIMING_REPORT});
+  m_taskOrder.push_back({row++, PACKING});
+  m_taskOrder.push_back({row++, PACKING_CLEAN});
+  m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
+  m_taskOrder.push_back({row++, GLOBAL_PLACEMENT_CLEAN});
+  m_taskOrder.push_back({row++, PLACEMENT});
+  m_taskOrder.push_back({row++, PLACEMENT_CLEAN});
+  m_taskOrder.push_back({row++, PLACEMENT_SETTINGS});
+  m_taskOrder.push_back({row++, PLACEMENT_WRITE_NETLIST});
+  m_taskOrder.push_back({row++, PLACEMENT_TIMING_REPORT});
+  m_taskOrder.push_back({row++, ROUTING});
+  m_taskOrder.push_back({row++, ROUTING_CLEAN});
+  m_taskOrder.push_back({row++, ROUTING_SETTINGS});
+  m_taskOrder.push_back({row++, ROUTING_WRITE_NETLIST});
+  m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
+  m_taskOrder.push_back({row++, POWER});
+  m_taskOrder.push_back({row++, BITSTREAM});
+
+  for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 
 bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
   if (role == UserActionRole) {
-    m_taskManager->startTask(index.row());
+    m_taskManager->startTask(ToTaskId(index));
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
     if (!m_expanded.contains(index)) {
@@ -151,7 +184,7 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     } else {
       m_expanded[index] = !m_expanded[index];
     }
-    auto task = m_taskManager->task(index.row());
+    auto task = m_taskManager->task(ToTaskId(index));
     emit dataChanged(
         createIndex(index.row() + 1, index.column()),
         createIndex(index.row() + task->subTask().count(), index.column()),
