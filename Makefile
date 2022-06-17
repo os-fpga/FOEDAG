@@ -86,9 +86,9 @@ coverage-build/html: foedag-build/foedag.coverage
 test/regression: run-cmake-release
 
 test/valgrind: run-cmake-debug
-	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/foedag --batch --script tests/TestBatch/hello.tcl ; 
+	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/aurora --batch --script tests/TestBatch/hello.tcl ; 
 	grep "ERROR SUMMARY: 0" valgrind.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl;
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl;
 	grep "ERROR SUMMARY: 0" valgrind_gui.log 
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
@@ -100,9 +100,9 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_foedag.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
@@ -115,12 +115,12 @@ test-parallel: release test/unittest
 #	pushd build && cmake --build test/build -j $(CPU_CORES) && popd
 
 test/openfpga: run-cmake-release
-	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
-	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
-	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
+	./build/bin/aurora --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 
 test/openfpga_gui: run-cmake-release
-	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./dbuild/bin/aurora --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 
 regression: release
 	cmake -E make_directory build/tests
@@ -140,7 +140,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -148,12 +148,12 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag.tcl
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
 
 test/gui_mac: run-cmake-debug
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
 # Tests hanging on mac
 #	$(XVFB) ./dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 #	$(XVFB) ./dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
@@ -161,10 +161,10 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
-	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
-	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
-	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
@@ -173,14 +173,14 @@ format:
 	.github/bin/run-clang-format.sh
 
 help:
-	build/bin/foedag --help > docs/source/help/help.txt
+	build/bin/aurora --help > docs/source/help/help.txt
 
 doc:
 	cd docs && make html
 	cd -
 
 uninstall:
-	$(RM) -r $(PREFIX)/bin/foedag
+	$(RM) -r $(PREFIX)/bin/aurora
 	$(RM) -r $(PREFIX)/lib/foedag
 	$(RM) -r $(PREFIX)/include/foedag
 	$(RM) -r $(PREFIX)/share/foedag
