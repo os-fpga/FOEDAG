@@ -17,45 +17,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-#pragma once
+ */
 
-#include <QObject>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
-#include <streambuf>
+#include <string>
+#include <vector>
+
+#ifndef IPGENERATOR_H
+#define IPGENERATOR_H
 
 namespace FOEDAG {
 
-class Logger;
-class StreamBuffer : public QObject, public std::streambuf {
-  Q_OBJECT
+class IPGenerator {
  public:
-  explicit StreamBuffer(QObject *parent = nullptr);
-  std::ostream &getStream();
+  IPGenerator();
 
- signals:
-  void ready(const QString &);
+  virtual ~IPGenerator();
 
  protected:
-  int overflow(int c) override;
-  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
-
- private:
-  std::ostream m_stream;
-};
-
-class FileLoggerBuffer : public std::streambuf {
- public:
-  explicit FileLoggerBuffer(Logger *logger, std::streambuf *out);
-
- protected:
-  int overflow(int c) override;
-  int sync() override;
-  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
-
- private:
-  Logger *m_logger{nullptr};
-  std::ostream m_stream;
 };
 
 }  // namespace FOEDAG
+
+#endif

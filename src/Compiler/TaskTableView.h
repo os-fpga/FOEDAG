@@ -67,7 +67,6 @@ class TaskTableView : public QTableView {
 
  private:
   QRect expandArea(const QModelIndex &index) const;
-  static QWidget *PrepareLayout(QWidget *widget);
 
  private:
   TaskManager *m_taskManager{nullptr};

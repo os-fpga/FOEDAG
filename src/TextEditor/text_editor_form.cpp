@@ -1,6 +1,8 @@
 #include "text_editor_form.h"
 
 #include <QMessageBox>
+#include <QPainter>
+#include <QStyleOption>
 
 using namespace FOEDAG;
 

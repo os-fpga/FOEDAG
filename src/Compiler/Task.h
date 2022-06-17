@@ -38,6 +38,7 @@ enum class TaskType {
   None,
   Action,
   Settings,
+  Clean,
 };
 
 /*!

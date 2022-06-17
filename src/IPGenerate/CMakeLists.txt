@@ -1,10 +1,10 @@
 # -*- mode:cmake -*-
 
-# Copyright 2021 The Foedag team
+# Copyright 2022 The Foedag team
 
 # GPL License
 
-# Copyright (c) 2021 The Open-Source FPGA Foundation
+# Copyright (c) 2022 The Open-Source FPGA Foundation
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(compiler LANGUAGES CXX)
+project(ipgenerate LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -42,66 +42,45 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  Compiler.cpp
-  foedag_version_number.cpp
-  Constraints.cpp
-  CompilerOpenFPGA.cpp
-  WorkerThread.cpp
-  TaskTableView.cpp
-  TaskModel.cpp
-  Task.cpp
-  TaskManager.cpp
-  CompilerDefines.cpp
-  ProcessUtils.cpp
-  Log.cpp
+  IPCatalog.cpp
+  IPGenerator.cpp
 )
 
 set (SRC_H_INSTALL_LIST
-  Compiler.h
-  Constraints.cpp
-  CompilerOpenFPGA.h
-  WorkerThread.h
-  TaskTableView.h
-  TaskModel.h
-  Task.h
-  TaskManager.h
-  CompilerDefines.h
-  ProcessUtils.h
-  Log.h
+  IPCatalog.h
+  IPGenerator.cpp
 )
 
 set (SRC_H_LIST
   ${SRC_H_INSTALL_LIST}
-  TclInterpreterHandler.h
 )
 
 set (res_LIST
-  compiler_resources.qrc
 )
 
-add_library(compiler STATIC
+add_library(ipgenerate STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${res_LIST}
 )
 
-target_link_libraries(compiler PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
-target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
+target_link_libraries(ipgenerate PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_compile_definitions(ipgenerate PRIVATE IPGENERATE_LIBRARY)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:compiler>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:ipgenerate>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 foreach(file ${SRC_H_INSTALL_LIST})
   install(
-      FILES ${PROJECT_SOURCE_DIR}/../Compiler/${file}
-      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Compiler)
+      FILES ${PROJECT_SOURCE_DIR}/../IPGenerate/${file}
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/IPGenerate)
 endforeach()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-add_executable(compiler_bin
-	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
-target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler)
-set_target_properties(compiler_bin PROPERTIES OUTPUT_NAME compiler_test)
+add_executable(ipgenerate_bin
+	${PROJECT_SOURCE_DIR}/../IPGenerate/Test/ipgenerate_main.cpp)
+target_link_libraries(ipgenerate_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate)
+set_target_properties(ipgenerate_bin PROPERTIES OUTPUT_NAME ipgenerate_test)
 

@@ -121,21 +121,21 @@ class Compiler {
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
   void LutSize(uint32_t size) { m_lut_size = size; }
 
-  IPGenerateOpt IPGenOpt() { return m_ipGenerateOpt; }
+  IPGenerateOpt IPGenOpt() const { return m_ipGenerateOpt; }
   void IPGenOpt(IPGenerateOpt opt) { m_ipGenerateOpt = opt; }
-  PackingOpt PackOpt() { return m_packingOpt; }
+  PackingOpt PackOpt() const { return m_packingOpt; }
   void PackOpt(PackingOpt opt) { m_packingOpt = opt; }
-  SynthesisOpt SynthOpt() { return m_synthOpt; }
+  SynthesisOpt SynthOpt() const { return m_synthOpt; }
   void SynthOpt(SynthesisOpt opt) { m_synthOpt = opt; }
-  GlobalPlacementOpt GlobPlacementOpt() { return m_globalPlacementOpt; }
+  GlobalPlacementOpt GlobPlacementOpt() const { return m_globalPlacementOpt; }
   void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
-  PlacementOpt PlaceOpt() { return m_placementOpt; }
+  PlacementOpt PlaceOpt() const { return m_placementOpt; }
   void PlaceOpt(PlacementOpt opt) { m_placementOpt = opt; }
-  RoutingOpt RouteOpt() { return m_routingOpt; }
+  RoutingOpt RouteOpt() const { return m_routingOpt; }
   void RouteOpt(RoutingOpt opt) { m_routingOpt = opt; }
-  STAOpt TimingAnalysisOpt() { return m_staOpt; }
+  STAOpt TimingAnalysisOpt() const { return m_staOpt; }
   void TimingAnalysisOpt(STAOpt opt) { m_staOpt = opt; }
-  PowerOpt PowerAnalysisOpt() { return m_powerOpt; }
+  PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
 
   BitstreamOpt BitsOpt() { return m_bitstreamOpt; }

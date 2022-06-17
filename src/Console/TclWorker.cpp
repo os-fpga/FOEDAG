@@ -3,6 +3,10 @@
 #include <QDebug>
 #include <iostream>
 
+#include "Compiler/Log.h"
+
+extern FOEDAG::Session *GlobalSession;
+
 namespace FOEDAG {
 
 int DriverCloseProc(ClientData instanceData, Tcl_Interp *interp) {
@@ -28,7 +32,26 @@ int DriverOutputProc(ClientData instanceData, const char *buf, int toWrite,
   Q_UNUSED(errorCodePtr)
   TclWorker *worker = static_cast<TclWorker *>(instanceData);
   worker->out().write(buf, toWrite);
+  worker->out().flush();
   return toWrite;
+}
+
+int DriverInputProc(ClientData instanceData, char *buf, int bufSize,
+                    int *errorCodePtr) {
+  if (bufSize < 0) {
+    *errorCodePtr = -1;
+    return -1;
+  }
+  std::string in;
+  getline(std::cin, in);
+  LOG_CMD(in);
+  in.push_back('\n');
+  size_t count = in.size();
+  size_t bSize = static_cast<size_t>(bufSize);
+  if (in.size() > bSize) count = bSize;
+  strncpy(buf, in.c_str(), count);
+  *errorCodePtr = 0;
+  return count;
 }
 
 int DriverErrorProc(ClientData instanceData, const char *buf, int toWrite,
@@ -36,6 +59,7 @@ int DriverErrorProc(ClientData instanceData, const char *buf, int toWrite,
   Q_UNUSED(errorCodePtr)
   TclWorker *worker = static_cast<TclWorker *>(instanceData);
   worker->err()->write(buf, toWrite);
+  worker->err()->flush();
   return toWrite;
 }
 
@@ -46,7 +70,7 @@ int DriverBlockModeProc(ClientData instanceData, int mode) {
 }
 
 TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out,
-                     std::ostream *err, QObject *parent)
+                     std::ostream *err, bool batchMode, QObject *parent)
     : QObject(parent), m_interpreter(interpreter), m_out(out), m_err(err) {
   channelOut = new Tcl_ChannelType{
       "outconsole",
@@ -87,13 +111,33 @@ TclWorker::TclWorker(TclInterp *interpreter, std::ostream &out,
       nullptr /*DriverTruncate*/,
   };
 
-  // set to nullptr stdin to avoid prompt from TCL.
-  Tcl_SetStdChannel(nullptr, TCL_STDIN);
-  init();
+  if (batchMode) {
+    channelIn = new Tcl_ChannelType{
+        "stdin",
+        CHANNEL_VERSION_5,
+        DriverCloseProc /*ChannelClose */,
+        DriverInputProc,  // DriverInputProc,  // DriverInputProc,
+        nullptr,
+        nullptr /*ChannelSeek*/,
+        nullptr,
+        nullptr,
+        DriverWatchProc,
+        nullptr, /*ChannelGetHandle,*/
+        DriverClose2Proc /*ChannelClose2*/,
+        nullptr, /*ChannelBlockMode,*/
+        nullptr /*ChannelFlush*/,
+        nullptr /*ChannelHandler*/,
+        nullptr /*ChannelWideSeek*/,
+        nullptr /*DriverThreadAction*/,
+        nullptr /*DriverTruncate*/,
+    };
+  }
+
+  init(batchMode);
 }
 
 void TclWorker::runCommand(const QString &command) {
-  init();
+  init(false);
 
   int returnCode = TclEval(m_interpreter, qPrintable(command));
   if (returnCode == TCL_ERROR) {
@@ -130,8 +174,9 @@ void TclWorker::setError(const QString &err) {
   }
 }
 
-void TclWorker::init() {
+void TclWorker::init(bool batchMode) {
   static Tcl_Channel m_channel{nullptr};
+  static Tcl_Channel m_channelIn{nullptr};
   static Tcl_Channel errConsoleChannel{nullptr};
 
   if (!m_channel) {
@@ -146,6 +191,15 @@ void TclWorker::init() {
   } else {
     Tcl_SetStdChannel(m_channel, TCL_STDOUT);
   }
+
+  if (!m_channelIn && batchMode) {
+    m_channelIn = Tcl_CreateChannel(channelIn, "stdin",
+                                    static_cast<void *>(this), TCL_READABLE);
+    if (m_channelIn) {
+      Tcl_RegisterChannel(m_interpreter, m_channelIn);
+    }
+  }
+  Tcl_SetStdChannel(m_channelIn, TCL_STDIN);
 
   if (!errConsoleChannel) {
     errConsoleChannel = Tcl_CreateChannel(

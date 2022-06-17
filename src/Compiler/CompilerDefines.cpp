@@ -49,17 +49,27 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   return view;
 }
 
-uint FOEDAG::toTaskId(int action) {
+uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
     case Compiler::Action::Synthesis:
+      if (compiler->SynthOpt() == Compiler::SynthesisOpt::Clean)
+        return SYNTHESIS_CLEAN;
       return SYNTHESIS;
     case Compiler::Action::Global:
+      if (compiler->GlobPlacementOpt() == Compiler::GlobalPlacementOpt::Clean)
+        return GLOBAL_PLACEMENT_CLEAN;
       return GLOBAL_PLACEMENT;
     case Compiler::Action::Detailed:
+      if (compiler->PlaceOpt() == Compiler::PlacementOpt::Clean)
+        return PLACEMENT_CLEAN;
       return PLACEMENT;
     case Compiler::Action::Pack:
+      if (compiler->PackOpt() == Compiler::PackingOpt::Clean)
+        return PACKING_CLEAN;
       return PACKING;
     case Compiler::Action::Routing:
+      if (compiler->RouteOpt() == Compiler::RoutingOpt::Clean)
+        return ROUTING_CLEAN;
       return ROUTING;
     case Compiler::Action::STA:
       return TIMING_SIGN_OFF;

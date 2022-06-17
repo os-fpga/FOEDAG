@@ -46,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
 #include "Log.h"
+#include "Main/Settings.h"
+#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProcessUtils.h"
@@ -82,6 +84,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
+  (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
@@ -95,6 +98,7 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
+  (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
@@ -266,7 +270,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -285,7 +289,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -364,7 +368,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path the_path = expandedFile;
         if (!the_path.is_absolute()) {
           expandedFile =
-              std::filesystem::path(compiler->m_projManager->projectPath() /
+              std::filesystem::path(compiler->ProjManager()->projectPath() /
                                     std::filesystem::path("..") / expandedFile)
                   .string();
         }
@@ -390,7 +394,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -451,7 +455,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_include_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -478,7 +482,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_projManager->addIncludePath(expandedFile);
+      compiler->ProjManager()->addIncludePath(expandedFile);
     }
     return TCL_OK;
   };
@@ -487,7 +491,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_library_path = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -514,16 +518,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             std::filesystem::path(std::filesystem::path("..") / expandedFile)
                 .string();
       }
-      compiler->m_projManager->addLibraryPath(expandedFile);
+      compiler->ProjManager()->addLibraryPath(expandedFile);
     }
     return TCL_OK;
   };
   interp->registerCmd("add_library_path", add_library_path, this, nullptr);
 
+  auto add_library_ext = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      std::string ext = argv[i];
+      compiler->ProjManager()->addLibraryExtension(ext);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("add_library_ext", add_library_ext, this, nullptr);
+
   auto set_macro = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -547,7 +566,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -596,7 +615,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -635,7 +654,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto synth_options = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->m_projManager->HasDesign()) {
+    if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
@@ -831,8 +850,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
+
+      auto setSynthOption = [compiler](std::string arg) {
         if (arg == "mixed") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Mixed);
         } else if (arg == "area") {
@@ -845,6 +864,30 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+          setSynthOption(argv[i]);
+        }
+      } else {
+        // otherwise, check settings for a value
+        Settings* settings = compiler->GetSession()->GetSettings();
+        auto json = settings->getJson()["Tasks"]["Synthesis"]["opt_dropdown"];
+        std::string option = "<unset>";
+        if (json.contains("userValue")) {
+          option = json["userValue"];
+        } else if (json.contains("default")) {
+          option = json["default"].get<std::string>();
+        }
+
+        // If a valid value was specified update the SynthOpt
+        if (option != "<unset>") {
+          QString lookupVal =
+              Settings::getLookupValue(json, QString::fromStdString(option));
+          setSynthOption(lookupVal.toStdString());
         }
       }
       WorkerThread* wthread =
@@ -1031,7 +1074,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 bool Compiler::Compile(Action action) {
-  uint task{toTaskId(static_cast<int>(action))};
+  uint task{toTaskId(static_cast<int>(action), this)};
   if (m_hardError) {
     if (task != TaskManager::invalid_id && m_taskManager) {
       m_taskManager->task(task)->setStatus(TaskStatus::Fail);
@@ -1079,8 +1122,9 @@ bool Compiler::Synthesize() {
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
-      (*m_out) << " File: " << (*it).path().filename().c_str()
-               << " just for test";
+      std::string str =
+          " File: " + (*it).path().filename().string() + " just for test";
+      (*m_out) << str;
       it++;
     }
     (*m_out) << std::endl;
@@ -1178,17 +1222,32 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
     });
+    m_taskManager->bindTaskCommand(SYNTHESIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("synth clean"));
+    });
     m_taskManager->bindTaskCommand(PACKING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("packing"));
+    });
+    m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
     });
     m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
     });
+    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
+    });
     m_taskManager->bindTaskCommand(PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place"));
     });
+    m_taskManager->bindTaskCommand(PLACEMENT_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("place clean"));
+    });
     m_taskManager->bindTaskCommand(ROUTING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("route"));
+    });
+    m_taskManager->bindTaskCommand(ROUTING_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("route clean"));
     });
     m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta"));

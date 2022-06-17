@@ -11,9 +11,9 @@
 #include <QStack>
 #include <QTextBlock>
 
+#include "Compiler/Log.h"
 #include "ConsoleDefines.h"
 #include "FileInfo.h"
-#include "MainWindow/Session.h"
 #include "StreamBuffer.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -75,7 +75,7 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
       prepareCommand = histCommand;
     QConsole::interpretCommand(prepareCommand, res);
     if (m_console) {
-      GlobalSession->CmdStack()->push(new Command{command.toStdString()});
+      LOG_CMD(command);
       m_console->run(prepareCommand.toUtf8());
     }
     setMultiLine(false);
@@ -152,7 +152,7 @@ void FOEDAG::TclConsoleWidget::putMessage(const QString &message,
                                           OutputFormat format) {
   if (!message.isEmpty()) {
     moveCursor(QTextCursor::End);
-    GlobalSession->CmdStack()->CmdLogger()->appendLog(message.toStdString());
+    LOG_OUTPUT(message);
     m_formatter.appendMessage(message, format);
   }
 }
@@ -244,9 +244,8 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
 
   auto unknown = [](ClientData clientData, Tcl_Interp *interp, int argc,
                     const char *argv[]) {
-    const QString prog{argv[1]};
     QStringList params;
-    for (int i = 2; i < argc; ++i) params << argv[i];
+    for (int i = 1; i < argc; ++i) params << argv[i];
     QProcess proc;
     bool started{false};
     Tcl_ResetResult(interp);
@@ -259,12 +258,13 @@ void TclConsoleWidget::registerCommands(TclInterp *interp) {
       Tcl_AppendResult(interp, qPrintable(data), nullptr);
     });
     QObject::connect(&proc, &QProcess::started, [&]() { started = true; });
-    proc.start(prog, params);
+    startShellCommand(proc, params);
     proc.waitForFinished(-1);
 
     if (!started) {
       Tcl_AppendResult(
-          interp, qPrintable(QString("invalid command name \"%1\"").arg(prog)),
+          interp,
+          qPrintable(QString("invalid command name \"%1\"").arg(argv[1])),
           nullptr);
       return TCL_ERROR;
     }
@@ -316,6 +316,17 @@ bool TclConsoleWidget::hasCloseBracket(const QString &str) const {
   for (auto iter = str.crbegin(); iter != str.crend(); iter++)
     if (*iter == QChar{'}'}) return true;
   return false;
+}
+
+void FOEDAG::TclConsoleWidget::startShellCommand(QProcess &process,
+                                                 const QStringList &input) {
+#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+  QStringList params{input};
+  const QString prog{params.takeFirst()};
+  process.start(prog, params);
+#else
+  process.start("/bin/sh", QStringList() << "-c" << input.join(" "));
+#endif
 }
 
 State TclConsoleWidget::state() const { return m_state; }

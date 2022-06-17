@@ -31,6 +31,7 @@ project object is singleton mode.
 
 #define PROJECT_PROJECT "Project"
 #define PROJECT_PATH "Path"
+#define PROJECT_VERSION "Version"
 #define PROJECT_CONFIGURATION "Configuration"
 #define PROJECT_CONFIG_ID "ID"
 #define PROJECT_CONFIG_ACTIVESIMSET "ActiveSimSet"
@@ -223,6 +224,11 @@ class ProjectManager : public QObject {
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
+  const std::vector<std::string> &libraryExtensionList() const;
+  void setLibraryExtensionList(
+      const std::vector<std::string> &newLibraryExtensionList);
+  void addLibraryExtension(const std::string &libraryExt);
+
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
@@ -254,14 +260,19 @@ class ProjectManager : public QObject {
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
   static QStringList StringSplit(const QString &str, const QString &sep);
+  static QString ProjectVersion(const QString &filename);
 
  private:
   QString m_currentFileSet;
   QString m_currentRun;
   std::vector<std::string> m_includePathList;
   std::vector<std::string> m_libraryPathList;
+  std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
+
+ signals:
+  void projectPathChanged();
 };
 
 }  // namespace FOEDAG
