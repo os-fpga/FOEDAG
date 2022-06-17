@@ -200,10 +200,6 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
   return true;
 }
 
-QString TclCommandIntegration::getActiveDesign() const {
-  return m_projManager->getProjectName();
-}
-
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }

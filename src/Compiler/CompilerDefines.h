@@ -49,6 +49,7 @@ enum Language {
 
 Design::Language FromFileType(const QString &type);
 
+// ID of the tasks shouln't be changed since they save to file
 static constexpr uint IP_GENERATE{0};
 static constexpr uint SYNTHESIS{1};
 static constexpr uint SYNTHESIS_CLEAN{2};

@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QString>
 #include <QSysInfo>
-#include <mutex>
 
 using namespace FOEDAG;
 

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QAbstractTableModel>
+#include <vector>
 
 #include "Task.h"
 
@@ -54,6 +55,7 @@ class TaskModel : public QAbstractTableModel {
   void appendTask(Task *newTask);
   bool hasChildren(const QModelIndex &parent) const override;
   Qt::ItemFlags flags(const QModelIndex &index) const override;
+  uint ToTaskId(const QModelIndex &index) const;
 
  private:
   TaskManager *m_taskManager{nullptr};
@@ -61,6 +63,7 @@ class TaskModel : public QAbstractTableModel {
   static constexpr uint TITLE_COL{1};
   static constexpr uint TIMING_COL{2};
   QMap<QModelIndex, bool> m_expanded;
+  std::vector<std::pair<int, uint>> m_taskOrder;
 };
 
 }  // namespace FOEDAG
