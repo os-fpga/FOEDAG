@@ -48,12 +48,13 @@ int main(int argc, char** argv) {
     opcompiler = new FOEDAG::CompilerOpenFPGA();
     compiler = opcompiler;
     compiler->SetUseVerific(cmd->UseVerific());
-  } else if (cmd->CompilerName() == "ql") {
+  } else if (cmd->CompilerName() == "test") {
+      compiler = new FOEDAG::Compiler();
+  } else {
+    // default flow should be QL flow.
     opcompiler_ql = new FOEDAG::CompilerOpenFPGA_ql();
     compiler = opcompiler_ql;
     compiler->SetUseVerific(cmd->UseVerific());
-  } else {
-    compiler = new FOEDAG::Compiler();
   }
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(

@@ -78,7 +78,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QToolBar* debugToolBar = nullptr;
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
-  std::string mainWindowName = "FOEDAG";
+  std::string mainWindowName = "AURORA";
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};

@@ -43,7 +43,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../Command/Command.cpp
   ../Command/CommandStack.cpp
   ../Command/Logger.cpp
-  ../MainWindow/main_window.cpp
+  #../MainWindow/main_window.cpp
+  ../MainWindow/main_window_ql.cpp
   ../MainWindow/Session.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp

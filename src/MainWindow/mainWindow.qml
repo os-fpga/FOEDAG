@@ -8,7 +8,7 @@ ApplicationWindow
     width: 350
     height: 250
     visible: windowModel.visible
-    title: qsTr("FOEDAG")
+    title: qsTr("AURORA")
 
     menuBar: MainMenuBar
     {

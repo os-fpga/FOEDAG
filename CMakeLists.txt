@@ -178,7 +178,7 @@ else()
   #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
   add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
 endif()
-set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME foedag)
+set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME aurora)
 
 if (MSVC)
   message("WINDOWS MODE")
