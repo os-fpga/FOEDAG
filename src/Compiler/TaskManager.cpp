@@ -118,7 +118,6 @@ void TaskManager::startAll() {
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
   if (!t->isValid()) return;
-  reset();
   m_runStack.append(t);
   run();
   emit started();
