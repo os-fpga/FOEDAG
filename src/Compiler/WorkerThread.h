@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <set>
 #include <string>
 #include <thread>
