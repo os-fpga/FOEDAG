@@ -27,19 +27,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "IPGenerate/IPCatalog.h"
 
-#ifndef IPGENERATOR_H
-#define IPGENERATOR_H
+#ifndef IPCATALOGBUILDER_H
+#define IPCATALOGBUILDER_H
 
 namespace FOEDAG {
 
-class IPGenerator {
+class IPCatalogBuilder {
  public:
-  IPGenerator(IPCatalog* catalog) : m_catalog(catalog) {}
-  virtual ~IPGenerator() {}
-  IPCatalog* Catalog() { return m_catalog; }
+  IPCatalogBuilder() {}
+  bool buildLiteXCatalog(IPCatalog* catalog,
+                         const std::filesystem::path& litexIPgenPath);
+
+  virtual ~IPCatalogBuilder() {}
 
  protected:
-  IPCatalog* m_catalog = nullptr;
 };
 
 }  // namespace FOEDAG

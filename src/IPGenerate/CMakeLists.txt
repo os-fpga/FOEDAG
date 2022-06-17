@@ -44,11 +44,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST
   IPCatalog.cpp
   IPGenerator.cpp
+  IPCatalogBuilder.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   IPCatalog.h
-  IPGenerator.cpp
+  IPGenerator.h
+  IPCatalogBuilder.h
 )
 
 set (SRC_H_LIST
