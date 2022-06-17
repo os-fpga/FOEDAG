@@ -113,6 +113,10 @@ class Port : public Connector {
         m_range(range){};
   ~Port() {}
   const std::string& Name() { return m_name; }
+  Direction GetDirection() { return m_direction; }
+  Function GetFunction() { return m_function; }
+  Polarity GetPolarity() { return m_polarity; }
+  Range GetRange() { return m_range; }
 
  private:
   std::string m_name;
