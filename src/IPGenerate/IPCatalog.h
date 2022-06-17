@@ -84,8 +84,8 @@ class Range {
 
 class Connector {
  public:
- Connector();
- ~Connector();
+  Connector();
+  ~Connector();
 };
 
 class Port : public Connector {
