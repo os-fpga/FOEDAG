@@ -77,6 +77,8 @@ void CommandLine::processArgs() {
       m_help = true;
     } else if (token == "--version") {
       m_version = true;
+    } else if (token == "--mute") {
+      m_mute = true;
     } else {
       std::cout << "ERROR Unknown command line option: " << m_argv[i]
                 << std::endl;

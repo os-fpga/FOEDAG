@@ -52,6 +52,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../Main/Settings.cpp
   ../Main/Tasks.cpp
   ../Main/WidgetFactory.cpp
+  ../Main/FoedagStyle.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )
@@ -68,6 +69,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/Settings.h
   ../Main/Tasks.h
   ../Main/WidgetFactory.h
+  ../Main/FoedagStyle.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h

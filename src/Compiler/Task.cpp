@@ -24,8 +24,8 @@ namespace FOEDAG {
 
 Task::Task(QObject *parent) : QObject{parent} {}
 
-Task::Task(const QString &title, QObject *parent)
-    : QObject(parent), m_title(title) {}
+Task::Task(const QString &title, TaskType tType, QObject *parent)
+    : QObject(parent), m_title(title), m_type(tType) {}
 
 const QString &Task::title() const { return m_title; }
 
@@ -50,6 +50,12 @@ void Task::setStatus(TaskStatus newStatus) {
       emit finished();
   }
 }
+
+TaskType Task::type() const { return m_type; }
+void Task::setTaskType(TaskType newType) { m_type = newType; }
+
+QString Task::settingsKey() const { return m_settings_key; }
+void Task::setSettingsKey(QString key) { m_settings_key = key; }
 
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();

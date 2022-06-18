@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QString>
 
+#include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/sources_form.h"
 
@@ -89,11 +90,13 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   int ret = 0;
   m_projManager->setCurrentFileSet(strSetName);
   for (int i = 1; i < argc; i++) {
-    QString strFileName = argv[i];
-    ret = m_projManager->setDesignFile(strFileName, false);
+    QFileInfo strFileName = QString{argv[i]};
+    ret = m_projManager->setDesignFiles(
+        strFileName.fileName(), FromFileType(strFileName.suffix()), false);
 
     if (0 != ret) {
-      out << "Failed to add file: " << strFileName.toStdString() << std::endl;
+      out << "Failed to add file: " << strFileName.fileName().toStdString()
+          << std::endl;
       return false;
     }
   }
@@ -112,17 +115,11 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
 
   QString strSetName = m_projManager->getDesignActiveFileSet();
 
-  int ret = 0;
   m_projManager->setCurrentFileSet(strSetName);
-  QStringList fileList = files.split(" ");
-  for (const QString &file : fileList) {
-    ret = m_projManager->setDesignFile(file, false);
-
-    if (0 != ret) {
-      out << "Failed to add file: " << file.toStdString() << std::endl;
-      return false;
-    }
-    m_projManager->setDesignFileData(file.toStdString(), lang);
+  int ret = m_projManager->setDesignFiles(files, lang, false);
+  if (0 != ret) {
+    out << "Failed to add files: " << files.toStdString() << std::endl;
+    return false;
   }
 
   update();
@@ -219,7 +216,7 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
                      {{}, false},
                      {"series1", "familyone", "SBG484", "fpga100t"},
                      true /*rewrite*/,
-                     projName};
+                     DEFAULT_FOLDER_SOURCE};
   m_projManager->CreateProject(opt);
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};

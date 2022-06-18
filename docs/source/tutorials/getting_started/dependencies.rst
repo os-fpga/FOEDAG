@@ -43,3 +43,14 @@ Full list of dependencies can be found at install_macos_dependencies_build_.
   :code: shell
 
 .. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_macos_dependencies_build.sh
+
+WIN
+======
+
+Minimal requirements:
+
+* Microsoft Visual Studio сommunity edition
+* Qt5 for MSVC
+* Make sure component 'C++ CMake tools for windows' is installed for Microsoft Visual Studio
+* Make sure Qt bin are in the PATH variable. e.g. set PATH=C:\Qt\5.15.2\msvc2019_64\bin;%PATH%
+* Make sure Qt5_DIR is set. e.g. C:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5

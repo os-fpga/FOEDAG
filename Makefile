@@ -26,14 +26,12 @@ ifdef $(LC_ALL)
 	undefine LC_ALL
 endif
 
+CPU_CORES ?= $(shell nproc)
 ifeq ($(CPU_CORES),)
-	CPU_CORES := $(shell nproc)
-	ifeq ($(CPU_CORES),)
-		CPU_CORES := $(shell sysctl -n hw.physicalcpu)
-	endif
-	ifeq ($(CPU_CORES),)
-		CPU_CORES := 2  # Good minimum assumption
-	endif
+	CPU_CORES := $(shell sysctl -n hw.physicalcpu)
+endif
+ifeq ($(CPU_CORES),)
+	CPU_CORES := 2  # Good minimum assumption
 endif
 
 PREFIX ?= /usr/local

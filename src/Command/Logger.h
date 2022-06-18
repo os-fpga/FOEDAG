@@ -36,8 +36,10 @@ class Logger {
   void open();
   void close();
   void log(const std::string& text);
+  void appendLog(const std::string& text);
 
-  ~Logger() {}
+  ~Logger();
+  Logger& operator<<(const std::string& log);
 
  private:
   std::ofstream* m_stream = nullptr;

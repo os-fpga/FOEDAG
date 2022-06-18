@@ -35,7 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDomDocument>
 #include <QFile>
 #include <QTextStream>
-#include <QJsonArray>
 #include <chrono>
 #include <filesystem>
 #include <sstream>
@@ -43,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/Constraints.h"
+#include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "MainWindow/main_window.h"
 #include "Main/WidgetFactory.h"
@@ -80,6 +80,7 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
+  (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
@@ -120,6 +121,7 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
   (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
+  (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
   (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
@@ -128,24 +130,25 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate" << std::endl;
+  (*out) << "   ipgenerate ?clean?" << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
-  (*out) << "   synthesize <optimization>  : Optional optimization (area, "
-            "delay, mixed, none)"
-         << std::endl;
+  (*out)
+      << "   synthesize <optimization> ?clean? : Optional optimization (area, "
+         "delay, mixed, none)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   packing                    : Packing" << std::endl;
-  (*out) << "   global_placement           : Analytical placer" << std::endl;
-  (*out) << "   place                      : Detailed placer" << std::endl;
-  (*out) << "   route                      : Router" << std::endl;
-  (*out) << "   sta                        : Statistical Timing Analysis"
+  (*out) << "   packing ?clean?            : Packing" << std::endl;
+  (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
+  (*out) << "   place ?clean?              : Detailed placer" << std::endl;
+  (*out) << "   route ?clean?              : Router" << std::endl;
+  (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
-  (*out) << "   power                      : Power estimator" << std::endl;
-  (*out) << "   bitstreamm                 : Bitstream generation" << std::endl;
+  (*out) << "   power ?clean?              : Power estimator" << std::endl;
+  (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -609,8 +612,9 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 }
 
 bool CompilerOpenFPGA_ql::IPGenerate() {
-  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
-  (*m_out) << "IP generation for design: " << m_projManager->projectName()
+  PERF_LOG("IPGenerate has started");
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "IP generation for design: " << ProjManager()->projectName()
            << "..." << std::endl;
 
   // placeholder for ipgenerate process ++
@@ -655,7 +659,7 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
   }
   // placeholder for ipgenerate process --
 
-  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " IPs are generated!"
            << std::endl;
   m_state = State::IPGenerated;
   return true;
@@ -666,16 +670,15 @@ bool CompilerOpenFPGA_ql::DesignChanged(
     const std::filesystem::path& synth_scrypt_path) {
   bool result = false;
   auto path = std::filesystem::current_path();  // getting path
-  std::filesystem::current_path(path /
-                                m_projManager->projectName());  // setting path
-  std::string output = m_projManager->projectName() + "_post_synth.blif";
+  std::filesystem::current_path(ProjManager()->projectPath());  // setting path
+  std::string output = ProjManager()->projectName() + "_post_synth.blif";
   time_t time_netlist = Mtime(output);
   if (time_netlist == -1) {
     result = true;
   }
-  for (const auto& lang_file : m_projManager->DesignFiles()) {
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
     std::vector<std::string> tokens;
-    Tokenize(lang_file, " ", tokens);
+    Tokenize(lang_file.second, " ", tokens);
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
@@ -687,7 +690,7 @@ bool CompilerOpenFPGA_ql::DesignChanged(
       }
     }
   }
-  for (auto path : m_projManager->includePathList()) {
+  for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
     Tokenize(path, " ", tokens);
     for (auto file : tokens) {
@@ -701,7 +704,7 @@ bool CompilerOpenFPGA_ql::DesignChanged(
       }
     }
   }
-  for (auto path : m_projManager->libraryPathList()) {
+  for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
     Tokenize(path, " ", tokens);
     for (auto file : tokens) {
@@ -730,8 +733,21 @@ bool CompilerOpenFPGA_ql::DesignChanged(
 }
 
 bool CompilerOpenFPGA_ql::Synthesize() {
-  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
-  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
+  if (SynthOpt() == SynthesisOpt::Clean) {
+    Message("Cleaning synthesis results for " + ProjManager()->projectName());
+    m_state = State::IPGenerated;
+    SynthOpt(SynthesisOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.blif"));
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.v"));
+    return true;
+  }
+  PERF_LOG("Synthesize has started");
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "Synthesizing design: " << ProjManager()->projectName() << "..."
            << std::endl;
 
   std::string yosysScript = InitSynthesisScript();
@@ -742,8 +758,8 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   Settings * currentSettings = GetSession()->GetSettings();
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
 
-  for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
@@ -759,26 +775,30 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // Verific parser
     std::string fileList;
     std::string includes;
-    for (auto path : m_projManager->includePathList()) {
+    for (auto path : ProjManager()->includePathList()) {
       includes += path + " ";
     }
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
-    for (auto path : m_projManager->libraryPathList()) {
+    for (auto path : ProjManager()->libraryPathList()) {
       libraries += path + " ";
     }
     fileList += "verific -vlog-libdir " + libraries + "\n";
 
+    for (auto ext : ProjManager()->libraryExtensionList()) {
+      fileList += "verific -vlog-libext " + ext + "\n";
+    }
+
     std::string macros;
-    for (auto& macro_value : m_projManager->macroList()) {
+    for (auto& macro_value : ProjManager()->macroList()) {
       macros += macro_value.first + "=" + macro_value.second + " ";
     }
     fileList += "verific -vlog-define " + macros + "\n";
 
-    for (const auto& lang_file : m_projManager->DesignFiles()) {
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
-      switch (m_projManager->designFileData(lang_file)) {
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
           break;
@@ -818,9 +838,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file + "\n";
+      fileList += "verific " + lang + " " + lang_file.second + "\n";
     }
-    fileList += "verific -import " + m_projManager->DesignTopModule() + "\n";
+    fileList += "verific -import " + ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
@@ -833,14 +853,14 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 #endif // #ifdef _WIN32
 
     std::string macros = "";
-    // std::string macros = "verilog_defines ";
-    // for (auto& macro_value : m_projManager->macroList()) {
-    //   macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
-    // }
-    // macros += "\n";
-    // std::string includes;
-    // for (auto path : m_projManager->includePathList()) {
-    //   includes += "-I" + path + " ";
+    //std::string macros = "verilog_defines ";
+    //for (auto& macro_value : ProjManager()->macroList()) {
+    //  macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    //}
+    //macros += "\n";
+    //std::string includes;
+    //for (auto path : ProjManager()->includePathList()) {
+    //  includes += "-I" + path + " ";
     // }
 
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
@@ -849,9 +869,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
                                  "${INCLUDE_PATHS} ${VERILOG_FILES}");
     std::string fileList;
     std::string lang;
-    for (const auto& lang_file : m_projManager->DesignFiles()) {
-      fileList += lang_file + " ";
-      switch (m_projManager->designFileData(lang_file)) {
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
@@ -877,19 +897,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     std::string options = lang;
     options += " -nolatches";
     yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
-    
-    std::string includes;
-    for (auto path : m_projManager->includePathList()) {
-      includes += "-I" + path + " ";
-    }
-    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
-    
-    
+    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", "");
     yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
   }
 
-  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}", m_projManager->DesignTopModule());
-  
+  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
+                           ProjManager()->DesignTopModule());
   json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
 
@@ -904,8 +917,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     return false;
   }
   
-  yosysScript = ReplaceAll(yosysScript, "${OUTPUT_BLIF}",
-                           std::string(m_projManager->projectName() + "_post_synth.blif"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_BLIF}",
+      std::string(ProjManager()->projectName() + "_post_synth.blif"));
 
   
 
@@ -958,23 +972,27 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   yosysScript = ReplaceAll(yosysScript, "${YOSYS_OPTIONS}", yosys_options);
 
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
+                 std::string(ProjManager()->projectName() + "_post_synth.v"));
+
   yosysScript = FinishSynthesisScript(yosysScript);
 
-  std::string script_path = m_projManager->projectName() + ".ys";
+  std::string script_path = ProjManager()->projectName() + ".ys";
   if (!DesignChanged(yosysScript, script_path)) {
-    (*m_out) << "Design didn't change: " << m_projManager->projectName()
+    (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping synthesis." << std::endl;
     return true;
   }
   std::filesystem::remove(
-      std::filesystem::path(m_projManager->projectName()) /
-      std::string(m_projManager->projectName() + "_post_synth.blif"));
+      std::filesystem::path(ProjManager()->projectPath()) /
+      std::string(ProjManager()->projectName() + "_post_synth.blif"));
   std::filesystem::remove(
-      std::filesystem::path(m_projManager->projectName()) /
-      std::string(m_projManager->projectName() + "_post_synth.v"));
+      std::filesystem::path(ProjManager()->projectPath()) /
+      std::string(ProjManager()->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path)
+      (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
   std::ofstream ofs(script_path);
   ofs << yosysScript;
@@ -985,17 +1003,17 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 //   }
   std::string command =
       m_yosysExecutablePath.string() + " -s " +
-      std::string(m_projManager->projectName() + ".ys -l " +
-                  m_projManager->projectName() + "_synth.log");
+      std::string(ProjManager()->projectName() + ".ys -l " +
+                  ProjManager()->projectName() + "_synth.log");
   (*m_out) << "Synthesis command: " << command << std::endl;
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() +
+    ErrorMessage("Design " + ProjManager()->projectName() +
                  " synthesis failed!");
     return false;
   } else {
     m_state = State::Synthesized;
-    (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
+    (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized!"
              << std::endl;
     return true;
   }
@@ -1017,6 +1035,8 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
     keeps += "setattr -set keep 1 w:\\*\n";
   }
   for (auto keep : m_constraints->GetKeeps()) {
+    keep = ReplaceAll(keep, "@", "[");
+    keep = ReplaceAll(keep, "%", "]");
     (*m_out) << "Keep name: " << keep << "\n";
     keeps += "setattr -set keep 1 " + keep + "\n";
   }
@@ -1217,14 +1237,14 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     }
   }
 
-  std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
 
-  for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =
@@ -1289,7 +1309,17 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 }
 
 bool CompilerOpenFPGA_ql::Packing() {
-  if (!m_projManager->HasDesign()) {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + ProjManager()->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    return true;
+  }
+  PERF_LOG("Packing has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1297,33 +1327,35 @@ bool CompilerOpenFPGA_ql::Packing() {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
 //     return false;
 //   }
-  const std::string sdcOut =
-      (std::filesystem::path(m_projManager->projectName()) /
-       std::string(m_projManager->projectName() + "_openfpga.sdc"))
-          .string();
-  std::ofstream ofssdc(sdcOut);
-  // TODO: Massage the SDC so VPR can understand them
-  for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
-    // Parse RTL and expand the get_ports, get_nets
-    // Temporary dirty filtering:
-    std::vector<std::string> tokens;
-    Tokenize(constraint, " ", tokens);
-    constraint = "";
-    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
-    // Pass the constraint as-is anyway
-    for (uint32_t i = 0; i < tokens.size(); i++) {
-      const std::string& tok = tokens[i];
-      constraint += tok + " ";
-    }
+  // const std::string sdcOut =
+  //     (std::filesystem::path(ProjManager()->projectName()) /
+  //      std::string(ProjManager()->projectName() + "_openfpga.sdc"))
+  //         .string();
+  // std::ofstream ofssdc(sdcOut);
+  // // TODO: Massage the SDC so VPR can understand them
+  // for (auto constraint : m_constraints->getConstraints()) {
+  //   // Parse RTL and expand the get_ports, get_nets
+  //   // Temporary dirty filtering:
+  //   constraint = ReplaceAll(constraint, "@", "[");
+  //   constraint = ReplaceAll(constraint, "%", "]");
+  //   (*m_out) << "Constraint: " << constraint << "\n";
+  //   std::vector<std::string> tokens;
+  //   Tokenize(constraint, " ", tokens);
+  //   constraint = "";
+  //   // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+  //   // Pass the constraint as-is anyway
+  //   for (uint32_t i = 0; i < tokens.size(); i++) {
+  //     const std::string& tok = tokens[i];
+  //     constraint += tok + " ";
+  //   }
 
-    // pin location constraints have to be translated to .place:
-    if (constraint.find("set_pin_loc") != std::string::npos) {
-      continue;
-    }
-    ofssdc << constraint << "\n";
-  }
-  ofssdc.close();
+  //   // pin location constraints have to be translated to .place:
+  //   if (constraint.find("set_pin_loc") != std::string::npos) {
+  //     continue;
+  //   }
+  //   ofssdc << constraint << "\n";
+  // }
+  // ofssdc.close();
 
   std::string command = BaseVprCommand();
   if(command.empty()) {
@@ -1333,19 +1365,19 @@ bool CompilerOpenFPGA_ql::Packing() {
   command += std::string(" ") + 
              std::string("--pack");
 
-  std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
-                     std::string(m_projManager->projectName() + "_pack.cmd"))
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                     std::string(ProjManager()->projectName() + "_pack.cmd"))
                         .string());
   ofs << command << std::endl;
   ofs.close();
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " packing failed!");
+    ErrorMessage("Design " + ProjManager()->projectName() + " packing failed!");
     return false;
   }
   m_state = State::Packed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is packed!"
            << std::endl;
 
   // placeholder for pin_placement process ++
@@ -1400,7 +1432,7 @@ bool CompilerOpenFPGA_ql::Packing() {
 }
 
 bool CompilerOpenFPGA_ql::GlobalPlacement() {
-  if (!m_projManager->HasDesign()) {
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1408,17 +1440,25 @@ bool CompilerOpenFPGA_ql::GlobalPlacement() {
     ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed state"));
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            ProjManager()->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
+  }
+  (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
            << "..." << std::endl;
   // TODO:
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->projectName()
+  (*m_out) << "Design " << ProjManager()->projectName()
            << " is globally placed!" << std::endl;
   return true;
 }
 
 bool CompilerOpenFPGA_ql::Placement() {
-  if (!m_projManager->HasDesign()) {
+  PERF_LOG("Placement has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1426,16 +1466,25 @@ bool CompilerOpenFPGA_ql::Placement() {
     ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed/globally_placed state"));
     return false;
   }
-  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + ProjManager()->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    return true;
+  }
+  (*m_out) << "Placement for design: " << ProjManager()->projectName() << "..."
            << std::endl;
 //   if (!FileExists(m_vprExecutablePath)) {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
 //     return false;
 //   }
-#if 0 // disabling this until we have the pin_c executable
+#if 0 // disabling this unless we actually use pin_c executable
   const std::string pcfOut =
-      (std::filesystem::path(m_projManager->projectName()) /
-       std::string(m_projManager->projectName() + "_openfpga.pcf"))
+      (std::filesystem::path(ProjManager()->projectName()) /
+       std::string(ProjManager()->projectName() + "_openfpga.pcf"))
           .string();
   std::ofstream ofspcf(pcfOut);
   bool pinLocConstraints = false;
@@ -1460,13 +1509,13 @@ bool CompilerOpenFPGA_ql::Placement() {
   ofspcf.close();
   std::string pin_loc_constraint_file;
   if (pinLocConstraints) {
-    std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
-    for (const auto& lang_file : m_projManager->DesignFiles()) {
-      switch (m_projManager->designFileData(lang_file)) {
+    std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      switch (lang_file.first) {
         case Design::Language::VERILOG_NETLIST:
         case Design::Language::BLIF:
         case Design::Language::EBLIF: {
-          netlistFile = lang_file;
+          netlistFile = lang_file.second;
           std::filesystem::path the_path = netlistFile;
           if (!the_path.is_absolute()) {
             netlistFile =
@@ -1482,23 +1531,35 @@ bool CompilerOpenFPGA_ql::Placement() {
 
     std::string pincommand = m_pinConvExecutablePath.string();
     if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
+      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+        ErrorMessage(
+            "No pin description xml file available for this device, required "
+            "for set_pin_loc constraints");
+        return false;
+      }
+      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+        ErrorMessage(
+            "No pin description csv file available for this device, required "
+            "for set_pin_loc constraints");
+        return false;
+      }
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +
-                    std::string(m_projManager->projectName() + "_openfpga.pcf");
+                    std::string(ProjManager()->projectName() + "_openfpga.pcf");
       pincommand += " --blif " + netlistFile;
-      std::string pin_locFile = m_projManager->projectName() + "_pin_loc.place";
+      std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
       pincommand += " --output " + pin_locFile;
 
       std::ofstream ofsp(
-          (std::filesystem::path(m_projManager->projectName()) /
-           std::string(m_projManager->projectName() + "_pin_loc.cmd"))
+          (std::filesystem::path(ProjManager()->projectName()) /
+           std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
               .string());
       ofsp << pincommand << std::endl;
       ofsp.close();
       int status = ExecuteAndMonitorSystemCommand(pincommand);
       if (status) {
-        ErrorMessage("Design " + m_projManager->projectName() +
+        ErrorMessage("Design " + ProjManager()->projectName() +
                      " pin conversion failed!");
         return false;
       } else {
@@ -1506,7 +1567,7 @@ bool CompilerOpenFPGA_ql::Placement() {
       }
     }
   }
-#endif // #if 0 // disabling this until we have the pin_c executable
+#endif // #if 0 // disabling this unless we actually use pin_c executable
   
   std::string command = BaseVprCommand();
   if(command.empty()) {
@@ -1516,31 +1577,32 @@ bool CompilerOpenFPGA_ql::Placement() {
   command += std::string(" ") + 
              std::string("--place");
 
-#if 0 // disabling this until we have the pin_c executable
+#if 0 // disabling this unless we actually use pin_c executable
   if (!pin_loc_constraint_file.empty()) {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
-#endif // #if 0 // disabling this until we have the pin_c executable
-  std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
-                     std::string(m_projManager->projectName() + "_place.cmd"))
+#endif // #if 0 // disabling this unless we actually use pin_c executable
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                     std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() +
+    ErrorMessage("Design " + ProjManager()->projectName() +
                  " placement failed!");
     return false;
   }
   m_state = State::Placed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is placed!"
            << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA_ql::Route() {
-  if (!m_projManager->HasDesign()) {
+  PERF_LOG("Route has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1548,7 +1610,16 @@ bool CompilerOpenFPGA_ql::Route() {
     ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed state"));
     return false;
   }
-  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + ProjManager()->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    return true;
+  }
+  (*m_out) << "Routing for design: " << ProjManager()->projectName() << "..."
            << std::endl;
 //   if (!FileExists(m_vprExecutablePath)) {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
@@ -1562,25 +1633,26 @@ bool CompilerOpenFPGA_ql::Route() {
   command += std::string(" ") + 
              std::string("--route");
 
-  std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
-                     std::string(m_projManager->projectName() + "_route.cmd"))
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                     std::string(ProjManager()->projectName() + "_route.cmd"))
                         .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() + " routing failed!");
+    ErrorMessage("Design " + ProjManager()->projectName() + " routing failed!");
     return false;
   }
   m_state = State::Routed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is routed!"
            << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA_ql::TimingAnalysis() {
-  if (!m_projManager->HasDesign()) {
+  PERF_LOG("TimingAnalysis has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1590,7 +1662,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return false;
   }
 
-  (*m_out) << "Analysis for design: " << m_projManager->projectName() << "..."
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
            << std::endl;
 //   if (!FileExists(m_vprExecutablePath)) {
 //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
@@ -1648,27 +1720,27 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
              std::string(" ") + 
              std::string("--disp on");
 
-  std::ofstream ofs((std::filesystem::path(m_projManager->projectName()) /
-                     std::string(m_projManager->projectName() + "_sta.cmd"))
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                     std::string(ProjManager()->projectName() + "_sta.cmd"))
                         .string());
   ofs << command << std::endl;
   ofs.close();
-
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() +
+    ErrorMessage("Design " + ProjManager()->projectName() +
                  " timing analysis failed!");
     return false;
   }
 
-  (*m_out) << "Design " << m_projManager->projectName()
+  (*m_out) << "Design " << ProjManager()->projectName()
            << " is timing analysed!" << std::endl;
 
   return true;
 }
 
 bool CompilerOpenFPGA_ql::PowerAnalysis() {
-  if (!m_projManager->HasDesign()) {
+  PERF_LOG("PowerAnalysis has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -1678,7 +1750,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
     return false;
   }
 
-  (*m_out) << "Analysis for design: " << m_projManager->projectName() << "..."
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
            << std::endl;
   
   //   if (!FileExists(m_vprExecutablePath)) {
@@ -1739,12 +1811,12 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() +
+    ErrorMessage("Design " + ProjManager()->projectName() +
                  " power analysis failed!");
     return false;
   }
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is power analysed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed!"
            << std::endl;
   return true;
 }
@@ -1914,7 +1986,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   // call vpr to execute analysis
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
-  std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
+  std::string netlistFilePrefix = ProjManager()->projectName() + "_post_synth";
 
   if( (settings_vpr_filename_obj.contains("net_file")) && 
       !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
@@ -1966,12 +2038,12 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   //std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
-  for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        std::filesystem::path the_path = lang_file;
+        std::filesystem::path the_path = lang_file.second;
         std::filesystem::path filename = the_path.filename();
         std::filesystem::path stem = filename.stem();
         netlistFilePrefix = stem.string();
@@ -1987,15 +2059,15 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   result = ReplaceAll(result, "${PLACE_FILE}", netlistFilePrefix + ".place");
   result = ReplaceAll(result, "${ROUTE_FILE}", netlistFilePrefix + ".route");
   result = ReplaceAll(result, "${SDC_FILE}",
-                      m_projManager->projectName() + "_openfpga.sdc");
+                      ProjManager()->projectName() + "_openfpga.sdc");
 
-  std::string netlistFile = m_projManager->projectName() + "_post_synth.blif";
-  for (const auto& lang_file : m_projManager->DesignFiles()) {
-    switch (m_projManager->designFileData(lang_file)) {
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
-        netlistFile = lang_file;
+        netlistFile = lang_file.second;
         std::filesystem::path the_path = netlistFile;
         if (!the_path.is_absolute()) {
           netlistFile =
@@ -2038,7 +2110,8 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 }
 
 bool CompilerOpenFPGA_ql::GenerateBitstream() {
-  if (!m_projManager->HasDesign()) {
+  PERF_LOG("GenerateBitstream has started");
+  if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
@@ -2051,10 +2124,10 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   }
 
   (*m_out) << "Bitstream generation for design: "
-           << m_projManager->projectName() << "..." << std::endl;
+           << ProjManager()->projectName() << "..." << std::endl;
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
-                        m_projManager->projectName() + ".openfpga";
+                        ProjManager()->projectName() + ".openfpga";
 
   std::string script = InitOpenFPGAScript();
 
@@ -2064,15 +2137,15 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     return false;
   }
 
-  std::string script_path = m_projManager->projectName() + ".openfpga";
+  std::string script_path = ProjManager()->projectName() + ".openfpga";
 
-  std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
+  std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
                           std::string("fabric_bitstream.bit"));
-  std::filesystem::remove(std::filesystem::path(m_projManager->projectName()) /
+  std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
                           std::string("fabric_independent_bitstream.xml"));
   // Create OpenFpga command and execute
   script_path =
-      (std::filesystem::path(m_projManager->projectName()) / script_path)
+      (std::filesystem::path(ProjManager()->projectName()) / script_path)
           .string();
   std::ofstream sofs(script_path);
   sofs << script;
@@ -2084,20 +2157,20 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
 //   }
 
   std::ofstream ofs(
-      (std::filesystem::path(m_projManager->projectName()) /
-       std::string(m_projManager->projectName() + "_bitstream.cmd"))
+      (std::filesystem::path(ProjManager()->projectName()) /
+       std::string(ProjManager()->projectName() + "_bitstream.cmd"))
           .string());
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + m_projManager->projectName() +
+    ErrorMessage("Design " + ProjManager()->projectName() +
                  " bitream generation failed!");
     return false;
   }
   m_state = State::BistreamGenerated;
 
-  (*m_out) << "Design " << m_projManager->projectName()
+  (*m_out) << "Design " << ProjManager()->projectName()
            << " bitstream is generated!" << std::endl;
   return true;
 }
