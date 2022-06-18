@@ -36,17 +36,23 @@ namespace FOEDAG {
 class CommandStack {
  private:
  public:
-  CommandStack(TclInterpreter* interp);
+  CommandStack(TclInterpreter* interp,
+               const std::string& logFile = std::string{}, bool mute = false);
   bool push_and_exec(Command* cmd);
+  void push(Command* cmd);
   bool pop_and_undo();
 
   ~CommandStack();
   Logger* CmdLogger() { return m_logger; }
+  Logger* PerfLogger() { return m_perfLogger; }
+  Logger* OutLogger() { return m_outputLogger; }
 
  private:
   std::vector<Command*> m_cmds;
   TclInterpreter* m_interp = nullptr;
   Logger* m_logger = nullptr;
+  Logger* m_perfLogger = nullptr;
+  Logger* m_outputLogger = nullptr;
 };
 
 }  // namespace FOEDAG

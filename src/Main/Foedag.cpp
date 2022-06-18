@@ -47,6 +47,9 @@ extern "C" {
 
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Console/StreamBuffer.h"
+#include "Console/TclWorker.h"
+#include "FoedagStyle.h"
 #include "Main/Foedag.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
@@ -85,19 +88,6 @@ bool getFullPath(const std::filesystem::path& path,
     *result = found ? fullPath : path;
   }
   return found;
-}
-
-void loadSettings(FOEDAG::Settings* settings) {
-  if (settings) {
-    const std::string separator(1, std::filesystem::path::preferred_separator);
-    std::string settingsPath = Config::Instance()->dataPath().string() +
-                               separator + std::string("etc") + separator +
-                               std::string("settings") + separator;
-    QString settingsDir = QString::fromStdString(settingsPath);
-
-    QStringList settingsFiles = {settingsDir + "settings_test.json"};
-    settings->loadSettings(settingsFiles);
-  }
 }
 
 // Try to find the full absolute path of the program currently running.
@@ -161,17 +151,19 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
   }
 }
 
+Foedag::~Foedag() { delete m_tclChannelHandler; }
+
 bool Foedag::initGui() {
   // Gui mode with Qt Widgets
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
+  QApplication::setStyle(new FoedagStyle(app.style()));
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
-
-  loadSettings(m_settings);
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
                                       m_context, m_compiler, m_settings);
@@ -236,9 +228,11 @@ bool Foedag::initQmlGui() {
   // Gui mode with QML
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
+  QApplication::setStyle(new FoedagStyle(app.style()));
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
 
   MainWindowModel* windowModel = new MainWindowModel(interpreter);
 
@@ -343,13 +337,26 @@ bool Foedag::initBatch() {
   // Batch mode
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
-  FOEDAG::CommandStack* commands = new FOEDAG::CommandStack(interpreter);
+  const bool mute{m_cmdLine->Mute() && !m_cmdLine->Script().empty()};
+  FOEDAG::CommandStack* commands =
+      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName(), mute);
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
   m_compiler->setGuiTclSync(
       new TclCommandIntegration{new ProjectManager, nullptr});
+
+  if (mute) {
+    std::cout.rdbuf(nullptr);
+  } else {
+    auto logger =
+        new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
+    std::cout.rdbuf(logger);
+    std::cerr.rdbuf(logger);
+    m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
+                                                std::cout, &std::cerr, true);
+  }
 
   registerBasicBatchCommands(GlobalSession);
   if (m_registerTclFunc) {
@@ -386,7 +393,6 @@ bool Foedag::initBatch() {
   };
 
   // Start Loop
-  int argc = m_cmdLine->Argc();
   char** argv = new char*[1];
   argv[0] = strdup(m_cmdLine->Argv()[0]);
   Tcl_MainEx(1, argv, tcl_init, interpreter->getInterp());

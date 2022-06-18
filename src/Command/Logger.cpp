@@ -35,12 +35,27 @@ void Logger::open() {
 }
 
 void Logger::close() {
-  m_stream->close();
-  m_stream = nullptr;
+  if (m_stream) {
+    delete m_stream;
+    m_stream = nullptr;
+  }
 }
 
 void Logger::log(const std::string& text) {
   if (m_stream) {
     *m_stream << text << std::endl << std::flush;
   }
+}
+
+void Logger::appendLog(const std::string& text) {
+  if (m_stream) {
+    *m_stream << text << std::flush;
+  }
+}
+
+Logger::~Logger() { close(); }
+
+Logger& Logger::operator<<(const std::string& log) {
+  appendLog(log);
+  return *this;
 }

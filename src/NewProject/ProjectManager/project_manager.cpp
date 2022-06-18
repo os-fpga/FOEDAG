@@ -8,9 +8,16 @@
 #include <QXmlStreamWriter>
 #include <filesystem>
 
+#include "Compiler/CompilerDefines.h"
+extern const char* foedag_version_number;
+
 using namespace FOEDAG;
 
-ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {}
+ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
+  // Re-emit projectPathChanged signals
+  QObject::connect(Project::Instance(), &Project::projectPathChanged, this,
+                   &ProjectManager::projectPathChanged);
+}
 
 void ProjectManager::CreateProject(const ProjectOptions& opt) {
   if (opt.rewriteProject) {
@@ -38,10 +45,11 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   QList<filedata> listFile = opt.sourceFileData.fileData;
   foreach (filedata fdata, listFile) {
     if ("<Local to Project>" == fdata.m_filePath) {
-      setDesignFile(fdata.m_fileName, false);
+      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false);
     } else {
-      setDesignFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                    opt.sourceFileData.isCopySource);
+      setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
+                     FromFileType(fdata.m_fileType),
+                     opt.sourceFileData.isCopySource);
     }
     if (!fdata.m_isFolder) {
       strDefaultSrc = fdata.m_fileName;
@@ -327,6 +335,25 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
+int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
+                                   bool isFileCopy) {
+  setCurrentFileSet(getDesignActiveFileSet());
+  QStringList fileList = StringSplit(fileNames, " ");
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+  proFileSet->addFiles(fileList, lang);
+
+  int result{0};
+  for (const auto& file : fileList) {
+    int res = setDesignFile(file, isFileCopy);
+    if (res != 0) result = res;
+  }
+  return result;
+}
+
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
@@ -337,6 +364,7 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
       suffix = QFileInfo(strfile).suffix();
       if (!suffix.compare("v", Qt::CaseInsensitive) ||
           !suffix.compare("sv", Qt::CaseInsensitive) ||
+          !suffix.compare("vh", Qt::CaseInsensitive) ||
           !suffix.compare("vhd", Qt::CaseInsensitive) ||
           !suffix.compare("blif", Qt::CaseInsensitive) ||
           !suffix.compare("eblif", Qt::CaseInsensitive)) {
@@ -346,6 +374,7 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
   } else if (fileInfo.exists()) {
     if (!suffix.compare("v", Qt::CaseInsensitive) ||
         !suffix.compare("sv", Qt::CaseInsensitive) ||
+        !suffix.compare("vh", Qt::CaseInsensitive) ||
         !suffix.compare("vhd", Qt::CaseInsensitive) ||
         !suffix.compare("blif", Qt::CaseInsensitive) ||
         !suffix.compare("eblif", Qt::CaseInsensitive)) {
@@ -359,6 +388,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
           ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
         }
       } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(strFileName);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
+        }
+      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
         ret = CreateSystemVerilogFile(strFileName);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
@@ -392,6 +426,11 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
           ret = AddOrCreateFileToFileSet(fileSetPath, false);
         }
       } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+        ret = CreateSystemVerilogFile(filePath);
+        if (0 == ret) {
+          ret = AddOrCreateFileToFileSet(fileSetPath, false);
+        }
+      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
         ret = CreateSystemVerilogFile(filePath);
         if (0 == ret) {
           ret = AddOrCreateFileToFileSet(fileSetPath, false);
@@ -648,9 +687,35 @@ QStringList ProjectManager::getDesignFiles() const {
   return getDesignFiles(getDesignActiveFileSet());
 }
 
-std::vector<std::string> ProjectManager::DesignFiles() const {
-  std::vector<std::string> vec;
-  for (auto file : getDesignFiles()) vec.push_back(file.toStdString());
+std::vector<std::pair<int, std::string>> ProjectManager::DesignFiles() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
+
+  std::vector<std::pair<int, std::string>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      vec.push_back(
+          std::make_pair(iter->first, iter->second.join(" ").toStdString()));
+    }
+  }
+  return vec;
+}
+
+std::vector<std::pair<int, std::vector<std::string>>>
+ProjectManager::DesignFileList() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
+
+  std::vector<std::pair<int, std::vector<std::string>>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      std::vector<std::string> files;
+      for (const auto& f : iter->second) files.push_back(f.toStdString());
+      vec.push_back(std::make_pair(iter->first, files));
+    }
+  }
   return vec;
 }
 
@@ -1208,6 +1273,12 @@ int ProjectManager::ImportProjectData(QString strOspro) {
     return ret;
   }
 
+  // this is starting point for backward compatibility
+  QString version = ProjectVersion(strOspro);
+  Q_UNUSED(version)
+  // reorganize code in the future to have different loaders for compatible
+  // versions
+
   QFile file(strOspro);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
     return -1;
@@ -1225,7 +1296,7 @@ int ProjectManager::ImportProjectData(QString strOspro) {
         QString strName = strPath.mid(
             strPath.lastIndexOf("/") + 1,
             strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
-        ;
+
         Project::Instance()->setProjectName(strName);
         Project::Instance()->setProjectPath(
             strPath.left(strPath.lastIndexOf("/")));
@@ -1268,6 +1339,7 @@ int ProjectManager::ImportProjectData(QString strOspro) {
         QString strSetType;
         QString strSetSrcDir;
         QStringList listFiles;
+        std::vector<std::pair<int, QString>> langList;
         QMap<QString, QString> mapOption;
         while (true) {
           type = reader.readNext();
@@ -1294,6 +1366,12 @@ int ProjectManager::ImportProjectData(QString strOspro) {
                      reader.attributes().hasAttribute(PROJECT_VAL)) {
             mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
                              reader.attributes().value(PROJECT_VAL).toString());
+          } else if (type == QXmlStreamReader::StartElement &&
+                     reader.attributes().hasAttribute(PROJECT_GROUP_ID) &&
+                     reader.attributes().hasAttribute(PROJECT_GROUP_FILES)) {
+            langList.push_back(std::make_pair(
+                reader.attributes().value(PROJECT_GROUP_ID).toInt(),
+                reader.attributes().value(PROJECT_GROUP_FILES).toString()));
           } else if (type == QXmlStreamReader::EndElement &&
                      reader.name() == PROJECT_FILESET) {
             ProjectFileSet projectFileset;
@@ -1306,6 +1384,9 @@ int ProjectManager::ImportProjectData(QString strOspro) {
                   strFile.right(strFile.size() -
                                 (strFile.lastIndexOf("/") + 1)),
                   strFile);
+            }
+            for (const auto& i : langList) {
+              projectFileset.addFiles(StringSplit(i.second, " "), i.first);
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {
@@ -1408,13 +1489,12 @@ int ProjectManager::ExportProjectData() {
   stream.setAutoFormatting(true);
   stream.writeStartDocument();
   stream.writeComment(
-      tr("Product Version:  FOEDAG   V1.0.0.0                "));
-  stream.writeComment(
       tr("                                                   "));
   stream.writeComment(
       tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
   stream.writeStartElement(PROJECT_PROJECT);
   stream.writeAttribute(PROJECT_PATH, xmlPath);
+  stream.writeAttribute(PROJECT_VERSION, foedag_version_number);
 
   stream.writeStartElement(PROJECT_CONFIGURATION);
 
@@ -1461,6 +1541,13 @@ int ProjectManager::ExportProjectData() {
          ++iterfile) {
       stream.writeStartElement(PROJECT_FILESET_FILE);
       stream.writeAttribute(PROJECT_PATH, iterfile->second);
+      stream.writeEndElement();
+    }
+    auto langMap = tmpFileSet->Files();
+    for (auto it = langMap.cbegin(); it != langMap.cend(); ++it) {
+      stream.writeStartElement(PROJECT_GROUP);
+      stream.writeAttribute(PROJECT_GROUP_ID, QString::number(it->first));
+      stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
       stream.writeEndElement();
     }
 
@@ -1745,6 +1832,41 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
   return true;
 }
 
+QStringList ProjectManager::StringSplit(const QString& str,
+                                        const QString& sep) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+  return str.split(sep, Qt::SkipEmptyParts);
+#else
+  return str.split(sep, QString::SkipEmptyParts);
+#endif
+}
+
+QString ProjectManager::ProjectVersion(const QString& filename) {
+  QFile file(filename);
+  if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    return QString();
+  }
+
+  QXmlStreamReader reader;
+  reader.setDevice(&file);
+  while (!reader.atEnd()) {
+    QXmlStreamReader::TokenType type = reader.readNext();
+    if (type == QXmlStreamReader::StartElement) {
+      if (reader.name() == PROJECT_PROJECT) {
+        QString projectVersion =
+            reader.attributes().value(PROJECT_VERSION).toString();
+        return projectVersion;
+      }
+    }
+  }
+
+  if (reader.hasError()) {
+    return QString();
+  }
+  file.close();
+  return QString();
+}
+
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
   return m_libraryPathList;
 }
@@ -1758,6 +1880,18 @@ void ProjectManager::addLibraryPath(const std::string& libraryPath) {
   m_libraryPathList.push_back(libraryPath);
 }
 
+const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
+  return m_libraryExtList;
+}
+
+void ProjectManager::setLibraryExtensionList(
+    const std::vector<std::string>& newLibraryExtensionList) {
+  m_libraryExtList = newLibraryExtensionList;
+}
+void ProjectManager::addLibraryExtension(const std::string& libraryExt) {
+  m_libraryExtList.push_back(libraryExt);
+}
+
 void ProjectManager::addMacro(const std::string& macroName,
                               const std::string& macroValue) {
   m_macroList.push_back(std::pair(macroName, macroValue));
@@ -1766,26 +1900,6 @@ void ProjectManager::addMacro(const std::string& macroName,
 const std::vector<std::pair<std::string, std::string>>&
 ProjectManager::macroList() const {
   return m_macroList;
-}
-
-void ProjectManager::setDesignFileData(const std::string& file, int data) {
-  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) {
-    return;
-  }
-  proFileSet->addFileData(file.c_str(), data);
-}
-
-int ProjectManager::designFileData(const std::string& file) {
-  setCurrentFileSet(getDesignActiveFileSet());  // TODO, remove after #342
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) {
-    return -1;
-  }
-  return proFileSet->fileData(file.c_str());
 }
 
 const std::vector<std::string>& ProjectManager::includePathList() const {

@@ -45,7 +45,7 @@ bool WorkerThread::start() {
                              m_compiler->GetSession()->CmdLine()->WithQml();
   if (processEvents) eventLoop = new QEventLoop;
   m_thread = new std::thread([&, eventLoop] {
-    m_compiler->Compile(m_action);
+    result = m_compiler->Compile(m_action);
     m_compiler->finish();
     if (eventLoop) eventLoop->quit();
   });

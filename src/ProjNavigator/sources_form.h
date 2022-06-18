@@ -39,12 +39,16 @@ class SourcesForm : public QWidget {
 
   void InitSourcesForm(const QString& strFile);
   TclCommandIntegration* createTclCommandIntegarion();
+  ProjectManager* ProjManager();
 
   /*for test*/
   void TestOpenProject(int argc, const char* argv[]);
 
  signals:
   void OpenFile(QString);
+  void ShowProperty(const QString&);
+  void ShowPropertyPanel();
+  void CloseProject();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -52,7 +56,6 @@ class SourcesForm : public QWidget {
 
   void SetCurrentFileItem(const QString& strFileName);
   void SlotRefreshSourceTree();
-  void SlotCreateDesignSet();
   void SlotCreateConstrSet();
   void SlotCreateSimSet();
   void SlotAddFile();
@@ -62,13 +65,14 @@ class SourcesForm : public QWidget {
   void SlotSetAsTop();
   void SlotSetAsTarget();
   void SlotSetActive();
+  void SlotProperties();
+  void SlotPropertiesTriggered();
 
  private:
   Ui::SourcesForm* ui;
 
   QTreeWidget* m_treeSrcHierachy;
   QAction* m_actRefresh;
-  QAction* m_actEditDesignSets;
   QAction* m_actEditConstrsSets;
   QAction* m_actEditSimulSets;
   QAction* m_actAddFile;
@@ -78,6 +82,8 @@ class SourcesForm : public QWidget {
   QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
+  QAction* m_actProperties;
+  QAction* m_actCloseProject;
 
   ProjectManager* m_projManager;
 

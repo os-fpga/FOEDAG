@@ -36,10 +36,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
@@ -129,6 +131,15 @@ void MainWindow::openProject() {
   }
 }
 
+void MainWindow::closeProject() {
+  if (m_projectManager && m_projectManager->HasDesign()) {
+    Project::Instance()->InitProject();
+    newProjdialog->Reset();
+    ReShowWindow("");
+    newProjectAction->setEnabled(true);
+  }
+}
+
 void MainWindow::openFileSlot() {
   const QString file = QFileDialog::getOpenFileName(this, tr("Open file"));
   auto editor = findChild<TextEditor*>("textEditor");
@@ -153,6 +164,7 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
+  fileMenu->addAction(closeProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -180,6 +192,10 @@ void MainWindow::createActions() {
   openProjectAction = new QAction(tr("&Open Project"), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
+
+  closeProjectAction = new QAction(tr("&Close Project"), this);
+  closeProjectAction->setStatusTip(tr("Close current project"));
+  connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
   newProjectAction = new QAction(tr("&New Project"), this);
@@ -231,9 +247,29 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   SourcesForm* sourForm = new SourcesForm(this);
+  connect(sourForm, &SourcesForm::CloseProject, this, &MainWindow::closeProject,
+          Qt::QueuedConnection);
   sourForm->InitSourcesForm(strProject);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+  m_projectManager = sourForm->ProjManager();
+  // If the project manager path changes, reload settings
+  QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
+                   &MainWindow::reloadSettings, Qt::UniqueConnection);
+
+  reloadSettings();  // This needs to be after
+                     // sourForm->InitSourcesForm(strProject); so the project
+                     // info exists
+
+  QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
+  PropertyWidget* propertyWidget = new PropertyWidget{sourForm->ProjManager()};
+  connect(sourForm, &SourcesForm::ShowProperty, propertyWidget,
+          &PropertyWidget::ShowProperty);
+  connect(sourForm, &SourcesForm::ShowPropertyPanel, propertiesDockWidget,
+          &QDockWidget::show);
+  propertiesDockWidget->setWidget(propertyWidget->Widget());
+  addDockWidget(Qt::LeftDockWidgetArea, propertiesDockWidget);
+  propertiesDockWidget->hide();
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -286,7 +322,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
   QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
-  runDockWidget->setObjectName("sourcedockwidget");
+  runDockWidget->setObjectName("designrundockwidget");
   RunsForm* runForm = new RunsForm(this);
   runForm->InitRunsForm(strProject);
   runForm->RegisterCommands(GlobalSession);
@@ -309,5 +345,42 @@ void MainWindow::clearDockWidgets() {
   auto docks = findChildren<QDockWidget*>();
   for (auto dock : docks) {
     removeDockWidget(dock);
+  }
+}
+
+void MainWindow::reloadSettings() {
+  FOEDAG::Settings* settings = GlobalSession->GetSettings();
+  if (settings) {
+    // Clear out old settings
+    settings->clear();
+
+    QString separator = QString::fromStdString(
+        std::string(1, std::filesystem::path::preferred_separator));
+
+    // List of json files that will get loaded
+    QStringList settingsFiles = {};
+
+    // Helper function to add all json files in a dir to settingsFiles
+    auto addFilesFromDir = [&settingsFiles](const QString& dirPath) {
+      if (!dirPath.isEmpty()) {
+        QDir dir(dirPath);
+        QFileInfoList files =
+            dir.entryInfoList(QStringList() << "*.json", QDir::Files);
+        for (auto file : files) {
+          settingsFiles << file.filePath();
+        }
+      }
+    };
+
+    // Add any json files from the system defaults json path
+    QString settingsDir =
+        GlobalSession->GetSettings()->getSystemDefaultSettingsDir();
+    addFilesFromDir(settingsDir);
+
+    // Add any json files from the [projectName].settings folder
+    addFilesFromDir(FOEDAG::getTaskUserSettingsPath());
+
+    // Load and merge all our json files
+    settings->loadSettings(settingsFiles);
   }
 }

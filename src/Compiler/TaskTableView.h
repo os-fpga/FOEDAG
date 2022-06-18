@@ -50,6 +50,7 @@ class TaskTableView : public QTableView {
   Q_OBJECT
  public:
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
+  void setModel(QAbstractItemModel *model) override;
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;
@@ -61,10 +62,14 @@ class TaskTableView : public QTableView {
   void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                    const QVector<int> &roles = QVector<int>()) override;
 
+ signals:
+  void TaskDialogRequested(const QString &category);
+
  private:
   QRect expandArea(const QModelIndex &index) const;
 
  private:
   TaskManager *m_taskManager{nullptr};
+  static constexpr uint TitleCol{1};
 };
 }  // namespace FOEDAG

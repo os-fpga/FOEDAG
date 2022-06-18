@@ -32,31 +32,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
+#define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
+
 namespace FOEDAG {
 
 QDialog* createSettingsDialog(json& widgetsJson, const QString& dialogTitle,
-                              const QString& objectNamePrefix = "");
+                              const QString& objectNamePrefix = "",
+                              const QString& tclArgs = "");
 QWidget* createSettingsWidget(json& widgetsJson,
-                              const QString& objNamePrefix = "");
+                              const QString& objNamePrefix = "",
+                              const QString& tclArgs = "");
 
-QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "");
-QWidget* createWidget(const QString& widgetJsonStr,
-                      const QString& objName = "");
+QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
+                      const QStringList& args = QStringList());
+QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
+                      const QStringList& args = QStringList());
 QWidget* createLabelWidget(const QString& label, QWidget* widget);
-QComboBox* createComboBox(const QString& objectName, const QStringList& options,
-                          const QString& selectedValue = "");
-QLineEdit* createLineEdit(const QString& objectName, const QString& text = "");
-QDoubleSpinBox* createDoubleSpinBox(const QString& objectName, double minVal,
-                                    double maxVal, double stepVal,
-                                    double defaultVal);
-QSpinBox* createSpinBox(const QString& objectName, int minVal, int maxVal,
-                        int stepVal, int defaultVal = -1);
-QRadioButton* createRadioButton(const QString& objectName, const QString& text);
-QButtonGroup* createRadioButtons(const QString& objectName,
-                                 const QStringList& nameList,
-                                 const QString& selectedValue = "");
-QCheckBox* createCheckBox(const QString& objectName, const QString& text,
-                          Qt::CheckState checked);
+QComboBox* createComboBox(
+    const QString& objectName, const QStringList& options,
+    const QString& selectedValue = "",
+    std::function<void(QComboBox*, const QString&)> onChange = nullptr);
+QLineEdit* createLineEdit(
+    const QString& objectName, const QString& text = "",
+    std::function<void(QLineEdit*, const QString&)> onChange = nullptr);
+QDoubleSpinBox* createDoubleSpinBox(
+    const QString& objectName, double minVal, double maxVal, double stepVal,
+    double defaultVal,
+    std::function<void(QDoubleSpinBox*, const double&)> onChange = nullptr);
+QSpinBox* createSpinBox(
+    const QString& objectName, int minVal, int maxVal, int stepVal,
+    int defaultVal,
+    std::function<void(QSpinBox*, const int&)> onChange = nullptr);
+QButtonGroup* createRadioButtons(
+    const QString& objectName, const QStringList& nameList,
+    const QString& selectedValue = "",
+    std::function<void(QRadioButton*, QButtonGroup*, const bool&)> onChange =
+        nullptr);
+QCheckBox* createCheckBox(
+    const QString& objectName, const QString& text, Qt::CheckState checked,
+    std::function<void(QCheckBox*, const int&)> onChange = nullptr);
 
 }  // namespace FOEDAG
 

@@ -21,9 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskTableView.h"
 
 #include <QApplication>
+#include <QBoxLayout>
 #include <QDebug>
 #include <QHeaderView>
 #include <QMenu>
+#include <QPushButton>
 
 #include "TaskManager.h"
 
@@ -47,29 +49,52 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
 
 void TaskTableView::mousePressEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
-  bool expandAreaClicked = expandArea(idx).contains(event->pos());
-  if (expandAreaClicked) {
-    model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+  if (idx.column() == TitleCol) {
+    bool expandAreaClicked = expandArea(idx).contains(event->pos());
+    if (expandAreaClicked) {
+      model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+    }
   }
+
   QTableView::mousePressEvent(event);
 }
 
 void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
   auto idx = indexAt(event->pos());
-  if (idx.isValid() && !expandArea(idx).contains(event->pos())) {
+  if (idx.isValid() && (idx.column() == TitleCol) &&
+      !expandArea(idx).contains(event->pos())) {
     userActionHandle(idx);
   }
   QTableView::mouseDoubleClickEvent(event);
 }
 
+void TaskTableView::setModel(QAbstractItemModel *model) {
+  QTableView::setModel(model);
+  for (int i = 0; i < this->model()->rowCount(); i++) {
+    auto task = m_taskManager->task(i);
+    if (task && task->type() == TaskType::Settings) {
+      auto index = this->model()->index(i, TitleCol);
+      auto button = new QPushButton(task->title());
+      connect(button, &QPushButton::clicked, this,
+              [=]() { emit TaskDialogRequested(task->settingsKey()); });
+      setIndexWidget(index, button);
+    }
+  }
+}
+
 void TaskTableView::customMenuRequested(const QPoint &pos) {
   QModelIndex index = indexAt(pos);
-  QMenu *menu = new QMenu(this);
-  QAction *start = new QAction("Run", this);
-  connect(start, &QAction::triggered, this,
-          [this, index]() { userActionHandle(index); });
-  menu->addAction(start);
-  menu->popup(viewport()->mapToGlobal(pos));
+  if (index.column() == TitleCol) {
+    auto task = m_taskManager->task(index.row());
+    if (task && task->type() != TaskType::Settings) {
+      QMenu *menu = new QMenu(this);
+      QAction *start = new QAction("Run", this);
+      connect(start, &QAction::triggered, this,
+              [this, index]() { userActionHandle(index); });
+      menu->addAction(start);
+      menu->popup(viewport()->mapToGlobal(pos));
+    }
+  }
 }
 
 void TaskTableView::userActionHandle(const QModelIndex &index) {

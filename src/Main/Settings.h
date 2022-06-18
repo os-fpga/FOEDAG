@@ -44,12 +44,19 @@ class Settings {
 
  public:
   Settings();
+  void clear();
   void loadSettings(const QStringList& jsonFiles);
   QString getJsonStr(const json& object);
   QString getJsonStr();
+  static QString getLookupValue(
+      const json& object, const QString& option,
+      const QString& optionsArrayKey = "options",
+      const QString& lookupArrayKey = "optionsLookup");
+  QString getSystemDefaultSettingsDir();
 
   void loadJsonFile(const QString& filePath);
   void loadJsonFile(json* jsonObject, const QString& filePath);
+  void saveJsonFile(const json& jsonObject, const QString& filePath);
 
   json& getJson() { return m_json; }
 };

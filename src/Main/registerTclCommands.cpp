@@ -42,6 +42,7 @@ extern "C" {
 
 #include "Command/CommandStack.h"
 #include "CommandLine.h"
+#include "Compiler/Log.h"
 #include "Foedag.h"
 #include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
@@ -55,7 +56,7 @@ extern "C" {
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
-    GlobalSession->CmdStack()->CmdLogger()->log("gui_start");
+    LOG_CMD("gui_start");
     GlobalSession->windowShow();
     return 0;
   };
@@ -63,7 +64,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto gui_stop = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
-    GlobalSession->CmdStack()->CmdLogger()->log("gui_stop");
+    LOG_CMD("gui_stop");
     GlobalSession->windowHide();
     return 0;
   };
@@ -72,7 +73,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto create_project = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     Q_UNUSED(interp);
-    GlobalSession->CmdStack()->CmdLogger()->log("create_project");
+    LOG_CMD("create_project");
     FOEDAG::MainWindow* mainwindow = (FOEDAG::MainWindow*)(clientData);
     mainwindow->Tcl_NewProject(argc, argv);
     return 0;
@@ -92,7 +93,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
-    GlobalSession->CmdStack()->CmdLogger()->log("help");
+    LOG_CMD("help");
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);
@@ -207,7 +208,7 @@ void registerBasicBatchCommands(FOEDAG::Session* session) {
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
-    GlobalSession->CmdStack()->CmdLogger()->log("help");
+    LOG_CMD("help");
     return 0;
   };
   session->TclInterp()->registerCmd("help", help, 0, 0);

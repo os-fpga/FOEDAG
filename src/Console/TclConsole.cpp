@@ -1,5 +1,6 @@
 #include "TclConsole.h"
 
+#include <QDir>
 #include <iostream>
 
 #include "ConsoleDefines.h"
@@ -10,7 +11,7 @@ namespace FOEDAG {
 TclConsole::TclConsole(TclInterp *interpreter, std::ostream &out,
                        QObject *parent)
     : ConsoleInterface(parent),
-      m_tclWorker(new TclWorker{interpreter, out, &std::cerr, parent}),
+      m_tclWorker(new TclWorker{interpreter, out, &std::cerr, false, parent}),
       m_out(out) {
   connect(m_tclWorker, &TclWorker::tclFinished, this,
           &TclConsole::tclWorkerFinished);
@@ -107,6 +108,27 @@ QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,
             cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
           prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
         }
+      }
+    }
+  } else if (cmd.startsWith("cd ")) {
+    const int res = TclEval(interpreter, qPrintable("pwd"));
+    if (res == TCL_OK) {
+      const QString userInput = cmd.right(cmd.size() - 3);
+      QString currPath = TclGetString(Tcl_GetObjResult(interpreter));
+      currPath += QDir::separator() + userInput;
+      QString path =
+          userInput.startsWith(QDir::separator())
+              ? userInput.mid(0, userInput.lastIndexOf(QDir::separator()) + 1)
+              : currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1);
+      QString filter = QString("%1*").arg(currPath.remove(
+          currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1)));
+      QDir dir{path};
+      suggestions += dir.entryList({filter}, QDir::Dirs | QDir::CaseSensitive);
+      if (!suggestions.isEmpty()) {
+        auto cutSeperator = cmd.mid(0, cmd.lastIndexOf(QDir::separator()) + 1);
+        if (cutSeperator.isEmpty())
+          cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
+        prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
       }
     }
   }

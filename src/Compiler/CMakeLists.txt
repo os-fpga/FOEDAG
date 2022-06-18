@@ -29,7 +29,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
 else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
+  set(CMAKE_CXX_FLAGS_DEBUG
+  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
@@ -41,7 +42,6 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  Design.cpp
   Compiler.cpp
   foedag_version_number.cpp
   Constraints.cpp
@@ -53,10 +53,11 @@ set (SRC_CPP_LIST
   Task.cpp
   TaskManager.cpp
   CompilerDefines.cpp
+  ProcessUtils.cpp
+  Log.cpp
 )
 
 set (SRC_H_INSTALL_LIST
-  Design.h
   Compiler.h
   Constraints.cpp
   CompilerOpenFPGA.h
@@ -67,6 +68,8 @@ set (SRC_H_INSTALL_LIST
   Task.h
   TaskManager.h
   CompilerDefines.h
+  ProcessUtils.h
+  Log.h
 )
 
 set (SRC_H_LIST
@@ -98,9 +101,6 @@ foreach(file ${SRC_H_INSTALL_LIST})
 endforeach()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
-
-set(CMAKE_CXX_FLAGS_DEBUG
-"${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
 
 add_executable(compiler_bin
 	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
