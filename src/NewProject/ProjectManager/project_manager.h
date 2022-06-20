@@ -110,6 +110,12 @@ struct ProjectOptions {
   QString currentFileSet;
 };
 
+struct Suffixes {
+  const std::vector<QString> suffixes;
+  Suffixes(const std::vector<QString> &s) : suffixes(s) {}
+  bool TestSuffix(const QString &s) const;
+};
+
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
@@ -267,6 +273,8 @@ class ProjectManager : public QObject {
                       bool iscover = true);
   static QStringList StringSplit(const QString &str, const QString &sep);
   static QString ProjectVersion(const QString &filename);
+  int CreateAndAddFile(const QString &suffix, const QString &filename,
+                       const QString &filenameAdd, bool copyFile);
 
  private:
   QString m_currentFileSet;
@@ -276,6 +284,10 @@ class ProjectManager : public QObject {
   std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
+  inline static const Suffixes m_designSuffixes{
+      {"v", "sv", "vh", "vhd", "blif", "eblif"}};
+  inline static const Suffixes m_constrSuffixes{{"SDC"}};
+  inline static const Suffixes m_simSuffixes{{"v"}};
 
  signals:
   void projectPathChanged();
