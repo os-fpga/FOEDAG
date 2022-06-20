@@ -106,6 +106,12 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   FinishedProject();
 }
 
+QString ProjectManager::ProjectFilesPath(const QString& projPath,
+                                         const QString& projName,
+                                         const QString& fileSet) {
+  return QString("%1/%2.srcs/%3").arg(projPath, projName, fileSet);
+}
+
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   QTextStream out(stdout);
   if (argc < 3 || "--file" != QString(argv[1])) {
@@ -414,12 +420,14 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
@@ -482,12 +490,14 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
@@ -525,12 +535,14 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(filePath);
         if (0 == ret) {

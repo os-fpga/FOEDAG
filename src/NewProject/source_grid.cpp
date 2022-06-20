@@ -7,6 +7,7 @@
 #include <QStandardItem>
 #include <QVBoxLayout>
 
+#include "ProjectManager/project_manager.h"
 #include "create_file_dialog.h"
 
 using namespace FOEDAG;
@@ -98,6 +99,10 @@ void sourceGrid::setGridType(GridType type) {
 
 QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 
+void sourceGrid::currentFileSet(const QString &fileSet) {
+  m_currentFileSet = fileSet;
+}
+
 void sourceGrid::AddFiles() {
   QString fileformat;
   if (GT_SOURCE == m_type) {
@@ -138,7 +143,11 @@ void sourceGrid::AddDirectories() {
 }
 
 void sourceGrid::CreateFile() {
-  createFileDialog *createdlg = new createFileDialog(this);
+  auto path = ProjectManager::ProjectFilesPath(
+      Project::Instance()->projectPath(), Project::Instance()->projectName(),
+      m_currentFileSet);
+  if (Project::Instance()->projectPath().isEmpty()) path = QString();
+  createFileDialog *createdlg = new createFileDialog(path, this);
   createdlg->initialDialog(m_type);
   connect(createdlg, &createFileDialog::sig_updateGrid, this,
           &sourceGrid::AddTableItem);

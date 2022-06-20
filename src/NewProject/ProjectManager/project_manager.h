@@ -115,6 +115,9 @@ class ProjectManager : public QObject {
  public:
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  static QString ProjectFilesPath(const QString &projPath,
+                                  const QString &projName,
+                                  const QString &fileSet);
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
