@@ -15,12 +15,13 @@ class createFileDialog : public QDialog {
   Q_OBJECT
 
  public:
-  explicit createFileDialog(QWidget *parent = nullptr);
+  explicit createFileDialog(const QString &projectPath,
+                            QWidget *parent = nullptr);
   ~createFileDialog();
 
   void initialDialog(int type);
  signals:
-  void sig_updateGrid(filedata fdata);
+  void sig_updateGrid(FOEDAG::filedata fdata);
 
  private slots:
   void on_m_pushBtnOK_clicked();
@@ -28,7 +29,11 @@ class createFileDialog : public QDialog {
   void on_m_comboxFileLocation_currentIndexChanged(int index);
 
  private:
+  bool FileExists(const filedata &fData) const;
+
+ private:
   Ui::createFileDialog *ui;
+  const QString m_projectPath;
 
   int m_type;
 };

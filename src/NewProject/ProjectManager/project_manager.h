@@ -115,6 +115,9 @@ class ProjectManager : public QObject {
  public:
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  static QString ProjectFilesPath(const QString &projPath,
+                                  const QString &projName,
+                                  const QString &fileSet);
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
@@ -132,12 +135,14 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  int setDesignFiles(const QString &fileNames, int lang,
-                     bool isFileCopy = true);
+  int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
-  int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
+  int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
+                        bool localToProject = true);
   // Please set currentfileset before using this function
-  int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
+  int setConstrsFile(const QString &strFileName, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
   int deleteFile(const QString &strFileName);
 
@@ -239,7 +244,8 @@ class ProjectManager : public QObject {
 
  private:
   // Please set currentfileset before using this function
-  int setDesignFile(const QString &strFileName, bool isFileCopy = true);
+  int setDesignFile(const QString &strFileName, bool isFileCopy = true,
+                    bool localToProject = true);
 
   int ImportProjectData(QString strOspro);
   int ExportProjectData();
