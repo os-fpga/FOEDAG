@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 
 #include "Compiler.h"
-#include "Compiler/Compiler.h"
 #include "Main/Tasks.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
