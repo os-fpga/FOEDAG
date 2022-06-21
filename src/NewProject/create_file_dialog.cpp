@@ -7,8 +7,12 @@
 
 using namespace FOEDAG;
 
-createFileDialog::createFileDialog(QWidget *parent)
-    : QDialog(parent), ui(new Ui::createFileDialog) {
+constexpr auto DefaultLocation{"<Local to Project>"};
+
+createFileDialog::createFileDialog(const QString &projectPath, QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::createFileDialog),
+      m_projectPath(projectPath) {
   ui->setupUi(this);
   // m_type = type;
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
@@ -21,7 +25,7 @@ createFileDialog::createFileDialog(QWidget *parent)
   ui->m_pushBtnOK->setText(tr("OK"));
   ui->m_pushBtnCancel->setText(tr("Cancel"));
   ui->m_comboxFileLocation->clear();
-  ui->m_comboxFileLocation->insertItem(0, tr("<Local to Project>"));
+  ui->m_comboxFileLocation->insertItem(0, tr(DefaultLocation));
   ui->m_comboxFileLocation->insertItem(1, tr("Choose Location..."));
   ui->m_comboxFileLocation->setStyleSheet("border: 1px solid gray;");
 }
@@ -88,6 +92,15 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
   }
 
   fdata.m_filePath = ui->m_comboxFileLocation->currentText();
+
+  if (FileExists(fdata)) {
+    QMessageBox::information(
+        this, tr("Information"),
+        tr("File already exists. Please specify another file name"),
+        QMessageBox::Ok);
+    return;
+  }
+
   emit sig_updateGrid(fdata);
 
   this->close();
@@ -110,4 +123,14 @@ void createFileDialog::on_m_comboxFileLocation_currentIndexChanged(int index) {
     ui->m_comboxFileLocation->insertItem(2, pathName);
     ui->m_comboxFileLocation->setCurrentText(pathName);
   }
+}
+
+bool createFileDialog::FileExists(const filedata &fData) const {
+  QString location{fData.m_filePath};
+  if (location == DefaultLocation) {
+    location = m_projectPath;
+    if (location.isEmpty()) return false;  // project haven't created yet.
+  }
+  QFileInfo fileInfo(QDir(location), fData.m_fileName);
+  return fileInfo.exists();
 }

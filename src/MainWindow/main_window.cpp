@@ -220,7 +220,6 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, [this]() {
-    m_compiler->SetHardError(false);
     m_compiler->start();
     m_taskManager->startAll();
     m_compiler->finish();

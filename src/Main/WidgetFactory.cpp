@@ -70,6 +70,12 @@ void storeJsonPatch(QObject* obj, const json& patch) {
   obj->setProperty("jsonPatch", QString::fromStdString(patch.dump()));
 }
 
+void storeTclArg(QObject* obj, const QString& argStr) {
+  obj->setProperty("tclArg", argStr);
+  WIDGET_DBG_PRINT("handleChange - Storing Tcl Arg:  " + argStr.toStdString() +
+                   "\n");
+}
+
 template <typename T>
 T getDefault(const json& jsonObj) {
   T val;
@@ -77,6 +83,50 @@ T getDefault(const json& jsonObj) {
     val = jsonObj["default"].get<T>();
   }
   return val;
+}
+
+const QString TclArgSpaceTag = "_TclArgSpace_";
+QString convertSpaces(const QString& str) {
+  QString temp = str;
+  return temp.replace(" ", TclArgSpaceTag);
+}
+QString restoreSpaces(const QString& str) {
+  QString temp = str;
+  return temp.replace(TclArgSpaceTag, " ");
+}
+
+// Set Value overloads for diff widgets
+void setVal(QLineEdit* ptr, const QString& userVal) {
+  ptr->setText(userVal);
+  DBG_PRINT_VAL_SET(ptr, userVal);
+}
+void setVal(QComboBox* ptr, const QString& userVal) {
+  ptr->setCurrentText(userVal);
+  DBG_PRINT_VAL_SET(ptr, userVal);
+}
+void setVal(QSpinBox* ptr, int userVal) {
+  ptr->setValue(userVal);
+  DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+}
+void setVal(QDoubleSpinBox* ptr, double userVal) {
+  ptr->setValue(userVal);
+  DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+}
+void setVal(QButtonGroup* ptr, const QString& userVal) {
+  if (userVal != "<unset>") {
+    for (auto btn : ptr->buttons()) {
+      if (btn->text() == userVal) {
+        btn->setChecked(true);
+      }
+    }
+    DBG_PRINT_VAL_SET(ptr, userVal);
+  }
+}
+void setVal(QCheckBox* ptr, Qt::CheckState userVal) {
+  ptr->setCheckState(userVal);
+
+  DBG_PRINT_VAL_SET(ptr,
+                    QMetaEnum::fromType<Qt::CheckState>().valueToKey(userVal));
 }
 
 QDialog* FOEDAG::createSettingsDialog(json& widgetsJson,
@@ -276,20 +326,26 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       // Callback to handle value changes
       std::function<void(QLineEdit*, const QString&)> handleChange =
           [](QLineEdit* ptr, const QString& val) {
+            QString userVal = ptr->text();
             json changeJson;
-            changeJson["userValue"] = ptr->text().toStdString();
+            changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
+
+            storeTclArg(ptr, convertSpaces(userVal));
           };
 
       // Create our widget
       auto ptr = createLineEdit(objName, sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
+      if (tclArgPassed) {
+        // convert any spaces to a replaceable tag so the arg is 1 token
+        setVal(ptr, restoreSpaces(argVal));
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-        ptr->setText(userVal);
+        setVal(ptr, userVal);
 
         DBG_PRINT_VAL_SET(ptr, userVal);
       }
@@ -319,9 +375,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             if (arg != "" && userVal != "<unset>") {
               QString argStr = "-" + arg + " " +
                                lookupStr(comboOptions, comboLookup, userVal);
-              ptr->setProperty("tclArg", argStr);
-              WIDGET_DBG_PRINT("combobox handleChange - Storing Tcl Arg:  " +
-                               argStr.toStdString() + "\n");
+              storeTclArg(ptr, argStr);
             }
           };
 
@@ -332,14 +386,12 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       if (tclArgPassed) {
         // Do a reverse lookup to convert the tcl value to a display value
-        ptr->setCurrentText(lookupStr(comboLookup, comboOptions, argVal));
+        setVal(ptr, lookupStr(comboLookup, comboOptions, argVal));
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-        ptr->setCurrentText(userVal);
-
-        DBG_PRINT_VAL_SET(ptr, userVal);
+        setVal(ptr, userVal);
       }
 
       targetObject = createdWidget;
@@ -353,11 +405,17 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Callback to handle value changes
       std::function<void(QSpinBox*, const int&)> handleChange =
-          [](QSpinBox* ptr, const int& val) {
+          [arg](QSpinBox* ptr, const int& val) {
             json changeJson;
             changeJson["userValue"] = ptr->value();
-
             storeJsonPatch(ptr, changeJson);
+
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              QString argStr = "-" + arg + " " + QString::number(ptr->value());
+              storeTclArg(ptr, argStr);
+            }
           };
 
       // Create Widget
@@ -365,12 +423,16 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
                                handleChange);
       createdWidget = ptr;
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
+      if (tclArgPassed) {
+        bool valid = false;
+        double argInt = argVal.toInt(&valid);
+        if (valid) {
+          setVal(ptr, argInt);
+        }
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
         int userVal = widgetJsonObj["userValue"].get<int>();
-        ptr->setValue(userVal);
-
-        DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+        setVal(ptr, userVal);
       }
 
       targetObject = createdWidget;
@@ -384,11 +446,17 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Callback to handle value changes
       std::function<void(QDoubleSpinBox*, const double&)> handleChange =
-          [](QDoubleSpinBox* ptr, const double& val) {
+          [arg](QDoubleSpinBox* ptr, const double& val) {
             json changeJson;
             changeJson["userValue"] = ptr->value();
-
             storeJsonPatch(ptr, changeJson);
+
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              QString argStr = "-" + arg + " " + QString::number(ptr->value());
+              storeTclArg(ptr, argStr);
+            }
           };
 
       // Create Widget
@@ -396,12 +464,16 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
                                      sysDefaultVal, handleChange);
       createdWidget = ptr;
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
+      if (tclArgPassed) {
+        bool valid = false;
+        double argDouble = argVal.toDouble(&valid);
+        if (valid) {
+          setVal(ptr, argDouble);
+        }
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
         double userVal = widgetJsonObj["userValue"].get<double>();
-        ptr->setValue(userVal);
-
-        DBG_PRINT_VAL_SET(ptr, QString::number(userVal));
+        setVal(ptr, userVal);
       }
 
       targetObject = createdWidget;
@@ -411,33 +483,45 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           QString::fromStdString(getDefault<std::string>(widgetJsonObj));
       QStringList options =
           JsonArrayToQStringList(widgetJsonObj.value("options", json::array()));
+      QStringList optionsLookup = JsonArrayToQStringList(
+          widgetJsonObj.value("optionsLookup", json::array()));
 
       // Callback to handle value changes
       std::function<void(QRadioButton*, QButtonGroup*, const bool&)>
-          handleChange = [](QRadioButton* btnPtr, QButtonGroup* btnGroup,
-                            const bool& checked) {
+          handleChange = [arg, lookupStr, options, optionsLookup](
+                             QRadioButton* btnPtr, QButtonGroup* btnGroup,
+                             const bool& checked) {
             json changeJson;
             changeJson["userValue"] = btnPtr->text().toStdString();
             storeJsonPatch(btnGroup, changeJson);
+
+            btnGroup->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              QString argStr =
+                  "-" + arg + " " +
+                  lookupStr(options, optionsLookup, btnPtr->text());
+              btnGroup->setProperty("tclArg", argStr);
+              WIDGET_DBG_PRINT("radiobutton handleChange - Storing Tcl Arg:  " +
+                               argStr.toStdString() + "\n");
+            }
           };
 
       // Create radiobuttons in a QButtonGroup
       QButtonGroup* btnGroup = FOEDAG::createRadioButtons(
           objName, options, sysDefaultVal, handleChange);
 
-      // Load and set user value
-      if (widgetJsonObj.contains("userValue")) {
-        QString userVal = QString::fromStdString(
+      // Get the current tcl or user value
+      QString userVal = "<unset>";
+      if (tclArgPassed) {
+        // Do a reverse lookup to convert the tcl value to a display value
+        userVal = lookupStr(optionsLookup, options, argVal);
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
+        userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-
-        for (auto btn : btnGroup->buttons()) {
-          if (btn->text() == userVal) {
-            btn->setChecked(true);
-          }
-        }
-
-        DBG_PRINT_VAL_SET(btnGroup, userVal);
       }
+      setVal(btnGroup, userVal);
 
       // ButtonGroups aren't real QWidgets so we need to add their child
       // radiobuttons to a container widget
@@ -505,14 +589,12 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       // For boolean values like checkbox, the presence of an arg
       // means the value is checked
       if (tclArgPassed) {
-        ptr->setChecked(Qt::Checked);
+        setVal(ptr, Qt::Checked);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-        ptr->setCheckState(stringToCheckState(userVal));
-
-        DBG_PRINT_VAL_SET(ptr, userVal);
+        setVal(ptr, stringToCheckState(userVal));
       }
 
       targetObject = createdWidget;

@@ -12,6 +12,7 @@
 extern const char* foedag_version_number;
 
 using namespace FOEDAG;
+constexpr auto LocalToProject{"<Local to Project>"};
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
@@ -42,14 +43,15 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(opt.currentFileSet);
   QString strDefaultSrc;
-  QList<filedata> listFile = opt.sourceFileData.fileData;
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
-      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false);
+  const QList<filedata> listFile = opt.sourceFileData.fileData;
+  for (const filedata& fdata : listFile) {
+    if (LocalToProject == fdata.m_filePath) {
+      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false,
+                     true);
     } else {
       setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
                      FromFileType(fdata.m_fileType),
-                     opt.sourceFileData.isCopySource);
+                     opt.sourceFileData.isCopySource, false);
     }
     if (!fdata.m_isFolder) {
       strDefaultSrc = fdata.m_fileName;
@@ -68,10 +70,9 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   QString strDefaultCts;
-  listFile.clear();
-  listFile = opt.constrFileData.fileData;
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
+  const auto constr = opt.constrFileData.fileData;
+  for (const filedata& fdata : constr) {
+    if (LocalToProject == fdata.m_filePath) {
       setConstrsFile(fdata.m_fileName, false);
     } else {
       setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
@@ -104,6 +105,12 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   setSynthesisOption(listParam);
 
   FinishedProject();
+}
+
+QString ProjectManager::ProjectFilesPath(const QString& projPath,
+                                         const QString& projName,
+                                         const QString& fileSet) {
+  return QString("%1/%2.srcs/%3").arg(projPath, projName, fileSet);
 }
 
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
@@ -336,9 +343,9 @@ int ProjectManager::setProjectType(const QString& strType) {
 }
 
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
-                                   bool isFileCopy) {
+                                   bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
-  QStringList fileList = StringSplit(fileNames, " ");
+  const QStringList fileList = StringSplit(fileNames, " ");
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -348,15 +355,22 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
 
   int result{0};
   for (const auto& file : fileList) {
-    int res = setDesignFile(file, isFileCopy);
+    int res = setDesignFile(file, isFileCopy, localToProject);
     if (res != 0) result = res;
   }
   return result;
 }
 
-int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
+int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
+                                  bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
@@ -414,12 +428,14 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
@@ -457,9 +473,15 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
 }
 
 int ProjectManager::setSimulationFile(const QString& strFileName,
-                                      bool isFileCopy) {
+                                      bool isFileCopy, bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
@@ -482,12 +504,14 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("v", Qt::CaseInsensitive)) {
         ret = CreateVerilogFile(filePath);
         if (0 == ret) {
@@ -499,10 +523,16 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
   return ret;
 }
 
-int ProjectManager::setConstrsFile(const QString& strFileName,
-                                   bool isFileCopy) {
+int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
+                                   bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
@@ -525,12 +555,14 @@ int ProjectManager::setConstrsFile(const QString& strFileName,
         }
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
       if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
         ret = CreateSDCFile(filePath);
         if (0 == ret) {
