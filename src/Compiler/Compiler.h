@@ -116,7 +116,6 @@ class Compiler {
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
-  void SetHardError(bool on) { m_hardError = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
@@ -197,7 +196,6 @@ class Compiler {
   Constraints* m_constraints = nullptr;
   std::string m_output;
   bool m_useVerific = false;
-  bool m_hardError = false;
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;

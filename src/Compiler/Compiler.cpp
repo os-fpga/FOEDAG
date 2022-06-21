@@ -156,7 +156,6 @@ void Compiler::Message(const std::string& message) {
 void Compiler::ErrorMessage(const std::string& message) {
   if (m_err) (*m_err) << "ERROR: " << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
-  SetHardError(true);
 }
 
 static std::string TclInterpCloneScript() {
@@ -1098,13 +1097,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
-  if (m_hardError) {
-    if (task != TaskManager::invalid_id && m_taskManager) {
-      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
-    }
-    m_hardError = false;
-    return false;
-  }
   m_stop = false;
   bool res{false};
   if (task != TaskManager::invalid_id && m_taskManager) {
