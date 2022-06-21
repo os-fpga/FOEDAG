@@ -64,6 +64,67 @@
                 "default": "input field w/o a label provided"
             }
         },
+        "TclExample": {
+            "double_spinbox_ex": {
+                "label": "Double Spinbox Example",
+                "widgetType": "DoubleSpinbox",
+                "minVal": 2.4,
+                "maxVal": 11.4,
+                "stepVal": 1.1,
+                "default": 2.5,
+                "arg": "double_spin_ex"
+            },
+            "int_spinbox_ex": {
+                "label": "Int Spinbox Example",
+                "widgetType": "Spinbox",
+                "minVal": 2.4,
+                "maxVal": 11.4,
+                "stepVal": 1.1,
+                "default": 2.5,
+                "arg": "int_spin_ex"
+            },
+            "radiobuttons_horiz_ex": {
+                "label": "Radio Button Example",
+                "widgetType": "radiobuttons",
+                "options": [
+                    "B1",
+                    "B2",
+                    "B3"
+                ],
+                "optionsLookup": [
+                    "b1",
+                    "b2",
+                    "b3"
+                ],
+                "layout": "horizontal",
+                "default": "b2",
+                "arg": "radio_ex"
+            },
+            "checkbox_ex": {
+                "label": "Checkbox Example",
+                "text": "Checkbox Text",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "arg": "check_ex"
+            },
+            "dropdown_ex": {
+                "label": "Dropdown Example",
+                "widgetType": "dropdown",
+                "options": [
+                    "option1",
+                    "option2",
+                    "option3"
+                ],
+                "default": "option2",
+                "arg": "dropdown_ex"
+            },
+            "input_ex_1": {
+                "label": "Text Input Example",
+                "widgetType": "input",
+                "default": "some text",
+                "arg": "input_ex"
+            }
+        },
         "Synthesis": {
             "opt_dropdown": {
                 "label": "Optimization",

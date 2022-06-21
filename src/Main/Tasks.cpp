@@ -126,18 +126,34 @@ auto setSynthesisOptions = [](const QString& argsStr) {
   return moreOpts;
 };
 
+// Hardcoded example callbacks to demonstrate how to use TclArgs with the task
+// settings dialog
+static QString TclExampleArgs =
+    "-double_spin_ex 3.3 -int_spin_ex 3 -radio_ex b3 -check_ex -dropdown_ex "
+    "option3 -input_ex "
+    "spaces_TclArgSpace_require_TclArgSpace_extra_TclArgSpace_formatting";
+auto getTclExampleOptions = []() -> QString {
+  // std::cout << "returning args: " << TclExampleArgs.toStdString() <<
+  // std::endl;
+  return TclExampleArgs;
+};
+auto setTclExampleOptions = [](const QString& argsStr) {
+  TclExampleArgs = argsStr;
+  // std::cout << "Example Args set to: " << argsStr.toStdString() << std::endl;
+};
+
 // Map of Task names and tcl arguement list getters
 std::map<QString, std::function<QString()>> OptionsGetterMap = {
     {"Synthesis", getSynthesisOptions},
     // {"Placement", get},
     // {"Routing", get},
-};
+    {"TclExample", getTclExampleOptions}};
 // Map of Task names and tcl arguement list setters
 std::map<QString, std::function<void(const QString&)>> OptionsSetterMap = {
     {"Synthesis", setSynthesisOptions},
     // {"Placement", set},
     // {"Routing", set},
-};
+    {"TclExample", setTclExampleOptions}};
 
 QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
   FOEDAG::Settings* settings = GlobalSession->GetSettings();
