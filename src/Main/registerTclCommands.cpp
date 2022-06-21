@@ -235,7 +235,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       auto DemoWidgetsFn = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-        FOEDAG::createTaskDialog("Placement")->show();
+        FOEDAG::createTaskDialog("TclExample")->show();
         return TCL_OK;
       };
       session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
