@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     std::filesystem::path vprPath = binpath / "vpr";
     std::filesystem::path openFpgaPath = binpath / "openfpga";
     std::filesystem::path pinConvPath = binpath / "pin_c";
+    std::filesystem::path litexPath = binpath / "litex";
     std::filesystem::path archPath =
         datapath / "Arch" / "k6_frac_N10_tileable_40nm.xml";
     std::filesystem::path openFpgaArchPath =
@@ -76,6 +77,7 @@ int main(int argc, char** argv) {
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);
     opcompiler->PinConvExecPath(pinConvPath);
+    opcompiler->BuildLiteXIPCatalog(litexPath);
   }
   return foedag->init(guiType);
 }

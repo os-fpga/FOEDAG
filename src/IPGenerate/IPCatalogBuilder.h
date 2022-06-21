@@ -19,45 +19,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <set>
 #include <string>
-#include <thread>
 #include <vector>
 
-#include "Command/Command.h"
-#include "Command/CommandStack.h"
-#include "Compiler/Compiler.h"
-#include "Main/CommandLine.h"
-#include "Tcl/TclInterpreter.h"
+#include "IPGenerate/IPCatalog.h"
 
-#ifndef WORKER_THREAD_H
-#define WORKER_THREAD_H
+#ifndef IPCATALOGBUILDER_H
+#define IPCATALOGBUILDER_H
 
 namespace FOEDAG {
 
-class WorkerThread {
+class IPCatalogBuilder {
  public:
-  WorkerThread(const std::string& threadName, Compiler::Action action,
-               Compiler* compiler);
-  ~WorkerThread();
+  IPCatalogBuilder() {}
+  bool buildLiteXCatalog(IPCatalog* catalog,
+                         const std::filesystem::path& litexIPgenPath);
 
-  const std::string& Name() { return m_threadName; }
+  virtual ~IPCatalogBuilder() {}
 
-  bool start();
-  bool stop();
-
- private:
-  std::string m_threadName;
-  Compiler::Action m_action = Compiler::Action::NoAction;
-  std::thread* m_thread = nullptr;
-  Compiler* m_compiler = nullptr;
-};
-
-class ThreadPool {
- public:
-  static std::set<WorkerThread*> threads;
+ protected:
 };
 
 }  // namespace FOEDAG

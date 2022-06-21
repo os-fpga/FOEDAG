@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
+#include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
 
@@ -116,6 +117,10 @@ class Compiler {
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
   void SetHardError(bool on) { m_hardError = on; }
+
+  void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
+  IPGenerator* GetIPGenerator() { return m_IPGenerator; }
+  bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
 
   // VPR, Yosys generic opt
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
@@ -214,6 +219,7 @@ class Compiler {
   uint32_t m_lut_size = 6;
 
   class QProcess* m_process = nullptr;
+  IPGenerator* m_IPGenerator = nullptr;
 };
 
 }  // namespace FOEDAG

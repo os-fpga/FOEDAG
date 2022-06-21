@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -32,8 +33,8 @@ namespace FOEDAG {
 
 class Value {
  public:
-  Value();
-  virtual ~Value();
+  Value() {}
+  virtual ~Value() {}
   virtual uint32_t GetValue() = 0;
   virtual void SetValue(uint32_t value) = 0;
   virtual const std::string& Name() = 0;
@@ -42,7 +43,7 @@ class Value {
 class Constant : public Value {
  public:
   Constant(uint32_t value) : m_value(value) {}
-  ~Constant();
+  ~Constant() {}
   uint32_t GetValue() { return m_value; }
   void SetValue(uint32_t value) { m_value = value; }
   const std::string& Name() { return m_name; }
@@ -56,7 +57,7 @@ class Parameter : public Value {
  public:
   Parameter(const std::string& name, uint32_t default_val)
       : m_name(name), m_default(default_val) {}
-  ~Parameter();
+  ~Parameter() {}
   uint32_t GetValue() { return (m_useDefault) ? m_default : m_value; }
   void SetValue(uint32_t value) {
     m_value = value;
@@ -74,6 +75,7 @@ class Parameter : public Value {
 class Range {
  public:
   Range(Value* lrange, Value* rrange) : m_lrange(lrange), m_rrange(rrange) {}
+  ~Range() {}
   const Value* LRange() { return m_lrange; }
   const Value* RRange() { return m_rrange; }
 
@@ -84,8 +86,8 @@ class Range {
 
 class Connector {
  public:
-  Connector();
-  ~Connector();
+  Connector() {}
+  ~Connector() {}
 };
 
 class Port : public Connector {
@@ -109,8 +111,12 @@ class Port : public Connector {
         m_function(function),
         m_polarity(polarity),
         m_range(range){};
-  ~Port();
+  ~Port() {}
   const std::string& Name() { return m_name; }
+  Direction GetDirection() { return m_direction; }
+  Function GetFunction() { return m_function; }
+  Polarity GetPolarity() { return m_polarity; }
+  Range GetRange() { return m_range; }
 
  private:
   std::string m_name;
@@ -124,7 +130,7 @@ class Interface : public Connector {
  public:
   Interface(const std::string& name, const std::vector<Connector*>& connections)
       : m_name(name), m_connections(connections) {}
-  ~Interface();
+  ~Interface() {}
   const std::string& Name() { return m_name; }
   const std::vector<Connector*>& Connections() { return m_connections; }
 
@@ -138,6 +144,7 @@ class IPDefinition {
   IPDefinition(const std::string& name, const std::filesystem::path& filePath,
                const std::vector<Connector*>& connections)
       : m_name(name), m_filePath(filePath), m_connections(connections){};
+  ~IPDefinition() {}
   const std::string& Name() { return m_name; }
   const std::vector<Connector*>& Connections() { return m_connections; }
   const std::filesystem::path FilePath() { return m_filePath; }
@@ -157,6 +164,7 @@ class IPInstance {
         m_definition(definition),
         m_parameters(parameters),
         m_outputFile(outputFile) {}
+  ~IPInstance() {}
   const std::string& Name() { return m_name; }
   const IPDefinition* Definition() { return m_definition; }
   const std::vector<Parameter>& Parameters() { return m_parameters; }
@@ -171,11 +179,12 @@ class IPInstance {
 
 class IPCatalog {
  public:
-  IPCatalog();
-  virtual ~IPCatalog();
+  IPCatalog() {}
+  virtual ~IPCatalog() {}
   bool addIP(IPDefinition* def);
   const std::vector<IPDefinition*>& Definitions() { return m_definitions; }
   IPDefinition* Definition(const std::string& name);
+  void WriteCatalog(std::ostream& out);
 
  protected:
   std::vector<IPDefinition*> m_definitions;
