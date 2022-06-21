@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
 #include "Main/Tasks.h"
@@ -132,6 +133,8 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
   m_constraints = new Constraints();
   m_constraints->registerCommands(interp);
+  IPCatalog* catalog = new IPCatalog();
+  m_IPGenerator = new IPGenerator(catalog);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -143,6 +146,7 @@ void Compiler::SetTclInterpreterHandler(
 Compiler::~Compiler() {
   delete m_taskManager;
   delete m_tclCmdIntegration;
+  delete m_IPGenerator;
 }
 
 void Compiler::Message(const std::string& message) {
@@ -219,9 +223,22 @@ tcl_interp_clone
   return script;
 }
 
+bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
+  if (m_IPGenerator == nullptr) {
+    IPCatalog* catalog = new IPCatalog();
+    m_IPGenerator = new IPGenerator(catalog);
+  }
+  IPCatalogBuilder builder;
+  bool result =
+      builder.buildLiteXCatalog(GetIPGenerator()->Catalog(), litexPath);
+  return result;
+}
+
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
-  if (m_constraints == nullptr) m_constraints = new Constraints();
-  m_constraints->registerCommands(interp);
+  if (m_constraints == nullptr) {
+    m_constraints = new Constraints();
+    m_constraints->registerCommands(interp);
+  }
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -1361,7 +1378,7 @@ bool Compiler::GenerateBitstream() {
 
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
-    if (!m_tclCmdIntegration->getActiveDesign().isEmpty()) {
+    if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
       return false;
     }

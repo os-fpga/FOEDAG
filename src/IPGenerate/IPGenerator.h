@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "IPGenerate/IPCatalog.h"
+
 #ifndef IPGENERATOR_H
 #define IPGENERATOR_H
 
@@ -32,11 +34,12 @@ namespace FOEDAG {
 
 class IPGenerator {
  public:
-  IPGenerator();
-
-  virtual ~IPGenerator();
+  IPGenerator(IPCatalog* catalog) : m_catalog(catalog) {}
+  virtual ~IPGenerator() {}
+  IPCatalog* Catalog() { return m_catalog; }
 
  protected:
+  IPCatalog* m_catalog = nullptr;
 };
 
 }  // namespace FOEDAG
