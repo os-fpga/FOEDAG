@@ -607,6 +607,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      expandedFile =
+          std::filesystem::path(compiler->ProjManager()->projectPath() /
+                                std::filesystem::path("..") / expandedFile)
+              .string();
+    }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     int status = Tcl_Eval(
