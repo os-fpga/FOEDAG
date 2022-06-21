@@ -45,29 +45,29 @@ void AddFileDialog::on_m_btnOK_clicked() {
   int iType = m_selectForm->getSelectedType();
   if (m_formIndex == INDEX_FILEFORM) {
     m_pm->setCurrentFileSet(m_fileForm->getFileSet());
-    QList<filedata> listFile = m_fileForm->getFileData();
-    foreach (filedata fdata, listFile) {
+    const QList<filedata> listFile = m_fileForm->getFileData();
+    for (const filedata &fdata : listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (GT_SOURCE == iType) {
-          ret = m_pm->setDesignFiles(fdata.m_fileName,
-                                     FromFileType(fdata.m_fileType), false);
+          ret = m_pm->setDesignFiles(
+              fdata.m_fileName, FromFileType(fdata.m_fileType), false, true);
         } else if (GT_CONSTRAINTS == iType) {
-          ret = m_pm->setConstrsFile(fdata.m_fileName, false);
+          ret = m_pm->setConstrsFile(fdata.m_fileName, false, true);
         } else if (GT_SIM == iType) {
-          ret = m_pm->setSimulationFile(fdata.m_fileName, false);
+          ret = m_pm->setSimulationFile(fdata.m_fileName, false, true);
         }
       } else {
         if (GT_SOURCE == iType) {
           ret = m_pm->setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
                                      FromFileType(fdata.m_fileType),
-                                     m_fileForm->IsCopySource());
+                                     m_fileForm->IsCopySource(), false);
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                                     m_fileForm->IsCopySource());
+                                     m_fileForm->IsCopySource(), false);
         } else if (GT_SIM == iType) {
           ret =
               m_pm->setSimulationFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                                      m_fileForm->IsCopySource());
+                                      m_fileForm->IsCopySource(), false);
         }
       }
     }

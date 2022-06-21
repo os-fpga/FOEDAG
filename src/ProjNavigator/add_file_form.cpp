@@ -98,6 +98,7 @@ void AddFileForm::initSetComboBox(int itype) {
     ui->m_comboBoxSets->addItem(QIcon(":/images/open-file.png"), str);
   }
   ui->m_comboBoxSets->addItem(strCreate);
+  m_widgetGrid->currentFileSet(ui->m_comboBoxSets->currentText());
 }
 
 void AddFileForm::on_m_comboBoxSets_currentIndexChanged(const QString &arg1) {
@@ -148,4 +149,5 @@ void AddFileForm::on_m_comboBoxSets_currentIndexChanged(const QString &arg1) {
   }
   createdialog->close();
   createdialog->deleteLater();
+  m_widgetGrid->currentFileSet(ui->m_comboBoxSets->currentText());
 }
