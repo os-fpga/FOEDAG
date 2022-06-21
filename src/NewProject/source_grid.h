@@ -31,6 +31,8 @@ class sourceGrid : public QWidget {
   void setGridType(GridType type);
   QList<filedata> getTableViewData();
 
+  void currentFileSet(const QString &fileSet);
+
  public slots:
   void AddFiles();
   void AddDirectories();
@@ -56,6 +58,7 @@ class sourceGrid : public QWidget {
   QItemSelectionModel *m_selectModel;
 
   QList<filedata> m_lisFileData;
+  QString m_currentFileSet;
 
  private:
   void MoveTableRow(int from, int to);
