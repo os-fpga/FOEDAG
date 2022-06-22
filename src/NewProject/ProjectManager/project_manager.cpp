@@ -1832,6 +1832,8 @@ int ProjectManager::CreateAndAddFile(const QString& suffix,
     ret = CreateSystemVerilogFile(filename);
   } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
     ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("svh", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
   } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
     ret = CreateSystemVerilogFile(filename);
   } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {

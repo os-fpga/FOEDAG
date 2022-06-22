@@ -285,7 +285,7 @@ class ProjectManager : public QObject {
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
   inline static const Suffixes m_designSuffixes{
-      {"v", "sv", "vh", "vhd", "blif", "eblif"}};
+      {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
   inline static const Suffixes m_constrSuffixes{{"SDC"}};
   inline static const Suffixes m_simSuffixes{{"v"}};
 
