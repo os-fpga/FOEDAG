@@ -376,56 +376,18 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("v", Qt::CaseInsensitive) ||
-          !suffix.compare("sv", Qt::CaseInsensitive) ||
-          !suffix.compare("vh", Qt::CaseInsensitive) ||
-          !suffix.compare("vhd", Qt::CaseInsensitive) ||
-          !suffix.compare("blif", Qt::CaseInsensitive) ||
-          !suffix.compare("eblif", Qt::CaseInsensitive)) {
+      if (m_designSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("v", Qt::CaseInsensitive) ||
-        !suffix.compare("sv", Qt::CaseInsensitive) ||
-        !suffix.compare("vh", Qt::CaseInsensitive) ||
-        !suffix.compare("vhd", Qt::CaseInsensitive) ||
-        !suffix.compare("blif", Qt::CaseInsensitive) ||
-        !suffix.compare("eblif", Qt::CaseInsensitive)) {
+    if (m_designSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = CreateVHDLFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_designSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, isFileCopy);
       }
     } else {
       QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
@@ -436,36 +398,8 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
           ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
                            m_currentFileSet);
       fileSetPath += "/" + strFileName;
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = CreateVHDLFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      if (m_designSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
@@ -487,21 +421,18 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+      if (m_simSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("v", Qt::CaseInsensitive)) {
+    if (m_simSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_simSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, isFileCopy);
       }
     } else {
       QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
@@ -512,11 +443,8 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
           ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
                            m_currentFileSet);
       fileSetPath += "/" + strFileName;
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      if (m_simSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
@@ -538,21 +466,18 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+      if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+    if (m_constrSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = CreateSDCFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_constrSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, false);
       }
     } else {
       QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
@@ -563,11 +488,8 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
           ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
                            m_currentFileSet);
       fileSetPath += "/" + strFileName;
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = CreateSDCFile(filePath);
-        if (0 == ret) {
-          AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      if (m_constrSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
@@ -1899,6 +1821,34 @@ QString ProjectManager::ProjectVersion(const QString& filename) {
   return QString();
 }
 
+int ProjectManager::CreateAndAddFile(const QString& suffix,
+                                     const QString& filename,
+                                     const QString& filenameAdd,
+                                     bool copyFile) {
+  int ret{-1};
+  if (!suffix.compare("v", Qt::CaseInsensitive)) {
+    ret = CreateVerilogFile(filename);
+  } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("svh", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
+    ret = CreateVHDLFile(filename);
+  } else if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+    ret = CreateSDCFile(filename);
+  }
+  if (0 == ret) {
+    ret = AddOrCreateFileToFileSet(filenameAdd, copyFile);
+  }
+  return ret;
+}
+
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
   return m_libraryPathList;
 }
@@ -1962,4 +1912,10 @@ void ProjectManager::setCurrentFileSet(const QString& currentFileSet) {
 std::ostream& operator<<(std::ostream& out, const QString& text) {
   out << text.toStdString();
   return out;
+}
+
+bool Suffixes::TestSuffix(const QString& s) const {
+  for (const auto& suffix : suffixes)
+    if (!suffix.compare(s, Qt::CaseInsensitive)) return true;
+  return false;
 }
