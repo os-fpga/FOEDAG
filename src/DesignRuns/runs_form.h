@@ -23,8 +23,9 @@ class RunsForm : public QWidget {
  public:
   explicit RunsForm(QWidget* parent = nullptr);
 
-  void InitRunsForm(const QString& strFile);
+  void InitRunsForm();
   void RegisterCommands(Session* session);
+  ProjectManager* projectManager();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);

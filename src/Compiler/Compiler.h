@@ -18,9 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMPILER_H
+#define COMPILER_H
 
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-
-#ifndef COMPILER_H
-#define COMPILER_H
 
 namespace FOEDAG {
 
@@ -95,7 +92,8 @@ class Compiler {
   virtual ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
-  State CompilerState() { return m_state; }
+  State CompilerState() const { return m_state; }
+  void CompilerState(State st) { m_state = st; }
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }

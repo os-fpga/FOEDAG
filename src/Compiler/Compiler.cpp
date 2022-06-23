@@ -34,13 +34,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QProcess>
+#include <charconv>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
 #include <sstream>
 #include <thread>
 
-#include "Compiler/Compiler.h"
+#include "Compiler.h"
 #include "Compiler/Constraints.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
@@ -255,6 +256,25 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("version", version, this, 0);
+
+  auto get_state = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    auto state = compiler->CompilerState();
+    std::array<char, 3> str;
+    str.fill('\0');
+    if (auto [ptr, ec] = std::to_chars(str.data(), str.data() + str.size(),
+                                       static_cast<int>(state));
+        ec == std::errc()) {
+      Tcl_AppendResult(interp, str.data(), nullptr);
+      return TCL_OK;
+    } else {
+      Tcl_AppendResult(interp, std::make_error_code(ec).message().c_str(),
+                       nullptr);
+      return TCL_ERROR;
+    }
+  };
+  interp->registerCmd("get_state", get_state, this, nullptr);
 
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {

@@ -21,9 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QApplication>
 
-#include "Console/StreamBuffer.h"
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
 #include "tclutils/TclUtils.h"
@@ -31,7 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* DesignRunsBuilder(FOEDAG::Session* session) {
   FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm();
   if (session->CmdLine()->Argc() > 2) {
-    runForm->InitRunsForm(session->CmdLine()->Argv()[2]);
+    FOEDAG::ProjectFileLoader loader{
+        {new FOEDAG::ProjectManagerComponent(runForm->projectManager()),
+         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager{}),
+         new FOEDAG::CompilerComponent(session->GetCompiler())}};
+    loader.Load(session->CmdLine()->Argv()[2]);
+    runForm->InitRunsForm();
   }
   return runForm;
 }
