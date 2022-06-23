@@ -218,8 +218,7 @@ class ProjectManager : public QObject {
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRunName);
 
-  int StartProject(const QString &strOspro);
-  int FinishedProject();
+  void FinishedProject();
 
   QString currentFileSet() const;
   void setCurrentFileSet(const QString &currentFileSet);
@@ -247,14 +246,12 @@ class ProjectManager : public QObject {
     m_deviceName = deviceName;
   }
   const std::string &getTargetDevice() { return m_deviceName; }
+  static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,
                     bool localToProject = true);
-
-  int ImportProjectData(QString strOspro);
-  int ExportProjectData();
 
   int CreateProjectDir();
   int CreateSrcsFolder(QString strFolderName);
@@ -271,8 +268,6 @@ class ProjectManager : public QObject {
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
-  static QStringList StringSplit(const QString &str, const QString &sep);
-  static QString ProjectVersion(const QString &filename);
   int CreateAndAddFile(const QString &suffix, const QString &filename,
                        const QString &filenameAdd, bool copyFile);
 
@@ -291,6 +286,7 @@ class ProjectManager : public QObject {
 
  signals:
   void projectPathChanged();
+  void saveFile();
 };
 
 }  // namespace FOEDAG

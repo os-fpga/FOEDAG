@@ -51,6 +51,11 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/Tasks.cpp
   ../Main/WidgetFactory.cpp
   ../Main/FoedagStyle.cpp
+  ../Main/ProjectFile/ProjectFileLoader.cpp
+  ../Main/ProjectFile/ProjectFileComponent.cpp
+  ../Main/ProjectFile/TaskManagerComponent.cpp
+  ../Main/ProjectFile/ProjectManagerComponent.cpp
+  ../Main/ProjectFile/CompilerComponent.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )
@@ -68,6 +73,11 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/Tasks.h
   ../Main/WidgetFactory.h
   ../Main/FoedagStyle.h
+  ../Main/ProjectFile/ProjectFileLoader.h
+  ../Main/ProjectFile/ProjectFileComponent.h
+  ../Main/ProjectFile/TaskManagerComponent.h
+  ../Main/ProjectFile/ProjectManagerComponent.h
+  ../Main/ProjectFile/CompilerComponent.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h
