@@ -33,9 +33,11 @@ namespace FOEDAG {
 
 class Value {
  public:
+  enum class Type { ConstInt, ParamInt, ParamString };
   Value() {}
   virtual ~Value() {}
   virtual uint32_t GetValue() = 0;
+  virtual const std::string GetSValue() = 0;
   virtual void SetValue(uint32_t value) = 0;
   virtual const std::string& Name() = 0;
 };
@@ -45,8 +47,10 @@ class Constant : public Value {
   Constant(uint32_t value) : m_value(value) {}
   ~Constant() {}
   uint32_t GetValue() { return m_value; }
+  const std::string GetSValue() { return std::to_string(m_value); }
   void SetValue(uint32_t value) { m_value = value; }
   const std::string& Name() { return m_name; }
+  Type GetType() { return Type::ConstInt; }
 
  private:
   static std::string m_name;
@@ -59,17 +63,43 @@ class Parameter : public Value {
       : m_name(name), m_default(default_val) {}
   ~Parameter() {}
   uint32_t GetValue() { return (m_useDefault) ? m_default : m_value; }
+  const std::string GetSValue() { return std::to_string(m_value); }
   void SetValue(uint32_t value) {
     m_value = value;
     m_useDefault = false;
   }
   const std::string& Name() { return m_name; }
+  Type GetType() { return Type::ParamInt; }
 
  private:
   std::string m_name;
   uint32_t m_default = 0;
   bool m_useDefault = true;
   uint32_t m_value = 0;
+};
+
+class SParameter : public Value {
+ public:
+  SParameter(const std::string& name, const std::string& default_val)
+      : m_name(name), m_default(default_val) {}
+  ~SParameter() {}
+  uint32_t GetValue() {
+    return (m_useDefault) ? std::strtoull(m_default.c_str(), nullptr, 10)
+                          : std::strtoull(m_value.c_str(), nullptr, 10);
+  }
+  const std::string GetSValue() { return (m_useDefault) ? m_default : m_value; }
+  void SetValue(const std::string& value) {
+    m_value = value;
+    m_useDefault = false;
+  }
+  const std::string& Name() { return m_name; }
+  Type GetType() { return Type::ParamString; }
+
+ private:
+  std::string m_name;
+  std::string m_default = 0;
+  bool m_useDefault = true;
+  std::string m_value = 0;
 };
 
 class Range {
@@ -157,23 +187,30 @@ class IPDefinition {
 
 class IPInstance {
  public:
-  IPInstance(const std::string& name, IPDefinition* definition,
-             std::vector<Parameter>& parameters,
+  IPInstance(const std::string& ipname, const std::string& version,
+             IPDefinition* definition, std::vector<Parameter>& parameters,
+             const std::string& moduleName,
              const std::filesystem::path& outputFile)
-      : m_name(name),
+      : m_ipname(ipname),
+        m_version(version),
         m_definition(definition),
         m_parameters(parameters),
+        m_moduleName(moduleName),
         m_outputFile(outputFile) {}
   ~IPInstance() {}
-  const std::string& Name() { return m_name; }
+  const std::string& IPName() { return m_ipname; }
+  const std::string& Version() { return m_version; }
   const IPDefinition* Definition() { return m_definition; }
   const std::vector<Parameter>& Parameters() { return m_parameters; }
+  const std::string& ModuleName() { return m_moduleName; }
   const std::filesystem::path OutputFile() { return m_outputFile; }
 
  private:
-  std::string m_name;
+  std::string m_ipname;
+  std::string m_version;
   IPDefinition* m_definition;
   std::vector<Parameter> m_parameters;
+  std::string m_moduleName;
   std::filesystem::path m_outputFile;
 };
 

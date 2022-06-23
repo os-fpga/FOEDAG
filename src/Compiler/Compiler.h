@@ -151,6 +151,8 @@ class Compiler {
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
+  std::string& GetOutput() { return m_output; }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
