@@ -134,7 +134,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   m_constraints = new Constraints();
   m_constraints->registerCommands(interp);
   IPCatalog* catalog = new IPCatalog();
-  m_IPGenerator = new IPGenerator(catalog);
+  m_IPGenerator = new IPGenerator(catalog, this);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -225,7 +225,7 @@ tcl_interp_clone
 bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
-    m_IPGenerator = new IPGenerator(catalog);
+    m_IPGenerator = new IPGenerator(catalog, this);
   }
   IPCatalogBuilder builder;
   bool result =
@@ -234,6 +234,7 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     m_constraints = new Constraints();
     m_constraints->registerCommands(interp);
@@ -262,7 +263,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc == 2) {
       name = argv[1];
     }
-    compiler->m_output.clear();
+    compiler->GetOutput().clear();
     bool ok = compiler->CreateDesign(name);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
@@ -1286,11 +1287,16 @@ bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
-           << std::endl;
-  m_state = State::IPGenerated;
-  return true;
+  bool status = GetIPGenerator()->Generate();
+  if (status) {
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " IPs are generated!" << std::endl;
+    m_state = State::IPGenerated;
+  } else {
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " IPs generation failed!");
+  }
+  return status;
 }
 
 bool Compiler::Packing() {
