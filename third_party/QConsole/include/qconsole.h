@@ -156,6 +156,7 @@ class QConsole : public QTextEdit {
   void keyPressEvent(QKeyEvent *e);
   void contextMenuEvent(QContextMenuEvent *event);
   void moveCursorToEnd();
+  void replacePromt(const QString &newPrompt);
 
   // Return false if the command is incomplete (e.g. unmatched braces)
   virtual bool isCommandComplete(const QString &command);
@@ -200,6 +201,7 @@ class QConsole : public QTextEdit {
   int promptParagraph;
 
   bool multiLine{false};
+  bool historySearch{false};
 
  protected:
   // Implement paste with middle mouse button
@@ -245,6 +247,7 @@ class QConsole : public QTextEdit {
 
  private:
   bool tabAllowed{true};
+  QString backupPrompt;
 };
 
 #endif
