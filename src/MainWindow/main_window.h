@@ -34,6 +34,7 @@ namespace FOEDAG {
 
 class Session;
 class TclInterpreter;
+class ProjectFileLoader;
 /** Main window of the program */
 class MainWindow : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
@@ -87,6 +88,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
   class ProjectManager* m_projectManager{nullptr};
+  class ProjectFileLoader* m_projectFileLoader{nullptr};
 };
 
 }  // namespace FOEDAG

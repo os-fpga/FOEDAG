@@ -19,11 +19,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <QFileInfo>
+#include <QTextStream>
 #include <iostream>
 
+#include "Main/ProjectFile/ProjectFileLoader.h"
+#include "MainWindow/Session.h"
 #include "ProjNavigator/sources_form.h"
 #include "tcl_command_integration.h"
 #include "tclutils/TclUtils.h"
+
+extern FOEDAG::Session* GlobalSession;
 
 TCL_COMMAND(projnavigator_show) {
   FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
@@ -38,8 +44,35 @@ TCL_COMMAND(projnavigator_close) {
 }
 
 TCL_COMMAND(open_project) {
-  FOEDAG::SourcesForm* srcForm = (FOEDAG::SourcesForm*)(clientData);
-  srcForm->TestOpenProject(argc, argv);
+  FOEDAG::SourcesForm* srcForm = static_cast<FOEDAG::SourcesForm*>(clientData);
+  QTextStream out(stdout);
+  if (argc < 3 || "--file" != QString(argv[1])) {
+    out << "-----------open_project ------------\n";
+    out << " \n";
+    out << " Description: \n";
+    out << " Open a project. Show the source file categories and hierarchies. "
+           "\n";
+    out << " \n";
+    out << " Syntax: \n";
+    out << " open_project --file <project.ospr> \n";
+    out << " \n";
+    out << "--------------------------------------\n";
+    return TCL_OK;
+  }
+
+  QFileInfo fileInfo;
+  QString filename{argv[2]};
+  fileInfo.setFile(filename);
+  if (fileInfo.exists()) {
+    FOEDAG::ProjectFileLoader loader{
+        {new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
+         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager)},
+        new FOEDAG::CompilerComponent(GlobalSession->GetCompiler())};
+    loader.Load(filename);
+    srcForm->InitSourcesForm();
+  } else {
+    out << " Warning : This file <" << filename << "> is not exist! \n";
+  }
   srcForm->show();
   return TCL_OK;
 }

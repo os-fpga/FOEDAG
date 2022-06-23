@@ -37,12 +37,9 @@ class SourcesForm : public QWidget {
   explicit SourcesForm(QWidget* parent = nullptr);
   ~SourcesForm();
 
-  void InitSourcesForm(const QString& strFile);
+  void InitSourcesForm();
   TclCommandIntegration* createTclCommandIntegarion();
   ProjectManager* ProjManager();
-
-  /*for test*/
-  void TestOpenProject(int argc, const char* argv[]);
 
  signals:
   void OpenFile(QString);

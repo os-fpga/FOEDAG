@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/qttclnotifier.hpp"
 #include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"
@@ -30,7 +31,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* proNavigatorBuilder(FOEDAG::Session* session) {
   FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm();
   if (session->CmdLine()->Argc() > 2) {
-    srcForm->InitSourcesForm(session->CmdLine()->Argv()[2]);
+    FOEDAG::ProjectFileLoader loader{
+        {new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
+         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager{}),
+         new FOEDAG::CompilerComponent(session->GetCompiler())}};
+    loader.Load(session->CmdLine()->Argv()[2]);
+    srcForm->InitSourcesForm();
   }
   return srcForm;
 }
