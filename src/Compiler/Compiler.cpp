@@ -235,6 +235,10 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  if (m_IPGenerator == nullptr) {
+    IPCatalog* catalog = new IPCatalog();
+    m_IPGenerator = new IPGenerator(catalog, this);
+  }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     m_constraints = new Constraints();

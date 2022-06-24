@@ -50,14 +50,14 @@ int main(int argc, char** argv) {
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler, settings);
+  std::filesystem::path binpath = foedag->Context()->BinaryPath();
+  std::filesystem::path datapath = foedag->Context()->DataPath();
+  std::filesystem::path litexPath = binpath / "litex";
   if (opcompiler) {
-    std::filesystem::path binpath = foedag->Context()->BinaryPath();
-    std::filesystem::path datapath = foedag->Context()->DataPath();
     std::filesystem::path yosysPath = binpath / "yosys";
     std::filesystem::path vprPath = binpath / "vpr";
     std::filesystem::path openFpgaPath = binpath / "openfpga";
     std::filesystem::path pinConvPath = binpath / "pin_c";
-    std::filesystem::path litexPath = binpath / "litex";
     std::filesystem::path archPath =
         datapath / "Arch" / "k6_frac_N10_tileable_40nm.xml";
     std::filesystem::path openFpgaArchPath =
@@ -79,5 +79,6 @@ int main(int argc, char** argv) {
     opcompiler->PinConvExecPath(pinConvPath);
     opcompiler->BuildLiteXIPCatalog(litexPath);
   }
+  compiler->BuildLiteXIPCatalog(litexPath);
   return foedag->init(guiType);
 }

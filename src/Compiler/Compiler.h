@@ -151,6 +151,15 @@ class Compiler {
 
   std::string& GetOutput() { return m_output; }
 
+  /* Utility functions */
+  bool FileExists(const std::filesystem::path& name);
+  void Tokenize(std::string_view str, std::string_view separator,
+                std::vector<std::string>& result);
+  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
+  std::string& Ltrim(std::string& str);
+  std::string& Rtrim(std::string& str);
+  time_t Mtime(const std::filesystem::path& path);
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -172,14 +181,7 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
-  bool FileExists(const std::filesystem::path& name);
-  void Tokenize(std::string_view str, std::string_view separator,
-                std::vector<std::string>& result);
-  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
-  std::string& Ltrim(std::string& str);
-  std::string& Rtrim(std::string& str);
 
-  time_t Mtime(const std::filesystem::path& path);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
