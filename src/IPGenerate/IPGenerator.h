@@ -45,7 +45,7 @@ class IPGenerator {
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::vector<IPInstance*> IPInstances() { return m_instances; }
-  void AddIPInstance(IPInstance* instance) { m_instances.push_back(instance); }
+  bool AddIPInstance(IPInstance* instance);
   void ResetIPList() {
     m_instances.erase(m_instances.begin(), m_instances.end());
   }
