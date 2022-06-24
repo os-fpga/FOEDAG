@@ -83,16 +83,18 @@ class SParameter : public Value {
   SParameter(const std::string& name, const std::string& default_val)
       : m_name(name), m_default(default_val) {}
   ~SParameter() {}
-  uint32_t GetValue() {
+  uint32_t GetValue() const {
     return (m_useDefault) ? std::strtoull(m_default.c_str(), nullptr, 10)
                           : std::strtoull(m_value.c_str(), nullptr, 10);
   }
-  const std::string GetSValue() { return (m_useDefault) ? m_default : m_value; }
+  const std::string GetSValue() const {
+    return (m_useDefault) ? m_default : m_value;
+  }
   void SetValue(const std::string& value) {
     m_value = value;
     m_useDefault = false;
   }
-  const std::string& Name() { return m_name; }
+  const std::string& Name() const { return m_name; }
   Type GetType() const { return Type::ParamString; }
 
  private:
