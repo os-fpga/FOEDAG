@@ -1427,6 +1427,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 PerDeviceSynthOptions(name);
               } else if (file_type == "vpr_opts") {
                 PerDevicePnROptions(name);
+              } else if (file_type == "device_size") {
+                DeviceSize(name);
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;
