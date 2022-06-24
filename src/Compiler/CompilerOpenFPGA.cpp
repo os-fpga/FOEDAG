@@ -809,8 +809,8 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   std::string pnrOptions;
-  if (!PnROpt().empty()) pnrOptions = " " + PnROpt();
-
+  if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
+  if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
@@ -1424,7 +1424,9 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                   status = false;
                 }
               } else if (file_type == "synth_opts") {
-                DefaultSynthOptions(name);
+                PerDeviceSynthOptions(name);
+              } else if (file_type == "vpr_opts") {
+                PerDevicePnROptions(name);
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;
