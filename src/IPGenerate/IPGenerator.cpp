@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <ctime>
 #include <filesystem>
+#include <queue>
 #include <sstream>
 #include <thread>
 
@@ -74,6 +75,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::string mod_name;
     std::string out_file;
     std::string version;
+    std::vector<Parameter> parameters;
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       if (i == 1) {
@@ -98,24 +100,117 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           value = arg.substr(loc + 1);
         }
         if (!def.empty()) {
+          Parameter param(def, std::strtoul(value.c_str(), nullptr, 10));
+          parameters.push_back(param);
         }
       }
     }
-    std::vector<Parameter> parameters;
     IPDefinition* def = generator->Catalog()->Definition(ip_name);
+    if (def == nullptr) {
+      compiler->ErrorMessage("Unknown IP: " + ip_name);
+      ok = false;
+    }
     IPInstance* instance =
         new IPInstance(ip_name, version, def, parameters, mod_name, out_file);
-    generator->AddIPInstance(instance);
+    if (!generator->AddIPInstance(instance)) {
+      ok = false;
+    }
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("configure_ip", configure_ip, this, 0);
   return true;
 }
 
+bool IPGenerator::AddIPInstance(IPInstance* instance) {
+  bool status = true;
+  const IPDefinition* def = instance->Definition();
+
+  // Check parameters
+  std::set<std::string> legalParams;
+
+  std::queue<const Connector*> connectors;
+  for (const Connector* conn : def->Connections()) {
+    connectors.push(conn);
+  }
+  while (connectors.size()) {
+    const Connector* conn = connectors.back();
+    connectors.pop();
+    switch (conn->GetType()) {
+      case Connector::Type::Port: {
+        Port* port = (Port*)conn;
+        const Range& range = port->GetRange();
+        for (const Value* val : {range.LRange(), range.RRange()}) {
+          switch (val->GetType()) {
+            case Value::Type::ParamInt: {
+              Parameter* param = (Parameter*)val;
+              legalParams.insert(param->Name());
+              break;
+            }
+            case Value::Type::ParamString: {
+              SParameter* param = (SParameter*)val;
+              legalParams.insert(param->Name());
+              break;
+            }
+            case Value::Type::ConstInt: {
+              break;
+            }
+          }
+        }
+        break;
+      }
+      case Connector::Type::Interface: {
+        Interface* intf = (Interface*)conn;
+        for (Connector* sub : intf->Connections()) {
+          connectors.push(sub);
+        }
+      }
+    }
+  }
+
+  for (const Parameter& param : instance->Parameters()) {
+    if (legalParams.find(param.Name()) == legalParams.end()) {
+      GetCompiler()->ErrorMessage("Unknown parameter: " + param.Name());
+      status = false;
+    }
+  }
+  m_instances.push_back(instance);
+  return status;
+}
+
 bool IPGenerator::Generate() {
   bool status = true;
-  // for (IPInstance* inst : m_instances) {
+  Compiler* compiler = GetCompiler();
+  for (IPInstance* inst : m_instances) {
+    // Create output directory
+    const std::filesystem::path& out_path = inst->OutputFile();
 
-  //}
+    std::filesystem::path expandedFile = out_path;
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath = fullPath / out_path;
+      expandedFile = fullPath.string();
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      expandedFile =
+          std::filesystem::path(compiler->ProjManager()->projectPath() /
+                                std::filesystem::path("..") / expandedFile);
+    }
+    std::string p = expandedFile.string();
+    if (!std::filesystem::exists(expandedFile)) {
+      std::filesystem::create_directories(expandedFile.parent_path());
+    }
+
+    //
+  }
   return status;
 }
