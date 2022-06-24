@@ -37,7 +37,7 @@ class Value {
   Value() {}
   virtual ~Value() {}
   virtual uint32_t GetValue() const = 0;
-  virtual const std::string GetSValue() const  = 0;
+  virtual const std::string GetSValue() const = 0;
   virtual const std::string& Name() const = 0;
   virtual Type GetType() const = 0;
 };

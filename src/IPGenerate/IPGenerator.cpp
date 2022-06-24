@@ -37,9 +37,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <ctime>
 #include <filesystem>
+#include <queue>
 #include <sstream>
 #include <thread>
-#include <queue>
 
 #include "Compiler/Log.h"
 #include "Compiler/ProcessUtils.h"
@@ -100,7 +100,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           value = arg.substr(loc + 1);
         }
         if (!def.empty()) {
-          Parameter param (def, std::strtoul(value.c_str(), nullptr, 10));
+          Parameter param(def, std::strtoul(value.c_str(), nullptr, 10));
           parameters.push_back(param);
         }
       }
@@ -125,7 +125,7 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   bool status = true;
   const IPDefinition* def = instance->Definition();
 
-  // Check parameters 
+  // Check parameters
   std::set<std::string> legalParams;
 
   std::queue<const Connector*> connectors;
@@ -137,17 +137,17 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
     connectors.pop();
     switch (conn->GetType()) {
       case Connector::Type::Port: {
-        Port* port = (Port*) conn;
+        Port* port = (Port*)conn;
         const Range& range = port->GetRange();
         for (const Value* val : {range.LRange(), range.RRange()}) {
           switch (val->GetType()) {
             case Value::Type::ParamInt: {
-              Parameter* param = (Parameter*) val;
+              Parameter* param = (Parameter*)val;
               legalParams.insert(param->Name());
               break;
             }
             case Value::Type::ParamString: {
-              SParameter* param = (SParameter*) val;
+              SParameter* param = (SParameter*)val;
               legalParams.insert(param->Name());
               break;
             }
@@ -159,7 +159,7 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
         break;
       }
       case Connector::Type::Interface: {
-        Interface* intf = (Interface*) conn;
+        Interface* intf = (Interface*)conn;
         for (Connector* sub : intf->Connections()) {
           connectors.push(sub);
         }
@@ -196,7 +196,7 @@ bool IPGenerator::Generate() {
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
       std::filesystem::path fullPath = scriptPath;
-      fullPath  = fullPath / out_path;
+      fullPath = fullPath / out_path;
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
@@ -210,8 +210,7 @@ bool IPGenerator::Generate() {
       std::filesystem::create_directories(expandedFile.parent_path());
     }
 
-    //  
-
+    //
   }
   return status;
 }
