@@ -225,10 +225,8 @@ void MainWindow::createActions() {
     m_taskManager->startAll();
     m_compiler->finish();
   });
-  connect(stopAction, &QAction::triggered, this, [this]() {
-    m_console->terminate();
-    m_compiler->Stop();
-  });
+  connect(stopAction, &QAction::triggered, this,
+          [this]() { m_compiler->Stop(); });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     Command cmd("gui_stop; exit");

@@ -1137,7 +1137,6 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
-  if (m_taskManager) m_taskManager->stopCurrentTask();
   if (m_process) m_process->terminate();
 }
 
