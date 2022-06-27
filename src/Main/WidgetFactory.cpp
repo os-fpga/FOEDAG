@@ -264,9 +264,9 @@ QDialog* FOEDAG::createTopSettingsDialog(
                   settingsWidget->findChild<QDialogButtonBox*>(DlgBtnBoxName);
               if (btnBox) {
                 QObject::connect(btnBox, &QDialogButtonBox::accepted, dlg,
-                                 &QDialog::accept);
+                                 &QDialog::accept, Qt::UniqueConnection);
                 QObject::connect(btnBox, &QDialogButtonBox::rejected, dlg,
-                                 &QDialog::reject);
+                                 &QDialog::reject, Qt::UniqueConnection);
               }
             }
           }

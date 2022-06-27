@@ -55,7 +55,7 @@ class Settings {
   QString getSystemDefaultSettingsDir();
   static void traverseJson(json& obj,
                            std::function<void(json&, QString)> visitFn,
-                           QString path = "");
+                           QString path = QString());
 
   void loadJsonFile(const QString& filePath);
   void loadJsonFile(json* jsonObject, const QString& filePath);
