@@ -42,6 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <thread>
 #include <regex>
+#include <vector>
+#include <string>
+#include <locale>
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/Constraints.h"
@@ -69,6 +72,10 @@ void CompilerOpenFPGA_ql::Version(std::ostream* out) {
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
     (*out) << "Git Hash: " << foedag_git_hash << "\n";
   (*out) << "Built   : " << std::string(__DATE__) << "\n";
+}
+
+CompilerOpenFPGA_ql::~CompilerOpenFPGA_ql() {
+  CleanTempFiles();
 }
 
 void CompilerOpenFPGA_ql::Help(std::ostream* out) {
@@ -612,95 +619,361 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("show_settings", show_settings, this, 0);
 
-  auto encrypt = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto add_device = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
 
     CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
-    // if (argc != 2) {
-    //   compiler->ErrorMessage("Please select encryption or decryption");
-    //   return TCL_ERROR;
-    // }
-    std::string in_filepath = argv[1];
-    
-    compiler->Message("Encrypting xml files " + in_filepath);
-    set<string> fileExtn;
-    fileExtn.insert(".xml");
-    if (!CRFileCryptProc::getInstance()->encryptFiles(in_filepath, fileExtn, "QLF_K6N10")) {
-        compiler->ErrorMessage("encrypt files failed!");
-        return TCL_ERROR;
-    } else {
-        compiler->Message("encrypt files passed!");
+
+    // add_device <family> <foundry> <node> <source_device_data_dir_path> [force]
+    // this will perform the steps:
+    // 1. check if the 'device' already exists in the installation
+    //      check if the '<INSTALLATION> / device_data / <family> / <foundry> / <node>' dir path
+    //        already exists in installation
+    //      if it already exists, we will display an error, and stop.
+    //      if 'force' has been specified, we will push out a warning, but proceed further.
+    // 2. ensure that the structure in the <source_device_data_dir_path> reflects 
+    //      required structure, as specified in the document: <TODO>
+    //    basically, all the required files should exist, in the right hierarchy,
+    //      and missing optional files would output a warning.
+    // 3. encrypt all the files in the <source_device_data_dir_path> in place
+    // 4. copy over all the encrypted files & cryption db
+    //      from: <source_device_data_dir_path>
+    //      to: <INSTALLATION> / device_data / <family> / <foundry> / <node>
+    //      and clean up all the encrypted files & cryption db from the <source_device_data_dir_path>
+
+    // check args: 5 or 6(if force is specified)
+    if (argc != 5 && argc != 6) {
+      compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    encrypt <family> <foundry> <node> <source_device_data_dir_path> [force]");
+      return TCL_ERROR;
     }
 
-    // After encryption, save the supplementary device DB which
-    // contains the cryption key.
-    string cryptDBFile;
-    if (!CRFileCryptProc::getInstance()->saveCryptKeyDB(in_filepath, "QLF_K6N10", cryptDBFile)) {
-        compiler->ErrorMessage("save cryptdb failed!");
+    // parse args
+    std::string family = compiler->ToUpper(std::string(argv[1]));
+    std::string foundry = compiler->ToUpper(std::string(argv[2]));
+    std::string node = compiler->ToLower(std::string(argv[3]));
+    std::filesystem::path source_device_data_dir_path = argv[4];
+    bool force = false;
+    if(argc == 6) {
+      if( compiler->ToLower(std::string(argv[5])).compare("force") == 0 ) {
+        force = true;
+      }
+    }
+
+    std::string device = compiler->DeviceString(family,
+                                                foundry,
+                                                node,
+                                                "",
+                                                "");
+
+    // convert to canonical path, which will also check that the path exists.
+    std::error_code ec;
+    std::filesystem::path source_device_data_dir_path_c = 
+            std::filesystem::canonical(source_device_data_dir_path, ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage("Please check if the path specified exists!");
+      compiler->ErrorMessage("path: " + source_device_data_dir_path.string());
+      return TCL_ERROR;
+    }
+
+    // debug prints
+    // std::cout << std::endl;
+    // std::cout << "family: " << family << std::endl;
+    // std::cout << "foundry: " << foundry << std::endl;
+    // std::cout << "node: " << node << std::endl;
+    // std::cout << "source_device_data_dir_path: " << source_device_data_dir_path_c << std::endl;
+    // std::cout << "force: " << std::string(force?"true":"false") << std::endl;
+    // std::cout << std::endl;
+
+    // [1] check if installation already has the device added and inform the user accordingly.
+    //     (device data dir for this device already exists)
+    std::filesystem::path target_device_data_dir_path = 
+        std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
+                              family /
+                              foundry /
+                              node);
+
+    if (std::filesystem::exists(target_device_data_dir_path, ec)) {
+      if(force) {
+        compiler->Message("\nWARNING: The device you are trying to add already exists in the installation.");
+        compiler->Message("device:      " + device);
+        compiler->Message("target path: " + target_device_data_dir_path.string());
+        compiler->Message("'force' has been specified, this will overwrite the target device dir with new files.");
+        compiler->Message("\n");
+      }
+      else {
+        compiler->Message("\n");
+        compiler->ErrorMessage("The device you are trying to add already exists in the installation.");
+        compiler->Message("device:      " + device);
+        compiler->Message("target path: " + target_device_data_dir_path.string());
+        compiler->Message("Please specify 'force' to overwrite the target device dir with new files.");
+        compiler->Message("Please enter command in the format:\n"
+                          "    encrypt <family> <foundry> <node> <source_device_data_dir_path> [force]");
+        compiler->Message("\n");
+        return TCL_ERROR;
+      }
+    }
+    else {
+        compiler->Message("\nNew Device files will be added to the installation.");
+        compiler->Message("device:      " + device);
+        compiler->Message("target path: " + target_device_data_dir_path.string());
+        compiler->Message("\n");
+    }
+
+    std::vector<std::string> device_variants;
+
+    // [2] check dir structure of the source_device_data_dir_path of the device to be added
+    // and return the list of device_variants if everything is ok.
+    device_variants = compiler->list_device_variants(family,
+                                                     foundry,
+                                                     node,
+                                                     source_device_data_dir_path_c);
+
+    if(device_variants.empty()) {
+      compiler->ErrorMessage(std::string("error parsing device_data in: ") +
+                               source_device_data_dir_path_c.string());
         return TCL_ERROR;
     }
     else {
-        compiler->Message("save cryptdb passed!");
+      // save std::ios settings.
+      std::ios ios_default_state(nullptr);
+      ios_default_state.copyfmt(std::cout);
+
+      std::cout << std::endl;
+      std::cout << "device variants parsed:" << std::endl;
+      std::cout << "<family>,<foundry>,<node>,[voltage_threshold],[p_v_t_corner]" << std::endl;
+      int index = 1;
+      for (auto device_variant: device_variants) {
+        std::cout << std::setw(4)
+                  << std::setfill(' ')
+                  << index;
+        // restore cout state
+        std::cout.copyfmt(ios_default_state);
+        std::cout << ". " 
+                  << device_variant 
+                  << std::endl;
+        index++;
+      }
+      std::cout << std::endl;
     }
+
+    // collect the list of every filepath in the source_device_data_dir that we want to encrypt.
+    std::vector<std::filesystem::path> source_device_data_file_list;
+    for (const std::filesystem::directory_entry& dir_entry :
+        std::filesystem::recursive_directory_iterator(source_device_data_dir_path_c,
+                                                      std::filesystem::directory_options::skip_permission_denied,
+                                                      ec))
+    {
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed listing contents of ") +  source_device_data_dir_path.string());
+        return TCL_ERROR;
+      }
+
+      if(dir_entry.is_regular_file(ec)) {
+          // we want xml files:
+          if (std::regex_match(dir_entry.path().filename().string(), 
+                                std::regex(".+\\.xml", 
+                                std::regex::icase))) {
+            source_device_data_file_list.push_back(dir_entry.path().string());
+          }
+      }
+
+      if(ec) {
+        compiler->ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+        return TCL_ERROR;
+      }
+    }
+
+    // debug prints
+    // std::sort(source_device_data_file_list.begin(),source_device_data_file_list.end());
+    // std::cout << "source_device_data_file_list" << std::endl;
+    // for(auto path : source_device_data_file_list) std::cout << path << std::endl;
+    // std::cout << std::endl;
+
+    // encrypt the list of files
+    if (!CRFileCryptProc::getInstance()->encryptFiles(source_device_data_file_list)) {
+        compiler->ErrorMessage("encrypt files failed!");
+        return TCL_ERROR;
+    } else {
+        compiler->Message("files encrypted ok.");
+    }
+
+    // save cryptdb
+    string cryptdb_path_str;
+    if (!CRFileCryptProc::getInstance()->saveCryptKeyDB(source_device_data_dir_path_c.string(), 
+                                                        family + "_" + foundry + "_" + node,
+                                                        cryptdb_path_str)) {
+        compiler->ErrorMessage("cryptdb save failed!");
+        return TCL_ERROR;
+    }
+    else {
+        compiler->Message("cryptdb saved ok.");
+    }
+
+    // [4] copy all encrypted files and cryptdb into the installation target_device_data_dir_path
+    //     also, cleanup these files in the source_device_data_dir_path
+
+    // delete the target_device_data_dir_path directory in the installation
+    //   so that, we don't have a mix of old remnants and new files.
+    std::filesystem::remove_all(target_device_data_dir_path,
+                                ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage(std::string("failed to delete target dir: ") + target_device_data_dir_path.string());
+      return TCL_ERROR;
+    }
+
+    // create the target_device_data_dir_path directory in the installation
+    std::filesystem::create_directories(target_device_data_dir_path,
+                                        ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage(std::string("failed to create target dir: ") + target_device_data_dir_path.string());
+      return TCL_ERROR;
+    }
+
+    // pass through the list of files we prepared earlier for encryption and process each one
+    for(std::filesystem::path source_file_path : source_device_data_file_list) {
+
+      // corresponding encrypted file path
+      std::filesystem::path source_en_file_path = 
+          std::filesystem::path(source_file_path.string() + ".en");
+
+      // get the encrypted file path, relative to the source_device_data_dir_path
+      std::filesystem::path relative_en_file_path = 
+          std::filesystem::relative(source_en_file_path,
+                                    source_device_data_dir_path_c,
+                                    ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to create relative path: ") + source_en_file_path.string());
+        return TCL_ERROR;
+      }
+
+      // add the relative encrypted file path to the target_device_data_dir_path
+      std::filesystem::path target_en_file_path = 
+          target_device_data_dir_path / relative_en_file_path;
+
+      // ensure that the target encrypted file's parent dir is created if not existing:
+      std::filesystem::create_directories(target_en_file_path.parent_path(),
+                                          ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to create directory: ") + target_en_file_path.parent_path().string());
+        return TCL_ERROR;
+      }
+
+      // copy the source encrypted file to the target encrypted file path:
+      std::cout << "copying:" << relative_en_file_path << std::endl;
+      std::filesystem::copy_file(source_en_file_path,
+                                 target_en_file_path,
+                                 std::filesystem::copy_options::overwrite_existing,
+                                 ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to copy: ") + source_en_file_path.string());
+        return TCL_ERROR;
+      }
+
+      // delete the source encrypted file, as it not needed anymore.
+      std::filesystem::remove(source_en_file_path,
+                              ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to delete: ") + source_en_file_path.string());
+        return TCL_ERROR;
+      }
+    }
+
+    // now copy the cryptdb file into the installation and delete from the source
+    std::filesystem::path source_cryptdb_path = cryptdb_path_str;
+
+    // get the cryptdb file path, relative to the source_device_data_dir_path
+    std::filesystem::path relative_cryptdb_path =
+        std::filesystem::relative(source_cryptdb_path,
+                                  source_device_data_dir_path_c,
+                                  ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage(std::string("failed to create relative path: ") + source_cryptdb_path.string());
+        return TCL_ERROR;
+    }
+
+    // add the relative encrypted file path to the target_device_data_dir_path
+    std::filesystem::path target_cryptdb_path =
+        target_device_data_dir_path / relative_cryptdb_path;
+
+    // copy the source cryptdb file to the target cryptdb file path:
+    std::cout << "copying:" << relative_cryptdb_path << std::endl;
+    std::filesystem::copy_file(source_cryptdb_path,
+                               target_cryptdb_path,
+                               std::filesystem::copy_options::overwrite_existing,
+                               ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage(std::string("failed to copy: ") + source_cryptdb_path.string());
+      return TCL_ERROR;
+    }
+
+    // delete the source encrypted file, as it not needed anymore.
+    std::filesystem::remove(source_cryptdb_path,
+                            ec);
+    if(ec) {
+      // error
+      compiler->ErrorMessage(std::string("failed to delete: ") + source_cryptdb_path.string());
+      return TCL_ERROR;
+    }
+
+    compiler->Message("\ndevice added ok: " + device);
 
     return TCL_OK;
   };
-  interp->registerCmd("encrypt", encrypt, this, 0);
+  interp->registerCmd("add_device", add_device, this, 0);
 
-  auto decrypt = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
+  auto list_devices = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
 
     CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
-    // if (argc != 2) {
-    //   compiler->ErrorMessage("Please select encryption or decryption");
-    //   return TCL_ERROR;
-    // }
-    std::string in_filepath = argv[1];
 
-    compiler->Message("decrypting xml files in: " + in_filepath);
-    string vprArchXmlFileEn = in_filepath + std::string("/vpr.xml.en");
-    string openfpgaArchXmlFileEn = in_filepath + std::string("/openfpga.xml.en");
-    string vprArchXmlFileDecrypted = in_filepath + std::string("/vpr_decrypted.xml");
-    string openfpgaArchXmlFileDecrypted = in_filepath + std::string("/openfpga_decrypted.xml");
+    std::vector<std::string> device_list = compiler->ListDevices();
 
-    // load the cryption db file
-    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(in_filepath + std::string("/QLF_K6N10_Supp.db"))) {
-      compiler->Message("loading db file failed!");
-      return TCL_ERROR;
-    } else {
-      compiler->Message("loading db file passed!");
+    // save std::ios settings.
+    std::ios ios_default_state(nullptr);
+    ios_default_state.copyfmt(std::cout);
+
+    std::cout << std::endl;
+    std::cout << "devices available:" << std::endl;
+    std::cout << "<family>,<foundry>,<node>,[voltage_threshold],[p_v_t_corner]" << std::endl;
+    int index = 1;
+    for (auto device_variant: device_list) {
+      std::cout << std::setw(4)
+                << std::setfill(' ')
+                << index;
+      // restore cout state
+      std::cout.copyfmt(ios_default_state);
+      std::cout << ". " 
+                << device_variant 
+                << std::endl;
+      index++;
     }
-
-    stringstream vprstrm;
-    if (!CRFileCryptProc::getInstance()->decryptFile(vprArchXmlFileEn, vprstrm)) {
-      compiler->ErrorMessage("decrypting vpr xml failed!");
-      return TCL_ERROR;
-    }
-    std::ofstream vprofs(vprArchXmlFileDecrypted);
-    vprofs << vprstrm.str();
-    vprofs.close();
-
-    stringstream openfpgastrm;
-    if (!CRFileCryptProc::getInstance()->decryptFile(openfpgaArchXmlFileEn, openfpgastrm)) {
-      compiler->ErrorMessage("decrypting openfpga xml failed!");
-      return TCL_ERROR;
-    }
-    std::ofstream openfpgaofs(openfpgaArchXmlFileDecrypted);
-    openfpgaofs << openfpgastrm.str();
-    openfpgaofs.close();
+    std::cout << std::endl;
 
     return TCL_OK;
   };
-  interp->registerCmd("decrypt", decrypt, this, 0);
+  interp->registerCmd("list_devices", list_devices, this, 0);
 
   auto listdir = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
 
     CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
-    // if (argc != 2) {
-    //   compiler->ErrorMessage("Please select encryption or decryption");
-    //   return TCL_ERROR;
-    // }
+    
+    if (argc != 2) {
+      compiler->ErrorMessage("provide the dirpath!");
+      return TCL_ERROR;
+    }
+
     std::string in_filepath = argv[1];
 
     compiler->Message("");
@@ -833,6 +1106,7 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
                           m_projManager->projectName();
 
     int status = ExecuteAndMonitorSystemCommand(command);
+    CleanTempFiles();
     if (status) {
       ErrorMessage("Design " + m_projManager->projectName() +
                    " IP generation failed!");
@@ -1189,6 +1463,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
                   ProjManager()->projectName() + "_synth.log");
   (*m_out) << "Synthesis command: " << command << std::endl;
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " synthesis failed!");
@@ -1344,7 +1619,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   }
 
   // convert to canonical path, which will also check that the path exists.
-  std::error_code ec;  
+  std::error_code ec;
   std::filesystem::path sdc_file_path_c = std::filesystem::canonical(sdc_file_path, ec);
   if(!ec) {
     // path exists, and can be used
@@ -1448,38 +1723,76 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  std::string voltage_threshold = "LVT";    // default value if not specified in settings JSON
-  std::string p_v_t_corner = "TYPICAL";     // default value if not specified in settings JSON
+  std::string voltage_threshold = "";
+  std::string p_v_t_corner = "";
 
-  // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
-  if(settings_general_device_obj.contains("voltage_threshold")) {
+  std::filesystem::path device_base_dir_path = 
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            family /
+                            foundry /
+                            node);
+  
+  std::filesystem::path device_variant_base_dir_path = device_base_dir_path;
 
+  // optional: if voltage_threshold and p_v_t_corner are specified in the JSON, 
+  //           take the XML file specific to that combination:
+  if( settings_general_device_obj.contains("voltage_threshold") &&
+      settings_general_device_obj.contains("p_v_t_corner") ) {
     voltage_threshold = 
         settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
-
-    if(settings_general_device_obj.contains("p_v_t_corner")) {
-
-      p_v_t_corner = 
-          settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    p_v_t_corner = 
+            settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    if(!voltage_threshold.empty() &&
+       !p_v_t_corner.empty()) {
+        device_variant_base_dir_path = 
+            std::filesystem::path(GetSession()->Context()->DataPath() /
+                                  family /
+                                  foundry /
+                                  node /
+                                  voltage_threshold /
+                                  p_v_t_corner);
     }
   }
 
-  m_architectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                              family / 
-                                              foundry / 
-                                              node / 
-                                              voltage_threshold /
-                                              p_v_t_corner /
-                                              std::string("vpr.xml"));
+  std::string device = 
+      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
 
-  Message(std::string("Using vpr.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
-
-  // this should be treated as an error, the xml file does not exist.
-  if (!FileExists(m_architectureFile)) {
-    ErrorMessage(std::string("vpr.xml does not exist at expected path: ") + m_architectureFile.string());
-    // empty string returned on error.
-    return std::string("");
+  // check if the target device exists
+  if(!DeviceExists(device)) {
+    ErrorMessage("Device does not exist in the installation: " + device);
+      // empty string returned on error.
+      return std::string("");
   }
+
+  // prefer to use the unencrypted file, if available.
+  m_architectureFile = 
+      std::filesystem::path(device_variant_base_dir_path / std::string("vpr.xml"));
+
+  // if not, use the encrypted file after decryption.
+  if (!std::filesystem::exists(m_architectureFile, ec)) {
+
+    std::filesystem::path vpr_xml_en_path = 
+          std::filesystem::path(device_variant_base_dir_path / std::string("vpr.xml.en"));
+    m_architectureFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
+                                                           family + "_" + foundry + "_" + node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath)) {
+      Message("load cryptdb failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, m_architectureFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+  }
+
+  Message(std::string("Using vpr.xml for: ") + device );
 
   // construct the base vpr command with all the options here.
   std::string base_vpr_command =
@@ -1487,6 +1800,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
       m_architectureFile.string() + std::string(" ") +
       std::string(netlistFile) + // NOTE: don't add a " " here as vpr options start with a " "
       vpr_options;
+  
   return base_vpr_command;
 }
 
@@ -1554,6 +1868,7 @@ bool CompilerOpenFPGA_ql::Packing() {
   ofs.close();
 
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed!");
     return false;
@@ -1600,6 +1915,7 @@ bool CompilerOpenFPGA_ql::Packing() {
               m_OpenFpgaPinMapCSV.string();
 
     status = ExecuteAndMonitorSystemCommand(command);
+    CleanTempFiles();
     if (status) {
       ErrorMessage("Design " + m_projManager->projectName() +
                    " PinPlacement failed!");
@@ -1740,6 +2056,7 @@ bool CompilerOpenFPGA_ql::Placement() {
       ofsp << pincommand << std::endl;
       ofsp.close();
       int status = ExecuteAndMonitorSystemCommand(pincommand);
+      CleanTempFiles();
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " pin conversion failed!");
@@ -1770,6 +2087,7 @@ bool CompilerOpenFPGA_ql::Placement() {
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " placement failed!");
@@ -1821,6 +2139,7 @@ bool CompilerOpenFPGA_ql::Route() {
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed!");
     return false;
@@ -1908,6 +2227,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " timing analysis failed!");
@@ -1992,6 +2312,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
              std::string("--disp on");
 
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " power analysis failed!");
@@ -2055,7 +2376,7 @@ read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
 read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
 
 # Read OpenFPGA bitstream setting
-read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}
 
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
@@ -2120,50 +2441,115 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  std::string voltage_threshold = "LVT";    // default value if not specified in settings JSON
-  std::string p_v_t_corner = "TYPICAL";     // default value if not specified in settings JSON
+  std::string voltage_threshold = "";
+  std::string p_v_t_corner = "";
 
-  // optional: if threshold_voltage and p_v_t_corner are specified in the JSON, take the XML file specific to that combination:
-  if(settings_general_device_obj.contains("voltage_threshold")) {
+  std::filesystem::path device_base_dir_path = 
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            family /
+                            foundry /
+                            node);
 
+  std::filesystem::path device_variant_base_dir_path = device_base_dir_path;
+
+  // optional: if voltage_threshold and p_v_t_corner are specified in the JSON, 
+  //           take the XML file specific to that combination:
+  if( settings_general_device_obj.contains("voltage_threshold") &&
+      settings_general_device_obj.contains("p_v_t_corner") ) {
     voltage_threshold = 
         settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
-
-    if(settings_general_device_obj.contains("p_v_t_corner")) {
-
-      p_v_t_corner = 
-          settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    p_v_t_corner = 
+            settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
+    if(!voltage_threshold.empty() &&
+       !p_v_t_corner.empty()) {
+        device_variant_base_dir_path = 
+            std::filesystem::path(GetSession()->Context()->DataPath() /
+                                  family /
+                                  foundry /
+                                  node /
+                                  voltage_threshold /
+                                  p_v_t_corner);
     }
   }
 
+  std::string device = 
+      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
 
-  m_OpenFpgaArchitectureFile = std::filesystem::path(GetSession()->Context()->DataPath() / 
-                                                      family /
-                                                      foundry /
-                                                      node /
-                                                      voltage_threshold /
-                                                      p_v_t_corner /
-                                                      std::string("openfpga.xml"));
-
-  Message(std::string("Using openfpga.xml for: ") + family + "," + foundry + "," + node + "," + voltage_threshold + "," + p_v_t_corner );
-
-  // this should be treated as an error, the xml file does not exist.
-  if (!FileExists(m_OpenFpgaArchitectureFile)) {
-    ErrorMessage(std::string("openfpga.xml does not exist at expected path: ") + m_OpenFpgaArchitectureFile.string());
-    // empty string returned on error.
-    return std::string("");
+  // check if the target device exists
+  if(!DeviceExists(device)) {
+    ErrorMessage("Device does not exist in the installation: " + device);
+      // empty string returned on error.
+      return std::string("");
   }
 
-  m_OpenFpgaBitstreamSettingFile = std::filesystem::path(GetSession()->Context()->DataPath() /
-                                                         family /
-                                                         foundry /
-                                                         node /
-                                                         std::string("bitstream_annotation.xml"));
-  m_OpenFpgaSimSettingFile  = std::filesystem::path(GetSession()->Context()->DataPath() /
-                                                    family /
-                                                    foundry /
-                                                    node /
-                                                    std::string("fixed_sim_openfpga.xml"));
+  std::error_code ec;
+  // prefer to use the unencrypted file, if available.
+  m_OpenFpgaArchitectureFile = 
+      std::filesystem::path(device_variant_base_dir_path / std::string("openfpga.xml"));
+
+  // this is optional:
+  m_OpenFpgaBitstreamSettingFile = 
+      std::filesystem::path(device_base_dir_path / std::string("bitstream_annotation.xml"));
+  if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
+    m_OpenFpgaBitstreamSettingFile.clear();
+  }
+  
+  m_OpenFpgaSimSettingFile = 
+      std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml"));
+
+  // if not, use the encrypted file after decryption.
+  if (!std::filesystem::exists(m_OpenFpgaArchitectureFile, ec)) {
+
+    // all of the xml files will be the encrypted versions.
+
+    std::filesystem::path openfpga_xml_en_path = 
+          std::filesystem::path(device_variant_base_dir_path / std::string("openfpga.xml.en"));
+    m_OpenFpgaArchitectureFile = GenerateTempFilePath();
+
+    std::filesystem::path bitstream_annotation_en_path = 
+          std::filesystem::path(device_base_dir_path / std::string("bitstream_annotation.xml.en"));
+    m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
+
+    std::filesystem::path fixed_sim_openfpga_en_path = 
+          std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml.en"));
+    m_OpenFpgaSimSettingFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
+                                                           family + "_" + foundry + "_" + node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath)) {
+      Message("load cryptdb failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(openfpga_xml_en_path, m_OpenFpgaArchitectureFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    // this is optional:
+    if(std::filesystem::exists(bitstream_annotation_en_path, ec)) {
+      if (!CRFileCryptProc::getInstance()->decryptFile(bitstream_annotation_en_path, m_OpenFpgaBitstreamSettingFile)) {
+        ErrorMessage("decryption failed!");
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
+    else {
+      m_OpenFpgaBitstreamSettingFile.clear();
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(fixed_sim_openfpga_en_path, m_OpenFpgaSimSettingFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+  }
+
+  Message(std::string("Using openfpga.xml for: ") + device );
 
   // call vpr to execute analysis
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
@@ -2282,8 +2668,16 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
 
-  result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
-                      m_OpenFpgaBitstreamSettingFile.string());
+  // optional, so only if this file is available, else blank command.
+  std::string read_openfpga_bitstream_setting_command = "#skipped";
+  if(!m_OpenFpgaBitstreamSettingFile.empty()) {
+    // read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+    read_openfpga_bitstream_setting_command = 
+        std::string("read_openfpga_bitstream_setting -f ") + 
+        m_OpenFpgaBitstreamSettingFile.string();
+  }
+  result = ReplaceAll(result, "${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}",
+                      read_openfpga_bitstream_setting_command);
 
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
@@ -2345,6 +2739,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   ofs << command << std::endl;
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
+  CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " bitream generation failed!");
@@ -2458,6 +2853,425 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
   }
 
   return status;
+}
+
+std::string CompilerOpenFPGA_ql::ToUpper(std::string str) {
+        std::string upper;
+        // for (size_t i = 0; i < str.size(); ++i) {
+        //     char C = ::toupper(str[i]);
+        //     upper.push_back(C);
+        // }
+        // https://stackoverflow.com/a/39927248
+        upper = str;
+        auto& facet = 
+            std::use_facet<std::ctype<char>>(std::locale());
+        facet.toupper(upper.data(), upper.data() + upper.size());
+        return upper;
+    }
+
+std::string CompilerOpenFPGA_ql::ToLower(std::string str) {
+    std::string lower;
+    // for (size_t i = 0; i < str.size(); ++i) {
+    //     char C = ::tolower(str[i]);
+    //     lower.push_back(C);
+    // }
+    // https://stackoverflow.com/a/39927248
+    lower = str;
+    auto& facet = 
+        std::use_facet<std::ctype<char>>(std::locale());
+    facet.tolower(lower.data(), lower.data() + lower.size());
+    return lower;
+}
+
+
+std::filesystem::path CompilerOpenFPGA_ql::GenerateTempFilePath() {
+
+    // remember where we are
+    std::filesystem::path current_path = std::filesystem::current_path();
+
+    // get a guaranteed temp directory
+    std::filesystem::path temp_dir_path = std::filesystem::temp_directory_path();
+
+    // change to the temp directory before generating a temp file name
+    std::filesystem::current_path(temp_dir_path);
+
+    // generate a temp file path in the temp directory
+    std::string temp_file_path_str = std::tmpnam(nullptr);
+    std::filesystem::path temp_file_path(temp_file_path_str);
+
+    // change back to the original path we came from
+    std::filesystem::current_path(current_path);
+
+    // add to our cleanup list
+    m_TempFileList.push_back(temp_file_path);
+    
+    // return the temp file path we obtained
+    return temp_file_path;
+}
+
+
+int CompilerOpenFPGA_ql::CleanTempFiles() {
+
+  int count = 0;
+  std::error_code ec;
+  for(std::filesystem::path tempFile: m_TempFileList) {
+    // delete the source encrypted file, as it not needed anymore.
+    std::filesystem::remove(tempFile,
+                            ec);
+
+    //std::cout << "removing: " << tempFile << std::endl;
+    if(ec) {
+      // error : ignore it.
+      //std::cout << "failed removing: " << tempFile << std::endl;
+    }
+    count++;
+  }
+
+  m_TempFileList.clear();
+
+  return count;
+}
+
+
+std::string CompilerOpenFPGA_ql::DeviceString(std::string family,
+                                              std::string foundry,
+                                              std::string node,
+                                              std::string voltage_threshold,
+                                              std::string p_v_t_corner) {
+
+  // form the string representation of the device
+  std::string device = family + "," + foundry + "," + node;
+
+  if(!voltage_threshold.empty() && !p_v_t_corner.empty()) {
+    device += "," + voltage_threshold + "," + p_v_t_corner;
+  }
+
+  return device;
+}
+
+bool CompilerOpenFPGA_ql::DeviceExists(std::string family,
+                                       std::string foundry,
+                                       std::string node,
+                                       std::string voltage_threshold,
+                                       std::string p_v_t_corner) {
+
+  // form the string representation of the device
+  std::string device = 
+      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
+
+  return DeviceExists(device);
+}
+
+
+bool CompilerOpenFPGA_ql::DeviceExists(std::string device) {
+
+  // get the list of available devices
+  std::vector<std::string> device_list = ListDevices();
+
+  // check if we have the device in our list
+  if(std::find(device_list.begin(), device_list.end(), device) != device_list.end()) {
+    return true;
+  }
+
+  return false;
+}
+
+
+std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
+
+  std::vector<std::string> empty_list_of_devices = {};
+  std::vector<std::string> list_of_devices = {};
+
+  std::string family;
+  std::string foundry;
+  std::string node;
+
+  std::error_code ec;
+
+  // get to the device_data dir path of the installation
+  std::filesystem::path root_device_data_dir_path = 
+      GetSession()->Context()->DataPath();
+
+  // each dir in the device_data is a family
+  //    for each family, check for foundry dirs
+  //        for each foundry, check for node 
+  //            for each family-foundry-node dir, check the device_variants
+  
+  // look at the directories inside the device_data_dir_path for 'family' entries
+  for (const std::filesystem::directory_entry& dir_entry_family : 
+                    std::filesystem::directory_iterator(root_device_data_dir_path)) {
+    
+    if(dir_entry_family.is_directory()) {
+      
+      // we would see family at this level
+      family = dir_entry_family.path().filename();
+
+      // look at the directories inside the 'family' dir for 'foundry' entries
+      for (const std::filesystem::directory_entry& dir_entry_foundry : 
+                    std::filesystem::directory_iterator(dir_entry_family.path())) {
+
+        if(dir_entry_foundry.is_directory()) {
+      
+          // we would see foundry at this level
+          foundry = dir_entry_foundry.path().filename();
+
+          // look at the directories inside the 'foundry' dir for 'node' entries
+          for (const std::filesystem::directory_entry& dir_entry_node : 
+                          std::filesystem::directory_iterator(dir_entry_foundry.path())) {
+
+            if(dir_entry_node.is_directory()) {
+            
+              // we would see devices at this level
+              node = dir_entry_node.path().filename();
+
+              // get all the device_variants for this device:
+              std::vector<std::string> device_variants;
+
+              device_variants = list_device_variants(family,
+                                                     foundry,
+                                                     node,
+                                                     dir_entry_node.path());
+              if(device_variants.empty()) {
+                // display error, but continue with other devices.
+                Message("error in parsing variants for device\n");
+              }
+              else {
+                // add all the device_variants into the list of devices.
+                list_of_devices.insert(list_of_devices.end(),
+                                      device_variants.begin(),
+                                      device_variants.end());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return list_of_devices;
+}
+
+
+// should we use a reference or return vector by value?
+// https://stackoverflow.com/a/15704602
+std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
+    std::string family,
+    std::string foundry,
+    std::string node,
+    std::filesystem::path device_data_dir_path) {
+
+  std::string device = DeviceString(family,
+                                    foundry,
+                                    node,
+                                    "",
+                                    "");
+  Message("parsing device: " + device);
+
+  std::vector<std::string> empty_list_of_devices = {};
+
+  // [1] check for valid path
+  // convert to canonical path, which will also check that the path exists.
+  std::error_code ec;
+  std::filesystem::path device_data_dir_path_c = 
+          std::filesystem::canonical(device_data_dir_path, ec);
+  if(ec) {
+    // error
+    ErrorMessage("Please check if the path specified exists!");
+    ErrorMessage("path: " + device_data_dir_path.string());
+    return empty_list_of_devices;
+  }
+
+  // [2] check dir structure of the device_data_dir_path
+  // [2][a] atleast one set of vpr.xml and openfpga.xml files should exist.
+  // [2][b] all xmls sets should be in one of the following:
+  //          - device_data_dir_path (DEFAULT device)
+  //          - device_data_dir_path/<ANY_DIR_NAME_VT>/<ANY_DIR_NAME_PVT_CORNER> (device_variants)
+  //        <ANY_DIR_NAME_VT>(s) represent the Cell Threshold Voltage(s)
+  //        <ANY_DIR_NAME_PVT_CORNER>(s) represent the PVT Corner(s) 
+  // [2][c] check that we have all the (other)required XML files for the device
+  
+  // [2][a] search for all vpr.xml/openfpga.xml files, and check the dir paths:
+  std::vector<std::filesystem::path> vpr_xml_files;
+  std::vector<std::filesystem::path> openfpga_xml_files;
+  for (const std::filesystem::directory_entry& dir_entry :
+      std::filesystem::recursive_directory_iterator(device_data_dir_path_c,
+                                                    std::filesystem::directory_options::skip_permission_denied,
+                                                    ec)) {
+    if(ec) {
+      ErrorMessage(std::string("failed listing contents of ") +
+                              device_data_dir_path_c.string());
+      return empty_list_of_devices;
+    }
+
+    if(dir_entry.is_regular_file(ec)) {
+
+      // this will match both .xml and .xml.en(encrypted) files
+      std::string vpr_xml_pattern = "vpr\\.xml.*";
+      std::string openfpga_xml_pattern = "openfpga\\.xml.*";
+      
+      if (std::regex_match(dir_entry.path().filename().string(),
+                            std::regex(vpr_xml_pattern,
+                              std::regex::icase))) {
+        vpr_xml_files.push_back(dir_entry.path().string());
+      }
+      if (std::regex_match(dir_entry.path().filename().string(),
+                            std::regex(openfpga_xml_pattern,
+                              std::regex::icase))) {
+        openfpga_xml_files.push_back(dir_entry.path().string());
+      }
+    }
+
+    if(ec) {
+      ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+      return empty_list_of_devices;
+    }
+  }
+
+  // sort the entries for easier processing
+  std::sort(vpr_xml_files.begin(),vpr_xml_files.end());
+  std::sort(openfpga_xml_files.begin(),openfpga_xml_files.end());
+
+  // check that we have atleast one set.
+  if(vpr_xml_files.size() == 0) {
+    ErrorMessage("No VPR XML files were found in the source device data dir !");
+    return empty_list_of_devices;
+  }
+  if(openfpga_xml_files.size() == 0) {
+    ErrorMessage("No OPENFPGA XML files were found in the source device data dir !");
+    return empty_list_of_devices;
+  }
+
+  // check that we have the same number of entries for both vpr.xml and openfpga.xml
+  // as they should be travelling in pairs.
+  if(vpr_xml_files.size() != openfpga_xml_files.size()) {
+    ErrorMessage("Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !");
+    return empty_list_of_devices;
+  }
+
+  // [2][b] gather all the 'parent' dirs of the XMLs, and check that they are in the expected hierarchy
+  std::vector<std::filesystem::path> vpr_xml_file_parent_dirs;
+  std::vector<std::filesystem::path> openfpga_xml_file_parent_dirs;
+  for(std::filesystem::path xmlpath : vpr_xml_files) {
+    vpr_xml_file_parent_dirs.push_back(xmlpath.parent_path());
+  }
+  for(std::filesystem::path xmlpath : openfpga_xml_files) {
+    openfpga_xml_file_parent_dirs.push_back(xmlpath.parent_path());
+  }
+
+  // sort the entries for easier processing
+  std::sort(vpr_xml_file_parent_dirs.begin(),vpr_xml_file_parent_dirs.end());
+  std::sort(openfpga_xml_file_parent_dirs.begin(),openfpga_xml_file_parent_dirs.end());
+
+  // check that we have the same set of dir paths for both XMLs, as they travel in pairs.
+  // redundant?
+  if(vpr_xml_file_parent_dirs != openfpga_xml_file_parent_dirs) {
+    ErrorMessage("Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !");
+    return empty_list_of_devices;
+  }
+  // now we can take any one of the file_dirs vector for further steps as they are the same.
+
+  // debug prints
+  // std::cout << "vpr xmls" << std::endl;
+  // for(auto path : vpr_xml_files) std::cout << path << std::endl;
+  // std::cout << std::endl;
+  // std::cout << "openfpga xmls" << std::endl;
+  // for(auto path : openfpga_xml_files) std::cout << path << std::endl;
+  // std::cout << std::endl;
+  // std::cout << "vpr xml dirs" << std::endl;
+  // for(auto path : vpr_xml_file_parent_dirs) std::cout << path << std::endl;
+  // std::cout << std::endl;
+  // std::cout << "openfpga xml dirs" << std::endl;
+  // for(auto path : openfpga_xml_file_parent_dirs) std::cout << path << std::endl;
+  // std::cout << std::endl;
+
+  // now that the dir paths for both xml(s) are identical vectors, take one of them.
+  // each dir *should be* one of:
+  // - source_device_data_dir_path ('default' XMLs not belonging to any device variant)
+  // - source_device_data_dir_path/<voltage_threshold>/<p_v_t_corner> (for variants)
+  //          <voltage_threshold> should be one of LVT, RVT, ULVT
+  //          <p_v_t_corner> can be any name, usually something like TYPICAL, BEST, WORST ...
+  // from this vector, we can deduce all of the possible device variants, and check correctness of hierarchy
+  std::vector<std::string> device_variants;
+  for (std::filesystem::path dirpath: vpr_xml_file_parent_dirs) {
+
+    // canonicalize to remove any trailing slashes and normalize path to full path
+    std::filesystem::path dirpath_c = std::filesystem::canonical(dirpath, ec);
+    if(ec) {
+      // filesystem error
+      return empty_list_of_devices;
+    }
+    
+    // check if this is the same as the source_device_data_dir_path itself (then this is the 'default')
+    if(std::filesystem::equivalent(dirpath_c, device_data_dir_path_c)) {
+      device = DeviceString(family,
+                            foundry,
+                            node,
+                            "",
+                            "");
+      device_variants.push_back(device);
+    }
+    // otherwise this should be a device_variant
+    else {
+      // get the dir-name component of the path, this is the p_v_t_corner
+      std::string p_v_t_corner = dirpath_c.filename().string();
+      
+      // get the dir-name component of the parent of the path, this is the voltage_threshold
+      std::string voltage_threshold = dirpath_c.parent_path().filename().string();
+      
+      // add the variant to the list
+      device = DeviceString(family,
+                            foundry,
+                            node,
+                            voltage_threshold,
+                            p_v_t_corner);
+      device_variants.push_back(device);
+
+
+      // check that p_v_t_corner dir is 2 levels down from the source_device_data_dir_path
+      if(!std::filesystem::equivalent(dirpath_c.parent_path().parent_path(), device_data_dir_path_c)) {
+        std::cout << dirpath_c.parent_path() << std::endl;
+        std::cout << device_data_dir_path_c << std::endl;
+        ErrorMessage("p_v_t_corner dirs with XMLs are not 2 levels down from the source_device_data_dir_path!!!");
+        return empty_list_of_devices;
+      }
+    }
+  }
+
+  // sort the devices found
+  std::sort(device_variants.begin(),device_variants.end());
+
+  // debug prints
+  // std::cout << std::endl;
+  // std::cout << "device variants parsed:" << std::endl;
+  // std::cout << "<family>,<foundry>,<node>,[voltage_threshold],[p_v_t_corner]" << std::endl;
+  // int index = 1;
+  // for (auto device_variant: device_variants) {
+  //   std::cout << index << ". " << device_variant << std::endl;
+  //   index++;
+  // }
+  // std::cout << std::endl;
+
+  // [2][c] check other required and optional XML files for the device:
+  // required:
+  std::filesystem::path fixed_sim_openfpga_xml = 
+      device_data_dir_path_c / "fixed_sim_openfpga.xml";
+  std::filesystem::path fixed_sim_openfpga_xml_en = 
+      device_data_dir_path_c / "fixed_sim_openfpga.xml.en";
+  if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
+     !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
+    ErrorMessage("fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!");
+    return empty_list_of_devices;
+  }
+
+  // optional: not checking these for now, if needed we can add in later.
+  //std::filesystem::path bitstream_annotation_xml = 
+  //    source_device_data_dir_path_c / "bitstream_annotation.xml";
+  //std::filesystem::path repack_design_constraint_xml = 
+  //    source_device_data_dir_path_c / "repack_design_constraint.xml";
+  //std::filesystem::path fabric_key_xml = 
+  //    source_device_data_dir_path_c / "fabric_key.xml";
+
+  return device_variants;
 }
 
 // clang-format on
