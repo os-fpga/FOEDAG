@@ -103,6 +103,27 @@ void Settings::loadJsonFile(const QString& filePath) {
   loadJsonFile(&m_json, filePath);
 }
 
+// This will recursively traverse a json tree, calling visitFn on each node
+// while storing the current path in path. The path can be used to create a
+// nlohmann::json_pointer which can be used to access the given node after this
+// traversal has finished
+void Settings::traverseJson(json& obj,
+                            std::function<void(json&, QString)> visitFn,
+                            QString path /* "" */) {
+  visitFn(obj, path);
+  if (obj.type() == nlohmann::detail::value_t::array) {
+    for (int i = 0; i < obj.size(); i++) {
+      QString childPath = path + "/" + QString::number(i);
+      traverseJson(obj.at(i), visitFn, childPath);
+    }
+  } else if (obj.type() == nlohmann::detail::value_t::object) {
+    for (auto& item : obj.items()) {
+      QString childPath = path + "/" + QString::fromStdString(item.key());
+      traverseJson(obj[item.key()], visitFn, childPath);
+    }
+  }
+}
+
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
   QFile jsonFile;
   jsonFile.setFileName(filePath);

@@ -34,6 +34,7 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <fstream>
 #include <iostream>
@@ -239,6 +240,26 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
         return TCL_OK;
       };
       session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
+
+      auto EditSettingsFn = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+        QString category = "";
+        if (argc > 1) {
+          category = argv[1];
+        }
+        QDialog* dlg = FOEDAG::createTopSettingsDialog(
+            GlobalSession->GetSettings()->getJson(), category);
+        // flag to open the dlg non-modally so testing scripts can interact with
+        // it
+        if (argc > 2 && strcmp(argv[2], "1") == 0) {
+          dlg->show();
+        } else {
+          dlg->exec();
+        }
+
+        return TCL_OK;
+      };
+      session->TclInterp()->registerCmd("EditSettings", EditSettingsFn, 0, 0);
 
       auto EditTaskSettingsFn = [](void* clientData, Tcl_Interp* interp,
                                    int argc, const char* argv[]) -> int {
