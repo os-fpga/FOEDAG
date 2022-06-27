@@ -109,7 +109,7 @@ void Settings::loadJsonFile(const QString& filePath) {
 // traversal has finished
 void Settings::traverseJson(json& obj,
                             std::function<void(json&, QString)> visitFn,
-                            QString path /* "" */) {
+                            QString path /* QString() */) {
   visitFn(obj, path);
   if (obj.type() == nlohmann::detail::value_t::array) {
     for (int i = 0; i < obj.size(); i++) {
