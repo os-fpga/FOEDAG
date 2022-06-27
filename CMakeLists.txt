@@ -71,12 +71,14 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_subdirectory(third_party/tcl_cmake EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
+add_subdirectory(third_party/cryptor-gh)
 add_subdirectory(tests/tclutils)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
@@ -87,6 +89,7 @@ add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/TextEditor)
+
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -289,6 +292,7 @@ add_dependencies(foedagcore tcl_build)
 add_dependencies(console_debug tcl_build)
 add_dependencies(newfile tcl_stubb_build)
 add_dependencies(newfile_bin tcl_stubb_build)
+add_dependencies(compiler cryptor)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for

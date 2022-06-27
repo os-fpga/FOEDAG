@@ -38,6 +38,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -151,6 +152,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: true
 
     - name: Download workflow artifact
@@ -231,6 +233,7 @@ jobs:
     - name: Git pull
       uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -361,6 +364,7 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -433,6 +437,7 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -500,6 +505,7 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
@@ -549,6 +555,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         fetch-depth: 0
 
     - name: Install Dependencies
@@ -574,6 +581,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
+        token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
