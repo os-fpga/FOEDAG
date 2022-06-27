@@ -36,6 +36,8 @@ using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
+QDialog* createTopSettingsDialog(json& widgetsJson,
+                                 const QString& selectedCategoryTitle = "");
 QDialog* createSettingsDialog(json& widgetsJson, const QString& dialogTitle,
                               const QString& objectNamePrefix = "",
                               const QString& tclArgs = "");
