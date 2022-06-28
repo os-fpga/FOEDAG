@@ -1794,6 +1794,11 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   Message(std::string("Using vpr.xml for: ") + device );
 
+  // add the *internal* option to allow dangling nodes in the logic.
+  // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/blob/a7f573b7a5432711042ddeb9f2958cd035097a10/vpr/src/timing/timing_graph_builder.cpp#L277
+  // this is a workaround, to avoid putting timing arcs for static input ports.
+  vpr_options += " --allow_dangling_combinational_nodes on";
+
   // construct the base vpr command with all the options here.
   std::string base_vpr_command =
       m_vprExecutablePath.string() + std::string(" ") +
