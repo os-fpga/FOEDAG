@@ -408,10 +408,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
         std::filesystem::path the_path = expandedFile;
         if (!the_path.is_absolute()) {
-          expandedFile =
-              std::filesystem::path(compiler->ProjManager()->projectPath() /
-                                    std::filesystem::path("..") / expandedFile)
-                  .string();
+          const auto& path = std::filesystem::current_path();
+          expandedFile = std::filesystem::path(path / expandedFile).string();
         }
         fileList += expandedFile + " ";
       }
@@ -421,7 +419,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       std::string("\n"));
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
           fileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
@@ -473,16 +471,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path the_path = expandedFile;
     std::string origPathFileList = expandedFile;
     if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(std::filesystem::path("..") / expandedFile)
-              .string();
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
     }
 
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
           origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
@@ -633,10 +630,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::filesystem::path the_path = expandedFile;
     if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(compiler->ProjManager()->projectPath() /
-                                std::filesystem::path("..") / expandedFile)
-              .string();
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
     }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
@@ -647,7 +642,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateConstrFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
           expandedFile.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
