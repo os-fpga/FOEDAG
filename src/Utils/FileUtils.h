@@ -45,19 +45,21 @@ class FileUtils final {
   static std::filesystem::path getPathName(const std::filesystem::path& path);
   static std::filesystem::path basename(const std::filesystem::path& str);
   static uint64_t fileSize(const std::filesystem::path& name);
- 
+
   static std::string getFileContent(const std::filesystem::path& name);
 
   static std::filesystem::path getPreferredPath(
       const std::filesystem::path& path);
 
-  static std::filesystem::path locateExecFile(const std::filesystem::path& path);
+  static std::filesystem::path locateExecFile(
+      const std::filesystem::path& path);
+
  private:
   FileUtils() = delete;
   FileUtils(const FileUtils& orig) = delete;
   ~FileUtils() = delete;
 };
 
-}; 
+};  // namespace FOEDAG
 
 #endif /* FOEDAG_FILEUTILS_H */

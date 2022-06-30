@@ -24,16 +24,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <map>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <sstream>
 
 namespace FOEDAG {
 
 class StringUtils final {
  public:
- 
   // Modify string string, remove whitespace at the beginning of the string.
   static std::string& ltrim(std::string& str);
 

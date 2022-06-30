@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Utils/FileUtils.h"
+
 #include <errno.h>
 #include <limits.h> /* PATH_MAX */
 #include <stdio.h>
@@ -27,14 +29,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
 #include <string>
-#include <filesystem>
- 
-#include "Utils/FileUtils.h"
 
 namespace FOEDAG {
 
@@ -119,10 +119,11 @@ fs::path FileUtils::getPreferredPath(const fs::path& path) {
   return fs::path(path).make_preferred();
 }
 
-std::filesystem::path FileUtils::locateExecFile(const std::filesystem::path& path) {
+std::filesystem::path FileUtils::locateExecFile(
+    const std::filesystem::path& path) {
   std::filesystem::path result;
-  char *envpath = getenv( "PATH" );
-  char *dir = nullptr;
+  char* envpath = getenv("PATH");
+  char* dir = nullptr;
 
   for (dir = strtok(envpath, ":"); dir; dir = strtok(NULL, ":")) {
     fs::path a_path = std::string(dir) / path;
@@ -133,12 +134,12 @@ std::filesystem::path FileUtils::locateExecFile(const std::filesystem::path& pat
 
   for (fs::path dir : {"/usr/bin", "/usr/local/bin", "~/.local/bin", "./"}) {
     fs::path a_path = std::string(dir) / path;
-      if (FileUtils::fileExists(a_path)) {
-        return a_path;
+    if (FileUtils::fileExists(a_path)) {
+      return a_path;
     }
   }
 
   return result;
 }
 
-}  // namespace SURELOG
+}  // namespace FOEDAG

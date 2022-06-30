@@ -38,7 +38,6 @@ std::string StringUtils::to_string(double a_value, const int n) {
   return out.str();
 }
 
-
 // Remove carriage return unless it is escaped with backslash.
 static std::string removeCR(std::string_view st) {
   if (st.find('\n') == std::string::npos) return std::string(st);
