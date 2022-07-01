@@ -133,7 +133,7 @@ std::filesystem::path FileUtils::locateExecFile(
   }
 
   for (fs::path dir : {"/usr/bin", "/usr/local/bin", "~/.local/bin", "./"}) {
-    fs::path a_path = std::string(dir) / path;
+    fs::path a_path = dir / path;
     if (FileUtils::fileExists(a_path)) {
       return a_path;
     }
