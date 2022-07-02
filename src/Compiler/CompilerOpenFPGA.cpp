@@ -473,10 +473,15 @@ bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
            << "..." << std::endl;
-
-  (*m_out) << "Design " << ProjManager()->projectName() << " IPs are generated!"
-           << std::endl;
-  m_state = State::IPGenerated;
+  bool status = GetIPGenerator()->Generate();
+  if (status) {
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " IPs are generated!" << std::endl;
+    m_state = State::IPGenerated;
+  } else {
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " IPs generation failed!");
+  }
   return true;
 }
 
