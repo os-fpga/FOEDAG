@@ -54,6 +54,9 @@ class FileUtils final {
   static std::filesystem::path locateExecFile(
       const std::filesystem::path& path);
 
+  static int ExecuteSystemCommand(const std::string& command,
+                                  std::ostream* result);
+
  private:
   FileUtils() = delete;
   FileUtils(const FileUtils& orig) = delete;

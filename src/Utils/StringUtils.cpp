@@ -38,19 +38,6 @@ std::string StringUtils::to_string(double a_value, const int n) {
   return out.str();
 }
 
-// Remove carriage return unless it is escaped with backslash.
-static std::string removeCR(std::string_view st) {
-  if (st.find('\n') == std::string::npos) return std::string(st);
-
-  std::string result;
-  char previous = '\0';
-  for (const char c : st) {
-    if (c != '\n' || previous == '\\') result += c;
-    previous = c;
-  }
-  return result;
-}
-
 std::string& StringUtils::trim(std::string& str) { return ltrim(rtrim(str)); }
 
 std::string& StringUtils::ltrim(std::string& str) {

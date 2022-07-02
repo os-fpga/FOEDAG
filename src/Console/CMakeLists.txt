@@ -102,15 +102,15 @@ add_library(console_testing_lib STATIC
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.h
   ${PROJECT_SOURCE_DIR}/../Console/Test/ConsoleTestUtils.cpp
 )
-target_link_libraries(console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console tclutils)
+target_link_libraries(console_testing_lib foedag foedagcore compiler ipgenerate tcl_stubb tcl_static zlib console tclutils)
 
 add_executable(console_test
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_main.cpp
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_commands.cpp)
-target_link_libraries(console_test console_testing_lib foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_test console_testing_lib foedag foedagcore compiler ipgenerate tcl_stubb tcl_static zlib console)
 set_target_properties(console_test PROPERTIES OUTPUT_NAME console_test)
 
 add_executable(console_debug
   ${PROJECT_SOURCE_DIR}/../Console/Test/console_standalone.cpp)
-target_link_libraries(console_debug foedag foedagcore compiler tcl_stubb tcl_static zlib console)
+target_link_libraries(console_debug foedag foedagcore compiler ipgenerate tcl_stubb tcl_static zlib console)
 set_target_properties(console_debug PROPERTIES OUTPUT_NAME console)

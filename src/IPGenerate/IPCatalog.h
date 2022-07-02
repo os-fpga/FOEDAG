@@ -177,18 +177,29 @@ class Interface : public Connector {
 
 class IPDefinition {
  public:
-  IPDefinition(const std::string& name, const std::filesystem::path& filePath,
-               const std::vector<Connector*>& connections)
-      : m_name(name), m_filePath(filePath), m_connections(connections){};
+  enum class IPType { LiteXGenerator, Other };
+  IPDefinition(IPType type, const std::string& name,
+               const std::filesystem::path& filePath,
+               const std::vector<Connector*>& connections,
+               const std::vector<Value*>& parameters)
+      : m_type(type),
+        m_name(name),
+        m_filePath(filePath),
+        m_connections(connections),
+        m_parameters(parameters){};
   ~IPDefinition() {}
-  const std::string& Name() { return m_name; }
+  IPType Type() const { return m_type; }
+  const std::string& Name() const { return m_name; }
   const std::vector<Connector*>& Connections() const { return m_connections; }
-  const std::filesystem::path FilePath() { return m_filePath; }
+  const std::filesystem::path FilePath() const { return m_filePath; }
+  const std::vector<Value*> Parameters() const { return m_parameters; }
 
  private:
+  IPType m_type;
   std::string m_name;
   std::filesystem::path m_filePath;
   std::vector<Connector*> m_connections;
+  std::vector<Value*> m_parameters;
 };
 
 class IPInstance {

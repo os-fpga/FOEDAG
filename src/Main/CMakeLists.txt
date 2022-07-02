@@ -57,8 +57,6 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/ProjectManagerComponent.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   ../MainWindow/mainwindowmodel.cpp
-  ../Utils/FileUtils.cpp
-  ../Utils/StringUtils.cpp
   CompilerNotifier.cpp
 )
 
@@ -82,8 +80,6 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ProjectFile/CompilerComponent.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
-  ../Utils/FileUtils.h
-  ../Utils/StringUtils.h
   CompilerNotifier.h
 )
 

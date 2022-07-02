@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <sys/stat.h>
 
+#include <QProcess>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -38,50 +39,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-namespace fs = std::filesystem;
-
-bool FileUtils::fileExists(const fs::path& name) {
+bool FileUtils::fileExists(const std::filesystem::path& name) {
   std::error_code ec;
-  return fs::exists(name, ec);
+  return std::filesystem::exists(name, ec);
 }
 
-uint64_t FileUtils::fileSize(const fs::path& name) {
+uint64_t FileUtils::fileSize(const std::filesystem::path& name) {
   std::error_code ec;
-  return fs::file_size(name, ec);
+  return std::filesystem::file_size(name, ec);
 }
 
-bool FileUtils::fileIsDirectory(const fs::path& name) {
-  return fs::is_directory(name);
+bool FileUtils::fileIsDirectory(const std::filesystem::path& name) {
+  return std::filesystem::is_directory(name);
 }
 
-bool FileUtils::fileIsRegular(const fs::path& name) {
-  return fs::is_regular_file(name);
+bool FileUtils::fileIsRegular(const std::filesystem::path& name) {
+  return std::filesystem::is_regular_file(name);
 }
 
-bool FileUtils::mkDirs(const fs::path& path) {
+bool FileUtils::mkDirs(const std::filesystem::path& path) {
   // CAUTION: There is a known bug in VC compiler where a trailing
   // slash in the path will cause a false return from a call to
   // fs::create_directories.
   std::error_code err;
-  fs::create_directories(path, err);
-  return fs::is_directory(path);
+  std::filesystem::create_directories(path, err);
+  return std::filesystem::is_directory(path);
 }
 
-bool FileUtils::rmDirRecursively(const fs::path& path) {
+bool FileUtils::rmDirRecursively(const std::filesystem::path& path) {
   static constexpr uintmax_t kErrorCondition = static_cast<std::uintmax_t>(-1);
   std::error_code err;
-  return fs::remove_all(path, err) != kErrorCondition;
+  return std::filesystem::remove_all(path, err) != kErrorCondition;
 }
 
-fs::path FileUtils::getFullPath(const fs::path& path) {
+std::filesystem::path FileUtils::getFullPath(
+    const std::filesystem::path& path) {
   std::error_code ec;
-  fs::path fullPath = fs::canonical(path, ec);
+  std::filesystem::path fullPath = std::filesystem::canonical(path, ec);
   return ec ? path : fullPath;
 }
 
-bool FileUtils::getFullPath(const fs::path& path, fs::path* result) {
+bool FileUtils::getFullPath(const std::filesystem::path& path,
+                            std::filesystem::path* result) {
   std::error_code ec;
-  fs::path fullPath = fs::canonical(path, ec);
+  std::filesystem::path fullPath = std::filesystem::canonical(path, ec);
   bool found = (!ec && fileIsRegular(fullPath));
   if (result != nullptr) {
     *result = found ? fullPath : path;
@@ -89,13 +90,13 @@ bool FileUtils::getFullPath(const fs::path& path, fs::path* result) {
   return found;
 }
 
-std::string FileUtils::getFileContent(const fs::path& filename) {
+std::string FileUtils::getFileContent(const std::filesystem::path& filename) {
   std::ifstream in(filename, std::ios::in | std::ios::binary);
   std::string result;
 
   if (in) {
     std::error_code err;
-    const size_t prealloc = fs::file_size(filename, err);
+    const size_t prealloc = std::filesystem::file_size(filename, err);
     if (err.value() == 0) result.reserve(prealloc);
 
     char buffer[4096];
@@ -109,14 +110,18 @@ std::string FileUtils::getFileContent(const fs::path& filename) {
   return result;
 }
 
-fs::path FileUtils::getPathName(const fs::path& path) {
+std::filesystem::path FileUtils::getPathName(
+    const std::filesystem::path& path) {
   return path.has_parent_path() ? path.parent_path() : "";
 }
 
-fs::path FileUtils::basename(const fs::path& path) { return path.filename(); }
+std::filesystem::path FileUtils::basename(const std::filesystem::path& path) {
+  return path.filename();
+}
 
-fs::path FileUtils::getPreferredPath(const fs::path& path) {
-  return fs::path(path).make_preferred();
+std::filesystem::path FileUtils::getPreferredPath(
+    const std::filesystem::path& path) {
+  return std::filesystem::path(path).make_preferred();
 }
 
 std::filesystem::path FileUtils::locateExecFile(
@@ -126,20 +131,53 @@ std::filesystem::path FileUtils::locateExecFile(
   char* dir = nullptr;
 
   for (dir = strtok(envpath, ":"); dir; dir = strtok(NULL, ":")) {
-    fs::path a_path = std::string(dir) / path;
+    std::filesystem::path a_path = std::string(dir) / path;
     if (FileUtils::fileExists(a_path)) {
       return a_path;
     }
   }
 
-  for (fs::path dir : {"/usr/bin", "/usr/local/bin", "~/.local/bin", "./"}) {
-    fs::path a_path = dir / path;
+  for (std::filesystem::path dir :
+       {"/usr/bin", "/usr/local/bin", "~/.local/bin", "./"}) {
+    std::filesystem::path a_path = dir / path;
     if (FileUtils::fileExists(a_path)) {
       return a_path;
     }
   }
 
   return result;
+}
+
+int FileUtils::ExecuteSystemCommand(const std::string& command,
+                                    std::ostream* result) {
+  QProcess* m_process = new QProcess;
+
+  QObject::connect(m_process, &QProcess::readyReadStandardOutput,
+                   [result, m_process]() {
+                     result->write(m_process->readAllStandardOutput(),
+                                   m_process->bytesAvailable());
+                   });
+
+  QObject::connect(m_process, &QProcess::readyReadStandardError,
+                   [result, m_process]() {
+                     QByteArray data = m_process->readAllStandardError();
+                     result->write(data, data.size());
+                   });
+
+  QString cmd{command.c_str()};
+  QStringList args = cmd.split(" ");
+  QString program = args.first();
+  args.pop_front();  // remove program
+  m_process->start(program, args);
+
+  m_process->waitForFinished(-1);
+
+  auto status = m_process->exitStatus();
+  auto exitCode = m_process->exitCode();
+  delete m_process;
+  m_process = nullptr;
+
+  return (status == QProcess::NormalExit) ? exitCode : -1;
 }
 
 }  // namespace FOEDAG
