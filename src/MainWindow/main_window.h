@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
 
@@ -44,7 +45,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void Tcl_NewProject(int argc, const char* argv[]);
   newProjectDialog* NewProjectDialog() { return newProjdialog; }
-  void MainWindowTitle(const std::string& name) { mainWindowName = name; }
+  void Info(const ProjectInfo& info);
+  ProjectInfo Info() const;
+
  private slots: /* slots */
   void newFile();
   void newProjectDlg();
@@ -69,6 +72,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
   QMenu* processMenu = nullptr;
+  QMenu* helpMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
@@ -77,13 +81,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* openFile = nullptr;
   QAction* startAction = nullptr;
   QAction* stopAction = nullptr;
+  QAction* aboutAction = nullptr;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
   QToolBar* debugToolBar = nullptr;
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
-  std::string mainWindowName = "FOEDAG";
+  ProjectInfo m_projectInfo;
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
