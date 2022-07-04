@@ -63,6 +63,7 @@ using ms = std::chrono::milliseconds;
 
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
+extern const char* foedag_date;
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
@@ -70,7 +71,7 @@ void Compiler::Version(std::ostream* out) {
     (*out) << "Version : " << foedag_version_number << "\n";
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
     (*out) << "Git Hash: " << foedag_git_hash << "\n";
-  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+  (*out) << "Built   : " << foedag_date << "\n";
 }
 
 void Compiler::Help(std::ostream* out) {

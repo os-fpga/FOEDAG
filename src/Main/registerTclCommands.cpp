@@ -194,6 +194,25 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("qt_testWidget", qt_testWidget,
                                     GlobalSession->MainWindow(), nullptr);
+
+  auto show_about = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    if (argc < 6) {
+      Tcl_AppendResult(interp,
+                       qPrintable("Expected Syntax: show_about name, "
+                                  "version, git_hash, date, url"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+    FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3], argv[4], argv[5]};
+    QWidget* parent = static_cast<QWidget*>(clientData);
+    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(info, parent);
+    about->show();
+    return TCL_OK;
+  };
+
+  session->TclInterp()->registerCmd("show_about", show_about,
+                                    GlobalSession->MainWindow(), nullptr);
 }
 
 void registerBasicBatchCommands(FOEDAG::Session* session) {

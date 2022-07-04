@@ -72,6 +72,11 @@ endif()
 # NOTE: Policy changes has to happen before adding any subprojects
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+OPTION(PRODUCTION_BUILD_OPT "Define Production or Engineering build" OFF)
+if (PRODUCTION_BUILD_OPT)
+  add_definitions(-DPRODUCTION_BUILD)
+endif()
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -259,6 +264,7 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
 execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND git rev-parse --short HEAD
   COMMAND tr -d '\n'
@@ -267,6 +273,7 @@ execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "GIT_HASH = ${GIT_HASH}")
+message(STATUS "BUILD_DATE = ${BUILD_DATE}")
 configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 
 # Explicit lib build order
