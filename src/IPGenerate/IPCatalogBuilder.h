@@ -41,6 +41,8 @@ class IPCatalogBuilder {
   virtual ~IPCatalogBuilder() {}
 
  protected:
+  bool buildLiteXIPFromConverter(
+      IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);
 };
 
 }  // namespace FOEDAG
