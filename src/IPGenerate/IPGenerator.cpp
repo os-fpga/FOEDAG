@@ -109,6 +109,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (def == nullptr) {
       compiler->ErrorMessage("Unknown IP: " + ip_name);
       ok = false;
+      return TCL_ERROR;
     }
     IPInstance* instance =
         new IPInstance(ip_name, version, def, parameters, mod_name, out_file);
@@ -128,6 +129,9 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   // Check parameters
   std::set<std::string> legalParams;
 
+  for (Value* param : def->Parameters()) {
+    legalParams.insert(param->Name());
+  }
   std::queue<const Connector*> connectors;
   for (const Connector* conn : def->Connections()) {
     connectors.push(conn);
@@ -208,6 +212,16 @@ bool IPGenerator::Generate() {
     std::string p = expandedFile.string();
     if (!std::filesystem::exists(expandedFile)) {
       std::filesystem::create_directories(expandedFile.parent_path());
+      const IPDefinition* def = inst->Definition();
+      switch (def->Type()) {
+        case IPDefinition::IPType::Other: {
+          break;
+        }
+        case IPDefinition::IPType::LiteXGenerator: {
+          //          const std::filesystem::path executable = def->FilePath();
+          break;
+        }
+      }
     }
 
     //

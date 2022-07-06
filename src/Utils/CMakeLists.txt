@@ -1,10 +1,10 @@
 # -*- mode:cmake -*-
 
-# Copyright 2022 The Foedag team
+# Copyright 2021 The Foedag team
 
 # GPL License
 
-# Copyright (c) 2022 The Open-Source FPGA Foundation
+# Copyright (c) 2021 The Open-Source FPGA Foundation
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(ipgenerate LANGUAGES CXX)
+project(foedagutils LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -42,15 +42,13 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  IPCatalog.cpp
-  IPGenerator.cpp
-  IPCatalogBuilder.cpp
+  FileUtils.cpp
+  StringUtils.cpp
 )
 
 set (SRC_H_INSTALL_LIST
-  IPCatalog.h
-  IPGenerator.h
-  IPCatalogBuilder.h
+  FileUtils.h
+  StringUtils.h
 )
 
 set (SRC_H_LIST
@@ -60,29 +58,25 @@ set (SRC_H_LIST
 set (res_LIST
 )
 
-add_library(ipgenerate STATIC
+add_library(foedagutils STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${res_LIST}
 )
 
-target_link_libraries(ipgenerate PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
-target_compile_definitions(ipgenerate PRIVATE IPGENERATE_LIBRARY)
+target_link_libraries(foedagutils PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_compile_definitions(foedagutils PRIVATE COMPILER_LIBRARY)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:ipgenerate>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:foedagutils>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 foreach(file ${SRC_H_INSTALL_LIST})
   install(
-      FILES ${PROJECT_SOURCE_DIR}/../IPGenerate/${file}
-      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/IPGenerate)
+      FILES ${PROJECT_SOURCE_DIR}/../Utils/${file}
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Utils)
 endforeach()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
-add_executable(ipgenerate_bin
-	${PROJECT_SOURCE_DIR}/../IPGenerate/Test/ipgenerate_main.cpp)
-target_link_libraries(ipgenerate_bin foedag foedagcore tcl_stubb tcl_static zlib compiler)
-set_target_properties(ipgenerate_bin PROPERTIES OUTPUT_NAME ipgenerate_test)
 
