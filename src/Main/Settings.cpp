@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <iostream>
 
+#include "Foedag.h"
 #include "NewProject/ProjectManager/config.h"
 
 using namespace FOEDAG;
@@ -124,6 +125,22 @@ void Settings::traverseJson(json& obj,
   }
 }
 
+QString Settings::getUserSettingsPath() {
+  QString path;
+  QString projPath =
+      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
+  QString projName =
+      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
+  QString separator = QString::fromStdString(
+      std::string(1, std::filesystem::path::preferred_separator));
+
+  if (!projPath.isEmpty() && !projName.isEmpty()) {
+    path = projPath + separator + projName + ".settings/";
+  }
+
+  return path;
+}
+
 void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
   QFile jsonFile;
   jsonFile.setFileName(filePath);
@@ -132,7 +149,8 @@ void Settings::loadJsonFile(json* jsonObject, const QString& filePath) {
     // Read/parse json from file and update the passed jsonObject w/ new vals
     QString jsonStr = jsonFile.readAll();
 
-    SETTINGS_DBG_PRINT("Settings: Loading " + filePath.toStdString() + "\n");
+    SETTINGS_DBG_PRINT("Settings: Loading " + filePath.toStdString() + "\n\t" +
+                       jsonStr.toStdString() + "\n");
 
     try {
       // Merge the json

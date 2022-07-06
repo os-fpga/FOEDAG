@@ -32,15 +32,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
+using tclArgSetterFn = std::function<void(const QString&)>;
+using tclArgGetterFn = std::function<QString()>;
+using tclArgFns = std::pair<tclArgSetterFn, tclArgGetterFn>;
+using tclArgFnMap = std::map<QString, tclArgFns>;
+
 #define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
+#define DlgBtnBoxName "SettingsDialogButtonBox"
 
 namespace FOEDAG {
-
+tclArgFns getTclArgFns(const QString& tclArgKey);
 QDialog* createTopSettingsDialog(json& widgetsJson,
                                  const QString& selectedCategoryTitle = "");
-QDialog* createSettingsDialog(json& widgetsJson, const QString& dialogTitle,
+QDialog* createSettingsDialog(const QString& jsonPath,
+                              const QString& dialogTitle,
                               const QString& objectNamePrefix = "",
                               const QString& tclArgs = "");
+QWidget* createSettingsPane(const QString& jsonPath,
+                            tclArgSetterFn tclArgSetter = nullptr,
+                            tclArgGetterFn tclArgGetter = nullptr);
 QWidget* createSettingsWidget(json& widgetsJson,
                               const QString& objNamePrefix = "",
                               const QString& tclArgs = "");
@@ -50,6 +60,8 @@ QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
 QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
                       const QStringList& args = QStringList());
 QWidget* createLabelWidget(const QString& label, QWidget* widget);
+QWidget* createContainerWidget(QWidget* widget,
+                               const QString& label = QString());
 QComboBox* createComboBox(
     const QString& objectName, const QStringList& options,
     const QString& selectedValue = "",

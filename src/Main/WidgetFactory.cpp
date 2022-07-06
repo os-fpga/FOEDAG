@@ -25,19 +25,57 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QBoxLayout>
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QDir>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QMetaEnum>
+#include <QTextStream>
 #include <QTreeWidget>
 #include <iostream>
 
 #include "Foedag.h"
 #include "Settings.h"
+#include "Tasks.h"
 
 using namespace FOEDAG;
 using nlohmann::json_pointer;
 
-const QString DlgBtnBoxName{"SettingsDialogButtonBox"};
+// This lookup provides tcl setters/getters based off a QString. When settings
+// widgets are generated, these setters are loaded if the associated widget json
+// defines a tclArgKey that will be used in this lookup.
+//
+// To link your settings json with this lookup, add:
+// "_META_": {
+//     "isSetting": true,
+//     "tclArgKey": "YOUR_UNIQUE_KEY"
+// }
+// and then add "YOUR_UNIQUE_KEY" and your set/get callbacks below
+tclArgFnMap TclArgFnLookup = {
+    {"Tasks_Synthesis",
+     {FOEDAG::TclArgs_setSynthesisOptions,
+      FOEDAG::TclArgs_getSynthesisOptions}},
+    // {"Placement", {set,get}},
+    // {"Routing", {set,get}},
+    {"TclExample",
+     {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}}
+
+};
+
+// returns a pair of tcl setters/getters from the TclArgFnLookup
+tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {
+  tclArgGetterFn getter = nullptr;
+  tclArgSetterFn setter = nullptr;
+  tclArgFns retVal = {setter, getter};
+
+  auto result = TclArgFnLookup.find(tclArgKey);
+  if (result != TclArgFnLookup.end()) {
+    retVal = result->second;
+  }
+
+  return retVal;
+}
+
 static constexpr uint JsonPathRole = Qt::UserRole + 1;
 
 // Local debug helpers
@@ -74,6 +112,7 @@ QStringList JsonArrayToQStringList(const json& jsonArray) {
 
 void storeJsonPatch(QObject* obj, const json& patch) {
   DBG_PRINT_JSON_PATCH(obj, patch.dump());
+  obj->setProperty("saveNeeded", true);
   obj->setProperty("changed", true);
   obj->setProperty("jsonPatch", QString::fromStdString(patch.dump()));
 }
@@ -139,8 +178,8 @@ void setVal(QCheckBox* ptr, Qt::CheckState userVal) {
 
 // Checks the child widgets of settingsParentWidget and returns whether or not
 // any of their tracked values have changed
-bool settingsWidgetChanged(QWidget* settingsParentWidget) {
-  bool changed = false;
+bool needsSave(QWidget* settingsParentWidget) {
+  bool saveNeeded = false;
   for (int i = 0; i < settingsParentWidget->layout()->count(); i++) {
     QWidget* settingsWidget =
         settingsParentWidget->layout()->itemAt(i)->widget();
@@ -148,12 +187,12 @@ bool settingsWidgetChanged(QWidget* settingsParentWidget) {
       QObject* targetObject =
           qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
 
-      if (targetObject && targetObject->property("changed").toBool()) {
-        changed = true;
+      if (targetObject && targetObject->property("saveNeeded").toBool()) {
+        saveNeeded = true;
       }
     }
   }
-  return changed;
+  return saveNeeded;
 }
 
 int confirmChanges(QWidget* parent) {
@@ -252,8 +291,7 @@ QDialog* FOEDAG::createTopSettingsDialog(
 
           // Create and add settings pane for the new selection
           if (!jsonPtr.empty()) {
-            QWidget* settingsWidget =
-                FOEDAG::createSettingsWidget(widgetsJson.at(jsonPtr), ptrPath);
+            QWidget* settingsWidget = FOEDAG::createSettingsPane(ptrPath);
             settingsWidget->layout()->setContentsMargins(0, 0, 0, 0);
             settingsVLayout->addWidget(settingsWidget);
 
@@ -284,7 +322,7 @@ QDialog* FOEDAG::createTopSettingsDialog(
                  settingsWidgets)  // only 1 value expected in all scenarios
             {
               // Check for and confirm changes before switching categories
-              bool changed = settingsWidgetChanged(currWidget);
+              bool changed = needsSave(currWidget);
               int response =
                   QMessageBox::Discard;  // assume not changes happened
               if (changed) {
@@ -330,7 +368,7 @@ QDialog* FOEDAG::createTopSettingsDialog(
   return dlg;
 }
 
-QDialog* FOEDAG::createSettingsDialog(json& widgetsJson,
+QDialog* FOEDAG::createSettingsDialog(const QString& jsonPath,
                                       const QString& dialogTitle,
                                       const QString& objectNamePrefix /* "" */,
                                       const QString& tclArgs /* "" */) {
@@ -342,8 +380,17 @@ QDialog* FOEDAG::createSettingsDialog(json& widgetsJson,
   layout->setContentsMargins(0, 0, 0, 0);
   dlg->setLayout(layout);
 
-  QWidget* widget =
-      FOEDAG::createSettingsWidget(widgetsJson, objectNamePrefix, tclArgs);
+  FOEDAG::Settings* settings = GlobalSession->GetSettings();
+  json::json_pointer jsonPtr(jsonPath.toStdString());
+
+  QWidget* widget = nullptr;
+  if (settings) {
+    // Get widget parameters from json settings
+    json& widgetsJson = settings->getJson().at(jsonPtr);
+
+    widget = FOEDAG::createSettingsPane(jsonPath);
+  }
+
   if (widget) {
     layout->addWidget(widget);
     QDialogButtonBox* btnBox =
@@ -357,6 +404,130 @@ QDialog* FOEDAG::createSettingsDialog(json& widgetsJson,
   }
 
   return dlg;
+}
+
+// this will create a QWidget containing a widget generated by json pointed to
+// in the settings system by jsonPath. A QDialogbutton box is included which can
+// be introspected and tied into by higher level widgets that include this pane
+QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
+                                    tclArgSetterFn tclArgSetter /* nullptr */,
+                                    tclArgGetterFn tclArgGetter /* nullptr */) {
+  FOEDAG::Settings* settings = GlobalSession->GetSettings();
+  json::json_pointer jsonPtr(jsonPath.toStdString());
+
+  QWidget* widget = nullptr;
+  if (settings) {
+    // Get widget parameters from json settings
+    json& widgetsJson = settings->getJson().at(jsonPtr);
+
+    // Get setting name from the jsonPath
+    QString settingName = "";
+    int separatorIdx = jsonPath.lastIndexOf("/");
+    if (separatorIdx > -1) {
+      // Get node name from full path
+      settingName = jsonPath.mid(separatorIdx + 1);
+    }
+
+    // Get tcl getters/setters
+    if (widgetsJson.contains("_META_")) {
+      QString tclArgKey =
+          QString::fromStdString(widgetsJson["_META_"].value("tclArgKey", ""));
+      auto [setter, getter] = getTclArgFns(tclArgKey);
+      if (tclArgSetter == nullptr) {
+        tclArgSetter = setter;
+      }
+      if (tclArgGetter == nullptr) {
+        tclArgGetter = getter;
+      }
+    }
+
+    // Get any task settings that have been set via tcl commands
+    QString tclArgs = "";
+    if (tclArgGetter != nullptr) {
+      tclArgs = tclArgGetter();
+    }
+
+    // Create Settings Pane
+    QWidget* containerWidget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    containerWidget->setLayout(layout);
+
+    widget = FOEDAG::createSettingsWidget(widgetsJson, settingName, tclArgs);
+    if (widget) {
+      layout->addWidget(widget);
+      // Find and attach to the created settings widget's QDialogButtonBox
+      // This will check for changes in the json and save those
+      QDialogButtonBox* btnBox =
+          widget->findChild<QDialogButtonBox*>(DlgBtnBoxName);
+      if (btnBox) {
+        // Listen for clicks in the pane's QDialogButtonBox
+        QObject::connect(
+            btnBox, &QDialogButtonBox::clicked,
+            [widget, settingName, jsonPtr, tclArgSetter, tclArgGetter, jsonPath,
+             btnBox](QAbstractButton* button) {
+              // If Save or Apply was clicked
+              if (btnBox->buttonRole(button) == QDialogButtonBox::AcceptRole ||
+                  btnBox->buttonRole(button) == QDialogButtonBox::ApplyRole) {
+                if (widget) {
+                  // Look up changed value json
+                  QString patch = widget->property("userPatch").toString();
+                  if (!patch.isEmpty()) {
+                    // Create the parent json structure and add userPatch data
+                    json cleanJson;
+                    cleanJson[jsonPtr] = json::parse(
+                        patch.toStdString());  // have to use [] to create the
+                                               // entry, .at() gives a range
+                                               // error
+
+                    // Create user settings directory
+                    QString userDir = Settings::getUserSettingsPath();
+                    // A user setting dir only exists when a project has been
+                    // loaded so ignore saving when there isn't a project
+                    if (!userDir.isEmpty()) {
+                      // Turn the json path into a unique(enough) settings file
+                      // path to save the patch under
+                      QString tempPath(jsonPath);
+                      if (!tempPath.isEmpty() && tempPath[0] == '/') {
+                        tempPath.remove(0, 1);
+                      }
+                      QFileInfo filepath(userDir + tempPath.replace("/", "_") +
+                                         ".json");
+                      QDir dir;
+                      dir.mkpath(filepath.dir().path());
+
+                      // Save settings for this specific Task category
+                      QFile file(filepath.filePath());
+                      if (file.open(QFile::WriteOnly)) {
+                        QTextStream out(&file);
+                        out << QString::fromStdString(cleanJson.dump());
+
+                        WIDGET_DBG_PRINT(
+                            "Saving Widget Settings: user values saved to " +
+                            filepath.filePath().toStdString() + "\n\t" +
+                            cleanJson.dump() + "\n");
+                      }
+                    } else {
+                      WIDGET_DBG_PRINT(
+                          "Saving Widget Settings: No user settings path, "
+                          "skipping "
+                          "save.\n");
+                    }
+                  }
+
+                  // Set any tclArgList values for the given task
+                  if (tclArgSetter != nullptr) {
+                    QString tclArgs = widget->property("tclArgList").toString();
+                    tclArgSetter(tclArgs);
+                  }
+                }
+              }
+            });
+      }
+    }
+  }
+
+  return widget;
 }
 
 QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
@@ -398,33 +569,35 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
     for (int i = 0; i < VLayout->count(); i++) {
       QWidget* settingsWidget = VLayout->itemAt(i)->widget();
       if (settingsWidget) {
-        bool changed = settingsWidgetChanged(settingsWidget);
-
         QObject* targetObject =
             qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
 
-        if (targetObject && targetObject->property("changed").toBool()) {
-          save = true;
-          QString settingsId =
-              settingsWidget->property("settingsId").toString();
-          QString patchStr = targetObject->property("jsonPatch").toString();
+        if (targetObject) {
+          if (targetObject->property("changed").toBool()) {
+            save = true;
+            QString settingsId =
+                settingsWidget->property("settingsId").toString();
+            QString patchStr = targetObject->property("jsonPatch").toString();
 
-          WIDGET_DBG_PRINT("createSettingsWidget: saving value " +
-                           settingsId.toStdString() + " -> " +
-                           patchStr.toStdString() + "\n");
-          patchHash[settingsId] = patchStr;
+            WIDGET_DBG_PRINT("createSettingsWidget: saving value " +
+                             settingsId.toStdString() + " -> " +
+                             patchStr.toStdString() + "\n");
+            patchHash[settingsId] = patchStr;
+
+            // Clear the "saveNeeded" flag once we've handled it
+            // This is needed for the top level settings dialog which warns
+            // the user on value changes this change will help cover the
+            // scenario when a user clicks "apply" and then navigates away
+            // which originally still left the widgets in a "saveNeeded"
+            // state
+            targetObject->setProperty("saveNeeded", {});
+          }
 
           QString tclArg = targetObject->property("tclArg").toString();
+
           if (tclArg != "") {
             argsStr += " " + tclArg;
           }
-
-          // Clear the "changed" flag once we've handled it
-          // This is needed for the top level settings dialog which warns the
-          // user on value changes this change will help cover the scenario
-          // when a user clicks "apply" and then navigates away which
-          // originally still left the widgets in a "changed" state
-          targetObject->setProperty("changed", {});
         }
       }
     }
@@ -459,16 +632,26 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
     }
   };
 
-  auto handleOtherBtns = [btnBox, checkVals](QAbstractButton* button) {
-    if (btnBox->buttonRole(button) == QDialogButtonBox::ApplyRole) {
+  auto handleBtns = [btnBox, checkVals](QAbstractButton* button) {
+    if (btnBox->buttonRole(button) == QDialogButtonBox::ApplyRole ||
+        btnBox->buttonRole(button) == QDialogButtonBox::AcceptRole) {
       checkVals();
     }
   };
 
+  // Manually fire checkVals after system values have been loaded. This
+  // will protect against the main settings widget making the user
+  // confirm/save their changes anytime they load a category and then
+  // switch categories. This originally occured because each loaded value
+  // needs to be tracked so it gets marked as a change, but it's not a
+  // user change we want to track during a confirm. checkVals has logic to
+  // clear the unsaved property once it's captured the change in json so
+  // calling checkVals captures the system set values while clearing the
+  // unsaved state
+  checkVals();
+
   // Check and store value changes if the dialog is accepted
-  QObject::connect(btnBox, &QDialogButtonBox::accepted, widget, checkVals);
-  // Handle non-default button roles
-  QObject::connect(btnBox, &QDialogButtonBox::clicked, widget, handleOtherBtns);
+  QObject::connect(btnBox, &QDialogButtonBox::clicked, widget, handleBtns);
 
   return widget;
 }
@@ -494,7 +677,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     return value;
   };
 
-  // The requested widget or a container widget containing the widget requested
+  // The requested widget or a container widget containing the requested widget
   QWidget* retVal = nullptr;
 
   // Ptr that will be stored in a property so the settings system knows where to
@@ -825,11 +1008,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     if (createdWidget) {
       // Add a containing widget and label if "label" property was provided
       QString label = getStr(widgetJsonObj, "label");
-      if (!label.isEmpty()) {
-        retVal = FOEDAG::createLabelWidget(label, createdWidget);
-      } else {
-        retVal = createdWidget;
-      }
+      retVal = FOEDAG::createContainerWidget(createdWidget, label);
 
       // Store a pointer to the primary widget incase we wrapped it in a
       // container widget with a label
@@ -847,19 +1026,22 @@ QWidget* FOEDAG::createWidget(const QString& widgetJsonStr,
   return createWidget(json::parse(widgetJsonStr.toStdString()), objName, args);
 }
 
-QWidget* FOEDAG::createLabelWidget(const QString& label, QWidget* widget) {
+QWidget* FOEDAG::createContainerWidget(QWidget* widget,
+                                       const QString& label /* QString() */) {
   // Create a container widget w/ an H layout
   QWidget* retVal = new QWidget();
   QHBoxLayout* HLayout = new QHBoxLayout();
   HLayout->setContentsMargins(0, 0, 0, 0);
   retVal->setLayout(HLayout);
 
-  // Add a label and our widget to the container
+  // Add widget to a container and add a QLabel if label text was passed
   if (widget) {
     retVal->setObjectName(widget->objectName() + "_container");
     // SMA this label might need a size policy to keep it from splitting the
     // layout size
-    HLayout->addWidget(new QLabel(label));
+    if (!label.isEmpty()) {
+      HLayout->addWidget(new QLabel(label));
+    }
     HLayout->addWidget(widget);
   }
 

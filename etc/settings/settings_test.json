@@ -127,6 +127,11 @@
                 "widgetType": "input",
                 "default": "some text",
                 "arg": "input_ex"
+            },
+            "_META_": {
+                "hidden": true,
+                "isSetting": true,
+                "tclArgKey": "TclExample"
             }
         },
         "Synthesis": {
@@ -207,7 +212,8 @@
             },
             "_META_": {
                 "hidden": false,
-                "isSetting": true
+                "isSetting": true,
+                "tclArgKey": "Tasks_Synthesis"
             }
         },
         "Placement": {
