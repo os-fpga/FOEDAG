@@ -388,7 +388,7 @@ void MainWindow::reloadSettings() {
     addFilesFromDir(settingsDir);
 
     // Add any json files from the [projectName].settings folder
-    addFilesFromDir(FOEDAG::getTaskUserSettingsPath());
+    addFilesFromDir(Settings::getUserSettingsPath());
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
