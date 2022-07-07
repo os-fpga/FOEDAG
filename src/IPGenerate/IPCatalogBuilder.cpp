@@ -82,7 +82,7 @@ bool IPCatalogBuilder::buildLiteXCatalog(
     for (const std::filesystem::path& entry :
          std::filesystem::directory_iterator(execPath)) {
       const std::string& exec_name = entry.string();
-      if (exec_name.find("_converter.py") != std::string::npos) {
+      if (exec_name.find(".py") != std::string::npos) {
         buildLiteXIPFromConverter(catalog, entry);
       }
     }
@@ -102,22 +102,16 @@ bool IPCatalogBuilder::buildLiteXIPFromConverter(
   bool result = true;
   std::ostringstream help;
   std::filesystem::path python3Path = FileUtils::locateExecFile("python3");
-  std::string tmpJsonFile = "litex.tmp.json";
   std::string command = python3Path.string() + " " +
-                        pythonConverterScript.string() + " --json-template " +
-                        tmpJsonFile;
+                        pythonConverterScript.string() + " --json-template";
   if (FileUtils::ExecuteSystemCommand(command, &help)) {
     std::cout << "Warning: No IP information for " << pythonConverterScript
               << std::endl;
     std::cout << help.str() << std::endl;
     return false;
   }
-  std::ifstream ifs(tmpJsonFile);
-  if (!ifs.good()) {
-    return false;
-  }
   std::stringstream buffer;
-  buffer << ifs.rdbuf();
+  buffer << help.str();
   auto jopts = json::parse(buffer);
 
   std::filesystem::path basepath = FileUtils::basename(pythonConverterScript);
