@@ -386,8 +386,6 @@ QDialog* FOEDAG::createSettingsDialog(const QString& jsonPath,
   QWidget* widget = nullptr;
   if (settings) {
     // Get widget parameters from json settings
-    json& widgetsJson = settings->getJson().at(jsonPtr);
-
     widget = FOEDAG::createSettingsPane(jsonPath);
   }
 
@@ -418,7 +416,14 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
   QWidget* widget = nullptr;
   if (settings) {
     // Get widget parameters from json settings
-    json& widgetsJson = settings->getJson().at(jsonPtr);
+    json empty;
+    json& widgetsJson = empty;
+    try {
+      // nlohmann json doesn't support checking if a json ptr path is valid so
+      // per the docs we need to try/catch these
+      widgetsJson = settings->getJson().at(jsonPtr);
+    } catch (...) {
+    }
 
     // Get setting name from the jsonPath
     QString settingName = "";

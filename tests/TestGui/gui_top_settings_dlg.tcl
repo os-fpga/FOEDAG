@@ -19,6 +19,7 @@
 
 
 # opening all the settings dialg non-modally (last arg of EditSettings) so that we can continue to execute tcl commands after the dialog shows
+gui_start
 puts "OPEN MAIN SETTINGS DLG GENERICALLY" ; flush stdout ; EditSettings "" 1
 puts "OPEN MAIN SETTINGS DLG FOR SYNTHESIS" ; flush stdout ; EditSettings "Synthesis" 1
 puts "OPEN MAIN SETTINGS DLG FOR PLACEMENT" ; flush stdout ; EditSettings "Placement" 1
