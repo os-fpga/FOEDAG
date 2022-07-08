@@ -212,6 +212,8 @@ bool IPGenerator::Generate() {
     std::string p = expandedFile.string();
     if (!std::filesystem::exists(expandedFile)) {
       std::filesystem::create_directories(expandedFile.parent_path());
+      std::ofstream file{expandedFile};
+      file.close();
       const IPDefinition* def = inst->Definition();
       switch (def->Type()) {
         case IPDefinition::IPType::Other: {

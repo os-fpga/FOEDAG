@@ -21,10 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
-#include <QDir>
-#include <QFileInfo>
-#include <QTextStream>
-
 #include "Foedag.h"
 #include "Settings.h"
 #include "WidgetFactory.h"
@@ -96,7 +92,7 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
 // This will grab Synthesis related options from Compiler::SynthOpt &
 // Compiler::SynthMoreOpt, convert/combine them, and return them as an
 // arg list QString
-auto getSynthesisOptions = []() -> QString {
+QString FOEDAG::TclArgs_getSynthesisOptions() {
   // Collect Synthesis Tcl Params
   QString tclOptions =
       QString::fromStdString(GlobalSession->GetCompiler()->SynthMoreOpt());
@@ -110,7 +106,7 @@ auto getSynthesisOptions = []() -> QString {
 
 // This will take an arg list, separate out the SynthOpt to set on the compiler
 // and then set the rest of the options under SynthMoreOpt
-auto setSynthesisOptions = [](const QString& argsStr) {
+void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
   auto [synthArg, moreOpts] = separateArg(SYNTH_ARG, argsStr);
 
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
@@ -122,125 +118,29 @@ auto setSynthesisOptions = [](const QString& argsStr) {
     }
     compiler->SynthMoreOpt(moreOpts.toStdString());
   }
-
-  return moreOpts;
 };
 
 // Hardcoded example callbacks to demonstrate how to use TclArgs with the task
 // settings dialog
+// NOTE: Do not test settings functionality with this example as its hardcoding
+// will make some settings aspects look like they aren't working
 static QString TclExampleArgs =
     "-double_spin_ex 3.3 -int_spin_ex 3 -radio_ex b3 -check_ex -dropdown_ex "
     "option3 -input_ex "
     "spaces_TclArgSpace_require_TclArgSpace_extra_TclArgSpace_formatting";
-auto getTclExampleOptions = []() -> QString {
-  // std::cout << "returning args: " << TclExampleArgs.toStdString() <<
-  // std::endl;
-  return TclExampleArgs;
-};
-auto setTclExampleOptions = [](const QString& argsStr) {
+
+QString FOEDAG::TclArgs_getExampleArgs() { return TclExampleArgs; };
+void FOEDAG::TclArgs_setExampleArgs(const QString& argsStr) {
   TclExampleArgs = argsStr;
   // std::cout << "Example Args set to: " << argsStr.toStdString() << std::endl;
 };
 
-// Map of Task names and tcl arguement list getters
-std::map<QString, std::function<QString()>> OptionsGetterMap = {
-    {"Synthesis", getSynthesisOptions},
-    // {"Placement", get},
-    // {"Routing", get},
-    {"TclExample", getTclExampleOptions}};
-// Map of Task names and tcl arguement list setters
-std::map<QString, std::function<void(const QString&)>> OptionsSetterMap = {
-    {"Synthesis", setSynthesisOptions},
-    // {"Placement", set},
-    // {"Routing", set},
-    {"TclExample", setTclExampleOptions}};
-
 QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
-  FOEDAG::Settings* settings = GlobalSession->GetSettings();
-  QDialog* dlg = nullptr;
-  if (settings) {
-    // Get widget parameters from json settings
-    json& widgetsJson = settings->getJson()[TASKS_KEY][taskName.toStdString()];
+  QString title = "Edit " + taskName + " Settings";
+  QString prefix = "tasksDlg_" + taskName + "_";
 
-    // Get any task settings that have been set via tcl commands
-    QString tclArgs = "";
-    auto it = OptionsGetterMap.find(taskName);
-    if (it != OptionsGetterMap.end()) {
-      tclArgs = it->second();
-    }
-
-    // Create dialog
-    dlg = createSettingsDialog(widgetsJson, "Edit " + taskName + " Settings",
-                               taskName, tclArgs);
-
-    QObject::connect(dlg, &QDialog::accepted, [dlg, taskName]() {
-      // Find the settings widget contained by the dialog
-      QRegularExpression regex(".*" + QString(SETTINGS_WIDGET_SUFFIX));
-      auto settingsWidget = dlg->findChildren<QWidget*>(regex);
-
-      // If we found a settings widget
-      if (settingsWidget.count() > 0) {
-        // Look up changed value json
-        QString patch = settingsWidget[0]->property("userPatch").toString();
-        if (!patch.isEmpty()) {
-          // Create the parent json structure and add userPatch data
-          json cleanJson;
-          cleanJson[TASKS_KEY][taskName.toStdString()] =
-              json::parse(patch.toStdString());
-
-          // Create user settings dir
-          QString userDir = getTaskUserSettingsPath();
-          // A user setting dir only exists when a project has been loaded so
-          // ignore saving when there isn't a project
-          if (!userDir.isEmpty()) {
-            QFileInfo filepath(userDir + TASKS_KEY + "_" + taskName + ".json");
-            QDir dir;
-            dir.mkpath(filepath.dir().path());
-
-            // Save settings for this specific Task category
-            QFile file(filepath.filePath());
-            if (file.open(QFile::WriteOnly)) {
-              QTextStream out(&file);
-              out << QString::fromStdString(cleanJson.dump());
-
-              TASKS_DBG_PRINT("Saving Tasks: user values saved to " +
-                              filepath.filePath().toStdString() + "\n");
-            }
-          } else {
-            TASKS_DBG_PRINT(
-                "Saving Tasks: No user settings path, skipping save.\n");
-          }
-        }
-
-        // Set any tclArgList values for the given task
-        auto it = OptionsSetterMap.find(taskName);
-        if (it != OptionsSetterMap.end()) {
-          QString tclArgs =
-              settingsWidget[0]->property("tclArgList").toString();
-          it->second(tclArgs);
-        }
-      }
-    });
-  }
-
-  return dlg;
-}
-
-QString FOEDAG::getTaskUserSettingsPath() {
-  QString path;
-  QString projPath =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
-  QString projName =
-      GlobalSession->GetCompiler()->ProjManager()->getProjectName();
-  QString separator = QString::fromStdString(
-      std::string(1, std::filesystem::path::preferred_separator));
-
-  if (!projPath.isEmpty() && !projName.isEmpty()) {
-    path = projPath + separator + projName + ".settings/";
-  }
-
-  return path;
-}
+  return FOEDAG::createSettingsDialog("/Tasks/" + taskName, title, prefix);
+};
 
 void FOEDAG::handleTaskDialogRequested(const QString& category) {
   QDialog* dlg = createTaskDialog(category);

@@ -1,8 +1,8 @@
-#Copyright 2021 The Foedag team
+#Copyright 2022 The Foedag team
 
 #GPL License
 
-#Copyright (c) 2021 The Open-Source FPGA Foundation
+#Copyright (c) 2022 The Open-Source FPGA Foundation
 
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -16,8 +16,11 @@
 
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
-gui_start
-puts "OPEN SETTINGS FOR PLACEMENT" ; flush stdout ; EditTaskSettings Placement
-puts "OPEN SETTINGS FOR ROUTING"  ; flush stdout ; EditTaskSettings Routing
-puts "OPEN SETTINGS FOR FAKE CATEGORY" ; flush stdout ; EditTaskSettings FakeCategory
 
+
+# opening all the settings dialg non-modally (last arg of EditSettings) so that we can continue to execute tcl commands after the dialog shows
+gui_start
+puts "OPEN MAIN SETTINGS DLG GENERICALLY" ; flush stdout ; EditSettings "" 1
+puts "OPEN MAIN SETTINGS DLG FOR SYNTHESIS" ; flush stdout ; EditSettings "Synthesis" 1
+puts "OPEN MAIN SETTINGS DLG FOR PLACEMENT" ; flush stdout ; EditSettings "Placement" 1
+puts "OPEN MAIN SETTINGS DLG FOR ROUTING" ; flush stdout ; EditSettings "Routing" 1
