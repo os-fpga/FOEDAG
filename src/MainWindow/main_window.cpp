@@ -52,6 +52,7 @@ using namespace FOEDAG;
 extern const char* foedag_date;
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
+extern const char* foedag_build_type;
 
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
@@ -103,8 +104,12 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   //  setCentralWidget(mainSplitter);
   statusBar()->showMessage("Ready");
-  m_projectInfo = {"FOEDAG", foedag_version_number, foedag_git_hash,
-                   foedag_date, "https://github.com/os-fpga/FOEDAG/commit/"};
+  m_projectInfo = {"FOEDAG",
+                   foedag_version_number,
+                   foedag_git_hash,
+                   foedag_date,
+                   "https://github.com/os-fpga/FOEDAG/commit/",
+                   foedag_build_type};
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {

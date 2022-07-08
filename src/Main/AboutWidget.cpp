@@ -32,13 +32,6 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
     : QDialog{parent} {
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
-
-#ifdef PRODUCTION_BUILD
-  const QString buildType{"Production"};
-#else
-  const QString buildType{"Engineering"};
-#endif
-
   label->setText(QString("<p><b>%1 %2</b></p>"
                          "<p>Build on %3</p>"
                          "<p>From revision <a "
@@ -46,7 +39,7 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
                          "<p>Build type: %6</p>"
                          "<p>%7</p>")
                      .arg(info.name, info.version, info.build_date, info.url,
-                          info.git_hash, buildType, License()));
+                          info.git_hash, info.build_type, License()));
   label->setAlignment(Qt::AlignTop);
   connect(label, &QLabel::linkActivated, this, [this](const QString &link) {
     QDesktopServices::openUrl(QUrl(link));

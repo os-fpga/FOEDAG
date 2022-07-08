@@ -45,9 +45,13 @@ option(
 
 project(FOEDAG)
 
+
+set (BUILD_TYPE_STRING Engineering)
 if (PRODUCTION_BUILD)
   message("Production Build type set to ON")
   set (PRODUCTION_BUILD_FLAG "-DPRODUCTION_BUILD=1")
+  add_definitions(-DPRODUCTION_BUILD)
+  set (BUILD_TYPE_STRING Production)
 endif(PRODUCTION_BUILD)
 
 # Check system 
@@ -72,11 +76,6 @@ endif()
 # NOTE: Policy changes has to happen before adding any subprojects
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-OPTION(PRODUCTION_BUILD_OPT "Define Production or Engineering build" OFF)
-if (PRODUCTION_BUILD_OPT)
-  add_definitions(-DPRODUCTION_BUILD)
-endif()
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -274,6 +273,7 @@ execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT
 
 message(STATUS "GIT_HASH = ${GIT_HASH}")
 message(STATUS "BUILD_DATE = ${BUILD_DATE}")
+message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
 configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 
 # Explicit lib build order

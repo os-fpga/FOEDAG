@@ -34,4 +34,4 @@ puts "NEW PROJECT STOP"  ; flush stdout ; newproject_gui_close
 puts "GUI STOP"  ; flush stdout ; gui_stop
 
 puts "add_design_file TEST";flush stdout;source tests/TestGui/foedag_proc.tcl;add_des_file
-puts "SHOW ABOUT"; flush stdout ; show_about "Foedag" "0.0.5" "aaaa" "20/05" "https://"
+puts "SHOW ABOUT"; flush stdout ; show_about "Foedag" "0.0.5" "aaaa" "20/05" "https://" "Production"

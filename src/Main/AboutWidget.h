@@ -30,6 +30,7 @@ struct ProjectInfo {
   QString git_hash;
   QString build_date;
   QString url;
+  QString build_type;
 };
 
 class AboutWidget : public QDialog {

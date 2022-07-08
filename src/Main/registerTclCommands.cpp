@@ -197,14 +197,15 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto show_about = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
-    if (argc < 6) {
+    if (argc < 7) {
       Tcl_AppendResult(interp,
                        qPrintable("Expected Syntax: show_about name, "
-                                  "version, git_hash, date, url"),
+                                  "version, git_hash, date, url, build_type"),
                        nullptr);
       return TCL_ERROR;
     }
-    FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3], argv[4], argv[5]};
+    FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3],
+                             argv[4], argv[5], argv[6]};
     QWidget* parent = static_cast<QWidget*>(clientData);
     FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(info, parent);
     about->show();
