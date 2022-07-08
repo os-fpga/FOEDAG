@@ -86,6 +86,14 @@ QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
 
 QStringList TclConsoleWidget::suggestCommand(const QString &cmd,
                                              QString &prefix) {
+  if (historySearch) {
+    prefix = QString();
+    QSet<QString> suggestions;
+    const QStringList hist{history};
+    for (const auto &h : hist)
+      if (h.startsWith(cmd)) suggestions.insert(h);
+    return suggestions.values();
+  }
   return m_console ? m_console->suggestCommand(cmd, prefix) : QStringList();
 }
 

@@ -1,6 +1,7 @@
 #include "TclConsole.h"
 
 #include <QDir>
+#include <filesystem>
 #include <iostream>
 
 #include "ConsoleDefines.h"
@@ -83,53 +84,48 @@ QStringList TclConsole::getFilesCompletion(TclInterp *interpreter,
                                            QString &prefix) const {
   QStringList suggestions;
   if (cmd.startsWith("source ")) {
-    int res = TclEval(interpreter, qPrintable("pwd"));
-    if (res == TCL_OK) {
-      // Get the string result of the executed command
-      QString currPath = TclGetString(Tcl_GetObjResult(interpreter));
-      currPath += FileInfo::separator();
-      auto args = cmd.split(" ");
-      if (args.count() > 1) {
-        currPath += args.at(1);
+    QString currPath =
+        QString::fromStdString(std::filesystem::current_path().string());
+    currPath += FileInfo::separator();
+    auto args = cmd.split(" ");
+    if (args.count() > 1) {
+      currPath += args.at(1);
 
-        auto filter =
-            currPath.mid(currPath.lastIndexOf(FileInfo::separator()) + 1);
+      auto filter =
+          currPath.mid(currPath.lastIndexOf(FileInfo::separator()) + 1);
 
-        currPath = currPath.mid(0, currPath.lastIndexOf(FileInfo::separator()));
-        auto files = FileInfo::getFileList(currPath, {"*.tcl"});
-        for (const auto &fileName : files) {
-          if (fileName.startsWith(filter)) suggestions.append(fileName);
-        }
-
-        if (!suggestions.isEmpty()) {
-          auto cutSeperator =
-              cmd.mid(0, cmd.lastIndexOf(FileInfo::separator()) + 1);
-          if (cutSeperator.isEmpty())
-            cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
-          prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
-        }
+      currPath = currPath.mid(0, currPath.lastIndexOf(FileInfo::separator()));
+      auto files = FileInfo::getFileList(currPath, {"*.tcl"});
+      for (const auto &fileName : files) {
+        if (fileName.startsWith(filter)) suggestions.append(fileName);
       }
-    }
-  } else if (cmd.startsWith("cd ")) {
-    const int res = TclEval(interpreter, qPrintable("pwd"));
-    if (res == TCL_OK) {
-      const QString userInput = cmd.right(cmd.size() - 3);
-      QString currPath = TclGetString(Tcl_GetObjResult(interpreter));
-      currPath += QDir::separator() + userInput;
-      QString path =
-          userInput.startsWith(QDir::separator())
-              ? userInput.mid(0, userInput.lastIndexOf(QDir::separator()) + 1)
-              : currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1);
-      QString filter = QString("%1*").arg(currPath.remove(
-          currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1)));
-      QDir dir{path};
-      suggestions += dir.entryList({filter}, QDir::Dirs | QDir::CaseSensitive);
+
       if (!suggestions.isEmpty()) {
-        auto cutSeperator = cmd.mid(0, cmd.lastIndexOf(QDir::separator()) + 1);
+        auto cutSeperator =
+            cmd.mid(0, cmd.lastIndexOf(FileInfo::separator()) + 1);
         if (cutSeperator.isEmpty())
           cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
         prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
       }
+    }
+  } else if (cmd.startsWith("cd ")) {
+    const QString userInput = cmd.right(cmd.size() - 3);
+    QString currPath =
+        QString::fromStdString(std::filesystem::current_path().string());
+    currPath += QDir::separator() + userInput;
+    QString path =
+        userInput.startsWith(QDir::separator())
+            ? userInput.mid(0, userInput.lastIndexOf(QDir::separator()) + 1)
+            : currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1);
+    QString filter = QString("%1*").arg(currPath.remove(
+        currPath.mid(0, currPath.lastIndexOf(QDir::separator()) + 1)));
+    QDir dir{path};
+    suggestions += dir.entryList({filter}, QDir::Dirs | QDir::CaseSensitive);
+    if (!suggestions.isEmpty()) {
+      auto cutSeperator = cmd.mid(0, cmd.lastIndexOf(QDir::separator()) + 1);
+      if (cutSeperator.isEmpty())
+        cutSeperator = cmd.mid(0, cmd.lastIndexOf(" ") + 1);
+      prefix = cutSeperator.isEmpty() ? cmd : cutSeperator;
     }
   }
   return suggestions;

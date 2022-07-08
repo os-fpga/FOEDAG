@@ -16,7 +16,7 @@
 
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+gui_start
 puts "OPEN SETTINGS FOR PLACEMENT" ; flush stdout ; EditTaskSettings Placement
 puts "OPEN SETTINGS FOR ROUTING"  ; flush stdout ; EditTaskSettings Routing
 puts "OPEN SETTINGS FOR FAKE CATEGORY" ; flush stdout ; EditTaskSettings FakeCategory

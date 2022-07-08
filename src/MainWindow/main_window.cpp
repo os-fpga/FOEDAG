@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
@@ -220,15 +221,12 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, [this]() {
-    m_compiler->SetHardError(false);
     m_compiler->start();
     m_taskManager->startAll();
     m_compiler->finish();
   });
-  connect(stopAction, &QAction::triggered, this, [this]() {
-    m_console->terminate();
-    m_compiler->Stop();
-  });
+  connect(stopAction, &QAction::triggered, this,
+          [this]() { m_compiler->Stop(); });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     Command cmd("gui_stop; exit");
@@ -249,7 +247,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   SourcesForm* sourForm = new SourcesForm(this);
   connect(sourForm, &SourcesForm::CloseProject, this, &MainWindow::closeProject,
           Qt::QueuedConnection);
-  sourForm->InitSourcesForm(strProject);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
   m_projectManager = sourForm->ProjManager();
@@ -257,6 +254,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
 
+  delete m_projectFileLoader;
+  m_projectFileLoader = new ProjectFileLoader;
+  m_projectFileLoader->registerComponent(
+      new ProjectManagerComponent{sourForm->ProjManager()});
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project
                      // info exists
@@ -324,13 +325,15 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
   runDockWidget->setObjectName("designrundockwidget");
   RunsForm* runForm = new RunsForm(this);
-  runForm->InitRunsForm(strProject);
   runForm->RegisterCommands(GlobalSession);
   runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
+  m_projectFileLoader->registerComponent(
+      new TaskManagerComponent{m_taskManager});
+  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
   QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
   taskDocWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDocWidget);
@@ -339,6 +342,11 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this]() { startStopButtonsState(); });
   connect(console, &TclConsoleWidget::stateChanged, this,
           [this, console]() { startStopButtonsState(); });
+
+  if (!strProject.isEmpty()) m_projectFileLoader->Load(strProject);
+
+  sourForm->InitSourcesForm();
+  runForm->InitRunsForm();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -378,7 +386,7 @@ void MainWindow::reloadSettings() {
     addFilesFromDir(settingsDir);
 
     // Add any json files from the [projectName].settings folder
-    addFilesFromDir(FOEDAG::getTaskUserSettingsPath());
+    addFilesFromDir(Settings::getUserSettingsPath());
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);

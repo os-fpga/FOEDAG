@@ -18,9 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef COMPILER_H
+#define COMPILER_H
 
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -30,9 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-
-#ifndef COMPILER_H
-#define COMPILER_H
 
 namespace FOEDAG {
 
@@ -95,7 +92,8 @@ class Compiler {
   virtual ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
-  State CompilerState() { return m_state; }
+  State CompilerState() const { return m_state; }
+  void CompilerState(State st) { m_state = st; }
   bool Compile(Action action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
@@ -116,7 +114,6 @@ class Compiler {
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
   void SetUseVerific(bool on) { m_useVerific = on; }
-  void SetHardError(bool on) { m_hardError = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
@@ -152,6 +149,17 @@ class Compiler {
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
+  std::string& GetOutput() { return m_output; }
+
+  /* Utility functions */
+  bool FileExists(const std::filesystem::path& name);
+  void Tokenize(std::string_view str, std::string_view separator,
+                std::vector<std::string>& result);
+  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
+  std::string& Ltrim(std::string& str);
+  std::string& Rtrim(std::string& str);
+  time_t Mtime(const std::filesystem::path& path);
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -173,14 +181,7 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
-  bool FileExists(const std::filesystem::path& name);
-  void Tokenize(std::string_view str, std::string_view separator,
-                std::vector<std::string>& result);
-  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
-  std::string& Ltrim(std::string& str);
-  std::string& Rtrim(std::string& str);
 
-  time_t Mtime(const std::filesystem::path& path);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
@@ -197,7 +198,6 @@ class Compiler {
   Constraints* m_constraints = nullptr;
   std::string m_output;
   bool m_useVerific = false;
-  bool m_hardError = false;
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;

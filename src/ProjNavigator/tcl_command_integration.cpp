@@ -126,6 +126,25 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
   return true;
 }
 
+bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
+                                              std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+
+  const QString strSetName = m_projManager->getDesignActiveFileSet();
+  m_projManager->setCurrentFileSet(strSetName);
+  const int ret = m_projManager->addDesignFiles(files, lang, false, false);
+  if (ProjectManager::EC_Success != ret) {
+    error(ret, files, out);
+    return false;
+  }
+
+  update();
+  return true;
+}
+
 bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
                                                       std::ostream &out) {
   if (!validate()) {
@@ -140,6 +159,26 @@ bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
 
   if (0 != ret) {
     out << "Failed to add file: " << file.toStdString() << std::endl;
+    return false;
+  }
+
+  update();
+  return true;
+}
+
+bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
+                                              std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+
+  const QString strSetName = m_projManager->getConstrActiveFileSet();
+  m_projManager->setCurrentFileSet(strSetName);
+  const int ret = m_projManager->addConstrsFile(file, false, false);
+
+  if (ProjectManager::EC_Success != ret) {
+    error(ret, file, out);
     return false;
   }
 
@@ -225,6 +264,20 @@ bool TclCommandIntegration::validate() const { return m_projManager; }
 void TclCommandIntegration::update() {
   if (m_projManager) m_projManager->FinishedProject();
   if (m_form) m_form->UpdateSrcHierachyTree();
+}
+
+void TclCommandIntegration::error(int res, const QString &filename,
+                                  std::ostream &out) {
+  switch (res) {
+    case ProjectManager::EC_Success:
+      break;
+    case ProjectManager::EC_FileNotExist:
+      out << "File(s) not exist: " << filename.toStdString() << std::endl;
+      break;
+    default:
+      out << "Failed to add files: " << filename.toStdString() << std::endl;
+      break;
+  }
 }
 
 }  // namespace FOEDAG

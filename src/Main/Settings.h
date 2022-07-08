@@ -53,6 +53,10 @@ class Settings {
       const QString& optionsArrayKey = "options",
       const QString& lookupArrayKey = "optionsLookup");
   QString getSystemDefaultSettingsDir();
+  static void traverseJson(json& obj,
+                           std::function<void(json&, QString)> visitFn,
+                           QString path = QString());
+  static QString getUserSettingsPath();
 
   void loadJsonFile(const QString& filePath);
   void loadJsonFile(json* jsonObject, const QString& filePath);

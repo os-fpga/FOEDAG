@@ -473,10 +473,15 @@ bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
            << "..." << std::endl;
-
-  (*m_out) << "Design " << ProjManager()->projectName() << " IPs are generated!"
-           << std::endl;
-  m_state = State::IPGenerated;
+  bool status = GetIPGenerator()->Generate();
+  if (status) {
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " IPs are generated!" << std::endl;
+    m_state = State::IPGenerated;
+  } else {
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " IPs generation failed!");
+  }
   return true;
 }
 
@@ -809,8 +814,8 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   std::string pnrOptions;
-  if (!PnROpt().empty()) pnrOptions = " " + PnROpt();
-
+  if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
+  if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
@@ -1154,7 +1159,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}  --analysis
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -1230,6 +1235,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${ROUTE_FILE}", netlistFilePrefix + ".route");
   result = ReplaceAll(result, "${SDC_FILE}",
                       ProjManager()->projectName() + "_openfpga.sdc");
+
+  std::string pnrOptions;
+  if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
+  if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
+  result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
 
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1380,6 +1390,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                   n.toElement().attribute("type").toStdString();
               std::string file = n.toElement().attribute("file").toStdString();
               std::string name = n.toElement().attribute("name").toStdString();
+              std::string num = n.toElement().attribute("num").toStdString();
               std::filesystem::path fullPath;
               if (FileExists(file)) {
                 fullPath = file;  // Absolute path
@@ -1424,7 +1435,15 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                   status = false;
                 }
               } else if (file_type == "synth_opts") {
-                DefaultSynthOptions(name);
+                PerDeviceSynthOptions(name);
+              } else if (file_type == "vpr_opts") {
+                PerDevicePnROptions(name);
+              } else if (file_type == "device_size") {
+                DeviceSize(name);
+              } else if (file_type == "lut_size") {
+                LutSize(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "channel_width") {
+                ChannelWidth(std::strtoul(num.c_str(), nullptr, 10));
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;

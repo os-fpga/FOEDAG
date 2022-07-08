@@ -87,12 +87,17 @@ class CompilerOpenFPGA : public Compiler {
   void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
   void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
 
-  const std::string& DefaultSynthOptions() { return m_defaultSynthOptions; }
-  void DefaultSynthOptions(const std::string& options) {
-    m_defaultSynthOptions = options;
+  const std::string& PerDeviceSynthOptions() { return m_perDeviceSynthOptions; }
+  void PerDeviceSynthOptions(const std::string& options) {
+    m_perDeviceSynthOptions = options;
   }
 
   void SynthType(SynthesisType type) { m_synthType = type; }
+
+  const std::string& PerDevicePnROptions() { return m_perDevicePnROptions; }
+  void PerDevicePnROptions(const std::string& options) {
+    m_perDevicePnROptions = options;
+  }
 
  protected:
   virtual bool IPGenerate();
@@ -118,7 +123,8 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_yosysPluginLib;
   std::string m_yosysPlugin;
   std::string m_mapToTechnology;
-  std::string m_defaultSynthOptions;
+  std::string m_perDeviceSynthOptions;
+  std::string m_perDevicePnROptions;
   std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";

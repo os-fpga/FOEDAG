@@ -110,11 +110,26 @@ struct ProjectOptions {
   QString currentFileSet;
 };
 
+struct Suffixes {
+  const std::vector<QString> suffixes;
+  Suffixes(const std::vector<QString> &s) : suffixes(s) {}
+  bool TestSuffix(const QString &s) const;
+};
+
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
+  enum ErrorCode : int {
+    EC_Success = 0,
+    EC_FileSetNotExist = -1,
+    EC_ProjRunNotExist = -2,
+    EC_FileNotExist = -3,
+  };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  static QString ProjectFilesPath(const QString &projPath,
+                                  const QString &projName,
+                                  const QString &fileSet);
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
@@ -132,12 +147,18 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  int setDesignFiles(const QString &fileNames, int lang,
-                     bool isFileCopy = true);
+  int addDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
+                     bool localToProject = true);
+  int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
-  int setSimulationFile(const QString &strFileName, bool isFileCopy = true);
+  int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
+                        bool localToProject = true);
+  int addConstrsFile(const QString &strFileName, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
-  int setConstrsFile(const QString &strFileName, bool isFileCopy = true);
+  int setConstrsFile(const QString &strFileName, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
   int deleteFile(const QString &strFileName);
 
@@ -207,8 +228,7 @@ class ProjectManager : public QObject {
   int deleteFileSet(const QString &strSetName);
   int deleteRun(const QString &strRunName);
 
-  int StartProject(const QString &strOspro);
-  int FinishedProject();
+  void FinishedProject();
 
   QString currentFileSet() const;
   void setCurrentFileSet(const QString &currentFileSet);
@@ -236,13 +256,12 @@ class ProjectManager : public QObject {
     m_deviceName = deviceName;
   }
   const std::string &getTargetDevice() { return m_deviceName; }
+  static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
   // Please set currentfileset before using this function
-  int setDesignFile(const QString &strFileName, bool isFileCopy = true);
-
-  int ImportProjectData(QString strOspro);
-  int ExportProjectData();
+  int setDesignFile(const QString &strFileName, bool isFileCopy = true,
+                    bool localToProject = true);
 
   int CreateProjectDir();
   int CreateSrcsFolder(QString strFolderName);
@@ -259,8 +278,8 @@ class ProjectManager : public QObject {
   QStringList getAllChildFiles(QString path);
   bool CopyFileToPath(QString sourceDir, QString destinDir,
                       bool iscover = true);
-  static QStringList StringSplit(const QString &str, const QString &sep);
-  static QString ProjectVersion(const QString &filename);
+  int CreateAndAddFile(const QString &suffix, const QString &filename,
+                       const QString &filenameAdd, bool copyFile);
 
  private:
   QString m_currentFileSet;
@@ -270,9 +289,14 @@ class ProjectManager : public QObject {
   std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
   std::string m_deviceName;
+  inline static const Suffixes m_designSuffixes{
+      {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
+  inline static const Suffixes m_constrSuffixes{{"SDC"}};
+  inline static const Suffixes m_simSuffixes{{"v"}};
 
  signals:
   void projectPathChanged();
+  void saveFile();
 };
 
 }  // namespace FOEDAG

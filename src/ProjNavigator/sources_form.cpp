@@ -41,43 +41,13 @@ SourcesForm::SourcesForm(QWidget *parent)
 
 SourcesForm::~SourcesForm() { delete ui; }
 
-void SourcesForm::InitSourcesForm(const QString &strFile) {
-  m_projManager->StartProject(strFile);
-
-  UpdateSrcHierachyTree();
-}
+void SourcesForm::InitSourcesForm() { UpdateSrcHierachyTree(); }
 
 TclCommandIntegration *SourcesForm::createTclCommandIntegarion() {
   return new TclCommandIntegration(m_projManager, this);
 }
 
 ProjectManager *SourcesForm::ProjManager() { return m_projManager; }
-
-void SourcesForm::TestOpenProject(int argc, const char *argv[]) {
-  QTextStream out(stdout);
-  if (argc < 3 || "--file" != QString(argv[1])) {
-    out << "-----------open_project ------------\n";
-    out << " \n";
-    out << " Description: \n";
-    out << " Open a project. Show the source file categories and hierarchies. "
-           "\n";
-    out << " \n";
-    out << " Syntax: \n";
-    out << " open_project --file <project.ospr> \n";
-    out << " \n";
-    out << "--------------------------------------\n";
-    return;
-  }
-
-  QFileInfo fileInfo;
-  fileInfo.setFile(QString(argv[2]));
-  if (fileInfo.exists()) {
-    m_projManager->StartProject(QString(argv[2]));
-    UpdateSrcHierachyTree();
-  } else {
-    out << " Warning : This file <" << QString(argv[2]) << "> is not exist! \n";
-  }
-}
 
 void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
   QString filename = strFileName.right(strFileName.size() -

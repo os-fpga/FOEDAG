@@ -34,13 +34,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QProcess>
+#include <charconv>
 #include <chrono>
 #include <ctime>
 #include <filesystem>
 #include <sstream>
 #include <thread>
 
-#include "Compiler/Compiler.h"
+#include "Compiler.h"
 #include "Compiler/Constraints.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
@@ -134,7 +135,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   m_constraints = new Constraints();
   m_constraints->registerCommands(interp);
   IPCatalog* catalog = new IPCatalog();
-  m_IPGenerator = new IPGenerator(catalog);
+  m_IPGenerator = new IPGenerator(catalog, this);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -156,7 +157,6 @@ void Compiler::Message(const std::string& message) {
 void Compiler::ErrorMessage(const std::string& message) {
   if (m_err) (*m_err) << "ERROR: " << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
-  SetHardError(true);
 }
 
 static std::string TclInterpCloneScript() {
@@ -226,7 +226,7 @@ tcl_interp_clone
 bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
-    m_IPGenerator = new IPGenerator(catalog);
+    m_IPGenerator = new IPGenerator(catalog, this);
   }
   IPCatalogBuilder builder;
   bool result =
@@ -235,6 +235,11 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  if (m_IPGenerator == nullptr) {
+    IPCatalog* catalog = new IPCatalog();
+    m_IPGenerator = new IPGenerator(catalog, this);
+  }
+  m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     m_constraints = new Constraints();
     m_constraints->registerCommands(interp);
@@ -256,6 +261,25 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("version", version, this, 0);
 
+  auto get_state = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    auto state = compiler->CompilerState();
+    std::array<char, 3> str;
+    str.fill('\0');
+    if (auto [ptr, ec] = std::to_chars(str.data(), str.data() + str.size(),
+                                       static_cast<int>(state));
+        ec == std::errc()) {
+      Tcl_AppendResult(interp, str.data(), nullptr);
+      return TCL_OK;
+    } else {
+      Tcl_AppendResult(interp, std::make_error_code(ec).message().c_str(),
+                       nullptr);
+      return TCL_ERROR;
+    }
+  };
+  interp->registerCmd("get_state", get_state, this, nullptr);
+
   auto create_design = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -263,7 +287,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc == 2) {
       name = argv[1];
     }
-    compiler->m_output.clear();
+    compiler->GetOutput().clear();
     bool ok = compiler->CreateDesign(name);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
@@ -384,10 +408,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
         std::filesystem::path the_path = expandedFile;
         if (!the_path.is_absolute()) {
-          expandedFile =
-              std::filesystem::path(compiler->ProjManager()->projectPath() /
-                                    std::filesystem::path("..") / expandedFile)
-                  .string();
+          const auto& path = std::filesystem::current_path();
+          expandedFile = std::filesystem::path(path / expandedFile).string();
         }
         fileList += expandedFile + " ";
       }
@@ -397,7 +419,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       std::string("\n"));
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
           fileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
@@ -449,16 +471,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path the_path = expandedFile;
     std::string origPathFileList = expandedFile;
     if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(std::filesystem::path("..") / expandedFile)
-              .string();
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
     }
 
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateDesignFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
           origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
@@ -608,6 +629,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
+    }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
     int status = Tcl_Eval(
@@ -617,7 +642,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddOrCreateConstrFiles(
+      bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
           expandedFile.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
@@ -1092,13 +1117,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
-  if (m_hardError) {
-    if (task != TaskManager::invalid_id && m_taskManager) {
-      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
-    }
-    m_hardError = false;
-    return false;
-  }
   m_stop = false;
   bool res{false};
   if (task != TaskManager::invalid_id && m_taskManager) {
@@ -1114,7 +1132,6 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
-  if (m_taskManager) m_taskManager->stopCurrentTask();
   if (m_process) m_process->terminate();
 }
 
@@ -1288,11 +1305,16 @@ bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " IPs are generated!"
-           << std::endl;
-  m_state = State::IPGenerated;
-  return true;
+  bool status = GetIPGenerator()->Generate();
+  if (status) {
+    (*m_out) << "Design " << m_projManager->projectName()
+             << " IPs are generated!" << std::endl;
+    m_state = State::IPGenerated;
+  } else {
+    ErrorMessage("Design " + m_projManager->projectName() +
+                 " IPs generation failed!");
+  }
+  return status;
 }
 
 bool Compiler::Packing() {
