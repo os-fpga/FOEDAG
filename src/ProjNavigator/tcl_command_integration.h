@@ -38,7 +38,9 @@ class TclCommandIntegration : public QObject {
                                  std::ostream &out);
   bool TclAddOrCreateDesignFiles(const QString &files, int lang,
                                  std::ostream &out);
+  bool TclAddDesignFiles(const QString &files, int lang, std::ostream &out);
   bool TclAddOrCreateConstrFiles(const QString &file, std::ostream &out);
+  bool TclAddConstrFiles(const QString &file, std::ostream &out);
   bool TclSetActive(int argc, const char *argv[], std::ostream &out);
   bool TclSetAsTarget(int argc, const char *argv[], std::ostream &out);
   bool TclCreateProject(int argc, const char *argv[], std::ostream &out);
@@ -55,6 +57,7 @@ class TclCommandIntegration : public QObject {
  private:
   bool validate() const;
   void update();
+  static void error(int res, const QString &filename, std::ostream &out);
 
  private:
   ProjectManager *m_projManager;

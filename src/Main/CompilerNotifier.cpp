@@ -42,7 +42,7 @@ void CompilerNotifier::notifyStart() {
 
 void CompilerNotifier::notifyFinish() {
   if (m_console) {
-    m_queue.dequeue();
+    if (!m_queue.isEmpty()) m_queue.dequeue();
     if (m_queue.count() == 0) m_console->setTclCommandInProggress(false);
   }
 }

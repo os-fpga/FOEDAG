@@ -62,6 +62,10 @@
             "input_ex_2": {
                 "widgetType": "input",
                 "default": "input field w/o a label provided"
+            },
+            "_META_": {
+                "hidden": true,
+                "isSetting": true
             }
         },
         "TclExample": {
@@ -123,6 +127,11 @@
                 "widgetType": "input",
                 "default": "some text",
                 "arg": "input_ex"
+            },
+            "_META_": {
+                "hidden": true,
+                "isSetting": true,
+                "tclArgKey": "TclExample"
             }
         },
         "Synthesis": {
@@ -200,6 +209,11 @@
                 "label": "Fast Synthesis",
                 "widgetType": "checkbox",
                 "arg": "fast"
+            },
+            "_META_": {
+                "hidden": false,
+                "isSetting": true,
+                "tclArgKey": "Tasks_Synthesis"
             }
         },
         "Placement": {
@@ -264,6 +278,10 @@
             "placement_input_ex_2": {
                 "widgetType": "input",
                 "default": "input field w/o a label provided"
+            },
+            "_META_": {
+                "hidden": false,
+                "isSetting": true
             }
         },
         "Routing": {
@@ -287,6 +305,10 @@
                 ],
                 "layout": "horizontal",
                 "default": "b1"
+            },
+            "_META_": {
+                "hidden": false,
+                "isSetting": true
             }
         }
     }

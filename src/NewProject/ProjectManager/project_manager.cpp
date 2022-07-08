@@ -341,6 +341,31 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
+int ProjectManager::addDesignFiles(const QString& fileNames, int lang,
+                                   bool isFileCopy, bool localToProject) {
+  setCurrentFileSet(getDesignActiveFileSet());
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) return EC_FileSetNotExist;
+
+  const QStringList fileList = StringSplit(fileNames, " ");
+
+  // check file exists
+  for (const auto& file : fileList) {
+    if (const QFileInfo fileInfo{file}; !fileInfo.exists())
+      return EC_FileNotExist;
+  }
+
+  proFileSet->addFiles(fileList, lang);
+
+  int result{EC_Success};
+  for (const auto& file : fileList) {
+    const int res = setDesignFile(file, isFileCopy, false);
+    if (res != EC_Success) result = res;
+  }
+  return result;
+}
+
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
                                    bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
@@ -448,6 +473,14 @@ int ProjectManager::setSimulationFile(const QString& strFileName,
     }
   }
   return ret;
+}
+
+int ProjectManager::addConstrsFile(const QString& strFileName, bool isFileCopy,
+                                   bool localToProject) {
+  // check file exists
+  if (const QFileInfo fileInfo{strFileName}; !fileInfo.exists())
+    return EC_FileNotExist;
+  return setConstrsFile(strFileName, isFileCopy, localToProject);
 }
 
 int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,

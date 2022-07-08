@@ -33,4 +33,4 @@ puts "NEW PROJECT STOP"  ; flush stdout ; newproject_gui_close
 
 puts "GUI STOP"  ; flush stdout ; gui_stop
 
-
+puts "add_design_file TEST";flush stdout;source tests/TestGui/foedag_proc.tcl;add_des_file
