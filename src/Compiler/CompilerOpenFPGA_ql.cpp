@@ -1420,6 +1420,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -no_bram";
   }
 
+  if( (settings_yosys_general_obj.contains("no_sdff")) && 
+      (settings_yosys_general_obj["no_sdff"]["default"].get<std::string>() == "checked") ) {
+
+    yosys_options += " -nosdff";
+  }
+
   if( (settings_yosys_general_obj.contains("edif")) && 
       (settings_yosys_general_obj["edif"]["default"].get<std::string>() == "checked") ) {
 
