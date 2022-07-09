@@ -1007,12 +1007,17 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
-      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
-        ErrorMessage(
+    if (FileExists(pincommand)) {
+      // pinmap xml file is only required for opensource MPW1 device
+      bool requireOpenFpgaPinMapXml = this->ProjManager()->getTargetDevice() == "MPW1";
+      if (requireOpenFpgaPinMapXml) {
+        if (m_OpenFpgaPinMapXml.empty() || !std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+          ErrorMessage(
             "No pin description xml file available for this device, required "
             "for set_pin_loc constraints");
-        return false;
+          return false;
+        }
+        pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       }
       if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
         ErrorMessage(
@@ -1020,7 +1025,6 @@ bool CompilerOpenFPGA::Placement() {
             "for set_pin_loc constraints");
         return false;
       }
-      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
