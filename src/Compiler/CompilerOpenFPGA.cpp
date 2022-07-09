@@ -1007,20 +1007,18 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
-      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
-        ErrorMessage(
-            "No pin description xml file available for this device, required "
-            "for set_pin_loc constraints");
-        return false;
-      }
+    if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
       if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
         ErrorMessage(
             "No pin description csv file available for this device, required "
             "for set_pin_loc constraints");
         return false;
       }
-      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+      // pin_c executable can work with either xml and csv or csv only file
+      if (!m_OpenFpgaPinMapXml.empty() &&
+          std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+        pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+      }
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
