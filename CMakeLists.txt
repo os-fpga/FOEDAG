@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 5)
+set(VERSION_PATCH 6)
 
 option(
   WITH_LIBCXX
@@ -259,7 +259,9 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
-execute_process(COMMAND git rev-parse --short HEAD
+execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND git rev-parse --short HEAD
+  COMMAND tr -d '\n'
   OUTPUT_VARIABLE GIT_HASH
   ERROR_VARIABLE GIT_HASH_ERR
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
