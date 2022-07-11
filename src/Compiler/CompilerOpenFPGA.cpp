@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 
@@ -1134,6 +1135,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
+  }
+
+  if (TimingAnalysisOpt() == STAOpt::View) {
+    TimingAnalysisOpt(STAOpt::None);
+    const std::string command = BaseVprCommand() + " --analysis --disp on";
+    const int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " place and route view failed!");
+      return false;
+    }
+    return true;
   }
 
   std::string command = BaseVprCommand() + " --analysis";
