@@ -74,8 +74,8 @@ class Compiler {
   enum class PlacementOpt { None, Clean };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean };
-  enum class BitstreamOpt { NoBitsOpt, Force, Clean };
+  enum class STAOpt { None, Clean, View };
+  enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
@@ -151,6 +151,9 @@ class Compiler {
 
   std::string& GetOutput() { return m_output; }
 
+  bool BitstreamEnabled() { return m_bitstreamEnabled; }
+  void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
+
   /* Utility functions */
   bool FileExists(const std::filesystem::path& name);
   void Tokenize(std::string_view str, std::string_view separator,
@@ -173,6 +176,7 @@ class Compiler {
   virtual bool GenerateBitstream();
 
   bool CreateDesign(const std::string& name);
+  static void PrintVersion(std::ostream* out);
 
   /* Compiler class utilities */
   bool RunBatch();
@@ -208,7 +212,7 @@ class Compiler {
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
-  BitstreamOpt m_bitstreamOpt = BitstreamOpt::NoBitsOpt;
+  BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
 
   // Compiler specific options
   std::string m_pnrOpt;
@@ -217,7 +221,7 @@ class Compiler {
   // VPR, Yosys options
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
-
+  bool m_bitstreamEnabled = true;
   class QProcess* m_process = nullptr;
   IPGenerator* m_IPGenerator = nullptr;
 };

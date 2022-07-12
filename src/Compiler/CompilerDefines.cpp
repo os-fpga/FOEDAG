@@ -71,6 +71,8 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
         return ROUTING_CLEAN;
       return ROUTING;
     case Compiler::Action::STA:
+      if (compiler->TimingAnalysisOpt() == Compiler::STAOpt::View)
+        return PLACE_AND_ROUTE_VIEW;
       return TIMING_SIGN_OFF;
     case Compiler::Action::Bitstream:
       return BITSTREAM;

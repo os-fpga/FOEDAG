@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,35 +17,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
+#pragma once
 
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-
-#include "IPGenerate/IPCatalog.h"
-
-#ifndef IPCATALOGBUILDER_H
-#define IPCATALOGBUILDER_H
+#include <QDialog>
 
 namespace FOEDAG {
 
-class IPCatalogBuilder {
+struct ProjectInfo {
+  QString name;
+  QString version;
+  QString git_hash;
+  QString build_date;
+  QString url;
+  QString build_type;
+};
+
+class AboutWidget : public QDialog {
  public:
-  IPCatalogBuilder(Compiler* compiler) : m_compiler(compiler) {}
-  bool buildLiteXCatalog(IPCatalog* catalog,
-                         const std::filesystem::path& litexIPgenPath);
+  explicit AboutWidget(const ProjectInfo &info, QWidget *parent = nullptr);
 
-  virtual ~IPCatalogBuilder() {}
-
- protected:
-  bool buildLiteXIPFromGenerator(
-      IPCatalog* catalog, const std::filesystem::path& pythonGeneratorScript);
-  Compiler* m_compiler = nullptr;
+ private:
+  static QString License();
 };
 
 }  // namespace FOEDAG
-
-#endif

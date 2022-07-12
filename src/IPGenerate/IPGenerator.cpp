@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/ProcessUtils.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
+#include "IPGenerate/IPCatalog.h"
 #include "IPGenerate/IPGenerator.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"

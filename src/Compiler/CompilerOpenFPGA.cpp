@@ -42,19 +42,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash: " << foedag_git_hash << "\n";
-  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+  PrintVersion(out);
 }
 
 void CompilerOpenFPGA::Help(std::ostream* out) {
@@ -120,7 +115,18 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?" << std::endl;
+  (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
+            "IP generators, adds the IP(s) to the IP Catalog"
+         << std::endl;
+  (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
+            "-version <ver_name> -P<param>=\"<value>\"..."
+         << std::endl;
+  (*out) << "                              : Configures an IP <IP_NAME> and "
+            "generates the corresponding file with module name"
+         << std::endl;
+  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
+            "ip_configure"
+         << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
@@ -471,8 +477,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
 bool CompilerOpenFPGA::IPGenerate() {
   PERF_LOG("IPGenerate has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  (*m_out) << "##################################################" << std::endl;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
-           << "..." << std::endl;
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   bool status = GetIPGenerator()->Generate();
   if (status) {
     (*m_out) << "Design " << m_projManager->projectName()
@@ -567,9 +575,10 @@ bool CompilerOpenFPGA::Synthesize() {
   }
   PERF_LOG("Synthesize has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
-  (*m_out) << "Synthesizing design: " << ProjManager()->projectName() << "..."
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Synthesis for design: " << ProjManager()->projectName()
            << std::endl;
-
+  (*m_out) << "##################################################" << std::endl;
   std::string yosysScript = InitSynthesisScript();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -845,6 +854,10 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Packing for design: " << ProjManager()->projectName()
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   const std::string sdcOut =
       (std::filesystem::path(ProjManager()->projectName()) /
        std::string(ProjManager()->projectName() + "_openfpga.sdc"))
@@ -912,8 +925,10 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     GlobPlacementOpt(GlobalPlacementOpt::None);
     return true;
   }
+  (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
-           << "..." << std::endl;
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   // TODO:
   m_state = State::GloballyPlaced;
   (*m_out) << "Design " << ProjManager()->projectName()
@@ -941,8 +956,10 @@ bool CompilerOpenFPGA::Placement() {
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
-  (*m_out) << "Placement for design: " << ProjManager()->projectName() << "..."
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Placement for design: " << ProjManager()->projectName()
            << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -996,20 +1013,18 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand) && (!m_OpenFpgaPinMapXml.empty())) {
-      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
-        ErrorMessage(
-            "No pin description xml file available for this device, required "
-            "for set_pin_loc constraints");
-        return false;
-      }
+    if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
       if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
         ErrorMessage(
             "No pin description csv file available for this device, required "
             "for set_pin_loc constraints");
         return false;
       }
-      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+      // pin_c executable can work with either xml and csv or csv only file
+      if (!m_OpenFpgaPinMapXml.empty() &&
+          std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+        pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+      }
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
       pincommand += " --pcf " +
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
@@ -1075,8 +1090,10 @@ bool CompilerOpenFPGA::Route() {
         std::string(ProjManager()->projectName() + "_post_synth.route"));
     return true;
   }
-  (*m_out) << "Routing for design: " << ProjManager()->projectName() << "..."
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Routing for design: " << ProjManager()->projectName()
            << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -1105,12 +1122,25 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-
-  (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
            << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
+  }
+
+  if (TimingAnalysisOpt() == STAOpt::View) {
+    TimingAnalysisOpt(STAOpt::None);
+    const std::string command = BaseVprCommand() + " --analysis --disp on";
+    const int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " place and route view failed!");
+      return false;
+    }
+    return true;
   }
 
   std::string command = BaseVprCommand() + " --analysis";
@@ -1138,9 +1168,10 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-
-  (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
            << std::endl;
+  (*m_out) << "##################################################" << std::endl;
   std::string command = BaseVprCommand() + " --analysis";
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
@@ -1290,21 +1321,50 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
-    if (m_state != State::Routed) {
-      ErrorMessage("Design needs to be in routed state");
-      return false;
-    }
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Bitstream generation for design \""
+           << ProjManager()->projectName() << "\" on device \""
+           << ProjManager()->getTargetDevice() << "\"" << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
+    ErrorMessage("Design needs to be in routed state");
+    return false;
   }
-  (*m_out) << "Bitstream generation for design: "
-           << ProjManager()->projectName() << "..." << std::endl;
-
-  if (BitsOpt() == BitstreamOpt::NoBitsOpt) {
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " bitstream is generated!" << std::endl;
+  if (BitsOpt() == BitstreamOpt::Clean) {
+    Message("Cleaning bitstream results for " + ProjManager()->projectName());
+    m_state = State::Routed;
+    BitsOpt(BitstreamOpt::DefaultBitsOpt);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectName()) /
+        std::string("fabric_bitstream.bit"));
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectName()) /
+        std::string("fabric_independent_bitstream.xml"));
     return true;
   }
-  // This is WIP, have to force it to execute (bitstream force)
+
+  if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
+#ifdef PRODUCTION_BUILD
+    if (BitstreamEnabled() == false) {
+      (*m_out) << "Device " << ProjManager()->getTargetDevice()
+               << " bitstream is not enabled, skipping!" << std::endl;
+      return true;
+    }
+#else
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " bitstream is skipped, use \"bitstream force\" to generate!"
+             << std::endl;
+    return true;
+#endif
+  } else if (BitsOpt() == BitstreamOpt::Force) {
+#ifdef PRODUCTION_BUILD
+    if (BitstreamEnabled() == false) {
+      (*m_out) << "Device " << ProjManager()->getTargetDevice()
+               << " bitstream is not enabled, skipping!" << std::endl;
+      return true;
+    }
+#endif
+  }
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
                         ProjManager()->projectName() + ".openfpga";
@@ -1315,7 +1375,6 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 
-  // TODO, this paths doesn't work since depends on the executable path
   std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
                           std::string("fabric_bitstream.bit"));
   std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
@@ -1444,6 +1503,16 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 LutSize(std::strtoul(num.c_str(), nullptr, 10));
               } else if (file_type == "channel_width") {
                 ChannelWidth(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "bitstream_enabled") {
+                if (num == "true") {
+                  BitstreamEnabled(true);
+                } else if (num == "false") {
+                  BitstreamEnabled(false);
+                } else {
+                  ErrorMessage("Invalid bitstream_enabled num (true, false): " +
+                               num + "\n");
+                  status = false;
+                }
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;

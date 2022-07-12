@@ -109,6 +109,8 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (auto task = m_taskManager->task(ToTaskId(index))) {
       return QVariant((uint)task->type());
     }
+  } else if (role == TaskId) {
+    return ToTaskId(index);
   }
   return QVariant();
 }
@@ -166,6 +168,7 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, ROUTING_CLEAN});
   m_taskOrder.push_back({row++, ROUTING_SETTINGS});
   m_taskOrder.push_back({row++, ROUTING_WRITE_NETLIST});
+  m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, BITSTREAM});
