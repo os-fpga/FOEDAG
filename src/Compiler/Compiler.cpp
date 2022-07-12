@@ -108,7 +108,18 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?" << std::endl;
+  (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
+            "IP generators, adds the IP(s) to the IP Catalog"
+         << std::endl;
+  (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
+            "-version <ver_name> -P<param>=\"<value>\"..."
+         << std::endl;
+  (*out) << "                              : Configures an IP <IP_NAME> and "
+            "generates the corresponding file with module name"
+         << std::endl;
+  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
+            "ip_configure"
+         << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
@@ -228,7 +239,7 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
   }
-  IPCatalogBuilder builder;
+  IPCatalogBuilder builder(this);
   bool result =
       builder.buildLiteXCatalog(GetIPGenerator()->Catalog(), litexPath);
   return result;
@@ -712,6 +723,41 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("synth_options", synth_options, this, 0);
 
+  auto add_litex_ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc < 2) {
+      compiler->ErrorMessage(
+          "Missing directory path for LiteX ip generator(s)");
+    }
+    const std::string file = argv[1];
+    std::string expandedFile = file;
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
+    }
+    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
+
+  // Long runtime commands have to have different scheduling in batch and GUI
+  // modes
   if (batchMode) {
     auto ipgenerate = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
