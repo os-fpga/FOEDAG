@@ -1,0 +1,277 @@
+{
+    "general": {
+        "device": {
+            "family": {
+                "label": "family",
+                "widgetType": "dropdown",
+                "options": [
+                    "QLF_K6N10"
+                ],
+                "default": "QLF_K6N10",
+                "visible": true
+            },
+            "foundry": {
+                "label": "foundry",
+                "widgetType": "dropdown",
+                "options": [
+                    "TSMC"
+                ],
+                "default": "TSMC",
+                "visible": true
+            },
+            "node": {
+                "label": "node",
+                "widgetType": "dropdown",
+                "options": [
+                    "22nm"
+                ],
+                "default": "22nm",
+                "visible": true
+            }
+        }
+    },
+    "Tasks": {
+        "synthesis": {},
+        "packing": {},
+        "global_placement": {},
+        "Placement": {
+            "placement_double_spinbox_ex": {
+                "label": "Double Spinbox Example",
+                "widgetType": "DoubleSpinbox",
+                "minVal": 2.4,
+                "maxVal": 11.4,
+                "stepVal": 1.1,
+                "default": 2.5
+            },
+            "placement_int_spinbox_ex": {
+                "label": "Int Spinbox Example",
+                "widgetType": "Spinbox",
+                "minVal": 2.4,
+                "maxVal": 11.4,
+                "stepVal": 1.1,
+                "default": 2.5
+            },
+            "placement_radiobuttons_vert_ex": {
+                "label": "Radio Button Example (vertical/default)",
+                "widgetType": "radiobuttons",
+                "options": [
+                    "b1",
+                    "b2",
+                    "b3"
+                ],
+                "default": "b2"
+            },
+            "placement_radiobuttons_horiz_ex": {
+                "label": "Radio Button Example (horizontal)",
+                "widgetType": "radiobuttons",
+                "options": [
+                    "b1",
+                    "b2",
+                    "b3"
+                ],
+                "layout": "horizontal",
+                "default": "b2"
+            },
+            "placement_checkbox_ex": {
+                "label": "Checkbox Example",
+                "text": "Checkbox Text",
+                "widgetType": "checkbox",
+                "default": "unchecked"
+            },
+            "placement_dropdown_ex": {
+                "label": "Dropdown Example",
+                "widgetType": "dropdown",
+                "options": [
+                    "option1",
+                    "option2",
+                    "option3"
+                ],
+                "default": "option2"
+            },
+            "placement_input_ex_1": {
+                "label": "Text Input Example",
+                "widgetType": "input",
+                "default": "some text"
+            },
+            "placement_input_ex_2": {
+                "widgetType": "input",
+                "default": "input field w/o a label provided"
+            }
+        },
+        "routing": {},
+        "timing": {},
+        "power": {},
+        "bitstream": {}
+    },
+    "yosys": {
+        "general": {
+            "verilog": {
+                "label": "verilog",
+                "text" : "verilog",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            },
+            "no_abc_opt": {
+                "label": "no_abc_opt",
+                "text" : "no_abc_opt",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            },
+            "no_adder": {
+                "label": "no_adder",
+                "text" : "no_adder",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            },
+            "no_ff_map": {
+                "label": "no_ff_map",
+                "text" : "no_ff_map",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            },
+            "no_dsp": {
+                "label": "Don't use DSP Block",
+                "text" : "no_dsp",
+                "widgetType": "checkbox",
+                "default": "checked",
+                "visible": true
+            },
+            "no_bram": {
+                "label": "no_bram",
+                "text" : "no_bram",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            },
+            "edif": {
+                "label": "edif",
+                "text" : "edif",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            }
+        },
+        "plugin": {}
+    },
+    "vpr" : {
+        "general": {
+            "device": {
+                "label": "device",
+                "widgetType": "input",
+                "default": "auto",
+                "visible": true
+            },
+            "timing_analysis": {
+                "label": "timing_analysis",
+                "text" : "",
+                "widgetType": "checkbox",
+                "default": "checked",
+                "visible": true
+            },
+            "constant_net_method": {
+                "label": "constant_net_method",
+                "widgetType": "dropdown",
+                "options": [
+                    "global",
+                    "route"
+                ],
+                "default": "route",
+                "visible": true
+            },
+            "clock_modeling": {
+                "label": "clock_modeling",
+                "widgetType": "dropdown",
+                "options": [
+                    "ideal",
+                    "route",
+                    "dedicated_network"
+                ],
+                "default": "ideal",
+                "visible": true
+            },
+            "exit_before_pack": {
+                "label": "exit_before_pack",
+                "text" : "",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            }
+        },
+        "filename": {
+            "circuit_format": {
+                "label": "circuit_format",
+                "widgetType": "dropdown",
+                "options": [
+                    "auto",
+                    "blif",
+                    "eblif"
+                ],
+                "default": "eblif",
+                "visible": true
+            },
+            "net_file": {
+                "label": "net_file",
+                "widgetType": "input",
+                "default": "",
+                "visible": true
+            },
+            "place_file": {
+                "label": "place_file",
+                "widgetType": "input",
+                "default": "",
+                "visible": true
+            },
+            "route_file": {
+                "label": "route_file",
+                "widgetType": "input",
+                "default": "",
+                "visible": true
+            },
+            "sdc_file": {
+                "label": "sdc_file",
+                "widgetType": "input",
+                "default": "",
+                "visible": true
+            },
+            "write_rr_graph": {
+                "description": "",
+                "label": "write_rr_graph",
+                "widgetType": "input",
+                "default": "counter_16bit.vpr.rrgraph.xml",
+                "visible": true
+            }
+        },
+        "netlist": {
+            "absorb_buffer_luts": {
+                "label": "absorb_buffer_luts",
+                "text" : "",
+                "widgetType": "checkbox",
+                "default": "unchecked",
+                "visible": true
+            }
+        },
+        "pack": {},
+        "place": {},
+        "route": {
+            "route_chan_width": {
+                "label": "route_chan_width",
+                "widgetType": "input",
+                "default": "180",
+                "visible": true
+            }
+        },
+        "analysis": {
+            "gen_post_synthesis_netlist": {
+                "label": "gen_post_synthesis_netlist",
+                "text" : "",
+                "widgetType": "checkbox",
+                "default": "checked",
+                "visible": true
+            }
+        }
+    }
+}

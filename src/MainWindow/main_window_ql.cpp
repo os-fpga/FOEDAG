@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // clang-format off
 #include "main_window.h"
 
+#include <QApplication>
 #include <QTextStream>
 #include <QtWidgets>
 #include <fstream>
@@ -56,8 +57,17 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
   QDesktopWidget dw;
-  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
-              dw.height() * 2 / 3);
+  // support multiple screens correctly.
+  // show() required before windowHandle() is valid!
+  show();
+  // set the screen to be displayed according to the mouse cursor position right now
+  windowHandle()->setScreen(QGuiApplication::screenAt(QCursor::pos()));
+  // set the geometry so that we are approximately 2/3 of the screen size
+  QRect desk_rect = dw.screenGeometry(dw.screenNumber(QCursor::pos()));
+  setGeometry(desk_rect.width() / 6, desk_rect.height() / 6, desk_rect.width() * 2 / 3,
+              desk_rect.height() * 2 / 3);
+  // move ourself so that we are centered
+  move(desk_rect.width() / 2 - width() / 2 + desk_rect.left(), desk_rect.height() / 2 - height() / 2 + desk_rect.top());
 
   setDockNestingEnabled(true);
 

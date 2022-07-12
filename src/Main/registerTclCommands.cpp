@@ -124,9 +124,12 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
       Tcl_AppendResult(interp, qPrintable("No such widget"), (char*)NULL);
       return TCL_ERROR;
     }
+    // QString result =
+    //    QString("QWidget(0x%1)")
+    //        .arg(QString::number(reinterpret_cast<ulong>(widget), 16));
     QString result =
         QString("QWidget(0x%1)")
-            .arg(QString::number(reinterpret_cast<ulong>(widget), 16));
+            .arg(QString::number(reinterpret_cast<uint64_t>(widget), 16));
     Tcl_AppendResult(interp, qPrintable(result), (char*)NULL);
 
     return TCL_OK;

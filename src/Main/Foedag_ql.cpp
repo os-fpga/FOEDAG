@@ -69,6 +69,10 @@ extern "C" {
 #include <unistd.h>
 #endif
 
+#if (defined(__MINGW32__))
+#include <windows.h>  // for FreeConsole()
+#endif
+
 FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
@@ -184,6 +188,10 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
 Foedag::~Foedag() { delete m_tclChannelHandler; }
 
 bool Foedag::initGui() {
+  // close the console on Windows, we don't need it
+#if (defined(__MINGW32__))
+  FreeConsole();  // Closes the console window, but it still shows for a small instant.
+#endif
   // Gui mode with Qt Widgets
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
@@ -255,6 +263,10 @@ bool Foedag::initGui() {
 }
 
 bool Foedag::initQmlGui() {
+  // close the console on Windows, we don't need it
+#if (defined(__MINGW32__))
+  FreeConsole();  // Closes the console window, but it still shows for a small instant.
+#endif
   // Gui mode with QML
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());

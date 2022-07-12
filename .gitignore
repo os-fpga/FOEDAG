@@ -51,6 +51,17 @@ third_party/zlib/zconf.h
 third_party/zlib/zlib.pc
 third_party/zlib/Makefile
 
+# third party build stuff for windows
+third_party/zlib/CMakeCache.txt
+third_party/zlib/CMakeFiles/
+third_party/zlib/cmake_install.cmake
+third_party/zlib/example.exe
+third_party/zlib/example64.exe
+third_party/zlib/libzlib.dll
+third_party/zlib/minigzip.exe
+third_party/zlib/minigzip64.exe
+third_party/zlib/zlib1rc.obj
+
 # more third party stuff
 third_party/include/
 third_party/lib/

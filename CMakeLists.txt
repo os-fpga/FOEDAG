@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 6)
+set(VERSION_PATCH 7)
 
 option(
   WITH_LIBCXX
@@ -173,15 +173,21 @@ target_include_directories(foedag PRIVATE
   third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
-if(MSVC)
-  #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+if(WIN32)
+  if(MSVC)
+    #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
+    add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
+    set_property(TARGET foedag-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set_property(TARGET foedag-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
+  elseif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+    # use this for a 'console' application on Windows - ensure that FreeConsole() is called to dismiss the console in GUI mode
+    add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
+    # use this for a 'gui' application on Windows - however, console output is not seen (TODO: we can bind to console if needed)
+    #add_executable(foedag-bin WIN32 ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
+  endif(MSVC)
+else(WIN32)
   add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
-  set_property(TARGET foedag-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  set_property(TARGET foedag-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
-else()
-  #add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
-  add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main_ql.cpp ${QRC_MAIN_WINDOW})
-endif()
+endif(WIN32)
 set_target_properties(foedag-bin PROPERTIES OUTPUT_NAME aurora)
 
 if (MSVC)
@@ -194,7 +200,7 @@ if (MSVC)
   set_target_properties(tcl_static PROPERTIES
     IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
 
-else()
+else(MSVC)
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
@@ -204,14 +210,16 @@ else()
   
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
-  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+  if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
     message("MSYS MODE")
-    set(TCL_STATIC_LIB libtcl8.6.a)
+    set(TCL_STATIC_LIB libtcl86.dll.a)
+    set(TCL_STUBB_LIB libtclstub86.a)
+    set(ZLIB_STATIC_LIB libzlibstatic.a)
+
     add_library(tcl_static STATIC IMPORTED )
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
-
-  else()
+  else((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
     message("LINUX MODE")
     get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -221,9 +229,9 @@ else()
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
 
-  endif()
+  endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
   
-endif()
+endif(MSVC)
 
 add_library(tcl_stubb STATIC IMPORTED )
 set_target_properties(tcl_stubb PROPERTIES
@@ -441,12 +449,17 @@ if (WIN32 AND $<CONFIG:Debug>)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
 
+if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+# we do not have the TCL header files to 'install' as we don't build it.
+# we just use the TCL MinGW64 lib.
+else((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclDecls.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclPlatDecls.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include) 
-#install(
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include)
+endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+# install(
 #  EXPORT Foedag
 #  FILE Foedag.cmake
 #  DESTINATION cmake)
@@ -476,9 +489,9 @@ install(
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
     
-add_custom_target(link_target ALL
-                  COMMAND ${CMAKE_COMMAND} -E create_symlink
-                  build/compile_commands.json ../compile_commands.json)
+# add_custom_target(link_target ALL
+#                   COMMAND ${CMAKE_COMMAND} -E create_symlink
+#                   build/compile_commands.json ../compile_commands.json)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/

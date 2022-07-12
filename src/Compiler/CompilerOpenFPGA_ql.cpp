@@ -964,6 +964,35 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("list_devices", list_devices, this, 0);
 
+  // note: we invoke these steps using the base class compiler.
+  //       this is so that, the base class status is reflected correctly as well.
+  auto route_and_sta = [](void* clientData, Tcl_Interp* interp, int argc,
+                  const char* argv[]) -> int {
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "clean") {
+          compiler->RouteOpt(Compiler::RoutingOpt::Clean);
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
+      } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+      }
+    }
+    // route
+    bool status = compiler->Compile(Action::Routing);
+    // if route was ok, do STA
+    if(status == true) {
+      status = compiler->Compile(Action::STA);
+    }
+
+    if(status == false) {
+      return TCL_ERROR;
+    }
+    
+    return TCL_OK;
+  };
+  interp->registerCmd("route_and_sta", route_and_sta, this, 0);
+
   auto listdir = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
 
@@ -1072,48 +1101,50 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
            << "..." << std::endl;
 
-  // placeholder for ipgenerate process ++
-  std::string settings_json_filename = m_projManager->projectName() + ".json";
-  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
-  json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
+// this is only an example of using python process - as this is not needed currently, it
+// is disabled.
+//   // placeholder for ipgenerate process ++
+//   std::string settings_json_filename = m_projManager->projectName() + ".json";
+//   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+//   GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
+//   json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
   
 
-  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
-  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
-  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
+//   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
+//   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
+//   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
 
-  // use script from project dir:
-  //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
-  // use script from scripts dir: try getting from environment variable
-  const char* const path_scripts = std::getenv("AURORA2_SCRIPTS_DIR"); // this is from setup.sh
-  std::filesystem::path scriptsDir;
-  std::error_code ec;
-  if (path_scripts != nullptr) {
-    std::filesystem::path dirpath = std::string(path_scripts);
-    if (std::filesystem::exists(dirpath, ec)) {
-      scriptsDir = dirpath;
-    }
-  }
+//   // use script from project dir:
+//   //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
+//   // use script from scripts dir: try getting from environment variable
+//   const char* const path_scripts = std::getenv("AURORA2_SCRIPTS_DIR"); // this is from setup.sh
+//   std::filesystem::path scriptsDir;
+//   std::error_code ec;
+//   if (path_scripts != nullptr) {
+//     std::filesystem::path dirpath = std::string(path_scripts);
+//     if (std::filesystem::exists(dirpath, ec)) {
+//       scriptsDir = dirpath;
+//     }
+//   }
 
-  // proceed if we have a valid scripts directory
-  if (!scriptsDir.empty()) {
-    std::filesystem::path python_script_path =
-        std::filesystem::path(scriptsDir / std::string("example.py"));
-    std::string command = std::string("python3") + std::string(" ") +
-                          python_script_path.string() + std::string(" ") +
-                          std::string("IPGenerate") + std::string(" ") +
-                          m_projManager->projectName();
+//   // proceed if we have a valid scripts directory
+//   if (!scriptsDir.empty()) {
+//     std::filesystem::path python_script_path =
+//         std::filesystem::path(scriptsDir / std::string("example.py"));
+//     std::string command = std::string("python3") + std::string(" ") +
+//                           python_script_path.string() + std::string(" ") +
+//                           std::string("IPGenerate") + std::string(" ") +
+//                           m_projManager->projectName();
 
-    int status = ExecuteAndMonitorSystemCommand(command);
-    CleanTempFiles();
-    if (status) {
-      ErrorMessage("Design " + m_projManager->projectName() +
-                   " IP generation failed!");
-      return false;
-    }
-  }
-  // placeholder for ipgenerate process --
+//     int status = ExecuteAndMonitorSystemCommand(command);
+//     CleanTempFiles();
+//     if (status) {
+//       ErrorMessage("Design " + m_projManager->projectName() +
+//                    " IP generation failed!");
+//       return false;
+//     }
+//   }
+//   // placeholder for ipgenerate process --
 
   (*m_out) << "Design " << ProjManager()->projectName() << " IPs are generated!"
            << std::endl;
@@ -1785,7 +1816,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
         CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
                                                            family + "_" + foundry + "_" + node);
 
-    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath)) {
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
       Message("load cryptdb failed!");
       // empty string returned on error.
       return std::string("");
@@ -1888,54 +1919,56 @@ bool CompilerOpenFPGA_ql::Packing() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is packed!"
            << std::endl;
 
-  // placeholder for pin_placement process ++
-  // we are already loaded, so, no need to read the json again at this point.
-  //std::string settings_json_filename = m_projManager->projectName() + ".json";
-  //std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  //GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
-  json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
+// this is only an example of using python process - as this is not needed currently, it
+// is disabled.
+//   // placeholder for pin_placement process ++
+//   // we are already loaded, so, no need to read the json again at this point.
+//   //std::string settings_json_filename = m_projManager->projectName() + ".json";
+//   //std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+//   //GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
+//   json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
   
 
-  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
-  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
-  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  m_OpenFpgaPinMapXml = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.xml"));
-  m_OpenFpgaPinMapCSV = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.csv"));
+//   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
+//   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
+//   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
+//   m_OpenFpgaPinMapXml = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.xml"));
+//   m_OpenFpgaPinMapCSV = std::filesystem::path(GetSession()->Context()->DataPath() / family / foundry / node / std::string("pinmap.csv"));
 
-  // use script from project dir:
-  //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
-  // use script from scripts dir:
-  const char* const path_scripts =
-      std::getenv("AURORA2_SCRIPTS_DIR");  // this is from setup.sh
-  std::filesystem::path scriptsDir;
-  std::error_code ec;
-  if (path_scripts != nullptr) {
-    std::filesystem::path dirpath = std::string(path_scripts);
-    if (std::filesystem::exists(dirpath, ec)) {
-      scriptsDir = dirpath;
-    }
-  }
+//   // use script from project dir:
+//   //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
+//   // use script from scripts dir:
+//   const char* const path_scripts =
+//       std::getenv("AURORA2_SCRIPTS_DIR");  // this is from setup.sh
+//   std::filesystem::path scriptsDir;
+//   std::error_code ec;
+//   if (path_scripts != nullptr) {
+//     std::filesystem::path dirpath = std::string(path_scripts);
+//     if (std::filesystem::exists(dirpath, ec)) {
+//       scriptsDir = dirpath;
+//     }
+//   }
 
-  // proceed if we have a valid scripts directory
-  if (!scriptsDir.empty()) {
-    std::filesystem::path python_script_path =
-        std::filesystem::path(scriptsDir / std::string("example.py"));
-    command = std::string("python3") + std::string(" ") +
-              python_script_path.string() + std::string(" ") +
-              m_OpenFpgaPinMapXml.string() + std::string(" ") +
-              m_OpenFpgaPinMapCSV.string();
+//   // proceed if we have a valid scripts directory
+//   if (!scriptsDir.empty()) {
+//     std::filesystem::path python_script_path =
+//         std::filesystem::path(scriptsDir / std::string("example.py"));
+//     command = std::string("python3") + std::string(" ") +
+//               python_script_path.string() + std::string(" ") +
+//               m_OpenFpgaPinMapXml.string() + std::string(" ") +
+//               m_OpenFpgaPinMapCSV.string();
 
-    status = ExecuteAndMonitorSystemCommand(command);
-    CleanTempFiles();
-    if (status) {
-      ErrorMessage("Design " + m_projManager->projectName() +
-                   " PinPlacement failed!");
-      return false;
-    }
-    (*m_out) << "Design " << m_projManager->projectName()
-             << " PinPlacement Done!" << std::endl;
-  }
-  // placeholder for pin_placement process --
+//     status = ExecuteAndMonitorSystemCommand(command);
+//     CleanTempFiles();
+//     if (status) {
+//       ErrorMessage("Design " + m_projManager->projectName() +
+//                    " PinPlacement failed!");
+//       return false;
+//     }
+//     (*m_out) << "Design " << m_projManager->projectName()
+//              << " PinPlacement Done!" << std::endl;
+//   }
+//   // placeholder for pin_placement process --
 
   return true;
 }
@@ -2169,10 +2202,25 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return false;
   }
 
+#ifdef _WIN32
+
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+// hence, we can also be at Placed state here.
+  if ( (m_state != State::Placed) && (m_state != State::Routed) ) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed/routed state"));
+    return false;
+  }
+
+#else // #ifdef _WIN32
+
   if (m_state != State::Routed) {
     ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
     return false;
   }
+
+#endif // #ifdef _WIN32
+
 
   (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
            << std::endl;
@@ -2227,6 +2275,12 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return false;
   }
   command += vpr_options +
+#ifdef _WIN32
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+            std::string(" ") + 
+             std::string("--route") +
+#endif // #ifdef _WIN32
              std::string(" ") + 
              std::string("--analysis") +
              std::string(" ") + 
@@ -2248,6 +2302,13 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   (*m_out) << "Design " << ProjManager()->projectName()
            << " is timing analysed!" << std::endl;
 
+#ifdef _WIN32
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+// hence, we set the state here, so that just sta can be called instead of route and sta as well.
+  m_state = State::Routed;
+#endif // #ifdef _WIN32
+
   return true;
 }
 
@@ -2257,11 +2318,20 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-
+#ifdef _WIN32
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+// hence, we can also be at Placed state here.
+  if ( (m_state != State::Placed) && (m_state != State::Routed) ) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed/routed state"));
+    return false;
+  }
+#else // #ifdef _WIN32
   if (m_state != State::Routed) {
     ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
     return false;
   }
+#endif // #ifdef _WIN32
 
   (*m_out) << "Analysis for design: " << ProjManager()->projectName() << "..."
            << std::endl;
@@ -2317,6 +2387,12 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
     return false;
   }
   command += vpr_options +
+#ifdef _WIN32
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+             std::string(" ") + 
+             std::string("--route") +
+#endif // #ifdef _WIN32
              std::string(" ") + 
              std::string("--analysis") +
              std::string(" ") + 
@@ -2529,7 +2605,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
         CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
                                                            family + "_" + foundry + "_" + node);
 
-    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath)) {
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
       Message("load cryptdb failed!");
       // empty string returned on error.
       return std::string("");
@@ -2610,6 +2686,12 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     return std::string("");
   }
   vpr_analysis_command += vpr_options +
+#ifdef _WIN32
+// under WIN32, running the analysis stage along causes issues, hence we call the
+// route and analysis stages together
+                          std::string(" ") + 
+                          std::string("--route") +
+#endif // #ifdef _WIN32
                           std::string(" ") + 
                           std::string("--analysis");
 
@@ -3015,7 +3097,7 @@ std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
     if(dir_entry_family.is_directory()) {
       
       // we would see family at this level
-      family = dir_entry_family.path().filename();
+      family = dir_entry_family.path().filename().string();
 
       // look at the directories inside the 'family' dir for 'foundry' entries
       for (const std::filesystem::directory_entry& dir_entry_foundry : 
@@ -3024,7 +3106,7 @@ std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
         if(dir_entry_foundry.is_directory()) {
       
           // we would see foundry at this level
-          foundry = dir_entry_foundry.path().filename();
+          foundry = dir_entry_foundry.path().filename().string();
 
           // look at the directories inside the 'foundry' dir for 'node' entries
           for (const std::filesystem::directory_entry& dir_entry_node : 
@@ -3033,7 +3115,7 @@ std::vector<std::string> CompilerOpenFPGA_ql::ListDevices() {
             if(dir_entry_node.is_directory()) {
             
               // we would see devices at this level
-              node = dir_entry_node.path().filename();
+              node = dir_entry_node.path().filename().string();
 
               // get all the device_variants for this device:
               std::vector<std::string> device_variants;
