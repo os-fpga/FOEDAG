@@ -74,7 +74,7 @@ class Compiler {
   enum class PlacementOpt { None, Clean };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean };
+  enum class STAOpt { None, Clean, View };
   enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
 
   // Most common use case, create the compiler in your main
@@ -176,6 +176,7 @@ class Compiler {
   virtual bool GenerateBitstream();
 
   bool CreateDesign(const std::string& name);
+  static void PrintVersion(std::ostream* out);
 
   /* Compiler class utilities */
   bool RunBatch();
