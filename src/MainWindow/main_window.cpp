@@ -338,7 +338,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
-  m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
+  auto compilerNotifier = new FOEDAG::CompilerNotifier{c};
+  m_compiler->SetTclInterpreterHandler(compilerNotifier);
   auto tclCommandIntegration = sourForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
@@ -355,6 +356,19 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
+  auto prViewButton = [&, view, this](int state) {
+    auto name = this->m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
+    auto btn = view->findChild<QPushButton*>(name);
+    QVector<Compiler::State> availableState{
+        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
+         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
+    if (btn) {
+      btn->setEnabled(
+          availableState.contains(static_cast<Compiler::State>(state)));
+    }
+  };
+  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged,
+          prViewButton);
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager});
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
@@ -371,6 +385,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   sourForm->InitSourcesForm();
   runForm->InitRunsForm();
+  prViewButton(static_cast<int>(m_compiler->CompilerState()));
 }
 
 void MainWindow::clearDockWidgets() {

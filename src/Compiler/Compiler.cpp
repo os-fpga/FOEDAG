@@ -866,6 +866,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
+        } else if (arg == "view") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1063,6 +1065,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
+        } else if (arg == "view") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1341,6 +1345,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
     });
+    m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
+    });
   }
 }
 
@@ -1493,8 +1500,8 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
-  (*m_out) << "Changed path to: "
-           << (path / m_projManager->projectName()).string() << std::endl;
+  (*m_out) << "Changed path to: " << std::filesystem::current_path().string()
+           << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
