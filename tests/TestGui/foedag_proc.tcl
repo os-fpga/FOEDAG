@@ -18,13 +18,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 proc add_des_file {} { 
-gui_start
-create_design asd
-if { [catch {add_design_file asd.v} result] } {
-    puts "PASSED: Caught negative test"
-    puts $result
-    exit 0
-}
-error "add_design_file expect failed"
-exit 1
+ gui_start
+ create_design asd
+ add_design_file asd.v
 }
