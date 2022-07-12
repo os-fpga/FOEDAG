@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
       cmd, mainWindowBuilder, registerAllFoedagCommands, compiler, settings);
   std::filesystem::path binpath = foedag->Context()->BinaryPath();
   std::filesystem::path datapath = foedag->Context()->DataPath();
-  std::filesystem::path litexPath = binpath / "litex";
   if (opcompiler) {
     std::filesystem::path yosysPath = binpath / "yosys";
     std::filesystem::path vprPath = binpath / "vpr";
@@ -77,8 +76,6 @@ int main(int argc, char** argv) {
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);
     opcompiler->PinConvExecPath(pinConvPath);
-    opcompiler->BuildLiteXIPCatalog(litexPath);
   }
-  compiler->BuildLiteXIPCatalog(litexPath);
   return foedag->init(guiType);
 }

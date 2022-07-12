@@ -78,14 +78,28 @@ bool IPCatalogBuilder::buildLiteXCatalog(
   bool result = true;
   buildMockUpIPDef(catalog);
   if (FileUtils::fileExists(litexIPgenPath)) {
-    std::filesystem::path execPath = litexIPgenPath.parent_path();
+    std::filesystem::path execPath = litexIPgenPath;
+    if (!std::filesystem::is_directory(execPath)) {
+      execPath = execPath.parent_path();
+    }
+    m_compiler->Message("IP Catalog, browsing directory for IP generator(s): " +
+                        execPath.string());
     for (const std::filesystem::path& entry :
          std::filesystem::directory_iterator(execPath)) {
       const std::string& exec_name = entry.string();
+      if (exec_name.find("__init__.py") != std::string::npos) continue;
       if (exec_name.find(".py") != std::string::npos) {
-        buildLiteXIPFromConverter(catalog, entry);
+        m_compiler->Message("IP Catalog, found IP compiler: " + exec_name);
+        bool res = buildLiteXIPFromGenerator(catalog, entry);
+        if (res == false) {
+          result = false;
+        }
       }
     }
+  } else {
+    result = false;
+    m_compiler->ErrorMessage("IP Catalog, directory does not exist: " +
+                             litexIPgenPath.string());
   }
   return result;
 }
@@ -97,7 +111,7 @@ static std::string& rtrim(std::string& str, char c) {
   return str;
 }
 
-bool IPCatalogBuilder::buildLiteXIPFromConverter(
+bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
   bool result = true;
   std::ostringstream help;
@@ -105,9 +119,9 @@ bool IPCatalogBuilder::buildLiteXIPFromConverter(
   std::string command = python3Path.string() + " " +
                         pythonConverterScript.string() + " --json-template";
   if (FileUtils::ExecuteSystemCommand(command, &help)) {
-    std::cout << "Warning: No IP information for " << pythonConverterScript
-              << std::endl;
-    std::cout << help.str() << std::endl;
+    m_compiler->ErrorMessage("IP Catalog, no IP information for " +
+                             pythonConverterScript.string() + "\n" +
+                             help.str());
     return false;
   }
   std::stringstream buffer;
@@ -140,6 +154,7 @@ bool IPCatalogBuilder::buildLiteXIPFromConverter(
       parameters.push_back(p);
     }
   }
+  m_compiler->Message("IP Catalog, adding IP: " + IPName);
   IPDefinition* def =
       new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName,
                        pythonConverterScript, connections, parameters);

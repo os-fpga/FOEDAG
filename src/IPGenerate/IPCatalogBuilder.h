@@ -34,15 +34,16 @@ namespace FOEDAG {
 
 class IPCatalogBuilder {
  public:
-  IPCatalogBuilder() {}
+  IPCatalogBuilder(Compiler* compiler) : m_compiler(compiler) {}
   bool buildLiteXCatalog(IPCatalog* catalog,
                          const std::filesystem::path& litexIPgenPath);
 
   virtual ~IPCatalogBuilder() {}
 
  protected:
-  bool buildLiteXIPFromConverter(
-      IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);
+  bool buildLiteXIPFromGenerator(
+      IPCatalog* catalog, const std::filesystem::path& pythonGeneratorScript);
+  Compiler* m_compiler = nullptr;
 };
 
 }  // namespace FOEDAG

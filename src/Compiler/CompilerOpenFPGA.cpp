@@ -120,7 +120,18 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?" << std::endl;
+  (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
+            "IP generators, adds the IP(s) to the IP Catalog"
+         << std::endl;
+  (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
+            "-version <ver_name> -P<param>=\"<value>\"..."
+         << std::endl;
+  (*out) << "                              : Configures an IP <IP_NAME> and "
+            "generates the corresponding file with module name"
+         << std::endl;
+  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
+            "ip_configure"
+         << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
