@@ -17,18 +17,4 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-puts "GUI START" ; flush stdout ; gui_start
-puts "GUI STOP"  ; flush stdout ; gui_stop
-puts "GUI START" ; flush stdout ; gui_start
-puts "TEXT EDITOR GUI OPENFILE"  ; flush stdout ; openfile tests/TestGui/test.v
-puts "TEXT EDITOR GUI OPENFILE"  ; flush stdout ; openfile tests/TestGui/test.v
-
-puts "NEW PROJECT START" ; flush stdout ; newproject_gui_open
-puts "NEXT" ; flush stdout ; next
-puts "NEXT" ; flush stdout ; next
-puts "NEXT" ; flush stdout ; next
-puts "NEXT" ; flush stdout ; next
-puts "NEXT" ; flush stdout ; next
-puts "NEW PROJECT STOP"  ; flush stdout ; newproject_gui_close
-
-puts "GUI STOP"  ; flush stdout ; gui_stop
+puts "add_design_file TEST";flush stdout;source tests/TestGui/foedag_proc.tcl;add_des_file
