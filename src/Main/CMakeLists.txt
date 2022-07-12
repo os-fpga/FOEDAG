@@ -56,6 +56,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/TaskManagerComponent.cpp
   ../Main/ProjectFile/ProjectManagerComponent.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
+  ../Main/AboutWidget.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )
@@ -78,6 +79,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ProjectFile/TaskManagerComponent.h
   ../Main/ProjectFile/ProjectManagerComponent.h
   ../Main/ProjectFile/CompilerComponent.h
+  ../Main/AboutWidget.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   CompilerNotifier.h
@@ -142,6 +144,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/Settings.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/Tasks.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/AboutWidget.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(

@@ -63,14 +63,13 @@ using ms = std::chrono::milliseconds;
 
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
+extern const char* foedag_date;
+extern const char* foedag_build_type;
+
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash: " << foedag_git_hash << "\n";
-  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+  PrintVersion(out);
 }
 
 void Compiler::Help(std::ostream* out) {
@@ -1462,6 +1461,16 @@ bool Compiler::CreateDesign(const std::string& name) {
     Message(std::string("Created design: ") + name + std::string("\n"));
   }
   return true;
+}
+
+void Compiler::PrintVersion(std::ostream* out) {
+  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
+    (*out) << "Version    : " << foedag_version_number << "\n";
+  if (std::string(foedag_git_hash) != "${GIT_HASH}")
+    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
+  if (std::string(foedag_date) != "${BUILD_DATE}")
+    (*out) << "Built      : " << foedag_date << "\n";
+  (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
 bool Compiler::ExecuteSystemCommand(const std::string& command) {

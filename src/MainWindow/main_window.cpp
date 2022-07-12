@@ -46,8 +46,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
+#include "foedag_version.h"
 
 using namespace FOEDAG;
+extern const char* foedag_date;
+extern const char* foedag_version_number;
+extern const char* foedag_git_hash;
+extern const char* foedag_build_type;
 
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
@@ -99,12 +104,22 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   //  setCentralWidget(mainSplitter);
   statusBar()->showMessage("Ready");
+  m_projectInfo = {"FOEDAG",
+                   foedag_version_number,
+                   foedag_git_hash,
+                   foedag_date,
+                   "https://github.com/os-fpga/FOEDAG/commit/",
+                   foedag_build_type};
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
   ProjectManager* projectManager = new ProjectManager(this);
   projectManager->Tcl_CreateProject(argc, argv);
 }
+
+void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
+
+ProjectInfo MainWindow::Info() const { return m_projectInfo; }
 
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
@@ -148,7 +163,7 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(tr(mainWindowName.c_str()) + " - " + design);
+  setWindowTitle(m_projectInfo.name + " - " + design);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -172,6 +187,9 @@ void MainWindow::createMenus() {
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
   processMenu->addAction(stopAction);
+
+  helpMenu = menuBar()->addMenu("&Help");
+  helpMenu->addAction(aboutAction);
 }
 
 void MainWindow::createToolBars() {
@@ -228,6 +246,12 @@ void MainWindow::createActions() {
   connect(stopAction, &QAction::triggered, this,
           [this]() { m_compiler->Stop(); });
 
+  aboutAction = new QAction(tr("About"), this);
+  connect(aboutAction, &QAction::triggered, this, [this]() {
+    AboutWidget w(m_projectInfo, this);
+    w.exec();
+  });
+
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
@@ -240,7 +264,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(tr(mainWindowName.c_str()) + " - " + strProject);
+  setWindowTitle(m_projectInfo.name + " - " + strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
