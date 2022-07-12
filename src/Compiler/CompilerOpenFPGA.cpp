@@ -42,19 +42,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash: " << foedag_git_hash << "\n";
-  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+  PrintVersion(out);
 }
 
 void CompilerOpenFPGA::Help(std::ostream* out) {
@@ -1134,6 +1129,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (!FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
+  }
+
+  if (TimingAnalysisOpt() == STAOpt::View) {
+    TimingAnalysisOpt(STAOpt::None);
+    const std::string command = BaseVprCommand() + " --analysis --disp on";
+    const int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " place and route view failed!");
+      return false;
+    }
+    return true;
   }
 
   std::string command = BaseVprCommand() + " --analysis";

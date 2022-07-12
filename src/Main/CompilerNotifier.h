@@ -54,6 +54,9 @@ class CompilerNotifier : public QObject, public FOEDAG::TclInterpreterHandler {
    */
   void notifyFinish() override;
 
+ signals:
+  void compilerStateChanged(int);
+
  private slots:
   void aborted();
 

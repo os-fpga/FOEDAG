@@ -71,12 +71,20 @@ void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
 void TaskTableView::setModel(QAbstractItemModel *model) {
   QTableView::setModel(model);
   for (int i = 0; i < this->model()->rowCount(); i++) {
-    auto task = m_taskManager->task(i);
-    if (task && task->type() == TaskType::Settings) {
+    auto task = m_taskManager->task(
+        this->model()->data(this->model()->index(i, 0), TaskId).toUInt());
+    if (task && ((task->type() == TaskType::Settings) ||
+                 (task->type() == TaskType::Button))) {
       auto index = this->model()->index(i, TitleCol);
       auto button = new QPushButton(task->title());
-      connect(button, &QPushButton::clicked, this,
-              [=]() { emit TaskDialogRequested(task->settingsKey()); });
+      button->setObjectName(task->title());
+      if (task->type() == TaskType::Settings)
+        connect(button, &QPushButton::clicked, this,
+                [=]() { emit TaskDialogRequested(task->settingsKey()); });
+      else
+        connect(button, &QPushButton::clicked, this, [=]() {
+          this->model()->setData(index, QVariant(), UserActionRole);
+        });
       setIndexWidget(index, button);
     }
   }
@@ -85,7 +93,7 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
 void TaskTableView::customMenuRequested(const QPoint &pos) {
   QModelIndex index = indexAt(pos);
   if (index.column() == TitleCol) {
-    auto task = m_taskManager->task(index.row());
+    auto task = m_taskManager->task(model()->data(index, TaskId).toUInt());
     if (task && task->type() != TaskType::Settings) {
       QMenu *menu = new QMenu(this);
       QAction *start = new QAction("Run", this);
