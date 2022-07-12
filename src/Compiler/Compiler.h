@@ -176,6 +176,7 @@ class Compiler {
   virtual bool GenerateBitstream();
 
   bool CreateDesign(const std::string& name);
+  static void PrintVersion(std::ostream* out);
 
   /* Compiler class utilities */
   bool RunBatch();

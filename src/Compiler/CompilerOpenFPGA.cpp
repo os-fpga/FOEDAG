@@ -46,16 +46,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash: " << foedag_git_hash << "\n";
-  (*out) << "Built   : " << std::string(__DATE__) << "\n";
+  PrintVersion(out);
 }
 
 void CompilerOpenFPGA::Help(std::ostream* out) {
