@@ -96,8 +96,6 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
