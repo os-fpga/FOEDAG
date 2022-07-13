@@ -115,10 +115,7 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   //  setCentralWidget(mainSplitter);
   statusBar()->showMessage("Ready");
-  m_projectInfo = {"AURORA",
-                   foedag_version_number,
-                   foedag_git_hash,
-                   foedag_date,
+  m_projectInfo = {"AURORA", foedag_version_number, foedag_git_hash,
                    "https://github.com/QuickLogic-Corp/FOEDAG/commit/",
                    foedag_build_type};
 }

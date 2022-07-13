@@ -38,7 +38,7 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
                          "href=\"%4%5\">%5</a></p>"
                          "<p>Build type: %6</p>"
                          "<p>%7</p>")
-                     .arg(info.name, info.version, info.build_date, info.url,
+                     .arg(info.name, info.version, __DATE__, info.url,
                           info.git_hash, info.build_type, License()));
   label->setAlignment(Qt::AlignTop);
   connect(label, &QLabel::linkActivated, this, [this](const QString &link) {
