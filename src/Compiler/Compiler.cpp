@@ -63,7 +63,6 @@ using ms = std::chrono::milliseconds;
 
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
-extern const char* foedag_date;
 extern const char* foedag_build_type;
 
 void Compiler::Version(std::ostream* out) {
@@ -1475,8 +1474,7 @@ void Compiler::PrintVersion(std::ostream* out) {
     (*out) << "Version    : " << foedag_version_number << "\n";
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
     (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  if (std::string(foedag_date) != "${BUILD_DATE}")
-    (*out) << "Built      : " << foedag_date << "\n";
+  (*out) << "Built      : " << __DATE__ << "\n";
   (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
