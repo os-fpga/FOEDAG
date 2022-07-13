@@ -58,7 +58,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../Main/ProjectFile/TaskManagerComponent.cpp
   ../Main/ProjectFile/ProjectManagerComponent.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
-  ../Main/AboutWidget.cpp
+  #../Main/AboutWidget.cpp
+  ../Main/AboutWidget_ql.cpp
   ../MainWindow/mainwindowmodel.cpp
   CompilerNotifier.cpp
 )

@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewFile/new_file.h"
@@ -47,8 +48,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
+#include "foedag_version.h"
 
 using namespace FOEDAG;
+extern const char* foedag_date;
+extern const char* foedag_version_number;
+extern const char* foedag_git_hash;
+extern const char* foedag_build_type;
 
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
@@ -109,12 +115,22 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   //  setCentralWidget(mainSplitter);
   statusBar()->showMessage("Ready");
+  m_projectInfo = {"AURORA",
+                   foedag_version_number,
+                   foedag_git_hash,
+                   foedag_date,
+                   "https://github.com/QuickLogic-Corp/FOEDAG/commit/",
+                   foedag_build_type};
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
   ProjectManager* projectManager = new ProjectManager(this);
   projectManager->Tcl_CreateProject(argc, argv);
 }
+
+void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
+
+ProjectInfo MainWindow::Info() const { return m_projectInfo; }
 
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
@@ -158,7 +174,7 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(tr(mainWindowName.c_str()) + " - " + design);
+  setWindowTitle(m_projectInfo.name + " - " + design);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -182,6 +198,9 @@ void MainWindow::createMenus() {
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
   processMenu->addAction(stopAction);
+
+  helpMenu = menuBar()->addMenu("&Help");
+  helpMenu->addAction(aboutAction);
 }
 
 void MainWindow::createToolBars() {
@@ -231,14 +250,17 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, [this]() {
-    m_compiler->SetHardError(false);
     m_compiler->start();
     m_taskManager->startAll();
     m_compiler->finish();
   });
-  connect(stopAction, &QAction::triggered, this, [this]() {
-    m_console->terminate();
-    m_compiler->Stop();
+  connect(stopAction, &QAction::triggered, this,
+          [this]() { m_compiler->Stop(); });
+
+  aboutAction = new QAction(tr("About"), this);
+  connect(aboutAction, &QAction::triggered, this, [this]() {
+    AboutWidget w(m_projectInfo, this);
+    w.exec();
   });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
@@ -253,14 +275,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(tr(mainWindowName.c_str()) + " - " + strProject);
+  setWindowTitle(m_projectInfo.name + " - " + strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   SourcesForm* sourForm = new SourcesForm(this);
   connect(sourForm, &SourcesForm::CloseProject, this, &MainWindow::closeProject,
           Qt::QueuedConnection);
-  sourForm->InitSourcesForm(strProject);
   sourceDockWidget->setWidget(sourForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
   m_projectManager = sourForm->ProjManager();
@@ -268,6 +289,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
 
+  delete m_projectFileLoader;
+  m_projectFileLoader = new ProjectFileLoader;
+  m_projectFileLoader->registerComponent(
+      new ProjectManagerComponent{sourForm->ProjManager()});
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project
                      // info exists
@@ -324,7 +349,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
-  m_compiler->SetTclInterpreterHandler(new FOEDAG::CompilerNotifier{c});
+  auto compilerNotifier = new FOEDAG::CompilerNotifier{c};
+  m_compiler->SetTclInterpreterHandler(compilerNotifier);
   auto tclCommandIntegration = sourForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
@@ -335,13 +361,28 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
   runDockWidget->setObjectName("designrundockwidget");
   RunsForm* runForm = new RunsForm(this);
-  runForm->InitRunsForm(strProject);
   runForm->RegisterCommands(GlobalSession);
   runDockWidget->setWidget(runForm);
   tabifyDockWidget(consoleDocWidget, runDockWidget);
 
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
+  auto prViewButton = [&, view, this](int state) {
+    auto name = this->m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
+    auto btn = view->findChild<QPushButton*>(name);
+    QVector<Compiler::State> availableState{
+        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
+         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
+    if (btn) {
+      btn->setEnabled(
+          availableState.contains(static_cast<Compiler::State>(state)));
+    }
+  };
+  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged,
+          prViewButton);
+  m_projectFileLoader->registerComponent(
+      new TaskManagerComponent{m_taskManager});
+  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
   QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
   taskDocWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDocWidget);
@@ -350,6 +391,12 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this]() { startStopButtonsState(); });
   connect(console, &TclConsoleWidget::stateChanged, this,
           [this, console]() { startStopButtonsState(); });
+
+  if (!strProject.isEmpty()) m_projectFileLoader->Load(strProject);
+
+  sourForm->InitSourcesForm();
+  runForm->InitRunsForm();
+  prViewButton(static_cast<int>(m_compiler->CompilerState()));
 }
 
 void MainWindow::clearDockWidgets() {
@@ -389,7 +436,7 @@ void MainWindow::reloadSettings() {
     addFilesFromDir(settingsDir);
 
     // Add any json files from the [projectName].settings folder
-    addFilesFromDir(FOEDAG::getTaskUserSettingsPath());
+    addFilesFromDir(Settings::getUserSettingsPath());
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
