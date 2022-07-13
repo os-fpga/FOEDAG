@@ -32,3 +32,4 @@ puts "NEXT" ; flush stdout ; next
 puts "NEW PROJECT STOP"  ; flush stdout ; newproject_gui_close
 
 puts "GUI STOP"  ; flush stdout ; gui_stop
+puts "SHOW ABOUT"; flush stdout ; show_about "Foedag" "0.0.5" "git_hash" "https://" "Production"
