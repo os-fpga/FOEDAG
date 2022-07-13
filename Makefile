@@ -41,6 +41,8 @@ ADDITIONAL_CMAKE_OPTIONS ?=
 # to detect actual warnings and errors  in the build output.
 RULE_MESSAGES ?= on
 
+# make PRODUCTION_BUILD=1 triggers the production build where some features are more controlled (Like Bitstream generation, eventual licensing...)
+
 release: run-cmake-release
 	cmake --build build -j $(CPU_CORES)
 
@@ -51,13 +53,13 @@ debug: run-cmake-debug
 	cmake --build dbuild -j $(CPU_CORES)
 
 run-cmake-release:
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) $(ADDITIONAL_CMAKE_OPTIONS) -S . -B build
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DPRODUCTION_BUILD=$(PRODUCTION_BUILD) $(ADDITIONAL_CMAKE_OPTIONS) -S . -B build
 
 run-cmake-release_no_tcmalloc:
 	cmake -DNO_TCMALLOC=On -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) $(ADDITIONAL_CMAKE_OPTIONS) -S . -B build
 
 run-cmake-debug:
-	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DNO_TCMALLOC=On $(ADDITIONAL_CMAKE_OPTIONS) -S . -B dbuild
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DPRODUCTION_BUILD=$(PRODUCTION_BUILD) -DNO_TCMALLOC=On $(ADDITIONAL_CMAKE_OPTIONS) -S . -B dbuild
 
 run-cmake-coverage:
 	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DMY_CXX_WARNING_FLAGS="--coverage" $(ADDITIONAL_CMAKE_OPTIONS) -S . -B coverage-build
@@ -94,13 +96,13 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_foedag.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
@@ -147,8 +149,10 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag_negetive.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
@@ -159,6 +163,7 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
+	./build/bin/aurora --batch --script tests/TestBatch/test_ip_generate.tcl --compiler test
 	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl --compiler test
 	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl --compiler test
 	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl --compiler test

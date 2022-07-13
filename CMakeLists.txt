@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 7)
+set(VERSION_PATCH 6)
 
 option(
   WITH_LIBCXX
@@ -44,6 +44,15 @@ option(
   On)
 
 project(FOEDAG)
+
+
+set (BUILD_TYPE_STRING Engineering)
+if (PRODUCTION_BUILD)
+  message("Production Build type set to ON")
+  set (PRODUCTION_BUILD_FLAG "-DPRODUCTION_BUILD=1")
+  add_definitions(-DPRODUCTION_BUILD)
+  set (BUILD_TYPE_STRING Production)
+endif(PRODUCTION_BUILD)
 
 # Check system 
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
@@ -89,6 +98,7 @@ add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/TextEditor)
+add_subdirectory(src/Utils)
 
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
@@ -144,10 +154,10 @@ else()
   endif()
 
   set(CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}"
+      "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS} ${PRODUCTION_BUILD_FLAG}"
   )
   set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O3 ${MSYS_COMPILE_OPTIONS} -DNDEBUG ${MY_CXX_WARNING_FLAGS}"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O3 ${MSYS_COMPILE_OPTIONS} -DNDEBUG ${MY_CXX_WARNING_FLAGS} ${PRODUCTION_BUILD_FLAG}"
   )
 endif()
 
@@ -266,12 +276,17 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
-execute_process(COMMAND git rev-parse --short HEAD
+string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
+execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND git rev-parse --short HEAD
+  COMMAND tr -d '\n'
   OUTPUT_VARIABLE GIT_HASH
   ERROR_VARIABLE GIT_HASH_ERR
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "GIT_HASH = ${GIT_HASH}")
+message(STATUS "BUILD_DATE = ${BUILD_DATE}")
+message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
 configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 
 # Explicit lib build order
@@ -327,7 +342,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate console QConsole tcl_stubb tcl_static zlib nlohmann_json)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate foedagutils console QConsole tcl_stubb tcl_static zlib nlohmann_json)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
 if(NOT NO_TCMALLOC)

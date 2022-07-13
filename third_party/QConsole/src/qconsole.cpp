@@ -409,6 +409,13 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
     }
   }
 
+  if (e->matches(QKeySequence::Cancel)) {
+    if (historySearch) {
+      historySearch = false;
+      replacePromt(backupPrompt);
+    }
+  }
+
   if (e->matches(QKeySequence::Find)) {
     handleSearch();
     QTextEdit::keyPressEvent(e);
@@ -435,7 +442,13 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
       copy();
       return;
     }
-
+  }
+  if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_R)) {
+    if (!multiLine && !historySearch) {
+      historySearch = true;
+      backupPrompt = prompt;
+      replacePromt("history search: ");
+    }
   } else {
     switch (e->key()) {
       case Qt::Key_Tab:
@@ -450,6 +463,10 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
         {
           moveCursorToEnd();
           QString command = getCurrentCommand();
+          if (historySearch) {
+            historySearch = false;
+            setPrompt(backupPrompt, false);
+          }
           QTextEdit::keyPressEvent(e);
           handleReturnKeyPress(command);
         }
@@ -498,6 +515,9 @@ void QConsole::keyPressEvent(QKeyEvent *e) {
   }    // end of else : no control pressed
 
   QTextEdit::keyPressEvent(e);
+  if (historySearch && e->modifiers() == Qt::NoModifier) {
+    if (e->key() != Qt::Key_Backspace) handleTabKeyPress();
+  }
 }
 
 // Get the current command
@@ -782,6 +802,15 @@ void QConsole::moveCursorToEnd() {
   auto cursore = textCursor();
   cursore.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
   setTextCursor(cursore);
+}
+
+void QConsole::replacePromt(const QString &newPrompt) {
+  auto cursore = textCursor();
+  cursore.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
+  cursore.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
+  cursore.insertText("");
+  setTextCursor(cursore);
+  setPrompt(newPrompt);
 }
 
 void QConsole::cut() {

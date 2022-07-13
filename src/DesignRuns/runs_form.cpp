@@ -36,13 +36,11 @@ RunsForm::RunsForm(QWidget *parent) : QWidget(parent) {
           SLOT(SlotItempressed(QTreeWidgetItem *, int)));
 }
 
-void RunsForm::InitRunsForm(const QString &strFile) {
-  m_projManager->StartProject(strFile);
-
-  UpdateDesignRunsTree();
-}
+void RunsForm::InitRunsForm() { UpdateDesignRunsTree(); }
 
 void RunsForm::RegisterCommands(Session *session) { m_session = session; }
+
+ProjectManager *RunsForm::projectManager() { return m_projManager; }
 
 void RunsForm::SlotItempressed(QTreeWidgetItem *item, int column) {
   Q_UNUSED(column);

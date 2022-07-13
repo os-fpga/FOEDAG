@@ -27,8 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 QDialog* createTaskDialog(const QString& taskName);
-QString getTaskUserSettingsPath();
 void handleTaskDialogRequested(const QString& category);
+
+// Setters/Getters for tclArgs
+void TclArgs_setSynthesisOptions(const QString& argsStr);
+QString TclArgs_getSynthesisOptions();
+void TclArgs_setExampleArgs(const QString& argsStr);
+QString TclArgs_getExampleArgs();
 
 }  // namespace FOEDAG
 

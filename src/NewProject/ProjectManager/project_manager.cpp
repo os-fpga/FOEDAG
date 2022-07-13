@@ -9,9 +9,9 @@
 #include <filesystem>
 
 #include "Compiler/CompilerDefines.h"
-extern const char* foedag_version_number;
 
 using namespace FOEDAG;
+constexpr auto LocalToProject{"<Local to Project>"};
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
@@ -42,14 +42,15 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(opt.currentFileSet);
   QString strDefaultSrc;
-  QList<filedata> listFile = opt.sourceFileData.fileData;
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
-      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false);
+  const QList<filedata> listFile = opt.sourceFileData.fileData;
+  for (const filedata& fdata : listFile) {
+    if (LocalToProject == fdata.m_filePath) {
+      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false,
+                     true);
     } else {
       setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
                      FromFileType(fdata.m_fileType),
-                     opt.sourceFileData.isCopySource);
+                     opt.sourceFileData.isCopySource, false);
     }
     if (!fdata.m_isFolder) {
       strDefaultSrc = fdata.m_fileName;
@@ -68,10 +69,9 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   QString strDefaultCts;
-  listFile.clear();
-  listFile = opt.constrFileData.fileData;
-  foreach (filedata fdata, listFile) {
-    if ("<Local to Project>" == fdata.m_filePath) {
+  const auto constr = opt.constrFileData.fileData;
+  for (const filedata& fdata : constr) {
+    if (LocalToProject == fdata.m_filePath) {
       setConstrsFile(fdata.m_fileName, false);
     } else {
       setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
@@ -106,6 +106,12 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   FinishedProject();
 }
 
+QString ProjectManager::ProjectFilesPath(const QString& projPath,
+                                         const QString& projName,
+                                         const QString& fileSet) {
+  return QString("%1/%2.srcs/%3").arg(projPath, projName, fileSet);
+}
+
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   QTextStream out(stdout);
   if (argc < 3 || "--file" != QString(argv[1])) {
@@ -125,7 +131,7 @@ void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
   fileInfo.setFile(QString(argv[2]));
   if (fileInfo.exists()) {
     if (0 == CreateProjectbyXml(QString(argv[2]))) {
-      ExportProjectData();
+      emit saveFile();
       out << "Project created successfully! \n";
     }
   } else {
@@ -335,10 +341,35 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
-int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
-                                   bool isFileCopy) {
+int ProjectManager::addDesignFiles(const QString& fileNames, int lang,
+                                   bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
-  QStringList fileList = StringSplit(fileNames, " ");
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) return EC_FileSetNotExist;
+
+  const QStringList fileList = StringSplit(fileNames, " ");
+
+  // check file exists
+  for (const auto& file : fileList) {
+    if (const QFileInfo fileInfo{file}; !fileInfo.exists())
+      return EC_FileNotExist;
+  }
+
+  proFileSet->addFiles(fileList, lang);
+
+  int result{EC_Success};
+  for (const auto& file : fileList) {
+    const int res = setDesignFile(file, isFileCopy, false);
+    if (res != EC_Success) result = res;
+  }
+  return result;
+}
+
+int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
+                                   bool isFileCopy, bool localToProject) {
+  setCurrentFileSet(getDesignActiveFileSet());
+  const QStringList fileList = StringSplit(fileNames, " ");
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -348,108 +379,51 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
 
   int result{0};
   for (const auto& file : fileList) {
-    int res = setDesignFile(file, isFileCopy);
+    int res = setDesignFile(file, isFileCopy, localToProject);
     if (res != 0) result = res;
   }
   return result;
 }
 
-int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
+int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
+                                  bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("v", Qt::CaseInsensitive) ||
-          !suffix.compare("sv", Qt::CaseInsensitive) ||
-          !suffix.compare("vh", Qt::CaseInsensitive) ||
-          !suffix.compare("vhd", Qt::CaseInsensitive) ||
-          !suffix.compare("blif", Qt::CaseInsensitive) ||
-          !suffix.compare("eblif", Qt::CaseInsensitive)) {
+      if (m_designSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("v", Qt::CaseInsensitive) ||
-        !suffix.compare("sv", Qt::CaseInsensitive) ||
-        !suffix.compare("vh", Qt::CaseInsensitive) ||
-        !suffix.compare("vhd", Qt::CaseInsensitive) ||
-        !suffix.compare("blif", Qt::CaseInsensitive) ||
-        !suffix.compare("eblif", Qt::CaseInsensitive)) {
+    if (m_designSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
-      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = CreateVHDLFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_designSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, isFileCopy);
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
-        ret = CreateSystemVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
-      } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
-        ret = CreateVHDLFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
+      if (m_designSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
@@ -457,85 +431,97 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy) {
 }
 
 int ProjectManager::setSimulationFile(const QString& strFileName,
-                                      bool isFileCopy) {
+                                      bool isFileCopy, bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
+      if (m_simSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("v", Qt::CaseInsensitive)) {
+    if (m_simSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_simSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, isFileCopy);
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
-      if (!suffix.compare("v", Qt::CaseInsensitive)) {
-        ret = CreateVerilogFile(filePath);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
+      if (m_simSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
   return ret;
 }
 
-int ProjectManager::setConstrsFile(const QString& strFileName,
-                                   bool isFileCopy) {
+int ProjectManager::addConstrsFile(const QString& strFileName, bool isFileCopy,
+                                   bool localToProject) {
+  // check file exists
+  if (const QFileInfo fileInfo{strFileName}; !fileInfo.exists())
+    return EC_FileNotExist;
+  return setConstrsFile(strFileName, isFileCopy, localToProject);
+}
+
+int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
+                                   bool localToProject) {
   int ret = 0;
   QFileInfo fileInfo(strFileName);
+  if (localToProject) {
+    auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    fileInfo.setFile(path, strFileName);
+  }
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
       suffix = QFileInfo(strfile).suffix();
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+      if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
       }
     }
   } else if (fileInfo.exists()) {
-    if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+    if (m_constrSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
     }
   } else {
     if (strFileName.contains("/")) {
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = CreateSDCFile(strFileName);
-        if (0 == ret) {
-          ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-        }
+      if (m_constrSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, strFileName, strFileName, false);
       }
     } else {
-      QString filePath = Project::Instance()->projectPath() + "/" +
-                         Project::Instance()->projectName() + ".srcs/" +
-                         m_currentFileSet + "/" + strFileName;
-      QString fileSetPath = PROJECT_OSRCDIR;
-      fileSetPath += "/" + Project::Instance()->projectName() + ".srcs/" +
-                     m_currentFileSet + "/" + strFileName;
-      if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
-        ret = CreateSDCFile(filePath);
-        if (0 == ret) {
-          AddOrCreateFileToFileSet(fileSetPath, false);
-        }
+      QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
+                                          Project::Instance()->projectName(),
+                                          m_currentFileSet) +
+                         "/" + strFileName;
+      QString fileSetPath =
+          ProjectFilesPath(PROJECT_OSRCDIR, Project::Instance()->projectName(),
+                           m_currentFileSet);
+      fileSetPath += "/" + strFileName;
+      if (m_constrSuffixes.TestSuffix(suffix)) {
+        ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
       }
     }
   }
@@ -1254,349 +1240,7 @@ int ProjectManager::deleteRun(const QString& strRunName) {
   return ret;
 }
 
-int ProjectManager::StartProject(const QString& strOspro) {
-  return ImportProjectData(strOspro);
-}
-
-int ProjectManager::FinishedProject() { return ExportProjectData(); }
-
-int ProjectManager::ImportProjectData(QString strOspro) {
-  int ret = 0;
-  if ("" == strOspro) {
-    return ret;
-  }
-  QString strTemp = Project::Instance()->projectPath();
-  strTemp += "/";
-  strTemp += Project::Instance()->projectName();
-  strTemp += PROJECT_FILE_FORMAT;
-  if (strOspro == strTemp) {
-    return ret;
-  }
-
-  // this is starting point for backward compatibility
-  QString version = ProjectVersion(strOspro);
-  Q_UNUSED(version)
-  // reorganize code in the future to have different loaders for compatible
-  // versions
-
-  QFile file(strOspro);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    return -1;
-  }
-
-  Project::Instance()->InitProject();
-  QXmlStreamReader reader;
-  reader.setDevice(&file);
-  while (!reader.atEnd()) {
-    QXmlStreamReader::TokenType type = reader.readNext();
-    if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT &&
-          reader.attributes().hasAttribute(PROJECT_PATH)) {
-        QString strPath = reader.attributes().value(PROJECT_PATH).toString();
-        QString strName = strPath.mid(
-            strPath.lastIndexOf("/") + 1,
-            strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
-
-        Project::Instance()->setProjectName(strName);
-        Project::Instance()->setProjectPath(
-            strPath.left(strPath.lastIndexOf("/")));
-      }
-      if (reader.name() == PROJECT_CONFIGURATION) {
-        while (true) {
-          type = reader.readNext();
-          if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_CONFIGURATION) {
-            break;
-          }
-
-          ProjectConfiguration* tmpProCfg =
-              Project::Instance()->projectConfig();
-          if (type == QXmlStreamReader::StartElement &&
-              reader.attributes().hasAttribute(PROJECT_NAME) &&
-              reader.attributes().hasAttribute(PROJECT_VAL)) {
-            if (PROJECT_CONFIG_ID ==
-                reader.attributes().value(PROJECT_NAME).toString()) {
-              tmpProCfg->setId(
-                  reader.attributes().value(PROJECT_VAL).toString());
-            } else if (PROJECT_CONFIG_ACTIVESIMSET ==
-                       reader.attributes().value(PROJECT_NAME).toString()) {
-              tmpProCfg->setActiveSimSet(
-                  reader.attributes().value(PROJECT_VAL).toString());
-            } else if (PROJECT_CONFIG_TYPE ==
-                       reader.attributes().value(PROJECT_NAME).toString()) {
-              tmpProCfg->setProjectType(
-                  reader.attributes().value(PROJECT_VAL).toString());
-            } else {
-              tmpProCfg->setOption(
-                  reader.attributes().value(PROJECT_NAME).toString(),
-                  reader.attributes().value(PROJECT_VAL).toString());
-            }
-          }
-        }
-      }
-      if (reader.name() == PROJECT_FILESETS) {
-        QString strSetName;
-        QString strSetType;
-        QString strSetSrcDir;
-        QStringList listFiles;
-        std::vector<std::pair<int, QString>> langList;
-        QMap<QString, QString> mapOption;
-        while (true) {
-          type = reader.readNext();
-          if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_FILESETS) {
-            break;
-          } else if (type == QXmlStreamReader::StartElement &&
-                     reader.attributes().hasAttribute(PROJECT_FILESET_NAME) &&
-                     reader.attributes().hasAttribute(PROJECT_FILESET_TYPE) &&
-                     reader.attributes().hasAttribute(
-                         PROJECT_FILESET_RELSRCDIR)) {
-            strSetName =
-                reader.attributes().value(PROJECT_FILESET_NAME).toString();
-            strSetType =
-                reader.attributes().value(PROJECT_FILESET_TYPE).toString();
-            strSetSrcDir =
-                reader.attributes().value(PROJECT_FILESET_RELSRCDIR).toString();
-          } else if (type == QXmlStreamReader::StartElement &&
-                     reader.attributes().hasAttribute(PROJECT_PATH)) {
-            listFiles.append(
-                reader.attributes().value(PROJECT_PATH).toString());
-          } else if (type == QXmlStreamReader::StartElement &&
-                     reader.attributes().hasAttribute(PROJECT_NAME) &&
-                     reader.attributes().hasAttribute(PROJECT_VAL)) {
-            mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
-                             reader.attributes().value(PROJECT_VAL).toString());
-          } else if (type == QXmlStreamReader::StartElement &&
-                     reader.attributes().hasAttribute(PROJECT_GROUP_ID) &&
-                     reader.attributes().hasAttribute(PROJECT_GROUP_FILES)) {
-            langList.push_back(std::make_pair(
-                reader.attributes().value(PROJECT_GROUP_ID).toInt(),
-                reader.attributes().value(PROJECT_GROUP_FILES).toString()));
-          } else if (type == QXmlStreamReader::EndElement &&
-                     reader.name() == PROJECT_FILESET) {
-            ProjectFileSet projectFileset;
-            projectFileset.setSetName(strSetName);
-            projectFileset.setSetType(strSetType);
-            projectFileset.setRelSrcDir(strSetSrcDir);
-
-            foreach (QString strFile, listFiles) {
-              projectFileset.addFile(
-                  strFile.right(strFile.size() -
-                                (strFile.lastIndexOf("/") + 1)),
-                  strFile);
-            }
-            for (const auto& i : langList) {
-              projectFileset.addFiles(StringSplit(i.second, " "), i.first);
-            }
-            for (auto iter = mapOption.begin(); iter != mapOption.end();
-                 ++iter) {
-              projectFileset.setOption(iter.key(), iter.value());
-            }
-            Project::Instance()->setProjectFileset(projectFileset);
-            // clear data for next
-            strSetName = "";
-            strSetType = "";
-            strSetSrcDir = "";
-            listFiles.clear();
-            mapOption.clear();
-          }
-        }
-      }
-      if (reader.name() == PROJECT_RUNS /*"Runs"*/) {
-        QString strRunName;
-        QString strRunType;
-        QString strSrcSet;
-        QString strConstrs;
-        QString strRunState;
-        QString strSynthRun;
-        QMap<QString, QString> mapOption;
-        while (true) {
-          type = reader.readNext();
-          if (type == QXmlStreamReader::EndElement &&
-              reader.name() == PROJECT_RUNS) {
-            break;
-          } else if ((type == QXmlStreamReader::StartElement &&
-                      reader.attributes().hasAttribute(PROJECT_RUN_NAME) &&
-                      reader.attributes().hasAttribute(PROJECT_RUN_TYPE) &&
-                      reader.attributes().hasAttribute(PROJECT_RUN_SRCSET) &&
-                      reader.attributes().hasAttribute(
-                          PROJECT_RUN_CONSTRSSET) &&
-                      reader.attributes().hasAttribute(PROJECT_RUN_STATE)) ||
-                     reader.attributes().hasAttribute(PROJECT_RUN_SYNTHRUN)) {
-            strRunName = reader.attributes().value(PROJECT_RUN_NAME).toString();
-            strRunType = reader.attributes().value(PROJECT_RUN_TYPE).toString();
-            strSrcSet =
-                reader.attributes().value(PROJECT_RUN_SRCSET).toString();
-            strConstrs =
-                reader.attributes().value(PROJECT_RUN_CONSTRSSET).toString();
-            strRunState =
-                reader.attributes().value(PROJECT_RUN_STATE).toString();
-
-            if (reader.attributes().hasAttribute(PROJECT_RUN_SYNTHRUN)) {
-              strSynthRun =
-                  reader.attributes().value(PROJECT_RUN_SYNTHRUN).toString();
-            }
-          } else if (type == QXmlStreamReader::StartElement &&
-                     reader.attributes().hasAttribute(PROJECT_NAME) &&
-                     reader.attributes().hasAttribute(PROJECT_VAL)) {
-            mapOption.insert(reader.attributes().value(PROJECT_NAME).toString(),
-                             reader.attributes().value(PROJECT_VAL).toString());
-          } else if (type == QXmlStreamReader::EndElement &&
-                     reader.name() == PROJECT_RUN) {
-            ProjectRun proRun;
-            proRun.setRunName(strRunName);
-            proRun.setRunType(strRunType);
-            proRun.setSrcSet(strSrcSet);
-            proRun.setConstrsSet(strConstrs);
-            proRun.setRunState(strRunState);
-            proRun.setSynthRun(strSynthRun);
-
-            for (auto iter = mapOption.begin(); iter != mapOption.end();
-                 ++iter) {
-              proRun.setOption(iter.key(), iter.value());
-            }
-            Project::Instance()->setProjectRun(proRun);
-            // clear data for next
-            strRunName = "";
-            strRunType = "";
-            strSrcSet = "";
-            strConstrs = "";
-            strRunState = "";
-            strSynthRun = "";
-            mapOption.clear();
-          }
-        }
-      }
-    }
-  }
-
-  if (reader.hasError()) {
-    return -2;
-  }
-  file.close();
-  return ret;
-}
-
-int ProjectManager::ExportProjectData() {
-  QString tmpName = Project::Instance()->projectName();
-  QString tmpPath = Project::Instance()->projectPath();
-  QString xmlPath = tmpPath + "/" + tmpName + PROJECT_FILE_FORMAT;
-  QFile file(xmlPath);
-  if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
-    return -1;
-  }
-  QXmlStreamWriter stream(&file);
-  stream.setAutoFormatting(true);
-  stream.writeStartDocument();
-  stream.writeComment(
-      tr("                                                   "));
-  stream.writeComment(
-      tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
-  stream.writeStartElement(PROJECT_PROJECT);
-  stream.writeAttribute(PROJECT_PATH, xmlPath);
-  stream.writeAttribute(PROJECT_VERSION, foedag_version_number);
-
-  stream.writeStartElement(PROJECT_CONFIGURATION);
-
-  ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
-  stream.writeStartElement(PROJECT_OPTION);
-  stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_ID);
-  stream.writeAttribute(PROJECT_VAL, tmpProCfg->id());
-  stream.writeEndElement();
-
-  stream.writeStartElement(PROJECT_OPTION);
-  stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_ACTIVESIMSET);
-  stream.writeAttribute(PROJECT_VAL, tmpProCfg->activeSimSet());
-  stream.writeEndElement();
-
-  stream.writeStartElement(PROJECT_OPTION);
-  stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_TYPE);
-  stream.writeAttribute(PROJECT_VAL, tmpProCfg->projectType());
-  stream.writeEndElement();
-
-  QMap<QString, QString> tmpOption = tmpProCfg->getMapOption();
-  for (auto iter = tmpOption.begin(); iter != tmpOption.end(); ++iter) {
-    stream.writeStartElement(PROJECT_OPTION);
-    stream.writeAttribute(PROJECT_NAME, iter.key());
-    stream.writeAttribute(PROJECT_VAL, iter.value());
-    stream.writeEndElement();
-  }
-  stream.writeEndElement();
-
-  stream.writeStartElement(PROJECT_FILESETS);
-  QMap<QString, ProjectFileSet*> tmpFileSetMap =
-      Project::Instance()->getMapProjectFileset();
-  for (auto iter = tmpFileSetMap.begin(); iter != tmpFileSetMap.end(); ++iter) {
-    ProjectFileSet* tmpFileSet = iter.value();
-
-    stream.writeStartElement(PROJECT_FILESET);
-
-    stream.writeAttribute(PROJECT_FILESET_NAME, tmpFileSet->getSetName());
-    stream.writeAttribute(PROJECT_FILESET_TYPE, tmpFileSet->getSetType());
-    stream.writeAttribute(PROJECT_FILESET_RELSRCDIR,
-                          tmpFileSet->getRelSrcDir());
-
-    auto tmpFileMap = tmpFileSet->getMapFiles();
-    for (auto iterfile = tmpFileMap.begin(); iterfile != tmpFileMap.end();
-         ++iterfile) {
-      stream.writeStartElement(PROJECT_FILESET_FILE);
-      stream.writeAttribute(PROJECT_PATH, iterfile->second);
-      stream.writeEndElement();
-    }
-    auto langMap = tmpFileSet->Files();
-    for (auto it = langMap.cbegin(); it != langMap.cend(); ++it) {
-      stream.writeStartElement(PROJECT_GROUP);
-      stream.writeAttribute(PROJECT_GROUP_ID, QString::number(it->first));
-      stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
-      stream.writeEndElement();
-    }
-
-    QMap<QString, QString> tmpOptionF = tmpFileSet->getMapOption();
-    if (tmpOptionF.size()) {
-      stream.writeStartElement(PROJECT_FILESET_CONFIG);
-      for (auto iterOption = tmpOptionF.begin(); iterOption != tmpOptionF.end();
-           ++iterOption) {
-        stream.writeStartElement(PROJECT_OPTION);
-        stream.writeAttribute(PROJECT_NAME, iterOption.key());
-        stream.writeAttribute(PROJECT_VAL, iterOption.value());
-        stream.writeEndElement();
-      }
-      stream.writeEndElement();
-    }
-    stream.writeEndElement();
-  }
-  stream.writeEndElement();
-
-  stream.writeStartElement(PROJECT_RUNS);
-  QMap<QString, ProjectRun*> tmpRunMap =
-      Project::Instance()->getMapProjectRun();
-  for (auto iter = tmpRunMap.begin(); iter != tmpRunMap.end(); ++iter) {
-    ProjectRun* tmpRun = iter.value();
-    stream.writeStartElement(PROJECT_RUN);
-    stream.writeAttribute(PROJECT_RUN_NAME, tmpRun->runName());
-    stream.writeAttribute(PROJECT_RUN_TYPE, tmpRun->runType());
-    stream.writeAttribute(PROJECT_RUN_SRCSET, tmpRun->srcSet());
-    stream.writeAttribute(PROJECT_RUN_CONSTRSSET, tmpRun->constrsSet());
-    stream.writeAttribute(PROJECT_RUN_STATE, tmpRun->runState());
-    stream.writeAttribute(PROJECT_RUN_SYNTHRUN, tmpRun->synthRun());
-
-    QMap<QString, QString> tmpOptionF = tmpRun->getMapOption();
-    for (auto iterOption = tmpOptionF.begin(); iterOption != tmpOptionF.end();
-         ++iterOption) {
-      stream.writeStartElement(PROJECT_OPTION);
-      stream.writeAttribute(PROJECT_NAME, iterOption.key());
-      stream.writeAttribute(PROJECT_VAL, iterOption.value());
-      stream.writeEndElement();
-    }
-    stream.writeEndElement();
-  }
-  stream.writeEndElement();
-
-  stream.writeEndDocument();
-  file.close();
-
-  return 0;
-}
+void ProjectManager::FinishedProject() { emit saveFile(); }
 
 int ProjectManager::CreateProjectDir() {
   int ret = 0;
@@ -1841,30 +1485,32 @@ QStringList ProjectManager::StringSplit(const QString& str,
 #endif
 }
 
-QString ProjectManager::ProjectVersion(const QString& filename) {
-  QFile file(filename);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    return QString();
+int ProjectManager::CreateAndAddFile(const QString& suffix,
+                                     const QString& filename,
+                                     const QString& filenameAdd,
+                                     bool copyFile) {
+  int ret{-1};
+  if (!suffix.compare("v", Qt::CaseInsensitive)) {
+    ret = CreateVerilogFile(filename);
+  } else if (!suffix.compare("sv", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("vh", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("svh", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("blif", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("eblif", Qt::CaseInsensitive)) {
+    ret = CreateSystemVerilogFile(filename);
+  } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
+    ret = CreateVHDLFile(filename);
+  } else if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+    ret = CreateSDCFile(filename);
   }
-
-  QXmlStreamReader reader;
-  reader.setDevice(&file);
-  while (!reader.atEnd()) {
-    QXmlStreamReader::TokenType type = reader.readNext();
-    if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT) {
-        QString projectVersion =
-            reader.attributes().value(PROJECT_VERSION).toString();
-        return projectVersion;
-      }
-    }
+  if (0 == ret) {
+    ret = AddOrCreateFileToFileSet(filenameAdd, copyFile);
   }
-
-  if (reader.hasError()) {
-    return QString();
-  }
-  file.close();
-  return QString();
+  return ret;
 }
 
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
@@ -1930,4 +1576,10 @@ void ProjectManager::setCurrentFileSet(const QString& currentFileSet) {
 std::ostream& operator<<(std::ostream& out, const QString& text) {
   out << text.toStdString();
   return out;
+}
+
+bool Suffixes::TestSuffix(const QString& s) const {
+  for (const auto& suffix : suffixes)
+    if (!suffix.compare(s, Qt::CaseInsensitive)) return true;
+  return false;
 }

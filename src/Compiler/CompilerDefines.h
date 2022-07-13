@@ -72,12 +72,14 @@ static constexpr uint ROUTING_WRITE_NETLIST{18};
 static constexpr uint TIMING_SIGN_OFF{19};
 static constexpr uint POWER{20};
 static constexpr uint BITSTREAM{21};
+static constexpr uint PLACE_AND_ROUTE_VIEW{22};
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
 static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
 static constexpr uint ParentDataRole = Qt::UserRole + 4;
 static constexpr uint TaskTypeRole = Qt::UserRole + 5;
+static constexpr uint TaskId = Qt::UserRole + 6;
 
 /*!
  * \brief prepareCompilerView

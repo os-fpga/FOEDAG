@@ -32,14 +32,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class TclInterpreter;
+class Compiler;
+class IPInstance;
+
 class IPGenerator {
  public:
-  IPGenerator(IPCatalog* catalog) : m_catalog(catalog) {}
+  IPGenerator(IPCatalog* catalog, Compiler* compiler)
+      : m_catalog(catalog), m_compiler(compiler) {}
   virtual ~IPGenerator() {}
   IPCatalog* Catalog() { return m_catalog; }
+  Compiler* GetCompiler() { return m_compiler; }
+  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  std::vector<IPInstance*> IPInstances() { return m_instances; }
+  bool AddIPInstance(IPInstance* instance);
+  void ResetIPList() {
+    m_instances.erase(m_instances.begin(), m_instances.end());
+  }
+  bool Generate();
 
  protected:
   IPCatalog* m_catalog = nullptr;
+  Compiler* m_compiler = nullptr;
+  std::vector<IPInstance*> m_instances;
 };
 
 }  // namespace FOEDAG

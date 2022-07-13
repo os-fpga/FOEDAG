@@ -32,5 +32,3 @@ puts "NEXT" ; flush stdout ; next
 puts "NEW PROJECT STOP"  ; flush stdout ; newproject_gui_close
 
 puts "GUI STOP"  ; flush stdout ; gui_stop
-
-

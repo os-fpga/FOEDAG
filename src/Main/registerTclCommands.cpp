@@ -34,6 +34,7 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <fstream>
 #include <iostream>
@@ -196,6 +197,26 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   };
   session->TclInterp()->registerCmd("qt_testWidget", qt_testWidget,
                                     GlobalSession->MainWindow(), nullptr);
+
+  auto show_about = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    if (argc < 7) {
+      Tcl_AppendResult(interp,
+                       qPrintable("Expected Syntax: show_about name, "
+                                  "version, git_hash, date, url, build_type"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+    FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3],
+                             argv[4], argv[5], argv[6]};
+    QWidget* parent = static_cast<QWidget*>(clientData);
+    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(info, parent);
+    about->show();
+    return TCL_OK;
+  };
+
+  session->TclInterp()->registerCmd("show_about", show_about,
+                                    GlobalSession->MainWindow(), nullptr);
 }
 
 void registerBasicBatchCommands(FOEDAG::Session* session) {
@@ -238,10 +259,30 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
     if (FOEDAG::MainWindow* win = dynamic_cast<FOEDAG::MainWindow*>(widget)) {
       auto DemoWidgetsFn = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
-        FOEDAG::createTaskDialog("Placement")->show();
+        FOEDAG::createTaskDialog("TclExample")->show();
         return TCL_OK;
       };
       session->TclInterp()->registerCmd("DemoWidgets", DemoWidgetsFn, 0, 0);
+
+      auto EditSettingsFn = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+        QString category = "";
+        if (argc > 1) {
+          category = argv[1];
+        }
+        QDialog* dlg = FOEDAG::createTopSettingsDialog(
+            GlobalSession->GetSettings()->getJson(), category);
+        // flag to open the dlg non-modally so testing scripts can interact with
+        // it
+        if (argc > 2 && strcmp(argv[2], "1") == 0) {
+          dlg->show();
+        } else {
+          dlg->exec();
+        }
+
+        return TCL_OK;
+      };
+      session->TclInterp()->registerCmd("EditSettings", EditSettingsFn, 0, 0);
 
       auto EditTaskSettingsFn = [](void* clientData, Tcl_Interp* interp,
                                    int argc, const char* argv[]) -> int {
