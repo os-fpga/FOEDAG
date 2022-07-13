@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
+#include "Utils/FileUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -213,21 +214,78 @@ bool IPGenerator::Generate() {
     std::string p = expandedFile.string();
     if (!std::filesystem::exists(expandedFile)) {
       std::filesystem::create_directories(expandedFile.parent_path());
-      std::ofstream file{expandedFile};
-      file.close();
-      const IPDefinition* def = inst->Definition();
-      switch (def->Type()) {
-        case IPDefinition::IPType::Other: {
-          break;
-        }
-        case IPDefinition::IPType::LiteXGenerator: {
-          //          const std::filesystem::path executable = def->FilePath();
-          break;
-        }
-      }
     }
 
-    //
+    const IPDefinition* def = inst->Definition();
+    switch (def->Type()) {
+      case IPDefinition::IPType::Other: {
+        break;
+      }
+      case IPDefinition::IPType::LiteXGenerator: {
+        std::string project = compiler->ProjManager()->projectPath();
+        const std::filesystem::path executable = def->FilePath();
+        std::string ip_config_file =
+            def->Name() + "_" + inst->ModuleName() + ".json";
+        std::filesystem::path jasonfile =
+            std::filesystem::path(project) / ip_config_file;
+        std::stringstream previousbuffer;
+        if (FileUtils::fileExists(jasonfile)) {
+          std::ifstream previous(jasonfile);
+          std::stringstream buffer;
+          previousbuffer << previous.rdbuf();
+        }
+
+        std::ofstream jsonF(jasonfile);
+        jsonF << "{" << std::endl;
+        for (auto param : inst->Parameters()) {
+          std::string value;
+          switch (param.GetType()) {
+            case Value::Type::ParamString:
+              value = param.GetSValue();
+              break;
+            case Value::Type::ParamInt:
+              value = std::to_string(param.GetValue());
+              break;
+            case Value::Type::ConstInt:
+              value = std::to_string(param.GetValue());
+          }
+          jsonF << "   \"" << param.Name() << "\": " << value << ","
+                << std::endl;
+        }
+        jsonF << "   \"build_dir\": " << inst->OutputFile().parent_path() << ","
+              << std::endl;
+        jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
+              << std::endl;
+        jsonF << "   \"build\": true," << std::endl;
+        jsonF << "   \"json\": \"" << ip_config_file << "\"," << std::endl;
+        jsonF << "   \"json_template\": false" << std::endl;
+        jsonF << "}" << std::endl;
+        jsonF.close();
+        std::stringstream newbuffer;
+        if (FileUtils::fileExists(jasonfile)) {
+          std::ifstream newfile(jasonfile);
+          std::stringstream buffer;
+          newbuffer << newfile.rdbuf();
+        }
+        std::filesystem::path python3Path =
+            FileUtils::locateExecFile("python3");
+        std::string command = python3Path.string() + " " + executable.string() +
+                              " --build --json " + jasonfile.string();
+        std::ostringstream help;
+        if (newbuffer.str() == previousbuffer.str()) {
+          m_compiler->Message("IP Generate, reusing IP " +
+                              inst->OutputFile().string());
+          continue;
+        }
+        m_compiler->Message("IP Generate, generating IP " +
+                            inst->OutputFile().string());
+        if (FileUtils::ExecuteSystemCommand(command, &help)) {
+          m_compiler->ErrorMessage("IP Generate, " + help.str());
+          return false;
+        }
+        break;
+      }
+    }
   }
   return status;
 }
