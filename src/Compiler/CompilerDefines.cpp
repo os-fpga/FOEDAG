@@ -42,6 +42,7 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   view->setColumnWidth(1, 160);
   view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
   view->horizontalHeader()->setStretchLastSection(true);
+  view->setMinimumWidth(340);
 
   compiler->setTaskManager(tManager);
   if (taskManager) *taskManager = tManager;
