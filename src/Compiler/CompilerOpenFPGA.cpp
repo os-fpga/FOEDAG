@@ -913,17 +913,17 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
-      m_state != State::Placed) {
-    ErrorMessage("Design needs to be in packed state");
-    return false;
-  }
   if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
     Message("Cleaning global placement results for " +
             ProjManager()->projectName());
     m_state = State::Packed;
     GlobPlacementOpt(GlobalPlacementOpt::None);
     return true;
+  }
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
+    ErrorMessage("Design needs to be in packed state");
+    return false;
   }
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
@@ -942,11 +942,6 @@ bool CompilerOpenFPGA::Placement() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
-      m_state != State::Placed) {
-    ErrorMessage("Design needs to be in packed or globally placed state");
-    return false;
-  }
   if (PlaceOpt() == PlacementOpt::Clean) {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
@@ -955,6 +950,11 @@ bool CompilerOpenFPGA::Placement() {
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
+  }
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
+    ErrorMessage("Design needs to be in packed or globally placed state");
+    return false;
   }
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Placement for design: " << ProjManager()->projectName()
@@ -1077,10 +1077,6 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (m_state != State::Placed) {
-    ErrorMessage("Design needs to be in placed state");
-    return false;
-  }
   if (RouteOpt() == RoutingOpt::Clean) {
     Message("Cleaning routing results for " + ProjManager()->projectName());
     m_state = State::Placed;
@@ -1089,6 +1085,10 @@ bool CompilerOpenFPGA::Route() {
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.route"));
     return true;
+  }
+  if (m_state != State::Placed) {
+    ErrorMessage("Design needs to be in placed state");
+    return false;
   }
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Routing for design: " << ProjManager()->projectName()
@@ -1321,15 +1321,6 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Bitstream generation for design \""
-           << ProjManager()->projectName() << "\" on device \""
-           << ProjManager()->getTargetDevice() << "\"" << std::endl;
-  (*m_out) << "##################################################" << std::endl;
-  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
-    ErrorMessage("Design needs to be in routed state");
-    return false;
-  }
   if (BitsOpt() == BitstreamOpt::Clean) {
     Message("Cleaning bitstream results for " + ProjManager()->projectName());
     m_state = State::Routed;
@@ -1341,6 +1332,16 @@ bool CompilerOpenFPGA::GenerateBitstream() {
         std::filesystem::path(ProjManager()->projectName()) /
         std::string("fabric_independent_bitstream.xml"));
     return true;
+  }
+
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Bitstream generation for design \""
+           << ProjManager()->projectName() << "\" on device \""
+           << ProjManager()->getTargetDevice() << "\"" << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
+    ErrorMessage("Design needs to be in routed state");
+    return false;
   }
 
   if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {

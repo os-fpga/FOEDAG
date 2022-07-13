@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 6)
+set(VERSION_PATCH 7)
 
 option(
   WITH_LIBCXX
@@ -263,7 +263,6 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
-string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
 execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND git rev-parse --short HEAD
   COMMAND tr -d '\n'
@@ -272,7 +271,6 @@ execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 message(STATUS "GIT_HASH = ${GIT_HASH}")
-message(STATUS "BUILD_DATE = ${BUILD_DATE}")
 message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
 configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 

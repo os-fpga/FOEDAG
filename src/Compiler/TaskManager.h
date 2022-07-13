@@ -103,10 +103,12 @@ class TaskManager : public QObject {
  private:
   void run();
   void reset();
+  void rollBack(Task *t);
 
  private:
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
+  QMap<Task *, QVector<Task *>> m_rollBack;
 };
 
 }  // namespace FOEDAG
