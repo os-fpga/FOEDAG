@@ -63,13 +63,18 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
+  if (role == TaskId) return ToTaskId(index);
+
+  auto task = m_taskManager->task(ToTaskId(index));
+  if (!task) return QVariant();
+
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
-    auto task = m_taskManager->task(ToTaskId(index));
     if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
   } else if (role == Qt::DecorationRole) {
+    if (task->type() != TaskType::Action) return QVariant();
     if (index.column() == STATUS_COL) {
-      switch (m_taskManager->task(ToTaskId(index))->status()) {
+      switch (task->status()) {
         case TaskStatus::Success:
           return QIcon(":/checked.png");
         case TaskStatus::Fail:
@@ -92,25 +97,17 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       }
     }
   } else if (role == RowVisibilityRole) {
-    if (auto task = m_taskManager->task(ToTaskId(index))) {
-      if (auto p = task->parentTask()) {
-        uint id = m_taskManager->taskId(p);
-        if (id != TaskManager::invalid_id) {
-          return m_expanded.value(createIndex(id, index.column()), true);
-        }
+    if (auto p = task->parentTask()) {
+      uint id = m_taskManager->taskId(p);
+      if (id != TaskManager::invalid_id) {
+        return m_expanded.value(createIndex(id, index.column()), true);
       }
     }
     return false;
   } else if (role == ParentDataRole) {
-    if (auto task = m_taskManager->task(ToTaskId(index))) {
-      return task->parentTask() != nullptr;
-    }
+    return task->parentTask() != nullptr;
   } else if (role == TaskTypeRole && index.column() == TITLE_COL) {
-    if (auto task = m_taskManager->task(ToTaskId(index))) {
-      return QVariant((uint)task->type());
-    }
-  } else if (role == TaskId) {
-    return ToTaskId(index);
+    return QVariant((uint)task->type());
   }
   return QVariant();
 }
