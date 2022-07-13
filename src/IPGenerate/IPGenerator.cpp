@@ -254,6 +254,8 @@ bool IPGenerator::Generate() {
         }
         jsonF << "   \"build_dir\": " << inst->OutputFile().parent_path() << ","
               << std::endl;
+        jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
+              << std::endl;
         jsonF << "   \"build\": true," << std::endl;
         jsonF << "   \"json\": \"" << ip_config_file << "\"," << std::endl;
         jsonF << "   \"json_template\": false" << std::endl;
