@@ -41,7 +41,7 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
                      .arg(info.name, info.version, __DATE__, info.url,
                           info.git_hash, info.build_type);
   if (info.showLicense) {
-    text += QString("<p>%7</p>").arg(License());
+    text += QString("<p>%1</p>").arg(License());
   }
   label->setText(text);
   label->setAlignment(Qt::AlignTop);
