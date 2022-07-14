@@ -415,50 +415,51 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
 
   QWidget* widget = nullptr;
   if (settings) {
+    QString settingName = "";
+    QVBoxLayout* layout = nullptr;
+
     // Get widget parameters from json settings
-    json empty;
-    json& widgetsJson = empty;
     try {
       // nlohmann json doesn't support checking if a json ptr path is valid so
-      // per the docs we need to try/catch these
-      widgetsJson = settings->getJson().at(jsonPtr);
+      // per the docs we need to try/catch these calls
+      json& widgetsJson = settings->getJson().at(jsonPtr);
+
+      // Get setting name from the jsonPath
+      int separatorIdx = jsonPath.lastIndexOf("/");
+      if (separatorIdx > -1) {
+        // Get node name from full path
+        settingName = jsonPath.mid(separatorIdx + 1);
+      }
+
+      // Get tcl getters/setters
+      if (widgetsJson.contains("_META_")) {
+        QString tclArgKey = QString::fromStdString(
+            widgetsJson["_META_"].value("tclArgKey", ""));
+        auto [setter, getter] = getTclArgFns(tclArgKey);
+        if (tclArgSetter == nullptr) {
+          tclArgSetter = setter;
+        }
+        if (tclArgGetter == nullptr) {
+          tclArgGetter = getter;
+        }
+      }
+
+      // Get any task settings that have been set via tcl commands
+      QString tclArgs = "";
+      if (tclArgGetter != nullptr) {
+        tclArgs = tclArgGetter();
+      }
+
+      // Create Settings Pane
+      QWidget* containerWidget = new QWidget();
+      layout = new QVBoxLayout();
+      layout->setContentsMargins(0, 0, 0, 0);
+      containerWidget->setLayout(layout);
+
+      widget = FOEDAG::createSettingsWidget(widgetsJson, settingName, tclArgs);
     } catch (...) {
     }
 
-    // Get setting name from the jsonPath
-    QString settingName = "";
-    int separatorIdx = jsonPath.lastIndexOf("/");
-    if (separatorIdx > -1) {
-      // Get node name from full path
-      settingName = jsonPath.mid(separatorIdx + 1);
-    }
-
-    // Get tcl getters/setters
-    if (widgetsJson.contains("_META_")) {
-      QString tclArgKey =
-          QString::fromStdString(widgetsJson["_META_"].value("tclArgKey", ""));
-      auto [setter, getter] = getTclArgFns(tclArgKey);
-      if (tclArgSetter == nullptr) {
-        tclArgSetter = setter;
-      }
-      if (tclArgGetter == nullptr) {
-        tclArgGetter = getter;
-      }
-    }
-
-    // Get any task settings that have been set via tcl commands
-    QString tclArgs = "";
-    if (tclArgGetter != nullptr) {
-      tclArgs = tclArgGetter();
-    }
-
-    // Create Settings Pane
-    QWidget* containerWidget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->setContentsMargins(0, 0, 0, 0);
-    containerWidget->setLayout(layout);
-
-    widget = FOEDAG::createSettingsWidget(widgetsJson, settingName, tclArgs);
     if (widget) {
       layout->addWidget(widget);
       // Find and attach to the created settings widget's QDialogButtonBox
