@@ -272,7 +272,7 @@ void TclCommandIntegration::error(int res, const QString &filename,
     case ProjectManager::EC_Success:
       break;
     case ProjectManager::EC_FileNotExist:
-      out << "File(s) not exist: " << filename.toStdString() << std::endl;
+      out << "File(s) do not exist: " << filename.toStdString() << std::endl;
       break;
     default:
       out << "Failed to add files: " << filename.toStdString() << std::endl;

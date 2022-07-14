@@ -190,30 +190,8 @@ bool IPGenerator::Generate() {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
 
-    std::filesystem::path expandedFile = out_path;
-    bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
-      use_orig_path = true;
-    }
-
-    if ((!use_orig_path) &&
-        (!compiler->GetSession()->CmdLine()->Script().empty())) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath = fullPath / out_path;
-      expandedFile = fullPath.string();
-    }
-    std::filesystem::path the_path = expandedFile;
-    if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(compiler->ProjManager()->projectPath() /
-                                std::filesystem::path("..") / expandedFile);
-    }
-    std::string p = expandedFile.string();
-    if (!std::filesystem::exists(expandedFile)) {
-      std::filesystem::create_directories(expandedFile.parent_path());
+    if (!std::filesystem::exists(out_path)) {
+      std::filesystem::create_directories(out_path.parent_path());
     }
 
     const IPDefinition* def = inst->Definition();
@@ -272,11 +250,13 @@ bool IPGenerator::Generate() {
         std::string command = python3Path.string() + " " + executable.string() +
                               " --build --json " + jasonfile.string();
         std::ostringstream help;
+
         if (newbuffer.str() == previousbuffer.str()) {
           m_compiler->Message("IP Generate, reusing IP " +
                               inst->OutputFile().string());
           continue;
         }
+
         m_compiler->Message("IP Generate, generating IP " +
                             inst->OutputFile().string());
         if (FileUtils::ExecuteSystemCommand(command, &help)) {
