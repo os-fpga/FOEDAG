@@ -341,29 +341,32 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
-int ProjectManager::addDesignFiles(const QString& fileNames, int lang,
-                                   bool isFileCopy, bool localToProject) {
+ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
+    const QString& fileNames, int lang, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) return EC_FileSetNotExist;
+  if (nullptr == proFileSet) return {EC_FileSetNotExist};
 
   const QStringList fileList = StringSplit(fileNames, " ");
 
   // check file exists
+  QStringList notExistingFiles;
   for (const auto& file : fileList) {
     if (const QFileInfo fileInfo{file}; !fileInfo.exists())
-      return EC_FileNotExist;
+      notExistingFiles.append(file);
   }
+  if (!notExistingFiles.isEmpty())
+    return {EC_FileNotExist, notExistingFiles.join(", ")};
 
   proFileSet->addFiles(fileList, lang);
 
-  int result{EC_Success};
+  auto result{EC_Success};
   for (const auto& file : fileList) {
     const int res = setDesignFile(file, isFileCopy, false);
-    if (res != EC_Success) result = res;
+    if (res != EC_Success) result = static_cast<ErrorCode>(res);
   }
-  return result;
+  return {result};
 }
 
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,

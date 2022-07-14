@@ -125,6 +125,10 @@ class ProjectManager : public QObject {
     EC_ProjRunNotExist = -2,
     EC_FileNotExist = -3,
   };
+  struct ErrorInfo {
+    ErrorCode code;
+    QString message = QString();
+  };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
@@ -147,8 +151,8 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  int addDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
-                     bool localToProject = true);
+  ErrorInfo addDesignFiles(const QString &fileNames, int lang,
+                           bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
                      bool localToProject = true);
   // Please set currentfileset before using this function
