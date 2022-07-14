@@ -27,7 +27,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/main_window.h"
 
 QWidget* mainWindowBuilder(FOEDAG::Session* session) {
-  return new FOEDAG::MainWindow{session};
+  auto m = new FOEDAG::MainWindow{session};
+  auto info = m->Info();
+  info.showLicense = true;
+  m->Info(info);
+  return m;
 }
 
 int main(int argc, char** argv) {
