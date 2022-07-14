@@ -343,12 +343,12 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
-  QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
-  runDockWidget->setObjectName("designrundockwidget");
-  RunsForm* runForm = new RunsForm(this);
-  runForm->RegisterCommands(GlobalSession);
-  runDockWidget->setWidget(runForm);
-  tabifyDockWidget(consoleDocWidget, runDockWidget);
+  // QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
+  // runDockWidget->setObjectName("designrundockwidget");
+  // RunsForm* runForm = new RunsForm(this);
+  // runForm->RegisterCommands(GlobalSession);
+  // runDockWidget->setWidget(runForm);
+  // tabifyDockWidget(consoleDocWidget, runDockWidget);
 
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
@@ -380,7 +380,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   if (!strProject.isEmpty()) m_projectFileLoader->Load(strProject);
 
   sourForm->InitSourcesForm();
-  runForm->InitRunsForm();
+  // runForm->InitRunsForm();
   prViewButton(static_cast<int>(m_compiler->CompilerState()));
 }
 
