@@ -1333,7 +1333,11 @@ bool CompilerOpenFPGA::GenerateBitstream() {
         std::string("fabric_independent_bitstream.xml"));
     return true;
   }
-
+  if (!LicenseDevice(ProjManager()->getTargetDevice())) {
+    ErrorMessage("Device is not licensed: " + ProjManager()->getTargetDevice() +
+                 "\n");
+    return false;
+  }
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Bitstream generation for design \""
            << ProjManager()->projectName() << "\" on device \""
@@ -1530,6 +1534,14 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     ErrorMessage("Incorrect device: " + deviceName + "\n");
     status = false;
   }
-
+  if (!LicenseDevice(deviceName)) {
+    ErrorMessage("Device is not licensed: " + deviceName + "\n");
+    status = false;
+  }
   return status;
+}
+
+bool CompilerOpenFPGA::LicenseDevice(const std::string& deviceName) {
+  // No need for licenses
+  return true;
 }

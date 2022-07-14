@@ -110,7 +110,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
   virtual bool LoadDeviceData(const std::string& deviceName);
-
+  virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
