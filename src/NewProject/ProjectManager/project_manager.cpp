@@ -17,6 +17,8 @@ ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
   QObject::connect(Project::Instance(), &Project::projectPathChanged, this,
                    &ProjectManager::projectPathChanged);
+  QObject::connect(this, &ProjectManager::saveFile, Project::Instance(),
+                   &Project::saveFile);
 }
 
 void ProjectManager::CreateProject(const ProjectOptions& opt) {
