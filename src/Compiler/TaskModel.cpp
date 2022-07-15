@@ -190,6 +190,7 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
         createIndex(index.row() + 1, index.column()),
         createIndex(index.row() + task->subTask().count(), index.column()),
         {Qt::DecorationRole});
+    emit layoutChanged();
   }
   return QAbstractTableModel::setData(index, value, role);
 }
