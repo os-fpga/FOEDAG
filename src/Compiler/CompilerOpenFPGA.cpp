@@ -991,6 +991,11 @@ bool CompilerOpenFPGA::Placement() {
   }
   ofspcf.close();
   std::string pin_loc_constraint_file;
+
+  // if no pcf, we still need to provide a default one, to prevent vpr freely using illegal pin
+  // pin_c will do the job
+  pinLocConstraints = true;
+
   if (pinLocConstraints) {
     std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1026,8 +1031,15 @@ bool CompilerOpenFPGA::Placement() {
         pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
       }
       pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
-      pincommand += " --pcf " +
+
+      // no pcf is allowed; if there is no pcf (as user does not supply), pin_c will automatically generate one
+      // with legal pins and convert it to .place file
+      // this makes sure vpr is not going to freely using illegal pins (pins not wired to top)
+      if (std::filesystem::is_regular_file(std::string(ProjManager()->projectName() + "_openfpga.pcf"))) {
+        pincommand += " --pcf " +
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
+      }
+
       pincommand += " --blif " + netlistFile;
       std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
       pincommand += " --output " + pin_locFile;
