@@ -36,7 +36,8 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   TaskTableView *view = new TaskTableView{tManager};
   QObject::connect(view, &TaskTableView::TaskDialogRequested,
                    FOEDAG::handleTaskDialogRequested);
-  QObject::connect(model, &TaskModel::rowVisibilityChanged, view, &TaskTableView::rowVisibilityChanged);
+  QObject::connect(model, &TaskModel::rowVisibilityChanged, view,
+                   &TaskTableView::rowVisibilityChanged);
   view->setModel(model);
 
   view->setColumnWidth(0, 30);

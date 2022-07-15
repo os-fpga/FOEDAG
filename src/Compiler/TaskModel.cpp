@@ -186,9 +186,11 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
       m_expanded[index] = !m_expanded[index];
     }
     auto task = m_taskManager->task(ToTaskId(index));
-    auto bottomRightIndex = this->index(index.row() + task->subTask().count(), index.column());
+    auto bottomRightIndex =
+        this->index(index.row() + task->subTask().count(), index.column());
 
-    emit rowVisibilityChanged(this->index(index.row() + 1, index.column()), bottomRightIndex);
+    emit rowVisibilityChanged(this->index(index.row() + 1, index.column()),
+                              bottomRightIndex);
 
     emit layoutChanged();
   }

@@ -52,8 +52,9 @@ class TaskTableView : public QTableView {
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
   void setModel(QAbstractItemModel *model) override;
 
-public slots:
-  void rowVisibilityChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+ public slots:
+  void rowVisibilityChanged(const QModelIndex &topLeft,
+                            const QModelIndex &bottomRight);
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;

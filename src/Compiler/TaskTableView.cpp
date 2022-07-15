@@ -110,13 +110,13 @@ void TaskTableView::userActionHandle(const QModelIndex &index) {
 }
 
 void TaskTableView::rowVisibilityChanged(const QModelIndex &topLeft,
-                                const QModelIndex &bottomRight) {
-    auto indexRow = topLeft.row();
-    auto hidden = model()->data(bottomRight, RowVisibilityRole).toBool();
-    while (indexRow <= bottomRight.row()) {
-      setRowHidden(indexRow, hidden);
-      indexRow++;
-    }
+                                         const QModelIndex &bottomRight) {
+  auto indexRow = topLeft.row();
+  auto hidden = model()->data(bottomRight, RowVisibilityRole).toBool();
+  while (indexRow <= bottomRight.row()) {
+    setRowHidden(indexRow, hidden);
+    indexRow++;
+  }
 }
 
 QRect TaskTableView::expandArea(const QModelIndex &index) const {
