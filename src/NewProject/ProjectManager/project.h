@@ -39,6 +39,7 @@ class Project : public QObject {
 
  signals:
   void projectPathChanged();
+  void saveFile();
 
  private:
   QString m_projectName;

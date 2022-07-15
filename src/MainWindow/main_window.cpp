@@ -278,6 +278,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader = new ProjectFileLoader;
   m_projectFileLoader->registerComponent(
       new ProjectManagerComponent{sourForm->ProjManager()});
+  connect(Project::Instance(), &Project::saveFile, m_projectFileLoader,
+          &ProjectFileLoader::Save);
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project
                      // info exists
