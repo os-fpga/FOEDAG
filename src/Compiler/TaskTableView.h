@@ -52,6 +52,9 @@ class TaskTableView : public QTableView {
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
   void setModel(QAbstractItemModel *model) override;
 
+public slots:
+  void rowVisibilityChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+
  protected:
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
@@ -59,8 +62,6 @@ class TaskTableView : public QTableView {
  private slots:
   void customMenuRequested(const QPoint &pos);
   void userActionHandle(const QModelIndex &index);
-  void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                   const QVector<int> &roles = QVector<int>()) override;
 
  signals:
   void TaskDialogRequested(const QString &category);

@@ -186,10 +186,11 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
       m_expanded[index] = !m_expanded[index];
     }
     auto task = m_taskManager->task(ToTaskId(index));
-    emit dataChanged(
-        createIndex(index.row() + 1, index.column()),
-        createIndex(index.row() + task->subTask().count(), index.column()),
-        {Qt::DecorationRole});
+    auto bottomRightIndex = this->index(index.row() + task->subTask().count(), index.column());
+
+    emit rowVisibilityChanged(this->index(index.row() + 1, index.column()), bottomRightIndex);
+
+    emit layoutChanged();
   }
   return QAbstractTableModel::setData(index, value, role);
 }

@@ -44,6 +44,9 @@ class TaskModel : public QAbstractTableModel {
   TaskManager *taskManager() const;
   void setTaskManager(TaskManager *newTaskManager);
 
+signals:
+  void rowVisibilityChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+
  private:
   bool setData(const QModelIndex &index, const QVariant &value,
                int role = Qt::EditRole) override;
