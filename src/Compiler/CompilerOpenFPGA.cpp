@@ -970,7 +970,7 @@ bool CompilerOpenFPGA::Placement() {
        std::string(ProjManager()->projectName() + "_openfpga.pcf"))
           .string();
   std::ofstream ofspcf(pcfOut);
-  bool pinLocConstraints = false;
+  bool userConstraint = false;
   for (auto constraint : m_constraints->getConstraints()) {
     std::vector<std::string> tokens;
     Tokenize(constraint, " ", tokens);
@@ -985,79 +985,71 @@ bool CompilerOpenFPGA::Placement() {
     if (constraint.find("set_pin_loc") == std::string::npos) {
       continue;
     }
+    userConstraint = true;
     constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
     ofspcf << constraint << "\n";
-    pinLocConstraints = true;
+
   }
   ofspcf.close();
   std::string pin_loc_constraint_file;
 
-  // if no pcf, we still need to provide a default one, to prevent vpr freely using illegal pin
-  // pin_c will do the job
-  pinLocConstraints = true;
-
-  if (pinLocConstraints) {
-    std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
-    for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      switch (lang_file.first) {
-        case Design::Language::VERILOG_NETLIST:
-        case Design::Language::BLIF:
-        case Design::Language::EBLIF: {
-          netlistFile = lang_file.second;
-          std::filesystem::path the_path = netlistFile;
-          if (!the_path.is_absolute()) {
-            netlistFile =
-                std::filesystem::path(std::filesystem::path("..") / netlistFile)
-                    .string();
-          }
-          break;
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        netlistFile = lang_file.second;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
         }
-        default:
-          break;
+        break;
       }
+      default:
+        break;
+    }
+  }
+
+  std::string pincommand = m_pinConvExecutablePath.string();
+  if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+    if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+      ErrorMessage(
+          "No pin description csv file available for this device, required "
+          "for set_pin_loc constraints");
+      return false;
+    }
+    // pin_c executable can work with either xml and csv or csv only file
+    if (!m_OpenFpgaPinMapXml.empty() &&
+        std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+    }
+    pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+
+    if (userConstraint) {
+      pincommand += " --pcf " +
+                    std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
-    std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
-      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
-        ErrorMessage(
-            "No pin description csv file available for this device, required "
-            "for set_pin_loc constraints");
-        return false;
-      }
-      // pin_c executable can work with either xml and csv or csv only file
-      if (!m_OpenFpgaPinMapXml.empty() &&
-          std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
-        pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
-      }
-      pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+    pincommand += " --blif " + netlistFile;
+    std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
+    pincommand += " --output " + pin_locFile;
 
-      // no pcf is allowed; if there is no pcf (as user does not supply), pin_c will automatically generate one
-      // with legal pins and convert it to .place file
-      // this makes sure vpr is not going to freely using illegal pins (pins not wired to top)
-      if (std::filesystem::is_regular_file(std::string(ProjManager()->projectName() + "_openfpga.pcf"))) {
-        pincommand += " --pcf " +
-                    std::string(ProjManager()->projectName() + "_openfpga.pcf");
-      }
-
-      pincommand += " --blif " + netlistFile;
-      std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
-      pincommand += " --output " + pin_locFile;
-
-      std::ofstream ofsp(
-          (std::filesystem::path(ProjManager()->projectName()) /
-           std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
-              .string());
-      ofsp << pincommand << std::endl;
-      ofsp.close();
-      int status = ExecuteAndMonitorSystemCommand(pincommand);
-      if (status) {
-        ErrorMessage("Design " + ProjManager()->projectName() +
-                     " pin conversion failed!");
-        return false;
-      } else {
-        pin_loc_constraint_file = pin_locFile;
-      }
+    std::ofstream ofsp(
+        (std::filesystem::path(ProjManager()->projectName()) /
+         std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
+            .string());
+    ofsp << pincommand << std::endl;
+    ofsp.close();
+    int status = ExecuteAndMonitorSystemCommand(pincommand);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " pin conversion failed!");
+      return false;
+    } else {
+      pin_loc_constraint_file = pin_locFile;
     }
   }
 
