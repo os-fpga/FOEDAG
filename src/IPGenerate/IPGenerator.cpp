@@ -58,6 +58,79 @@ using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
 bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  auto add_litex_ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    Compiler* compiler = generator->GetCompiler();
+    if (argc < 2) {
+      compiler->ErrorMessage(
+          "Missing directory path for LiteX ip generator(s)");
+    }
+    const std::string file = argv[1];
+    std::string expandedFile = file;
+    bool use_orig_path = false;
+    if (compiler->FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
+    }
+    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
+
+  auto ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    Compiler* compiler = generator->GetCompiler();
+    bool status = true;
+    if (argc == 1) {
+      // List all IPs
+      std::string ips;
+      for (auto def : generator->Catalog()->Definitions()) {
+        ips += def->Name() + " ";
+      }
+      compiler->TclInterp()->setResult(ips);
+    } else if (argc == 2) {
+      std::string ip_def;
+      for (auto def : generator->Catalog()->Definitions()) {
+        if (argv[1] == def->Name()) {
+          for (auto param : def->Parameters()) {
+            std::string defaultValue;
+            switch (param->GetType()) {
+              case Value::Type::ParamInt:
+                defaultValue = std::to_string(param->GetValue());
+                break;
+              case Value::Type::ParamString:
+                defaultValue = param->GetSValue();
+                break;
+              case Value::Type::ConstInt:
+                defaultValue = std::to_string(param->GetValue());
+                break;
+            }
+            ip_def += "{" + param->Name() + " " + defaultValue + "} ";
+          }
+        }
+      }
+      compiler->TclInterp()->setResult(ip_def);
+    }
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("ip_catalog", ip_catalog, this, 0);
+
   auto configure_ip = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     bool ok = true;

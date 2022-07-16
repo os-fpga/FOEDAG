@@ -62,6 +62,8 @@ class TclInterpreter {
 
   std::string evalCmd(const std::string cmd, int* ret = nullptr);
 
+  void setResult(const std::string& result);
+
   typedef std::function<void()> TclCallback0;
   typedef std::function<void(const std::string& arg1)> TclCallback1;
   typedef std::function<void(const std::string& arg1, const std::string& arg2)>
