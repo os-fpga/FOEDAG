@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
@@ -210,7 +211,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     for (int i = 1; i < argc; i++) {
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -274,7 +275,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       i++;
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -328,7 +329,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
 
     std::string expandedFile = argv[1];
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -367,7 +368,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
 
     std::string expandedFile = argv[1];
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -503,7 +504,7 @@ bool CompilerOpenFPGA::DesignChanged(
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
   std::string output = ProjManager()->projectName() + "_post_synth.blif";
-  time_t time_netlist = Mtime(output);
+  time_t time_netlist = FileUtils::Mtime(output);
   if (time_netlist == -1) {
     result = true;
   }
@@ -513,7 +514,7 @@ bool CompilerOpenFPGA::DesignChanged(
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -527,7 +528,7 @@ bool CompilerOpenFPGA::DesignChanged(
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -541,7 +542,7 @@ bool CompilerOpenFPGA::DesignChanged(
     for (auto file : tokens) {
       file = Trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -747,7 +748,7 @@ bool CompilerOpenFPGA::Synthesize() {
   std::ofstream ofs(script_path);
   ofs << yosysScript;
   ofs.close();
-  if (!FileExists(m_yosysExecutablePath)) {
+  if (!FileUtils::FileExists(m_yosysExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
     return false;
   }
@@ -853,7 +854,7 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("No design specified");
     return false;
   }
-  if (!FileExists(m_vprExecutablePath)) {
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -897,6 +898,16 @@ bool CompilerOpenFPGA::Packing() {
                         .string());
   ofs << command << std::endl;
   ofs.close();
+
+  if (FileUtils::IsUptoDate(
+          GetNetlistPath(),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.net"))) {
+    m_state = State::Packed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " packing reused"
+             << std::endl;
+    return true;
+  }
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -963,7 +974,7 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Placement for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-  if (!FileExists(m_vprExecutablePath)) {
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -972,6 +983,16 @@ bool CompilerOpenFPGA::Placement() {
       (std::filesystem::path(ProjManager()->projectName()) /
        std::string(ProjManager()->projectName() + "_openfpga.pcf"))
           .string();
+
+  std::string previousConstraints;
+  std::ifstream ifspcf(pcfOut);
+  if (ifspcf.good()) {
+    std::stringstream buffer;
+    buffer << ifspcf.rdbuf();
+    previousConstraints = buffer.str();
+  }
+  ifspcf.close();
+
   std::ofstream ofspcf(pcfOut);
   bool userConstraint = false;
   for (auto constraint : m_constraints->getConstraints()) {
@@ -993,6 +1014,29 @@ bool CompilerOpenFPGA::Placement() {
     ofspcf << constraint << "\n";
   }
   ofspcf.close();
+
+  std::string newConstraints;
+  ifspcf.open(pcfOut);
+  if (ifspcf.good()) {
+    std::stringstream buffer;
+    buffer << ifspcf.rdbuf();
+    newConstraints = buffer.str();
+  }
+  ifspcf.close();
+
+  if ((previousConstraints == newConstraints) &&
+      FileUtils::IsUptoDate(
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.net"),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() +
+                          "_post_synth.place"))) {
+    m_state = State::Placed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " placement reused"
+             << std::endl;
+    return true;
+  }
+
   std::string pin_loc_constraint_file;
 
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
@@ -1016,7 +1060,7 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+  if (FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
@@ -1100,10 +1144,23 @@ bool CompilerOpenFPGA::Route() {
   (*m_out) << "Routing for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-  if (!FileExists(m_vprExecutablePath)) {
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+
+  if (FileUtils::IsUptoDate(
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.place"),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() +
+                          "_post_synth.route"))) {
+    m_state = State::Routed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " routing reused"
+             << std::endl;
+    return true;
+  }
+
   std::string command = BaseVprCommand() + " --route";
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
@@ -1132,9 +1189,19 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-  if (!FileExists(m_vprExecutablePath)) {
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
+  }
+
+  if (FileUtils::IsUptoDate(
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.route"),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_sta.cmd"))) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " timing didn't change" << std::endl;
+    return true;
   }
 
   if (TimingAnalysisOpt() == STAOpt::View) {
@@ -1178,8 +1245,19 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
+
+  if (FileUtils::IsUptoDate(
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.route"),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_sta.cmd"))) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " power didn't change" << std::endl;
+    return true;
+  }
+
   std::string command = BaseVprCommand() + " --analysis";
-  if (!FileExists(m_vprExecutablePath)) {
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
@@ -1354,6 +1432,17 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
 
+  if (FileUtils::IsUptoDate(
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_post_synth.route"),
+          std::filesystem::path(ProjManager()->projectPath()) /
+              std::string("fabric_bitstream.bit"))) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " bitstream didn't change" << std::endl;
+    m_state = State::BistreamGenerated;
+    return true;
+  }
+
   if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
@@ -1397,7 +1486,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   std::ofstream sofs(script_path);
   sofs << script;
   sofs.close();
-  if (!FileExists(m_openFpgaExecutablePath)) {
+  if (!FileUtils::FileExists(m_openFpgaExecutablePath)) {
     ErrorMessage("Cannot find executable: " +
                  m_openFpgaExecutablePath.string());
     return false;
@@ -1462,13 +1551,13 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               std::string name = n.toElement().attribute("name").toStdString();
               std::string num = n.toElement().attribute("num").toStdString();
               std::filesystem::path fullPath;
-              if (FileExists(file)) {
+              if (FileUtils::FileExists(file)) {
                 fullPath = file;  // Absolute path
               } else {
                 fullPath = datapath / std::string("etc") /
                            std::string("devices") / file;
               }
-              if (!FileExists(fullPath.string())) {
+              if (!FileUtils::FileExists(fullPath.string())) {
                 ErrorMessage(
                     "Invalid device config file: " + fullPath.string() + "\n");
                 status = false;
