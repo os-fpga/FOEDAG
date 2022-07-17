@@ -69,7 +69,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     const std::string file = argv[1];
     std::string expandedFile = file;
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -280,7 +280,7 @@ bool IPGenerator::Generate() {
         std::filesystem::path jasonfile =
             std::filesystem::path(project) / ip_config_file;
         std::stringstream previousbuffer;
-        if (FileUtils::fileExists(jasonfile)) {
+        if (FileUtils::FileExists(jasonfile)) {
           std::ifstream previous(jasonfile);
           std::stringstream buffer;
           previousbuffer << previous.rdbuf();
@@ -313,13 +313,13 @@ bool IPGenerator::Generate() {
         jsonF << "}" << std::endl;
         jsonF.close();
         std::stringstream newbuffer;
-        if (FileUtils::fileExists(jasonfile)) {
+        if (FileUtils::FileExists(jasonfile)) {
           std::ifstream newfile(jasonfile);
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
         std::filesystem::path python3Path =
-            FileUtils::locateExecFile("python3");
+            FileUtils::LocateExecFile("python3");
         std::string command = python3Path.string() + " " + executable.string() +
                               " --build --json " + jasonfile.string();
         std::ostringstream help;

@@ -77,7 +77,7 @@ bool IPCatalogBuilder::buildLiteXCatalog(
     IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
   bool result = true;
   buildMockUpIPDef(catalog);
-  if (FileUtils::fileExists(litexIPgenPath)) {
+  if (FileUtils::FileExists(litexIPgenPath)) {
     std::filesystem::path execPath = litexIPgenPath;
     if (!std::filesystem::is_directory(execPath)) {
       execPath = execPath.parent_path();
@@ -115,7 +115,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
   bool result = true;
   std::ostringstream help;
-  std::filesystem::path python3Path = FileUtils::locateExecFile("python3");
+  std::filesystem::path python3Path = FileUtils::LocateExecFile("python3");
   std::string command = python3Path.string() + " " +
                         pythonConverterScript.string() + " --json-template";
   if (FileUtils::ExecuteSystemCommand(command, &help)) {
@@ -128,7 +128,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   buffer << help.str();
   auto jopts = json::parse(buffer);
 
-  std::filesystem::path basepath = FileUtils::basename(pythonConverterScript);
+  std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
   std::string basename = basepath.string();
   std::string IPName = rtrim(basename, '.');
   std::vector<Value*> parameters;
