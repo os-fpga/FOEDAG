@@ -901,8 +901,9 @@ bool CompilerOpenFPGA::Packing() {
 
   if (FileUtils::IsUptoDate(
           GetNetlistPath(),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.net"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.net"))
+              .string())) {
     m_state = State::Packed;
     (*m_out) << "Design " << ProjManager()->projectName() << " packing reused"
              << std::endl;
@@ -1026,11 +1027,12 @@ bool CompilerOpenFPGA::Placement() {
 
   if ((previousConstraints == newConstraints) &&
       FileUtils::IsUptoDate(
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.net"),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() +
-                          "_post_synth.place"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.net"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.place"))
+              .string())) {
     m_state = State::Placed;
     (*m_out) << "Design " << ProjManager()->projectName() << " placement reused"
              << std::endl;
@@ -1150,11 +1152,12 @@ bool CompilerOpenFPGA::Route() {
   }
 
   if (FileUtils::IsUptoDate(
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.place"),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() +
-                          "_post_synth.route"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.place"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string())) {
     m_state = State::Routed;
     (*m_out) << "Design " << ProjManager()->projectName() << " routing reused"
              << std::endl;
@@ -1195,10 +1198,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   if (FileUtils::IsUptoDate(
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.route"),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_sta.cmd"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
     (*m_out) << "Design " << ProjManager()->projectName()
              << " timing didn't change" << std::endl;
     return true;
@@ -1247,10 +1252,12 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   (*m_out) << "##################################################" << std::endl;
 
   if (FileUtils::IsUptoDate(
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.route"),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_sta.cmd"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
     (*m_out) << "Design " << ProjManager()->projectName()
              << " power didn't change" << std::endl;
     return true;
@@ -1433,10 +1440,12 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   }
 
   if (FileUtils::IsUptoDate(
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_post_synth.route"),
-          std::filesystem::path(ProjManager()->projectPath()) /
-              std::string("fabric_bitstream.bit"))) {
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string("fabric_bitstream.bit"))
+              .string())) {
     (*m_out) << "Design " << ProjManager()->projectName()
              << " bitstream didn't change" << std::endl;
     m_state = State::BistreamGenerated;
