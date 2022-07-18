@@ -853,6 +853,18 @@ QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
   return strTargetFile;
 }
 
+std::vector<std::string> ProjectManager::getConstrFiles() const {
+  std::vector<std::string> files;
+  for (const auto& set : getConstrFileSets()) {
+    for (const auto& file : getConstrFiles(set)) {
+      QString f{file};
+      f.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+      files.push_back(f.toStdString());
+    }
+  }
+  return files;
+}
+
 int ProjectManager::setSimulationFileSet(const QString& strSetName) {
   int ret = 0;
   ret = CreateSrcsFolder(strSetName);
