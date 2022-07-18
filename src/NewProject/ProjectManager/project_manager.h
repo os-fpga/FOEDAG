@@ -189,6 +189,7 @@ class ProjectManager : public QObject {
   int setConstrActive(const QString &strSetName);
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
+  std::vector<std::string> getConstrFiles() const;
 
   int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;

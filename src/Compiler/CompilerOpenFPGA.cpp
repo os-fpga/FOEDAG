@@ -598,6 +598,18 @@ bool CompilerOpenFPGA::Synthesize() {
     }
   }
 
+  // update constraints
+  const auto& constrFiles = ProjManager()->getConstrFiles();
+  for (const auto& file : constrFiles) {
+    int res{TCL_OK};
+    auto status =
+        m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
+    if (res != TCL_OK) {
+      ErrorMessage(status);
+      return false;
+    }
+  }
+
   if (m_useVerific) {
     // Verific parser
     std::string fileList;
