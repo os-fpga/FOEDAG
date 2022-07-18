@@ -380,7 +380,19 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
   if (nullptr == proFileSet) {
     return -1;
   }
-  proFileSet->addFiles(fileList, lang);
+
+  if (localToProject) {
+    const auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    QStringList fullPathFileList;
+    for (const auto& file : fileList) {
+      fullPathFileList.append(QString("%1/%2").arg(path, file));
+    }
+    proFileSet->addFiles(fullPathFileList, lang);
+  } else {
+    proFileSet->addFiles(fileList, lang);
+  }
 
   int result{0};
   for (const auto& file : fileList) {
