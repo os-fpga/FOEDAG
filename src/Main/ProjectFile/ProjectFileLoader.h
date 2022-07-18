@@ -35,11 +35,13 @@ class ProjectFileLoader : public QObject {
       QObject *parent = nullptr);
   ~ProjectFileLoader();
   void registerComponent(ProjectFileComponent *comp);
+
+ public slots:
   void Load(const QString &filename);
+  void Save();
 
  protected:
   static QString ProjectVersion(const QString &filename);
-  void Save();
 
  private:
   std::vector<ProjectFileComponent *> m_components;

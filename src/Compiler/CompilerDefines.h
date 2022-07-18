@@ -93,4 +93,11 @@ QWidget *prepareCompilerView(Compiler *compiler,
 
 uint toTaskId(int action, const Compiler *const compiler);
 
+/*!
+ * \brief read_sdc
+ * Run TCL read_sdc command for file \a file.
+ * \return 0 if tcl command success otherwise return -1
+ */
+[[nodiscard]] int read_sdc(const QString &file);
+
 }  // namespace FOEDAG
