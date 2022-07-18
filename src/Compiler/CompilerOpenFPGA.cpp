@@ -1197,18 +1197,6 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
 
-  if (FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.route"))
-              .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_sta.cmd"))
-              .string())) {
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " timing didn't change" << std::endl;
-    return true;
-  }
-
   if (TimingAnalysisOpt() == STAOpt::View) {
     TimingAnalysisOpt(STAOpt::None);
     const std::string command = BaseVprCommand() + " --analysis --disp on";
@@ -1218,6 +1206,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
                    " place and route view failed!");
       return false;
     }
+    return true;
+  }
+
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " timing didn't change" << std::endl;
     return true;
   }
 
