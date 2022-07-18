@@ -1524,7 +1524,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitream generation failed!");
+                 " bitstream generation failed!");
     return false;
   }
   m_state = State::BistreamGenerated;
