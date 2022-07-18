@@ -863,7 +863,7 @@ bool CompilerOpenFPGA::Packing() {
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
   const std::string sdcOut =
-      (std::filesystem::path(ProjManager()->projectName()) /
+      (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_openfpga.sdc"))
           .string();
   std::ofstream ofssdc(sdcOut);

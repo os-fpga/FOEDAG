@@ -505,16 +505,19 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
       suffix = QFileInfo(strfile).suffix();
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
+        if (ret == 0) ret = FOEDAG::read_sdc(strfile);
       }
     }
   } else if (fileInfo.exists()) {
     if (m_constrSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
+      if (ret == 0) ret = FOEDAG::read_sdc(strFileName);
     }
   } else {
     if (strFileName.contains("/")) {
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = CreateAndAddFile(suffix, strFileName, strFileName, false);
+        if (ret == 0) ret = FOEDAG::read_sdc(strFileName);
       }
     } else {
       QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
@@ -527,6 +530,7 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
       fileSetPath += "/" + strFileName;
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
+        if (ret == 0) ret = FOEDAG::read_sdc(filePath);
       }
     }
   }
