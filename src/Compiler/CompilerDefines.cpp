@@ -25,9 +25,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler.h"
 #include "Main/Tasks.h"
+#include "MainWindow/Session.h"
+#include "NewProject/ProjectManager/project.h"
+#include "NewProject/ProjectManager/project_manager.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
 #include "TaskTableView.h"
+
+extern FOEDAG::Session *GlobalSession;
 
 QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
                                      TaskManager **taskManager) {
@@ -93,4 +98,12 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type) {
   if (type == "sv") return Design::Language::SYSTEMVERILOG_2017;
   if (type == "vhd") return Design::Language::VHDL_2008;
   return Design::Language::VERILOG_2001;  // default
+}
+
+int FOEDAG::read_sdc(const QString &file) {
+  QString f = file;
+  f.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
+                     qPrintable(QString("read_sdc {%1}").arg(f)));
+  return (res == TCL_OK) ? 0 : -1;
 }

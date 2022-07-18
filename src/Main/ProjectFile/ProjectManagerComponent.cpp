@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ProjectManagerComponent.h"
 
+#include "Compiler/CompilerDefines.h"
+
 namespace FOEDAG {
 
 ProjectManagerComponent::ProjectManagerComponent(ProjectManager* pManager,
@@ -303,5 +305,16 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
       }
     }
   }
+  const auto constrSets = m_projectManager->getConstrFileSets();
+  for (const auto& set : constrSets) {
+    const auto files = m_projectManager->getConstrFiles(set);
+    for (const auto& f : files) {
+      const int ret = FOEDAG::read_sdc(f);
+      if (ret != 0) {
+        break;
+      }
+    }
+  }
 }
+
 }  // namespace FOEDAG
