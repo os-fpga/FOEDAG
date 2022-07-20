@@ -264,12 +264,12 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
-  SourcesForm* sourForm = new SourcesForm(this);
-  connect(sourForm, &SourcesForm::CloseProject, this, &MainWindow::closeProject,
-          Qt::QueuedConnection);
-  sourceDockWidget->setWidget(sourForm);
+  SourcesForm* sourcesForm = new SourcesForm(this);
+  connect(sourcesForm, &SourcesForm::CloseProject, this,
+          &MainWindow::closeProject, Qt::QueuedConnection);
+  sourceDockWidget->setWidget(sourcesForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
-  m_projectManager = sourForm->ProjManager();
+  m_projectManager = sourcesForm->ProjManager();
   // If the project manager path changes, reload settings
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
@@ -277,7 +277,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   delete m_projectFileLoader;
   m_projectFileLoader = new ProjectFileLoader;
   m_projectFileLoader->registerComponent(
-      new ProjectManagerComponent{sourForm->ProjManager()});
+      new ProjectManagerComponent{sourcesForm->ProjManager()});
   connect(Project::Instance(), &Project::saveFile, m_projectFileLoader,
           &ProjectFileLoader::Save);
   reloadSettings();  // This needs to be after
@@ -285,10 +285,11 @@ void MainWindow::ReShowWindow(QString strProject) {
                      // info exists
 
   QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
-  PropertyWidget* propertyWidget = new PropertyWidget{sourForm->ProjManager()};
-  connect(sourForm, &SourcesForm::ShowProperty, propertyWidget,
+  PropertyWidget* propertyWidget =
+      new PropertyWidget{sourcesForm->ProjManager()};
+  connect(sourcesForm, &SourcesForm::ShowProperty, propertyWidget,
           &PropertyWidget::ShowProperty);
-  connect(sourForm, &SourcesForm::ShowPropertyPanel, propertiesDockWidget,
+  connect(sourcesForm, &SourcesForm::ShowPropertyPanel, propertiesDockWidget,
           &QDockWidget::show);
   propertiesDockWidget->setWidget(propertyWidget->Widget());
   addDockWidget(Qt::LeftDockWidgetArea, propertiesDockWidget);
@@ -298,9 +299,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
 
-  connect(sourForm, SIGNAL(OpenFile(QString)), textEditor,
+  connect(sourcesForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
-  connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourForm,
+  connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
 
   QWidget* centralWidget = new QWidget(this);
@@ -338,7 +339,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
   auto compilerNotifier = new FOEDAG::CompilerNotifier{c};
   m_compiler->SetTclInterpreterHandler(compilerNotifier);
-  auto tclCommandIntegration = sourForm->createTclCommandIntegarion();
+  auto tclCommandIntegration = sourcesForm->createTclCommandIntegarion();
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
           &MainWindow::newDesignCreated);
@@ -381,7 +382,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   if (!strProject.isEmpty()) m_projectFileLoader->Load(strProject);
 
-  sourForm->InitSourcesForm();
+  sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   prViewButton(static_cast<int>(m_compiler->CompilerState()));
 }
