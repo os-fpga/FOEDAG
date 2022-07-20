@@ -226,6 +226,7 @@ bool Foedag::initGui() {
 
 bool Foedag::initQmlGui() {
   // Gui mode with QML
+  /*
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
   QApplication::setStyle(new FoedagStyle(app.style()));
@@ -304,6 +305,7 @@ bool Foedag::initQmlGui() {
   Tcl_MainEx(argc, argv, tcl_init, interpreter->getInterp());
 
   delete GlobalSession;
+  */
   return 0;
 }
 

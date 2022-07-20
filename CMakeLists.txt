@@ -65,8 +65,8 @@ elseif (NOT Qt5Gui_FOUND)
     message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Core_FOUND)
     message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Quick_FOUND)
-    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install libkf5qqc2desktopstyle-dev')")
+#elseif (NOT Qt5Quick_FOUND)
+#    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install libkf5qqc2desktopstyle-dev')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -162,7 +162,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/includ
 
 set(QRC_MAIN_WINDOW 
 	src/MainWindow/main_window_resource.qrc
-        src/MainWindow/qml.qrc
+#        src/MainWindow/qml.qrc
 	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in
