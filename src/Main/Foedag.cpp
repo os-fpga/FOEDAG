@@ -36,8 +36,8 @@ extern "C" {
 #include <QApplication>
 #include <QGuiApplication>
 #include <QLabel>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+//#include <QQmlApplicationEngine>
+//#include <QQmlContext>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
