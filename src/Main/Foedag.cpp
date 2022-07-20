@@ -36,8 +36,8 @@ extern "C" {
 #include <QApplication>
 #include <QGuiApplication>
 #include <QLabel>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
+//#include <QQmlApplicationEngine>
+//#include <QQmlContext>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -226,6 +226,7 @@ bool Foedag::initGui() {
 
 bool Foedag::initQmlGui() {
   // Gui mode with QML
+  /*
   int argc = m_cmdLine->Argc();
   QApplication app(argc, m_cmdLine->Argv());
   QApplication::setStyle(new FoedagStyle(app.style()));
@@ -304,6 +305,7 @@ bool Foedag::initQmlGui() {
   Tcl_MainEx(argc, argv, tcl_init, interpreter->getInterp());
 
   delete GlobalSession;
+  */
   return 0;
 }
 
