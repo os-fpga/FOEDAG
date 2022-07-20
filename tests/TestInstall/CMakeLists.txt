@@ -38,8 +38,10 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 
-find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
-find_package(Qt5 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
+#find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
+#find_package(Qt5 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
+find_package(QT NAMES Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
 if (NOT Qt5Widgets_FOUND)
     message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Gui_FOUND)
@@ -162,7 +164,8 @@ target_link_libraries(test_hellofoedag
   tcl_static
   zlib
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
-  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick
+  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
+#  Qt5::Quick
   $<$<BOOL:${TCMALLOC_LIBRARY}>:tcmalloc>
 )
 

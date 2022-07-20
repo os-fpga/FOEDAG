@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 15)
+set(VERSION_PATCH 17)
 
 option(
   WITH_LIBCXX
@@ -58,15 +58,16 @@ endif(PRODUCTION_BUILD)
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
 # Find Qt packages and error out if not found
-find_package(Qt5 COMPONENTS Core Gui Widgets Quick Xml REQUIRED)
+#find_package(Qt5 COMPONENTS Core Gui Widgets Quick Xml REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Xml REQUIRED)
 if (NOT Qt5Widgets_FOUND)
     message(STATUS "Failed to find Qt5Widgets required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Gui_FOUND)
     message(STATUS "Failed to find Qt5Gui required (on debian/ubuntu try 'sudo apt install qt5-default')")
 elseif (NOT Qt5Core_FOUND)
     message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install qt5-default')")
-elseif (NOT Qt5Quick_FOUND)
-    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install libkf5qqc2desktopstyle-dev')")
+#elseif (NOT Qt5Quick_FOUND)
+#    message(STATUS "Failed to find Qt5Core required (on debian/ubuntu try 'sudo apt install libkf5qqc2desktopstyle-dev')")
 else()
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -162,7 +163,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/includ
 
 set(QRC_MAIN_WINDOW 
 	src/MainWindow/main_window_resource.qrc
-        src/MainWindow/qml.qrc
+#        src/MainWindow/qml.qrc
 	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in
@@ -327,7 +328,8 @@ endif()
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
 target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate foedagutils console QConsole tcl_stubb tcl_static zlib nlohmann_json)
-target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+#target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
+target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
 
 if(NOT NO_TCMALLOC)
   find_library(TCMALLOC_LIBRARY NAMES tcmalloc)
