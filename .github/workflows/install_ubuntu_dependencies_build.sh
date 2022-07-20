@@ -12,7 +12,7 @@ sudo apt install -y \
   lcov \
   valgrind \
   xorg \
-  qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev \
+  qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools  \
   xvfb \
   yosys
 sudo ln -sf /usr/bin/g++-9 /usr/bin/g++
