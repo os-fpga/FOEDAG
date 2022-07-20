@@ -84,7 +84,7 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
 
   index = m_tab_editor->addTab(editor, filename);
   m_tab_editor->setCurrentIndex(index);
-  m_tab_editor->setTabToolTip(index, strFileName);
+  m_tab_editor->setTabToolTip(index, fileInfo.absoluteFilePath());
 
   QPair<int, Editor *> pair;
   pair.first = index;
