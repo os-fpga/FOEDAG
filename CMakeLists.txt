@@ -162,7 +162,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/includ
 
 set(QRC_MAIN_WINDOW 
 	src/MainWindow/main_window_resource.qrc
-        src/MainWindow/qml.qrc
 	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in

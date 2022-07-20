@@ -87,8 +87,7 @@ set (SRC_H_LIST ../Main/Foedag.h
 
 set (SRC_UI_LIST "")
 
-set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc
-    ../MainWindow/qml.qrc)
+set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc)
 
 add_library(foedagcore STATIC
     ${SRC_CPP_LIST}
