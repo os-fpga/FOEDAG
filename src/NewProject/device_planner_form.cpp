@@ -33,9 +33,7 @@ devicePlannerForm::devicePlannerForm(QWidget *parent)
   m_tableView->setSelectionMode(QTableView::SingleSelection);
   // Color separation between lines
   m_tableView->setAlternatingRowColors(true);
-
-  m_tableView->setStyleSheet(
-      "QTableView {border: 1px solid rgb(230,230,230);}\
+  m_tableView->setStyleSheet("QTableView {border: 1px solid rgb(230,230,230);}\
        QTableView::item:selected{color:black;background:rgb(177,220,255);}");
   m_tableView->setColumnWidth(0, 80);
 

@@ -9,53 +9,53 @@ NewProjectModel::NewProjectModel(QObject *parent)
 
 QString NewProjectModel::pageHeadCaption(const int index) {
   switch (index) {
-    case 0:
-      return QString(tr("Project Location"));
-    case 1:
-      return QString(tr("Project Type"));
-    case 2:
-      return QString(tr("Add Sources"));
-    case 3:
-      return QString(tr("Add Constraints (optional)"));
-    case 4:
-      return QString(tr("Device Planner"));
-    case 5:
-      return QString(tr("New Project Summary"));
-    default:
-      return QString(tr("Unknow page"));
+  case 0:
+    return QString(tr("Project Location"));
+  case 1:
+    return QString(tr("Project Type"));
+  case 2:
+    return QString(tr("Add Sources"));
+  case 3:
+    return QString(tr("Add Constraints (optional)"));
+  case 4:
+    return QString(tr("Device Planner"));
+  case 5:
+    return QString(tr("New Project Summary"));
+  default:
+    return QString(tr("Unknow page"));
   }
 }
 
 QString NewProjectModel::pageMainText(const int index) {
   switch (index) {
-    case 0:
-      return QString(tr(
-          "This wizard will guide you through the creation of a new "
-          "project.\r\n\r\n"
-          "To create a Cwise project you will need to provide a name and a "
-          "location for your project files."
-          " Next, you will specify the type of flow you'll be working with. "
-          "Finally, you will specify your project sources and choose a default "
-          "part."));
-    case 1:
-      return QString(tr("Specify the type of project to create."));
-    case 2:
-      return QString(
-          tr("Specify HDL and IP files, or directories containing those files, "
-             "to add to your project. Create a new source file on disk and add "
-             "it to your project. "
-             "You can also add and create source later."));
-    case 3:
-      return QString(
-          tr("Specify or create constraint file for physical and timing "
-             "constraints."));
-    case 4:
-      return QString(tr(
-          "Select the series and device you want to target for compilation."));
-    case 5:
-      return QString(tr("New Project Summary"));
-    default:
-      return QString(tr("Unknow page"));
+  case 0:
+    return QString(tr(
+        "This wizard will guide you through the creation of a new "
+        "project.\r\n\r\n"
+        "To create a Cwise project you will need to provide a name and a "
+        "location for your project files."
+        " Next, you will specify the type of flow you'll be working with. "
+        "Finally, you will specify your project sources and choose a default "
+        "part."));
+  case 1:
+    return QString(tr("Specify the type of project to create."));
+  case 2:
+    return QString(
+        tr("Specify HDL and IP files, or directories containing those files, "
+           "to add to your project. Create a new source file on disk and add "
+           "it to your project. "
+           "You can also add and create source later."));
+  case 3:
+    return QString(
+        tr("Specify or create constraint file for physical and timing "
+           "constraints."));
+  case 4:
+    return QString(
+        tr("Select the series and device you want to target for compilation."));
+  case 5:
+    return QString(tr("New Project Summary"));
+  default:
+    return QString(tr("Unknow page"));
   }
 }
 
@@ -109,7 +109,8 @@ QString NewProjectModel::fullPathToProject() {
 const QString &NewProjectModel::projectName() const { return m_projectName; }
 
 void NewProjectModel::setProjectName(const QString &newProjectName) {
-  if (m_projectName == newProjectName) return;
+  if (m_projectName == newProjectName)
+    return;
 
   m_projectName = newProjectName;
   emit projectNameChanged();
@@ -120,7 +121,8 @@ const QString &NewProjectModel::projectLocation() const {
 }
 
 void NewProjectModel::setProjectLocation(const QString &newProjectLocation) {
-  if (m_projectLocation == newProjectLocation) return;
+  if (m_projectLocation == newProjectLocation)
+    return;
 
   m_projectLocation = newProjectLocation;
   emit projectLocationChanged();
@@ -142,7 +144,8 @@ void NewProjectModel::setNeedToCreateProjrctSubDirectory(
 const QString &NewProjectModel::projectType() const { return m_projectType; }
 
 void NewProjectModel::setProjectType(const QString &newProjectType) {
-  if (m_projectType == newProjectType) return;
+  if (m_projectType == newProjectType)
+    return;
 
   m_projectType = newProjectType;
   emit projectTypeChanged();
