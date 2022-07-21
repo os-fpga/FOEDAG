@@ -12,13 +12,13 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_radioBtnRTL->setText(tr("RTL Project"));
   ui->m_radioBtnPost->setText(tr("Post-synthesis Project"));
   ui->m_labelRTL->setText(
-      tr("You will be able to add sources,create block designs in IP "
-         "integrator,generate IP, "
-         "run RTL analysis,synthesis,implementation,design planning and "
+      tr("You will be able to add sources, create block designs in IP "
+         "integrator, generate IP, "
+         "run RTL analysis, synthesis, implementation, design planning and "
          "analysis."));
   ui->m_labelPost->setText(
-      tr("You will be able to add sources, view device resources,run design "
-         "analysis,planning and implementation."));
+      tr("You will be able to add sources, view device resources, run design "
+         "analysis, planning and implementation."));
 
   ui->m_radioBtnRTL->setChecked(true);
 }

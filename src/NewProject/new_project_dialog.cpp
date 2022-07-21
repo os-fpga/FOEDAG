@@ -90,7 +90,7 @@ void newProjectDialog::on_m_btnNext_clicked() {
     if (m_locationForm->IsProjectNameExit()) {
       QMessageBox::information(
           this, tr("Information"),
-          tr("Project name already exists,Please rename for your project"),
+          tr("Project name already exists, Please rename for your project"),
           QMessageBox::Ok);
       return;
     }
