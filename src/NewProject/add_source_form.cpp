@@ -9,7 +9,7 @@ addSourceForm::addSourceForm(QWidget *parent)
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("Add Sources"));
   ui->m_labelDetail->setText(
-      tr("Specify design files,or directories containing those files,to add to "
+      tr("Specify design files, or directories containing those files, to add to "
          "your project."
          "Create a new source file on disk and add it to your project."));
 

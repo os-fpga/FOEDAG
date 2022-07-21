@@ -34,15 +34,15 @@ QString NewProjectModel::pageMainText(const int index) {
           "project.\r\n\r\n"
           "To create a Cwise project you will need to provide a name and a "
           "location for your project files."
-          " Next,you will specify the type of flow you'll be working with. "
-          "Finally,you will specify your project sources and choose a default "
+          " Next, you will specify the type of flow you'll be working with. "
+          "Finally, you will specify your project sources and choose a default "
           "part."));
     case 1:
       return QString(tr("Specify the type of project to create."));
     case 2:
       return QString(
-          tr("Specify HDL and IP files,or directories containing those files, "
-             "to add to your project.Create a new source file on disk and add "
+          tr("Specify HDL and IP files, or directories containing those files, "
+             "to add to your project. Create a new source file on disk and add "
              "it to your project. "
              "You can also add and create source later."));
     case 3:
@@ -82,8 +82,8 @@ QString NewProjectModel::radioButtonRTLProjectCaption() {
 QString NewProjectModel::textRTLProject() {
   return QString(
       tr("You will be able to add sources,create block designs in IP "
-         "integrator,generate IP, "
-         "run RTL analysis,synthesis,implementation,design planning and "
+         "integrator, generate IP, "
+         "run RTL analysis, synthesis, implementation, design planning and "
          "analysis."));
 }
 
@@ -93,8 +93,8 @@ QString NewProjectModel::radioButtonPostSynthesisProjectCaption() {
 
 QString NewProjectModel::textPostSynthesisProject() {
   return QString(
-      tr("You will be able to add sources, view device resources,run design "
-         "analysis,planning and implementation."));
+      tr("You will be able to add sources, view device resources, run design "
+         "analysis, planning and implementation."));
 }
 
 QString NewProjectModel::fullPathToProject() {

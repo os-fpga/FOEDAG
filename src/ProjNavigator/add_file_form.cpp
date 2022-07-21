@@ -29,8 +29,8 @@ void AddFileForm::InitForm(int itype) {
   if (GT_SOURCE == itype) {
     ui->m_labelTitle->setText(tr("Add or Create Design Sources"));
     ui->m_labelDetail->setText(tr(
-        "Specify design files,or directories containing those files,to add to "
-        "your project."
+        "Specify design files, or directories containing those files, to add to "
+        "your project. "
         "Create a new source file on disk and add it to your project."));
     ui->m_labelSets->setText(tr("Specify design file set:"));
     m_widgetGrid->setGridType(GT_SOURCE);
@@ -50,9 +50,9 @@ void AddFileForm::InitForm(int itype) {
   } else if (GT_SIM == itype) {
     ui->m_labelTitle->setText(tr("Add or Create Simulation Sources"));
     ui->m_labelDetail->setText(
-        tr("Specify simulation specific HDL files,or directories containing "
-           "HDL files,to add to "
-           "your project."
+        tr("Specify simulation specific HDL files, or directories containing "
+           "HDL files, to add to "
+           "your project. "
            "Create a new source file on disk and add it to your project."));
     ui->m_labelSets->setText(tr("Specify Simulation set:"));
 
