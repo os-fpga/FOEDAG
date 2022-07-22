@@ -198,13 +198,13 @@ void MainWindow::createToolBars() {
 }
 
 void MainWindow::createActions() {
-  newAction = new QAction(tr("&New"), this);
+  newAction = new QAction(tr("&New..."), this);
   newAction->setIcon(QIcon(":/images/icon_newfile.png"));
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&Open Project"), this);
+  openProjectAction = new QAction(tr("&Open Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
@@ -213,11 +213,11 @@ void MainWindow::createActions() {
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
-  newProjectAction = new QAction(tr("&New Project"), this);
+  newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 
-  openFile = new QAction(tr("&Open File"), this);
+  openFile = new QAction(tr("&Open File..."), this);
   openFile->setStatusTip(tr("Open file"));
   openFile->setIcon(QIcon(":/images/open-file.png"));
   connect(openFile, SIGNAL(triggered()), this, SLOT(openFileSlot()));

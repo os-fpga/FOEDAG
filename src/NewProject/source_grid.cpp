@@ -14,12 +14,12 @@ using namespace FOEDAG;
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
-  m_btnAddFile = new QPushButton(tr("AddFile"), this);
+  m_btnAddFile = new QPushButton(tr("AddFile..."), this);
   connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
-  m_btnAddDri = new QPushButton(tr("AddDir"), this);
+  m_btnAddDri = new QPushButton(tr("AddDir..."), this);
   connect(m_btnAddDri, &QPushButton::clicked, this,
           &sourceGrid::AddDirectories);
-  m_btnCreateFile = new QPushButton(tr("CreateFile"), this);
+  m_btnCreateFile = new QPushButton(tr("CreateFile..."), this);
   connect(m_btnCreateFile, &QPushButton::clicked, this,
           &sourceGrid::CreateFile);
   m_btnDelete = new QPushButton(tr("Remove"), this);
