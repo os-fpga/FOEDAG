@@ -15,10 +15,10 @@ projectTypeForm::projectTypeForm(QWidget *parent)
       tr("You will be able to add sources, create block designs in IP "
          "integrator, generate IP, "
          "run RTL analysis, synthesis, implementation, design planning and "
-         "analysis."));
+         "analysis. "));
   ui->m_labelPost->setText(
       tr("You will be able to add sources, view device resources, run design "
-         "analysis, planning and implementation."));
+         "analysis, planning and implementation. "));
 
   ui->m_radioBtnRTL->setChecked(true);
 }

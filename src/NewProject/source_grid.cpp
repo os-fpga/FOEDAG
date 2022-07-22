@@ -16,7 +16,7 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
   m_btnAddFile = new QPushButton(tr("Add File"), this);
   connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
-  m_btnAddDri = new QPushButton(tr("Add Dir"), this);
+  m_btnAddDri = new QPushButton(tr("Add Directory"), this);
   connect(m_btnAddDri, &QPushButton::clicked, this,
           &sourceGrid::AddDirectories);
   m_btnCreateFile = new QPushButton(tr("Create File"), this);
@@ -26,10 +26,10 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_btnDelete->setEnabled(false);
   connect(m_btnDelete, &QPushButton::clicked, this,
           &sourceGrid::DeleteTableItem);
-  m_btnMoveUp = new QPushButton(tr("MoveUp"), this);
+  m_btnMoveUp = new QPushButton(tr("Move Up"), this);
   m_btnMoveUp->setEnabled(false);
   connect(m_btnMoveUp, &QPushButton::clicked, this, &sourceGrid::UpTableItem);
-  m_btnMoveDown = new QPushButton(tr("MoveDown"), this);
+  m_btnMoveDown = new QPushButton(tr("Move Down"), this);
   m_btnMoveDown->setEnabled(false);
   connect(m_btnMoveDown, &QPushButton::clicked, this,
           &sourceGrid::DownTableItem);
@@ -130,8 +130,7 @@ void sourceGrid::AddDirectories() {
   QString pathName = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  if ("" == pathName)
-    return;
+  if ("" == pathName) return;
   QString folder =
       pathName.right(pathName.size() - (pathName.lastIndexOf("/") + 1));
   QString path = pathName.left(pathName.lastIndexOf("/"));
@@ -147,8 +146,7 @@ void sourceGrid::CreateFile() {
   auto path = ProjectManager::ProjectFilesPath(
       Project::Instance()->projectPath(), Project::Instance()->projectName(),
       m_currentFileSet);
-  if (Project::Instance()->projectPath().isEmpty())
-    path = QString();
+  if (Project::Instance()->projectPath().isEmpty()) path = QString();
   createFileDialog *createdlg = new createFileDialog(path, this);
   createdlg->initialDialog(m_type);
   connect(createdlg, &createFileDialog::sig_updateGrid, this,
@@ -160,8 +158,7 @@ void sourceGrid::CreateFile() {
 
 void sourceGrid::DeleteTableItem() {
   int curRow = m_selectModel->currentIndex().row();
-  if (curRow < 0)
-    return;
+  if (curRow < 0) return;
   QString strtemp = m_model->item(curRow, 1)->text();
   for (int i = 0; i < m_lisFileData.count(); ++i) {
     if (m_lisFileData[i].m_fileName == strtemp) {
@@ -178,8 +175,7 @@ void sourceGrid::DeleteTableItem() {
   }
   int column = m_model->columnCount();
   int rows = m_model->rowCount();
-  if (curRow == rows && rows != 0)
-    curRow--;
+  if (curRow == rows && rows != 0) curRow--;
   m_tableViewSrc->setCurrentIndex(model->index(curRow, column));
   m_tableViewSrc->selectRow(curRow);
 
@@ -190,22 +186,19 @@ void sourceGrid::DeleteTableItem() {
 
 void sourceGrid::UpTableItem() {
   int curRow = m_selectModel->currentIndex().row();
-  if (curRow < 0)
-    return;
+  if (curRow < 0) return;
   MoveTableRow(curRow, curRow - 1);
 }
 
 void sourceGrid::DownTableItem() {
   int curRow = m_selectModel->currentIndex().row();
-  if (curRow < 0)
-    return;
+  if (curRow < 0) return;
   MoveTableRow(curRow, curRow + 1);
 }
 
 void sourceGrid::TableViewSelectionChanged() {
   int curRow = m_selectModel->currentIndex().row();
-  if (curRow < 0)
-    return;
+  if (curRow < 0) return;
 
   int rows = m_model->rowCount();
   m_btnDelete->setEnabled(true);
@@ -225,8 +218,7 @@ void sourceGrid::TableViewSelectionChanged() {
 }
 
 void sourceGrid::AddTableItem(filedata fdata) {
-  if (IsFileDataExit(fdata))
-    return;
+  if (IsFileDataExit(fdata)) return;
 
   int rows = m_model->rowCount();
   QList<QStandardItem *> items;
