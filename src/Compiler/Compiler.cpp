@@ -52,10 +52,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
-#include "ProcessUtils.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/ProcessUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;

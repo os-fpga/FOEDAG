@@ -42,7 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Log.h"
-#include "Compiler/ProcessUtils.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
@@ -51,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
+#include "Utils/ProcessUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
