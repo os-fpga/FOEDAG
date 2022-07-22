@@ -33,7 +33,7 @@ QString NewProjectModel::pageMainText(const int index) {
           "This wizard will guide you through the creation of a new "
           "project.\r\n\r\n"
           "To create a Cwise project you will need to provide a name and a "
-          "location for your project files."
+          "location for your project files. "
           "Next, you will specify the type of flow you'll be working with. "
           "Finally, you will specify your project sources and choose a default "
           "part. "));
@@ -84,7 +84,7 @@ QString NewProjectModel::textRTLProject() {
       tr("You will be able to add sources,create block designs in IP "
          "integrator, generate IP, "
          "run RTL analysis, synthesis, implementation, design planning and "
-         "analysis."));
+         "analysis. "));
 }
 
 QString NewProjectModel::radioButtonPostSynthesisProjectCaption() {
@@ -94,7 +94,7 @@ QString NewProjectModel::radioButtonPostSynthesisProjectCaption() {
 QString NewProjectModel::textPostSynthesisProject() {
   return QString(
       tr("You will be able to add sources, view device resources, run design "
-         "analysis, planning and implementation."));
+         "analysis, planning and implementation. "));
 }
 
 QString NewProjectModel::fullPathToProject() {

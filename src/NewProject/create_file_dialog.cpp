@@ -10,7 +10,8 @@ using namespace FOEDAG;
 constexpr auto DefaultLocation{"<Local to Project>"};
 
 createFileDialog::createFileDialog(const QString &projectPath, QWidget *parent)
-    : QDialog(parent), ui(new Ui::createFileDialog),
+    : QDialog(parent),
+      ui(new Ui::createFileDialog),
       m_projectPath(projectPath) {
   ui->setupUi(this);
   // m_type = type;
@@ -62,31 +63,31 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
   fdata.m_isFolder = false;
   if (GT_SOURCE == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
-    case 0:
-      fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");
-      fdata.m_fileType = QString("v");
-      break;
-    case 1:
-      fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".sv");
-      fdata.m_fileType = QString("sv");
-      break;
-    case 2:
-      fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".vhd");
-      fdata.m_fileType = QString("vhd");
-      break;
-    default:
-      break;
+      case 0:
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");
+        fdata.m_fileType = QString("v");
+        break;
+      case 1:
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".sv");
+        fdata.m_fileType = QString("sv");
+        break;
+      case 2:
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".vhd");
+        fdata.m_fileType = QString("vhd");
+        break;
+      default:
+        break;
     }
   } else if (GT_CONSTRAINTS == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
-    case 0:
-      fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".SDC");
-      fdata.m_fileType = QString("SDC");
-      break;
-    case 1:
-      break;
-    default:
-      break;
+      case 0:
+        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".SDC");
+        fdata.m_fileType = QString("SDC");
+        break;
+      case 1:
+        break;
+      default:
+        break;
     }
   }
 
@@ -128,8 +129,7 @@ bool createFileDialog::FileExists(const filedata &fData) const {
   QString location{fData.m_filePath};
   if (location == DefaultLocation) {
     location = m_projectPath;
-    if (location.isEmpty())
-      return false; // project haven't created yet.
+    if (location.isEmpty()) return false;  // project haven't created yet.
   }
   QFileInfo fileInfo(QDir(location), fData.m_fileName);
   return fileInfo.exists();

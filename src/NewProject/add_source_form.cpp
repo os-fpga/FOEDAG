@@ -10,8 +10,8 @@ addSourceForm::addSourceForm(QWidget *parent)
   ui->m_labelTitle->setText(tr("Add Sources"));
   ui->m_labelDetail->setText(tr(
       "Specify design files, or directories containing those files, to add to "
-      "your project."
-      "Create a new source file on disk and add it to your project."));
+      "your project. "
+      "Create a new source file on disk and add it to your project. "));
 
   m_widgetGrid = new sourceGrid(ui->m_frame);
   m_widgetGrid->setGridType(GT_SOURCE);
@@ -21,7 +21,7 @@ addSourceForm::addSourceForm(QWidget *parent)
   box->setSpacing(0);
   ui->m_frame->setLayout(box);
 
-  ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
+  ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
 }
 
