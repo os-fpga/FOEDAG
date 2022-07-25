@@ -29,7 +29,6 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -95,7 +94,7 @@
          <item>
           <widget class="QLabel" name="m_labelRTL">
            <property name="text">
-            <string>You will be able to add sources,create block designs in IP integrator,generate IP, run RTL analysis,synthesis,implementation,design planning and analysis.</string>
+            <string>You will be able to add sources, create block designs in IP integrator, generate IP, run RTL analysis, synthesis, implementation, design planning and analysis.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -145,7 +144,7 @@
          <item>
           <widget class="QLabel" name="m_labelPost">
            <property name="text">
-            <string>You will be able to add sources, view device resources,run design analysis,planning and implementation.</string>
+            <string>You will be able to add sources, view device resources, run design analysis, planning and implementation.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>

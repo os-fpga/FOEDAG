@@ -33,6 +33,10 @@ namespace FOEDAG {
 
 class StringUtils final {
  public:
+  // Splits the input string with respect to given separator.
+  static void tokenize(std::string_view str, std::string_view separator,
+                       std::vector<std::string>& result);
+
   // Modify string string, remove whitespace at the beginning of the string.
   static std::string& ltrim(std::string& str);
 

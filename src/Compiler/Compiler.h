@@ -155,12 +155,6 @@ class Compiler {
   void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
 
   virtual const std::string GetNetlistPath();
-  /* Utility functions */
-  void Tokenize(std::string_view str, std::string_view separator,
-                std::vector<std::string>& result);
-  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
-  std::string& Ltrim(std::string& str);
-  std::string& Rtrim(std::string& str);
 
  protected:
   /* Methods that can be customized for each new compiler flow */

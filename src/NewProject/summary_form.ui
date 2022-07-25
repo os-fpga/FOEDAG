@@ -29,7 +29,6 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -203,7 +202,7 @@
    <item>
     <widget class="QLabel" name="m_labelTail">
      <property name="text">
-      <string>To create the project,click Finish.</string>
+      <string>To create the project, click Finish.</string>
      </property>
     </widget>
    </item>

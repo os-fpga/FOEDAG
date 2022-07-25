@@ -31,6 +31,33 @@ namespace FOEDAG {
 
 std::map<std::string, std::string> StringUtils::envVars;
 
+void StringUtils::tokenize(std::string_view str, std::string_view separator,
+                           std::vector<std::string>& result) {
+  std::string tmp;
+  const unsigned int sepSize = separator.size();
+  const unsigned int stringSize = str.size();
+  for (unsigned int i = 0; i < stringSize; i++) {
+    bool isSeparator = false;
+    for (unsigned int j = 0; j < sepSize; j++) {
+      if (str[i] == separator[j]) {
+        isSeparator = true;
+        break;
+      }
+    }
+    if (isSeparator) {
+      result.push_back(tmp);
+      tmp = "";
+      if (i == (str.size() - 1)) result.push_back(tmp);
+    } else if (i == (str.size() - 1)) {
+      tmp += str[i];
+      result.push_back(tmp);
+      tmp = "";
+    } else {
+      tmp += str[i];
+    }
+  }
+}
+
 std::string StringUtils::to_string(double a_value, const int n) {
   std::ostringstream out;
   out.precision(n);

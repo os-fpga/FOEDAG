@@ -510,9 +510,9 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     std::vector<std::string> tokens;
-    Tokenize(lang_file.second, " ", tokens);
+    StringUtils::tokenize(lang_file.second, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
         time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
@@ -524,9 +524,9 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
-    Tokenize(path, " ", tokens);
+    StringUtils::tokenize(path, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
         time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
@@ -538,9 +538,9 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
-    Tokenize(path, " ", tokens);
+    StringUtils::tokenize(path, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
         time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
@@ -887,7 +887,7 @@ bool CompilerOpenFPGA::Packing() {
     constraint = ReplaceAll(constraint, "%", "]");
     (*m_out) << "Constraint: " << constraint << "\n";
     std::vector<std::string> tokens;
-    Tokenize(constraint, " ", tokens);
+    StringUtils::tokenize(constraint, " ", tokens);
     constraint = "";
     // VPR does not understand: create_clock -period 2 clk -name <logical_name>
     // Pass the constraint as-is anyway
@@ -1010,7 +1010,7 @@ bool CompilerOpenFPGA::Placement() {
   bool userConstraint = false;
   for (auto constraint : m_constraints->getConstraints()) {
     std::vector<std::string> tokens;
-    Tokenize(constraint, " ", tokens);
+    StringUtils::tokenize(constraint, " ", tokens);
     constraint = "";
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
