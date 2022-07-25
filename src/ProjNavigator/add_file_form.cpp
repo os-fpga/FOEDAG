@@ -28,21 +28,22 @@ AddFileForm::~AddFileForm() { delete ui; }
 void AddFileForm::InitForm(int itype) {
   if (GT_SOURCE == itype) {
     ui->m_labelTitle->setText(tr("Add or Create Design Sources"));
-    ui->m_labelDetail->setText(tr(
-        "Specify design files,or directories containing those files,to add to "
-        "your project."
-        "Create a new source file on disk and add it to your project."));
+    ui->m_labelDetail->setText(
+        tr("Specify design files, or directories containing those files, to "
+           "add to "
+           "your project. "
+           "Create a new source file on disk and add it to your project. "));
     ui->m_labelSets->setText(tr("Specify design file set:"));
     m_widgetGrid->setGridType(GT_SOURCE);
     ui->m_labelSets->hide();
     ui->m_comboBoxSets->hide();
 
-    ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
+    ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
   } else if (GT_CONSTRAINTS == itype) {
     ui->m_labelTitle->setText(tr("Add or Create Constraints"));
     ui->m_labelDetail->setText(
         tr("Specify or create constraint files for physical and timing "
-           "constraints to add to your project."));
+           "constraints to add to your project. "));
     ui->m_labelSets->setText(tr("Specify constraint set:"));
 
     m_widgetGrid->setGridType(GT_CONSTRAINTS);
@@ -50,14 +51,14 @@ void AddFileForm::InitForm(int itype) {
   } else if (GT_SIM == itype) {
     ui->m_labelTitle->setText(tr("Add or Create Simulation Sources"));
     ui->m_labelDetail->setText(
-        tr("Specify simulation specific HDL files,or directories containing "
-           "HDL files,to add to "
-           "your project."
-           "Create a new source file on disk and add it to your project."));
+        tr("Specify simulation specific HDL files, or directories containing "
+           "HDL files, to add to "
+           "your project. "
+           "Create a new source file on disk and add it to your project. "));
     ui->m_labelSets->setText(tr("Specify Simulation set:"));
 
     m_widgetGrid->setGridType(GT_SOURCE);
-    ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
+    ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
   }
 
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);

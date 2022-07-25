@@ -29,7 +29,6 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -44,7 +43,7 @@
    <item>
     <widget class="QLabel" name="m_labelDetail">
      <property name="text">
-      <string>Specify HDL and IP files,or directories containing those files,to add to your project.Create a new source file on disk and add it to your project.You can also add and create source later.</string>
+      <string>Specify HDL and IP files, or directories containing those files, to add to your project. Create a new source file on disk and add it to your project. You can also add and create source later.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

@@ -15,12 +15,12 @@ locationForm::locationForm(QWidget *parent)
   ui->m_labelTail->setText(
       tr("To create a project you will need to provide a name and a location "
          "for your project files. "
-         "Next,you will specify the type of flow you'll be working with. "
-         "Finally,you will specify your project sources and choose a default "
+         "Next, you will specify the type of flow you'll be working with. "
+         "Finally, you will specify your project sources and choose a default "
          "part."));
-  ui->m_labelPname->setText(tr("Project name:"));
-  ui->m_labelPpath->setText(tr("Project location:"));
-  ui->m_checkBox->setText(tr("Create project subdirectory"));
+  ui->m_labelPname->setText(tr("Project Name:"));
+  ui->m_labelPpath->setText(tr("Project Location:"));
+  ui->m_checkBox->setText(tr("Create Project Subdirectory"));
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
   ui->m_lineEditPname->setText("project_1");

@@ -26,10 +26,10 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_btnDelete->setEnabled(false);
   connect(m_btnDelete, &QPushButton::clicked, this,
           &sourceGrid::DeleteTableItem);
-  m_btnMoveUp = new QPushButton(tr("MoveUp"), this);
+  m_btnMoveUp = new QPushButton(tr("Move Up"), this);
   m_btnMoveUp->setEnabled(false);
   connect(m_btnMoveUp, &QPushButton::clicked, this, &sourceGrid::UpTableItem);
-  m_btnMoveDown = new QPushButton(tr("MoveDown"), this);
+  m_btnMoveDown = new QPushButton(tr("Move Down"), this);
   m_btnMoveDown->setEnabled(false);
   connect(m_btnMoveDown, &QPushButton::clicked, this,
           &sourceGrid::DownTableItem);
