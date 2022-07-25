@@ -29,7 +29,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
   m_tasks.insert(SYNTHESIS_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SYNTHESIS_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(PACKING, new Task{"Packing"});
@@ -39,13 +39,13 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
   m_tasks.insert(PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACEMENT_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(ROUTING, new Task{"Routing"});
   m_tasks.insert(ROUTING_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(ROUTING_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(POWER, new Task{"Power"});
