@@ -15,6 +15,7 @@ class locationForm : public QWidget {
  public:
   explicit locationForm(QWidget *parent = nullptr);
   ~locationForm();
+  int count = 1;
 
   QString getProjectName();
   QString getProjectPath();

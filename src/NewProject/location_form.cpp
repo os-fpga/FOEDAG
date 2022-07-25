@@ -3,7 +3,6 @@
 #include <QFileDialog>
 
 #include "ui_location_form.h"
-
 using namespace FOEDAG;
 
 locationForm::locationForm(QWidget *parent)
@@ -23,10 +22,17 @@ locationForm::locationForm(QWidget *parent)
   ui->m_checkBox->setText(tr("Create Project Subdirectory"));
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
-  ui->m_lineEditPname->setText("project_1");
+  ui->m_lineEditPname->setText(QString("project_") + QString::number(count));
   ui->m_lineEditPpath->setText(QDir::currentPath());
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
+
+  QString name = ui->m_lineEditPname->text();
+  while (QDir(name).exists()) {
+    ui->m_lineEditPname->setText(QString("project_") +
+                                 QString::number(count++));
+    name = ui->m_lineEditPname->text();
+  };
 }
 
 locationForm::~locationForm() { delete ui; }
