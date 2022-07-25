@@ -9,7 +9,7 @@ summaryForm::summaryForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::summaryForm) {
   ui->setupUi(this);
   ui->m_labelTitle->setText(tr("New Project Summary"));
-  ui->m_labelTail->setText(tr("To create the project,click Finish."));
+  ui->m_labelTail->setText(tr("To create the project, click Finish."));
 }
 
 summaryForm::~summaryForm() { delete ui; }

@@ -56,6 +56,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openFileSlot();
   void newDesignCreated(const QString& design);
   void reloadSettings();
+  void updatePRViewButton(int state);
 
  private: /* Menu bar builders */
   void createMenus();
@@ -67,6 +68,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
   void startStopButtonsState();
+  void loadFile(const QString& file);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -94,6 +96,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class TclConsoleWidget* m_console{nullptr};
   class ProjectManager* m_projectManager{nullptr};
   class ProjectFileLoader* m_projectFileLoader{nullptr};
+  class SourcesForm* sourcesForm{nullptr};
 };
 
 }  // namespace FOEDAG
