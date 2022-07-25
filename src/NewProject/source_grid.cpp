@@ -14,22 +14,24 @@ using namespace FOEDAG;
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
-  m_btnAddFile = new QPushButton(tr("AddFile..."), this);
+  m_btnAddFile = new QPushButton(tr("Add File..."), this);
   connect(m_btnAddFile, &QPushButton::clicked, this, &sourceGrid::AddFiles);
-  m_btnAddDri = new QPushButton(tr("AddDir..."), this);
+  m_btnAddDri = new QPushButton(tr("Add Directory"
+                                   "..."),
+                                this);
   connect(m_btnAddDri, &QPushButton::clicked, this,
           &sourceGrid::AddDirectories);
-  m_btnCreateFile = new QPushButton(tr("CreateFile..."), this);
+  m_btnCreateFile = new QPushButton(tr("Create File..."), this);
   connect(m_btnCreateFile, &QPushButton::clicked, this,
           &sourceGrid::CreateFile);
   m_btnDelete = new QPushButton(tr("Remove"), this);
   m_btnDelete->setEnabled(false);
   connect(m_btnDelete, &QPushButton::clicked, this,
           &sourceGrid::DeleteTableItem);
-  m_btnMoveUp = new QPushButton(tr("MoveUp"), this);
+  m_btnMoveUp = new QPushButton(tr("Move Up"), this);
   m_btnMoveUp->setEnabled(false);
   connect(m_btnMoveUp, &QPushButton::clicked, this, &sourceGrid::UpTableItem);
-  m_btnMoveDown = new QPushButton(tr("MoveDown"), this);
+  m_btnMoveDown = new QPushButton(tr("Move Down"), this);
   m_btnMoveDown->setEnabled(false);
   connect(m_btnMoveDown, &QPushButton::clicked, this,
           &sourceGrid::DownTableItem);
