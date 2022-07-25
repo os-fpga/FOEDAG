@@ -44,11 +44,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 set (SRC_CPP_LIST
   FileUtils.cpp
   StringUtils.cpp
+  ProcessUtils.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   FileUtils.h
   StringUtils.h
+  ProcessUtils.h
 )
 
 set (SRC_H_LIST

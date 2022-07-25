@@ -57,7 +57,6 @@ set (SRC_CPP_LIST
   Task.cpp
   TaskManager.cpp
   CompilerDefines.cpp
-  ProcessUtils.cpp
   Log.cpp
 )
 
@@ -71,7 +70,6 @@ set (SRC_H_INSTALL_LIST
   Task.h
   TaskManager.h
   CompilerDefines.h
-  ProcessUtils.h
   Log.h
 )
 

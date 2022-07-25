@@ -52,10 +52,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
-#include "ProcessUtils.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/ProcessUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -1551,47 +1551,4 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
     start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
   }
   return result;
-}
-
-std::string& Compiler::Ltrim(std::string& str) {
-  auto it2 = std::find_if(str.begin(), str.end(), [](char ch) {
-    return !std::isspace<char>(ch, std::locale::classic());
-  });
-  str.erase(str.begin(), it2);
-  return str;
-}
-
-std::string& Compiler::Rtrim(std::string& str) {
-  auto it1 = std::find_if(str.rbegin(), str.rend(), [](char ch) {
-    return !std::isspace<char>(ch, std::locale::classic());
-  });
-  str.erase(it1.base(), str.end());
-  return str;
-}
-
-void Compiler::Tokenize(std::string_view str, std::string_view separator,
-                        std::vector<std::string>& result) {
-  std::string tmp;
-  const unsigned int sepSize = separator.size();
-  const unsigned int stringSize = str.size();
-  for (unsigned int i = 0; i < stringSize; i++) {
-    bool isSeparator = false;
-    for (unsigned int j = 0; j < sepSize; j++) {
-      if (str[i] == separator[j]) {
-        isSeparator = true;
-        break;
-      }
-    }
-    if (isSeparator) {
-      result.push_back(tmp);
-      tmp = "";
-      if (i == (str.size() - 1)) result.push_back(tmp);
-    } else if (i == (str.size() - 1)) {
-      tmp += str[i];
-      result.push_back(tmp);
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
-  }
 }
