@@ -141,6 +141,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
+  (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
+            "format"
+         << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
   (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
@@ -421,6 +424,27 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("set_device_size", set_device_size, this, 0);
 
+  auto pnr_netlist_lang = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify the netlist type: verilog or blif");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if (arg == "verilog") {
+      compiler->UseVerilogNetlist(true);
+    } else if (arg == "blif") {
+      compiler->UseVerilogNetlist(false);
+    } else {
+      compiler->ErrorMessage(
+          "Invalid arg to netlist_type (verilog or blif), was: " + arg);
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("pnr_netlist_lang", pnr_netlist_lang, this, 0);
+
   auto verific_parser = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
@@ -503,7 +527,9 @@ bool CompilerOpenFPGA::DesignChanged(
   bool result = false;
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
-  std::string output = ProjManager()->projectName() + "_post_synth.blif";
+  std::string output =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
   time_t time_netlist = FileUtils::Mtime(output);
   if (time_netlist == -1) {
     result = true;
@@ -817,7 +843,9 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
-  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  std::string netlistFile =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
@@ -1054,6 +1082,7 @@ bool CompilerOpenFPGA::Placement() {
   std::string pin_loc_constraint_file;
 
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
@@ -1093,6 +1122,7 @@ bool CompilerOpenFPGA::Placement() {
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
+    // TODO: accept both blif or verilog format
     pincommand += " --blif " + netlistFile;
     std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
     pincommand += " --output " + pin_locFile;
@@ -1375,7 +1405,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
 
-  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  std::string netlistFile =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
@@ -1397,6 +1429,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${VPR_TESTBENCH_BLIF}", netlistFile);
 
   std::string netlistFormat = "blif";
+  if (UseVerilogNetlist()) {
+    netlistFormat = "verilog";
+  }
   result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
   if (m_deviceSize.size()) {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}",
