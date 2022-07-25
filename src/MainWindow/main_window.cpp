@@ -135,11 +135,12 @@ void MainWindow::newProjectDlg() {
 }
 
 void MainWindow::openProject() {
-  QString fileName = "";
+  QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), "",
                                           "FOEDAG Project File(*.ospr)");
-  if ("" != fileName) {
+  if (!fileName.isEmpty()) {
     ReShowWindow(fileName);
+    loadFile(fileName);
   }
 }
 
@@ -167,6 +168,14 @@ void MainWindow::startStopButtonsState() {
   const bool consoleInProgress = m_console->isRunning();
   startAction->setEnabled(!inProgress && !consoleInProgress);
   stopAction->setEnabled(inProgress && consoleInProgress);
+}
+
+void MainWindow::loadFile(const QString& file) {
+  if (m_projectFileLoader) {
+    m_projectFileLoader->Load(file);
+    if (sourcesForm) sourcesForm->InitSourcesForm();
+    updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+  }
 }
 
 void MainWindow::createMenus() {
@@ -198,13 +207,13 @@ void MainWindow::createToolBars() {
 }
 
 void MainWindow::createActions() {
-  newAction = new QAction(tr("&New"), this);
+  newAction = new QAction(tr("&New..."), this);
   newAction->setIcon(QIcon(":/images/icon_newfile.png"));
   newAction->setShortcut(QKeySequence::New);
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&Open Project"), this);
+  openProjectAction = new QAction(tr("&Open Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
@@ -213,11 +222,11 @@ void MainWindow::createActions() {
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
-  newProjectAction = new QAction(tr("&New Project"), this);
+  newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 
-  openFile = new QAction(tr("&Open File"), this);
+  openFile = new QAction(tr("&Open File..."), this);
   openFile->setStatusTip(tr("Open file"));
   openFile->setIcon(QIcon(":/images/open-file.png"));
   connect(openFile, SIGNAL(triggered()), this, SLOT(openFileSlot()));
@@ -264,7 +273,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
-  SourcesForm* sourcesForm = new SourcesForm(this);
+  sourcesForm = new SourcesForm(this);
   connect(sourcesForm, &SourcesForm::CloseProject, this,
           &MainWindow::closeProject, Qt::QueuedConnection);
   sourceDockWidget->setWidget(sourcesForm);
@@ -355,19 +364,11 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
-  auto prViewButton = [&, view, this](int state) {
-    auto name = this->m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
-    auto btn = view->findChild<QPushButton*>(name);
-    QVector<Compiler::State> availableState{
-        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
-         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
-    if (btn) {
-      btn->setEnabled(
-          availableState.contains(static_cast<Compiler::State>(state)));
-    }
-  };
-  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged,
-          prViewButton);
+  view->setObjectName("compilerTaskView");
+  view->setParent(this);
+
+  connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
+          &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager});
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
@@ -380,11 +381,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(console, &TclConsoleWidget::stateChanged, this,
           [this, console]() { startStopButtonsState(); });
 
-  if (!strProject.isEmpty()) m_projectFileLoader->Load(strProject);
-
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
-  prViewButton(static_cast<int>(m_compiler->CompilerState()));
+  updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 }
 
 void MainWindow::clearDockWidgets() {
@@ -428,5 +427,19 @@ void MainWindow::reloadSettings() {
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
+  }
+}
+
+void MainWindow::updatePRViewButton(int state) {
+  auto name = m_taskManager->task(PLACE_AND_ROUTE_VIEW)->title();
+  auto view = findChild<QWidget*>("compilerTaskView");
+  if (!view) return;
+
+  if (auto btn = view->findChild<QPushButton*>(name)) {
+    const QVector<Compiler::State> availableState{
+        {Compiler::State::Routed, Compiler::State::TimingAnalyzed,
+         Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
+    btn->setEnabled(
+        availableState.contains(static_cast<Compiler::State>(state)));
   }
 }
