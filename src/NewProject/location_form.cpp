@@ -22,7 +22,7 @@ locationForm::locationForm(QWidget *parent)
          "Next, you will specify the type of flow you'll be working with. "
          "Finally, you will specify your project sources and choose a default "
          "part."));
-  // int count = 1;
+
   ui->m_labelPname->setText(tr("Project Name:"));
   ui->m_labelPpath->setText(tr("Project Location:"));
   ui->m_checkBox->setText(tr("Create Project Subdirectory"));
