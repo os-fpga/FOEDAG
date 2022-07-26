@@ -32,13 +32,6 @@ locationForm::locationForm(QWidget *parent)
   ui->m_lineEditPpath->setText(QDir::currentPath());
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
-
-  //  QString name = ui->m_lineEditPname->text();
-  //  while (QDir(name).exists()) {
-  //    ui->m_lineEditPname->setText(QString("project_") +
-  //                                 QString::number(count++));
-  //    name = ui->m_lineEditPname->text();
-  //  };
 }
 
 locationForm::~locationForm() { delete ui; }
