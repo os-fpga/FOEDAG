@@ -8,6 +8,11 @@ using namespace FOEDAG;
 locationForm::locationForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::locationForm) {
   ui->setupUi(this);
+  int count = 1;
+  QString project_prefix = "project_";
+  while (QDir(project_prefix + QString::number(count)).exists()) {
+    count++;
+  }
   ui->m_labelTitle->setText(tr("Project Location"));
   ui->m_labelCont->setText(
       tr("This wizard will guide you through the creation of a new project."));
@@ -17,22 +22,23 @@ locationForm::locationForm(QWidget *parent)
          "Next, you will specify the type of flow you'll be working with. "
          "Finally, you will specify your project sources and choose a default "
          "part."));
+  // int count = 1;
   ui->m_labelPname->setText(tr("Project Name:"));
   ui->m_labelPpath->setText(tr("Project Location:"));
   ui->m_checkBox->setText(tr("Create Project Subdirectory"));
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
-  ui->m_lineEditPname->setText(QString("project_") + QString::number(count));
+  ui->m_lineEditPname->setText(project_prefix + QString::number(count));
   ui->m_lineEditPpath->setText(QDir::currentPath());
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
 
-  QString name = ui->m_lineEditPname->text();
-  while (QDir(name).exists()) {
-    ui->m_lineEditPname->setText(QString("project_") +
-                                 QString::number(count++));
-    name = ui->m_lineEditPname->text();
-  };
+  //  QString name = ui->m_lineEditPname->text();
+  //  while (QDir(name).exists()) {
+  //    ui->m_lineEditPname->setText(QString("project_") +
+  //                                 QString::number(count++));
+  //    name = ui->m_lineEditPname->text();
+  //  };
 }
 
 locationForm::~locationForm() { delete ui; }
