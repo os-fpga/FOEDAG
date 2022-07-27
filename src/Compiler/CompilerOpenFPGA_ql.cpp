@@ -1745,6 +1745,18 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     }
   }
 
+  if(settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_inputs")) {
+    vpr_options += std::string(" --post_synth_netlist_unconn_inputs") + 
+                   std::string(" ") + 
+                   settings_vpr_analysis_obj["post_synth_netlist_unconn_inputs"]["default"].get<std::string>();
+  }
+
+  if(settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_outputs")) {
+    vpr_options += std::string(" --post_synth_netlist_unconn_outputs") + 
+                   std::string(" ") + 
+                   settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>();
+  }
+
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
