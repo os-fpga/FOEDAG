@@ -42,15 +42,17 @@ class newProjectDialog : public QDialog {
   void Reset();
 
  private slots:
-  void on_m_btnBack_clicked();
-  void on_m_btnNext_clicked();
-  void on_m_btnFinish_clicked();
-  void on_m_btnCancel_clicked();
+
+  void on_buttonBox_accepted();
+  void on_buttonBox_rejected();
+  void on_next();
+  void on_back();
 
  private:
   Ui::newProjectDialog* ui;
   int m_index;
-
+  QPushButton* NextBtn;
+  QPushButton* BackBtn;
   locationForm* m_locationForm;
   projectTypeForm* m_proTypeForm;
   addSourceForm* m_addSrcForm;
