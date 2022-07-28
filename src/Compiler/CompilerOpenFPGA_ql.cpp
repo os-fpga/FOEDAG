@@ -3087,9 +3087,27 @@ std::filesystem::path CompilerOpenFPGA_ql::GenerateTempFilePath() {
     // change to the temp directory before generating a temp file name
     std::filesystem::current_path(temp_dir_path);
 
-    // generate a temp file path in the temp directory
+    // generate a temp file path in the system temp directory
+    std::filesystem::path temp_file_path;
+#if defined(_WIN32)
+    // in windows, the tmpnam only generates the file name (with a '\' in the front), and we need to append this
+    // to the temp_directory_path() to make a complete path.
     std::string temp_file_path_str = std::tmpnam(nullptr);
-    std::filesystem::path temp_file_path(temp_file_path_str);
+    // convert the string into a std::filesystem::path
+    temp_file_path = temp_file_path_str;
+    // tmpnam() returns a filepath that starts with a '\' and is hence an absolute path
+    // using the '/' operator with 2 absolute paths, results in replacement, than append!
+    // https://stackoverflow.com/questions/55214156/why-does-stdfilesystempathappend-replace-the-current-path-if-p-starts-with
+    // hence, we should convert the temp_file_path into a relative path first, and then
+    // append it to the temp_dir_path to get the absolute path we need on Windows.
+    temp_file_path = temp_file_path.relative_path();
+    temp_file_path = temp_dir_path / std::filesystem::path(temp_file_path_str).relative_path();
+#else // #if defined(_WIN32)
+    // in linux, the tmpnam generates the file path including the current dir path
+    // so, we can use this as the final path as is.
+    std::string temp_file_path_str = std::tmpnam(nullptr);
+    temp_file_path(temp_file_path_str);
+#endif // #if defined(_WIN32)
 
     // change back to the original path we came from
     std::filesystem::current_path(current_path);
