@@ -3101,12 +3101,12 @@ std::filesystem::path CompilerOpenFPGA_ql::GenerateTempFilePath() {
     // hence, we should convert the temp_file_path into a relative path first, and then
     // append it to the temp_dir_path to get the absolute path we need on Windows.
     temp_file_path = temp_file_path.relative_path();
-    temp_file_path = temp_dir_path / std::filesystem::path(temp_file_path_str).relative_path();
+    temp_file_path = temp_dir_path / temp_file_path;
 #else // #if defined(_WIN32)
     // in linux, the tmpnam generates the file path including the current dir path
     // so, we can use this as the final path as is.
     std::string temp_file_path_str = std::tmpnam(nullptr);
-    temp_file_path(temp_file_path_str);
+    temp_file_path = temp_file_path_str;
 #endif // #if defined(_WIN32)
 
     // change back to the original path we came from
