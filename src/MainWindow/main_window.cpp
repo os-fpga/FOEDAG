@@ -246,7 +246,6 @@ void MainWindow::createActions() {
   connect(startAction, &QAction::triggered, this, [this]() {
     m_compiler->start();
     m_taskManager->startAll();
-    m_compiler->finish();
   });
   connect(stopAction, &QAction::triggered, this,
           [this]() { m_compiler->Stop(); });
@@ -366,6 +365,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
   view->setObjectName("compilerTaskView");
   view->setParent(this);
+
+  connect(m_taskManager, &TaskManager::done, this,
+          [this]() { m_compiler->finish(); });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
