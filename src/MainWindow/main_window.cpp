@@ -73,6 +73,9 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Create menu bars */
   createMenus();
 
+  /* Create progress bar */
+  createProgressBar();
+
   /* Create tool bars */
   createToolBars();
 
@@ -178,6 +181,21 @@ void MainWindow::loadFile(const QString& file) {
   }
 }
 
+void MainWindow::createProgressBar() {
+  m_progressWidget = new QWidget;
+  QProgressBar* progress = new QProgressBar(m_progressWidget);
+  progress->setFixedHeight(menuBar()->sizeHint().height() - 2);
+  progress->setFormat("%v/%m");
+  QHBoxLayout* layout = new QHBoxLayout;
+  layout->setContentsMargins(0, 0, 0, 0);
+  QLabel* label = new QLabel{"Progress: "};
+  layout->addWidget(label);
+  layout->addWidget(progress);
+  m_progressWidget->setLayout(layout);
+  menuBar()->setCornerWidget(m_progressWidget, Qt::Corner::TopRightCorner);
+  m_progressWidget->hide();
+}
+
 void MainWindow::createMenus() {
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
@@ -244,11 +262,14 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, [this]() {
+    m_progressWidget->show();
     m_compiler->start();
     m_taskManager->startAll();
   });
-  connect(stopAction, &QAction::triggered, this,
-          [this]() { m_compiler->Stop(); });
+  connect(stopAction, &QAction::triggered, this, [this]() {
+    m_compiler->Stop();
+    m_progressWidget->hide();
+  });
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
@@ -366,8 +387,20 @@ void MainWindow::ReShowWindow(QString strProject) {
   view->setObjectName("compilerTaskView");
   view->setParent(this);
 
-  connect(m_taskManager, &TaskManager::done, this,
-          [this]() { m_compiler->finish(); });
+  connect(
+      m_taskManager, &TaskManager::progress, this, [this](int val, int max) {
+        QProgressBar* progress = m_progressWidget->findChild<QProgressBar*>();
+        progress->setMaximum(max);
+        progress->setValue(val);
+      });
+
+  connect(m_taskManager, &TaskManager::done, this, [this]() {
+    m_progressWidget->hide();
+    m_compiler->finish();
+  });
+
+  connect(m_taskManager, &TaskManager::started, this,
+          [this]() { m_progressWidget->show(); });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QList>
 #include <QMap>
 #include <QObject>
+#include <optional>
 
 #include "Task.h"
 
@@ -96,6 +97,11 @@ class TaskManager : public QObject {
    * \brief done. Emits when all tasks done.
    */
   void done();
+  /*!
+   * \brief progress
+   * emits whenever current task done and send current progress and max steps.
+   */
+  void progress(int progress, int max);
 
  private slots:
   void runNext();
@@ -109,6 +115,7 @@ class TaskManager : public QObject {
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
   QMap<Task *, QVector<Task *>> m_rollBack;
+  std::optional<int> m_taskCount{std::nullopt};
 };
 
 }  // namespace FOEDAG
