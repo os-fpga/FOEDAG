@@ -43,8 +43,7 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
                    FOEDAG::handleTaskDialogRequested);
   view->setModel(model);
 
-  view->setColumnWidth(0, 30);
-  view->setColumnWidth(1, 160);
+  view->resizeColumnsToContents();
   view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
   view->horizontalHeader()->setStretchLastSection(true);
   view->setMinimumWidth(340);
