@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 
 void CompilerOpenFPGA_ql::Version(std::ostream* out) {
-  (*out) << "Foedag OpenFPGA_ql Compiler"
+  (*out) << "QuickLogic Aurora"
          << "\n";
   PrintVersion(out);
 }

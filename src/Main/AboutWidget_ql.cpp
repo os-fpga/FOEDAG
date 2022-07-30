@@ -33,10 +33,10 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
   label->setText(QString("<p><b>%1 %2</b></p>"
-                         "<p>Build on %3</p>"
-                         "<p>From revision <a "
+                         "<p>Date: %3</p>"
+                         "<p>Revision: <a "
                          "href=\"%4%5\">%5</a></p>"
-                         "<p>Build type: %6</p>"
+                         "<p>Build: %6</p>"
                          "<p>%7</p>")
                      .arg(info.name, info.version, __DATE__, info.url,
                           info.git_hash, info.build_type, License()));
@@ -61,13 +61,15 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
 QString AboutWidget::License() {
   const QString license = R"(
 
-<p>Copyright 2022 Quicklogic Corp</p>
+<p>Copyright © 2022 Quicklogic Corp</p>
 
-<p>Aurora™ is derived from FOEDAG (https://github.com/os-fpga/FOEDAG)</p>
+<p>Aurora™ is based on FOEDAG (https://github.com/QuickLogic-Corp/FOEDAG)</p>
+
+<p>FOEDAG original source: (https://github.com/os-fpga/FOEDAG)</p>
 
 <p>Copyright 2022 The Foedag team</p>
 
-<p>GPL License</p>
+<p>FOEDAG GPL License</p>
 
 <p>Copyright (c) 2022 The Open-Source FPGA Foundation</p>
 

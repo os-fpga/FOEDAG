@@ -1471,11 +1471,11 @@ bool Compiler::CreateDesign(const std::string& name) {
 
 void Compiler::PrintVersion(std::ostream* out) {
   if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version    : " << foedag_version_number << "\n";
+    (*out) << "Version     : " << foedag_version_number << "\n";
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built      : " << __DATE__ << "\n";
-  (*out) << "Built type : " << foedag_build_type << "\n";
+    (*out) << "Revision    : " << foedag_git_hash << "\n";
+  (*out) << "Date        : " << __DATE__ << "\n";
+  (*out) << "Build       : " << foedag_build_type << "\n";
 }
 
 bool Compiler::ExecuteSystemCommand(const std::string& command) {

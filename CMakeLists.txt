@@ -276,16 +276,18 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
-execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND git rev-parse --short HEAD
-  COMMAND tr -d '\n'
-  OUTPUT_VARIABLE GIT_HASH
-  ERROR_VARIABLE GIT_HASH_ERR
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+# take everything from the aurora2 Makefile passed in variables, so no need for this:
+# execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+#   COMMAND git rev-parse --short HEAD
+#   COMMAND tr -d '\n'
+#   OUTPUT_VARIABLE GIT_HASH
+#   ERROR_VARIABLE GIT_HASH_ERR
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-message(STATUS "GIT_HASH = ${GIT_HASH}")
-message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
-configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
+# message(STATUS "GIT_HASH = ${GIT_HASH}")
+# message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
+#configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
+configure_file(foedag_version.ql.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_version.h)
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
