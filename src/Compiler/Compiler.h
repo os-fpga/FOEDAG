@@ -154,14 +154,7 @@ class Compiler {
   bool BitstreamEnabled() { return m_bitstreamEnabled; }
   void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
 
-  /* Utility functions */
-  bool FileExists(const std::filesystem::path& name);
-  void Tokenize(std::string_view str, std::string_view separator,
-                std::vector<std::string>& result);
-  std::string& Trim(std::string& str) { return Ltrim(Rtrim(str)); }
-  std::string& Ltrim(std::string& str);
-  std::string& Rtrim(std::string& str);
-  time_t Mtime(const std::filesystem::path& path);
+  virtual const std::string GetNetlistPath();
 
  protected:
   /* Methods that can be customized for each new compiler flow */

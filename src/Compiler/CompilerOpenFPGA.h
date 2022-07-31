@@ -99,6 +99,9 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
+  bool UseVerilogNetlist() { return m_useVerilogNetlist; }
+  void UseVerilogNetlist(bool on) { m_useVerilogNetlist = on; }
+
  protected:
   virtual bool IPGenerate();
   virtual bool Synthesize();
@@ -110,7 +113,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
   virtual bool LoadDeviceData(const std::string& deviceName);
-
+  virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
@@ -146,6 +149,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_openFPGAScript;
   virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
+  bool m_useVerilogNetlist = false;
 };
 
 }  // namespace FOEDAG

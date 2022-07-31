@@ -33,29 +33,34 @@ namespace FOEDAG {
 
 class FileUtils final {
  public:
-  static bool fileExists(const std::filesystem::path& name);
-  static bool fileIsRegular(const std::filesystem::path& name);
-  static bool fileIsDirectory(const std::filesystem::path& name);
+  static bool FileExists(const std::filesystem::path& name);
+  static bool FileIsRegular(const std::filesystem::path& name);
+  static bool FileIsDirectory(const std::filesystem::path& name);
 
-  static bool mkDirs(const std::filesystem::path& path);
-  static bool rmDirRecursively(const std::filesystem::path& path);
-  static std::filesystem::path getFullPath(const std::filesystem::path& path);
-  static bool getFullPath(const std::filesystem::path& path,
+  static bool MkDirs(const std::filesystem::path& path);
+  static bool RmDirRecursively(const std::filesystem::path& path);
+  static std::filesystem::path GetFullPath(const std::filesystem::path& path);
+  static bool GetFullPath(const std::filesystem::path& path,
                           std::filesystem::path* result);
-  static std::filesystem::path getPathName(const std::filesystem::path& path);
-  static std::filesystem::path basename(const std::filesystem::path& str);
-  static uint64_t fileSize(const std::filesystem::path& name);
+  static std::filesystem::path GetPathName(const std::filesystem::path& path);
+  static std::filesystem::path Basename(const std::filesystem::path& str);
+  static uint64_t FileSize(const std::filesystem::path& name);
 
-  static std::string getFileContent(const std::filesystem::path& name);
+  static std::string GetFileContent(const std::filesystem::path& name);
 
-  static std::filesystem::path getPreferredPath(
+  static std::filesystem::path GetPreferredPath(
       const std::filesystem::path& path);
 
-  static std::filesystem::path locateExecFile(
+  static std::filesystem::path LocateExecFile(
       const std::filesystem::path& path);
 
   static int ExecuteSystemCommand(const std::string& command,
                                   std::ostream* result);
+
+  static time_t Mtime(const std::filesystem::path& path);
+
+  static bool IsUptoDate(const std::string& sourceFile,
+                         const std::string& outputFile);
 
  private:
   FileUtils() = delete;

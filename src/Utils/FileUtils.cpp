@@ -39,25 +39,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-bool FileUtils::fileExists(const std::filesystem::path& name) {
+bool FileUtils::FileExists(const std::filesystem::path& name) {
   std::error_code ec;
   return std::filesystem::exists(name, ec);
 }
 
-uint64_t FileUtils::fileSize(const std::filesystem::path& name) {
+uint64_t FileUtils::FileSize(const std::filesystem::path& name) {
   std::error_code ec;
   return std::filesystem::file_size(name, ec);
 }
 
-bool FileUtils::fileIsDirectory(const std::filesystem::path& name) {
+bool FileUtils::FileIsDirectory(const std::filesystem::path& name) {
   return std::filesystem::is_directory(name);
 }
 
-bool FileUtils::fileIsRegular(const std::filesystem::path& name) {
+bool FileUtils::FileIsRegular(const std::filesystem::path& name) {
   return std::filesystem::is_regular_file(name);
 }
 
-bool FileUtils::mkDirs(const std::filesystem::path& path) {
+bool FileUtils::MkDirs(const std::filesystem::path& path) {
   // CAUTION: There is a known bug in VC compiler where a trailing
   // slash in the path will cause a false return from a call to
   // fs::create_directories.
@@ -66,31 +66,31 @@ bool FileUtils::mkDirs(const std::filesystem::path& path) {
   return std::filesystem::is_directory(path);
 }
 
-bool FileUtils::rmDirRecursively(const std::filesystem::path& path) {
+bool FileUtils::RmDirRecursively(const std::filesystem::path& path) {
   static constexpr uintmax_t kErrorCondition = static_cast<std::uintmax_t>(-1);
   std::error_code err;
   return std::filesystem::remove_all(path, err) != kErrorCondition;
 }
 
-std::filesystem::path FileUtils::getFullPath(
+std::filesystem::path FileUtils::GetFullPath(
     const std::filesystem::path& path) {
   std::error_code ec;
   std::filesystem::path fullPath = std::filesystem::canonical(path, ec);
   return ec ? path : fullPath;
 }
 
-bool FileUtils::getFullPath(const std::filesystem::path& path,
+bool FileUtils::GetFullPath(const std::filesystem::path& path,
                             std::filesystem::path* result) {
   std::error_code ec;
   std::filesystem::path fullPath = std::filesystem::canonical(path, ec);
-  bool found = (!ec && fileIsRegular(fullPath));
+  bool found = (!ec && FileIsRegular(fullPath));
   if (result != nullptr) {
     *result = found ? fullPath : path;
   }
   return found;
 }
 
-std::string FileUtils::getFileContent(const std::filesystem::path& filename) {
+std::string FileUtils::GetFileContent(const std::filesystem::path& filename) {
   std::ifstream in(filename, std::ios::in | std::ios::binary);
   std::string result;
 
@@ -110,21 +110,21 @@ std::string FileUtils::getFileContent(const std::filesystem::path& filename) {
   return result;
 }
 
-std::filesystem::path FileUtils::getPathName(
+std::filesystem::path FileUtils::GetPathName(
     const std::filesystem::path& path) {
   return path.has_parent_path() ? path.parent_path() : "";
 }
 
-std::filesystem::path FileUtils::basename(const std::filesystem::path& path) {
+std::filesystem::path FileUtils::Basename(const std::filesystem::path& path) {
   return path.filename();
 }
 
-std::filesystem::path FileUtils::getPreferredPath(
+std::filesystem::path FileUtils::GetPreferredPath(
     const std::filesystem::path& path) {
   return std::filesystem::path(path).make_preferred();
 }
 
-std::filesystem::path FileUtils::locateExecFile(
+std::filesystem::path FileUtils::LocateExecFile(
     const std::filesystem::path& path) {
   std::filesystem::path result;
   char* envpath = getenv("PATH");
@@ -132,7 +132,7 @@ std::filesystem::path FileUtils::locateExecFile(
 
   for (dir = strtok(envpath, ":"); dir; dir = strtok(NULL, ":")) {
     std::filesystem::path a_path = std::string(dir) / path;
-    if (FileUtils::fileExists(a_path)) {
+    if (FileUtils::FileExists(a_path)) {
       return a_path;
     }
   }
@@ -140,7 +140,7 @@ std::filesystem::path FileUtils::locateExecFile(
   for (std::filesystem::path dir :
        {"/usr/bin", "/usr/local/bin", "~/.local/bin", "./"}) {
     std::filesystem::path a_path = dir / path;
-    if (FileUtils::fileExists(a_path)) {
+    if (FileUtils::FileExists(a_path)) {
       return a_path;
     }
   }
@@ -178,6 +178,42 @@ int FileUtils::ExecuteSystemCommand(const std::string& command,
   m_process = nullptr;
 
   return (status == QProcess::NormalExit) ? exitCode : -1;
+}
+
+time_t FileUtils::Mtime(const std::filesystem::path& path) {
+  std::string cpath = path.string();
+  struct stat statbuf;
+  if (stat(cpath.c_str(), &statbuf) == -1) {
+    return -1;
+  }
+  return statbuf.st_mtime;
+}
+
+bool FileUtils::IsUptoDate(const std::string& sourceFile,
+                           const std::string& outputFile) {
+  time_t time_output = -1;
+  if (FileUtils::FileExists(outputFile)) {
+    time_output = Mtime(outputFile);
+    if (time_output == -1) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  if (FileUtils::FileExists(sourceFile)) {
+    time_t time_source = Mtime(sourceFile);
+    if (time_source == -1) {
+      return false;
+    }
+    if (time_source > time_output) {
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace FOEDAG

@@ -135,9 +135,9 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
 
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
-  const int ret = m_projManager->addDesignFiles(files, lang, false, false);
-  if (ProjectManager::EC_Success != ret) {
-    error(ret, files, out);
+  const auto ret = m_projManager->addDesignFiles(files, lang, false, false);
+  if (ProjectManager::EC_Success != ret.code) {
+    error(ret.code, ret.message, out);
     return false;
   }
 
@@ -272,7 +272,7 @@ void TclCommandIntegration::error(int res, const QString &filename,
     case ProjectManager::EC_Success:
       break;
     case ProjectManager::EC_FileNotExist:
-      out << "File(s) not exist: " << filename.toStdString() << std::endl;
+      out << "File(s) do not exist: " << filename.toStdString() << std::endl;
       break;
     default:
       out << "Failed to add files: " << filename.toStdString() << std::endl;

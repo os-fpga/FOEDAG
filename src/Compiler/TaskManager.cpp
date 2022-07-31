@@ -29,7 +29,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
   m_tasks.insert(SYNTHESIS_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SYNTHESIS_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(PACKING, new Task{"Packing"});
@@ -39,13 +39,13 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
   m_tasks.insert(PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACEMENT_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(ROUTING, new Task{"Routing"});
   m_tasks.insert(ROUTING_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(ROUTING_SETTINGS,
-                 new Task{"Edit settings", TaskType::Settings});
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(POWER, new Task{"Power"});
@@ -75,6 +75,21 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
             &TaskManager::taskStateChanged);
     connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
+  QVector<Task *> tmp = {m_tasks[TIMING_SIGN_OFF], m_tasks[POWER],
+                         m_tasks[BITSTREAM], m_tasks[ROUTING]};
+  m_rollBack.insert(m_tasks[ROUTING_CLEAN], tmp);
+
+  tmp += m_tasks[PLACEMENT];
+  m_rollBack.insert(m_tasks[PLACEMENT_CLEAN], tmp);
+
+  tmp += m_tasks[GLOBAL_PLACEMENT];
+  m_rollBack.insert(m_tasks[GLOBAL_PLACEMENT_CLEAN], tmp);
+
+  tmp += m_tasks[PACKING];
+  m_rollBack.insert(m_tasks[PACKING_CLEAN], tmp);
+
+  tmp += m_tasks[SYNTHESIS];
+  m_rollBack.insert(m_tasks[SYNTHESIS_CLEAN], tmp);
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -140,6 +155,7 @@ void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
 void TaskManager::runNext() {
   Task *t = qobject_cast<Task *>(sender());
   if (t) {
+    rollBack(t);
     if (t->status() == TaskStatus::Success) {
       m_runStack.removeAll(t);
       if (!m_runStack.isEmpty()) run();
@@ -156,6 +172,13 @@ void TaskManager::run() { m_runStack.first()->trigger(); }
 void TaskManager::reset() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     (*task)->setStatus(TaskStatus::None);
+  }
+}
+
+void TaskManager::rollBack(Task *t) {
+  const auto &roll_back = m_rollBack.value(t);
+  for (const auto &task : roll_back) {
+    task->setStatus(TaskStatus::None);
   }
 }
 

@@ -61,7 +61,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,10,10,10,10">
+       <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
         <property name="spacing">
          <number>15</number>
         </property>
@@ -85,30 +85,9 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="m_btnBack">
-          <property name="text">
-           <string>Back</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="m_btnNext">
-          <property name="text">
-           <string>next</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="m_btnFinish">
-          <property name="text">
-           <string>Finish</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="m_btnCancel">
-          <property name="text">
-           <string>Cancel</string>
+         <widget class="QDialogButtonBox" name="buttonBox">
+          <property name="standardButtons">
+           <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
           </property>
          </widget>
         </item>
