@@ -58,6 +58,11 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   ../Main/AboutWidget.cpp
   ../MainWindow/mainwindowmodel.cpp
+  ../IpConfigurator/IpCatalogTree.cpp
+  ../IpConfigurator/IpInstancesTree.cpp
+  ../IpConfigurator/IpConfigDlg.cpp
+  ../IpConfigurator/IpTreesWidget.cpp
+  ../IpConfigurator/IpConfigurator.cpp
   CompilerNotifier.cpp
 )
 
@@ -82,6 +87,11 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/AboutWidget.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
+  ../IpConfigurator/IpCatalogTree.h
+  ../IpConfigurator/IpInstancesTree.h
+  ../IpConfigurator/IpConfigDlg.h
+  ../IpConfigurator/IpTreesWidget.h
+  ../IpConfigurator/IpConfigurator.h
   CompilerNotifier.h
 )
 

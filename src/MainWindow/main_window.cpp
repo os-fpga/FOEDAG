@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -167,6 +168,13 @@ void MainWindow::startStopButtonsState() {
   const bool consoleInProgress = m_console->isRunning();
   startAction->setEnabled(!inProgress && !consoleInProgress);
   stopAction->setEnabled(inProgress && consoleInProgress);
+}
+
+void MainWindow::createIpConfiguratorUI() {
+  IpConfigurator* configurator = new IpConfigurator(this);
+  configurator->hide();
+  configurator->RegisterCommands(GlobalSession);
+  configurator->setObjectName("IpConfigurator");
 }
 
 void MainWindow::createMenus() {
@@ -385,6 +393,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   prViewButton(static_cast<int>(m_compiler->CompilerState()));
+
+  createIpConfiguratorUI();
 }
 
 void MainWindow::clearDockWidgets() {
