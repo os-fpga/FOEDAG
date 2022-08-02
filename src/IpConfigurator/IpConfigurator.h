@@ -35,8 +35,6 @@ class IpConfigurator : public QWidget {
   void CloseIpTrees();
   QWidget *GetIpTreesWidget();
 
-  void Show();
-  void Close();
   void RegisterCommands(FOEDAG::Session *session);
 
  private:

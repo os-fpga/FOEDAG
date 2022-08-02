@@ -34,7 +34,6 @@ class IpTreesWidget : public QWidget {
   static IpTreesWidget* Instance();
 
   void Init();
-  // IpTreesWidget(QWidget *parent = nullptr);
 
  private:
   QWidget* m_container = nullptr;

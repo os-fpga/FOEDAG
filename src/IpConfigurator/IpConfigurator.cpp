@@ -24,6 +24,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 using namespace FOEDAG;
 
+IpConfigurator::IpConfigurator(QWidget* parent) : QWidget(parent) {
+  IpTreesWidget::Instance()->Init();
+}
+
+void IpConfigurator::ShowIpTrees() { IpTreesWidget::Instance()->show(); }
+
+void IpConfigurator::CloseIpTrees() { IpTreesWidget::Instance()->hide(); }
+
+QWidget* IpConfigurator::GetIpTreesWidget() {
+  return IpTreesWidget::Instance();
+}
+
 void IpConfigurator::RegisterCommands(FOEDAG::Session* session) {
   registerIpConfiguratorCommands(this, session);
 }
@@ -55,16 +67,4 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* ipconfigurator,
   };
   session->TclInterp()->registerCmd("ipconfigurator_close", hide,
                                     ipconfigurator, 0);
-}
-
-IpConfigurator::IpConfigurator(QWidget* parent) : QWidget(parent) {
-  IpTreesWidget::Instance()->Init();
-}
-
-void IpConfigurator::ShowIpTrees() { IpTreesWidget::Instance()->show(); }
-
-void IpConfigurator::CloseIpTrees() { IpTreesWidget::Instance()->hide(); }
-
-QWidget* IpConfigurator::GetIpTreesWidget() {
-  return IpTreesWidget::Instance();
 }
