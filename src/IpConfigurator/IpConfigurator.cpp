@@ -36,11 +36,7 @@ QWidget* IpConfigurator::GetIpTreesWidget() {
   return IpTreesWidget::Instance();
 }
 
-void IpConfigurator::RegisterCommands(FOEDAG::Session* session) {
-  registerIpConfiguratorCommands(this, session);
-}
-
-void FOEDAG::registerIpConfiguratorCommands(QWidget* ipconfigurator,
+void FOEDAG::registerIpConfiguratorCommands(QWidget* widget,
                                             FOEDAG::Session* session) {
   auto show = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -52,8 +48,7 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* ipconfigurator,
     configurator->ShowIpTrees();
     return 0;
   };
-  session->TclInterp()->registerCmd("ipconfigurator_show", show, ipconfigurator,
-                                    0);
+  session->TclInterp()->registerCmd("ipconfigurator_show", show, widget, 0);
 
   auto hide = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -65,6 +60,5 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* ipconfigurator,
     configurator->CloseIpTrees();
     return 0;
   };
-  session->TclInterp()->registerCmd("ipconfigurator_close", hide,
-                                    ipconfigurator, 0);
+  session->TclInterp()->registerCmd("ipconfigurator_close", hide, widget, 0);
 }

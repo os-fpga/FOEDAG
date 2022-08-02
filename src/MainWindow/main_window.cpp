@@ -174,7 +174,6 @@ void MainWindow::startStopButtonsState() {
 void MainWindow::createIpConfiguratorUI() {
   IpConfigurator* configurator = new IpConfigurator(this);
   configurator->hide();
-  configurator->RegisterCommands(GlobalSession);
   configurator->setObjectName("IpConfigurator");
 }
 
