@@ -13,6 +13,13 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   ui->setupUi(this);
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
   setWindowTitle(tr("New Project"));
+  BackBtn = new QPushButton("Back", this);
+  ui->buttonBox->addButton(BackBtn, QDialogButtonBox::ButtonRole::ActionRole);
+  connect(BackBtn, &QPushButton::clicked, this, &newProjectDialog::on_back);
+
+  NextBtn = new QPushButton("Next", this);
+  ui->buttonBox->addButton(NextBtn, QDialogButtonBox::ButtonRole::ActionRole);
+  connect(NextBtn, &QPushButton::clicked, this, &newProjectDialog::on_next);
 
   Reset();
 
@@ -23,7 +30,7 @@ newProjectDialog::~newProjectDialog() { delete ui; }
 
 void newProjectDialog::Next_TclCommand_Test() {
   QThread::sleep(0);
-  emit ui->m_btnNext->clicked();
+  emit NextBtn->clicked();
 }
 
 void newProjectDialog::CreateProject_Tcl_Test(int argc, const char *argv[]) {
@@ -67,12 +74,50 @@ void newProjectDialog::Reset() {
   UpdateDialogView();
 }
 
-void newProjectDialog::on_m_btnBack_clicked() {
-  m_index--;
-  UpdateDialogView();
+void newProjectDialog::UpdateDialogView() {
+  if (INDEX_LOCATION == m_index) {
+    BackBtn->setEnabled(false);
+  } else {
+    BackBtn->setEnabled(true);
+  }
+
+  if (INDEX_SUMMARYF == m_index) {
+    NextBtn->setEnabled(false);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    m_sumForm->setProjectName(m_locationForm->getProjectName(),
+                              m_proTypeForm->getProjectType());
+    m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
+    m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
+                              m_addConstrsForm->getFileData().count());
+  } else {
+    NextBtn->setEnabled(true);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+  }
+
+  ui->m_stackedWidget->setCurrentIndex(m_index);
 }
 
-void newProjectDialog::on_m_btnNext_clicked() {
+void newProjectDialog::on_buttonBox_accepted() {
+  ProjectOptions opt{
+      m_locationForm->getProjectName(),
+      m_locationForm->getProjectPath(),
+      m_proTypeForm->getProjectType(),
+      {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
+      {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
+      m_devicePlanForm->getSelectedDevice(),
+      false /*rewrite*/,
+      DEFAULT_FOLDER_SOURCE};
+  m_projectManager->CreateProject(opt);
+  this->setResult(1);
+  this->hide();
+}
+
+void newProjectDialog::on_buttonBox_rejected() {
+  this->setResult(0);
+  this->hide();
+}
+
+void newProjectDialog::on_next() {
   if (INDEX_LOCATION == m_index) {
     if ("" == m_locationForm->getProjectName()) {
       QMessageBox::information(this, tr("Information"),
@@ -99,44 +144,7 @@ void newProjectDialog::on_m_btnNext_clicked() {
   UpdateDialogView();
 }
 
-void newProjectDialog::on_m_btnFinish_clicked() {
-  ProjectOptions opt{
-      m_locationForm->getProjectName(),
-      m_locationForm->getProjectPath(),
-      m_proTypeForm->getProjectType(),
-      {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
-      {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
-      m_devicePlanForm->getSelectedDevice(),
-      false /*rewrite*/,
-      DEFAULT_FOLDER_SOURCE};
-  m_projectManager->CreateProject(opt);
-  this->setResult(1);
-  this->hide();
-}
-
-void newProjectDialog::on_m_btnCancel_clicked() {
-  this->setResult(0);
-  this->hide();
-}
-void newProjectDialog::UpdateDialogView() {
-  if (INDEX_LOCATION == m_index) {
-    ui->m_btnBack->setEnabled(false);
-  } else {
-    ui->m_btnBack->setEnabled(true);
-  }
-
-  if (INDEX_SUMMARYF == m_index) {
-    ui->m_btnNext->setEnabled(false);
-    ui->m_btnFinish->setEnabled(true);
-    m_sumForm->setProjectName(m_locationForm->getProjectName(),
-                              m_proTypeForm->getProjectType());
-    m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
-    m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
-                              m_addConstrsForm->getFileData().count());
-  } else {
-    ui->m_btnNext->setEnabled(true);
-    ui->m_btnFinish->setEnabled(false);
-  }
-
-  ui->m_stackedWidget->setCurrentIndex(m_index);
+void newProjectDialog::on_back() {
+  m_index--;
+  UpdateDialogView();
 }

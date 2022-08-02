@@ -383,16 +383,16 @@ void SourcesForm::CreateActions() {
           SLOT(SlotRefreshSourceTree()));
 
   m_actEditConstrsSets =
-      new QAction(tr("Create Constraints Set"), m_treeSrcHierachy);
+      new QAction(tr("Create Constraints Set..."), m_treeSrcHierachy);
   connect(m_actEditConstrsSets, SIGNAL(triggered()), this,
           SLOT(SlotCreateConstrSet()));
 
   m_actEditSimulSets =
-      new QAction(tr("Create Simulation Set"), m_treeSrcHierachy);
+      new QAction(tr("Create Simulation Set..."), m_treeSrcHierachy);
   connect(m_actEditSimulSets, SIGNAL(triggered()), this,
           SLOT(SlotCreateSimSet()));
 
-  m_actAddFile = new QAction(tr("Add Sources"), m_treeSrcHierachy);
+  m_actAddFile = new QAction(tr("Add Sources..."), m_treeSrcHierachy);
   m_actAddFile->setIcon(QIcon(":/images/add.png"));
   connect(m_actAddFile, SIGNAL(triggered()), this, SLOT(SlotAddFile()));
 
@@ -416,7 +416,7 @@ void SourcesForm::CreateActions() {
   m_actMakeActive = new QAction(tr("Make Active"), m_treeSrcHierachy);
   connect(m_actMakeActive, SIGNAL(triggered()), this, SLOT(SlotSetActive()));
 
-  m_actProperties = new QAction(tr("Properties"), m_treeSrcHierachy);
+  m_actProperties = new QAction(tr("Properties..."), m_treeSrcHierachy);
   connect(m_actProperties, SIGNAL(triggered()), this,
           SLOT(SlotPropertiesTriggered()));
 
