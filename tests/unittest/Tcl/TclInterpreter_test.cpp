@@ -31,14 +31,14 @@ using ::testing::ElementsAre;
 
 namespace FOEDAG {
 namespace {
-TEST(HelloTcl, HelloWorld) {
+TEST(TclInterpreter, HelloWorld) {
   TclInterpreter interpreter;
   std::string result =
       interpreter.evalCmd("puts \"Hello Foedag, you have Tcl\"");
   EXPECT_EQ(result, "");
 }
 
-TEST(HelloTcl, TestTclError) {
+TEST(TclInterpreter, TestTclError) {
   TclInterpreter interpreter;
   std::string result =
       interpreter.evalCmd("putsss \"Hello Foedag, you have Tcl\"");
