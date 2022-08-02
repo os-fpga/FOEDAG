@@ -1424,6 +1424,10 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
+bool Compiler::VerifyTargetDevice() const {
+  return !ProjManager()->getTargetDevice().empty();
+}
+
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
