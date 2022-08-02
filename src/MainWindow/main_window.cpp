@@ -171,20 +171,19 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
-<<<<<<< HEAD
 void MainWindow::createIpConfiguratorUI() {
   IpConfigurator* configurator = new IpConfigurator(this);
   configurator->hide();
   configurator->RegisterCommands(GlobalSession);
   configurator->setObjectName("IpConfigurator");
-=======
+}
+
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
     m_projectFileLoader->Load(file);
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   }
->>>>>>> main
 }
 
 void MainWindow::createMenus() {
