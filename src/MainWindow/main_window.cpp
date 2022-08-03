@@ -171,10 +171,19 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
-void MainWindow::createIpConfiguratorUI() {
+void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab) {
   IpConfigurator* configurator = new IpConfigurator(this);
   configurator->hide();
   configurator->setObjectName("IpConfigurator");
+  QDockWidget* dw = new QDockWidget(tr("IP"), this);
+  dw->setObjectName("IpDockWidget");
+  dw->setWidget(configurator->GetIpTreesWidget());
+  addDockWidget(Qt::LeftDockWidgetArea, dw);
+  dw->hide();
+
+  if (prevTab) {
+    tabifyDockWidget(prevTab, dw);
+  }
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -381,9 +390,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager});
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
-  QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
-  taskDocWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDocWidget);
+  QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
+  taskDockWidget->setWidget(view);
+  tabifyDockWidget(sourceDockWidget, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -394,7 +403,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
-  createIpConfiguratorUI();
+  createIpConfiguratorUI(taskDockWidget);
 }
 
 void MainWindow::clearDockWidgets() {

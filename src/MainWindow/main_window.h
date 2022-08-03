@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void clearDockWidgets();
   void startStopButtonsState();
   void loadFile(const QString& file);
-  void createIpConfiguratorUI();
+  void createIpConfiguratorUI(QDockWidget* prevTab);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */

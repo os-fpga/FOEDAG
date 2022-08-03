@@ -20,4 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IpConfigurator/IpInstancesTree.h"
 
+#include <QTreeWidgetItem>
+
 using namespace FOEDAG;
+
+IpInstancesTree::IpInstancesTree(QWidget* parent /*nullptr*/)
+    : QTreeWidget(parent) {
+  this->setHeaderLabel("Instantiated IPs");
+
+  for (int i = 0; i < 5; i++) {
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+    item->setText(0, QString("IP %1").arg(i + 1));
+    this->addTopLevelItem(item);
+  }
+}
