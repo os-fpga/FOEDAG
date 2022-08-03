@@ -502,6 +502,14 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   return true;
 }
 
+bool CompilerOpenFPGA::VerifyTargetDevice() const {
+  const bool target = Compiler::VerifyTargetDevice();
+  const bool archFile = FileUtils::FileExists(m_architectureFile);
+  const bool openFpgaArchFile =
+      FileUtils::FileExists(m_OpenFpgaArchitectureFile);
+  return target || (archFile && openFpgaArchFile);
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   PERF_LOG("IPGenerate has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -602,6 +610,10 @@ bool CompilerOpenFPGA::Synthesize() {
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.v"));
     return true;
+  }
+  if (!VerifyTargetDevice()) {
+    ErrorMessage("Please specify target device or architecture file");
+    return false;
   }
   PERF_LOG("Synthesize has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -889,7 +901,10 @@ bool CompilerOpenFPGA::Packing() {
         std::string(ProjManager()->projectName() + "_post_synth.net"));
     return true;
   }
-  PERF_LOG("Packing has started");
+  if (!VerifyTargetDevice()) {
+    ErrorMessage("Please specify target device or architecture file");
+    return false;
+  }
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -898,6 +913,7 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+  PERF_LOG("Packing has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Packing for design: " << ProjManager()->projectName()
            << std::endl;
