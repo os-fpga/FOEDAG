@@ -99,5 +99,6 @@ uint toTaskId(int action, const Compiler *const compiler);
  * \return 0 if tcl command success otherwise return -1
  */
 [[nodiscard]] int read_sdc(const QString &file);
+bool target_device(const QString &target);
 
 }  // namespace FOEDAG

@@ -106,3 +106,9 @@ int FOEDAG::read_sdc(const QString &file) {
                      qPrintable(QString("read_sdc {%1}").arg(f)));
   return (res == TCL_OK) ? 0 : -1;
 }
+
+bool FOEDAG::target_device(const QString &target) {
+  const int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
+                           qPrintable(QString("target_device %1").arg(target)));
+  return (res == TCL_OK);
+}
