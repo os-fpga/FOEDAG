@@ -89,7 +89,6 @@ add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
-
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
 add_subdirectory(src/ProjNavigator)
