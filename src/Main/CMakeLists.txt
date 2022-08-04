@@ -123,7 +123,7 @@ else()
 endif()
 
 #target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler)
+target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler ipconfigurator)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)

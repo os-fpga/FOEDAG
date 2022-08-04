@@ -297,6 +297,6 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
                                         0, 0);
     }
 
-    registerIpConfiguratorCommands(nullptr, session);
+    FOEDAG::registerIpConfiguratorCommands(nullptr, session);
   }
 }
