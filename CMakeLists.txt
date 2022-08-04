@@ -88,6 +88,8 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(tests/tclutils)
+add_subdirectory(tests/unittest)
+
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
 add_subdirectory(src/ProjNavigator)
@@ -406,11 +408,6 @@ function(register_gtests)
     add_dependencies(UnitTests ${test_bin})
   endforeach()
 endfunction()
-
-register_gtests(
-  tests/unittest/Tcl/TclInterpreter_test.cpp
-  tests/unittest/Command/Command_test.cpp
-)
 
 if (WIN OR APPLE)
 else ()
