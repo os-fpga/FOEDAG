@@ -71,7 +71,7 @@ class Compiler {
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
-  enum class PlacementOpt { None, Clean };
+  enum class PlacementOpt { None, Clean, Random, InDefineOrder };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
@@ -146,6 +146,9 @@ class Compiler {
   const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
   void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
 
+  const std::string& PlaceMoreOpt() { return m_placeMoreOpt; }
+  void PlaceMoreOpt(const std::string& opt) { m_placeMoreOpt = opt; }
+
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
@@ -208,7 +211,7 @@ class Compiler {
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
-  PlacementOpt m_placementOpt = PlacementOpt::None;
+  PlacementOpt m_placementOpt = PlacementOpt::Random;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
@@ -217,6 +220,7 @@ class Compiler {
   // Compiler specific options
   std::string m_pnrOpt;
   std::string m_synthMoreOpt;
+  std::string m_placeMoreOpt;
 
   // VPR, Yosys options
   uint32_t m_channel_width = 100;

@@ -21,14 +21,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
+#include <QDebug>
+
 #include "Foedag.h"
 #include "Settings.h"
 #include "WidgetFactory.h"
-
 using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
 #define SYNTH_ARG "_SynthOpt_"
+#define PLACE_ARG "_PlaceOpt_"
 
 #define TASKS_DEBUG false
 
@@ -57,6 +59,12 @@ auto separateArg = [](const QString& argName,
       targetArg = argString.mid(argIdx, argString.indexOf("-", argIdx + 1));
       otherArgs = otherArgs.replace(targetArg, "");
     }
+
+    auto argIdPlace = argString.indexOf("-" + QString(PLACE_ARG));
+    if (argIdPlace != -1) {
+      targetArg = argString.mid(argIdPlace, argString.indexOf("-", argIdx + 1));
+      otherArgs = otherArgs.replace(targetArg, "");
+    }
   }
 
   return {targetArg, otherArgs};
@@ -69,9 +77,20 @@ static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
     {FOEDAG::Compiler::SynthesisOpt::Delay, "delay"},
     {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
     {FOEDAG::Compiler::SynthesisOpt::Clean, "clean"}};
+
+static std::map<FOEDAG::Compiler::PlacementOpt, const char*> placeOptMap = {
+    {FOEDAG::Compiler::PlacementOpt::None, "none"},
+    {FOEDAG::Compiler::PlacementOpt::Clean, "clean"},
+    {FOEDAG::Compiler::PlacementOpt::Random, "Random"},
+    {FOEDAG::Compiler::PlacementOpt::InDefineOrder, "In Define Order"}};
+
 // Helper to convert a SynthesisOpt enum to string
 auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
   return synthOptMap[opt];
+};
+
+auto placeOptToStr = [](FOEDAG::Compiler::PlacementOpt opt) -> QString {
+  return placeOptMap[opt];
 };
 // Helper to convert a string to SynthesisOpt enum
 auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
@@ -88,7 +107,20 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
 
   return val;
 };
+auto placeStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PlacementOpt {
+  auto it = find_if(
+      placeOptMap.begin(), placeOptMap.end(),
+      [str](const std::pair<FOEDAG::Compiler::PlacementOpt, const char*> p) {
+        return p.second == str;
+      });
 
+  auto val = FOEDAG::Compiler::PlacementOpt::Random;
+  if (it != placeOptMap.end()) {
+    val = (*it).first;
+  }
+
+  return val;
+};
 // This will grab Synthesis related options from Compiler::SynthOpt &
 // Compiler::SynthMoreOpt, convert/combine them, and return them as an
 // arg list QString
@@ -103,6 +135,18 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
 
   return tclOptions;
 };
+
+QString TclArgs_getPlacementOptions() {
+  // Collect Synthesis Tcl Params
+  QString tclOptions =
+      QString::fromStdString(GlobalSession->GetCompiler()->PlaceMoreOpt());
+  // Syntehsis has one top level option that doesn't get passed with
+  // SynthMoreOpt so we need to give it a fake arg and pass it
+  tclOptions += " -" + QString(PLACE_ARG) + " " +
+                placeOptToStr(GlobalSession->GetCompiler()->PlaceOpt());
+
+  return tclOptions;
+}
 
 // This will take an arg list, separate out the SynthOpt to set on the compiler
 // and then set the rest of the options under SynthMoreOpt
@@ -119,6 +163,20 @@ void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
     compiler->SynthMoreOpt(moreOpts.toStdString());
   }
 };
+
+void TclArgs_setPlacementOptions(const QString& argsStr) {
+  auto [placethArg, moreOpts] = separateArg(PLACE_ARG, argsStr);
+
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (compiler) {
+    QStringList tokens = placethArg.split(" ");
+    if (tokens.count() > 1) {
+      int opt = (int)placeStrToOpt(tokens[1]);
+      compiler->PlaceOpt(placeStrToOpt(tokens[1]));
+    }
+    compiler->SynthMoreOpt(moreOpts.toStdString());
+  }
+}
 
 // Hardcoded example callbacks to demonstrate how to use TclArgs with the task
 // settings dialog
@@ -137,7 +195,9 @@ void FOEDAG::TclArgs_setExampleArgs(const QString& argsStr) {
 
 QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
   QString title = "Edit " + taskName + " Settings";
+  qDebug() << title;
   QString prefix = "tasksDlg_" + taskName + "_";
+  qDebug() << prefix;
 
   return FOEDAG::createSettingsDialog("/Tasks/" + taskName, title, prefix);
 };
