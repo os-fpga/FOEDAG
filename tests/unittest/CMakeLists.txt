@@ -31,4 +31,4 @@ add_dependencies(UnitTests unittest)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
-target_link_libraries(unittest PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml gtest gmock foedag)
+target_link_libraries(unittest PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml gtest gmock gtest_main foedag)
