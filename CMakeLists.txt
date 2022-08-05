@@ -408,8 +408,8 @@ function(register_gtests)
 endfunction()
 
 register_gtests(
-  src/Tcl/HelloTcl_test.cpp
-  src/Command/Command_test.cpp
+  tests/unittest/Tcl/TclInterpreter_test.cpp
+  tests/unittest/Command/Command_test.cpp
 )
 
 if (WIN OR APPLE)
