@@ -12,65 +12,89 @@ namespace {
 struct TrimTest: testing::Test {
     std::string initial_str;
 
-    TrimTest() : initial_str{" Google Test = GTest  "} {}
+    TrimTest() : initial_str{" Standard Template Library = STL  "} {}
 };
 
-TEST_F(TrimTest, SideTrimTest) {
-  auto input_str = initial_str;
-
-  const auto ltrimmed_str = StringUtils::ltrim(input_str);
-  EXPECT_EQ(ltrimmed_str, "Google Test = GTest  ");
-
-  const auto rltrimmed_str = StringUtils::rtrim(input_str);
-  EXPECT_EQ(rltrimmed_str, "Google Test = GTest");
-
-  const auto trimmed_str = StringUtils::trim(initial_str);
-  EXPECT_EQ(trimmed_str, rltrimmed_str);
+TEST_F(TrimTest, ltrimTest) {
+  const auto ltrimmed_str = StringUtils::ltrim(initial_str);
+  EXPECT_EQ(ltrimmed_str, "Standard Template Library = STL  ");
 }
 
-TEST_F(TrimTest, CharacterTrimTest) {
-auto ltrimmed_str = StringUtils::ltrim(initial_str, 'g');
-EXPECT_EQ(ltrimmed_str, "le Test = GTest  ");
+TEST_F(TrimTest, rtrimTest) {
+    const auto rltrimmed_str = StringUtils::rtrim(initial_str);
+    EXPECT_EQ(rltrimmed_str, " Standard Template Library = STL");
+}
 
-const auto rtrimmed_str = StringUtils::rtrim(ltrimmed_str, '=');
-EXPECT_EQ(rtrimmed_str, "le Test ");
+TEST_F(TrimTest, trimTest) {
+    const auto trimmed_str = StringUtils::trim(initial_str);
+    EXPECT_EQ(trimmed_str, "Standard Template Library = STL");
+}
 
-const auto rtrimmed_equal_str = StringUtils::rtrimEqual(initial_str);
-EXPECT_EQ(rtrimmed_str, rtrimmed_equal_str);
+TEST_F(TrimTest, characterLTrimTest) {
+    auto ltrimmed_str = StringUtils::ltrim(initial_str, '=');
+    EXPECT_EQ(ltrimmed_str, " STL  ");
+}
+
+TEST_F(TrimTest, characterRTrimTest) {
+    const auto rtrimmed_str = StringUtils::rtrim(initial_str, '=');
+    EXPECT_EQ(rtrimmed_str, " Standard Template Library ");
+}
+
+TEST_F(TrimTest, rtrimEqualTest) {
+    const auto rtrimmed_equal_str = StringUtils::rtrimEqual(initial_str);
+    EXPECT_EQ(rtrimmed_equal_str, " Standard Template Library ");
+}
+
+struct MultiLineTest: testing::Test {
+    std::string multiline_str;
+
+    MultiLineTest() : multiline_str{"This program is free software.\nThis program is distributed.\nHope that this program will be useful."} {}
+};
+
+TEST_F(MultiLineTest, splitLinesTest) {
+    const auto lines = StringUtils::splitLines(multiline_str);
+    ASSERT_EQ(lines.size(), 3);
+    EXPECT_EQ(*lines.rbegin(), "Hope that this program will be useful.");
+}
+
+TEST_F(MultiLineTest, lineInStringTest) {
+    const auto last_line = StringUtils::getLineInString(multiline_str, 3);
+    EXPECT_EQ(last_line, "Hope that this program will be useful.");
+}
+
+TEST_F(MultiLineTest, replaceStringTest) {
+    const auto replaced_str = StringUtils::replaceAll(multiline_str, "This program", "It");
+    EXPECT_EQ(replaced_str, "It is free software.\nIt is distributed.\nHope that this program will be useful.");
+}
+
+TEST_F(MultiLineTest, tokenizeTest) {
+    auto tokenized_lines = std::vector<std::string>{};
+    StringUtils::tokenize(multiline_str, "\n", tokenized_lines);
+    ASSERT_EQ(tokenized_lines.size(), 3);
+    EXPECT_EQ(*tokenized_lines.rbegin(), "Hope that this program will be useful.");
 }
 
 TEST(StringUtilsTest, LeafTest) {
-    const auto input_str = std::string("RapidSilicon.Raptor.Foedag");
+    const auto input_str = std::string("tests.unittest.utils");
     const auto leaf_str = StringUtils::leaf(input_str);
-    EXPECT_EQ(leaf_str, "Foedag");
+    EXPECT_EQ(leaf_str, "utils");
 }
 
-TEST(StringUtilsTest, MultiLineTest) {
-    const auto input_str = std::string("This program is free software.\nThis program is distributed.\nHope that this program will be useful.");
-    const auto lines = StringUtils::splitLines(input_str);
-    ASSERT_EQ(lines.size(), 3);
-
-    const auto last_line = StringUtils::getLineInString(input_str, lines.size());
-    EXPECT_EQ(*lines.rbegin(), last_line);
-
-    const auto replaced_str = StringUtils::replaceAll(last_line, "this program", "it");
-    EXPECT_EQ(replaced_str, "Hope that it will be useful.");
-
-    auto tokenized_lines = std::vector<std::string>{};
-    StringUtils::tokenize(input_str, "\n", tokenized_lines);
-    EXPECT_EQ(lines.size(), tokenized_lines.size());
-}
-
-TEST(StringUtilsTest, MiscTest) {
+TEST(StringUtilsTest, toStringTest) {
     const auto dbl_str = std::string("3.000");
     ASSERT_EQ(StringUtils::to_string(3.0), dbl_str);
+}
 
+TEST(StringUtilsTest, removeCommentsTest) {
     const auto comment = std::string("// Index initialization");
     const auto code = std::string("\n auto i = 0;");
     EXPECT_EQ(StringUtils::removeComments(comment + code), code);
+}
 
-    const auto quoted_double = "\"" + dbl_str + "\"";
-    EXPECT_EQ(StringUtils::unquoted(quoted_double), dbl_str);
+TEST(StringUtilsTest, unquotedTest) {
+    const auto unittest_str = std::string("unquotedTest");
+    const auto quoted_unittest = "\"" + unittest_str + "\"";
+    EXPECT_EQ(StringUtils::unquoted(quoted_unittest), unittest_str);
 }
 
 }  // namespace
