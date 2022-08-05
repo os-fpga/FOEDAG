@@ -371,11 +371,6 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
-
-# All unit-tests are registered with this custom target as dependency, so
-# just `make UnitTests` will build them all.
-add_custom_target(UnitTests)
-
 # Concise way to register a new google test
 # call with register_gtest(path/to/UnitTestFile.cpp)
 function(register_gtests)
