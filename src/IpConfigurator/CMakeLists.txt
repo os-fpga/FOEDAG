@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
 else()
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
+  set(CMAKE_CXX_FLAGS_DEBUG
+  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
 endif()
 
@@ -37,7 +38,7 @@ set (SRC_H_INSTALL_LIST
   IpTreesWidget.h
 )
 
-set (SRC_CPP_LIST
+set (SRC_H_LIST
     ${SRC_H_INSTALL_LIST}
 )
 
@@ -53,13 +54,8 @@ add_library(ipconfigurator STATIC
 target_link_libraries(ipconfigurator PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
 target_compile_definitions(ipconfigurator PRIVATE IPCONFIGURATOR_LIBRARY)
 
-set(IPCONFIGURATOR_STATIC_LIB libipconfigurator.a)
-if (MSVC)
-	set(IPCONFIGURATOR_STATIC_LIB ipconfigurator.lib)
-endif()
-
 install (
-	FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${IPCONFIGURATOR_STATIC_LIB}
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:ipconfigurator>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 foreach(file ${SRC_H_INSTALL_LIST})

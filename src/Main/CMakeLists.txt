@@ -58,11 +58,6 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   ../Main/AboutWidget.cpp
   ../MainWindow/mainwindowmodel.cpp
-  ../IpConfigurator/IpCatalogTree.cpp
-  ../IpConfigurator/IpInstancesTree.cpp
-  ../IpConfigurator/IpConfigDlg.cpp
-  ../IpConfigurator/IpTreesWidget.cpp
-  ../IpConfigurator/IpConfigurator.cpp
   CompilerNotifier.cpp
 )
 
@@ -87,11 +82,6 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/AboutWidget.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
-  ../IpConfigurator/IpCatalogTree.h
-  ../IpConfigurator/IpInstancesTree.h
-  ../IpConfigurator/IpConfigDlg.h
-  ../IpConfigurator/IpTreesWidget.h
-  ../IpConfigurator/IpConfigurator.h
   CompilerNotifier.h
 )
 
@@ -123,7 +113,7 @@ else()
 endif()
 
 #target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick compiler)
-target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler ipconfigurator)
+target_link_libraries(foedagcore PUBLIC  Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml compiler)
 target_compile_definitions(foedagcore PUBLIC FOEDAG_CORE_LIBRARY)
 
 set(FOEDAG_CORE_STATIC_LIB libfoedagcore.a)
