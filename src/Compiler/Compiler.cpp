@@ -838,6 +838,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1037,6 +1039,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1421,18 +1425,6 @@ bool Compiler::GenerateBitstream() {
 
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated!" << std::endl;
-  return true;
-}
-
-bool Compiler::VerifyTargetDevice() const {
-  return !ProjManager()->getTargetDevice().empty();
-}
-
-bool Compiler::HasTargetDevice() {
-  if (!VerifyTargetDevice()) {
-    ErrorMessage("Please specify target device or architecture file");
-    return false;
-  }
   return true;
 }
 

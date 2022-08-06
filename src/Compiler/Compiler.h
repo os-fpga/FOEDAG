@@ -74,7 +74,7 @@ class Compiler {
   enum class PlacementOpt { None, Clean };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean, View };
+  enum class STAOpt { None, Clean, View, Opensta};
   enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
 
   // Most common use case, create the compiler in your main
@@ -101,7 +101,7 @@ class Compiler {
   bool Clear();
   void start();
   void finish();
-  class ProjectManager* ProjManager() const {
+  class ProjectManager* ProjManager() {
     return m_projManager;
   }
   std::string& getResult() { return m_result; }
@@ -167,13 +167,6 @@ class Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-
-  /*!
-   * \brief CheckTargetDevice
-   * \return true if target device is set otherwise return false
-   */
-  virtual bool VerifyTargetDevice() const;
-  bool HasTargetDevice();
 
   bool CreateDesign(const std::string& name);
   static void PrintVersion(std::ostream* out);
