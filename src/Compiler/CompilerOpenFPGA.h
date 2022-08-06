@@ -124,6 +124,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual std::string InitOpenFPGAScript();
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool VerifyTargetDevice() const;
   std::filesystem::path m_yosysExecutablePath = "yosys";
   SynthesisType m_synthType = SynthesisType::Yosys;
   std::string m_yosysPluginLib;
@@ -136,10 +137,17 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
-  std::filesystem::path m_architectureFile =
-      "tests/Arch/k6_frac_N10_tileable_40nm.xml";
-  std::filesystem::path m_OpenFpgaArchitectureFile =
-      "tests/Arch/k6_N10_40nm_openfpga.xml";
+  /*!
+   * \brief m_architectureFile
+   * We required from user explicitly specify architecture file.
+   */
+  std::filesystem::path m_architectureFile;
+
+  /*!
+   * \brief m_OpenFpgaArchitectureFile
+   * We required from user explicitly specify openfpga architecture file.
+   */
+  std::filesystem::path m_OpenFpgaArchitectureFile;
   std::filesystem::path m_OpenFpgaSimSettingFile =
       "tests/Arch/fixed_sim_openfpga.xml";
   std::filesystem::path m_OpenFpgaBitstreamSettingFile =

@@ -101,7 +101,7 @@ class Compiler {
   bool Clear();
   void start();
   void finish();
-  class ProjectManager* ProjManager() {
+  class ProjectManager* ProjManager() const {
     return m_projManager;
   }
   std::string& getResult() { return m_result; }
@@ -167,6 +167,13 @@ class Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
+
+  /*!
+   * \brief CheckTargetDevice
+   * \return true if target device is set otherwise return false
+   */
+  virtual bool VerifyTargetDevice() const;
+  bool HasTargetDevice();
 
   bool CreateDesign(const std::string& name);
   static void PrintVersion(std::ostream* out);

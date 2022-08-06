@@ -502,9 +502,16 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   return true;
 }
 
+bool CompilerOpenFPGA::VerifyTargetDevice() const {
+  const bool target = Compiler::VerifyTargetDevice();
+  const bool archFile = FileUtils::FileExists(m_architectureFile);
+  return target || archFile;
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
-  PERF_LOG("IPGenerate has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+  PERF_LOG("IPGenerate has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
            << std::endl;
@@ -603,8 +610,10 @@ bool CompilerOpenFPGA::Synthesize() {
         std::string(ProjManager()->projectName() + "_post_synth.v"));
     return true;
   }
-  PERF_LOG("Synthesize has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Synthesize has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Synthesis for design: " << ProjManager()->projectName()
            << std::endl;
@@ -912,7 +921,7 @@ bool CompilerOpenFPGA::Packing() {
         std::string(ProjManager()->projectName() + "_post_synth.net"));
     return true;
   }
-  PERF_LOG("Packing has started");
+  if (!HasTargetDevice()) return false;
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -921,6 +930,7 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+  PERF_LOG("Packing has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Packing for design: " << ProjManager()->projectName()
            << std::endl;
@@ -986,7 +996,6 @@ bool CompilerOpenFPGA::Packing() {
 }
 
 bool CompilerOpenFPGA::GlobalPlacement() {
-  PERF_LOG("GlobalPlacement has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1003,6 +1012,9 @@ bool CompilerOpenFPGA::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("GlobalPlacement has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1015,7 +1027,6 @@ bool CompilerOpenFPGA::GlobalPlacement() {
 }
 
 bool CompilerOpenFPGA::Placement() {
-  PERF_LOG("Placement has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1034,6 +1045,9 @@ bool CompilerOpenFPGA::Placement() {
     ErrorMessage("Design needs to be in packed or globally placed state");
     return false;
   }
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Placement has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Placement for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1189,7 +1203,6 @@ bool CompilerOpenFPGA::Placement() {
 }
 
 bool CompilerOpenFPGA::Route() {
-  PERF_LOG("Route has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1207,6 +1220,8 @@ bool CompilerOpenFPGA::Route() {
     ErrorMessage("Design needs to be in placed state");
     return false;
   }
+  if (!HasTargetDevice()) return false;
+  PERF_LOG("Route has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Routing for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1248,11 +1263,12 @@ bool CompilerOpenFPGA::Route() {
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
-  PERF_LOG("TimingAnalysis has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
+  if (!HasTargetDevice()) return false;
+  PERF_LOG("TimingAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1274,6 +1290,17 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return true;
   }
 
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " timing didn't change" << std::endl;
+    return true;
+  }
   int status = 0;
   std::string taCommand;
   // use OpenSTA to do the job
@@ -1329,11 +1356,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
-  PERF_LOG("PowerAnalysis has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
+  if (!HasTargetDevice()) return false;
+  PERF_LOG("PowerAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1500,9 +1528,14 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
-  PERF_LOG("GenerateBitstream has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
+    return false;
+  }
+  if (!HasTargetDevice()) return false;
+  const bool openFpgaArch = FileUtils::FileExists(m_OpenFpgaArchitectureFile);
+  if (!openFpgaArch) {
+    ErrorMessage("Please specify OpenFPGA architecture file");
     return false;
   }
   if (BitsOpt() == BitstreamOpt::Clean) {
@@ -1524,6 +1557,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
       return false;
     }
   }
+  PERF_LOG("GenerateBitstream has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Bitstream generation for design \""
            << ProjManager()->projectName() << "\" on device \""
