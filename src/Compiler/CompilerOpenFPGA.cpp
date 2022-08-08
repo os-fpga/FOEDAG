@@ -139,6 +139,13 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
+  (*out) << "   place <Pin Loc Assign Method> : Pin Loc "
+            "Assign Method "
+            "(DefineOrder(Default), "
+            "Random)"
+         << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: (DefineOrder(Default)/Random)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
@@ -885,6 +892,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
                   std::string(ProjManager()->projectName() + "_openfpga.sdc") +
                   std::string(" --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
+
   return command;
 }
 

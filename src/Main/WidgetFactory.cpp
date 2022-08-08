@@ -55,7 +55,7 @@ tclArgFnMap TclArgFnLookup = {
     {"Tasks_Synthesis",
      {FOEDAG::TclArgs_setSynthesisOptions,
       FOEDAG::TclArgs_getSynthesisOptions}},
-    // {"Placement", {set,get}},
+    //{"Placement", {set,get}},
     // {"Routing", {set,get}},
     {"TclExample",
      {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}},

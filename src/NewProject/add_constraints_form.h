@@ -21,6 +21,12 @@ class addConstraintsForm : public QWidget {
   QList<filedata> getFileData();
   bool IsCopySource();
 
+ private slots:
+  void on_select_random_clicked(bool random_checked);
+
+ private slots:
+  void on_select_defineOrder_clicked(bool define_order_checked);
+
  private:
   Ui::addConstraintsForm *ui;
 

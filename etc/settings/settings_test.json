@@ -222,14 +222,13 @@
                 "widgetType": "radiobuttons",
                 "options": [
                     "Random",
-                    "In Define Order"
+                    "DefineOrder"
                 ],
                 "optionsLookup":[
                     "Random",
-                    "In Define Order"
-                    
+                    "DefineOrder"
                 ],
-                "layout": "horizontal",
+                "layout": "horizontal", 
                 "arg": "_PlaceOpt_"
             },
             "_META_": {
@@ -259,7 +258,7 @@
                 ],
                 "layout": "horizontal",
                 "default": "b1",
-                "arg": "_placeOpt_"
+                "arg": "_routeOpt_"
             },
             "_META_": {
                 "hidden": false,
