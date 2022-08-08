@@ -24,10 +24,13 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
-add_executable(unittest unittest_main.cpp
+set (CPP_LIST
     Tcl/TclInterpreter_test.cpp
     Command/Command_test.cpp
-    Utils/StringUtils_test.cpp)
+    Utils/StringUtils_test.cpp
+)
+
+add_executable(unittest unittest_main.cpp ${CPP_LIST})
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
