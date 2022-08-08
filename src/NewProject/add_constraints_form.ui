@@ -112,11 +112,17 @@
               <property name="acceptDrops">
                <bool>false</bool>
               </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
               <property name="text">
                <string>In Define Order</string>
               </property>
-              <property name="checked">
+              <property name="checkable">
                <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
