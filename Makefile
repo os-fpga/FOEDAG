@@ -66,15 +66,15 @@ run-cmake-coverage:
 
 test/unittest: run-cmake-release
 	cmake --build build --target unittest -j $(CPU_CORES)
-	pushd build && ctest --output-on-failure && popd
+	pushd build && tests/unittest/unittest --output-on-failure && popd
 
 test/unittest-d: run-cmake-debug
 	cmake --build dbuild --target unittest -j $(CPU_CORES)
-	pushd dbuild && ctest --output-on-failure && popd
+	pushd dbuild && tests/unittest/unittest --output-on-failure && popd
 
 test/unittest-coverage: run-cmake-coverage
 	cmake --build coverage-build --target unittest -j $(CPU_CORES)
-	pushd coverage-build && ctest --output-on-failure && popd
+	pushd coverage-build && tests/unittest/unittest --output-on-failure && popd
 
 coverage-build/foedag.coverage: test/unittest-coverage
 	lcov --no-external --exclude "*_test.cpp" --capture --directory coverage-build/CMakeFiles/foedag.dir --base-directory src --output-file coverage-build/foedag.coverage
