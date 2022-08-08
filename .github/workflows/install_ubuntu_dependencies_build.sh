@@ -13,6 +13,7 @@ sudo apt install -y \
   valgrind \
   xorg \
   qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
+  libxcb libxcb-devel xcb-util xcb-util-devel \
   xvfb \
   yosys
 
