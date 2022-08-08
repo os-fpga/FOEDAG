@@ -42,7 +42,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Log.h"
-#include "Compiler/ProcessUtils.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
@@ -51,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
+#include "Utils/ProcessUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -58,6 +58,79 @@ using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
 bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  auto add_litex_ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    Compiler* compiler = generator->GetCompiler();
+    if (argc < 2) {
+      compiler->ErrorMessage(
+          "Missing directory path for LiteX ip generator(s)");
+    }
+    const std::string file = argv[1];
+    std::string expandedFile = file;
+    bool use_orig_path = false;
+    if (FileUtils::FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+    std::filesystem::path the_path = expandedFile;
+    if (!the_path.is_absolute()) {
+      const auto& path = std::filesystem::current_path();
+      expandedFile = std::filesystem::path(path / expandedFile).string();
+    }
+    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
+
+  auto ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    Compiler* compiler = generator->GetCompiler();
+    bool status = true;
+    if (argc == 1) {
+      // List all IPs
+      std::string ips;
+      for (auto def : generator->Catalog()->Definitions()) {
+        ips += def->Name() + " ";
+      }
+      compiler->TclInterp()->setResult(ips);
+    } else if (argc == 2) {
+      std::string ip_def;
+      for (auto def : generator->Catalog()->Definitions()) {
+        if (argv[1] == def->Name()) {
+          for (auto param : def->Parameters()) {
+            std::string defaultValue;
+            switch (param->GetType()) {
+              case Value::Type::ParamInt:
+                defaultValue = std::to_string(param->GetValue());
+                break;
+              case Value::Type::ParamString:
+                defaultValue = param->GetSValue();
+                break;
+              case Value::Type::ConstInt:
+                defaultValue = std::to_string(param->GetValue());
+                break;
+            }
+            ip_def += "{" + param->Name() + " " + defaultValue + "} ";
+          }
+        }
+      }
+      compiler->TclInterp()->setResult(ip_def);
+    }
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("ip_catalog", ip_catalog, this, 0);
+
   auto configure_ip = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     bool ok = true;
@@ -190,30 +263,8 @@ bool IPGenerator::Generate() {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
 
-    std::filesystem::path expandedFile = out_path;
-    bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
-      use_orig_path = true;
-    }
-
-    if ((!use_orig_path) &&
-        (!compiler->GetSession()->CmdLine()->Script().empty())) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath = fullPath / out_path;
-      expandedFile = fullPath.string();
-    }
-    std::filesystem::path the_path = expandedFile;
-    if (!the_path.is_absolute()) {
-      expandedFile =
-          std::filesystem::path(compiler->ProjManager()->projectPath() /
-                                std::filesystem::path("..") / expandedFile);
-    }
-    std::string p = expandedFile.string();
-    if (!std::filesystem::exists(expandedFile)) {
-      std::filesystem::create_directories(expandedFile.parent_path());
+    if (!std::filesystem::exists(out_path)) {
+      std::filesystem::create_directories(out_path.parent_path());
     }
 
     const IPDefinition* def = inst->Definition();
@@ -229,7 +280,7 @@ bool IPGenerator::Generate() {
         std::filesystem::path jasonfile =
             std::filesystem::path(project) / ip_config_file;
         std::stringstream previousbuffer;
-        if (FileUtils::fileExists(jasonfile)) {
+        if (FileUtils::FileExists(jasonfile)) {
           std::ifstream previous(jasonfile);
           std::stringstream buffer;
           previousbuffer << previous.rdbuf();
@@ -262,21 +313,23 @@ bool IPGenerator::Generate() {
         jsonF << "}" << std::endl;
         jsonF.close();
         std::stringstream newbuffer;
-        if (FileUtils::fileExists(jasonfile)) {
+        if (FileUtils::FileExists(jasonfile)) {
           std::ifstream newfile(jasonfile);
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
         std::filesystem::path python3Path =
-            FileUtils::locateExecFile("python3");
+            FileUtils::LocateExecFile("python3");
         std::string command = python3Path.string() + " " + executable.string() +
                               " --build --json " + jasonfile.string();
         std::ostringstream help;
+
         if (newbuffer.str() == previousbuffer.str()) {
           m_compiler->Message("IP Generate, reusing IP " +
                               inst->OutputFile().string());
           continue;
         }
+
         m_compiler->Message("IP Generate, generating IP " +
                             inst->OutputFile().string());
         if (FileUtils::ExecuteSystemCommand(command, &help)) {

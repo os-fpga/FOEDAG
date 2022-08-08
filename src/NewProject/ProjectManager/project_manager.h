@@ -125,6 +125,10 @@ class ProjectManager : public QObject {
     EC_ProjRunNotExist = -2,
     EC_FileNotExist = -3,
   };
+  struct ErrorInfo {
+    ErrorCode code;
+    QString message = QString();
+  };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
@@ -147,8 +151,8 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  int addDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
-                     bool localToProject = true);
+  ErrorInfo addDesignFiles(const QString &fileNames, int lang,
+                           bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
                      bool localToProject = true);
   // Please set currentfileset before using this function
@@ -185,6 +189,7 @@ class ProjectManager : public QObject {
   int setConstrActive(const QString &strSetName);
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
+  std::vector<std::string> getConstrFiles() const;
 
   int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;
@@ -217,6 +222,7 @@ class ProjectManager : public QObject {
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+  QString getSynthOption(const QString &optionName) const;
 
   int setRunActive(const QString &strRunName);
 

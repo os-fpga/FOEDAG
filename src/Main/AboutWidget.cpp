@@ -32,14 +32,18 @@ AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
     : QDialog{parent} {
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
-  label->setText(QString("<p><b>%1 %2</b></p>"
-                         "<p>Build on %3</p>"
-                         "<p>From revision <a "
-                         "href=\"%4%5\">%5</a></p>"
-                         "<p>Build type: %6</p>"
-                         "<p>%7</p>")
+  QString text = QString(
+                     "<p><b>%1 %2</b></p>"
+                     "<p>Build on %3</p>"
+                     "<p>From revision <a "
+                     "href=\"%4%5\">%5</a></p>"
+                     "<p>Build type: %6</p>")
                      .arg(info.name, info.version, __DATE__, info.url,
-                          info.git_hash, info.build_type, License()));
+                          info.git_hash, info.build_type);
+  if (info.showLicense) {
+    text += QString("<p>%1</p>").arg(License());
+  }
+  label->setText(text);
   label->setAlignment(Qt::AlignTop);
   connect(label, &QLabel::linkActivated, this, [this](const QString &link) {
     QDesktopServices::openUrl(QUrl(link));

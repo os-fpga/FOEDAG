@@ -161,3 +161,7 @@ std::string TclInterpreter::TclStackTrace(int code) const {
   Tcl_DecrRefCount(options);
   return output;
 }
+
+void TclInterpreter::setResult(const std::string &result) {
+  Tcl_SetResult(interp, (char *)result.c_str(), TCL_VOLATILE);
+}

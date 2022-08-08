@@ -17,6 +17,8 @@ ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
   QObject::connect(Project::Instance(), &Project::projectPathChanged, this,
                    &ProjectManager::projectPathChanged);
+  QObject::connect(this, &ProjectManager::saveFile, Project::Instance(),
+                   &Project::saveFile);
 }
 
 void ProjectManager::CreateProject(const ProjectOptions& opt) {
@@ -86,22 +88,27 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentRun(DEFAULT_FOLDER_SYNTH);
 
-  QStringList strlist = opt.device;
-  QList<QPair<QString, QString>> listParam;
-  QPair<QString, QString> pair;
-  pair.first = PROJECT_PART_SERIES;
-  pair.second = strlist.at(0);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_FAMILY;
-  pair.second = strlist.at(1);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_PACKAGE;
-  pair.second = strlist.at(2);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_DEVICE;
-  pair.second = strlist.at(3);
-  listParam.append(pair);
-  setSynthesisOption(listParam);
+  if (opt.device.count() >= 4) {
+    QStringList strlist = opt.device;
+    QList<QPair<QString, QString>> listParam;
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_PART_SERIES;
+    pair.second = strlist.at(0);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_FAMILY;
+    pair.second = strlist.at(1);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_PACKAGE;
+    pair.second = strlist.at(2);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = strlist.at(3);
+    listParam.append(pair);
+    setSynthesisOption(listParam);
+
+    auto targetDevice = strlist.at(3);
+    target_device(targetDevice);
+  }
 
   FinishedProject();
 }
@@ -341,29 +348,32 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
-int ProjectManager::addDesignFiles(const QString& fileNames, int lang,
-                                   bool isFileCopy, bool localToProject) {
+ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
+    const QString& fileNames, int lang, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
-  if (nullptr == proFileSet) return EC_FileSetNotExist;
+  if (nullptr == proFileSet) return {EC_FileSetNotExist};
 
   const QStringList fileList = StringSplit(fileNames, " ");
 
   // check file exists
+  QStringList notExistingFiles;
   for (const auto& file : fileList) {
     if (const QFileInfo fileInfo{file}; !fileInfo.exists())
-      return EC_FileNotExist;
+      notExistingFiles.append(file);
   }
+  if (!notExistingFiles.isEmpty())
+    return {EC_FileNotExist, notExistingFiles.join(", ")};
 
   proFileSet->addFiles(fileList, lang);
 
-  int result{EC_Success};
+  auto result{EC_Success};
   for (const auto& file : fileList) {
     const int res = setDesignFile(file, isFileCopy, false);
-    if (res != EC_Success) result = res;
+    if (res != EC_Success) result = static_cast<ErrorCode>(res);
   }
-  return result;
+  return {result};
 }
 
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
@@ -375,7 +385,19 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
   if (nullptr == proFileSet) {
     return -1;
   }
-  proFileSet->addFiles(fileList, lang);
+
+  if (localToProject) {
+    const auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    QStringList fullPathFileList;
+    for (const auto& file : fileList) {
+      fullPathFileList.append(QString("%1/%2").arg(path, file));
+    }
+    proFileSet->addFiles(fullPathFileList, lang);
+  } else {
+    proFileSet->addFiles(fileList, lang);
+  }
 
   int result{0};
   for (const auto& file : fileList) {
@@ -500,16 +522,19 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
       suffix = QFileInfo(strfile).suffix();
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
+        if (ret == 0) ret = FOEDAG::read_sdc(strfile);
       }
     }
   } else if (fileInfo.exists()) {
     if (m_constrSuffixes.TestSuffix(suffix)) {
       ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
+      if (ret == 0) ret = FOEDAG::read_sdc(strFileName);
     }
   } else {
     if (strFileName.contains("/")) {
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = CreateAndAddFile(suffix, strFileName, strFileName, false);
+        if (ret == 0) ret = FOEDAG::read_sdc(strFileName);
       }
     } else {
       QString filePath = ProjectFilesPath(Project::Instance()->projectPath(),
@@ -522,6 +547,7 @@ int ProjectManager::setConstrsFile(const QString& strFileName, bool isFileCopy,
       fileSetPath += "/" + strFileName;
       if (m_constrSuffixes.TestSuffix(suffix)) {
         ret = CreateAndAddFile(suffix, filePath, fileSetPath, false);
+        if (ret == 0) ret = FOEDAG::read_sdc(filePath);
       }
     }
   }
@@ -832,6 +858,18 @@ QString ProjectManager::getConstrTargetFile(const QString& strFileSet) const {
   return strTargetFile;
 }
 
+std::vector<std::string> ProjectManager::getConstrFiles() const {
+  std::vector<std::string> files;
+  for (const auto& set : getConstrFileSets()) {
+    for (const auto& file : getConstrFiles(set)) {
+      QString f{file};
+      f.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+      files.push_back(f.toStdString());
+    }
+  }
+  return files;
+}
+
 int ProjectManager::setSimulationFileSet(const QString& strSetName) {
   int ret = 0;
   ret = CreateSrcsFolder(strSetName);
@@ -1104,6 +1142,14 @@ int ProjectManager::setSynthesisOption(
     proRun->setOption(pair.first, pair.second);
   }
   return ret;
+}
+
+QString ProjectManager::getSynthOption(const QString& optionName) const {
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return {};
+  }
+  return proRun->getOption(optionName);
 }
 
 int ProjectManager::setRunActive(const QString& strRunName) {

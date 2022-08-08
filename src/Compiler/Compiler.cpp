@@ -52,9 +52,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
-#include "ProcessUtils.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
+#include "Utils/FileUtils.h"
+#include "Utils/ProcessUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -108,6 +109,9 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
+         << std::endl;
+  (*out) << "   ip_catalog ?<ip_name>?     : Lists all available IPs, and "
+            "their parameters if <ip_name> is given "
          << std::endl;
   (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
             "-version <ver_name> -P<param>=\"<value>\"..."
@@ -300,7 +304,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     bool ok = compiler->CreateDesign(name);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
-    if (!compiler->FileExists(name)) {
+    if (!FileUtils::FileExists(name)) {
       compiler->Message("Create design directory: " + name);
       bool created = std::filesystem::create_directory(name);
       if (!created) {
@@ -402,7 +406,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         const std::string file = argv[i];
         std::string expandedFile = file;
         bool use_orig_path = false;
-        if (compiler->FileExists(expandedFile)) {
+        if (FileUtils::FileExists(expandedFile)) {
           use_orig_path = true;
         }
 
@@ -464,7 +468,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     std::string expandedFile = file;
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -510,7 +514,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -546,7 +550,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -624,7 +628,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     const std::string file = argv[1];
     std::string expandedFile = file;
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -675,7 +679,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string opt = argv[i];
       std::string expandedFile = opt;
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
       if ((!use_orig_path) &&
@@ -687,7 +691,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(opt);
         expandedFile = fullPath.string();
       }
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         std::filesystem::path p = expandedFile;
         p = std::filesystem::absolute(p);
         opt = p.string();
@@ -720,39 +724,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("synth_options", synth_options, this, 0);
-
-  auto add_litex_ip_catalog = [](void* clientData, Tcl_Interp* interp, int argc,
-                                 const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    if (argc < 2) {
-      compiler->ErrorMessage(
-          "Missing directory path for LiteX ip generator(s)");
-    }
-    const std::string file = argv[1];
-    std::string expandedFile = file;
-    bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
-      use_orig_path = true;
-    }
-
-    if ((!use_orig_path) &&
-        (!compiler->GetSession()->CmdLine()->Script().empty())) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
-    }
-    std::filesystem::path the_path = expandedFile;
-    if (!the_path.is_absolute()) {
-      const auto& path = std::filesystem::current_path();
-      expandedFile = std::filesystem::path(path / expandedFile).string();
-    }
-    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
-    return (status) ? TCL_OK : TCL_ERROR;
-  };
-  interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
 
   // Long runtime commands have to have different scheduling in batch and GUI
   // modes
@@ -1453,6 +1424,18 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
+bool Compiler::VerifyTargetDevice() const {
+  return !ProjManager()->getTargetDevice().empty();
+}
+
+bool Compiler::HasTargetDevice() {
+  if (!VerifyTargetDevice()) {
+    ErrorMessage("Please specify target device or architecture file");
+    return false;
+  }
+  return true;
+}
+
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
@@ -1489,6 +1472,31 @@ bool Compiler::ExecuteSystemCommand(const std::string& command) {
 #endif
 
   return false;
+}
+
+const std::string Compiler::GetNetlistPath() {
+  std::string netlistFile =
+      (std::filesystem::path(ProjManager()->projectPath()) /
+       (ProjManager()->projectName() + "_post_synth.blif"))
+          .string();
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        netlistFile = lang_file.second;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile = std::filesystem::path(netlistFile).string();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return netlistFile;
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
@@ -1555,61 +1563,4 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
     start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
   }
   return result;
-}
-
-bool Compiler::FileExists(const std::filesystem::path& name) {
-  std::error_code ec;
-  return std::filesystem::exists(name, ec);
-}
-
-time_t Compiler::Mtime(const std::filesystem::path& path) {
-  std::string cpath = path.string();
-  struct stat statbuf;
-  if (stat(cpath.c_str(), &statbuf) == -1) {
-    return -1;
-  }
-  return statbuf.st_mtime;
-}
-
-std::string& Compiler::Ltrim(std::string& str) {
-  auto it2 = std::find_if(str.begin(), str.end(), [](char ch) {
-    return !std::isspace<char>(ch, std::locale::classic());
-  });
-  str.erase(str.begin(), it2);
-  return str;
-}
-
-std::string& Compiler::Rtrim(std::string& str) {
-  auto it1 = std::find_if(str.rbegin(), str.rend(), [](char ch) {
-    return !std::isspace<char>(ch, std::locale::classic());
-  });
-  str.erase(it1.base(), str.end());
-  return str;
-}
-
-void Compiler::Tokenize(std::string_view str, std::string_view separator,
-                        std::vector<std::string>& result) {
-  std::string tmp;
-  const unsigned int sepSize = separator.size();
-  const unsigned int stringSize = str.size();
-  for (unsigned int i = 0; i < stringSize; i++) {
-    bool isSeparator = false;
-    for (unsigned int j = 0; j < sepSize; j++) {
-      if (str[i] == separator[j]) {
-        isSeparator = true;
-        break;
-      }
-    }
-    if (isSeparator) {
-      result.push_back(tmp);
-      tmp = "";
-      if (i == (str.size() - 1)) result.push_back(tmp);
-    } else if (i == (str.size() - 1)) {
-      tmp += str[i];
-      result.push_back(tmp);
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
-  }
 }

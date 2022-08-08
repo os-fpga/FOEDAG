@@ -106,6 +106,8 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
 
@@ -142,7 +144,8 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
-	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl --compiler test
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow_with_clean.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
@@ -154,7 +157,9 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag_negetive.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_ipconfigurator.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
@@ -165,11 +170,12 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/aurora --batch --script tests/TestBatch/test_ip_generate.tcl --compiler test
-	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl --compiler test
-	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl --compiler test
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl --compiler test
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl --compiler test
+	./build/bin/aurora --batch --script tests/TestBatch/test_ip_generate.tcl
+	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_stop.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)

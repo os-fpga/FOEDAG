@@ -45,6 +45,7 @@ extern "C" {
 #include "CommandLine.h"
 #include "Compiler/Log.h"
 #include "Foedag.h"
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
@@ -298,5 +299,7 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
       session->TclInterp()->registerCmd("EditTaskSettings", EditTaskSettingsFn,
                                         0, 0);
     }
+
+    FOEDAG::registerIpConfiguratorCommands(nullptr, session);
   }
 }
