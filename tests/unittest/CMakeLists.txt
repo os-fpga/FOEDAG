@@ -5,8 +5,6 @@ project(unittest LANGUAGES CXX)
 enable_testing()
 include(GoogleTest)
 
-include (../../cmake/cmake_qt.txt)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGTEST_LANGUAGE_CXX17)
@@ -34,6 +32,6 @@ add_executable(unittest unittest_main.cpp ${CPP_LIST})
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
-target_link_libraries(unittest PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml gtest gmock gtest_main foedag)
+target_link_libraries(unittest PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml qscintilla2_qt QConsole gtest gmock gtest_main foedag)
 
 add_test(NAME unittest COMMAND unittest)
