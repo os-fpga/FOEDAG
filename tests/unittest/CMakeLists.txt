@@ -24,10 +24,6 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
-# All unit-tests are registered with this custom target as dependency, so
-# just `make UnitTests` will build them all.
-add_custom_target(UnitTests)
-
 add_executable(unittest unittest_main.cpp
     Tcl/TclInterpreter_test.cpp
     Command/Command_test.cpp
@@ -38,9 +34,6 @@ gtest_discover_tests(unittest
     Command/Command_test.cpp
     Utils/StringUtils_test.cpp
     AUTO)
-
-# Link all unit tests with 'make UnitTests' command
-add_dependencies(UnitTests unittest)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
