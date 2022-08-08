@@ -71,7 +71,7 @@ class Compiler {
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
-  enum class PlacementOpt { None, Clean, Random, InDefineOrder };
+  enum class PlacementOpt { None, Clean, Random, DefineOrder };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
@@ -211,7 +211,7 @@ class Compiler {
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
-  PlacementOpt m_placementOpt = PlacementOpt::Random;
+  PlacementOpt m_placementOpt = PlacementOpt::DefineOrder;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
