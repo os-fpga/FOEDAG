@@ -104,6 +104,8 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
 
@@ -154,6 +156,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -168,6 +171,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
 
 lib-only: run-cmake-release

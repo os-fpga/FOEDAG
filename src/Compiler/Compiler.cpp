@@ -1424,6 +1424,18 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
+bool Compiler::VerifyTargetDevice() const {
+  return !ProjManager()->getTargetDevice().empty();
+}
+
+bool Compiler::HasTargetDevice() {
+  if (!VerifyTargetDevice()) {
+    ErrorMessage("Please specify target device or architecture file");
+    return false;
+  }
+  return true;
+}
+
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {

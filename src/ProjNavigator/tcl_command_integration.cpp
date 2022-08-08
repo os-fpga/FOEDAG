@@ -249,7 +249,7 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
                      "RTL",
                      {{}, false},
                      {{}, false},
-                     {"series1", "familyone", "SBG484", "fpga100t"},
+                     {},
                      true /*rewrite*/,
                      DEFAULT_FOLDER_SOURCE};
   m_projManager->CreateProject(opt);

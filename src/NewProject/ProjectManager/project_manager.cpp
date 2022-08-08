@@ -88,22 +88,27 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentRun(DEFAULT_FOLDER_SYNTH);
 
-  QStringList strlist = opt.device;
-  QList<QPair<QString, QString>> listParam;
-  QPair<QString, QString> pair;
-  pair.first = PROJECT_PART_SERIES;
-  pair.second = strlist.at(0);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_FAMILY;
-  pair.second = strlist.at(1);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_PACKAGE;
-  pair.second = strlist.at(2);
-  listParam.append(pair);
-  pair.first = PROJECT_PART_DEVICE;
-  pair.second = strlist.at(3);
-  listParam.append(pair);
-  setSynthesisOption(listParam);
+  if (opt.device.count() >= 4) {
+    QStringList strlist = opt.device;
+    QList<QPair<QString, QString>> listParam;
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_PART_SERIES;
+    pair.second = strlist.at(0);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_FAMILY;
+    pair.second = strlist.at(1);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_PACKAGE;
+    pair.second = strlist.at(2);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = strlist.at(3);
+    listParam.append(pair);
+    setSynthesisOption(listParam);
+
+    auto targetDevice = strlist.at(3);
+    target_device(targetDevice);
+  }
 
   FinishedProject();
 }
@@ -1137,6 +1142,14 @@ int ProjectManager::setSynthesisOption(
     proRun->setOption(pair.first, pair.second);
   }
   return ret;
+}
+
+QString ProjectManager::getSynthOption(const QString& optionName) const {
+  ProjectRun* proRun = Project::Instance()->getProjectRun(m_currentRun);
+  if (nullptr == proRun) {
+    return {};
+  }
+  return proRun->getOption(optionName);
 }
 
 int ProjectManager::setRunActive(const QString& strRunName) {

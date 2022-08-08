@@ -127,16 +127,18 @@ void TaskManager::startAll() {
   m_runStack.append(m_tasks[TIMING_SIGN_OFF]);
   m_runStack.append(m_tasks[POWER]);
   m_runStack.append(m_tasks[BITSTREAM]);
-  run();
+  m_taskCount = m_runStack.count();
   emit started();
+  run();
 }
 
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
   if (!t->isValid()) return;
   m_runStack.append(t);
-  run();
+  m_taskCount = m_runStack.count();
   emit started();
+  run();
 }
 
 void TaskManager::startTask(uint id) {
@@ -164,10 +166,19 @@ void TaskManager::runNext() {
     }
   }
 
-  if (m_runStack.isEmpty()) emit done();
+  if (m_runStack.isEmpty()) {
+    m_taskCount = std::nullopt;
+    emit done();
+  }
 }
 
-void TaskManager::run() { m_runStack.first()->trigger(); }
+void TaskManager::run() {
+  if (m_taskCount) {
+    const int max = m_taskCount.value();
+    emit progress(max - m_runStack.count(), max);
+  }
+  m_runStack.first()->trigger();
+}
 
 void TaskManager::reset() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
