@@ -28,6 +28,7 @@ set (CPP_LIST
     Utils/StringUtils_test.cpp
 )
 
+set (DISPLAY 0.0)
 add_executable(unittest unittest_main.cpp ${CPP_LIST})
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
