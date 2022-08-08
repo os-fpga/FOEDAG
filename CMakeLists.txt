@@ -354,10 +354,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
   target_link_libraries(foedag PRIVATE rt)
 endif()
 
-# Unit tests
-enable_testing()
-include(GoogleTest)
-
 if(MSVC)
   # Microsoft reports the value of __cplusplus wrong and gmock/gtest pulls in the
   # string_view implementation based on it's value. Microsoft's solution is to
