@@ -50,6 +50,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
+#include "Utils/StringUtils.h"
 #include "MainWindow/main_window.h"
 #include "Main/WidgetFactory.h"
 #include "Main/Settings.h"
@@ -138,6 +140,9 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
          << std::endl;
+  (*out) << "   ip_catalog ?<ip_name>?     : Lists all available IPs, and "
+            "their parameters if <ip_name> is given "
+         << std::endl;
   (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
             "-version <ver_name> -P<param>=\"<value>\"..."
          << std::endl;
@@ -157,6 +162,9 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
       << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
+  (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
+            "format"
+         << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
   (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
@@ -237,7 +245,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     for (int i = 1; i < argc; i++) {
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -301,7 +309,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       i++;
       std::string expandedFile = argv[i];
       bool use_orig_path = false;
-      if (compiler->FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
       }
 
@@ -355,7 +363,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
     std::string expandedFile = argv[1];
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -394,7 +402,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
     std::string expandedFile = argv[1];
     bool use_orig_path = false;
-    if (compiler->FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile)) {
       use_orig_path = true;
     }
 
@@ -446,6 +454,27 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_device_size", set_device_size, this, 0);
+
+  auto pnr_netlist_lang = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify the netlist type: verilog or blif");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if (arg == "verilog") {
+      compiler->UseVerilogNetlist(true);
+    } else if (arg == "blif") {
+      compiler->UseVerilogNetlist(false);
+    } else {
+      compiler->ErrorMessage(
+          "Invalid arg to netlist_type (verilog or blif), was: " + arg);
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("pnr_netlist_lang", pnr_netlist_lang, this, 0);
 
   auto verific_parser = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
@@ -1100,7 +1129,17 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   return true;
 }
 
+bool CompilerOpenFPGA_ql::VerifyTargetDevice() const {
+  const bool target = Compiler::VerifyTargetDevice();
+  const bool archFile = FileUtils::FileExists(m_architectureFile);
+  return target || archFile;
+}
+
 bool CompilerOpenFPGA_ql::IPGenerate() {
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+#if UPSTREAM_UNTESTED
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
   PERF_LOG("IPGenerate has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   (*m_out) << "##################################################" << std::endl;
@@ -1171,18 +1210,23 @@ bool CompilerOpenFPGA_ql::DesignChanged(
   bool result = false;
   auto path = std::filesystem::current_path();  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
+#if UPSTREAM_UNTESTED
+  std::string output =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+#endif // #if UPSTREAM_UNTESTED
   std::string output = ProjManager()->projectName() + "_post_synth.blif";
-  time_t time_netlist = Mtime(output);
+  time_t time_netlist = FileUtils::Mtime(output);
   if (time_netlist == -1) {
     result = true;
   }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     std::vector<std::string> tokens;
-    Tokenize(lang_file.second, " ", tokens);
+    StringUtils::tokenize(lang_file.second, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -1192,11 +1236,11 @@ bool CompilerOpenFPGA_ql::DesignChanged(
   }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
-    Tokenize(path, " ", tokens);
+    StringUtils::tokenize(path, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -1206,11 +1250,11 @@ bool CompilerOpenFPGA_ql::DesignChanged(
   }
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
-    Tokenize(path, " ", tokens);
+    StringUtils::tokenize(path, " ", tokens);
     for (auto file : tokens) {
-      file = Trim(file);
+      file = StringUtils::trim(file);
       if (file.size()) {
-        time_t tf = Mtime(file);
+        time_t tf = FileUtils::Mtime(file);
         if ((tf > time_netlist) || (tf == -1)) {
           result = true;
           break;
@@ -1245,8 +1289,11 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         std::string(ProjManager()->projectName() + "_post_synth.v"));
     return true;
   }
-  PERF_LOG("Synthesize has started");
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+#if UPSTREAM_UNTESTED  
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+  PERF_LOG("Synthesize has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Synthesis for design: " << ProjManager()->projectName()
            << std::endl;
@@ -1271,6 +1318,19 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         break;
     }
   }
+#if UPSTREAM_UNTESTED
+  // update constraints
+  const auto& constrFiles = ProjManager()->getConstrFiles();
+  for (const auto& file : constrFiles) {
+    int res{TCL_OK};
+    auto status =
+        m_interp->evalCmd(std::string("read_sdc {" + file + "}").c_str(), &res);
+    if (res != TCL_OK) {
+      ErrorMessage(status);
+      return false;
+    }
+  }
+#endif // #if UPSTREAM_UNTESTED
 
   if (m_useVerific) {
     // Verific parser
@@ -1354,15 +1414,17 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 #endif // #ifdef _WIN32
 
     std::string macros = "";
-    //std::string macros = "verilog_defines ";
-    //for (auto& macro_value : ProjManager()->macroList()) {
-    //  macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
-    //}
-    //macros += "\n";
-    //std::string includes;
-    //for (auto path : ProjManager()->includePathList()) {
-    //  includes += "-I" + path + " ";
-    // }
+#if UPSTREAM_UNTESTED
+    std::string macros = "verilog_defines ";
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    }
+    macros += "\n";
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += "-I" + path + " ";
+    }
+#endif // #if UPSTREAM_UNTESTED
 
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
                              macros +
@@ -1395,6 +1457,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
           break;
       }
     }
+#if UPSTREAM_UNTESTED
+    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
+#endif // #if UPSTREAM_UNTESTED
     std::string options = lang;
     options += " -nolatches";
     yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
@@ -1504,10 +1569,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   std::ofstream ofs(script_path);
   ofs << yosysScript;
   ofs.close();
-//   if (!FileExists(m_yosysExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
-//     return false;
-//   }
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_yosysExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
+    return false;
+  }
+#endif // #if UPSTREAM_UNTESTED
   std::string command =
       m_yosysExecutablePath.string() + " -s " +
       std::string(ProjManager()->projectName() + ".ys -l " +
@@ -1530,7 +1597,10 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 std::string CompilerOpenFPGA_ql::InitSynthesisScript() {
   // Default or custom Yosys script
   if (m_yosysScript.empty()) {
-    m_yosysScript = qlYosysScript;//basicYosysScript;
+#if UPSTREAM_UNTESTED
+    m_yosysScript = basicYosysScript;
+#endif // #if UPSTREAM_UNTESTED
+    m_yosysScript = qlYosysScript;
   }
   return m_yosysScript;
 }
@@ -1578,6 +1648,12 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   std::string vpr_options;
 
   // parse vpr general options
+#if UPSTREAM_UNTESTED
+  std::string device_size = "";
+  if (!m_deviceSize.empty()) {
+    device_size = " --device " + m_deviceSize;
+  }
+#endif // #if UPSTREAM_UNTESTED
   if(settings_vpr_general_obj.contains("device")) {
     vpr_options += std::string(" --device") + 
                     std::string(" ") + 
@@ -1757,6 +1833,11 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                    settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>();
   }
 
+#if UPSTREAM_UNTESTED
+  std::string netlistFile =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+#endif // #if UPSTREAM_UNTESTED
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1777,10 +1858,11 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
         break;
     }
   }
-
-  //std::string pnrOptions;
-  //if (!PnROpt().empty()) pnrOptions = " " + PnROpt();
-  //if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
+#if UPSTREAM_UNTESTED
+  std::string pnrOptions;
+  if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
+  if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
+#endif // #if UPSTREAM_UNTESTED
 
   json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
 
@@ -1864,6 +1946,16 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   vpr_options += " --allow_dangling_combinational_nodes on";
 
   // construct the base vpr command with all the options here.
+#if UPSTREAM_UNTESTED
+  std::string command =
+      m_vprExecutablePath.string() + std::string(" ") +
+      m_architectureFile.string() + std::string(" ") +
+      std::string(netlistFile + std::string(" --sdc_file ") +
+                  std::string(ProjManager()->projectName() + "_openfpga.sdc") +
+                  std::string(" --route_chan_width ") +
+                  std::to_string(m_channel_width) + device_size + pnrOptions);
+  return command;
+#endif // #if UPSTREAM_UNTESTED
   std::string base_vpr_command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
@@ -1883,49 +1975,59 @@ bool CompilerOpenFPGA_ql::Packing() {
         std::string(ProjManager()->projectName() + "_post_synth.net"));
     return true;
   }
-  PERF_LOG("Packing has started");
+#if UPSTREAM_UNTESTED
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-//   if (!FileExists(m_vprExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-//     return false;
-//   }
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
+#endif // #if UPSTREAM_UNTESTED
+  PERF_LOG("Packing has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Packing for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-  // const std::string sdcOut =
-  //     (std::filesystem::path(ProjManager()->projectName()) /
-  //      std::string(ProjManager()->projectName() + "_openfpga.sdc"))
-  //         .string();
-  // std::ofstream ofssdc(sdcOut);
-  // // TODO: Massage the SDC so VPR can understand them
-  // for (auto constraint : m_constraints->getConstraints()) {
-  //   // Parse RTL and expand the get_ports, get_nets
-  //   // Temporary dirty filtering:
-  //   constraint = ReplaceAll(constraint, "@", "[");
-  //   constraint = ReplaceAll(constraint, "%", "]");
-  //   (*m_out) << "Constraint: " << constraint << "\n";
-  //   std::vector<std::string> tokens;
-  //   Tokenize(constraint, " ", tokens);
-  //   constraint = "";
-  //   // VPR does not understand: create_clock -period 2 clk -name <logical_name>
-  //   // Pass the constraint as-is anyway
-  //   for (uint32_t i = 0; i < tokens.size(); i++) {
-  //     const std::string& tok = tokens[i];
-  //     constraint += tok + " ";
-  //   }
+#if UPSTREAM_UNTESTED
+  const std::string sdcOut =
+      (std::filesystem::path(ProjManager()->projectPath()) /
+       std::string(ProjManager()->projectName() + "_openfpga.sdc"))
+          .string();
+  std::ofstream ofssdc(sdcOut);
+  // TODO: Massage the SDC so VPR can understand them
+  for (auto constraint : m_constraints->getConstraints()) {
+    // Parse RTL and expand the get_ports, get_nets
+    // Temporary dirty filtering:
+    constraint = ReplaceAll(constraint, "@", "[");
+    constraint = ReplaceAll(constraint, "%", "]");
+    (*m_out) << "Constraint: " << constraint << "\n";
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(constraint, " ", tokens);
+    constraint = "";
+    // VPR does not understand: create_clock -period 2 clk -name <logical_name>
+    // Pass the constraint as-is anyway
+    for (uint32_t i = 0; i < tokens.size(); i++) {
+      const std::string& tok = tokens[i];
+      constraint += tok + " ";
+    }
 
-  //   // pin location constraints have to be translated to .place:
-  //   if (constraint.find("set_pin_loc") != std::string::npos) {
-  //     continue;
-  //   }
-  //   ofssdc << constraint << "\n";
-  // }
-  // ofssdc.close();
+    // pin location constraints have to be translated to .place:
+    if (constraint.find("set_pin_loc") != std::string::npos) {
+      continue;
+    }
+    ofssdc << constraint << "\n";
+  }
+  ofssdc.close();
+#endif // #if UPSTREAM_UNTESTED
 
+#if UPSTREAM_UNTESTED
+  std::string command = BaseVprCommand() + " --pack";
+#endif // #if UPSTREAM_UNTESTED
   std::string command = BaseVprCommand();
   if(command.empty()) {
     ErrorMessage("Base VPR Command is empty!");
@@ -1939,6 +2041,17 @@ bool CompilerOpenFPGA_ql::Packing() {
                         .string());
   ofs << command << std::endl;
   ofs.close();
+
+  if (FileUtils::IsUptoDate(
+          GetNetlistPath(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.net"))
+              .string())) {
+    m_state = State::Packed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " packing reused"
+             << std::endl;
+    return true;
+  }
 
   int status = ExecuteAndMonitorSystemCommand(command);
   CleanTempFiles();
@@ -2005,13 +2118,8 @@ bool CompilerOpenFPGA_ql::Packing() {
 }
 
 bool CompilerOpenFPGA_ql::GlobalPlacement() {
-  PERF_LOG("GlobalPlacement has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
-    return false;
-  }
-  if (m_state != State::Packed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed state"));
     return false;
   }
   if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
@@ -2021,6 +2129,20 @@ bool CompilerOpenFPGA_ql::GlobalPlacement() {
     GlobPlacementOpt(GlobalPlacementOpt::None);
     return true;
   }
+#if UPSTREAM_UNTESTED
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
+    ErrorMessage("Design needs to be in packed state");
+    return false;
+  }
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+  if (m_state != State::Packed) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed state"));
+    return false;
+  }
+
+  PERF_LOG("GlobalPlacement has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
            << std::endl;
@@ -2033,13 +2155,8 @@ bool CompilerOpenFPGA_ql::GlobalPlacement() {
 }
 
 bool CompilerOpenFPGA_ql::Placement() {
-  PERF_LOG("Placement has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
-    return false;
-  }
-  if (m_state != State::Packed && m_state != State::GloballyPlaced) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed/globally_placed state"));
     return false;
   }
   if (PlaceOpt() == PlacementOpt::Clean) {
@@ -2051,24 +2168,51 @@ bool CompilerOpenFPGA_ql::Placement() {
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
+#if UPSTREAM_UNTESTED
+  if (m_state != State::Packed && m_state != State::GloballyPlaced &&
+      m_state != State::Placed) {
+    ErrorMessage("Design needs to be in packed or globally placed state");
+    return false;
+  }
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+
+  if (m_state != State::Packed && m_state != State::GloballyPlaced) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed/globally_placed state"));
+    return false;
+  }
+
+  PERF_LOG("Placement has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Placement for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-//   if (!FileExists(m_vprExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-//     return false;
-//   }
-#if 0 // disabling this unless we actually use pin_c executable
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
+#endif // #if UPSTREAM_UNTESTED
+#if UPSTREAM_UNTESTED
   const std::string pcfOut =
       (std::filesystem::path(ProjManager()->projectName()) /
        std::string(ProjManager()->projectName() + "_openfpga.pcf"))
           .string();
+
+  std::string previousConstraints;
+  std::ifstream ifspcf(pcfOut);
+  if (ifspcf.good()) {
+    std::stringstream buffer;
+    buffer << ifspcf.rdbuf();
+    previousConstraints = buffer.str();
+  }
+  ifspcf.close();
+
   std::ofstream ofspcf(pcfOut);
-  bool pinLocConstraints = false;
+  bool userConstraint = false;
   for (auto constraint : m_constraints->getConstraints()) {
     std::vector<std::string> tokens;
-    Tokenize(constraint, " ", tokens);
+    StringUtils::tokenize(constraint, " ", tokens);
     constraint = "";
     for (uint32_t i = 0; i < tokens.size(); i++) {
       const std::string& tok = tokens[i];
@@ -2080,72 +2224,103 @@ bool CompilerOpenFPGA_ql::Placement() {
     if (constraint.find("set_pin_loc") == std::string::npos) {
       continue;
     }
+    userConstraint = true;
     constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
     ofspcf << constraint << "\n";
-    pinLocConstraints = true;
   }
   ofspcf.close();
+
+  std::string newConstraints;
+  ifspcf.open(pcfOut);
+  if (ifspcf.good()) {
+    std::stringstream buffer;
+    buffer << ifspcf.rdbuf();
+    newConstraints = buffer.str();
+  }
+  ifspcf.close();
+
+  if ((previousConstraints == newConstraints) &&
+      FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.net"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.place"))
+              .string())) {
+    m_state = State::Placed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " placement reused"
+             << std::endl;
+    return true;
+  }
+
   std::string pin_loc_constraint_file;
-  if (pinLocConstraints) {
-    std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
-    for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      switch (lang_file.first) {
-        case Design::Language::VERILOG_NETLIST:
-        case Design::Language::BLIF:
-        case Design::Language::EBLIF: {
-          netlistFile = lang_file.second;
-          std::filesystem::path the_path = netlistFile;
-          if (!the_path.is_absolute()) {
-            netlistFile =
-                std::filesystem::path(std::filesystem::path("..") / netlistFile)
-                    .string();
-          }
-          break;
+
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        netlistFile = lang_file.second;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
         }
-        default:
-          break;
+        break;
       }
-    }
-
-    std::string pincommand = m_pinConvExecutablePath.string();
-    if (FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
-      if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
-        ErrorMessage(
-            "No pin description csv file available for this device, required "
-            "for set_pin_loc constraints");
-        return false;
-      }
-      // pin_c executable can work with either xml and csv or csv only file
-      if (!m_OpenFpgaPinMapXml.empty() &&
-          std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
-        pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
-      }
-      pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
-      pincommand += " --pcf " +
-                    std::string(ProjManager()->projectName() + "_openfpga.pcf");
-      pincommand += " --blif " + netlistFile;
-      std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
-      pincommand += " --output " + pin_locFile;
-
-      std::ofstream ofsp(
-          (std::filesystem::path(ProjManager()->projectName()) /
-           std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
-              .string());
-      ofsp << pincommand << std::endl;
-      ofsp.close();
-      int status = ExecuteAndMonitorSystemCommand(pincommand);
-      CleanTempFiles();
-      if (status) {
-        ErrorMessage("Design " + ProjManager()->projectName() +
-                     " pin conversion failed!");
-        return false;
-      } else {
-        pin_loc_constraint_file = pin_locFile;
-      }
+      default:
+        break;
     }
   }
-#endif // #if 0 // disabling this unless we actually use pin_c executable
-  
+
+  std::string pincommand = m_pinConvExecutablePath.string();
+  if (FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+    if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+      ErrorMessage(
+          "No pin description csv file available for this device, required "
+          "for set_pin_loc constraints");
+      return false;
+    }
+    // pin_c executable can work with either xml and csv or csv only file
+    if (!m_OpenFpgaPinMapXml.empty() &&
+        std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
+      pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
+    }
+    pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+
+    if (userConstraint) {
+      pincommand += " --pcf " +
+                    std::string(ProjManager()->projectName() + "_openfpga.pcf");
+    }
+
+    // TODO: accept both blif or verilog format
+    pincommand += " --blif " + netlistFile;
+    std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
+    pincommand += " --output " + pin_locFile;
+
+    std::ofstream ofsp(
+        (std::filesystem::path(ProjManager()->projectName()) /
+         std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
+            .string());
+    ofsp << pincommand << std::endl;
+    ofsp.close();
+    int status = ExecuteAndMonitorSystemCommand(pincommand);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " pin conversion failed!");
+      return false;
+    } else {
+      pin_loc_constraint_file = pin_locFile;
+    }
+  }
+#endif // #if UPSTREAM_UNTESTED
+
+#if UPSTREAM_UNTESTED
+  std::string command = BaseVprCommand() + " --place";
+#endif // #if UPSTREAM_UNTESTED
   std::string command = BaseVprCommand();
   if(command.empty()) {
     ErrorMessage("Base VPR Command is empty!");
@@ -2154,11 +2329,11 @@ bool CompilerOpenFPGA_ql::Placement() {
   command += std::string(" ") + 
              std::string("--place");
 
-#if 0 // disabling this unless we actually use pin_c executable
+#if UPSTREAM_UNTESTED
   if (!pin_loc_constraint_file.empty()) {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
-#endif // #if 0 // disabling this unless we actually use pin_c executable
+#endif // #if UPSTREAM_UNTESTED
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
@@ -2179,13 +2354,8 @@ bool CompilerOpenFPGA_ql::Placement() {
 }
 
 bool CompilerOpenFPGA_ql::Route() {
-  PERF_LOG("Route has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
-    return false;
-  }
-  if (m_state != State::Placed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed state"));
     return false;
   }
   if (RouteOpt() == RoutingOpt::Clean) {
@@ -2197,14 +2367,47 @@ bool CompilerOpenFPGA_ql::Route() {
         std::string(ProjManager()->projectName() + "_post_synth.route"));
     return true;
   }
+#if UPSTREAM_UNTESTED
+  if (m_state != State::Placed) {
+    ErrorMessage("Design needs to be in placed state");
+    return false;
+  }
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+
+  if (m_state != State::Placed) {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed state"));
+    return false;
+  }
+  
+  PERF_LOG("Route has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Routing for design: " << ProjManager()->projectName()
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
-//   if (!FileExists(m_vprExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-//     return false;
-//   }
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+     return false;
+   }
+#endif // #if UPSTREAM_UNTESTED
+
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.place"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string())) {
+    m_state = State::Routed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " routing reused"
+             << std::endl;
+    return true;
+  }
+
+#if UPSTREAM_UNTESTED
+  std::string command = BaseVprCommand() + " --route";
+#endif // #if UPSTREAM_UNTESTED
   std::string command = BaseVprCommand();
   if(command.empty()) {
     ErrorMessage("Base VPR Command is empty!");
@@ -2232,11 +2435,14 @@ bool CompilerOpenFPGA_ql::Route() {
 }
 
 bool CompilerOpenFPGA_ql::TimingAnalysis() {
-  PERF_LOG("TimingAnalysis has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
+#if UPSTREAM_UNTESTED
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+  PERF_LOG("TimingAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
            << std::endl;
@@ -2261,10 +2467,36 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 
 #endif // #ifdef _WIN32
 
-//   if (!FileExists(m_vprExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-//     return false;
-//   }
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+    return false;
+  }
+
+  if (TimingAnalysisOpt() == STAOpt::View) {
+    TimingAnalysisOpt(STAOpt::None);
+    const std::string command = BaseVprCommand() + " --analysis --disp on";
+    const int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " place and route view failed!");
+      return false;
+    }
+    return true;
+  }
+#endif // #if UPSTREAM_UNTESTED
+
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " timing didn't change" << std::endl;
+    return true;
+  }
 
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
@@ -2306,6 +2538,9 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                    netlistFilePrefix + std::string(".route");
   }
 
+#if UPSTREAM_UNTESTED
+  std::string command = BaseVprCommand() + " --analysis";
+#endif // #if UPSTREAM_UNTESTED
   std::string command = BaseVprCommand();
   if(command.empty()) {
     ErrorMessage("Base VPR Command is empty!");
@@ -2350,11 +2585,14 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 }
 
 bool CompilerOpenFPGA_ql::PowerAnalysis() {
-  PERF_LOG("PowerAnalysis has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
+#if UPSTREAM_UNTESTED
+  if (!HasTargetDevice()) return false;
+#endif // #if UPSTREAM_UNTESTED
+  PERF_LOG("PowerAnalysis has started");
 #ifdef _WIN32
 // under WIN32, running the analysis stage along causes issues, hence we call the
 // route and analysis stages together
@@ -2374,11 +2612,25 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
 
-  
-  //   if (!FileExists(m_vprExecutablePath)) {
-  //     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
-  //     return false;
-  //   }
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_sta.cmd"))
+              .string())) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " power didn't change" << std::endl;
+    return true;
+  }
+
+#if UPSTREAM_UNTESTED
+  std::string command = BaseVprCommand() + " --analysis";
+  if (!FileUtils::FileExists(m_vprExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
+       return false;
+     }
+#endif // #if UPSTREAM_UNTESTED
   
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
@@ -2451,7 +2703,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT}  --analysis
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -2549,7 +2801,10 @@ exit
 std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
   // Default or custom OpenFPGA script
   if (m_openFPGAScript.empty()) {
-    m_openFPGAScript = qlOpenFPGABitstreamScript;//basicOpenFPGABitstreamScript;
+#if UPSTREAM_UNTESTED
+    m_openFPGAScript = basicOpenFPGABitstreamScript;
+#endif // #if UPSTREAM_UNTESTED
+    m_openFPGAScript = qlOpenFPGABitstreamScript;
   }
   return m_openFPGAScript;
 }
@@ -2766,6 +3021,11 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
 
+#if UPSTREAM_UNTESTED
+  std::string netlistFile =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+#endif // #if UPSTREAM_UNTESTED
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
@@ -2788,6 +3048,11 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   result = ReplaceAll(result, "${VPR_TESTBENCH_BLIF}", netlistFile);
 
   std::string netlistFormat = "blif";
+#if UPSTREAM_UNTESTED
+  if (UseVerilogNetlist()) {
+    netlistFormat = "verilog";
+  }
+#endif // #if UPSTREAM_UNTESTED
   result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
   if (m_deviceSize.size()) {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}",
@@ -2823,20 +3088,18 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 }
 
 bool CompilerOpenFPGA_ql::GenerateBitstream() {
-  PERF_LOG("GenerateBitstream has started");
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Bitstream generation for design \""
-           << ProjManager()->projectName() << "\" on device \""
-           << ProjManager()->getTargetDevice() << "\"" << std::endl;
-  (*m_out) << "##################################################" << std::endl;
-  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
-    ErrorMessage("Design needs to be in routed state");
+#if UPSTREAM_UNTESTED
+  if (!HasTargetDevice()) return false;
+  const bool openFpgaArch = FileUtils::FileExists(m_OpenFpgaArchitectureFile);
+  if (!openFpgaArch) {
+    ErrorMessage("Please specify OpenFPGA architecture file");
     return false;
   }
+#endif // #if UPSTREAM_UNTESTED
   if (BitsOpt() == BitstreamOpt::Clean) {
     Message("Cleaning bitstream results for " + ProjManager()->projectName());
     m_state = State::Routed;
@@ -2849,8 +3112,40 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
         std::string("fabric_independent_bitstream.xml"));
     return true;
   }
+#if UPSTREAM_UNTESTED
+  if (!ProjManager()->getTargetDevice().empty()) {
+    if (!LicenseDevice(ProjManager()->getTargetDevice())) {
+      ErrorMessage(
+          "Device is not licensed: " + ProjManager()->getTargetDevice() + "\n");
+      return false;
+    }
+  }
+#endif // #if UPSTREAM_UNTESTED
+  PERF_LOG("GenerateBitstream has started");
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Bitstream generation for design \""
+           << ProjManager()->projectName() << "\" on device \""
+           << ProjManager()->getTargetDevice() << "\"" << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
+    ErrorMessage("Design needs to be in routed state");
+    return false;
+  }
 
-#if 0 // we don't use BitsOpt()
+  if (FileUtils::IsUptoDate(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.route"))
+              .string(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string("fabric_bitstream.bit"))
+              .string())) {
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " bitstream didn't change" << std::endl;
+    m_state = State::BistreamGenerated;
+    return true;
+  }
+
+#if UPSTREAM_UNTESTED
   if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
@@ -2873,7 +3168,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     }
 #endif
   }
-#endif // #if 0 // we don't use BitsOpt()
+#endif // #if UPSTREAM_UNTESTED
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
                         ProjManager()->projectName() + ".openfpga";
@@ -2899,11 +3194,13 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   std::ofstream sofs(script_path);
   sofs << script;
   sofs.close();
-//   if (!FileExists(m_openFpgaExecutablePath)) {
-//     ErrorMessage("Cannot find executable: " +
-//                  m_openFpgaExecutablePath.string());
-//     return false;
-//   }
+#if UPSTREAM_UNTESTED
+  if (!FileUtils::FileExists(m_openFpgaExecutablePath)) {
+    ErrorMessage("Cannot find executable: " +
+                 m_openFpgaExecutablePath.string());
+    return false;
+  }
+#endif // #if UPSTREAM_UNTESTED
 
   std::ofstream ofs(
       (std::filesystem::path(ProjManager()->projectName()) /
@@ -2915,7 +3212,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitream generation failed!");
+                 " bitstream generation failed!");
     return false;
   }
   m_state = State::BistreamGenerated;
@@ -2965,13 +3262,13 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
               std::string name = n.toElement().attribute("name").toStdString();
               std::string num = n.toElement().attribute("num").toStdString();
               std::filesystem::path fullPath;
-              if (FileExists(file)) {
+              if (FileUtils::FileExists(file)) {
                 fullPath = file;  // Absolute path
               } else {
                 fullPath = datapath / std::string("etc") /
                            std::string("devices") / file;
               }
-              if (!FileExists(fullPath.string())) {
+              if (!FileUtils::FileExists(fullPath.string())) {
                 ErrorMessage(
                     "Invalid device config file: " + fullPath.string() + "\n");
                 status = false;
@@ -2997,16 +3294,18 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
               } else if (file_type == "technology") {
                 YosysMapTechnology(name);
               } else if (file_type == "synth_type") {
-                // if (name == "QL")
-                //   SynthType(SynthesisType::QL);
-                // else if (name == "RS")
-                //   SynthType(SynthesisType::RS);
-                // else if (name == "Yosys")
-                //   SynthType(SynthesisType::Yosys);
-                // else {
-                //   ErrorMessage("Invalid synthesis type: " + name + "\n");
-                //   status = false;
-                // }
+#if UPSTREAM_UNTESTED
+                if (name == "QL")
+                  SynthType(SynthesisType::QL);
+                else if (name == "RS")
+                  SynthType(SynthesisType::RS);
+                else if (name == "Yosys")
+                  SynthType(SynthesisType::Yosys);
+                else {
+                  ErrorMessage("Invalid synthesis type: " + name + "\n");
+                  status = false;
+                }
+#endif // #if UPSTREAM_UNTESTED
               } else if (file_type == "synth_opts") {
                 PerDeviceSynthOptions(name);
               } else if (file_type == "vpr_opts") {
@@ -3043,8 +3342,18 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
     ErrorMessage("Incorrect device: " + deviceName + "\n");
     status = false;
   }
-
+#if UPSTREAM_UNTESTED
+  if (!LicenseDevice(deviceName)) {
+    ErrorMessage("Device is not licensed: " + deviceName + "\n");
+    status = false;
+  }
+#endif // #if UPSTREAM_UNTESTED
   return status;
+}
+
+bool CompilerOpenFPGA_ql::LicenseDevice(const std::string& deviceName) {
+  // No need for licenses
+  return true;
 }
 
 std::string CompilerOpenFPGA_ql::ToUpper(std::string str) {
@@ -3483,5 +3792,4 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
 
   return device_variants;
 }
-
 // clang-format on

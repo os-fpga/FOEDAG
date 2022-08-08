@@ -33,11 +33,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPILER_OPENFPGA_QL_H
 
 namespace FOEDAG {
+#if UPSTREAM_UNTESTED
 //enum class SynthesisType { Yosys, QL, RS };
+#endif // #if UPSTREAM_UNTESTED
 
 class CompilerOpenFPGA_ql : public Compiler {
  public:
   CompilerOpenFPGA_ql() = default;
+#if UPSTREAM_UNTESTED
+  ~CompilerOpenFPGA_ql() = default;
+#endif // #if UPSTREAM_UNTESTED
   ~CompilerOpenFPGA_ql();
 
   void YosysExecPath(const std::filesystem::path& path) {
@@ -94,12 +99,17 @@ class CompilerOpenFPGA_ql : public Compiler {
     m_perDeviceSynthOptions = options;
   }
 
-  //void SynthType(SynthesisType type) { m_synthType = type; }
+#if UPSTREAM_UNTESTED
+  void SynthType(SynthesisType type) { m_synthType = type; }
+#endif // #if UPSTREAM_UNTESTED
   
   const std::string& PerDevicePnROptions() { return m_perDevicePnROptions; }
   void PerDevicePnROptions(const std::string& options) {
     m_perDevicePnROptions = options;
   }
+  
+  bool UseVerilogNetlist() { return m_useVerilogNetlist; }
+  void UseVerilogNetlist(bool on) { m_useVerilogNetlist = on; }
 
   std::filesystem::path GenerateTempFilePath();
   int CleanTempFiles();
@@ -134,7 +144,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
   virtual bool LoadDeviceData(const std::string& deviceName);
-
+  virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path);
   virtual std::string InitSynthesisScript();
@@ -142,8 +152,11 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual std::string InitOpenFPGAScript();
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool VerifyTargetDevice() const;
   std::filesystem::path m_yosysExecutablePath = "yosys";
-  //SynthesisType m_synthType = SynthesisType::Yosys;
+#if UPSTREAM_UNTESTED
+  SynthesisType m_synthType = SynthesisType::Yosys;
+#endif // #if UPSTREAM_UNTESTED
   std::string m_yosysPluginLib;
   std::string m_yosysPlugin;
   std::string m_mapToTechnology;
@@ -153,10 +166,17 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
-  std::filesystem::path m_architectureFile =
-      "tests/Arch/k6_frac_N10_tileable_40nm.xml";
-  std::filesystem::path m_OpenFpgaArchitectureFile =
-      "tests/Arch/k6_N10_40nm_openfpga.xml";
+  /*!
+   * \brief m_architectureFile
+   * We required from user explicitly specify architecture file.
+   */
+  std::filesystem::path m_architectureFile;
+
+  /*!
+   * \brief m_OpenFpgaArchitectureFile
+   * We required from user explicitly specify openfpga architecture file.
+   */
+  std::filesystem::path m_OpenFpgaArchitectureFile;
   std::filesystem::path m_OpenFpgaSimSettingFile =
       "tests/Arch/fixed_sim_openfpga.xml";
   std::filesystem::path m_OpenFpgaBitstreamSettingFile =
@@ -170,6 +190,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::string m_openFPGAScript;
   virtual std::string BaseVprCommand();
   bool m_keepAllSignals = false;
+  bool m_useVerilogNetlist = false;
 
 private:
   std::vector<std::filesystem::path> m_TempFileList;
