@@ -29,12 +29,6 @@ add_executable(unittest unittest_main.cpp
     Command/Command_test.cpp
     Utils/StringUtils_test.cpp)
 
-#gtest_discover_tests(unittest
-#   Tcl/TclInterpreter_test.cpp
-#    Command/Command_test.cpp
-#    Utils/StringUtils_test.cpp
-#    AUTO)
-
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
 target_link_libraries(unittest PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml gtest gmock gtest_main foedag)
