@@ -62,6 +62,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void createMenus();
   void createToolBars();
   void createActions();
+  void createProgressBar();
   void connectProjectManager();
   void gui_start() override;
 
@@ -69,6 +70,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void clearDockWidgets();
   void startStopButtonsState();
   void loadFile(const QString& file);
+  void createIpConfiguratorUI(QDockWidget* prevTab = nullptr);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -97,6 +99,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class ProjectManager* m_projectManager{nullptr};
   class ProjectFileLoader* m_projectFileLoader{nullptr};
   class SourcesForm* sourcesForm{nullptr};
+  QWidget* m_progressWidget{nullptr};
 };
 
 }  // namespace FOEDAG

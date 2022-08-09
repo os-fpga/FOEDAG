@@ -87,6 +87,7 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(tests/tclutils)
+add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
 add_subdirectory(src/ProjNavigator)
@@ -97,6 +98,7 @@ add_subdirectory(src/Compiler)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
+add_subdirectory(src/IpConfigurator)
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -300,6 +302,8 @@ add_dependencies(foedagcore tcl_build)
 add_dependencies(console_debug tcl_build)
 add_dependencies(newfile tcl_stubb_build)
 add_dependencies(newfile_bin tcl_stubb_build)
+add_dependencies(ipconfigurator tcl_stubb_build)
+add_dependencies(ipconfigurator_bin tcl_stubb_build)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
@@ -326,7 +330,7 @@ endif()
 
 target_link_libraries(foedag-bin PUBLIC foedag )
 target_link_directories(foedag-bin PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/lib PUBLIC ${CMAKE_INSTALL_PREFIX}/lib/foedag/lib)
-target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate foedagutils console QConsole tcl_stubb tcl_static zlib nlohmann_json)
+target_link_libraries(foedag  PUBLIC foedagcore newproject newfile projnavigator designruns texteditor qscintilla2_qt compiler ipgenerate foedagutils console QConsole tcl_stubb tcl_static zlib nlohmann_json ipconfigurator)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 
 if(NOT NO_TCMALLOC)
@@ -349,8 +353,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 # Unit tests
-enable_testing()
-include(GoogleTest)
 
 if(MSVC)
   # Microsoft reports the value of __cplusplus wrong and gmock/gtest pulls in the
@@ -364,11 +366,6 @@ if(MSVC)
   target_compile_options(gtest PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
-
-
-# All unit-tests are registered with this custom target as dependency, so
-# just `make UnitTests` will build them all.
-add_custom_target(UnitTests)
 
 # Concise way to register a new google test
 # call with register_gtest(path/to/UnitTestFile.cpp)
@@ -401,11 +398,6 @@ function(register_gtests)
     add_dependencies(UnitTests ${test_bin})
   endforeach()
 endfunction()
-
-register_gtests(
-  tests/unittest/Tcl/TclInterpreter_test.cpp
-  tests/unittest/Command/Command_test.cpp
-)
 
 if (WIN OR APPLE)
 else ()

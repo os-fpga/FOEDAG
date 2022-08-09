@@ -222,6 +222,7 @@ class ProjectManager : public QObject {
   // Please set currentrun before using this function, Unless you used
   // setSynthRun/setImpleRun before
   int setSynthesisOption(const QList<QPair<QString, QString>> &listParam);
+  QString getSynthOption(const QString &optionName) const;
 
   int setRunActive(const QString &strRunName);
 

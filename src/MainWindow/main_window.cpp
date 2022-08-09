@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -72,6 +73,9 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   /* Create menu bars */
   createMenus();
+
+  /* Create progress bar */
+  createProgressBar();
 
   /* Create tool bars */
   createToolBars();
@@ -170,12 +174,42 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
+void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
+  IpConfigurator* configurator = new IpConfigurator(this);
+  configurator->hide();
+  configurator->setObjectName("IpConfigurator");
+  QDockWidget* dw = new QDockWidget(tr("IP"), this);
+  dw->setObjectName("IpDockWidget");
+  dw->setWidget(configurator->GetIpTreesWidget());
+  addDockWidget(Qt::RightDockWidgetArea, dw);
+  dw->hide();
+
+  if (prevTab) {
+    tabifyDockWidget(prevTab, dw);
+  }
+}
+
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
     m_projectFileLoader->Load(file);
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   }
+}
+
+void MainWindow::createProgressBar() {
+  m_progressWidget = new QWidget;
+  QProgressBar* progress = new QProgressBar(m_progressWidget);
+  progress->setFixedHeight(menuBar()->sizeHint().height() - 2);
+  progress->setFormat("%v/%m");
+  QHBoxLayout* layout = new QHBoxLayout;
+  layout->setContentsMargins(0, 0, 0, 0);
+  QLabel* label = new QLabel{"Progress: "};
+  layout->addWidget(label);
+  layout->addWidget(progress);
+  m_progressWidget->setLayout(layout);
+  menuBar()->setCornerWidget(m_progressWidget, Qt::Corner::TopRightCorner);
+  m_progressWidget->hide();
 }
 
 void MainWindow::createMenus() {
@@ -244,11 +278,14 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, [this]() {
+    m_progressWidget->show();
     m_compiler->start();
     m_taskManager->startAll();
   });
-  connect(stopAction, &QAction::triggered, this,
-          [this]() { m_compiler->Stop(); });
+  connect(stopAction, &QAction::triggered, this, [this]() {
+    m_compiler->Stop();
+    m_progressWidget->hide();
+  });
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
@@ -366,17 +403,29 @@ void MainWindow::ReShowWindow(QString strProject) {
   view->setObjectName("compilerTaskView");
   view->setParent(this);
 
-  connect(m_taskManager, &TaskManager::done, this,
-          [this]() { m_compiler->finish(); });
+  connect(
+      m_taskManager, &TaskManager::progress, this, [this](int val, int max) {
+        QProgressBar* progress = m_progressWidget->findChild<QProgressBar*>();
+        progress->setMaximum(max);
+        progress->setValue(val);
+      });
+
+  connect(m_taskManager, &TaskManager::done, this, [this]() {
+    m_progressWidget->hide();
+    m_compiler->finish();
+  });
+
+  connect(m_taskManager, &TaskManager::started, this,
+          [this]() { m_progressWidget->show(); });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager});
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
-  QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
-  taskDocWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDocWidget);
+  QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
+  taskDockWidget->setWidget(view);
+  tabifyDockWidget(sourceDockWidget, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -386,6 +435,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+
+  createIpConfiguratorUI();
 }
 
 void MainWindow::clearDockWidgets() {

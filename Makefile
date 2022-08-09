@@ -65,16 +65,16 @@ run-cmake-coverage:
 	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DMY_CXX_WARNING_FLAGS="--coverage" $(ADDITIONAL_CMAKE_OPTIONS) -S . -B coverage-build
 
 test/unittest: run-cmake-release
-	cmake --build build --target UnitTests -j $(CPU_CORES)
-	pushd build && ctest --output-on-failure && popd
+	cmake --build build --target unittest -j $(CPU_CORES)
+	pushd build && tests/unittest/unittest && popd
 
 test/unittest-d: run-cmake-debug
-	cmake --build dbuild --target UnitTests -j $(CPU_CORES)
-	pushd dbuild && ctest --output-on-failure && popd
+	cmake --build dbuild --target unittest -j $(CPU_CORES)
+	pushd dbuild && tests/unittest/unittest && popd
 
 test/unittest-coverage: run-cmake-coverage
-	cmake --build coverage-build --target UnitTests -j $(CPU_CORES)
-	pushd coverage-build && ctest --output-on-failure && popd
+	cmake --build coverage-build --target unittest -j $(CPU_CORES)
+	pushd coverage-build && tests/unittest/unittest && popd
 
 coverage-build/foedag.coverage: test/unittest-coverage
 	lcov --no-external --exclude "*_test.cpp" --capture --directory coverage-build/CMakeFiles/foedag.dir --base-directory src --output-file coverage-build/foedag.coverage
@@ -103,6 +103,8 @@ test/valgrind: run-cmake-debug
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
@@ -154,6 +156,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
