@@ -38,6 +38,9 @@ set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 17)
 
+//TOREMOVE
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
