@@ -20,4 +20,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IpConfigurator/IpCatalogTree.h"
 
+#include <QTreeWidgetItem>
+
 using namespace FOEDAG;
+
+IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
+    : QTreeWidget(parent) {
+  this->setHeaderLabel("Available IPs");
+
+  for (int i = 0; i < 5; i++) {
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+    item->setText(0, QString("Uncategorized IP %1").arg(i + 1));
+    this->addTopLevelItem(item);
+  }
+
+  QTreeWidgetItem* company1 = new QTreeWidgetItem();
+  company1->setText(0, "Company 1");
+  this->addTopLevelItem(company1);
+  for (int i = 0; i < 5; i++) {
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+    item->setText(0, QString("IP %1").arg(i + 1));
+    company1->addChild(item);
+  }
+
+  QTreeWidgetItem* company2 = new QTreeWidgetItem();
+  company2->setText(0, "Company 2");
+  this->addTopLevelItem(company2);
+  for (int i = 0; i < 500; i++) {
+    QTreeWidgetItem* item = new QTreeWidgetItem();
+    item->setText(0, QString("IP %1").arg(i + 1));
+    company2->addChild(item);
+  }
+}
