@@ -174,14 +174,14 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
-void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab) {
+void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
   IpConfigurator* configurator = new IpConfigurator(this);
   configurator->hide();
   configurator->setObjectName("IpConfigurator");
   QDockWidget* dw = new QDockWidget(tr("IP"), this);
   dw->setObjectName("IpDockWidget");
   dw->setWidget(configurator->GetIpTreesWidget());
-  addDockWidget(Qt::LeftDockWidgetArea, dw);
+  addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
   if (prevTab) {
@@ -436,7 +436,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
-  createIpConfiguratorUI(taskDockWidget);
+  createIpConfiguratorUI();
 }
 
 void MainWindow::clearDockWidgets() {

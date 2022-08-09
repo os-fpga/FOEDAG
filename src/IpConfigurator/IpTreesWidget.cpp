@@ -47,8 +47,8 @@ void IpTreesWidget::Init() {
     m_catalog_tree = new IpCatalogTree(this);
     m_splitter->addWidget(m_catalog_tree);
 
-    // Ip Instance Tree
-    m_instances_tree = new IpInstancesTree(this);
-    m_splitter->addWidget(m_instances_tree);
+    // // Ip Instance Tree
+    // m_instances_tree = new IpInstancesTree(this);
+    // m_splitter->addWidget(m_instances_tree);
   }
 }
