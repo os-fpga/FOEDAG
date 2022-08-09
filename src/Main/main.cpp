@@ -61,10 +61,6 @@ int main(int argc, char** argv) {
     std::filesystem::path vprPath = binpath / "vpr";
     std::filesystem::path openFpgaPath = binpath / "openfpga";
     std::filesystem::path pinConvPath = binpath / "pin_c";
-    std::filesystem::path archPath =
-        datapath / "Arch" / "k6_frac_N10_tileable_40nm.xml";
-    std::filesystem::path openFpgaArchPath =
-        datapath / "Arch" / "k6_N10_40nm_openfpga.xml";
     std::filesystem::path bitstreamSettingPath =
         datapath / "Arch" / "bitstream_annotation.xml";
     std::filesystem::path simSettingPath =
@@ -74,8 +70,6 @@ int main(int argc, char** argv) {
     opcompiler->YosysExecPath(yosysPath);
     opcompiler->VprExecPath(vprPath);
     opcompiler->OpenFpgaExecPath(openFpgaPath);
-    opcompiler->ArchitectureFile(archPath);
-    opcompiler->OpenFpgaArchitectureFile(openFpgaArchPath);
     opcompiler->OpenFpgaBitstreamSettingFile(bitstreamSettingPath);
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);

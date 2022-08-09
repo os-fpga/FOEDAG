@@ -206,6 +206,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   auto select_architecture_file = [](void* clientData, Tcl_Interp* interp,
                                      int argc, const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     std::string name;
     if (argc < 2) {
       compiler->ErrorMessage("Specify an architecture file");
@@ -461,6 +465,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   auto target_device = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     std::string name;
     if (argc != 2) {
       compiler->ErrorMessage("Please select a device");
