@@ -1560,51 +1560,61 @@ int ProjectManager::CreateAndAddFile(const QString& suffix,
 }
 
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
-  return m_libraryPathList;
+  return Project::Instance()->compilerConfig()->libraryPathList();
 }
 
 void ProjectManager::setLibraryPathList(
     const std::vector<std::string>& newLibraryPathList) {
-  m_libraryPathList = newLibraryPathList;
+  Project::Instance()->compilerConfig()->setLibraryPathList(newLibraryPathList);
 }
 
 void ProjectManager::addLibraryPath(const std::string& libraryPath) {
-  m_libraryPathList.push_back(libraryPath);
+  Project::Instance()->compilerConfig()->addLibraryPath(libraryPath);
 }
 
 const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
-  return m_libraryExtList;
+  return Project::Instance()->compilerConfig()->libraryExtensionList();
 }
 
 void ProjectManager::setLibraryExtensionList(
     const std::vector<std::string>& newLibraryExtensionList) {
-  m_libraryExtList = newLibraryExtensionList;
+  Project::Instance()->compilerConfig()->setLibraryExtensionList(
+      newLibraryExtensionList);
 }
+
 void ProjectManager::addLibraryExtension(const std::string& libraryExt) {
-  m_libraryExtList.push_back(libraryExt);
+  Project::Instance()->compilerConfig()->addLibraryExtension(libraryExt);
 }
 
 void ProjectManager::addMacro(const std::string& macroName,
                               const std::string& macroValue) {
-  m_macroList.push_back(std::pair(macroName, macroValue));
+  Project::Instance()->compilerConfig()->addMacro(macroName, macroValue);
 }
 
 const std::vector<std::pair<std::string, std::string>>&
 ProjectManager::macroList() const {
-  return m_macroList;
+  return Project::Instance()->compilerConfig()->macroList();
+}
+
+void ProjectManager::setTargetDevice(const std::string& deviceName) {
+  Project::Instance()->compilerConfig()->setTargetDevice(deviceName);
+}
+
+const std::string& ProjectManager::getTargetDevice() const {
+  return Project::Instance()->compilerConfig()->getTargetDevice();
 }
 
 const std::vector<std::string>& ProjectManager::includePathList() const {
-  return m_includePathList;
+  return Project::Instance()->compilerConfig()->includePathList();
 }
 
 void ProjectManager::setIncludePathList(
     const std::vector<std::string>& newIncludePathList) {
-  m_includePathList = newIncludePathList;
+  Project::Instance()->compilerConfig()->setIncludePathList(newIncludePathList);
 }
 
 void ProjectManager::addIncludePath(const std::string& includePath) {
-  m_includePathList.push_back(includePath);
+  Project::Instance()->compilerConfig()->addIncludePath(includePath);
 }
 
 QString ProjectManager::getCurrentRun() const { return m_currentRun; }

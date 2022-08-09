@@ -258,10 +258,8 @@ class ProjectManager : public QObject {
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
-  void setTargetDevice(const std::string &deviceName) {
-    m_deviceName = deviceName;
-  }
-  const std::string &getTargetDevice() { return m_deviceName; }
+  void setTargetDevice(const std::string &deviceName);
+  const std::string &getTargetDevice() const;
   static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
@@ -290,11 +288,6 @@ class ProjectManager : public QObject {
  private:
   QString m_currentFileSet;
   QString m_currentRun;
-  std::vector<std::string> m_includePathList;
-  std::vector<std::string> m_libraryPathList;
-  std::vector<std::string> m_libraryExtList;
-  std::vector<std::pair<std::string, std::string>> m_macroList;
-  std::string m_deviceName;
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
   inline static const Suffixes m_constrSuffixes{{"SDC"}};
