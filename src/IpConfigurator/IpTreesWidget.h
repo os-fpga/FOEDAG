@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QSplitter>
 #include <QWidget>
 
 #include "IpConfigurator/IpCatalogTree.h"
@@ -36,9 +37,9 @@ class IpTreesWidget : public QWidget {
   void Init();
 
  private:
-  QWidget* m_container = nullptr;
-  // IpCatalogTree* m_catalog_tree = nullptr;
-  // IpInstancesTree* m_instances_tree = nullptr;
+  IpCatalogTree* m_catalog_tree = nullptr;
+  IpInstancesTree* m_instances_tree = nullptr;
+  QSplitter* m_splitter = nullptr;
 };
 
 }  // namespace FOEDAG

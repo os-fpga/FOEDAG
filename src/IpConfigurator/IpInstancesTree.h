@@ -20,4 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-namespace FOEDAG {}  // namespace FOEDAG
+#include <QTreeWidget>
+
+namespace FOEDAG {
+class IpInstancesTree : public QTreeWidget {
+  Q_OBJECT
+
+ public:
+  explicit IpInstancesTree(QWidget* parent = nullptr);
+
+ private:
+};
+
+}  // namespace FOEDAG
