@@ -126,13 +126,10 @@ void Compiler::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
-  (*out) << "   place <Pin Loc Assign Method> : Pin Loc "
-            "Assign Method "
-            "(DefineOrder(Default), "
-            "Random)"
-         << std::endl;
-  (*out) << "   pin_loc_assign_method <Method>: (DefineOrder(Default)/Random)"
-         << std::endl;
+  (*out) << "   place ?clean" << std::endl;
+  (*out)
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/Random)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -812,10 +809,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PlaceOpt(Compiler::PlacementOpt::Clean);
-        } else if (arg == "Random") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::Random);
-        } else if (arg == "DefineOrder") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::DefineOrder);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1007,41 +1000,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-
-      auto setPlaceOption = [compiler](std::string arg) {
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PlaceOpt(Compiler::PlacementOpt::Clean);
-        } else if (arg == "Random") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::Random);
-        } else if (arg == "DefineOrder") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::DefineOrder);
         } else {
-          compiler->ErrorMessage("Unknown Placement option: " + arg);
-        }
-      };
-
-      // If we received a tcl argument
-      if (argc > 1) {
-        for (int i = 1; i < argc; i++) {
-          setPlaceOption(argv[i]);
-        }
-      } else {
-        // otherwise, check settings for a value
-        Settings* settings = compiler->GetSession()->GetSettings();
-        auto json = settings->getJson()["Tasks"]["Placement"]
-                                       ["placement_radiobuttons_horiz_ex"];
-        std::string option = "DefineOrder";
-        if (json.contains("userValue")) {
-          option = json["userValue"];
-        } else if (json.contains("default")) {
-          option = json["default"].get<std::string>();
-        }
-
-        // If a valid value was specified update the SynthOpt
-        if (option != "DefineOrder") {
-          QString lookupVal =
-              Settings::getLookupValue(json, QString::fromStdString(option));
-          setPlaceOption(lookupVal.toStdString());
+          compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
       WorkerThread* wthread =
@@ -1056,36 +1020,40 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
 
       auto setPlaceOption = [compiler](std::string arg) {
-        if (arg == "Random") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::Random);
-        } else if (arg == "DefineOrder") {
-          compiler->PlaceOpt(Compiler::PlacementOpt::DefineOrder);
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
         } else {
-          compiler->ErrorMessage("Unknown Placement Option: command " + arg);
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
       };
 
       // If we received a tcl argument
       if (argc > 1) {
         for (int i = 1; i < argc; i++) {
-          setPlaceOption(argv[i]);
+          setPlaceOption(argv[1]);
         }
       } else {
         // otherwise, check settings for a value
         Settings* settings = compiler->GetSession()->GetSettings();
-        auto json = settings->getJson()["Tasks"]["Placement"]
-                                       ["placement_radiobuttons_horiz_ex"];
-        std::string option = "DefineOrder";
+        auto json =
+            settings->getJson()["Tasks"]["Placement"]["pin_selection_radiobtn"];
+        std::cout << json << endl;
+        std::string option = "in_define_order";
         if (json.contains("userValue")) {
           option = json["userValue"];
         } else if (json.contains("default")) {
           option = json["default"].get<std::string>();
         }
         // If a valid value was specified update the PlaceOpt
-        if (option != "DefineOrder") {
+        if (option != "in_define_order") {
           QString lookupVal =
               Settings::getLookupValue(json, QString::fromStdString(option));
           setPlaceOption(lookupVal.toStdString());
+        } else {
+          compiler->ErrorMessage(
+              "No Argument passed: type random/in_define_order");
         }
       }
       return TCL_OK;
@@ -1384,11 +1352,11 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(PLACEMENT_SETTINGS, []() {
       GlobalSession->CmdStack()->push_and_exec(
-          new Command("pin_loc_assign_method Random"));
+          new Command("pin_loc_assign_method random"));
     });
     m_taskManager->bindTaskCommand(PLACEMENT_SETTINGS, []() {
       GlobalSession->CmdStack()->push_and_exec(
-          new Command("pin_loc_assign_method DefineOrder"));
+          new Command("pin_loc_assign_method in_define_order"));
     });
     m_taskManager->bindTaskCommand(ROUTING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("route"));

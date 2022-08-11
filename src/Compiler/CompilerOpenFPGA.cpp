@@ -141,11 +141,12 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << std::endl;
   (*out) << "   place <Pin Loc Assign Method> : Pin Loc "
             "Assign Method "
-            "(DefineOrder(Default), "
-            "Random)"
+            "(in_define_order(Default), "
+            "random)"
          << std::endl;
-  (*out) << "   pin_loc_assign_method <Method>: (DefineOrder(Default)/Random)"
-         << std::endl;
+  (*out)
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
