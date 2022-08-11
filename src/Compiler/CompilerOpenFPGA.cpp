@@ -889,18 +889,26 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 }
 
 std::string CompilerOpenFPGA::BaseStaCommand() {
-  std::string command = m_staExecutablePath.string() +
-    std::string(" -exit ");  // allow open sta exit its tcl shell even there is error
+  std::string command =
+      m_staExecutablePath.string() +
+      std::string(
+          " -exit ");  // allow open sta exit its tcl shell even there is error
   return command;
 }
 
-std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName, std::string netlistFileName, std::string sdfFileName, std::string sdcFileName) {
-  std::string script = std::string("read_liberty ") + libFileName + std::string("\n") + // add lib for test only, need to research on this
-                       std::string("read_verilog ") + netlistFileName + std::string("\n") +
-                       std::string("link_design ") + ProjManager()->projectName() + std::string("\n") +
-                       std::string("read_sdf ") + sdfFileName + std::string("\n") +
-                       std::string("read_sdc ") + sdcFileName + std::string("\n") +
-                       std::string("report_checks\n"); // to do: add more check/report flavors
+std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
+                                            std::string netlistFileName,
+                                            std::string sdfFileName,
+                                            std::string sdcFileName) {
+  std::string script =
+      std::string("read_liberty ") + libFileName +
+      std::string("\n") +  // add lib for test only, need to research on this
+      std::string("read_verilog ") + netlistFileName + std::string("\n") +
+      std::string("link_design ") + ProjManager()->projectName() +
+      std::string("\n") + std::string("read_sdf ") + sdfFileName +
+      std::string("\n") + std::string("read_sdc ") + sdcFileName +
+      std::string("\n") +
+      std::string("report_checks\n");  // to do: add more check/report flavors
   const std::string openStaFile =
       (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_opensta.tcl"))
@@ -1308,7 +1316,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
-                       std::string(ProjManager()->projectName() + "_sta.cmd")).string());
+                       std::string(ProjManager()->projectName() + "_sta.cmd"))
+                          .string());
     ofs.close();
     int status = ExecuteAndMonitorSystemCommand(command);
     if (status) {
@@ -1317,15 +1326,33 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       return false;
     }
     // find files
-    std::string libFileName = (std::filesystem::current_path() / std::string(ProjManager()->projectName() + ".lib")).string(); // this is the standard sdc file
-    std::string netlistFileName = (std::filesystem::path(ProjManager()->projectPath()) / std::string(ProjManager()->projectName() + "_post_synthesis.v")).string();
-    std::string sdfFileName = (std::filesystem::path(ProjManager()->projectPath()) / std::string(ProjManager()->projectName() + "_post_synthesis.sdf")).string();
+    std::string libFileName =
+        (std::filesystem::current_path() /
+         std::string(ProjManager()->projectName() + ".lib"))
+            .string();  // this is the standard sdc file
+    std::string netlistFileName =
+        (std::filesystem::path(ProjManager()->projectPath()) /
+         std::string(ProjManager()->projectName() + "_post_synthesis.v"))
+            .string();
+    std::string sdfFileName =
+        (std::filesystem::path(ProjManager()->projectPath()) /
+         std::string(ProjManager()->projectName() + "_post_synthesis.sdf"))
+            .string();
     // std::string sdcFile = ProjManager()->getConstrFiles();
-    std::string sdcFileName = (std::filesystem::current_path() / std::string(ProjManager()->projectName() + ".sdc")).string(); // this is the standard sdc file
-    if (std::filesystem::is_regular_file(libFileName) && std::filesystem::is_regular_file(netlistFileName) && std::filesystem::is_regular_file(sdfFileName) && std::filesystem::is_regular_file(sdcFileName)) {
-      taCommand = BaseStaCommand() + " " + BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
+    std::string sdcFileName =
+        (std::filesystem::current_path() /
+         std::string(ProjManager()->projectName() + ".sdc"))
+            .string();  // this is the standard sdc file
+    if (std::filesystem::is_regular_file(libFileName) &&
+        std::filesystem::is_regular_file(netlistFileName) &&
+        std::filesystem::is_regular_file(sdfFileName) &&
+        std::filesystem::is_regular_file(sdcFileName)) {
+      taCommand =
+          BaseStaCommand() + " " +
+          BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
       std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
-                       std::string(ProjManager()->projectName() + "_sta.cmd")).string());
+                         std::string(ProjManager()->projectName() + "_sta.cmd"))
+                            .string());
       ofs << taCommand << std::endl;
       ofs.close();
     } else {
@@ -1334,10 +1361,11 @@ bool CompilerOpenFPGA::TimingAnalysis() {
           "for timing analysis");
       return false;
     }
-  } else { // use vpr/tatum engine
+  } else {  // use vpr/tatum engine
     taCommand = BaseVprCommand() + " --analysis";
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
-                       std::string(ProjManager()->projectName() + "_sta.cmd")).string());
+                       std::string(ProjManager()->projectName() + "_sta.cmd"))
+                          .string());
     ofs << taCommand << " --disp on" << std::endl;
     ofs.close();
   }

@@ -161,7 +161,10 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_openFPGAScript;
   virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
-  virtual std::string BaseStaScript(std::string libFileName, std::string netlistFileName, std::string sdfFileName, std::string sdcFileName);
+  virtual std::string BaseStaScript(std::string libFileName,
+                                    std::string netlistFileName,
+                                    std::string sdfFileName,
+                                    std::string sdcFileName);
   bool m_keepAllSignals = false;
   bool m_useVerilogNetlist = false;
 };
