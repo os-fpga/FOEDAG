@@ -71,7 +71,8 @@ class Compiler {
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
-  enum class PlacementOpt { None, Clean, Random, DefineOrder };
+  enum class PlacementOpt { None, Clean };
+  enum class PinAssignOpt { Random, In_Define_Order };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
@@ -133,6 +134,10 @@ class Compiler {
   void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
   PlacementOpt PlaceOpt() const { return m_placementOpt; }
   void PlaceOpt(PlacementOpt opt) { m_placementOpt = opt; }
+
+  PinAssignOpt PinAssignOpts() const { return m_pinAssignOpt; }
+  void PinAssignOpts(PinAssignOpt opt) { m_pinAssignOpt = opt; }
+
   RoutingOpt RouteOpt() const { return m_routingOpt; }
   void RouteOpt(RoutingOpt opt) { m_routingOpt = opt; }
   STAOpt TimingAnalysisOpt() const { return m_staOpt; }
@@ -211,7 +216,8 @@ class Compiler {
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
-  PlacementOpt m_placementOpt = PlacementOpt::DefineOrder;
+  PlacementOpt m_placementOpt = PlacementOpt::None;
+  PinAssignOpt m_pinAssignOpt = PinAssignOpt::In_Define_Order;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
