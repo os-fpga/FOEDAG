@@ -106,6 +106,8 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
 
@@ -157,6 +159,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
+	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl

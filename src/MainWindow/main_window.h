@@ -77,6 +77,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* fileMenu = nullptr;
   QMenu* processMenu = nullptr;
   QMenu* helpMenu = nullptr;
+  QMenu* viewMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
@@ -86,6 +87,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* startAction = nullptr;
   QAction* stopAction = nullptr;
   QAction* aboutAction = nullptr;
+  QAction* pinAssignmentAction = nullptr;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
