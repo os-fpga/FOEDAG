@@ -36,6 +36,7 @@ void IpTreesWidget::Init() {
     // Main VLayout
     QVBoxLayout* vLayout = new QVBoxLayout();
     this->setLayout(vLayout);
+    vLayout->setContentsMargins(0, 0, 0, 0);
 
     // Vertical Splitter for Trees
     m_splitter = new QSplitter();

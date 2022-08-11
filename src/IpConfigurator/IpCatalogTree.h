@@ -29,8 +29,14 @@ class IpCatalogTree : public QTreeWidget {
 
  public:
   explicit IpCatalogTree(QWidget* parent = nullptr);
+  void populateTree();
 
  private:
+  QStringList prevIpCatalogResults;
+  bool ipsLoaded = false;
+
+  QStringList getAvailableIPs(QString path);
+  void loadIps(QString path);
 };
 
 }  // namespace FOEDAG

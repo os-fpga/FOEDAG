@@ -22,33 +22,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QTreeWidgetItem>
 
+#include "MainWindow/Session.h"
+
+extern FOEDAG::Session* GlobalSession;
+
 using namespace FOEDAG;
 
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
   this->setHeaderLabel("Available IPs");
+  populateTree();
+}
 
-  for (int i = 0; i < 5; i++) {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-    item->setText(0, QString("Uncategorized IP %1").arg(i + 1));
-    this->addTopLevelItem(item);
+void IpCatalogTree::populateTree() {
+  QStringList ips = getAvailableIPs("./");
+
+  // If available IPs have changed
+  if (ips != prevIpCatalogResults) {
+    this->clear();
+    // Add a tree entry for each IP name
+    for (auto ip : ips) {
+      QTreeWidgetItem* item = new QTreeWidgetItem();
+      item->setText(0, ip);
+      this->addTopLevelItem(item);
+    }
   }
+}
 
-  QTreeWidgetItem* company1 = new QTreeWidgetItem();
-  company1->setText(0, "Company 1");
-  this->addTopLevelItem(company1);
-  for (int i = 0; i < 5; i++) {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-    item->setText(0, QString("IP %1").arg(i + 1));
-    company1->addChild(item);
-  }
+QStringList IpCatalogTree::getAvailableIPs(QString path) {
+  // Load IPs
+  loadIps(path);
 
-  QTreeWidgetItem* company2 = new QTreeWidgetItem();
-  company2->setText(0, "Company 2");
-  this->addTopLevelItem(company2);
-  for (int i = 0; i < 500; i++) {
-    QTreeWidgetItem* item = new QTreeWidgetItem();
-    item->setText(0, QString("IP %1").arg(i + 1));
-    company2->addChild(item);
+  // Request loaded IPs
+  std::string result = GlobalSession->TclInterp()->evalCmd("ip_catalog");
+  QStringList ips = QString::fromStdString(result).trimmed().split(" ");
+
+  return ips;
+}
+
+void IpCatalogTree::loadIps(QString path) {
+  if (!ipsLoaded) {
+    QString cmd = QString("add_litex_ip_catalog %1").arg(path);
+    int ok = TCL_ERROR;
+    GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
+    ipsLoaded = (ok == TCL_OK);
   }
 }

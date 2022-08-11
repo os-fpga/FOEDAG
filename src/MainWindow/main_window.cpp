@@ -453,6 +453,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
   createIpConfiguratorUI();
+
+  // Short term fix to clear any output messages at init as Compiler->Message()
+  // calls can drop text into the console prompt and cause issue
+  console->clearText();
 }
 
 void MainWindow::clearDockWidgets() {
