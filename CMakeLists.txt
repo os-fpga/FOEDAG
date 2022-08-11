@@ -88,6 +88,7 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(tests/tclutils)
+add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
 add_subdirectory(src/NewFile)
 add_subdirectory(src/ProjNavigator)
@@ -354,8 +355,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 # Unit tests
-enable_testing()
-include(GoogleTest)
 
 if(MSVC)
   # Microsoft reports the value of __cplusplus wrong and gmock/gtest pulls in the
@@ -369,11 +368,6 @@ if(MSVC)
   target_compile_options(gtest PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
-
-
-# All unit-tests are registered with this custom target as dependency, so
-# just `make UnitTests` will build them all.
-add_custom_target(UnitTests)
 
 # Concise way to register a new google test
 # call with register_gtest(path/to/UnitTestFile.cpp)
@@ -406,11 +400,6 @@ function(register_gtests)
     add_dependencies(UnitTests ${test_bin})
   endforeach()
 endfunction()
-
-register_gtests(
-  tests/unittest/Tcl/TclInterpreter_test.cpp
-  tests/unittest/Command/Command_test.cpp
-)
 
 if (WIN OR APPLE)
 else ()

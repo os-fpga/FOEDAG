@@ -20,4 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IpConfigurator/IpConfigDlg.h"
 
+#include <QDialogButtonBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+
 using namespace FOEDAG;
+
+IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/) {
+  this->setWindowTitle("Configure IP");
+  this->setObjectName("IpConfigDlg");
+  QVBoxLayout* topLayout = new QVBoxLayout();
+  this->setLayout(topLayout);
+
+  topLayout->addStretch();
+
+  // Dialog Buttons
+  QDialogButtonBox* btns = new QDialogButtonBox(QDialogButtonBox::Cancel);
+  btns->setObjectName("IpConfigDlg_QDialogButtonBox");
+  topLayout->addWidget(btns);
+  QPushButton* instantiateBtn = new QPushButton("Instantiate IP", this);
+  btns->addButton(instantiateBtn, QDialogButtonBox::ButtonRole::ActionRole);
+}
