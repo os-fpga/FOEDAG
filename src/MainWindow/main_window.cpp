@@ -60,15 +60,15 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
 
-  auto sceenGeometry = qApp->primaryScreen()->availableGeometry();
+  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
-  // Take 2/3 part of the sceen.
+  // Take 2/3 part of the screen.
   auto mainWindowSize =
-      QSize(sceenGeometry.width() * 2 / 3, sceenGeometry.height() * 2 / 3);
+      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
   // Center main window on the screen. It will get this geometry after switching
   // from maximized mode.
   setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
-                                  mainWindowSize, sceenGeometry));
+                                  mainWindowSize, screenGeometry));
   // Initially, main window should be maximized.
   showMaximized();
 
