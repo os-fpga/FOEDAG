@@ -30,6 +30,7 @@ using namespace FOEDAG;
 
 IpConfigurator::IpConfigurator(QWidget* parent) : QWidget(parent) {
   IpTreesWidget::Instance()->Init();
+  // test change
 }
 
 void IpConfigurator::ShowIpTrees() {
