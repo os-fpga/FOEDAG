@@ -57,12 +57,20 @@ extern const char* foedag_build_type;
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
-  resize(350, 250);
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
-  QDesktopWidget dw;
-  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
-              dw.height() * 2 / 3);
+
+  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
+
+  // Take 2/3 part of the screen.
+  auto mainWindowSize =
+      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
+  // Center main window on the screen. It will get this geometry after switching
+  // from maximized mode.
+  setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
+                                  mainWindowSize, screenGeometry));
+  // Initially, main window should be maximized.
+  showMaximized();
 
   setDockNestingEnabled(true);
 
