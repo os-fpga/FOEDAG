@@ -139,11 +139,6 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
-  (*out) << "   place <Pin Loc Assign Method> : Pin Loc "
-            "Assign Method "
-            "(in_define_order(Default), "
-            "random)"
-         << std::endl;
   (*out)
       << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
       << std::endl;
