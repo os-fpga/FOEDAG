@@ -236,9 +236,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       }
       std::filesystem::path the_path = expandedFile;
       if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
+        const auto& path = std::filesystem::current_path();
+        expandedFile = std::filesystem::path(path / expandedFile).string();
       }
       stream.close();
       if (i == 1) {
