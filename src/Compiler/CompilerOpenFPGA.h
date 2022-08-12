@@ -47,6 +47,9 @@ class CompilerOpenFPGA : public Compiler {
   void VprExecPath(const std::filesystem::path& path) {
     m_vprExecutablePath = path;
   }
+  void StaExecPath(const std::filesystem::path& path) {
+    m_staExecutablePath = path;
+  }
   void PinConvExecPath(const std::filesystem::path& path) {
     m_pinConvExecutablePath = path;
   }
@@ -132,6 +135,7 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_synthesisType;  // QL, Yosys, ...
   std::filesystem::path m_openFpgaExecutablePath = "openfpga";
   std::filesystem::path m_vprExecutablePath = "vpr";
+  std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
   /*!
    * \brief m_architectureFile
@@ -156,6 +160,11 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_yosysScript;
   std::string m_openFPGAScript;
   virtual std::string BaseVprCommand();
+  virtual std::string BaseStaCommand();
+  virtual std::string BaseStaScript(std::string libFileName,
+                                    std::string netlistFileName,
+                                    std::string sdfFileName,
+                                    std::string sdcFileName);
   bool m_keepAllSignals = false;
   bool m_useVerilogNetlist = false;
 };
