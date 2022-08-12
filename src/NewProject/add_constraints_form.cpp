@@ -1,8 +1,7 @@
 #include "add_constraints_form.h"
 
-#include <QDebug>
-
 #include "ui_add_constraints_form.h"
+bool flag;
 using namespace FOEDAG;
 
 addConstraintsForm::addConstraintsForm(QWidget *parent)
@@ -24,7 +23,11 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
   ui->select_defineOrder->setChecked(true);
-  ui->select_random->setChecked(false);
+  flag = ui->select_defineOrder->isChecked();
+  connect(ui->select_defineOrder, &QRadioButton::clicked, this,
+          &addConstraintsForm::pinAssign_flag_listen);
+  connect(ui->select_random, &QRadioButton::clicked, this,
+          &addConstraintsForm::pinAssign_flag_listen_2);
 }
 
 addConstraintsForm::~addConstraintsForm() { delete ui; }
@@ -38,15 +41,10 @@ bool addConstraintsForm::IsCopySource() {
                                                                    : false;
 }
 
-void addConstraintsForm::on_select_defineOrder_clicked(
-    bool define_Order_checked) {
-  define_Order_checked = ui->select_defineOrder->isChecked();
-  if (define_Order_checked) {
-    ui->select_random->setChecked(false);
-  }
+void addConstraintsForm::pinAssign_flag_listen() {
+  flag = ui->select_defineOrder->isChecked();
 }
 
-void addConstraintsForm::on_select_random_clicked(bool random_checked) {
-  random_checked = ui->select_random->isChecked();
-  if (random_checked) ui->select_defineOrder->setChecked(false);
+void addConstraintsForm::pinAssign_flag_listen_2() {
+  flag = !(ui->select_random->isChecked());
 }

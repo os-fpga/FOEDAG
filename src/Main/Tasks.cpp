@@ -21,8 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
-#include <QDebug>
-
 #include "Foedag.h"
 #include "Settings.h"
 #include "WidgetFactory.h"
@@ -30,7 +28,7 @@ using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
 #define SYNTH_ARG "_SynthOpt_"
-#define PLACE_ARG "_PinAssign_"
+#define PLACE_ARG "pin_assign_method"
 
 #define TASKS_DEBUG false
 
@@ -59,15 +57,12 @@ auto separateArg = [](const QString& argName,
       targetArg = argString.mid(argIdx, argString.indexOf("-", argIdx + 1));
       otherArgs = otherArgs.replace(targetArg, "");
     }
-
-    auto argIdPlace = argString.indexOf("-" + QString(PLACE_ARG));
-    std::cout << "'\nplaceid = " << argIdPlace << endl;
-    //    if (argIdPlace != -1) {
-    //      targetArg =
-    //          argString.mid(argIdPlace, argString.indexOf("-", argIdPlace +
-    //          1));
-    //      otherArgs = otherArgs.replace(targetArg, "");
-    //    }
+    auto argPlaceIdx = argString.indexOf("-" + QString(PLACE_ARG));
+    if (argPlaceIdx != -1) {
+      targetArg =
+          argString.mid(argPlaceIdx, argString.indexOf("-", argPlaceIdx + 1));
+      otherArgs = otherArgs.replace(targetArg, "");
+    }
   }
   return {targetArg, otherArgs};
 };
@@ -80,7 +75,7 @@ static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
     {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
     {FOEDAG::Compiler::SynthesisOpt::Clean, "clean"}};
 // Lookup for PlaceOpt values
-static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> placeOptMap = {
+static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
     {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"}};
 
@@ -105,19 +100,19 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
   return val;
 };
 
-auto placeOptToStr = [](FOEDAG::Compiler::PinAssignOpt opt) -> QString {
-  return placeOptMap[opt];
+auto pinOptToStr = [](FOEDAG::Compiler::PinAssignOpt opt) -> QString {
+  return pinOptMap[opt];
 };
 
-auto placeStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
+auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
   auto it = find_if(
-      placeOptMap.begin(), placeOptMap.end(),
+      pinOptMap.begin(), pinOptMap.end(),
       [str](const std::pair<FOEDAG::Compiler::PinAssignOpt, const char*> p) {
         return p.second == str;
       });
 
   auto val = FOEDAG::Compiler::PinAssignOpt::In_Define_Order;
-  if (it != placeOptMap.end()) {
+  if (it != pinOptMap.end()) {
     val = (*it).first;
   }
 
@@ -134,7 +129,6 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
   // SynthMoreOpt so we need to give it a fake arg and pass it
   tclOptions += " -" + QString(SYNTH_ARG) + " " +
                 synthOptToStr(GlobalSession->GetCompiler()->SynthOpt());
-  qDebug() << tclOptions;
   return tclOptions;
 };
 
@@ -142,7 +136,6 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
 // and then set the rest of the options under SynthMoreOpt
 void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
   auto [synthArg, moreOpts] = separateArg(SYNTH_ARG, argsStr);
-
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
     QStringList tokens = synthArg.split(" ");
@@ -159,23 +152,22 @@ QString FOEDAG::TclArgs_getPlacementOptions() {
   QString tclOptions =
       QString::fromStdString(GlobalSession->GetCompiler()->PlaceMoreOpt());
   tclOptions += " -" + QString(PLACE_ARG) + " " +
-                placeOptToStr(GlobalSession->GetCompiler()->PinAssignOpts());
-
+                pinOptToStr(GlobalSession->GetCompiler()->PinAssignOpts());
   return tclOptions;
 }
 
 void FOEDAG::TclArgs_setPlacementOptions(const QString& argsStr) {
-  auto [placethArg, moreOpts] = separateArg(PLACE_ARG, argsStr);
+  auto [pinArg, moreOpts] = separateArg(PLACE_ARG, argsStr);
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
-  qDebug() << "placeArg = " << placethArg;
-  qDebug() << "Place MoreOpt =" << moreOpts;
   if (compiler) {
-    QStringList tokens = placethArg.split(" ");
+    QStringList tokens = pinArg.split(" ");
     if (tokens.count() > 1) {
-      int opt = (int)placeStrToOpt(tokens[1]);
-      compiler->PinAssignOpts(placeStrToOpt(tokens[1]));
+      if (tokens[1] == "random") {
+        flag = false;
+      } else
+        flag = true;
+      compiler->PinAssignOpts(pinStrToOpt(tokens[1]));
     }
-
     compiler->PlaceMoreOpt(moreOpts.toStdString());
   }
 }

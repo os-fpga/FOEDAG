@@ -128,7 +128,7 @@ void Compiler::Help(std::ostream* out) {
       << std::endl;
   (*out) << "   place ?clean" << std::endl;
   (*out)
-      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/Random)"
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
       << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
@@ -1020,42 +1020,41 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
-
-      auto setPlaceOption = [compiler](std::string arg) {
+      auto setPlaceOption = [compiler](const std::string& arg) {
         if (arg == "random") {
+          flag = false;
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method set -> [Random]");
         } else if (arg == "in_define_order") {
+          flag = true;
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method set -> [In Define Order]'");
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
       };
 
       // If we received a tcl argument
-      if (argc > 1) {
-        for (int i = 1; i < argc; i++) {
-          setPlaceOption(argv[1]);
-        }
+      if (argc > 1 && argc < 4) {
+        setPlaceOption(argv[argc - 1]);
       } else {
+        compiler->ErrorMessage(
+            "Incorrect pin assign option: type random/in_define_order");
         // otherwise, check settings for a value
         Settings* settings = compiler->GetSession()->GetSettings();
         auto json =
             settings->getJson()["Tasks"]["Placement"]["pin_selection_radiobtn"];
-        std::cout << json << endl;
         std::string option = "in_define_order";
         if (json.contains("userValue")) {
           option = json["userValue"];
         } else if (json.contains("default")) {
           option = json["default"].get<std::string>();
         }
-        // If a valid value was specified update the PlaceOpt
+        // If a valid value was specified update the PinAssignOpt
         if (option != "in_define_order") {
           QString lookupVal =
               Settings::getLookupValue(json, QString::fromStdString(option));
           setPlaceOption(lookupVal.toStdString());
-        } else {
-          compiler->ErrorMessage(
-              "No Argument passed: type random/in_define_order");
         }
       }
       return TCL_OK;
@@ -1359,14 +1358,6 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(PLACEMENT_CLEAN, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place clean"));
-    });
-    m_taskManager->bindTaskCommand(PLACEMENT_SETTINGS, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("pin_loc_assign_method random"));
-    });
-    m_taskManager->bindTaskCommand(PLACEMENT_SETTINGS, []() {
-      GlobalSession->CmdStack()->push_and_exec(
-          new Command("pin_loc_assign_method in_define_order"));
     });
     m_taskManager->bindTaskCommand(ROUTING, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("route"));

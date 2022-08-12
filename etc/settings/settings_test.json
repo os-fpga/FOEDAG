@@ -229,7 +229,7 @@
                     "in_define_order"
                 ],
                 "layout": "horizontal",
-                "arg": "_PinAssign_"
+                "arg": "pin_assign_method"
             },
             "_META_": {
                 "hidden": false,

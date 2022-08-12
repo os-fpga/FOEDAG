@@ -5,6 +5,7 @@
 
 #include "source_grid.h"
 
+extern bool flag;
 namespace Ui {
 class addConstraintsForm;
 }
@@ -22,15 +23,14 @@ class addConstraintsForm : public QWidget {
   bool IsCopySource();
 
  private slots:
-  void on_select_random_clicked(bool random_checked);
-
- private slots:
-  void on_select_defineOrder_clicked(bool define_order_checked);
+  void pinAssign_flag_listen();
+  void pinAssign_flag_listen_2();
 
  private:
   Ui::addConstraintsForm *ui;
 
   sourceGrid *m_widgetGrid;
 };
+
 }  // namespace FOEDAG
 #endif  // ADDCONSTRAINTSFORM_H
