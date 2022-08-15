@@ -184,12 +184,12 @@ void MainWindow::startStopButtonsState() {
 }
 
 void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
-  IpConfigurator* configurator = new IpConfigurator(this);
-  configurator->hide();
-  configurator->setObjectName("IpConfigurator");
+  // IpConfigurator* configurator = new IpConfigurator(this);
+  // configurator->hide();
+  // configurator->setObjectName("IpConfigurator");
   QDockWidget* dw = new QDockWidget(tr("IP"), this);
   dw->setObjectName("IpDockWidget");
-  dw->setWidget(configurator->GetIpTreesWidget());
+  // dw->setWidget(configurator->GetIpTreesWidget());
   addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
@@ -452,7 +452,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
-  // createIpConfiguratorUI();
+  createIpConfiguratorUI();
 
   // Short term fix to clear any output messages at init as Compiler->Message()
   // calls can drop text into the console prompt and cause issue
