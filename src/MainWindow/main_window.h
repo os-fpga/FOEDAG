@@ -72,6 +72,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void startStopButtonsState();
   void loadFile(const QString& file);
   void createIpConfiguratorUI(QDockWidget* prevTab = nullptr);
+  QDockWidget* PrepareTab(const QString& name, const QString& objName,
+                          QWidget* widget, QDockWidget* tabToAdd,
+                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -104,6 +107,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class ProjectFileLoader* m_projectFileLoader{nullptr};
   class SourcesForm* sourcesForm{nullptr};
   QWidget* m_progressWidget{nullptr};
+  QDockWidget* m_dockConsole{nullptr};
+  std::vector<QDockWidget*> m_pinAssignmentDocks;
 };
 
 }  // namespace FOEDAG

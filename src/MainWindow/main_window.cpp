@@ -196,6 +196,17 @@ void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
   }
 }
 
+QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
+                                    QWidget* widget, QDockWidget* tabToAdd,
+                                    Qt::DockWidgetArea area) {
+  QDockWidget* dock = new QDockWidget(name, this);
+  dock->setObjectName(objName);
+  dock->setWidget(widget);
+  addDockWidget(area, dock);
+  tabifyDockWidget(tabToAdd, dock);
+  return dock;
+}
+
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
     m_projectFileLoader->Load(file);
@@ -308,9 +319,27 @@ void MainWindow::createActions() {
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
 
-  pinAssignmentAction = new QAction(tr("Pin Assignment View"), this);
-  connect(pinAssignmentAction, &QAction::triggered, this,
-          [this]() { PinAssignmentCreator creator; });
+  pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
+  pinAssignmentAction->setCheckable(true);
+  connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
+    if (pinAssignmentAction->isChecked()) {
+      PinAssignmentCreator creator;
+      auto portsDockWidget =
+          PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
+                     m_dockConsole);
+      auto packagePinDockWidget =
+          PrepareTab(tr("Package Pins"), "packagepinwidget",
+                     creator.GetPackagePinsWidget(), portsDockWidget);
+      m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+    } else {
+      for (const auto& dock : m_pinAssignmentDocks) {
+        removeDockWidget(dock);
+        delete dock->widget();
+        delete dock;
+      }
+      m_pinAssignmentDocks.clear();
+    }
+  });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
@@ -319,7 +348,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(m_projectInfo.name + " - " + strProject);
+  newDesignCreated(strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -375,6 +404,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // console
   QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
+  m_dockConsole = consoleDocWidget;
 
   StreamBuffer* buffer = new StreamBuffer;
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(

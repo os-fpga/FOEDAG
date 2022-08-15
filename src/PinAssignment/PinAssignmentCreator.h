@@ -27,8 +27,15 @@ namespace FOEDAG {
 class PinAssignmentCreator {
  public:
   PinAssignmentCreator();
-  QWidget* GetPackagePinsWidget();
-  QWidget* GetPortsWidget();
+  QWidget *GetPackagePinsWidget();
+  QWidget *GetPortsWidget();
+
+ private:
+  QWidget *CreateLayoutedWidget(QWidget *main);
+
+ private:
+  QWidget *m_portsView{nullptr};
+  QWidget *m_packagePinsView{nullptr};
 };
 
 }  // namespace FOEDAG
