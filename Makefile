@@ -157,6 +157,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_clean.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
