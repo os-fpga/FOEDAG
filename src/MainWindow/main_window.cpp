@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -183,12 +184,13 @@ void MainWindow::startStopButtonsState() {
 }
 
 void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
-  // IpConfigurator* configurator = new IpConfigurator(this);
-  m_ipConfigurator.hide();
-  m_ipConfigurator.setObjectName("IpConfigurator");
+  IpConfigurator* configurator = new IpConfigurator(this);
+  configurator->setParent(this);
+  configurator->hide();
+  configurator->setObjectName("IpConfigurator");
   QDockWidget* dw = new QDockWidget(tr("IP"), this);
   dw->setObjectName("IpDockWidget");
-  dw->setWidget(m_ipConfigurator.GetIpTreesWidget());
+  dw->setWidget(configurator->GetIpTreesWidget());
   addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
