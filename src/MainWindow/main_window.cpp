@@ -456,7 +456,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   // Short term fix to clear any output messages at init as Compiler->Message()
   // calls can drop text into the console prompt and cause issue
-  // console->clearText();
+  console->clearText();
 }
 
 void MainWindow::clearDockWidgets() {
