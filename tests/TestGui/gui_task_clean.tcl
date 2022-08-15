@@ -22,14 +22,6 @@
 
 gui_start
 puts "CREATE_DESIGN" ; flush stdout ; create_design task_clean_test
-puts "SYNTHESIZE CLEAN" ; flush stdout ; synthesize clean
-puts "SYNTHESIZE" ; flush stdout ; synthesize
-puts "PACKING CLEAN" ; flush stdout ; packing clean
-puts "PACKING" ; flush stdout ; packing
-puts "GLOBAL_PLACEMENT CLEAN" ; flush stdout ; global_placement clean
-puts "GLOBAL_PLACEMENT" ; flush stdout ; global_placement
 puts "PLACE CLEAN" ; flush stdout ; place clean
 puts "PLACE" ; flush stdout ; place
-puts "ROUTE CLEAN" ; flush stdout ; route clean
-puts "ROUTE" ; flush stdout ; route
 gui_stop
