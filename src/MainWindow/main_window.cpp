@@ -193,7 +193,7 @@ void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
   addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
-  if (prevTab) {
+  if (prevTab != nullptr) {
     tabifyDockWidget(prevTab, dw);
   }
 }
