@@ -29,7 +29,7 @@ class IpCatalogTree : public QTreeWidget {
 
  public:
   explicit IpCatalogTree(QWidget* parent = nullptr);
-  void populateTree();
+  void refresh();
 
  private:
   QStringList prevIpCatalogResults;

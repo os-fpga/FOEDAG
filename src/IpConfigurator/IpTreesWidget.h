@@ -35,6 +35,7 @@ class IpTreesWidget : public QWidget {
   static IpTreesWidget* Instance();
 
   void Init();
+  void refresh();
 
  private:
   IpCatalogTree* m_catalog_tree = nullptr;

@@ -31,10 +31,10 @@ using namespace FOEDAG;
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
   this->setHeaderLabel("Available IPs");
-  populateTree();
+  refresh();
 }
 
-void IpCatalogTree::populateTree() {
+void IpCatalogTree::refresh() {
   QStringList ips = getAvailableIPs("./");
 
   // If available IPs have changed
