@@ -21,19 +21,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignmentCreator.h"
 
 #include <QBoxLayout>
+#include <QDebug>
+#include <QDir>
+#include <filesystem>
 
+#include "Main/ToolContext.h"
+#include "PackagePinsLoader.h"
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
 #include "PortsView.h"
 
 namespace FOEDAG {
 
-PinAssignmentCreator::PinAssignmentCreator() {
+PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
+                                           ToolContext *context,
+                                           QObject *parent)
+    : QObject(parent) {
   auto baseModel = new PinsBaseModel;
+  auto packagePinModel = new PackagePinsModel;
+  const QString fileName = searchCsvFile(targetDevice(projectManager), context);
+  PackagePinsLoader loader{packagePinModel, this};
+  loader.load(fileName);
   auto portsView = new PortsView(baseModel);
   m_portsView = CreateLayoutedWidget(portsView);
 
-  auto packagePins = new PackagePinsView(baseModel);
+  auto packagePins = new PackagePinsView(packagePinModel);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
 }
 
@@ -48,6 +60,28 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   w->setLayout(new QVBoxLayout);
   w->layout()->addWidget(main);
   return w;
+}
+
+QString PinAssignmentCreator::searchCsvFile(const QString &targetDevice,
+                                            ToolContext *context) const {
+  std::filesystem::path path{context->DataPath()};
+  path = path / "etc" / "devices";
+  if (!targetDevice.isEmpty()) path /= targetDevice.toLower().toStdString();
+
+  QDir dir{path.string().c_str()};
+  auto files = dir.entryList({"*.csv"}, QDir::Files);
+  if (!files.isEmpty()) return dir.filePath(files.first());
+
+  std::filesystem::path pathDefault{context->DataPath()};
+  pathDefault = pathDefault / "etc" / "templates" / "Pin_Table.csv";
+  return QString(pathDefault.string().c_str());
+}
+
+QString PinAssignmentCreator::targetDevice(
+    ProjectManager *projectManager) const {
+  if (!projectManager->HasDesign()) return QString();
+  if (projectManager->getTargetDevice().empty()) return QString();
+  return QString::fromStdString(projectManager->getTargetDevice());
 }
 
 }  // namespace FOEDAG
