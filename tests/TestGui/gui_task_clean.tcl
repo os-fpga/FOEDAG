@@ -21,5 +21,4 @@
 # This is related to os-fpga/FOEDAG/issues/575
 
 gui_start
-puts "CREATE_DESIGN" ; flush stdout ; create_design task_clean_test
 gui_stop
