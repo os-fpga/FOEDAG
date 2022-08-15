@@ -20,7 +20,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PortsView.h"
 
+#include <QComboBox>
+#include <QHeaderView>
+#include <QStringListModel>
+
 namespace FOEDAG {
 
-PortsView::PortsView() {}
+PortsView::PortsView(PinsBaseModel *baseModel, QWidget *parent)
+    : QTreeWidget(parent) {
+  setHeaderLabels({"Name", "Dir", "Package Pin", "Bank", "Neg diff pair",
+                   "I/O std", "Vcco", "Vref", "Drive strength", "Slew type",
+                   "Pull type", "Off-chip Termination", "IN_TERM"});
+  header()->resizeSections(QHeaderView::ResizeToContents);
+
+  QTreeWidgetItem *topLevel = new QTreeWidgetItem(this);
+  topLevel->setText(0, "All ports");
+  addTopLevelItem(topLevel);
+  const auto ports = baseModel->ioPorts();
+  for (auto &p : ports) {
+    auto bankItem = new QTreeWidgetItem;
+    bankItem->setText(0, p.name);
+    bankItem->setText(1, p.dir);
+    topLevel->addChild(bankItem);
+
+    auto proxyModel = new QStringListModel;
+    proxyModel->setStringList({"", "GPIO_A_0", "GPIO_A_1", "GPIO_A_2"});
+
+    auto combo = new QComboBox{this};
+    combo->setModel(proxyModel);
+    combo->setAutoFillBackground(true);
+
+    setItemWidget(bankItem, 2, combo);
+    bankItem->setText(3, "1");
+  }
+  expandItem(topLevel);
+  setAlternatingRowColors(true);
+  setColumnWidth(0, 120);
+}
+
 }  // namespace FOEDAG

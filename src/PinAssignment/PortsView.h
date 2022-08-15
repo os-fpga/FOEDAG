@@ -20,13 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QTableView>
+#include <QTreeWidget>
+
+#include "PinsBaseModel.h"
 
 namespace FOEDAG {
 
-class PortsView : public QTableView {
+class PortsView : public QTreeWidget {
  public:
-  PortsView();
+  PortsView(PinsBaseModel *baseModel, QWidget *parent = nullptr);
 };
 
 }  // namespace FOEDAG
