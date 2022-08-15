@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "PinAssignment/PinAssignmentCreator.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
@@ -57,12 +58,20 @@ extern const char* foedag_build_type;
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
-  resize(350, 250);
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
-  QDesktopWidget dw;
-  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
-              dw.height() * 2 / 3);
+
+  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
+
+  // Take 2/3 part of the screen.
+  auto mainWindowSize =
+      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
+  // Center main window on the screen. It will get this geometry after switching
+  // from maximized mode.
+  setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
+                                  mainWindowSize, screenGeometry));
+  // Initially, main window should be maximized.
+  showMaximized();
 
   setDockNestingEnabled(true);
 
@@ -223,6 +232,9 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
+  viewMenu = menuBar()->addMenu("&View");
+  viewMenu->addAction(pinAssignmentAction);
+
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
   processMenu->addAction(stopAction);
@@ -297,6 +309,10 @@ void MainWindow::createActions() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
+
+  pinAssignmentAction = new QAction(tr("Pin Assignment View"), this);
+  connect(pinAssignmentAction, &QAction::triggered, this,
+          [this]() { PinAssignmentCreator creator; });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
