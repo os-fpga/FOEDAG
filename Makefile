@@ -89,6 +89,7 @@ test/valgrind: run-cmake-debug
 	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/foedag --batch --script tests/TestBatch/hello.tcl ; 
 	grep "ERROR SUMMARY: 0" valgrind.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl;
+	cat valgrind_gui.log
 	grep "ERROR SUMMARY: 0" valgrind_gui.log 
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
