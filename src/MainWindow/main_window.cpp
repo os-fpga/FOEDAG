@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "PinAssignment/PinAssignmentCreator.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
@@ -231,6 +232,9 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
+  viewMenu = menuBar()->addMenu("&View");
+  viewMenu->addAction(pinAssignmentAction);
+
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
   processMenu->addAction(stopAction);
@@ -305,6 +309,10 @@ void MainWindow::createActions() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
+
+  pinAssignmentAction = new QAction(tr("Pin Assignment View"), this);
+  connect(pinAssignmentAction, &QAction::triggered, this,
+          [this]() { PinAssignmentCreator creator; });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
