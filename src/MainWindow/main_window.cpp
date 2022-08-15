@@ -184,11 +184,11 @@ void MainWindow::startStopButtonsState() {
 
 void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
   // IpConfigurator* configurator = new IpConfigurator(this);
-  m_ipConfigurator->hide();
-  m_ipConfigurator->setObjectName("IpConfigurator");
+  m_ipConfigurator.hide();
+  m_ipConfigurator.setObjectName("IpConfigurator");
   QDockWidget* dw = new QDockWidget(tr("IP"), this);
   dw->setObjectName("IpDockWidget");
-  dw->setWidget(m_ipConfigurator->GetIpTreesWidget());
+  dw->setWidget(m_ipConfigurator.GetIpTreesWidget());
   addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
