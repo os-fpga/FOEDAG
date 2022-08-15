@@ -22,16 +22,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QWidget>
 
+#include "NewProject/ProjectManager/project_manager.h"
+
 namespace FOEDAG {
 
-class PinAssignmentCreator {
+class ToolContext;
+class PinAssignmentCreator : public QObject {
  public:
-  PinAssignmentCreator();
+  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
+                       QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);
+  QString searchCsvFile(const QString &targetDevice,
+                        ToolContext *context) const;
+  QString targetDevice(ProjectManager *projectManager) const;
 
  private:
   QWidget *m_portsView{nullptr};

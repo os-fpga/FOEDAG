@@ -22,6 +22,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-PackagePinsModel::PackagePinsModel() {}
+PackagePinsModel::PackagePinsModel(QObject *parent) : QObject(parent) {}
+
+QStringList PackagePinsModel::headerList() const {
+  return {"Name", "Available",  "Ports",     "Ref clock",   "Bank",
+          "ALT",  "Debug mode", "Scan mode", "Mbist mode",  "Type",
+          "Dir",  "Voltage",    "Power Pad", "Discription", "Voltage2"};
+}
+
+void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
+
+const QVector<PackagePinGroup> &PackagePinsModel::pinData() const {
+  return m_pinData;
+}
 
 }  // namespace FOEDAG
