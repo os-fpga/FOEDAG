@@ -22,6 +22,4 @@
 
 gui_start
 puts "CREATE_DESIGN" ; flush stdout ; create_design task_clean_test
-puts "PLACE CLEAN" ; flush stdout ; place clean
-puts "PLACE" ; flush stdout ; place
 gui_stop
