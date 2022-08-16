@@ -5,7 +5,6 @@
 
 #include "source_grid.h"
 
-extern bool flag;
 namespace Ui {
 class addConstraintsForm;
 }
@@ -22,15 +21,10 @@ class addConstraintsForm : public QWidget {
   QList<filedata> getFileData();
   bool IsCopySource();
 
- private slots:
-  void pinAssign_flag_listen();
-  void pinAssign_flag_listen_2();
-
  private:
   Ui::addConstraintsForm *ui;
 
   sourceGrid *m_widgetGrid;
 };
-
 }  // namespace FOEDAG
 #endif  // ADDCONSTRAINTSFORM_H

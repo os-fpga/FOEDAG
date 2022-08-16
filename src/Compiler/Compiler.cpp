@@ -818,6 +818,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1022,40 +1050,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       auto setPlaceOption = [compiler](const std::string& arg) {
         if (arg == "random") {
-          flag = false;
           compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
-          compiler->Message("Pin Method set -> [Random]");
+          compiler->Message("Pin Method :" + arg);
         } else if (arg == "in_define_order") {
-          flag = true;
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
-          compiler->Message("Pin Method set -> [In Define Order]'");
+          compiler->Message("Pin Method :" + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
       };
 
       // If we received a tcl argument
-      if (argc > 1 && argc < 4) {
-        setPlaceOption(argv[argc - 1]);
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
       } else {
         compiler->ErrorMessage(
-            "Incorrect pin assign option: type random/in_define_order");
-        // otherwise, check settings for a value
-        Settings* settings = compiler->GetSession()->GetSettings();
-        auto json =
-            settings->getJson()["Tasks"]["Placement"]["pin_selection_radiobtn"];
-        std::string option = "in_define_order";
-        if (json.contains("userValue")) {
-          option = json["userValue"];
-        } else if (json.contains("default")) {
-          option = json["default"].get<std::string>();
-        }
-        // If a valid value was specified update the PinAssignOpt
-        if (option != "in_define_order") {
-          QString lookupVal =
-              Settings::getLookupValue(json, QString::fromStdString(option));
-          setPlaceOption(lookupVal.toStdString());
-        }
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
       }
       return TCL_OK;
     };

@@ -18,9 +18,16 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 batch {
+  pin_loc_assign_method random
   synth
   packing
   globp
+  
+  pin_loc_assign_method in_define_order
+  synth
+  packing
+  globp
+
 }
 
 after 22000 {set CONT 0}

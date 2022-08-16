@@ -101,7 +101,7 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
 };
 
 auto pinOptToStr = [](FOEDAG::Compiler::PinAssignOpt opt) -> QString {
-  return pinOptMap[opt];
+  return pinOptMap.at(opt);
 };
 
 auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
@@ -162,10 +162,6 @@ void FOEDAG::TclArgs_setPlacementOptions(const QString& argsStr) {
   if (compiler) {
     QStringList tokens = pinArg.split(" ");
     if (tokens.count() > 1) {
-      if (tokens[1] == "random") {
-        flag = false;
-      } else
-        flag = true;
       compiler->PinAssignOpts(pinStrToOpt(tokens[1]));
     }
     compiler->PlaceMoreOpt(moreOpts.toStdString());
