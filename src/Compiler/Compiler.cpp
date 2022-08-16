@@ -1139,6 +1139,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("update_result", update_result, this, 0);
   }
+  auto architecture = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    // stub function
+    return TCL_OK;
+  };
+  interp->registerCmd("architecture", architecture, nullptr, nullptr);
   return true;
 }
 
