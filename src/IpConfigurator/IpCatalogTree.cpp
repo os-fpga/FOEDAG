@@ -28,6 +28,22 @@ extern FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
 
+bool tclCmdExists(const QString& cmdName) {
+  bool exists = false;
+  int ok = TCL_ERROR;
+  // If [info commands cmdName] returns nothing, the command doesn't exist
+  QString cmd = QString("expr {[llength [info commands %1]] > 0}").arg(cmdName);
+  // result == "0": Command doesn't exist
+  // result == "1": Command does exist
+  auto result = GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
+
+  if (ok == TCL_OK && result != "0") {
+    exists = true;
+  }
+
+  return exists;
+}
+
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
   this->setHeaderLabel("Available IPs");
@@ -50,18 +66,22 @@ void IpCatalogTree::refresh() {
 }
 
 QStringList IpCatalogTree::getAvailableIPs(QString path) {
+  QStringList ips;
+
   // Load IPs
   loadIps(path);
 
   // Request loaded IPs
-  std::string result = GlobalSession->TclInterp()->evalCmd("ip_catalog");
-  QStringList ips = QString::fromStdString(result).trimmed().split(" ");
+  if (ipsLoaded && tclCmdExists("ip_catalog")) {
+    std::string result = GlobalSession->TclInterp()->evalCmd("ip_catalog");
+    ips = QString::fromStdString(result).trimmed().split(" ");
+  }
 
   return ips;
 }
 
 void IpCatalogTree::loadIps(QString path) {
-  if (!ipsLoaded) {
+  if (!ipsLoaded && tclCmdExists("add_litex_ip_catalog")) {
     QString cmd = QString("add_litex_ip_catalog %1").arg(path);
     int ok = TCL_ERROR;
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
