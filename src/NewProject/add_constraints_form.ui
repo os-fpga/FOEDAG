@@ -29,6 +29,7 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
+       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -51,7 +52,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="95">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -62,7 +63,7 @@
       <number>30</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,0,10">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -83,58 +84,6 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Pin Location Assign Method:</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QRadioButton" name="select_random">
-              <property name="text">
-               <string>Random</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="select_defineOrder">
-              <property name="acceptDrops">
-               <bool>false</bool>
-              </property>
-              <property name="autoFillBackground">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>In Define Order</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-         </layout>
         </widget>
        </item>
        <item>
