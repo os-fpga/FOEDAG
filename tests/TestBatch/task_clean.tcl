@@ -20,15 +20,15 @@
 # The following test calls each task's clean function before calling it's main action to check for an infinite loop caused by missing clean arg handling
 # This is related to os-fpga/FOEDAG/issues/575
 
-gui_start
-puts "SYNTHESIZE CLEAN" ; flush stdout ; synthesize clean
-puts "SYNTHESIZE" ; flush stdout ; synthesize
-puts "PACKING CLEAN" ; flush stdout ; packing clean
-puts "PACKING" ; flush stdout ; packing
-puts "GLOBAL_PLACEMENT CLEAN" ; flush stdout ; global_placement clean
-puts "GLOBAL_PLACEMENT" ; flush stdout ; global_placement
-puts "PLACE CLEAN" ; flush stdout ; place clean
-puts "PLACE" ; flush stdout ; place
-puts "ROUTE CLEAN" ; flush stdout ; route clean
-puts "ROUTE" ; flush stdout ; route
-gui_stop 
+create_design task_clean_test
+synthesize clean
+synthesize
+packing clean
+packing
+global_placement clean
+global_placement
+place clean
+place
+route clean
+route
+exit

@@ -108,9 +108,6 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_task_clean.tcl;
-	cat valgrind_gui.log
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
 
@@ -163,7 +160,6 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_clean.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -180,6 +176,8 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/foedag --batch --script tests/TestBatch/task_clean.tcl
+
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
