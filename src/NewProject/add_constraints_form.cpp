@@ -1,7 +1,7 @@
 #include "add_constraints_form.h"
 
 #include "ui_add_constraints_form.h"
-bool flag;
+
 using namespace FOEDAG;
 
 addConstraintsForm::addConstraintsForm(QWidget *parent)
@@ -22,12 +22,6 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
-  ui->select_defineOrder->setChecked(true);
-  flag = ui->select_defineOrder->isChecked();
-  connect(ui->select_defineOrder, &QRadioButton::clicked, this,
-          &addConstraintsForm::pinAssign_flag_listen);
-  connect(ui->select_random, &QRadioButton::clicked, this,
-          &addConstraintsForm::pinAssign_flag_listen_2);
 }
 
 addConstraintsForm::~addConstraintsForm() { delete ui; }
@@ -39,12 +33,4 @@ QList<filedata> addConstraintsForm::getFileData() {
 bool addConstraintsForm::IsCopySource() {
   return ui->m_ckkBoxCopy->checkState() == Qt::CheckState::Checked ? true
                                                                    : false;
-}
-
-void addConstraintsForm::pinAssign_flag_listen() {
-  flag = ui->select_defineOrder->isChecked();
-}
-
-void addConstraintsForm::pinAssign_flag_listen_2() {
-  flag = !(ui->select_random->isChecked());
 }

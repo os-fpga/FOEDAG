@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
-#include "NewProject/add_constraints_form.h"
 #include "Tcl/TclInterpreter.h"
 
 namespace FOEDAG {
@@ -134,13 +133,7 @@ class Compiler {
   void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
   PlacementOpt PlaceOpt() const { return m_placementOpt; }
   void PlaceOpt(PlacementOpt opt) { m_placementOpt = opt; }
-  PinAssignOpt PinAssignOpts() {
-    if (flag) {
-      m_pinAssignOpt = PinAssignOpt::In_Define_Order;
-    } else
-      m_pinAssignOpt = PinAssignOpt::Random;
-    return m_pinAssignOpt;
-  }
+  PinAssignOpt PinAssignOpts() { return m_pinAssignOpt; }
   void PinAssignOpts(PinAssignOpt opt) { m_pinAssignOpt = opt; }
   RoutingOpt RouteOpt() const { return m_routingOpt; }
   void RouteOpt(RoutingOpt opt) { m_routingOpt = opt; }
@@ -221,7 +214,7 @@ class Compiler {
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
   PlacementOpt m_placementOpt = PlacementOpt::None;
-  PinAssignOpt m_pinAssignOpt;
+  PinAssignOpt m_pinAssignOpt = PinAssignOpt::In_Define_Order;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
