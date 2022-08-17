@@ -1270,6 +1270,13 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("No design specified");
     return false;
   }
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            ProjManager()->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
+  }
   if (m_state != State::Packed && m_state != State::GloballyPlaced) {
     ErrorMessage("Design needs to be in packed state");
     return false;
@@ -1414,6 +1421,15 @@ bool Compiler::IPGenerate() {
 }
 
 bool Compiler::Packing() {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + ProjManager()->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    return true;
+  }
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1432,6 +1448,15 @@ bool Compiler::Placement() {
     ErrorMessage("No design specified");
     return false;
   }
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + ProjManager()->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    return true;
+  }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
@@ -1445,6 +1470,15 @@ bool Compiler::Route() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
+  }
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + ProjManager()->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    return true;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
