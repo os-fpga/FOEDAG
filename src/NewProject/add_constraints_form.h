@@ -20,6 +20,7 @@ class addConstraintsForm : public QWidget {
 
   QList<filedata> getFileData();
   bool IsCopySource();
+  bool IsRandom() const;
 
  private:
   Ui::addConstraintsForm *ui;

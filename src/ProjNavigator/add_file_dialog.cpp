@@ -2,10 +2,13 @@
 
 #include <QDesktopWidget>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
+#include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ui_add_file_dialog.h"
 
+extern FOEDAG::Session *GlobalSession;
 using namespace FOEDAG;
 
 AddFileDialog::AddFileDialog(QWidget *parent)
@@ -71,6 +74,11 @@ void AddFileDialog::on_m_btnOK_clicked() {
         }
       }
     }
+    Compiler *compiler = GlobalSession->GetCompiler();
+    if (m_fileForm->IsRandom())
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+    else
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
     this->close();
     if (0 == ret) {
       m_pm->FinishedProject();

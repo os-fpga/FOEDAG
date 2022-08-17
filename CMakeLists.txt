@@ -102,6 +102,7 @@ add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
 
+
 # NOTE: Set the global output directories after the subprojects have had their go at it
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -307,6 +308,7 @@ add_dependencies(newfile_bin tcl_stubb_build)
 add_dependencies(ipconfigurator tcl_stubb_build)
 add_dependencies(ipconfigurator_bin tcl_stubb_build)
 add_dependencies(pinassignment tcl_stubb_build)
+add_dependencies(projnavigator tcl_build)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
