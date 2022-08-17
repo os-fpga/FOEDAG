@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
@@ -95,6 +96,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
   ProjectInfo m_projectInfo;
+  IpConfigurator m_ipConfigurator;
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
