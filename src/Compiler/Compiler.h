@@ -72,6 +72,7 @@ class Compiler {
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
+  enum class PinAssignOpt { Random, In_Define_Order };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
@@ -79,7 +80,6 @@ class Compiler {
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
-
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
@@ -133,6 +133,8 @@ class Compiler {
   void GlobPlacementOpt(GlobalPlacementOpt opt) { m_globalPlacementOpt = opt; }
   PlacementOpt PlaceOpt() const { return m_placementOpt; }
   void PlaceOpt(PlacementOpt opt) { m_placementOpt = opt; }
+  PinAssignOpt PinAssignOpts() { return m_pinAssignOpt; }
+  void PinAssignOpts(PinAssignOpt opt) { m_pinAssignOpt = opt; }
   RoutingOpt RouteOpt() const { return m_routingOpt; }
   void RouteOpt(RoutingOpt opt) { m_routingOpt = opt; }
   STAOpt TimingAnalysisOpt() const { return m_staOpt; }
@@ -145,6 +147,9 @@ class Compiler {
   // Compiler specific opt
   const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
   void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
+
+  const std::string& PlaceMoreOpt() { return m_placeMoreOpt; }
+  void PlaceMoreOpt(const std::string& opt) { m_placeMoreOpt = opt; }
 
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
@@ -209,6 +214,7 @@ class Compiler {
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
   PlacementOpt m_placementOpt = PlacementOpt::None;
+  PinAssignOpt m_pinAssignOpt = PinAssignOpt::In_Define_Order;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
@@ -217,6 +223,7 @@ class Compiler {
   // Compiler specific options
   std::string m_pnrOpt;
   std::string m_synthMoreOpt;
+  std::string m_placeMoreOpt;
 
   // VPR, Yosys options
   uint32_t m_channel_width = 100;

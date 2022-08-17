@@ -126,6 +126,10 @@ void Compiler::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
+  (*out) << "   place ?clean" << std::endl;
+  (*out)
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -814,6 +818,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1012,6 +1044,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
+
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
 
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {

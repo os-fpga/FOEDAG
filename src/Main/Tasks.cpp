@@ -24,11 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Foedag.h"
 #include "Settings.h"
 #include "WidgetFactory.h"
-
 using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
 #define SYNTH_ARG "_SynthOpt_"
+#define PLACE_ARG "pin_assign_method"
 
 #define TASKS_DEBUG false
 
@@ -57,8 +57,13 @@ auto separateArg = [](const QString& argName,
       targetArg = argString.mid(argIdx, argString.indexOf("-", argIdx + 1));
       otherArgs = otherArgs.replace(targetArg, "");
     }
+    auto argPlaceIdx = argString.indexOf("-" + QString(PLACE_ARG));
+    if (argPlaceIdx != -1) {
+      targetArg =
+          argString.mid(argPlaceIdx, argString.indexOf("-", argPlaceIdx + 1));
+      otherArgs = otherArgs.replace(targetArg, "");
+    }
   }
-
   return {targetArg, otherArgs};
 };
 
@@ -69,10 +74,16 @@ static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
     {FOEDAG::Compiler::SynthesisOpt::Delay, "delay"},
     {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
     {FOEDAG::Compiler::SynthesisOpt::Clean, "clean"}};
+// Lookup for PlaceOpt values
+static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
+    {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
+    {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"}};
+
 // Helper to convert a SynthesisOpt enum to string
 auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
   return synthOptMap[opt];
 };
+
 // Helper to convert a string to SynthesisOpt enum
 auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
   auto it = find_if(
@@ -89,8 +100,26 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
   return val;
 };
 
-// This will grab Synthesis related options from Compiler::SynthOpt &
-// Compiler::SynthMoreOpt, convert/combine them, and return them as an
+auto pinOptToStr = [](FOEDAG::Compiler::PinAssignOpt opt) -> QString {
+  return pinOptMap.at(opt);
+};
+
+auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
+  auto it = find_if(
+      pinOptMap.begin(), pinOptMap.end(),
+      [str](const std::pair<FOEDAG::Compiler::PinAssignOpt, const char*> p) {
+        return p.second == str;
+      });
+
+  auto val = FOEDAG::Compiler::PinAssignOpt::In_Define_Order;
+  if (it != pinOptMap.end()) {
+    val = (*it).first;
+  }
+
+  return val;
+};
+// This will grab Placement related options from Compiler::PlaceOpt &
+// Compiler::PlaceMoreOpt, convert/combine them, and return them as an
 // arg list QString
 QString FOEDAG::TclArgs_getSynthesisOptions() {
   // Collect Synthesis Tcl Params
@@ -100,7 +129,6 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
   // SynthMoreOpt so we need to give it a fake arg and pass it
   tclOptions += " -" + QString(SYNTH_ARG) + " " +
                 synthOptToStr(GlobalSession->GetCompiler()->SynthOpt());
-
   return tclOptions;
 };
 
@@ -108,7 +136,6 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
 // and then set the rest of the options under SynthMoreOpt
 void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
   auto [synthArg, moreOpts] = separateArg(SYNTH_ARG, argsStr);
-
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
     QStringList tokens = synthArg.split(" ");
@@ -119,6 +146,27 @@ void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
     compiler->SynthMoreOpt(moreOpts.toStdString());
   }
 };
+
+QString FOEDAG::TclArgs_getPlacementOptions() {
+  // Collect placement Tcl Params
+  QString tclOptions =
+      QString::fromStdString(GlobalSession->GetCompiler()->PlaceMoreOpt());
+  tclOptions += " -" + QString(PLACE_ARG) + " " +
+                pinOptToStr(GlobalSession->GetCompiler()->PinAssignOpts());
+  return tclOptions;
+}
+
+void FOEDAG::TclArgs_setPlacementOptions(const QString& argsStr) {
+  auto [pinArg, moreOpts] = separateArg(PLACE_ARG, argsStr);
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (compiler) {
+    QStringList tokens = pinArg.split(" ");
+    if (tokens.count() > 1) {
+      compiler->PinAssignOpts(pinStrToOpt(tokens[1]));
+    }
+    compiler->PlaceMoreOpt(moreOpts.toStdString());
+  }
+}
 
 // Hardcoded example callbacks to demonstrate how to use TclArgs with the task
 // settings dialog

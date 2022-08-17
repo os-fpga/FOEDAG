@@ -34,6 +34,8 @@ void TclArgs_setSynthesisOptions(const QString& argsStr);
 QString TclArgs_getSynthesisOptions();
 void TclArgs_setExampleArgs(const QString& argsStr);
 QString TclArgs_getExampleArgs();
+void TclArgs_setPlacementOptions(const QString& argsStr);
+QString TclArgs_getPlacementOptions();
 
 }  // namespace FOEDAG
 
