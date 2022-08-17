@@ -51,6 +51,8 @@ IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
 }
 
 void IpCatalogTree::refresh() {
+  // TODO @skyler-rs AUG-2020 update this to the proper path once it has been
+  // determined
   QStringList ips = getAvailableIPs("./");
 
   // If available IPs have changed
