@@ -89,7 +89,7 @@ test/valgrind: run-cmake-debug
 	valgrind --tool=memcheck --log-file=valgrind.log dbuild/bin/foedag --batch --script tests/TestBatch/hello.tcl ; 
 	grep "ERROR SUMMARY: 0" valgrind.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl;
-	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	grep "ERROR SUMMARY: 0" valgrind_gui.log 
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/newproject --replay tests/TestGui/gui_new_project.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/projnavigator --replay tests/TestGui/gui_project_navigator.tcl
@@ -176,7 +176,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
-	./build/bin/foedag --batch --script tests/TestBatch/task_clean.tcl
+	./build/bin/foedag --batch --script tests/TestBatch/test_task_clean.tcl
 
 
 lib-only: run-cmake-release
