@@ -1183,6 +1183,18 @@ bool CompilerOpenFPGA::Placement() {
     std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
     pincommand += " --output " + pin_locFile;
 
+    // for design pins that are not explicitly constrained by user,
+    // pin_c will assign legal device pins to them
+    // this is configured at top level raptor shell/gui through command "pin_loc_assign_method"
+    pincommand += " --assign_unconstrained_pins"; 
+    if (PinAssignOpts() == PinAssignOpt::Random) {
+      pincommand += " random"; 
+    } else if (PinAssignOpts() == PinAssignOpt::In_Define_Order) {
+      pincommand += " in_define_order";
+    } else { // default behavior
+      pincommand += " in_define_order";
+    }
+
     std::ofstream ofsp(
         (std::filesystem::path(ProjManager()->projectName()) /
          std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
