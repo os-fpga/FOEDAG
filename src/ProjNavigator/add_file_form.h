@@ -25,6 +25,7 @@ class AddFileForm : public QWidget {
   QString getFileSet() const;
   QList<filedata> getFileData() const;
   bool IsCopySource() const;
+  bool IsRandom() const;
 
  private slots:
   void on_m_comboBoxSets_currentIndexChanged(const QString &arg1);

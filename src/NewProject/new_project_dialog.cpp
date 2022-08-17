@@ -5,7 +5,10 @@
 #include <QMessageBox>
 #include <QThread>
 
+#include "Compiler/Compiler.h"
+#include "MainWindow/Session.h"
 #include "ui_new_project_dialog.h"
+extern FOEDAG::Session *GlobalSession;
 using namespace FOEDAG;
 
 newProjectDialog::newProjectDialog(QWidget *parent)
@@ -109,6 +112,11 @@ void newProjectDialog::on_buttonBox_accepted() {
       m_devicePlanForm->getSelectedDevice(),
       false /*rewrite*/,
       DEFAULT_FOLDER_SOURCE};
+  Compiler *compiler = GlobalSession->GetCompiler();
+  if (m_addConstrsForm->IsRandom()) {
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+  } else
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   m_projectManager->CreateProject(opt);
   this->setResult(1);
   this->hide();
