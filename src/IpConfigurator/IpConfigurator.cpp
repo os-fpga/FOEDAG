@@ -35,6 +35,8 @@ IpConfigurator::IpConfigurator(QWidget* parent) : QWidget(parent) {
 void IpConfigurator::ShowIpTrees() {
   QWidget* widget = IpTreesWidget::Instance();
   if (widget) {
+    ((IpTreesWidget*)widget)->refresh();
+
     // Check if this widget is contained by a parent QDockWidget
     QObject* parent = widget->parent();
     while (parent) {
