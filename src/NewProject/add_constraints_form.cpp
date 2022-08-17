@@ -1,6 +1,10 @@
 #include "add_constraints_form.h"
 
+#include "Compiler/Compiler.h"
+#include "MainWindow/Session.h"
 #include "ui_add_constraints_form.h"
+
+extern FOEDAG::Session *GlobalSession;
 
 using namespace FOEDAG;
 
@@ -22,6 +26,13 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project."));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
+  ui->select_defineOrder->setChecked(true);
+  Compiler *compiler = GlobalSession->GetCompiler();
+  compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+  connect(ui->select_defineOrder, &QRadioButton::clicked, this,
+          &addConstraintsForm::pinAssign_opt_listen);
+  connect(ui->select_random, &QRadioButton::clicked, this,
+          &addConstraintsForm::pinAssign_opt_listen);
 }
 
 addConstraintsForm::~addConstraintsForm() { delete ui; }
@@ -33,4 +44,12 @@ QList<filedata> addConstraintsForm::getFileData() {
 bool addConstraintsForm::IsCopySource() {
   return ui->m_ckkBoxCopy->checkState() == Qt::CheckState::Checked ? true
                                                                    : false;
+}
+
+void addConstraintsForm::pinAssign_opt_listen() {
+  Compiler *compiler = GlobalSession->GetCompiler();
+  if (!ui->select_random->isChecked())
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+  else
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
 }

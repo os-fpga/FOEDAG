@@ -214,7 +214,7 @@ class Compiler {
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
   PlacementOpt m_placementOpt = PlacementOpt::None;
-  PinAssignOpt m_pinAssignOpt = PinAssignOpt::In_Define_Order;
+  PinAssignOpt m_pinAssignOpt;
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;

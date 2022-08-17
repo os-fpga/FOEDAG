@@ -21,6 +21,9 @@ class addConstraintsForm : public QWidget {
   QList<filedata> getFileData();
   bool IsCopySource();
 
+ private slots:
+  void pinAssign_opt_listen();
+
  private:
   Ui::addConstraintsForm *ui;
 

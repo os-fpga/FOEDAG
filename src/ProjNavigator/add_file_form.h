@@ -29,6 +29,9 @@ class AddFileForm : public QWidget {
  private slots:
   void on_m_comboBoxSets_currentIndexChanged(const QString &arg1);
 
+ private slots:
+  void pinAssign_opt_listen();
+
  private:
   Ui::AddFileForm *ui;
 

@@ -29,7 +29,6 @@
       <font>
        <family>Arial</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -63,7 +62,7 @@
       <number>30</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="10,80,10">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="10,80,0,10">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -114,6 +113,29 @@
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Pin Location Assign Method:</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="select_random">
+            <property name="text">
+             <string>Random</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="select_defineOrder">
+            <property name="text">
+             <string>In Define Order</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
