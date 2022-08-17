@@ -452,7 +452,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   createIpConfiguratorUI();
 
-  // TODO @skyler-rs AUG-2020 
+  // TODO @skyler-rs AUG-2020
   // Short term fix to clear any output messages at init as Compiler->Message()
   // calls can drop text into the console prompt and cause issue
   console->clearText();
