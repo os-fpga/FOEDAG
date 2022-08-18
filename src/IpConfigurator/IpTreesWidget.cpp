@@ -29,13 +29,13 @@ Q_GLOBAL_STATIC(IpTreesWidget, iptrees)
 IpTreesWidget* IpTreesWidget::Instance() { return iptrees(); }
 
 void IpTreesWidget::Init() {
-  this->setObjectName("IpTreesWidget");
-
   // Using m_splitter as an indicator if this widget has been init'd yet
   if (!m_splitter) {
+    this->setObjectName("IpTreesWidget");
     // Main VLayout
     QVBoxLayout* vLayout = new QVBoxLayout();
     this->setLayout(vLayout);
+    vLayout->setContentsMargins(0, 0, 0, 0);
 
     // Vertical Splitter for Trees
     m_splitter = new QSplitter();
@@ -50,5 +50,14 @@ void IpTreesWidget::Init() {
     // // Ip Instance Tree
     // m_instances_tree = new IpInstancesTree(this);
     // m_splitter->addWidget(m_instances_tree);
+  }
+
+  refresh();
+}
+
+void IpTreesWidget::refresh() {
+  // Refresh catalog/available ip's tree
+  if (m_catalog_tree) {
+    m_catalog_tree->refresh();
   }
 }

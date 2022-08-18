@@ -20,16 +20,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PinAssignmentCreator.h"
 
-#include <QDebug>
+#include <QBoxLayout>
+
+#include "PackagePinsView.h"
+#include "PinsBaseModel.h"
+#include "PortsView.h"
 
 namespace FOEDAG {
 
 PinAssignmentCreator::PinAssignmentCreator() {
-  qDebug() << "Hello pin assignment!!!";
+  auto baseModel = new PinsBaseModel;
+  auto portsView = new PortsView(baseModel);
+  m_portsView = CreateLayoutedWidget(portsView);
+
+  auto packagePins = new PackagePinsView(baseModel);
+  m_packagePinsView = CreateLayoutedWidget(packagePins);
 }
 
-QWidget *PinAssignmentCreator::GetPackagePinsWidget() { return new QWidget; }
+QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
+  return m_packagePinsView;
+}
 
-QWidget *PinAssignmentCreator::GetPortsWidget() { return new QWidget; }
+QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
+
+QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
+  QWidget *w = new QWidget;
+  w->setLayout(new QVBoxLayout);
+  w->layout()->addWidget(main);
+  return w;
+}
 
 }  // namespace FOEDAG

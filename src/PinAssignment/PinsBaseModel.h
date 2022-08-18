@@ -19,12 +19,34 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <QStringList>
+#include <QVector>
 
 namespace FOEDAG {
+
+struct IOPort {
+  QString name;
+  QString dir;
+  QString packagePin;
+  QString bank;
+};
+
+struct PackagePin {
+  QString name;
+  QString ioPort;
+};
+
+struct PinBank {
+  QString id;
+  QVector<PackagePin> pins;
+};
 
 class PinsBaseModel {
  public:
   PinsBaseModel();
+  QStringList banks() const;
+  QVector<IOPort> ioPorts() const;
+  QVector<PinBank> packagePins() const;
 };
 
 }  // namespace FOEDAG

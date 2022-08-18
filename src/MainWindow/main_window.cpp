@@ -34,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
-#include "IpConfigurator/IpConfigurator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -184,18 +183,28 @@ void MainWindow::startStopButtonsState() {
 }
 
 void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
-  IpConfigurator* configurator = new IpConfigurator(this);
-  configurator->hide();
-  configurator->setObjectName("IpConfigurator");
+  m_ipConfigurator.setObjectName("IpConfigurator");
+
   QDockWidget* dw = new QDockWidget(tr("IP"), this);
   dw->setObjectName("IpDockWidget");
-  dw->setWidget(configurator->GetIpTreesWidget());
+  dw->setWidget(m_ipConfigurator.GetIpTreesWidget());
   addDockWidget(Qt::RightDockWidgetArea, dw);
   dw->hide();
 
-  if (prevTab) {
+  if (prevTab != nullptr) {
     tabifyDockWidget(prevTab, dw);
   }
+}
+
+QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
+                                    QWidget* widget, QDockWidget* tabToAdd,
+                                    Qt::DockWidgetArea area) {
+  QDockWidget* dock = new QDockWidget(name, this);
+  dock->setObjectName(objName);
+  dock->setWidget(widget);
+  addDockWidget(area, dock);
+  tabifyDockWidget(tabToAdd, dock);
+  return dock;
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -310,9 +319,27 @@ void MainWindow::createActions() {
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
 
-  pinAssignmentAction = new QAction(tr("Pin Assignment View"), this);
-  connect(pinAssignmentAction, &QAction::triggered, this,
-          [this]() { PinAssignmentCreator creator; });
+  pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
+  pinAssignmentAction->setCheckable(true);
+  connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
+    if (pinAssignmentAction->isChecked()) {
+      PinAssignmentCreator creator;
+      auto portsDockWidget =
+          PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
+                     m_dockConsole);
+      auto packagePinDockWidget =
+          PrepareTab(tr("Package Pins"), "packagepinwidget",
+                     creator.GetPackagePinsWidget(), portsDockWidget);
+      m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+    } else {
+      for (const auto& dock : m_pinAssignmentDocks) {
+        removeDockWidget(dock);
+        delete dock->widget();
+        delete dock;
+      }
+      m_pinAssignmentDocks.clear();
+    }
+  });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
@@ -321,7 +348,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(m_projectInfo.name + " - " + strProject);
+  newDesignCreated(strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -377,6 +404,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // console
   QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
+  m_dockConsole = consoleDocWidget;
 
   StreamBuffer* buffer = new StreamBuffer;
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
@@ -453,6 +481,11 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
   createIpConfiguratorUI();
+
+  // TODO @skyler-rs AUG-2020
+  // Short term fix to clear any output messages at init as Compiler->Message()
+  // calls can drop text into the console prompt and cause issue
+  console->clearText();
 }
 
 void MainWindow::clearDockWidgets() {

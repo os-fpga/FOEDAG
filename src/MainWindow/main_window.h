@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
+#include "IpConfigurator/IpConfigurator.h"
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
@@ -71,6 +72,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void startStopButtonsState();
   void loadFile(const QString& file);
   void createIpConfiguratorUI(QDockWidget* prevTab = nullptr);
+  QDockWidget* PrepareTab(const QString& name, const QString& objName,
+                          QWidget* widget, QDockWidget* tabToAdd,
+                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -95,6 +99,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
   ProjectInfo m_projectInfo;
+  IpConfigurator m_ipConfigurator;
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
@@ -102,6 +107,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class ProjectFileLoader* m_projectFileLoader{nullptr};
   class SourcesForm* sourcesForm{nullptr};
   QWidget* m_progressWidget{nullptr};
+  QDockWidget* m_dockConsole{nullptr};
+  std::vector<QDockWidget*> m_pinAssignmentDocks;
 };
 
 }  // namespace FOEDAG

@@ -1,3 +1,24 @@
+# -*- mode:cmake -*-
+
+# Copyright 2022 The Foedag team
+
+# GPL License
+
+# Copyright (c) 2022 The Open-Source FPGA Foundation
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 cmake_minimum_required(VERSION 3.15)
 
 project(ipconfigurator LANGUAGES CXX)
@@ -51,7 +72,7 @@ add_library(ipconfigurator STATIC
   ${SRC_UI_LIST}
 )
 
-target_link_libraries(ipconfigurator PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui)
+target_link_libraries(ipconfigurator PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui tcl_stubb tcl_static zlib)
 target_compile_definitions(ipconfigurator PRIVATE IPCONFIGURATOR_LIBRARY)
 
 install (
@@ -69,6 +90,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 add_executable(ipconfigurator_bin
  ${PROJECT_SOURCE_DIR}/../IpConfigurator/Test/ipconfigurator_main.cpp
  )
-target_link_libraries(ipconfigurator_bin foedag tcl_stubb tcl_static zlib)
+target_link_libraries(ipconfigurator_bin foedag tcl_stubb tcl_static zlib tclutils ipconfigurator)
 set_target_properties(ipconfigurator_bin PROPERTIES OUTPUT_NAME ipconfigurator)
 
