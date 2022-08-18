@@ -21,6 +21,8 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   ui->buttonBox->addButton(NextBtn, QDialogButtonBox::ButtonRole::ActionRole);
   connect(NextBtn, &QPushButton::clicked, this, &newProjectDialog::on_next);
 
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Finish");
+
   Reset();
 
   m_projectManager = new ProjectManager(this);
