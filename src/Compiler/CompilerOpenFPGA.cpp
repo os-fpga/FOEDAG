@@ -1185,13 +1185,14 @@ bool CompilerOpenFPGA::Placement() {
 
     // for design pins that are not explicitly constrained by user,
     // pin_c will assign legal device pins to them
-    // this is configured at top level raptor shell/gui through command "pin_loc_assign_method"
-    pincommand += " --assign_unconstrained_pins"; 
+    // this is configured at top level raptor shell/gui through command
+    // "pin_loc_assign_method"
+    pincommand += " --assign_unconstrained_pins";
     if (PinAssignOpts() == PinAssignOpt::Random) {
-      pincommand += " random"; 
+      pincommand += " random";
     } else if (PinAssignOpts() == PinAssignOpt::In_Define_Order) {
       pincommand += " in_define_order";
-    } else { // default behavior
+    } else {  // default behavior
       pincommand += " in_define_order";
     }
 
