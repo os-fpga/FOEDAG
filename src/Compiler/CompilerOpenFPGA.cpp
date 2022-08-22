@@ -116,6 +116,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
+  (*out) << "   keep <signal list> OR all_signals : Keeps the list of signals "
+            "or all signals through Synthesis unchanged (unoptimized in "
+            "certain cases)"
+         << std::endl;
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
          << std::endl;
@@ -416,6 +420,22 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
+
+  auto keep = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    for (int i = 1; i < argc; i++) {
+      name = argv[i];
+      if (name == "all_signals") {
+        compiler->KeepAllSignals(true);
+      } else {
+        compiler->getConstraints()->addKeep(name);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("keep", keep, this, 0);
 
   auto set_device_size = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
@@ -846,7 +866,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keep = ReplaceAll(keep, "@", "[");
     keep = ReplaceAll(keep, "%", "]");
     (*m_out) << "Keep name: " << keep << "\n";
-    keeps += "setattr -set keep 1 " + keep + "\n";
+    keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
   result = ReplaceAll(result, "${OPTIMIZATION}", SynthMoreOpt());
