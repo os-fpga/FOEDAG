@@ -33,16 +33,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPILER_OPENFPGA_QL_H
 
 namespace FOEDAG {
-#if UPSTREAM_UNTESTED
+#if UPSTREAM_UNUSED
 //enum class SynthesisType { Yosys, QL, RS };
-#endif // #if UPSTREAM_UNTESTED
+#endif // #if UPSTREAM_UNUSED
 
 class CompilerOpenFPGA_ql : public Compiler {
  public:
   CompilerOpenFPGA_ql() = default;
-#if UPSTREAM_UNTESTED
+#if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql() = default;
-#endif // #if UPSTREAM_UNTESTED
+#endif // #if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql();
 
   void YosysExecPath(const std::filesystem::path& path) {
@@ -99,9 +99,9 @@ class CompilerOpenFPGA_ql : public Compiler {
     m_perDeviceSynthOptions = options;
   }
 
-#if UPSTREAM_UNTESTED
+#if UPSTREAM_UNUSED
   void SynthType(SynthesisType type) { m_synthType = type; }
-#endif // #if UPSTREAM_UNTESTED
+#endif // #if UPSTREAM_UNUSED
   
   const std::string& PerDevicePnROptions() { return m_perDevicePnROptions; }
   void PerDevicePnROptions(const std::string& options) {
@@ -154,9 +154,9 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool VerifyTargetDevice() const;
   std::filesystem::path m_yosysExecutablePath = "yosys";
-#if UPSTREAM_UNTESTED
+#if UPSTREAM_UNUSED
   SynthesisType m_synthType = SynthesisType::Yosys;
-#endif // #if UPSTREAM_UNTESTED
+#endif // #if UPSTREAM_UNUSED
   std::string m_yosysPluginLib;
   std::string m_yosysPlugin;
   std::string m_mapToTechnology;
