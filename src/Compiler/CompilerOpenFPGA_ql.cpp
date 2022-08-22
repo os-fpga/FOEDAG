@@ -1644,6 +1644,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   json settings_vpr_place_obj = currentSettings->getJson()["vpr"]["place"];
   json settings_vpr_route_obj = currentSettings->getJson()["vpr"]["route"];
   json settings_vpr_analysis_obj = currentSettings->getJson()["vpr"]["analysis"];
+  json settings_vpr_custom_obj = currentSettings->getJson()["vpr"]["custom"];
 
   std::string vpr_options;
 
@@ -1821,16 +1822,35 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     }
   }
 
-  if(settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_inputs")) {
+  if( (settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_inputs")) && 
+      !settings_vpr_analysis_obj["post_synth_netlist_unconn_inputs"]["default"].get<std::string>().empty() ) {
     vpr_options += std::string(" --post_synth_netlist_unconn_inputs") + 
                    std::string(" ") + 
                    settings_vpr_analysis_obj["post_synth_netlist_unconn_inputs"]["default"].get<std::string>();
   }
 
-  if(settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_outputs")) {
+  if( (settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_outputs")) && 
+      !settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>().empty() ) {
     vpr_options += std::string(" --post_synth_netlist_unconn_outputs") + 
                    std::string(" ") + 
                    settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>();
+  }
+
+  if( (settings_vpr_analysis_obj.contains("timing_report_npaths")) && 
+      !settings_vpr_analysis_obj["timing_report_npaths"]["default"].get<std::string>().empty() ) {
+    vpr_options += std::string(" --timing_report_npaths") + 
+                   std::string(" ") + 
+                   settings_vpr_analysis_obj["timing_report_npaths"]["default"].get<std::string>();
+  }
+
+  // custom vpr command-line options, it is upto the user to ensure that the options are passed in correctly.
+  if( (settings_vpr_custom_obj.contains("custom_vpr_options_str")) && 
+      !settings_vpr_custom_obj["custom_vpr_options_str"]["default"].get<std::string>().empty() ) {
+    // first, trim the entire string to eliminate any extra whitespace in the front and the back
+    std::string vpr_custom_options_string = settings_vpr_custom_obj["custom_vpr_options_str"]["default"].get<std::string>();
+    vpr_custom_options_string = StringUtils::trim(vpr_custom_options_string);
+    // add the options string to the end of the vpr options with one whitespace separator
+    vpr_options += std::string(" ") + vpr_custom_options_string;
   }
 
 #if UPSTREAM_UNTESTED
