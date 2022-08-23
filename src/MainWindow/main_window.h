@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 
-#include "IpConfigurator/IpConfigurator.h"
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
