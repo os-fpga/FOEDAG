@@ -84,36 +84,25 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* widget,
                                             FOEDAG::Session* session) {
   auto show = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::IpConfigurator* configurator =
-        (FOEDAG::IpConfigurator*)(clientData);
-    configurator->ShowIpTrees();
-    return 0;
+    QWidget* w = static_cast<QWidget*>(clientData);
+    w->show();
+    return TCL_OK;
   };
   session->TclInterp()->registerCmd("ipconfigurator_show", show, widget, 0);
 
   auto hide = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::IpConfigurator* configurator =
-        (FOEDAG::IpConfigurator*)(clientData);
-    configurator->HideIpTrees();
-    return 0;
+    QWidget* w = static_cast<QWidget*>(clientData);
+    w->hide();
+    return TCL_OK;
   };
   session->TclInterp()->registerCmd("ipconfigurator_hide", hide, widget, 0);
 
   auto show_dlg = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
-    Q_UNUSED(interp);
-    Q_UNUSED(argv);
-    Q_UNUSED(argc);
-    FOEDAG::IpConfigurator* configurator =
-        (FOEDAG::IpConfigurator*)(clientData);
-    configurator->ShowConfigDlg();
+    IpConfigDlg* dlg = new IpConfigDlg();
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->exec();
     return 0;
   };
   session->TclInterp()->registerCmd("ipconfigurator_show_dlg", show_dlg, widget,

@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "IpConfigurator/IpConfiguratorCreator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -182,20 +183,6 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
-void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
-  m_ipConfigurator.setObjectName("IpConfigurator");
-
-  QDockWidget* dw = new QDockWidget(tr("IP"), this);
-  dw->setObjectName("IpDockWidget");
-  dw->setWidget(m_ipConfigurator.GetIpTreesWidget());
-  addDockWidget(Qt::RightDockWidgetArea, dw);
-  dw->hide();
-
-  if (prevTab != nullptr) {
-    tabifyDockWidget(prevTab, dw);
-  }
-}
-
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
                                     QWidget* widget, QDockWidget* tabToAdd,
                                     Qt::DockWidgetArea area) {
@@ -203,8 +190,19 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
   dock->setObjectName(objName);
   dock->setWidget(widget);
   addDockWidget(area, dock);
-  tabifyDockWidget(tabToAdd, dock);
+  if (tabToAdd != nullptr) {
+    tabifyDockWidget(tabToAdd, dock);
+  }
   return dock;
+}
+
+void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets) {
+  for (const auto& dock : dockWidgets) {
+    removeDockWidget(dock);
+    delete dock->widget();
+    delete dock;
+  }
+  dockWidgets.clear();
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -242,6 +240,7 @@ void MainWindow::createMenus() {
   fileMenu->addAction(exitAction);
 
   viewMenu = menuBar()->addMenu("&View");
+  viewMenu->addAction(ipConfiguratorAction);
   viewMenu->addAction(pinAssignmentAction);
 
   processMenu = menuBar()->addMenu(tr("&Processing"));
@@ -332,12 +331,21 @@ void MainWindow::createActions() {
                      creator.GetPackagePinsWidget(), portsDockWidget);
       m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
     } else {
-      for (const auto& dock : m_pinAssignmentDocks) {
-        removeDockWidget(dock);
-        delete dock->widget();
-        delete dock;
-      }
-      m_pinAssignmentDocks.clear();
+      cleanUpDockWidgets(m_pinAssignmentDocks);
+    }
+  });
+
+  ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
+  ipConfiguratorAction->setCheckable(true);
+  connect(ipConfiguratorAction, &QAction::triggered, this, [this]() {
+    if (ipConfiguratorAction->isChecked()) {
+      IpConfiguratorCreator creator;
+      auto availableIpsDockWidget = PrepareTab(
+          tr("IPs"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
+          nullptr, Qt::RightDockWidgetArea);
+      m_ipConfiguratorDocks = {availableIpsDockWidget};
+    } else {
+      cleanUpDockWidgets(m_ipConfiguratorDocks);
     }
   });
 }
@@ -479,13 +487,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
-
-  createIpConfiguratorUI();
-
-  // TODO @skyler-rs AUG-2020
-  // Short term fix to clear any output messages at init as Compiler->Message()
-  // calls can drop text into the console prompt and cause issue
-  console->clearText();
 }
 
 void MainWindow::clearDockWidgets() {
