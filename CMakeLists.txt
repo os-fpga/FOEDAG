@@ -214,9 +214,12 @@ else()
   
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
-  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+  if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
     message("MSYS MODE")
-    set(TCL_STATIC_LIB libtcl8.6.a)
+    set(TCL_STATIC_LIB libtcl86.dll.a)
+    set(TCL_STUBB_LIB libtclstub86.a)
+    set(ZLIB_STATIC_LIB libzlibstatic.a)
+
     add_library(tcl_static STATIC IMPORTED )
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${TCL_STATIC_LIB})
@@ -465,12 +468,17 @@ if (WIN32 AND $<CONFIG:Debug>)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 endif()
 
+if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+# we do not have the TCL header files to 'install' as we don't build it.
+# we just use the TCL MinGW64 lib.
+else()
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/tcl.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclDecls.h
         ${CMAKE_CURRENT_BINARY_DIR}/include/tclPlatDecls.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include) 
-#install(
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/include)
+endif()
+# install(
 #  EXPORT Foedag
 #  FILE Foedag.cmake
 #  DESTINATION cmake)
@@ -499,10 +507,14 @@ install(
   DIRECTORY examples DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
-    
+
+if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+# permission problems in windows at this point.
+else()    
 add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
+endif()
 
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
