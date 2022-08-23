@@ -422,7 +422,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
 
   auto keep = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
+                 const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
     std::string name;
     for (int i = 1; i < argc; i++) {
