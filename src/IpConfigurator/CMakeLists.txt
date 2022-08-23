@@ -44,6 +44,7 @@ include_directories(
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
+  IpConfiguratorCreator.cpp
   IpCatalogTree.cpp
   IpConfigDlg.cpp
   IpConfigurator.cpp
@@ -52,15 +53,16 @@ set (SRC_CPP_LIST
 )
 
 set (SRC_H_INSTALL_LIST
+  IpConfiguratorCreator.h
+)
+
+set (SRC_H_LIST
+  ${SRC_H_INSTALL_LIST}
   IpCatalogTree.h
   IpConfigDlg.h
   IpConfigurator.h
   IpInstancesTree.h
   IpTreesWidget.h
-)
-
-set (SRC_H_LIST
-    ${SRC_H_INSTALL_LIST}
 )
 
 set (SRC_UI_LIST

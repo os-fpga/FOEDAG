@@ -71,10 +71,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void clearDockWidgets();
   void startStopButtonsState();
   void loadFile(const QString& file);
-  void createIpConfiguratorUI(QDockWidget* prevTab = nullptr);
   QDockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+  void cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets);
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -92,6 +92,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* stopAction = nullptr;
   QAction* aboutAction = nullptr;
   QAction* pinAssignmentAction = nullptr;
+  QAction* ipConfiguratorAction = nullptr;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
@@ -99,7 +100,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
   ProjectInfo m_projectInfo;
-  IpConfigurator m_ipConfigurator;
   class TaskManager* m_taskManager{nullptr};
   class Compiler* m_compiler{nullptr};
   class TclConsoleWidget* m_console{nullptr};
@@ -109,6 +109,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QWidget* m_progressWidget{nullptr};
   QDockWidget* m_dockConsole{nullptr};
   std::vector<QDockWidget*> m_pinAssignmentDocks;
+  std::vector<QDockWidget*> m_ipConfiguratorDocks;
 };
 
 }  // namespace FOEDAG

@@ -296,7 +296,5 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
       session->TclInterp()->registerCmd("EditTaskSettings", EditTaskSettingsFn,
                                         0, 0);
     }
-
-    FOEDAG::registerIpConfiguratorCommands(nullptr, session);
   }
 }
