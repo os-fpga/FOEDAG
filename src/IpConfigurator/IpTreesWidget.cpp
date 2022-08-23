@@ -20,10 +20,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IpConfigurator/IpTreesWidget.h"
 
+#include <QVBoxLayout>
+
 using namespace FOEDAG;
 
 Q_GLOBAL_STATIC(IpTreesWidget, iptrees)
 
-IpTreesWidget *IpTreesWidget::Instance() { return iptrees(); }
+IpTreesWidget* IpTreesWidget::Instance() { return iptrees(); }
 
-void IpTreesWidget::Init() { this->setObjectName("IpTreesWidget"); }
+void IpTreesWidget::Init() {
+  // Using m_splitter as an indicator if this widget has been init'd yet
+  if (!m_splitter) {
+    this->setObjectName("IpTreesWidget");
+    // Main VLayout
+    QVBoxLayout* vLayout = new QVBoxLayout();
+    this->setLayout(vLayout);
+    vLayout->setContentsMargins(0, 0, 0, 0);
+
+    // Vertical Splitter for Trees
+    m_splitter = new QSplitter();
+    m_splitter->setOrientation(Qt::Vertical);
+    m_splitter->setObjectName("IpTreesVSplitter");
+    vLayout->addWidget(m_splitter);
+
+    // Ip Catalog Tree
+    m_catalog_tree = new IpCatalogTree(this);
+    m_splitter->addWidget(m_catalog_tree);
+
+    // // Ip Instance Tree
+    // m_instances_tree = new IpInstancesTree(this);
+    // m_splitter->addWidget(m_instances_tree);
+  }
+
+  refresh();
+}
+
+void IpTreesWidget::refresh() {
+  // Refresh catalog/available ip's tree
+  if (m_catalog_tree) {
+    m_catalog_tree->refresh();
+  }
+}

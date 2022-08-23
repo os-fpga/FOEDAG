@@ -116,6 +116,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_region_loc, all SDC commands"
          << std::endl;
+  (*out) << "   keep <signal list> OR all_signals : Keeps the list of signals "
+            "or all signals through Synthesis unchanged (unoptimized in "
+            "certain cases)"
+         << std::endl;
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
          << std::endl;
@@ -138,6 +142,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
+      << std::endl;
+  (*out)
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
       << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
@@ -206,6 +213,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   auto select_architecture_file = [](void* clientData, Tcl_Interp* interp,
                                      int argc, const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     std::string name;
     if (argc < 2) {
       compiler->ErrorMessage("Specify an architecture file");
@@ -236,9 +247,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       }
       std::filesystem::path the_path = expandedFile;
       if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
+        const auto& path = std::filesystem::current_path();
+        expandedFile = std::filesystem::path(path / expandedFile).string();
       }
       stream.close();
       if (i == 1) {
@@ -411,6 +421,22 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
 
+  auto keep = [](void* clientData, Tcl_Interp* interp, int argc,
+                 const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string name;
+    for (int i = 1; i < argc; i++) {
+      name = argv[i];
+      if (name == "all_signals") {
+        compiler->KeepAllSignals(true);
+      } else {
+        compiler->getConstraints()->addKeep(name);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("keep", keep, this, 0);
+
   auto set_device_size = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
@@ -462,6 +488,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   auto target_device = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
     std::string name;
     if (argc != 2) {
       compiler->ErrorMessage("Please select a device");
@@ -836,7 +866,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
     keep = ReplaceAll(keep, "@", "[");
     keep = ReplaceAll(keep, "%", "]");
     (*m_out) << "Keep name: " << keep << "\n";
-    keeps += "setattr -set keep 1 " + keep + "\n";
+    keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
   result = ReplaceAll(result, "${OPTIMIZATION}", SynthMoreOpt());
@@ -885,7 +915,39 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
                   std::string(ProjManager()->projectName() + "_openfpga.sdc") +
                   std::string(" --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
+
   return command;
+}
+
+std::string CompilerOpenFPGA::BaseStaCommand() {
+  std::string command =
+      m_staExecutablePath.string() +
+      std::string(
+          " -exit ");  // allow open sta exit its tcl shell even there is error
+  return command;
+}
+
+std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
+                                            std::string netlistFileName,
+                                            std::string sdfFileName,
+                                            std::string sdcFileName) {
+  std::string script =
+      std::string("read_liberty ") + libFileName +
+      std::string("\n") +  // add lib for test only, need to research on this
+      std::string("read_verilog ") + netlistFileName + std::string("\n") +
+      std::string("link_design ") + ProjManager()->projectName() +
+      std::string("\n") + std::string("read_sdf ") + sdfFileName +
+      std::string("\n") + std::string("read_sdc ") + sdcFileName +
+      std::string("\n") +
+      std::string("report_checks\n");  // to do: add more check/report flavors
+  const std::string openStaFile =
+      (std::filesystem::path(ProjManager()->projectPath()) /
+       std::string(ProjManager()->projectName() + "_opensta.tcl"))
+          .string();
+  std::ofstream ofssta(openStaFile);
+  ofssta << script << "\n";
+  ofssta.close();
+  return openStaFile;
 }
 
 bool CompilerOpenFPGA::Packing() {
@@ -1141,6 +1203,19 @@ bool CompilerOpenFPGA::Placement() {
     std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
     pincommand += " --output " + pin_locFile;
 
+    // for design pins that are not explicitly constrained by user,
+    // pin_c will assign legal device pins to them
+    // this is configured at top level raptor shell/gui through command
+    // "pin_loc_assign_method"
+    pincommand += " --assign_unconstrained_pins";
+    if (PinAssignOpts() == PinAssignOpt::Random) {
+      pincommand += " random";
+    } else if (PinAssignOpts() == PinAssignOpt::In_Define_Order) {
+      pincommand += " in_define_order";
+    } else {  // default behavior
+      pincommand += " in_define_order";
+    }
+
     std::ofstream ofsp(
         (std::filesystem::path(ProjManager()->projectName()) /
          std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
@@ -1278,14 +1353,68 @@ bool CompilerOpenFPGA::TimingAnalysis() {
              << " timing didn't change" << std::endl;
     return true;
   }
+  int status = 0;
+  std::string taCommand;
+  // use OpenSTA to do the job
+  if (TimingAnalysisOpt() == STAOpt::Opensta) {
+    // allows SDF to be generated for OpenSTA
+    std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
+    std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                       std::string(ProjManager()->projectName() + "_sta.cmd"))
+                          .string());
+    ofs.close();
+    int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " timing analysis failed!");
+      return false;
+    }
+    // find files
+    std::string libFileName =
+        (std::filesystem::current_path() /
+         std::string(ProjManager()->projectName() + ".lib"))
+            .string();  // this is the standard sdc file
+    std::string netlistFileName =
+        (std::filesystem::path(ProjManager()->projectPath()) /
+         std::string(ProjManager()->projectName() + "_post_synthesis.v"))
+            .string();
+    std::string sdfFileName =
+        (std::filesystem::path(ProjManager()->projectPath()) /
+         std::string(ProjManager()->projectName() + "_post_synthesis.sdf"))
+            .string();
+    // std::string sdcFile = ProjManager()->getConstrFiles();
+    std::string sdcFileName =
+        (std::filesystem::current_path() /
+         std::string(ProjManager()->projectName() + ".sdc"))
+            .string();  // this is the standard sdc file
+    if (std::filesystem::is_regular_file(libFileName) &&
+        std::filesystem::is_regular_file(netlistFileName) &&
+        std::filesystem::is_regular_file(sdfFileName) &&
+        std::filesystem::is_regular_file(sdcFileName)) {
+      taCommand =
+          BaseStaCommand() + " " +
+          BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
+      std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                         std::string(ProjManager()->projectName() + "_sta.cmd"))
+                            .string());
+      ofs << taCommand << std::endl;
+      ofs.close();
+    } else {
+      ErrorMessage(
+          "No required design info generated for user design, required "
+          "for timing analysis");
+      return false;
+    }
+  } else {  // use vpr/tatum engine
+    taCommand = BaseVprCommand() + " --analysis";
+    std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+                       std::string(ProjManager()->projectName() + "_sta.cmd"))
+                          .string());
+    ofs << taCommand << " --disp on" << std::endl;
+    ofs.close();
+  }
 
-  std::string command = BaseVprCommand() + " --analysis";
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
-                     std::string(ProjManager()->projectName() + "_sta.cmd"))
-                        .string());
-  ofs << command << " --disp on" << std::endl;
-  ofs.close();
-  int status = ExecuteAndMonitorSystemCommand(command);
+  status = ExecuteAndMonitorSystemCommand(taCommand);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " timing analysis failed!");

@@ -34,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
-#include "IpConfigurator/IpConfigurator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
@@ -43,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "PinAssignment/PinAssignmentCreator.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
@@ -57,12 +57,20 @@ extern const char* foedag_build_type;
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
-  resize(350, 250);
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
-  QDesktopWidget dw;
-  setGeometry(dw.width() / 6, dw.height() / 6, dw.width() * 2 / 3,
-              dw.height() * 2 / 3);
+
+  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
+
+  // Take 2/3 part of the screen.
+  auto mainWindowSize =
+      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
+  // Center main window on the screen. It will get this geometry after switching
+  // from maximized mode.
+  setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
+                                  mainWindowSize, screenGeometry));
+  // Initially, main window should be maximized.
+  showMaximized();
 
   setDockNestingEnabled(true);
 
@@ -174,10 +182,29 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(inProgress && consoleInProgress);
 }
 
-void MainWindow::createIpConfiguratorUI() {
-  IpConfigurator* configurator = new IpConfigurator(this);
-  configurator->hide();
-  configurator->setObjectName("IpConfigurator");
+void MainWindow::createIpConfiguratorUI(QDockWidget* prevTab /*nullptr*/) {
+  m_ipConfigurator.setObjectName("IpConfigurator");
+
+  QDockWidget* dw = new QDockWidget(tr("IP"), this);
+  dw->setObjectName("IpDockWidget");
+  dw->setWidget(m_ipConfigurator.GetIpTreesWidget());
+  addDockWidget(Qt::RightDockWidgetArea, dw);
+  dw->hide();
+
+  if (prevTab != nullptr) {
+    tabifyDockWidget(prevTab, dw);
+  }
+}
+
+QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
+                                    QWidget* widget, QDockWidget* tabToAdd,
+                                    Qt::DockWidgetArea area) {
+  QDockWidget* dock = new QDockWidget(name, this);
+  dock->setObjectName(objName);
+  dock->setWidget(widget);
+  addDockWidget(area, dock);
+  tabifyDockWidget(tabToAdd, dock);
+  return dock;
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -213,6 +240,9 @@ void MainWindow::createMenus() {
   fileMenu->addAction(closeProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
+
+  viewMenu = menuBar()->addMenu("&View");
+  viewMenu->addAction(pinAssignmentAction);
 
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
@@ -288,6 +318,28 @@ void MainWindow::createActions() {
     Command cmd("gui_stop; exit");
     GlobalSession->CmdStack()->push_and_exec(&cmd);
   });
+
+  pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
+  pinAssignmentAction->setCheckable(true);
+  connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
+    if (pinAssignmentAction->isChecked()) {
+      PinAssignmentCreator creator;
+      auto portsDockWidget =
+          PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
+                     m_dockConsole);
+      auto packagePinDockWidget =
+          PrepareTab(tr("Package Pins"), "packagepinwidget",
+                     creator.GetPackagePinsWidget(), portsDockWidget);
+      m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+    } else {
+      for (const auto& dock : m_pinAssignmentDocks) {
+        removeDockWidget(dock);
+        delete dock->widget();
+        delete dock;
+      }
+      m_pinAssignmentDocks.clear();
+    }
+  });
 }
 
 void MainWindow::gui_start() { ReShowWindow(""); }
@@ -296,7 +348,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
-  setWindowTitle(m_projectInfo.name + " - " + strProject);
+  newDesignCreated(strProject);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -352,6 +404,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // console
   QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
+  m_dockConsole = consoleDocWidget;
 
   StreamBuffer* buffer = new StreamBuffer;
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
@@ -414,9 +467,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader->registerComponent(
       new TaskManagerComponent{m_taskManager});
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
-  QDockWidget* taskDocWidget = new QDockWidget(tr("Task"), this);
-  taskDocWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDocWidget);
+  QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
+  taskDockWidget->setWidget(view);
+  tabifyDockWidget(sourceDockWidget, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -428,6 +481,11 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
 
   createIpConfiguratorUI();
+
+  // TODO @skyler-rs AUG-2020
+  // Short term fix to clear any output messages at init as Compiler->Message()
+  // calls can drop text into the console prompt and cause issue
+  console->clearText();
 }
 
 void MainWindow::clearDockWidgets() {

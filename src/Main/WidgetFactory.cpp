@@ -55,11 +55,13 @@ tclArgFnMap TclArgFnLookup = {
     {"Tasks_Synthesis",
      {FOEDAG::TclArgs_setSynthesisOptions,
       FOEDAG::TclArgs_getSynthesisOptions}},
-    // {"Placement", {set,get}},
+    //{"Placement", {set,get}},
     // {"Routing", {set,get}},
     {"TclExample",
-     {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}}
-
+     {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}},
+    {"Tasks_placement",
+     {FOEDAG::TclArgs_setPlacementOptions,
+      FOEDAG::TclArgs_getPlacementOptions}},
 };
 
 // returns a pair of tcl setters/getters from the TclArgFnLookup

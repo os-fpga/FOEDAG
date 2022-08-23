@@ -126,6 +126,10 @@ void Compiler::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
+  (*out) << "   place ?clean" << std::endl;
+  (*out)
+      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
+      << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -814,6 +818,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -838,6 +870,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1011,6 +1045,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1037,6 +1099,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1135,6 +1199,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("update_result", update_result, this, 0);
   }
+  auto architecture = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    // stub function
+    return TCL_OK;
+  };
+  interp->registerCmd("architecture", architecture, nullptr, nullptr);
   return true;
 }
 
@@ -1199,6 +1269,13 @@ bool Compiler::GlobalPlacement() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
+  }
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            ProjManager()->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced) {
     ErrorMessage("Design needs to be in packed state");
@@ -1344,6 +1421,15 @@ bool Compiler::IPGenerate() {
 }
 
 bool Compiler::Packing() {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + ProjManager()->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    return true;
+  }
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1362,6 +1448,15 @@ bool Compiler::Placement() {
     ErrorMessage("No design specified");
     return false;
   }
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + ProjManager()->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    return true;
+  }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
@@ -1375,6 +1470,15 @@ bool Compiler::Route() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
+  }
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + ProjManager()->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    return true;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;

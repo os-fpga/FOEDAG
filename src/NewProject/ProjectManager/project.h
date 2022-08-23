@@ -2,7 +2,9 @@
 #define PROJECT_H
 
 #include <QObject>
+#include <memory>
 
+#include "compiler_configuration.h"
 #include "project_configuration.h"
 #include "project_fileset.h"
 #include "project_run.h"
@@ -24,6 +26,7 @@ class Project : public QObject {
   void setProjectPath(const QString &projectPath);
 
   ProjectConfiguration *projectConfig() const;
+  CompilerConfiguration *compilerConfig() const;
 
   ProjectFileSet *getProjectFileset(const QString &strName) const;
   int setProjectFileset(const ProjectFileSet &projectFileset);
@@ -46,6 +49,7 @@ class Project : public QObject {
   QString m_projectPath;
 
   ProjectConfiguration *m_projectConfig;
+  std::unique_ptr<CompilerConfiguration> m_compilerConfig;
   QMap<QString, ProjectFileSet *> m_mapProjectFileset;
   QMap<QString, ProjectRun *> m_mapProjectRun;
 };
