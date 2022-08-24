@@ -491,6 +491,9 @@ install(
 
 install(
   FILES etc/device.xml DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
+
+install(
+  DIRECTORY tests/Testcases/ip_gen_axis_conv/ip_generators DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/IP_Catalog)
   
 install(
   FILES etc/settings/settings_test.json DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/settings/)
@@ -509,6 +512,13 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy 
                   ${PROJECT_SOURCE_DIR}/etc/device.xml        
                           ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
+                          
+add_custom_command(TARGET foedag-bin POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/ip_generators
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                  ${PROJECT_SOURCE_DIR}/tests/Testcases/ip_gen_axis_conv/ip_generators
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/ip_generators)
                           
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/settings/
