@@ -90,7 +90,7 @@ bool IPCatalogBuilder::buildLiteXCatalog(
              std::filesystem::directory_options::follow_directory_symlink)) {
       const std::string& exec_name = entry.string();
       if (exec_name.find("__init__.py") != std::string::npos) continue;
-      if (exec_name.find(".py") != std::string::npos) {
+      if (exec_name.find("_gen.py") != std::string::npos) {
         m_compiler->Message("IP Catalog, found IP compiler: " + exec_name);
         bool res = buildLiteXIPFromGenerator(catalog, entry);
         if (res == false) {
