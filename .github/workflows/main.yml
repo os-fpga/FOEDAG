@@ -254,8 +254,6 @@ jobs:
         which python && python --version || true
         which ninja && ninja --version || true
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
-        which $CC && $CC --version || true
-        which $CXX && $CXX --version || true
 
     - name: Build
       run: |
