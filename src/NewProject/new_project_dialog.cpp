@@ -49,13 +49,6 @@ QString newProjectDialog::getProject() {
 
 void newProjectDialog::Reset() {
   m_index = INDEX_LOCATION;
-
-  // One thirds of desktop size
-  QDesktopWidget dw;
-  int w = dw.width() / 3;
-  int h = dw.height() / 3;
-  setGeometry(w, h, w, h);
-
   for (int i = 0; i < ui->m_stackedWidget->count(); i++) {
     auto w = ui->m_stackedWidget->widget(i);
     ui->m_stackedWidget->removeWidget(w);
