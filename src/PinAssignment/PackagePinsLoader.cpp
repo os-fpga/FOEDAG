@@ -62,6 +62,7 @@ bool PackagePinsLoader::load(const QString &fileName) {
     group.pinData.append({data});
   }
   m_model->append(group);  // append last
+  m_model->initListModel();
 
   return true;
 }

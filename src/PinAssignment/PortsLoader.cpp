@@ -20,8 +20,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PortsLoader.h"
 
+#include <QFile>
+#include <iostream>
+
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
+
 namespace FOEDAG {
 
-PortsLoader::PortsLoader() {}
+PortsLoader::PortsLoader(PortsModel *model, QObject *parent)
+    : QObject(parent), m_model(model) {}
+
+PortsLoader::~PortsLoader() {}
+
+bool PortsLoader::load(const QString &file) {
+  if (!m_model) return false;
+  QFile f{file};
+  if (!f.open(QFile::ReadOnly)) return false;
+
+  QString content = f.readAll();
+  json jsonObject;
+  try {
+    jsonObject = json::parse(content.toStdString());
+  } catch (json::parse_error &e) {
+    // output exception information
+    std::cerr << "Json Error: " << e.what() << '\n'
+              << "filePath: " << file.toStdString() << "\n"
+              << "byte position of error: " << e.byte << std::endl;
+    return false;
+  }
+  auto ports = jsonObject.at("Ports");
+  IOPortGroup group;
+  for (const auto &p : ports) {
+    const auto range = p["range"];
+    const int msb = range["msb"];
+    const int lsb = range["lsb"];
+
+    const IOPort ioport{QString::fromStdString(p["name"]),
+                        QString::fromStdString(p["direction"]), QString(),
+                        QString::fromStdString(p["type"]),
+                        QString("Msb: %1, lsb: %2")
+                            .arg(QString::number(msb), QString::number(lsb))};
+    group.ports.append(ioport);
+  }
+  m_model->append(group);
+  m_model->initListModel();
+  return true;
+}
 
 }  // namespace FOEDAG

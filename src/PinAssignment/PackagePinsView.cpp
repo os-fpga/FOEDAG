@@ -20,11 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PackagePinsView.h"
 
-#include <QComboBox>
 #include <QHeaderView>
 #include <QStringListModel>
 
-#include "qdebug.h"
+#include "BufferedComboBox.h"
 
 namespace FOEDAG {
 
@@ -32,18 +31,14 @@ constexpr int NameCol{0};
 constexpr int AvailCol{1};
 constexpr int PortsCol{2};
 
-PackagePinsView::PackagePinsView(PackagePinsModel *model, QWidget *parent)
-    : QTreeWidget(parent) {
-  setHeaderLabels(model->headerList());
+PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
+    : PinAssignmentBaseView(model, parent) {
+  setHeaderLabels(model->packagePinModel()->headerList());
   header()->resizeSections(QHeaderView::ResizeToContents);
-
-  // TODO @volodymyrk RG-8 will be filled by data from design io ports model
-  auto proxyModel = new QStringListModel;
-  proxyModel->setStringList({"", "IN0", "IN1", "OUT"});
 
   QTreeWidgetItem *topLevelPackagePin = new QTreeWidgetItem(this);
   topLevelPackagePin->setText(0, "All Pins");
-  const auto banks = model->pinData();
+  const auto banks = model->packagePinModel()->pinData();
   for (const auto &b : banks) {
     QTreeWidgetItem *bank = new QTreeWidgetItem(topLevelPackagePin);
     bank->setText(NameCol, b.name);
@@ -67,33 +62,60 @@ PackagePinsView::PackagePinsView(PackagePinsModel *model, QWidget *parent)
       insertData(p.data, Voltage2, col++, pinItem);
       insertData(p.data, RefClock, col++, pinItem);
 
-      auto combo = new QComboBox{this};
-      combo->setModel(proxyModel);
+      auto combo = new BufferedComboBox{this};
+      combo->setModel(model->portsModel()->listModel());
       combo->setAutoFillBackground(true);
+      m_allCombo.append(combo);
       connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-              [=](int index) {
+              [=]() {
                 ioPortsSelectionHasChanged(indexFromItem(pinItem, PortsCol));
               });
       setItemWidget(pinItem, PortsCol, combo);
+      model->packagePinModel()->insert(pinItem->text(NameCol),
+                                       indexFromItem(pinItem, NameCol));
     }
   }
+  connect(model->packagePinModel(), &PackagePinsModel::itemHasChanged, this,
+          &PackagePinsView::itemHasChanged);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
   setColumnWidth(NameCol, 120);
 }
 
 void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
+  if (m_blockUpdate) return;
   auto item = itemFromIndex(index);
   if (item) {
-    auto combo = qobject_cast<QComboBox *>(itemWidget(item, PortsCol));
-    // TODO @volodymyrk RG-8
-    qDebug() << combo->currentText();
+    auto combo = qobject_cast<BufferedComboBox *>(itemWidget(item, PortsCol));
+    auto port = combo->currentText();
+    removeDuplications(port, combo);
+
+    auto pin = item->text(NameCol);
+    m_model->insert(port, pin);
+    m_model->portsModel()->itemChange(port, pin);
+
+    // unset previous selection
+    auto prevPort = combo->previousText();
+    m_model->portsModel()->itemChange(prevPort, QString());
+    emit selectionHasChanged();
   }
 }
 
 void PackagePinsView::insertData(const QStringList &data, int index, int column,
                                  QTreeWidgetItem *item) {
   if (data.count() > index) item->setText(column, data.at(index));
+}
+
+void PackagePinsView::itemHasChanged(const QModelIndex &index,
+                                     const QString &pin) {
+  auto item = itemFromIndex(index);
+  if (item) {
+    auto combo = qobject_cast<QComboBox *>(itemWidget(item, PortsCol));
+    m_blockUpdate = true;
+    const int index = combo->findData(pin, Qt::DisplayRole);
+    combo->setCurrentIndex(index != -1 ? index : 0);
+    m_blockUpdate = false;
+  }
 }
 
 }  // namespace FOEDAG

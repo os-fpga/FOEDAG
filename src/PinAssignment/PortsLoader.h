@@ -20,11 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QObject>
+
+#include "PortsModel.h"
+
 namespace FOEDAG {
 
-class PortsLoader {
+class PortsLoader : public QObject {
  public:
-  PortsLoader();
+  PortsLoader(PortsModel *model, QObject *parent = nullptr);
+  virtual ~PortsLoader();
+  virtual bool load(const QString &file);
+
+ protected:
+  PortsModel *m_model{nullptr};
 };
 
 }  // namespace FOEDAG

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QObject>
 #include <QStringList>
+#include <QStringListModel>
 #include <QVector>
 
 namespace FOEDAG {
@@ -52,15 +53,27 @@ struct PackagePinGroup {
 };
 
 class PackagePinsModel : public QObject {
+  Q_OBJECT
  public:
-  PackagePinsModel(QObject* parent = nullptr);
+  PackagePinsModel(QObject *parent = nullptr);
   QStringList headerList() const;
 
-  void append(const PackagePinGroup& g);
-  const QVector<PackagePinGroup>& pinData() const;
+  void append(const PackagePinGroup &g);
+  const QVector<PackagePinGroup> &pinData() const;
+
+  QStringListModel *listModel() const;
+  void initListModel();
+
+  void insert(const QString &name, const QModelIndex &index);
+  void itemChange(const QString &name, const QString &pin);
+
+ signals:
+  void itemHasChanged(const QModelIndex &index, const QString &pin);
 
  private:
   QVector<PackagePinGroup> m_pinData;
+  QStringListModel *m_listModel{nullptr};
+  QMap<QString, QModelIndex> m_indexes;
 };
 
 }  // namespace FOEDAG
