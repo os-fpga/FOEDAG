@@ -174,6 +174,7 @@ void MainWindow::openFileSlot() {
 
 void MainWindow::newDesignCreated(const QString& design) {
   setWindowTitle(m_projectInfo.name + " - " + design);
+  pinAssignmentAction->setChecked(false);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -322,13 +323,17 @@ void MainWindow::createActions() {
   pinAssignmentAction->setCheckable(true);
   connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
     if (pinAssignmentAction->isChecked()) {
-      PinAssignmentCreator creator{m_projectManager, GlobalSession->Context()};
+      PinAssignmentCreator* creator = new PinAssignmentCreator{
+          m_projectManager, GlobalSession->Context(), this};
+      connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
+              []() { /* TODO @volodymyrk RG-9*/ });
+
       auto portsDockWidget =
-          PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
+          PrepareTab(tr("IO Ports"), "portswidget", creator->GetPortsWidget(),
                      m_dockConsole);
       auto packagePinDockWidget =
           PrepareTab(tr("Package Pins"), "packagepinwidget",
-                     creator.GetPackagePinsWidget(), portsDockWidget);
+                     creator->GetPackagePinsWidget(), portsDockWidget);
       m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
     } else {
       cleanUpDockWidgets(m_pinAssignmentDocks);

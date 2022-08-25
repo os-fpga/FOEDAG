@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignmentCreator.h"
 
 #include <QBoxLayout>
-#include <QDebug>
 #include <QDir>
 #include <filesystem>
 
@@ -29,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PackagePinsLoader.h"
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
+#include "PortsLoader.h"
 #include "PortsView.h"
 
 namespace FOEDAG {
@@ -37,15 +37,26 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
                                            ToolContext *context,
                                            QObject *parent)
     : QObject(parent) {
-  auto baseModel = new PinsBaseModel;
+  PortsModel *portsModel = new PortsModel{this};
+  PortsLoader portsLoader{portsModel, this};
+  portsLoader.load(searchPortsFile(context));
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile(targetDevice(projectManager), context);
   PackagePinsLoader loader{packagePinModel, this};
   loader.load(fileName);
+
+  auto baseModel = new PinsBaseModel;
+  baseModel->setPackagePinModel(packagePinModel);
+  baseModel->setPortsModel(portsModel);
+
   auto portsView = new PortsView(baseModel);
+  connect(portsView, &PortsView::selectionHasChanged, this,
+          &PinAssignmentCreator::selectionHasChanged);
   m_portsView = CreateLayoutedWidget(portsView);
 
-  auto packagePins = new PackagePinsView(packagePinModel);
+  auto packagePins = new PackagePinsView(baseModel);
+  connect(packagePins, &PackagePinsView::selectionHasChanged, this,
+          &PinAssignmentCreator::selectionHasChanged);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
 }
 
@@ -82,6 +93,15 @@ QString PinAssignmentCreator::targetDevice(
   if (!projectManager->HasDesign()) return QString();
   if (projectManager->getTargetDevice().empty()) return QString();
   return QString::fromStdString(projectManager->getTargetDevice());
+}
+
+QString PinAssignmentCreator::searchPortsFile(ToolContext *context) const {
+  // TODO @volodymyrk GEMINIEDA-229. The path will be changed after this ticket
+  std::filesystem::path path{context->DataPath()};
+  path = path / "etc" / "templates";
+
+  QDir dir{path.string().c_str()};
+  return dir.filePath("ports_test.json");
 }
 
 }  // namespace FOEDAG
