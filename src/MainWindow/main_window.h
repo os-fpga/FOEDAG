@@ -52,6 +52,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newFile();
   void newProjectDlg();
   void openProject();
+  void openExampleProject();
   void closeProject();
   void openFileSlot();
   void newDesignCreated(const QString& design);
@@ -74,6 +75,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
   void cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets);
+  void openProject(const QString& dir);
+
+  void showToolbars(bool show);
+  void showWelcomePage();
 
  private: /* Objects/Widgets under the main window */
   /* Menu bar objects */
@@ -84,6 +89,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
+  QAction* openExampleAction = nullptr;
   QAction* closeProjectAction = nullptr;
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;

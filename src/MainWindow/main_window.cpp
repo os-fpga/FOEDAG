@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
+#include "MainWindow/welcomepagewidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -139,6 +140,7 @@ void MainWindow::newFile() {
 
 void MainWindow::newProjectDlg() {
   int ret = newProjdialog->exec();
+  newProjdialog->Reset();
   newProjdialog->close();
   if (ret) {
     QString strproject = newProjdialog->getProject();
@@ -147,9 +149,17 @@ void MainWindow::newProjectDlg() {
   }
 }
 
-void MainWindow::openProject() {
+void MainWindow::openProject() { openProject(QString{}); }
+
+void MainWindow::openExampleProject() {
+  auto currentDir = QString(GlobalSession->Context()->DataPath().c_str());
+  currentDir += "/examples";
+  openProject(currentDir);
+}
+
+void MainWindow::openProject(const QString& dir) {
   QString fileName;
-  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), "",
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
   if (!fileName.isEmpty()) {
     ReShowWindow(fileName);
@@ -161,7 +171,7 @@ void MainWindow::closeProject() {
   if (m_projectManager && m_projectManager->HasDesign()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    ReShowWindow("");
+    showWelcomePage();
     newProjectAction->setEnabled(true);
   }
 }
@@ -235,6 +245,7 @@ void MainWindow::createMenus() {
   fileMenu->addSeparator();
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
+  fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
@@ -260,6 +271,11 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
+void MainWindow::showToolbars(bool show) {
+  fileToolBar->setVisible(show);
+  debugToolBar->setVisible(show);
+}
+
 void MainWindow::createActions() {
   newAction = new QAction(tr("&New..."), this);
   newAction->setIcon(QIcon(":/images/icon_newfile.png"));
@@ -270,6 +286,11 @@ void MainWindow::createActions() {
   openProjectAction = new QAction(tr("&Open Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
+
+  openExampleAction = new QAction(tr("&Open Example Design..."), this);
+  openExampleAction->setStatusTip(tr("Open example design"));
+  connect(openExampleAction, SIGNAL(triggered()), this,
+          SLOT(openExampleProject()));
 
   closeProjectAction = new QAction(tr("&Close Project"), this);
   closeProjectAction->setStatusTip(tr("Close current project"));
@@ -350,13 +371,33 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() { ReShowWindow(""); }
+void MainWindow::gui_start() { showWelcomePage(); }
+
+void MainWindow::showWelcomePage() {
+  clearDockWidgets();
+  takeCentralWidget();
+
+  newDesignCreated({});
+  showToolbars(false);
+
+  auto exeName = QString(GlobalSession->Context()->ExecutableName().c_str());
+  auto srcPath = QString(GlobalSession->Context()->DataPath().c_str());
+  auto centralWidget = new WelcomePageWidget(exeName, srcPath, this);
+
+  centralWidget->addAction(*newProjectAction);
+  centralWidget->addAction(*openProjectAction);
+  centralWidget->addAction(*openExampleAction);
+
+  setCentralWidget(centralWidget);
+}
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
   newDesignCreated(strProject);
+
+  showToolbars(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");

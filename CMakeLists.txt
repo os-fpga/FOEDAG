@@ -535,6 +535,12 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/examples/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/welcome_page/
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                  ${PROJECT_SOURCE_DIR}/etc/welcome_page
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/welcome_page/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/
     COMMAND ${CMAKE_COMMAND} -E copy_directory 
         ${PROJECT_SOURCE_DIR}/tests/Arch  
