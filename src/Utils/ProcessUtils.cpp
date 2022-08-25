@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProcessUtils.h"
 
 #include <string>
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+#if (defined(_MSC_VER) || defined(__CYGWIN__))
 #define NOMINMAX  // prevent error with std::max
 #include <windows.h>
 // include order metters
@@ -42,7 +42,7 @@ void ProcessUtils::Frequency(uint p) { m_frequency = p; }
 
 void process_mem_usage(int64_t processId, const char *proccessIdStr,
                        double &vm_usage /*in kiB*/) {
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
+#if (defined(_MSC_VER) || defined(__CYGWIN__))
   PROCESS_MEMORY_COUNTERS_EX pmc;
   auto p = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
   GetProcessMemoryInfo(p, (PROCESS_MEMORY_COUNTERS *)&pmc, sizeof(pmc));

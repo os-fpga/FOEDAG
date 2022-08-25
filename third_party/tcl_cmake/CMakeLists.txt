@@ -55,10 +55,10 @@ if (MSVC)
   set(ZLIB_STATIC_LIB zlib.lib)
 elseif(APPLE) 
   set(TCL_STATIC_LIB libtcl8.6.dylib)
-endif()
-
-if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
-  set(TCL_STATIC_LIB libtcl8.6.a)
+elseif ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+  set(TCL_STATIC_LIB libtcl86.dll.a)
+  set(ZLIB_STATIC_LIB libzlibstatic.a)
+  set(TCL_STUBB_LIB libtclstub86.a)
 endif()
 
 if(MSVC)
@@ -104,29 +104,45 @@ else()
   )
   add_custom_target(tcl_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB})
 
-  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
+  if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
     set(STATIC_LINK --enable-shared=off)
   else()
     set(STATIC_LINK )
   endif()
-
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
-    COMMAND echo "       Compiling Tcl"
-    COMMAND rm -rf configure
-    COMMAND autoconf configure.in  > configure
-    COMMAND chmod 755 configure
-    COMMAND ./configure ${STATIC_LINK} --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
-    COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
-    COMMAND echo "       Tcl Compilation completed"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
-    DEPENDS ../tcl8.6.12/generic/tcl.h
-  )
-  add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
-    COMMAND echo "       Compiling Tcl Stubb"
-    COMMAND echo "       Tcl Stubb Compilation completed"
-    DEPENDS ../tcl8.6.12/generic/tcl.h
-  )
+  if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
+        COMMAND echo "       Copying TCL Lib"
+        COMMAND cp /mingw64/lib/${TCL_STATIC_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND echo "       TCL Lib copy completed"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
+        DEPENDS ../tcl8.6.12/generic/tcl.h
+    )
+    add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
+        COMMAND echo "       Copying TCL Stub Lib"
+        COMMAND cp /mingw64/lib/${TCL_STUBB_LIB} ${CMAKE_CURRENT_BINARY_DIR}/../../lib/
+        COMMAND echo "       TCL Stub Lib copy completed"
+        DEPENDS ../tcl8.6.12/generic/tcl.h
+    )
+  else()
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STATIC_LIB}
+        COMMAND echo "       Compiling Tcl"
+        COMMAND rm -rf configure
+        COMMAND autoconf configure.in  > configure
+        COMMAND chmod 755 configure
+        COMMAND ./configure ${STATIC_LINK} --enable-64bit --prefix=${CMAKE_CURRENT_BINARY_DIR}/../..
+        COMMAND ${CMAKE_COMMAND} -P ../../tcl_cmake/tcl_make.cmake
+        COMMAND echo "       Tcl Compilation completed"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/../tcl8.6.12/unix"
+        DEPENDS ../tcl8.6.12/generic/tcl.h
+    )
+    add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB}
+        COMMAND echo "       Compiling Tcl Stubb"
+        COMMAND echo "       Tcl Stubb Compilation completed"
+        DEPENDS ../tcl8.6.12/generic/tcl.h
+    )
+  endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 endif()
 
 if(MSVC)
