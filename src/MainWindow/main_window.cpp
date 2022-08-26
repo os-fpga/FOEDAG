@@ -385,7 +385,8 @@ void MainWindow::showWelcomePage() {
   newDesignCreated({});
   showToolbars(false);
 
-  auto exeName = QString::fromStdString(GlobalSession->Context()->ExecutableName());
+  auto exeName =
+      QString::fromStdString(GlobalSession->Context()->ExecutableName());
   auto centralWidget = new WelcomePageWidget(
       exeName, GlobalSession->Context()->DataPath(), this);
 
