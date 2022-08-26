@@ -38,7 +38,8 @@ void Session::windowShow() {
       m_mainWindow->show();
       auto hasScriptCmd = !CmdLine()->Script().empty();
       if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-        topLevel->gui_start(!hasScriptCmd);
+        topLevel->gui_start(!hasScriptCmd &&
+                            CmdLine()->GuiTestScript().empty());
       }
       if (hasScriptCmd) {
         int returnCode{TCL_OK};
