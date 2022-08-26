@@ -34,12 +34,13 @@ Session::~Session() {
 
 void Session::windowShow() {
   switch (m_guiType) {
-    case GUI_TYPE::GT_WIDGET:
+    case GUI_TYPE::GT_WIDGET: {
       m_mainWindow->show();
+      auto hasScriptCmd = !CmdLine()->Script().empty();
       if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-        topLevel->gui_start();
+        topLevel->gui_start(!hasScriptCmd);
       }
-      if (!CmdLine()->Script().empty()) {
+      if (hasScriptCmd) {
         int returnCode{TCL_OK};
         if (m_compiler) m_compiler->start();
         auto result = TclInterp()->evalFile(CmdLine()->Script(), &returnCode);
@@ -52,6 +53,7 @@ void Session::windowShow() {
         }
       }
       break;
+    }
     case GUI_TYPE::GT_QML:
       m_windowModel->setIsVisible(true);
       break;

@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "welcomepagewidget.h"
+#include "WelcomePageWidget.h"
 
 #include <QAction>
 #include <QFile>
@@ -37,16 +37,20 @@ static constexpr auto HEADER_POINTSIZE = 24;
 static constexpr auto DESCRIPTION_POINTSIZE = 14;
 static constexpr auto PAGE_MARGIN = 30;
 static constexpr auto PAGE_SPACING = 20;
+static constexpr auto LOGO_SIZE = 200;
 
-static const auto LOGO_PATH = QString("/etc/welcome_page/Logo.png");
-static const auto DESCRIPTION_PATH =
-    QString("/etc/welcome_page/WelcomeDescription.txt");
+static const auto ETC_DIR = "etc";
+static const auto WELCOME_PAGE_DIR = "Welcome_Page";
+static const auto LOGO_FILENAME = "osfpga_logo.png";
+static const auto DESCRIPTION_FILENAME = "WelcomeDescription.txt";
 }  // namespace
 
 WelcomePageWidget::WelcomePageWidget(const QString &header,
-                                     const QString &sourcesPath,
+                                     const std::filesystem::path &sourcesPath,
                                      QWidget *parent)
     : QWidget(parent), m_actionsLayout(new QVBoxLayout()) {
+  std::filesystem::path srcDir = sourcesPath / ETC_DIR / WELCOME_PAGE_DIR;
+
   // Header label
   auto headerLabel = new QLabel(header.toUpper(), this);
   auto headerFont = headerLabel->font();
@@ -56,7 +60,7 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
                                   0);
 
   // Description label
-  auto descLabel = new QLabel(getDescription(sourcesPath), this);
+  auto descLabel = new QLabel(getDescription(srcDir), this);
   auto descFont = descLabel->font();
   descFont.setPointSize(DESCRIPTION_POINTSIZE);
   descLabel->setFont(descFont);
@@ -65,21 +69,20 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 
   // Group box with start actions
   auto quickStartGroupBox = new QGroupBox(this);
-  auto groupBoxLayout = new QGridLayout();
   m_actionsLayout->addWidget(headerLabel);
   m_actionsLayout->addWidget(descLabel);
-  groupBoxLayout->addLayout(m_actionsLayout, 0, 0, Qt::AlignCenter);
-  quickStartGroupBox->setLayout(groupBoxLayout);
+  quickStartGroupBox->setLayout(m_actionsLayout);
 
   // Logo label
   auto logoLabel = new QLabel(this);
-  logoLabel->setPixmap(QPixmap(sourcesPath + LOGO_PATH));
+  auto logoPixmap = QPixmap((srcDir / LOGO_FILENAME).c_str());
+  logoLabel->setPixmap(logoPixmap.scaled(QSize(LOGO_SIZE, LOGO_SIZE)));
 
   // Main layout
   auto mainLayout = new QVBoxLayout(this);
   mainLayout->setSpacing(PAGE_SPACING);
   mainLayout->addWidget(logoLabel, 0, Qt::AlignRight | Qt::AlignTop);
-  mainLayout->addWidget(quickStartGroupBox);
+  mainLayout->addWidget(quickStartGroupBox, 0, Qt::AlignCenter);
   mainLayout->addStretch(1);
   mainLayout->setContentsMargins(PAGE_MARGIN, PAGE_MARGIN, PAGE_MARGIN,
                                  PAGE_MARGIN);
@@ -110,10 +113,12 @@ QPushButton *WelcomePageWidget::createActionButton() {
   return btn;
 }
 
-QString WelcomePageWidget::getDescription(const QString &sourcesPath) const {
+QString WelcomePageWidget::getDescription(
+    const std::filesystem::path &srcDir) const {
   auto result = QString{};
 
-  auto descFile = QFile(sourcesPath + DESCRIPTION_PATH);
+  auto welcomeDescPath = srcDir / DESCRIPTION_FILENAME;
+  auto descFile = QFile(welcomeDescPath.c_str());
   if (!descFile.open(QIODevice::ReadOnly)) return result;
 
   auto in = QTextStream(&descFile);

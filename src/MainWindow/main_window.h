@@ -65,7 +65,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void createActions();
   void createProgressBar();
   void connectProjectManager();
-  void gui_start() override;
+  void gui_start(bool showWP) override;
 
   void ReShowWindow(QString strProject);
   void clearDockWidgets();

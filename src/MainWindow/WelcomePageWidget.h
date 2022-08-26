@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WELCOMEPAGEWIDGET_H
 
 #include <QWidget>
+#include <filesystem>
 
 class QAction;
 class QVBoxLayout;
@@ -32,7 +33,8 @@ class QPushButton;
 namespace FOEDAG {
 class WelcomePageWidget final : public QWidget {
  public:
-  WelcomePageWidget(const QString &header, const QString &sourcesPath,
+  WelcomePageWidget(const QString &header,
+                    const std::filesystem::path &sourcesPath,
                     QWidget *parent = nullptr);
 
   // Adds a new QToolButton, representing given action, to the vertical layout
@@ -43,7 +45,7 @@ class WelcomePageWidget final : public QWidget {
 
   // Reads WelcomeDescription txt file, located in given path. Returns empty
   // string if the file doesn't exist.
-  QString getDescription(const QString &sourcesPath) const;
+  QString getDescription(const std::filesystem::path &srcDir) const;
 
   QVBoxLayout *m_actionsLayout{nullptr};
 };

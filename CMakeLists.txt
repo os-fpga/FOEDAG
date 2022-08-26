@@ -509,7 +509,10 @@ install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
 
 install(
-  DIRECTORY etc/welcome_page DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/welcome_page)
+  DIRECTORY etc/Welcome_Page DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/Welcome_Page)
+
+install(
+  FILES docs/source/overview/figures/osfpga_logo.png DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/Welcome_Page/)
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
@@ -538,10 +541,16 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/examples/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/welcome_page/
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc/welcome_page
-                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/welcome_page/)
+                  ${PROJECT_SOURCE_DIR}/etc/Welcome_Page
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/
+                  COMMAND ${CMAKE_COMMAND} -E copy
+                  ${PROJECT_SOURCE_DIR}/docs/source/overview/figures/osfpga_logo.png
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/

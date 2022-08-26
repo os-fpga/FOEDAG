@@ -25,7 +25,7 @@ namespace FOEDAG {
 class TopLevelInterface {
  public:
   virtual ~TopLevelInterface() = default;
-  virtual void gui_start() = 0;
+  virtual void gui_start(bool showWP) = 0;
 };
 
 }  // namespace FOEDAG

@@ -58,7 +58,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   ../Main/AboutWidget.cpp
   ../MainWindow/mainwindowmodel.cpp
-  ../MainWindow/welcomepagewidget.cpp
+  ../MainWindow/WelcomePageWidget.cpp
   CompilerNotifier.cpp
 )
 
@@ -83,7 +83,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/AboutWidget.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
-  ../MainWindow/welcomepagewidget.h
+  ../MainWindow/WelcomePageWidget.h
   CompilerNotifier.h
 )
 

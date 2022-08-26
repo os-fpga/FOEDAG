@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
-#include "MainWindow/welcomepagewidget.h"
+#include "MainWindow/WelcomePageWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -371,8 +371,8 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() {
-  if (GlobalSession->CmdLine()->Script().empty())
+void MainWindow::gui_start(bool showWP) {
+  if (showWP)
     showWelcomePage();
   else
     ReShowWindow({});
@@ -386,8 +386,8 @@ void MainWindow::showWelcomePage() {
   showToolbars(false);
 
   auto exeName = QString(GlobalSession->Context()->ExecutableName().c_str());
-  auto srcPath = QString(GlobalSession->Context()->DataPath().c_str());
-  auto centralWidget = new WelcomePageWidget(exeName, srcPath, this);
+  auto centralWidget = new WelcomePageWidget(
+      exeName, GlobalSession->Context()->DataPath(), this);
 
   centralWidget->addAction(*newProjectAction);
   centralWidget->addAction(*openProjectAction);
