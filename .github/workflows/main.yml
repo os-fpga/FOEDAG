@@ -44,6 +44,7 @@ jobs:
     - name: Install dependencies
       run: |
         bash .github/workflows/install_ubuntu_dependencies_build.sh
+        bash .github/workflows/install_litex_ubuntu.sh
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1

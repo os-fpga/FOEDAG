@@ -177,7 +177,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_task_clean.tcl
-
+	./build/bin/foedag --batch --script tests/Testcases/ip_gen_axis_conv/raptor.tcl
 
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
