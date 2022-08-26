@@ -154,7 +154,7 @@ void MainWindow::openProject() { openProject(QString{}); }
 void MainWindow::openExampleProject() {
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
-  openProject(examplesPath.c_str());
+  openProject(QString::fromStdString(examplesPath.native()));
 }
 
 void MainWindow::openProject(const QString& dir) {
@@ -385,7 +385,7 @@ void MainWindow::showWelcomePage() {
   newDesignCreated({});
   showToolbars(false);
 
-  auto exeName = QString(GlobalSession->Context()->ExecutableName().c_str());
+  auto exeName = QString::fromStdString(GlobalSession->Context()->ExecutableName());
   auto centralWidget = new WelcomePageWidget(
       exeName, GlobalSession->Context()->DataPath(), this);
 
