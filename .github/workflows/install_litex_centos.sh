@@ -24,6 +24,6 @@ chmod +x litex_setup.py
 ./litex_setup.py --install
 
 # Download/Install RISC-V GCC toolchain.
-# ./litex_setup.py --gcc=riscv
-# mkdir /usr/local/riscv
-# cp -r riscv64-*/* /usr/local/riscv
+./litex_setup.py --gcc=riscv
+mkdir -p /usr/local/riscv
+cp -r riscv64-*/* /usr/local/riscv
