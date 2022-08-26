@@ -371,7 +371,12 @@ void MainWindow::createActions() {
   });
 }
 
-void MainWindow::gui_start() { showWelcomePage(); }
+void MainWindow::gui_start() {
+  if (GlobalSession->CmdLine()->Script().empty())
+    showWelcomePage();
+  else
+    ReShowWindow({});
+}
 
 void MainWindow::showWelcomePage() {
   clearDockWidgets();

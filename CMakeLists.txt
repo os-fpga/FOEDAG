@@ -508,6 +508,9 @@ install(
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
 
+install(
+  DIRECTORY etc/welcome_page DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/welcome_page)
+
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
 else()    

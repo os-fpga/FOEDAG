@@ -1,3 +1,24 @@
+/*
+Copyright 2021 The Foedag team
+
+GPL License
+
+Copyright (c) 2021 The Open-Source FPGA Foundation
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "welcomepagewidget.h"
 
 #include <QAction>
@@ -35,7 +56,6 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
                                   0);
 
   // Description label
-
   auto descLabel = new QLabel(getDescription(sourcesPath), this);
   auto descFont = descLabel->font();
   descFont.setPointSize(DESCRIPTION_POINTSIZE);
@@ -45,9 +65,11 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 
   // Group box with start actions
   auto quickStartGroupBox = new QGroupBox(this);
+  auto groupBoxLayout = new QGridLayout();
   m_actionsLayout->addWidget(headerLabel);
   m_actionsLayout->addWidget(descLabel);
-  quickStartGroupBox->setLayout(m_actionsLayout);
+  groupBoxLayout->addLayout(m_actionsLayout, 0, 0, Qt::AlignCenter);
+  quickStartGroupBox->setLayout(groupBoxLayout);
 
   // Logo label
   auto logoLabel = new QLabel(this);
@@ -68,8 +90,6 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   setPalette(defaultPalette);
   setAutoFillBackground(true);
 }
-
-WelcomePageWidget::~WelcomePageWidget() = default;
 
 void WelcomePageWidget::addAction(QAction &act) {
   auto actionButton = createActionButton();
