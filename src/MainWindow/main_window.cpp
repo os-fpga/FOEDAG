@@ -322,7 +322,7 @@ void MainWindow::createActions() {
   pinAssignmentAction->setCheckable(true);
   connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
     if (pinAssignmentAction->isChecked()) {
-      PinAssignmentCreator creator;
+      PinAssignmentCreator creator{m_projectManager, GlobalSession->Context()};
       auto portsDockWidget =
           PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
                      m_dockConsole);

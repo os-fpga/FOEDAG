@@ -19,12 +19,48 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <QObject>
+#include <QStringList>
+#include <QVector>
 
 namespace FOEDAG {
 
-class PackagePinsModel {
+enum PinData {
+  PinName = 0,
+  BallName = 1,
+  RefClock = 12,
+  Bank = 13,
+  ALT = 14,
+  DebugMode = 15,
+  ScanMode = 16,
+  MbistMode = 17,
+  Type = 18,
+  Dir = 19,
+  Voltage = 20,
+  PowerPad = 21,
+  Discription = 22,
+  Voltage2 = 23,
+};
+
+struct PackagePinData {
+  QStringList data;
+};
+
+struct PackagePinGroup {
+  QString name;
+  QVector<PackagePinData> pinData;
+};
+
+class PackagePinsModel : public QObject {
  public:
-  PackagePinsModel();
+  PackagePinsModel(QObject* parent = nullptr);
+  QStringList headerList() const;
+
+  void append(const PackagePinGroup& g);
+  const QVector<PackagePinGroup>& pinData() const;
+
+ private:
+  QVector<PackagePinGroup> m_pinData;
 };
 
 }  // namespace FOEDAG
