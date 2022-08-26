@@ -45,7 +45,10 @@ Full list of dependencies can be found at install_macos_dependencies_build_.
 .. _install_ubuntu_dependencies_build: ../../../../../.github/workflows/install_macos_dependencies_build.sh
 
 WIN
-======
+===
+
+MSVC
+~~~~
 
 Minimal requirements:
 
@@ -54,3 +57,33 @@ Minimal requirements:
 * Make sure component 'C++ CMake tools for windows' is installed for Microsoft Visual Studio
 * Make sure Qt bin are in the PATH variable. e.g. set PATH=C:\Qt\5.15.2\msvc2019_64\bin;%PATH%
 * Make sure Qt5_DIR is set. e.g. C:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5
+
+MSYS2 MinGW64
+~~~~~~~~~~~~~
+
+MSYS2 env with the MinGW64 g++ compiler can be used to build FOEDAG.
+
+* Get the latest installer from : https://www.msys2.org/
+* Follow the steps on the main site : https://www.msys2.org/ (also listed below, step 1-6), 
+  and **step 7** lists the additional packages needed to build FOEDAG:
+  
+  1. Invoke the downloaded installer
+  
+  2. Allow installer to run the **MSYS2 MSYS** Shell
+  
+  3. Run :code:`pacman -Syu` for initial base updates
+  
+  4. At the end, it will close the terminal after confirmation
+  
+  5. Run **MSYS2 MSYS** Shell
+  
+  6. Run :code:`pacman -Su` for remaining base updates
+  
+  7. Run :code:`pacman -S --needed base-devel mingw-w64-x86_64-toolchain git mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base-debug mingw-w64-x86_64-qt5 mingw-w64-x86_64-swig mingw-w64-x86_64-qt5-declarative-debug mingw-w64-x86_64-tcl mingw-w64-x86_64-zlib`
+     for installing required packages.
+     
+     Select default (all) packages to install here
+  
+  8. Close the **MSYS2 MSYS** Shell
+
+* Now, use **MSYS2 MinGW x64** Shell (from Start Menu) to open the right shell and start building.
