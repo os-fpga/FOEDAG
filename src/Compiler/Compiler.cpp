@@ -763,7 +763,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
     auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                      const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -973,7 +973,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
     auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                      const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
