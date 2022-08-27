@@ -37,7 +37,9 @@ class CompilerOpenFPGA : public Compiler {
  public:
   CompilerOpenFPGA() = default;
   ~CompilerOpenFPGA() = default;
-
+  void AnalyzeExecPath(const std::filesystem::path& path) {
+    m_analyzeExecutablePath = path;
+  }
   void YosysExecPath(const std::filesystem::path& path) {
     m_yosysExecutablePath = path;
   }
@@ -107,6 +109,7 @@ class CompilerOpenFPGA : public Compiler {
 
  protected:
   virtual bool IPGenerate();
+  virtual bool Analyze();
   virtual bool Synthesize();
   virtual bool Packing();
   virtual bool GlobalPlacement();
@@ -126,6 +129,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool VerifyTargetDevice() const;
   std::filesystem::path m_yosysExecutablePath = "yosys";
+  std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;
   std::string m_yosysPluginLib;
   std::string m_yosysPlugin;

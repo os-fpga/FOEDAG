@@ -762,6 +762,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      return compiler->Compile(Action::Analyze) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
+
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -956,6 +971,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
+
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      WorkerThread* wthread =
+          new WorkerThread("analyze_th", Action::Analyze, compiler);
+      return wthread->start() ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1243,6 +1275,37 @@ void Compiler::Stop() {
   if (m_process) m_process->terminate();
 }
 
+bool Compiler::Analyze() {
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + m_projManager->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    return true;
+  }
+  (*m_out) << "Analyzing design: " << m_projManager->projectName() << "..."
+           << std::endl;
+  auto currentPath = std::filesystem::current_path();
+  auto it = std::filesystem::directory_iterator{currentPath};
+  for (int i = 0; i < 100; i = i + 10) {
+    (*m_out) << std::setw(2) << i << "%";
+    if (it != std::filesystem::end(it)) {
+      std::string str =
+          " File: " + (*it).path().filename().string() + " just for test";
+      (*m_out) << str;
+      it++;
+    }
+    (*m_out) << std::endl;
+    std::chrono::milliseconds dura(1000);
+    std::this_thread::sleep_for(dura);
+    if (m_stop) return false;
+  }
+  m_state = State::Analyzed;
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+           << std::endl;
+  return true;
+}
+
 bool Compiler::Synthesize() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   if (SynthOpt() == SynthesisOpt::Clean) {
@@ -1338,6 +1401,8 @@ bool Compiler::RunCompileTask(Action action) {
   switch (action) {
     case Action::IPGen:
       return IPGenerate();
+    case Action::Analyze:
+      return Analyze();
     case Action::Synthesis:
       return Synthesize();
     case Action::Pack:
