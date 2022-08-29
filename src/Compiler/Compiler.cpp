@@ -1433,6 +1433,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(IP_GENERATE, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("ipgenerate"));
     });
+    m_taskManager->bindTaskCommand(ANALYSIS, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
+    });
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
     });
