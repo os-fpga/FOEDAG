@@ -349,12 +349,15 @@ int ProjectManager::setProjectType(const QString& strType) {
 }
 
 ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
-    const QString& fileNames, int lang, bool isFileCopy, bool localToProject) {
+    const QString& commands, const QString& libs, const QString& fileNames,
+    int lang, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) return {EC_FileSetNotExist};
 
+  const QStringList commandsList = StringSplit(commands, " ");
+  const QStringList libsList = StringSplit(libs, " ");
   const QStringList fileList = StringSplit(fileNames, " ");
 
   // check file exists
@@ -365,8 +368,7 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
   }
   if (!notExistingFiles.isEmpty())
     return {EC_FileNotExist, notExistingFiles.join(", ")};
-
-  proFileSet->addFiles(fileList, lang);
+  proFileSet->addFiles(commandsList, libsList, fileList, lang);
 
   auto result{EC_Success};
   for (const auto& file : fileList) {
@@ -394,9 +396,9 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
     for (const auto& file : fileList) {
       fullPathFileList.append(QString("%1/%2").arg(path, file));
     }
-    proFileSet->addFiles(fullPathFileList, lang);
+    proFileSet->addFiles({}, {}, fullPathFileList, lang);
   } else {
-    proFileSet->addFiles(fileList, lang);
+    proFileSet->addFiles({}, {}, fileList, lang);
   }
 
   int result{0};
@@ -712,6 +714,26 @@ std::vector<std::pair<int, std::string>> ProjectManager::DesignFiles() const {
     }
   }
   return vec;
+}
+
+std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+ProjectManager::DesignLibraries() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getDesignActiveFileSet());
+
+  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+      result;
+  for (const auto& commandsLibs : tmpFileSet->getLibraries()) {
+    std::vector<std::string> commands;
+    std::vector<std::string> libs;
+    for (auto i = 0; i < commandsLibs.first.size(); ++i) {
+      commands.push_back(commandsLibs.first[i].toStdString());
+      libs.push_back(commandsLibs.second[i].toStdString());
+    }
+    result.emplace_back(std::move(commands), std::move(libs));
+  }
+
+  return result;
 }
 
 std::vector<std::pair<int, std::vector<std::string>>>

@@ -221,7 +221,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             }
             for (const auto& i : langList) {
               projectFileset.addFiles(
-                  ProjectManager::StringSplit(i.second, " "), i.first);
+                  {}, {}, ProjectManager::StringSplit(i.second, " "), i.first);
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {

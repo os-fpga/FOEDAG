@@ -700,8 +700,11 @@ bool CompilerOpenFPGA::Synthesize() {
     }
     fileList += "verific -vlog-define " + macros + "\n";
 
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
+      std::string designLibraries;
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
@@ -742,7 +745,23 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file.second + "\n";
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty())
+            designLibraries += filesCommandsLibs.first[i] + " " +
+                               filesCommandsLibs.second[i] + " ";
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += "verific " + lang + " " + lang_file.second + "\n";
+      else
+        fileList += "verific " + designLibraries + " " + lang + " " +
+                    lang_file.second + "\n";
     }
     fileList += "verific -import " + ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);

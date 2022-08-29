@@ -151,7 +151,8 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  ErrorInfo addDesignFiles(const QString &fileNames, int lang,
+  ErrorInfo addDesignFiles(const QString &commands, const QString &libs,
+                           const QString &fileNames, int lang,
                            bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
                      bool localToProject = true);
@@ -177,6 +178,8 @@ class ProjectManager : public QObject {
   int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QStringList getDesignFiles() const;
+  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+  DesignLibraries() const;
   std::vector<std::pair<int, std::string>> DesignFiles() const;
   std::vector<std::pair<int, std::vector<std::string>>> DesignFileList() const;
   QString getDesignTopModule(const QString &strFileSet) const;
