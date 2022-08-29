@@ -154,7 +154,7 @@ void MainWindow::openProject() { openProject(QString{}); }
 void MainWindow::openExampleProject() {
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
-  openProject(QString::fromStdString(examplesPath.native()));
+  openProject(QString::fromStdString(examplesPath.string()));
 }
 
 void MainWindow::openProject(const QString& dir) {

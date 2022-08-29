@@ -76,7 +76,7 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   // Logo label
   auto logoLabel = new QLabel(this);
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
-  auto logoPixmap = QPixmap(QString::fromStdString(labelPath.native()));
+  auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
   logoLabel->setPixmap(logoPixmap.scaled(QSize(LOGO_SIZE, LOGO_SIZE)));
 
   // Main layout
@@ -119,7 +119,7 @@ QString WelcomePageWidget::getDescription(
   auto result = QString{};
 
   std::filesystem::path welcomeDescPath = srcDir / DESCRIPTION_FILENAME;
-  auto descFile = QFile(QString::fromStdString(welcomeDescPath.native()));
+  auto descFile = QFile(QString::fromStdString(welcomeDescPath.string()));
   if (!descFile.open(QIODevice::ReadOnly)) return result;
 
   auto in = QTextStream(&descFile);
