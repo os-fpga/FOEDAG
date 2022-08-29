@@ -37,4 +37,5 @@ then
 else
     echo "Error: Directory /usr/local/riscv does not exists."
 fi
+ls -alh
 sudo cp -r riscv64-*/* /usr/local/riscv
