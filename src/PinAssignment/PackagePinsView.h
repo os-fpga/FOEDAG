@@ -22,13 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QTreeWidget>
 
-#include "PinsBaseModel.h"
+#include "PackagePinsModel.h"
 
 namespace FOEDAG {
 
 class PackagePinsView : public QTreeWidget {
+  Q_OBJECT
  public:
-  PackagePinsView(PinsBaseModel *baseModel, QWidget *parent = nullptr);
+  PackagePinsView(PackagePinsModel *model, QWidget *parent = nullptr);
+
+ private slots:
+  void ioPortsSelectionHasChanged(const QModelIndex &index);
+
+ private:
+  void insertData(const QStringList &data, int index, int column,
+                  QTreeWidgetItem *item);
 };
 
 }  // namespace FOEDAG
