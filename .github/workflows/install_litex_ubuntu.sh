@@ -31,4 +31,10 @@ sudo ./litex_setup.py --install
 # Download/Install RISC-V GCC toolchain.
 ./litex_setup.py --gcc=riscv
 sudo mkdir /usr/local/riscv
+if [ -d "/usr/local/riscv" ] 
+then
+    echo "Directory /usr/local/riscv exists." 
+else
+    echo "Error: Directory /usr/local/riscv does not exists."
+fi
 sudo cp -r riscv64-*/* /usr/local/riscv
