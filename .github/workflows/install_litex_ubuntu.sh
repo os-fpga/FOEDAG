@@ -30,5 +30,5 @@ sudo ./litex_setup.py --install
 
 # Download/Install RISC-V GCC toolchain.
 ./litex_setup.py --gcc=riscv
-sudo mkdir -p /usr/local/riscv
+sudo mkdir /usr/local/riscv
 sudo cp -r riscv64-*/* /usr/local/riscv
