@@ -42,4 +42,10 @@ echo "Parent Dir:"
 ls -la ..
 echo "Check if .gitignore exists: ls .gitignore"
 ls -la .gitignore
-sudo cp -r riscv64-*/* /usr/local/riscv
+if [ -f .gitignore ]; then
+    echo ".gitignore preset, checking parent directory for rscv64 files"
+    sudo cp -r ../riscv64-*/* /usr/local/riscv
+else
+    echo "no .gitignore preset, checking current directory for rscv64 files"
+    sudo cp -r riscv64-*/* /usr/local/riscv
+fi
