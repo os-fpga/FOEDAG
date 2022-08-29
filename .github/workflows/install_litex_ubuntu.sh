@@ -38,4 +38,6 @@ else
     echo "Error: Directory /usr/local/riscv does not exists."
 fi
 ls -alh
+echo "Parent Dir:"
+ls -la ..
 sudo cp -r riscv64-*/* /usr/local/riscv
