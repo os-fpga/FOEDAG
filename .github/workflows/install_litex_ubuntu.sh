@@ -40,4 +40,6 @@ fi
 ls -alh
 echo "Parent Dir:"
 ls -la ..
+echo "Check if .gitignore exists: ls .gitignore"
+ls -la .gitignore
 sudo cp -r riscv64-*/* /usr/local/riscv
