@@ -49,6 +49,8 @@ TclCommandIntegration *SourcesForm::createTclCommandIntegarion() {
 
 ProjectManager *SourcesForm::ProjManager() { return m_projManager; }
 
+void SourcesForm::CreateConstraint() { showAddFileDialog(GT_CONSTRAINTS); }
+
 void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
   QString filename = strFileName.right(strFileName.size() -
                                        (strFileName.lastIndexOf("/") + 1));
@@ -233,31 +235,19 @@ void SourcesForm::SlotAddFile() {
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
 
-  AddFileDialog *addFileDialog = new AddFileDialog(this);
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
       SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
       SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_SOURCE);
+    showAddFileDialog(GT_SOURCE);
   } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
              SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
              SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_CONSTRAINTS);
+    showAddFileDialog(GT_CONSTRAINTS);
   } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole ||
              SRC_TREE_SIM_TOP_ITEM == strPropertyRole ||
              SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_SIM);
-  } else {
-    addFileDialog->deleteLater();
-    return;
+    showAddFileDialog(GT_SIM);
   }
-  connect(addFileDialog, SIGNAL(RefreshFiles()), this,
-          SLOT(SlotRefreshSourceTree()));
-  addFileDialog->exec();
-
-  addFileDialog->close();
-
-  disconnect(addFileDialog, SIGNAL(RefreshFiles()), this,
-             SLOT(SlotRefreshSourceTree()));
 }
 
 void SourcesForm::SlotOpenFile() {
@@ -602,4 +592,15 @@ QString SourcesForm::StripPath(const QString &path) {
   if (p.startsWith(QDir::separator())) p.remove(0, 1);
   if (p.endsWith(QDir::separator())) p.remove(p.size() - 1, 1);
   return p;
+}
+
+void SourcesForm::showAddFileDialog(GridType gridType) {
+  AddFileDialog *addFileDialog = new AddFileDialog(this);
+  addFileDialog->setSelected(gridType);
+  connect(addFileDialog, SIGNAL(RefreshFiles()), this,
+          SLOT(SlotRefreshSourceTree()));
+  addFileDialog->exec();
+  addFileDialog->close();
+  disconnect(addFileDialog, SIGNAL(RefreshFiles()), this,
+             SLOT(SlotRefreshSourceTree()));
 }

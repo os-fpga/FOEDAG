@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 class ToolContext;
+class PinsBaseModel;
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
@@ -34,6 +35,7 @@ class PinAssignmentCreator : public QObject {
                        QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
+  QString generateSdc() const;
 
  signals:
   void selectionHasChanged();
@@ -48,6 +50,7 @@ class PinAssignmentCreator : public QObject {
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
+  PinsBaseModel *baseModel{nullptr};
 };
 
 }  // namespace FOEDAG

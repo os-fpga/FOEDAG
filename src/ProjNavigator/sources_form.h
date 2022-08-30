@@ -41,6 +41,8 @@ class SourcesForm : public QWidget {
   TclCommandIntegration* createTclCommandIntegarion();
   ProjectManager* ProjManager();
 
+  void CreateConstraint();
+
  signals:
   void OpenFile(QString);
   void ShowProperty(const QString&);
@@ -94,6 +96,7 @@ class SourcesForm : public QWidget {
   static QTreeWidgetItem* ChildByText(QTreeWidgetItem* topItem,
                                       const QString& text);
   static QString StripPath(const QString& path);
+  void showAddFileDialog(GridType gridType);
 };
 }  // namespace FOEDAG
 

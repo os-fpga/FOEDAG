@@ -40,6 +40,8 @@ class PinsBaseModel {
   PortsModel *portsModel() const;
   void setPortsModel(PortsModel *newPortsModel);
 
+  const QMap<QString, QString> &pinMap() const;
+
  private:
   QMap<QString, QString> m_pinsMap;
   PackagePinsModel *m_packagePinModel;

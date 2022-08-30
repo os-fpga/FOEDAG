@@ -45,7 +45,7 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   PackagePinsLoader loader{packagePinModel, this};
   loader.load(fileName);
 
-  auto baseModel = new PinsBaseModel;
+  baseModel = new PinsBaseModel;
   baseModel->setPackagePinModel(packagePinModel);
   baseModel->setPortsModel(portsModel);
 
@@ -65,6 +65,16 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 }
 
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
+
+QString PinAssignmentCreator::generateSdc() const {
+  if (baseModel->pinMap().isEmpty()) return QString();
+  QString sdc;
+  const auto pinMap = baseModel->pinMap();
+  for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
+    sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
+  }
+  return sdc;
+}
 
 QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   QWidget *w = new QWidget;
