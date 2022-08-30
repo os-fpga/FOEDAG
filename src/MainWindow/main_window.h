@@ -81,6 +81,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void showWelcomePage();
 
  private: /* Objects/Widgets under the main window */
+  bool m_showWelcomePage{true};
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
   QMenu* processMenu = nullptr;

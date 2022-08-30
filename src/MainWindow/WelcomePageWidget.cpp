@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "WelcomePageWidget.h"
 
 #include <QAction>
+#include <QCheckBox>
 #include <QFile>
 #include <QGroupBox>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QPushButton>
 #include <QTextStream>
@@ -41,7 +43,7 @@ static constexpr auto LOGO_SIZE = 200;
 
 static const auto ETC_DIR = "etc";
 static const auto WELCOME_PAGE_DIR = "Welcome_Page";
-static const auto LOGO_FILENAME = "osfpga_logo.png";
+static const auto LOGO_FILENAME = "WelcomeLogo.png";
 static const auto DESCRIPTION_FILENAME = "WelcomeDescription.txt";
 }  // namespace
 
@@ -77,16 +79,22 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   auto logoLabel = new QLabel(this);
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
   auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
-  logoLabel->setPixmap(logoPixmap.scaled(QSize(LOGO_SIZE, LOGO_SIZE)));
+  if (!logoPixmap.isNull())
+    logoLabel->setPixmap(logoPixmap.scaled(QSize(LOGO_SIZE, LOGO_SIZE)));
 
   // Main layout
   auto mainLayout = new QVBoxLayout(this);
   mainLayout->setSpacing(PAGE_SPACING);
-  mainLayout->addWidget(logoLabel, 0, Qt::AlignRight | Qt::AlignTop);
-  mainLayout->addWidget(quickStartGroupBox, 0, Qt::AlignCenter);
-  mainLayout->addStretch(1);
+  mainLayout->addWidget(logoLabel, 0, Qt::AlignHCenter | Qt::AlignTop);
+  mainLayout->addWidget(quickStartGroupBox);
   mainLayout->setContentsMargins(PAGE_MARGIN, PAGE_MARGIN, PAGE_MARGIN,
                                  PAGE_MARGIN);
+
+  auto showPageCheckBox = new QCheckBox(tr("Show welcome page"), this);
+  showPageCheckBox->setCheckState(Qt::Checked);
+  connect(showPageCheckBox, &QAbstractButton::clicked, [this](){emit welcomePageClosed(true);});
+  mainLayout->addWidget(showPageCheckBox);
+  mainLayout->addStretch(1);
 
   // Background setup
   auto defaultPalette = palette();
@@ -127,4 +135,8 @@ QString WelcomePageWidget::getDescription(
   descFile.close();
 
   return result.trimmed();
+}
+
+void WelcomePageWidget::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) emit welcomePageClosed(false);
 }

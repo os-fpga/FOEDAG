@@ -171,7 +171,7 @@ void MainWindow::closeProject() {
   if (m_projectManager && m_projectManager->HasDesign()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    showWelcomePage();
+    m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
   }
 }
@@ -394,6 +394,10 @@ void MainWindow::showWelcomePage() {
   centralWidget->addAction(*openProjectAction);
   centralWidget->addAction(*openExampleAction);
 
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed, [&](bool permanently) {
+      m_showWelcomePage = !permanently;
+      ReShowWindow({});
+  });
   setCentralWidget(centralWidget);
 }
 
