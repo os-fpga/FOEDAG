@@ -96,12 +96,13 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, "
-            "-VHDL_2008 (.vhd default), -V_1995, "
-            "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-            "default)) "
-         << std::endl;
+  (*out)
+      << "   add_design_file <option> (-work, -L) <libName> <file>... <type> "
+         "(-VHDL_1987, -VHDL_1993, -VHDL_2000, "
+         "-VHDL_2008 (.vhd default), -V_1995, "
+         "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+         "default)) "
+      << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
