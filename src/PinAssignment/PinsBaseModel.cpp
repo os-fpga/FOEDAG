@@ -47,4 +47,9 @@ PortsModel *PinsBaseModel::portsModel() const { return m_portsModel; }
 void PinsBaseModel::setPortsModel(PortsModel *newPortsModel) {
   m_portsModel = newPortsModel;
 }
+
+const QMap<QString, QString> &PinsBaseModel::pinMap() const {
+  return m_pinsMap;
+}
+
 }  // namespace FOEDAG
