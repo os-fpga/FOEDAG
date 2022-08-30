@@ -31,7 +31,7 @@ class ProjectFileSet : public ProjectOption {
   const std::vector<std::pair<QString, QString>> &getMapFiles() const;
   const std::vector<std::pair<int, QStringList>> &Files() const;
 
-  std::vector<std::pair<QStringList, QStringList>> getLibraries() const;
+  const std::vector<std::pair<QStringList, QStringList>> &getLibraries() const;
 
  private:
   QString m_setName;

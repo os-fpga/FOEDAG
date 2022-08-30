@@ -94,7 +94,7 @@ const std::vector<std::pair<int, QStringList>> &ProjectFileSet::Files() const {
   return m_langMap;
 }
 
-std::vector<std::pair<QStringList, QStringList>> ProjectFileSet::getLibraries()
-    const {
+const std::vector<std::pair<QStringList, QStringList>>
+    &ProjectFileSet::getLibraries() const {
   return m_commandsLibs;
 }
