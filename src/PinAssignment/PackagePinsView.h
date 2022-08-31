@@ -20,15 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QTreeWidget>
-
+#include "PinAssignmentBaseView.h"
 #include "PinsBaseModel.h"
 
+class QComboBox;
 namespace FOEDAG {
 
-class PackagePinsView : public QTreeWidget {
+class PackagePinsView : public PinAssignmentBaseView {
+  Q_OBJECT
  public:
-  PackagePinsView(PinsBaseModel *baseModel, QWidget *parent = nullptr);
+  PackagePinsView(PinsBaseModel *model, QWidget *parent = nullptr);
+
+ signals:
+  void selectionHasChanged();
+
+ private:
+  void ioPortsSelectionHasChanged(const QModelIndex &index);
+  void insertData(const QStringList &data, int index, int column,
+                  QTreeWidgetItem *item);
+
+ private slots:
+  void itemHasChanged(const QModelIndex &index, const QString &pin);
 };
 
 }  // namespace FOEDAG

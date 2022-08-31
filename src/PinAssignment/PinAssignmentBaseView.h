@@ -20,34 +20,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QWidget>
+#include <QTreeWidget>
 
-#include "NewProject/ProjectManager/project_manager.h"
-
+class QComboBox;
 namespace FOEDAG {
 
-class ToolContext;
-class PinAssignmentCreator : public QObject {
-  Q_OBJECT
+class PinsBaseModel;
+
+/*!
+ * \brief The PinAssignmentBaseView class
+ * The implemenation provide common funtionality to Package pin table and Ports
+ * table.
+ */
+class PinAssignmentBaseView : public QTreeWidget {
  public:
-  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
-                       QObject *parent = nullptr);
-  QWidget *GetPackagePinsWidget();
-  QWidget *GetPortsWidget();
+  PinAssignmentBaseView(PinsBaseModel *model, QWidget *parent = nullptr);
 
- signals:
-  void selectionHasChanged();
+ protected:
+  void removeDuplications(const QString &text, QComboBox *current);
 
- private:
-  QWidget *CreateLayoutedWidget(QWidget *main);
-  QString searchCsvFile(const QString &targetDevice,
-                        ToolContext *context) const;
-  QString targetDevice(ProjectManager *projectManager) const;
-  QString searchPortsFile(ToolContext *context) const;
-
- private:
-  QWidget *m_portsView{nullptr};
-  QWidget *m_packagePinsView{nullptr};
+ protected:
+  PinsBaseModel *m_model{nullptr};
+  bool m_blockUpdate{false};
+  QVector<QComboBox *> m_allCombo;
 };
 
 }  // namespace FOEDAG

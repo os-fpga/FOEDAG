@@ -20,34 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QWidget>
-
-#include "NewProject/ProjectManager/project_manager.h"
+#include <QComboBox>
 
 namespace FOEDAG {
 
-class ToolContext;
-class PinAssignmentCreator : public QObject {
+/*!
+ * \brief The BufferedComboBox class
+ * This implementation of combo box holds previous value of the combo box
+ * after user changed current selection
+ */
+class BufferedComboBox : public QComboBox {
   Q_OBJECT
  public:
-  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
-                       QObject *parent = nullptr);
-  QWidget *GetPackagePinsWidget();
-  QWidget *GetPortsWidget();
+  explicit BufferedComboBox(QWidget *parent = nullptr);
+  QString previousText() const;
 
- signals:
-  void selectionHasChanged();
+ private slots:
+  void textChanged(int);
 
  private:
-  QWidget *CreateLayoutedWidget(QWidget *main);
-  QString searchCsvFile(const QString &targetDevice,
-                        ToolContext *context) const;
-  QString targetDevice(ProjectManager *projectManager) const;
-  QString searchPortsFile(ToolContext *context) const;
-
- private:
-  QWidget *m_portsView{nullptr};
-  QWidget *m_packagePinsView{nullptr};
+  QString m_previousText;
+  QString m_currentText;
 };
 
 }  // namespace FOEDAG
