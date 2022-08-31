@@ -7,6 +7,8 @@ import argparse
 # Debug paths
 import sys
 print(sys.path)
+# Append known litex installation path
+sys.path.append('/usr/lib/python3/dist-packages')
 
 from migen import *
 
