@@ -29,13 +29,15 @@ PackagePinsLoader::PackagePinsLoader(PackagePinsModel *model, QObject *parent)
 
 PackagePinsLoader::~PackagePinsLoader() {}
 
-bool PackagePinsLoader::load(const QString &fileName) {
-  if (!m_model) return false;
+std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
+  if (!m_model) return std::make_pair(false, "Ports model is missing");
 
   QFile file{fileName};
-  if (!file.open(QFile::ReadOnly)) {
-    return false;
-  }
+  if (!file.exists())
+    return std::make_pair(false,
+                          QString("File %1 doesn't exist").arg(fileName));
+  if (!file.open(QFile::ReadOnly))
+    return std::make_pair(false, QString("Can't open file %1").arg(fileName));
 
   QString content = file.readAll();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
@@ -64,7 +66,7 @@ bool PackagePinsLoader::load(const QString &fileName) {
   m_model->append(group);  // append last
   m_model->initListModel();
 
-  return true;
+  return std::make_pair(true, QString());
 }
 
 }  // namespace FOEDAG

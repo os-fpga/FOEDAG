@@ -22,10 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QWidget>
 
-#include "NewProject/ProjectManager/project_manager.h"
-
 namespace FOEDAG {
 
+class ProjectManager;
 class ToolContext;
 class PinsBaseModel;
 class PinAssignmentCreator : public QObject {
@@ -36,6 +35,7 @@ class PinAssignmentCreator : public QObject {
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
+  PinsBaseModel *baseModel() const;
 
  signals:
   void selectionHasChanged();
@@ -50,7 +50,7 @@ class PinAssignmentCreator : public QObject {
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
-  PinsBaseModel *baseModel{nullptr};
+  PinsBaseModel *m_baseModel{nullptr};
 };
 
 }  // namespace FOEDAG
