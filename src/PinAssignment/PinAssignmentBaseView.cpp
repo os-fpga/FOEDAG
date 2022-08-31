@@ -18,26 +18,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-
 #include "PinAssignmentBaseView.h"
 
-class QComboBox;
+#include <QComboBox>
+
 namespace FOEDAG {
 
-class PortsView : public PinAssignmentBaseView {
-  Q_OBJECT
- public:
-  PortsView(PinsBaseModel *model, QWidget *parent = nullptr);
+PinAssignmentBaseView::PinAssignmentBaseView(PinsBaseModel *model,
+                                             QWidget *parent)
+    : QTreeWidget(parent), m_model(model) {}
 
- signals:
-  void selectionHasChanged();
-
- private:
-  void packagePinSelectionHasChanged(const QModelIndex &index);
-
- private slots:
-  void itemHasChanged(const QModelIndex &index, const QString &pin);
-};
-
+void PinAssignmentBaseView::removeDuplications(const QString &text,
+                                               QComboBox *current) {
+  for (auto &c : m_allCombo) {
+    if ((c != current) && (c->currentText() == text)) {
+      c->setCurrentIndex(0);
+      break;
+    }
+  }
+}
 }  // namespace FOEDAG
