@@ -9,7 +9,6 @@
 
 #include "ProjectManager/project_manager.h"
 #include "create_file_dialog.h"
-
 using namespace FOEDAG;
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
@@ -129,19 +128,22 @@ void sourceGrid::AddFiles() {
 }
 
 void sourceGrid::AddDirectories() {
-  QString pathName = QFileDialog::getExistingDirectory(
+  QString folder = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  if ("" == pathName) return;
-  QString folder =
-      pathName.right(pathName.size() - (pathName.lastIndexOf("/") + 1));
-  QString path = pathName.left(pathName.lastIndexOf("/"));
-
-  filedata fdata;
-  fdata.m_isFolder = true;
-  fdata.m_fileName = folder;
-  fdata.m_filePath = path;
-  AddTableItem(fdata);
+  QDir findFiles = folder;
+  QStringList files =
+      findFiles.entryList({"*.v", "*.sv", "*.vhd"}, QDir::Files);
+  foreach (QString fileName, files) {
+    QString suffix =
+        fileName.right(fileName.size() - (fileName.lastIndexOf(".") + 1));
+    filedata fdata;
+    fdata.m_isFolder = false;
+    fdata.m_fileType = suffix;
+    fdata.m_fileName = fileName;
+    fdata.m_filePath = folder;
+    AddTableItem(fdata);
+  }
 }
 
 void sourceGrid::CreateFile() {

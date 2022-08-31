@@ -18,26 +18,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "BufferedComboBox.h"
 
-#include "PinAssignmentBaseView.h"
-
-class QComboBox;
 namespace FOEDAG {
 
-class PortsView : public PinAssignmentBaseView {
-  Q_OBJECT
- public:
-  PortsView(PinsBaseModel *model, QWidget *parent = nullptr);
+BufferedComboBox::BufferedComboBox(QWidget *parent) : QComboBox(parent) {
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(textChanged(int)));
+}
 
- signals:
-  void selectionHasChanged();
+QString BufferedComboBox::previousText() const { return m_previousText; }
 
- private:
-  void packagePinSelectionHasChanged(const QModelIndex &index);
-
- private slots:
-  void itemHasChanged(const QModelIndex &index, const QString &pin);
-};
-
+void BufferedComboBox::textChanged(int) {
+  m_previousText = m_currentText;
+  m_currentText = currentText();
+}
 }  // namespace FOEDAG
