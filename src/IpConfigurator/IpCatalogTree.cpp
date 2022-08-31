@@ -56,7 +56,7 @@ void IpCatalogTree::refresh() {
   // catalog path. This path should be loaded in addition to the default
   QString UserCatalogPath = "";
   QString IpCatalogPath =
-      QString::fromStdString(GlobalSession->Context()->DataPath()) +
+      QString::fromStdString(GlobalSession->Context()->DataPath().string()) +
       "/IP_Catalog";
   QStringList IpPaths{IpCatalogPath, UserCatalogPath};
 
