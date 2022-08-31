@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTreeWidgetItem>
 
 #include "MainWindow/Session.h"
+#include "Utils/FileUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -51,9 +52,16 @@ IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
 }
 
 void IpCatalogTree::refresh() {
-  // TODO @skyler-rs AUG-2020 update this to the proper path once it has been
-  // determined
-  QStringList ips = getAvailableIPs("./");
+  // TODO @skyler-rs AUG-2022 In future updates we plan to allow a user
+  // catalog path. This path should be loaded in addition to the default
+  QString UserCatalogPath = "";
+  QString IpCatalogPath =
+      QString::fromStdString(GlobalSession->Context()->DataPath()) +
+      "/IP_Catalog";
+  QStringList IpPaths{IpCatalogPath, UserCatalogPath};
+
+  QStringList ips;
+  ips = getAvailableIPs(IpPaths);
 
   // If available IPs have changed
   if (ips != prevIpCatalogResults) {
@@ -64,14 +72,15 @@ void IpCatalogTree::refresh() {
       item->setText(0, ip);
       this->addTopLevelItem(item);
     }
+    prevIpCatalogResults = ips;
   }
 }
 
-QStringList IpCatalogTree::getAvailableIPs(QString path) {
+QStringList IpCatalogTree::getAvailableIPs(const QStringList& paths) {
   QStringList ips;
 
   // Load IPs
-  loadIps(path);
+  loadIps(paths);
 
   // Request loaded IPs
   if (ipsLoaded && tclCmdExists("ip_catalog")) {
@@ -82,11 +91,15 @@ QStringList IpCatalogTree::getAvailableIPs(QString path) {
   return ips;
 }
 
-void IpCatalogTree::loadIps(QString path) {
+void IpCatalogTree::loadIps(const QStringList& paths) {
   if (!ipsLoaded && tclCmdExists("add_litex_ip_catalog")) {
-    QString cmd = QString("add_litex_ip_catalog %1").arg(path);
-    int ok = TCL_ERROR;
-    GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
-    ipsLoaded = (ok == TCL_OK);
+    for (QString path : paths) {
+      if (!path.isEmpty()) {
+        QString cmd = QString("add_litex_ip_catalog %1").arg(path);
+        int ok = TCL_ERROR;
+        GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
+        ipsLoaded |= (ok == TCL_OK);
+      }
+    }
   }
 }

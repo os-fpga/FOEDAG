@@ -372,6 +372,7 @@ void MainWindow::createActions() {
           tr("IPs"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
           nullptr, Qt::RightDockWidgetArea);
       m_ipConfiguratorDocks = {availableIpsDockWidget};
+      m_console->showPrompt();
     } else {
       cleanUpDockWidgets(m_ipConfiguratorDocks);
     }

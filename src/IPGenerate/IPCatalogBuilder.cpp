@@ -85,10 +85,12 @@ bool IPCatalogBuilder::buildLiteXCatalog(
     m_compiler->Message("IP Catalog, browsing directory for IP generator(s): " +
                         execPath.string());
     for (const std::filesystem::path& entry :
-         std::filesystem::directory_iterator(execPath)) {
+         std::filesystem::recursive_directory_iterator(
+             execPath,
+             std::filesystem::directory_options::follow_directory_symlink)) {
       const std::string& exec_name = entry.string();
       if (exec_name.find("__init__.py") != std::string::npos) continue;
-      if (exec_name.find(".py") != std::string::npos) {
+      if (exec_name.find("_gen.py") != std::string::npos) {
         m_compiler->Message("IP Catalog, found IP compiler: " + exec_name);
         bool res = buildLiteXIPFromGenerator(catalog, entry);
         if (res == false) {
@@ -126,7 +128,14 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   }
   std::stringstream buffer;
   buffer << help.str();
-  auto jopts = json::parse(buffer);
+  json jopts;
+  try {
+    jopts = json::parse(buffer);
+  } catch (json::parse_error& e) {
+    std::string msg = "Json Parse Error: " + std::string(e.what()) + "\n" +
+                      "filePath: " + pythonConverterScript.string() + "\n";
+    m_compiler->ErrorMessage(msg);
+  }
 
   std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
   std::string basename = basepath.string();
