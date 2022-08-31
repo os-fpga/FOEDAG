@@ -1270,7 +1270,7 @@ bool Compiler::Synthesize() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1300,7 +1300,7 @@ bool Compiler::GlobalPlacement() {
            << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
