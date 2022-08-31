@@ -128,7 +128,15 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   }
   std::stringstream buffer;
   buffer << help.str();
-  auto jopts = json::parse(buffer);
+  json jopts;
+  try {
+    jopts = json::parse(buffer);
+  } catch (json::parse_error& e) {
+    // output exception information
+    std::string msg = "Json Parse Error: " + std::string(e.what()) + "\n" +
+                      "filePath: " + pythonConverterScript.string() + "\n";
+    m_compiler->ErrorMessage(msg);
+  }
 
   std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
   std::string basename = basepath.string();
