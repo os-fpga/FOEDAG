@@ -162,7 +162,6 @@ jobs:
     - name: Install dependencies and build QT
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
-        bash .github/workflows/install_litex_centos.sh
 
     - name: Prepare QT build artifacts
       if: matrix.mode == 'test'
