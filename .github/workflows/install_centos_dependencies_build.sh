@@ -22,6 +22,7 @@ yum install -y python3
 yum install -y xorg-x11-server-Xorg xorg-x11-xauth xorg-x11-apps 
 yum install -y xorg-x11-server-Xvfb
 yum install -y mesa-libGL-devel
+yum install -y wget
 yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
 ln -s $PWD/cmake-3.15.7-Linux-x86_64/bin/ctest /usr/bin/ctest
