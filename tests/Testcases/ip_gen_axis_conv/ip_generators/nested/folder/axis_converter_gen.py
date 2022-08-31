@@ -4,6 +4,10 @@ import os
 import json
 import argparse
 
+# Debug paths
+import sys
+print(sys.path)
+
 from migen import *
 
 from litex.build.generic_platform import *
