@@ -394,10 +394,11 @@ void MainWindow::showWelcomePage() {
   centralWidget->addAction(*openProjectAction);
   centralWidget->addAction(*openExampleAction);
 
-  connect(centralWidget, &WelcomePageWidget::welcomePageClosed, [&](bool permanently) {
-      m_showWelcomePage = !permanently;
-      ReShowWindow({});
-  });
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
+          [&](bool permanently) {
+            m_showWelcomePage = !permanently;
+            ReShowWindow({});
+          });
   setCentralWidget(centralWidget);
 }
 

@@ -92,7 +92,8 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 
   auto showPageCheckBox = new QCheckBox(tr("Show welcome page"), this);
   showPageCheckBox->setCheckState(Qt::Checked);
-  connect(showPageCheckBox, &QAbstractButton::clicked, [this](){emit welcomePageClosed(true);});
+  connect(showPageCheckBox, &QAbstractButton::clicked,
+          [this]() { emit welcomePageClosed(true); });
   mainLayout->addWidget(showPageCheckBox);
   mainLayout->addStretch(1);
 
@@ -137,6 +138,6 @@ QString WelcomePageWidget::getDescription(
   return result.trimmed();
 }
 
-void WelcomePageWidget::keyPressEvent(QKeyEvent* event) {
+void WelcomePageWidget::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) emit welcomePageClosed(false);
 }

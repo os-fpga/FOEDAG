@@ -32,7 +32,7 @@ class QPushButton;
 
 namespace FOEDAG {
 class WelcomePageWidget final : public QWidget {
-    Q_OBJECT
+  Q_OBJECT
  public:
   WelcomePageWidget(const QString &header,
                     const std::filesystem::path &sourcesPath,
@@ -41,12 +41,13 @@ class WelcomePageWidget final : public QWidget {
   // Adds a new QToolButton, representing given action, to the vertical layout
   void addAction(QAction &act);
 
-signals:
-  // Emitted whenever current page was closed. Parameter indicates whether it should appear again (when appropriate).
+ signals:
+  // Emitted whenever current page was closed. Parameter indicates whether it
+  // should appear again (when appropriate).
   void welcomePageClosed(bool permatently);
 
  private:
-  void keyPressEvent(QKeyEvent* event) override;
+  void keyPressEvent(QKeyEvent *event) override;
 
   QPushButton *createActionButton();
 
