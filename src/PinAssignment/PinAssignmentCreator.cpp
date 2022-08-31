@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <filesystem>
 
 #include "Main/ToolContext.h"
+#include "NewProject/ProjectManager/project_manager.h"
 #include "PackagePinsLoader.h"
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
@@ -45,16 +46,16 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   PackagePinsLoader loader{packagePinModel, this};
   loader.load(fileName);
 
-  baseModel = new PinsBaseModel;
-  baseModel->setPackagePinModel(packagePinModel);
-  baseModel->setPortsModel(portsModel);
+  m_baseModel = new PinsBaseModel;
+  m_baseModel->setPackagePinModel(packagePinModel);
+  m_baseModel->setPortsModel(portsModel);
 
-  auto portsView = new PortsView(baseModel);
+  auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
           &PinAssignmentCreator::selectionHasChanged);
   m_portsView = CreateLayoutedWidget(portsView);
 
-  auto packagePins = new PackagePinsView(baseModel);
+  auto packagePins = new PackagePinsView(m_baseModel);
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
           &PinAssignmentCreator::selectionHasChanged);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
@@ -67,9 +68,9 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
 
 QString PinAssignmentCreator::generateSdc() const {
-  if (baseModel->pinMap().isEmpty()) return QString();
+  if (m_baseModel->pinMap().isEmpty()) return QString();
   QString sdc;
-  const auto pinMap = baseModel->pinMap();
+  const auto pinMap = m_baseModel->pinMap();
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
     sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
   }
@@ -113,5 +114,7 @@ QString PinAssignmentCreator::searchPortsFile(ToolContext *context) const {
   QDir dir{path.string().c_str()};
   return dir.filePath("ports_test.json");
 }
+
+PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }
 
 }  // namespace FOEDAG

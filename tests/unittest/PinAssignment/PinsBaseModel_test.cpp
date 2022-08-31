@@ -18,25 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QStringList>
-#include <QVector>
+#include "PinAssignment/PinsBaseModel.h"
 
-#include "PackagePinsModel.h"
+#include "gtest/gtest.h"
+using namespace FOEDAG;
 
-namespace FOEDAG {
+TEST(PinsBaseModel, PinMap) {
+  PinsBaseModel model;
+  model.insert("port1", "pin1");
+  model.insert("port2", "pin2");
+  QMap<QString, QString> expectedMap{{"port1", "pin1"}, {"port2", "pin2"}};
+  QMap<QString, QString> actualMap = model.pinMap();
+  EXPECT_EQ(actualMap, expectedMap);
+}
 
-class PackagePinsLoader : public QObject {
- public:
-  PackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
-  virtual ~PackagePinsLoader();
-  virtual std::pair<bool, QString> load(const QString &fileName);
+TEST(PinsBaseModel, Exists) {
+  PinsBaseModel model;
+  model.insert("port1", "pin1");
+  model.insert("port2", "pin2");
+  EXPECT_EQ(model.exists("port2", "pin2"), true);
+  EXPECT_EQ(model.exists("port1", "pin1"), true);
 
- protected:
-  PackagePinsModel *m_model{nullptr};
-};
-
-}  // namespace FOEDAG
+  EXPECT_EQ(model.exists("port2", "pin1"), false);
+  EXPECT_EQ(model.exists("port1", "pin2"), false);
+}
