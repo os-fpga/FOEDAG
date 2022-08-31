@@ -1597,11 +1597,13 @@ ProjectManager::macroList() const {
 }
 
 void ProjectManager::setTargetDevice(const std::string& deviceName) {
-  Project::Instance()->compilerConfig()->setTargetDevice(deviceName);
+  setSynthesisOption(
+      {{PROJECT_PART_DEVICE, QString::fromStdString(deviceName)}});
+  emit saveFile();
 }
 
-const std::string& ProjectManager::getTargetDevice() const {
-  return Project::Instance()->compilerConfig()->getTargetDevice();
+std::string ProjectManager::getTargetDevice() const {
+  return getSynthOption(PROJECT_PART_DEVICE).toStdString();
 }
 
 const std::vector<std::string>& ProjectManager::includePathList() const {

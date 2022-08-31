@@ -507,6 +507,8 @@ install(
   DIRECTORY examples DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
+install(
+    DIRECTORY etc/templates/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/templates/)
 
 install(
   DIRECTORY etc/Welcome_Page DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/Welcome_Page)
@@ -542,6 +544,12 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
                   ${PROJECT_SOURCE_DIR}/etc/Welcome_Page
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/templates
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                  ${PROJECT_SOURCE_DIR}/etc/templates
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/templates)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/

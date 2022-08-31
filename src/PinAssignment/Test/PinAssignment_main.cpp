@@ -29,7 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "tclutils/TclUtils.h"
 
 QWidget* PinAssignmentBuilder(FOEDAG::Session* session) {
-  FOEDAG::PinAssignmentCreator* creator = new FOEDAG::PinAssignmentCreator;
+  FOEDAG::PinAssignmentCreator* creator = new FOEDAG::PinAssignmentCreator{
+      session->GetCompiler()->ProjManager(), session->Context()};
   QWidget* w = new QWidget;
   w->setLayout(new QHBoxLayout);
   w->layout()->addWidget(creator->GetPackagePinsWidget());
