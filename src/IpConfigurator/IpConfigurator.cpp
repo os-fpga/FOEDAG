@@ -100,9 +100,9 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* widget,
 
   auto show_dlg = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
-    IpConfigDlg* dlg = new IpConfigDlg();
-    dlg->setAttribute(Qt::WA_DeleteOnClose);
-    dlg->exec();
+    QWidget* w = static_cast<QWidget*>(clientData);
+    IpConfigDlg* dlg = new IpConfigDlg(w);
+    dlg->show();
     return 0;
   };
   session->TclInterp()->registerCmd("ipconfigurator_show_dlg", show_dlg, widget,

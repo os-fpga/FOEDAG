@@ -23,7 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QBoxLayout>
 
 #include "IpCatalogTree.h"
-// #include "IpConfigurator.h"
 
 namespace FOEDAG {
 
@@ -39,6 +38,7 @@ QWidget *IpConfiguratorCreator::GetAvailableIpsWidget() {
 QWidget *IpConfiguratorCreator::CreateLayoutedWidget(QWidget *main) {
   QWidget *w = new QWidget;
   w->setLayout(new QVBoxLayout);
+  w->layout()->setContentsMargins(0, 0, 0, 0);
   w->layout()->addWidget(main);
   return w;
 }

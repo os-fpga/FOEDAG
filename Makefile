@@ -178,8 +178,9 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_batch.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_task_clean.tcl
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
-	grep "Found IP: dummy_1_gen" foedag.log
-	grep "Found IP: dummy_2_gen" foedag.log
+	grep "Found IP: axis_converter_V1_0" foedag.log
+	grep "Found IP: axis_converter_V1_1" foedag.log
+
 	
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
