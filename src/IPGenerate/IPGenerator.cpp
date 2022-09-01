@@ -69,7 +69,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     const std::string file = argv[1];
     std::string expandedFile = file;
     bool use_orig_path = false;
-    if (FileUtils::FileExists(expandedFile)) {
+    if (FileUtils::FileExists(expandedFile) && expandedFile != "./") {
       use_orig_path = true;
     }
 

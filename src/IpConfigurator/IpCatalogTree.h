@@ -35,8 +35,8 @@ class IpCatalogTree : public QTreeWidget {
   QStringList prevIpCatalogResults;
   bool ipsLoaded = false;
 
-  QStringList getAvailableIPs(QString path);
-  void loadIps(QString path);
+  QStringList getAvailableIPs(const QStringList& paths);
+  void loadIps(const QStringList& paths);
 };
 
 }  // namespace FOEDAG

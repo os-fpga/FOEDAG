@@ -1,0 +1,2 @@
+# Return empty json
+print( "{}")
