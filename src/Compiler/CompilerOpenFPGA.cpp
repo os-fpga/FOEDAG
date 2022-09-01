@@ -701,6 +701,7 @@ bool CompilerOpenFPGA::Synthesize() {
     }
     fileList += "verific -vlog-define " + macros + "\n";
 
+    std::string importLibs;
     auto commandsLibs = ProjManager()->DesignLibraries();
     size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -751,9 +752,11 @@ bool CompilerOpenFPGA::Synthesize() {
         for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
           auto command = filesCommandsLibs.first[i];
           auto libName = filesCommandsLibs.second[i];
-          if (!command.empty() && !libName.empty())
-            designLibraries += filesCommandsLibs.first[i] + " " +
-                               filesCommandsLibs.second[i] + " ";
+          if (!command.empty() && !libName.empty()) {
+            auto commandLib = command + " " + libName + " ";
+            designLibraries += commandLib;
+            if (command == "-L") importLibs += commandLib;
+          }
         }
       }
       ++filesIndex;
@@ -764,7 +767,8 @@ bool CompilerOpenFPGA::Synthesize() {
         fileList += "verific " + designLibraries + " " + lang + " " +
                     lang_file.second + "\n";
     }
-    fileList += "verific -import " + ProjManager()->DesignTopModule() + "\n";
+    fileList += "verific " + importLibs + "-import " +
+                ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
