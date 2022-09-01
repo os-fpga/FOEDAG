@@ -45,6 +45,7 @@ class Compiler {
   enum class Action {
     NoAction,
     IPGen,
+    Analyze,
     Synthesis,
     Pack,
     Global,
@@ -58,6 +59,7 @@ class Compiler {
   enum class State {
     None,
     IPGenerated,
+    Analyzed,
     Synthesized,
     Packed,
     GloballyPlaced,
@@ -68,6 +70,7 @@ class Compiler {
     BistreamGenerated
   };
   enum class IPGenerateOpt { None, Clean };
+  enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
@@ -125,6 +128,8 @@ class Compiler {
 
   IPGenerateOpt IPGenOpt() const { return m_ipGenerateOpt; }
   void IPGenOpt(IPGenerateOpt opt) { m_ipGenerateOpt = opt; }
+  DesignAnalysisOpt AnalyzeOpt() const { return m_analysisOpt; }
+  void AnalyzeOpt(DesignAnalysisOpt opt) { m_analysisOpt = opt; }
   PackingOpt PackOpt() const { return m_packingOpt; }
   void PackOpt(PackingOpt opt) { m_packingOpt = opt; }
   SynthesisOpt SynthOpt() const { return m_synthOpt; }
@@ -164,6 +169,7 @@ class Compiler {
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
+  virtual bool Analyze();
   virtual bool Synthesize();
   virtual bool Packing();
   virtual bool GlobalPlacement();
@@ -210,6 +216,7 @@ class Compiler {
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;
+  DesignAnalysisOpt m_analysisOpt = DesignAnalysisOpt::None;
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
