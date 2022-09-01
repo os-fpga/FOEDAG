@@ -52,6 +52,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newFile();
   void newProjectDlg();
   void openProject();
+  void openExampleProject();
   void closeProject();
   void openFileSlot();
   void newDesignCreated(const QString& design);
@@ -66,7 +67,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void createActions();
   void createProgressBar();
   void connectProjectManager();
-  void gui_start() override;
+  void gui_start(bool showWP) override;
 
   void ReShowWindow(QString strProject);
   void clearDockWidgets();
@@ -75,10 +76,17 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
+  void openProject(const QString& dir);
+
+  void showToolbars(bool show);
+  void showWelcomePage();
+
   bool saveConstraintFile();
 
  private: /* Objects/Widgets under the main window */
+  bool m_showWelcomePage{true};
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
   QMenu* processMenu = nullptr;
@@ -87,6 +95,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
+  QAction* openExampleAction = nullptr;
   QAction* closeProjectAction = nullptr;
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;
