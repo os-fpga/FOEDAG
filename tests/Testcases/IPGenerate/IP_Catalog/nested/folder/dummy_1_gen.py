@@ -1,2 +1,0 @@
-# Return empty json
-print( "{}")

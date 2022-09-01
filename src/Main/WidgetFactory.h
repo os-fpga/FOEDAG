@@ -85,6 +85,7 @@ QButtonGroup* createRadioButtons(
 QCheckBox* createCheckBox(
     const QString& objectName, const QString& text, Qt::CheckState checked,
     std::function<void(QCheckBox*, const int&)> onChange = nullptr);
+QList<QObject*> getTargetObjectsFromLayout(QLayout* layout);
 
 }  // namespace FOEDAG
 

@@ -707,11 +707,19 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
   QHash<QString, QString> argPairs;
   for (auto argEntry : args) {
     QStringList tokens = argEntry.split(' ');
-    argPairs[tokens[0]];  // implicitly create an entry in case the arg is a
-                          // switch w/o a parameter
+    QString argTag = tokens[0];
+
+    // Remove leading -
+    if (!argTag.isEmpty() && argTag[0] == '-') {
+      argTag = argTag.remove(0, 1);
+    }
+
+    argPairs[argTag];  // implicitly create an entry in case the arg is a
+                       // switch w/o a parameter
+
     if (tokens.count() > 1) {
       // store parameter if it was passed with the argument
-      argPairs[tokens[0]] = tokens[1];
+      argPairs[argTag] = tokens[1];
     }
   }
 
@@ -738,18 +746,33 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Callback to handle value changes
       std::function<void(QLineEdit*, const QString&)> handleChange =
-          [](QLineEdit* ptr, const QString& val) {
+          [arg](QLineEdit* ptr, const QString& val) {
             QString userVal = ptr->text();
             json changeJson;
             changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
 
-            storeTclArg(ptr, convertSpaces(userVal));
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              QString argStr = "-" + arg + " " + convertSpaces(userVal);
+              storeTclArg(ptr, argStr);
+            }
           };
 
       // Create our widget
       auto ptr = createLineEdit(objName, sysDefaultVal, handleChange);
       createdWidget = ptr;
+
+      // Apply a validator if one was requested
+      QString validator = getStr(widgetJsonObj, "validator", "").toLower();
+      if (validator == "int") {
+        ptr->setValidator(new QIntValidator(ptr));
+      } else if (validator == "double") {
+        ptr->setValidator(new QDoubleValidator(ptr));
+      } else if (validator == "regex") {
+        ptr->setValidator(new QRegExpValidator(ptr));
+      }
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
@@ -1197,4 +1220,23 @@ QCheckBox* FOEDAG::createCheckBox(
   };
 
   return widget;
+}
+
+// Searches a given layout for widgets created by widget factory
+// these widgets have additional meta data stored in properties
+// that can be used in dynamically generated UIs
+QList<QObject*> FOEDAG::getTargetObjectsFromLayout(QLayout* layout) {
+  QList<QObject*> settingsObjs;
+  for (int i = 0; i < layout->count(); i++) {
+    QWidget* settingsWidget = layout->itemAt(i)->widget();
+    if (settingsWidget) {
+      QObject* targetObject =
+          qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
+      if (targetObject) {
+        settingsObjs << targetObject;
+      }
+    }
+  }
+
+  return settingsObjs;
 }

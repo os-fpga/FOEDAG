@@ -140,6 +140,17 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
   std::string basename = basepath.string();
   std::string IPName = rtrim(basename, '.');
+
+  // Remove _gen from IPName
+  std::string suffix = "_gen";
+  if (StringUtils::endsWith(IPName, suffix)) {
+    IPName.erase(IPName.length() - suffix.length());
+  }
+
+  // Add version number to IPName
+  auto info = FOEDAG::getIpInfoFromPath(pythonConverterScript);
+  IPName += "_" + info.version;
+
   std::vector<Value*> parameters;
   std::vector<Connector*> connections;
   for (auto& el : jopts.items()) {

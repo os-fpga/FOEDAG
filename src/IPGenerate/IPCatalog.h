@@ -245,6 +245,15 @@ class IPCatalog {
   std::map<std::string, IPDefinition*> m_definitionMap;
 };
 
+struct VLNV {
+  std::string vendor;
+  std::string library;
+  std::string name;
+  std::string version;
+};
+
+VLNV getIpInfoFromPath(std::filesystem::path path);
+
 }  // namespace FOEDAG
 
 #endif

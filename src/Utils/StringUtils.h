@@ -96,6 +96,9 @@ class StringUtils final {
 
   static std::string unquoted(const std::string& text);
 
+  // Returns bool indicating if `text` ends with `ending`
+  static bool endsWith(const std::string& text, const std::string& ending);
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;
