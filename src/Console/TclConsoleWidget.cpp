@@ -65,6 +65,8 @@ void TclConsoleWidget::clearText() {
   displayPrompt();
 }
 
+void TclConsoleWidget::showPrompt() { displayPrompt(); }
+
 QString TclConsoleWidget::interpretCommand(const QString &command, int *res) {
   if (!command.isEmpty()) {
     setUndoRedoEnabled(false);

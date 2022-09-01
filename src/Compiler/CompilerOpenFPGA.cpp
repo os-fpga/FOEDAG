@@ -96,12 +96,13 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, "
-            "-VHDL_2008 (.vhd default), -V_1995, "
-            "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-            "default)) "
-         << std::endl;
+  (*out)
+      << "   add_design_file <option> (-work, -L) <libName> <file>... <type> "
+         "(-VHDL_1987, -VHDL_1993, -VHDL_2000, "
+         "-VHDL_2008 (.vhd default), -V_1995, "
+         "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+         "default)) "
+      << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -700,8 +701,11 @@ bool CompilerOpenFPGA::Synthesize() {
     }
     fileList += "verific -vlog-define " + macros + "\n";
 
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
+      std::string designLibraries;
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
@@ -742,7 +746,23 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file.second + "\n";
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty())
+            designLibraries += filesCommandsLibs.first[i] + " " +
+                               filesCommandsLibs.second[i] + " ";
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += "verific " + lang + " " + lang_file.second + "\n";
+      else
+        fileList += "verific " + designLibraries + " " + lang + " " +
+                    lang_file.second + "\n";
     }
     fileList += "verific -import " + ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);

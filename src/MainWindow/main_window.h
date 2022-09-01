@@ -58,6 +58,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newDesignCreated(const QString& design);
   void reloadSettings();
   void updatePRViewButton(int state);
+  void saveActionTriggered();
+  void pinAssignmentActionTriggered();
 
  private: /* Menu bar builders */
   void createMenus();
@@ -74,11 +76,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+
   void cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets);
   void openProject(const QString& dir);
 
   void showToolbars(bool show);
   void showWelcomePage();
+
+  bool saveConstraintFile();
 
  private: /* Objects/Widgets under the main window */
   bool m_showWelcomePage{true};
@@ -99,10 +104,12 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* aboutAction = nullptr;
   QAction* pinAssignmentAction = nullptr;
   QAction* ipConfiguratorAction = nullptr;
+  QAction* saveAction = nullptr;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
   QToolBar* debugToolBar = nullptr;
+  QToolBar* saveToolBar = nullptr;
   Session* m_session = nullptr;
   TclInterpreter* m_interpreter = nullptr;
   ProjectInfo m_projectInfo;

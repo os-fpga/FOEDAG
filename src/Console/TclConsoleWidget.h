@@ -49,6 +49,7 @@ class TclConsoleWidget : public QConsole {
 
  public slots:
   void clearText();
+  void showPrompt();
 
  signals:
   void searchEnable();

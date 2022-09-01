@@ -90,10 +90,11 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
-         << std::endl;
+  (*out)
+      << "   add_design_file <option> (-work, -L) <libName> <file>... <type> "
+         "(-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, "
+         "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
+      << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -354,6 +355,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
+          "[-work libraryName] [-L libraryName1 -L libraryName2]"
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
@@ -371,10 +373,22 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
+    std::string commandsList;
+    std::string libList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-VHDL_1987") {
+      if (type == "-work" || type == "-L") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_design_file <file(s)> "
+              "Library name should follow '-work' or '-L' tags");
+          return TCL_ERROR;
+        }
+        commandsList += type + " ";
+        const std::string libName = argv[++i];
+        libList += libName + " ";
+      } else if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
       } else if (type == "-VHDL_1993") {
@@ -437,7 +451,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          fileList.c_str(), language, out);
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -497,7 +512,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          origPathFileList.c_str(), language, out);
+          {}, {}, origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -1255,7 +1270,7 @@ bool Compiler::Synthesize() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1285,7 +1300,7 @@ bool Compiler::GlobalPlacement() {
            << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }

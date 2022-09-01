@@ -184,6 +184,7 @@ void MainWindow::openFileSlot() {
 
 void MainWindow::newDesignCreated(const QString& design) {
   setWindowTitle(m_projectInfo.name + " - " + design);
+  pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
 }
 
@@ -207,13 +208,46 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
   return dock;
 }
 
-void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets) {
+void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   for (const auto& dock : dockWidgets) {
     removeDockWidget(dock);
     delete dock->widget();
     delete dock;
   }
   dockWidgets.clear();
+}
+
+bool MainWindow::saveConstraintFile() {
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  auto constrFiles = m_projectManager->getConstrFiles();
+  if (constrFiles.empty()) {
+    auto form = findChild<SourcesForm*>();
+    form->CreateConstraint();
+  }
+  constrFiles = m_projectManager->getConstrFiles();
+  if (constrFiles.empty()) {
+    QMessageBox::warning(this, "No constraint file...",
+                         "Please create constraint file.");
+    return false;
+  }
+  bool rewrite = false;
+  QFile file{constrFiles[0].c_str()};  // TODO @volodymyrk, need to fix issue
+                                       // with target constraint
+  QFile::OpenMode openFlags = QFile::ReadWrite;
+  if (file.size() != 0) {
+    auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
+    auto answer = QMessageBox::question(
+        this, "Save constraint file...",
+        "Do you want to rewrite current constraint file?", btns);
+    if (answer == QMessageBox::Cancel) return false;
+    rewrite = (answer == QMessageBox::Yes);
+    if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
+  }
+  file.open(openFlags);
+  if (rewrite) file.resize(0);  // clean content
+  file.write(pinAssignment->generateSdc().toLatin1());
+  file.close();
+  return true;
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -266,6 +300,10 @@ void MainWindow::createMenus() {
 void MainWindow::createToolBars() {
   fileToolBar = addToolBar(tr("&File"));
   fileToolBar->addAction(newAction);
+
+  saveToolBar = addToolBar(tr("Save"));
+  saveToolBar->addAction(saveAction);
+  saveToolBar->setHidden(true);
 
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
@@ -342,24 +380,9 @@ void MainWindow::createActions() {
 
   pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
   pinAssignmentAction->setCheckable(true);
-  connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
-    if (pinAssignmentAction->isChecked()) {
-      PinAssignmentCreator* creator = new PinAssignmentCreator{
-          m_projectManager, GlobalSession->Context(), this};
-      connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
-              []() { /* TODO @volodymyrk RG-9*/ });
-
-      auto portsDockWidget =
-          PrepareTab(tr("IO Ports"), "portswidget", creator->GetPortsWidget(),
-                     m_dockConsole);
-      auto packagePinDockWidget =
-          PrepareTab(tr("Package Pins"), "packagepinwidget",
-                     creator->GetPackagePinsWidget(), portsDockWidget);
-      m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
-    } else {
-      cleanUpDockWidgets(m_pinAssignmentDocks);
-    }
-  });
+  pinAssignmentAction->setEnabled(false);
+  connect(pinAssignmentAction, &QAction::triggered, this,
+          &MainWindow::pinAssignmentActionTriggered);
 
   ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
   ipConfiguratorAction->setCheckable(true);
@@ -370,10 +393,17 @@ void MainWindow::createActions() {
           tr("IPs"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
           nullptr, Qt::RightDockWidgetArea);
       m_ipConfiguratorDocks = {availableIpsDockWidget};
+      m_console->showPrompt();
     } else {
       cleanUpDockWidgets(m_ipConfiguratorDocks);
     }
   });
+
+  saveAction = new QAction(tr("Save"), this);
+  connect(saveAction, &QAction::triggered, this,
+          &MainWindow::saveActionTriggered);
+  saveAction->setIcon(QIcon(":/images/save.png"));
+  saveAction->setEnabled(false);
 }
 
 void MainWindow::gui_start(bool showWP) {
@@ -602,4 +632,48 @@ void MainWindow::updatePRViewButton(int state) {
     btn->setEnabled(
         availableState.contains(static_cast<Compiler::State>(state)));
   }
+}
+
+void MainWindow::saveActionTriggered() {
+  if (saveConstraintFile()) saveAction->setEnabled(false);
+}
+
+void MainWindow::pinAssignmentActionTriggered() {
+  if (pinAssignmentAction->isChecked()) {
+    PinAssignmentCreator* creator = new PinAssignmentCreator{
+        m_projectManager, GlobalSession->Context(), this};
+    connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
+            [this]() { saveAction->setEnabled(true); });
+
+    auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
+                                      creator->GetPortsWidget(), m_dockConsole);
+    auto packagePinDockWidget =
+        PrepareTab(tr("Package Pins"), "packagepinwidget",
+                   creator->GetPackagePinsWidget(), portsDockWidget);
+    m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+  } else {
+    if (saveAction->isEnabled()) {
+      auto answer = QMessageBox::question(
+          this, "Warning",
+          "Pin assignment data were modified. Do you want to save it?",
+          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+          QMessageBox::Yes);
+      if (answer == QMessageBox::No) {
+        saveAction->setEnabled(false);
+        cleanUpDockWidgets(m_pinAssignmentDocks);
+      } else if (answer == QMessageBox::Yes) {
+        saveActionTriggered();
+        const bool saved = !saveAction->isEnabled();
+        if (saved)
+          cleanUpDockWidgets(m_pinAssignmentDocks);
+        else
+          pinAssignmentAction->setChecked(true);
+      } else {  // Cancel or close button
+        pinAssignmentAction->setChecked(true);
+      }
+    } else {
+      cleanUpDockWidgets(m_pinAssignmentDocks);
+    }
+  }
+  saveToolBar->setHidden(!pinAssignmentAction->isChecked());
 }

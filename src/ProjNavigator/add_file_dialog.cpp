@@ -20,12 +20,6 @@ AddFileDialog::AddFileDialog(QWidget *parent)
 
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
 
-  // One thirds of desktop size
-  QDesktopWidget dw;
-  int w = dw.width() / 3;
-  int h = dw.height() / 3;
-  setGeometry(w, h, w, h);
-
   m_selectForm = new SelectFileTypeForm(this);
   ui->m_stackedWidget->insertWidget(1, m_selectForm);
   m_fileForm = new AddFileForm(this);

@@ -126,7 +126,9 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
   return true;
 }
 
-bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
+bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
+                                              const QString &libs,
+                                              const QString &files, int lang,
                                               std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -135,7 +137,8 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
 
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
-  const auto ret = m_projManager->addDesignFiles(files, lang, false, false);
+  const auto ret =
+      m_projManager->addDesignFiles(commands, libs, files, lang, false, false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;

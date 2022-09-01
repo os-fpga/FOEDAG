@@ -14,7 +14,8 @@ class ProjectFileSet : public ProjectOption {
   ProjectFileSet &operator=(const ProjectFileSet &other);
 
   void addFile(const QString &strFileName, const QString &strFilePath);
-  void addFiles(const QStringList &files, int language);
+  void addFiles(const QStringList &commands, const QStringList &libs,
+                const QStringList &files, int language);
   QString getFilePath(const QString &strFileName);
   void deleteFile(const QString &strFileName);
 
@@ -30,12 +31,17 @@ class ProjectFileSet : public ProjectOption {
   const std::vector<std::pair<QString, QString>> &getMapFiles() const;
   const std::vector<std::pair<int, QStringList>> &Files() const;
 
+  const std::vector<std::pair<QStringList, QStringList>> &getLibraries() const;
+
  private:
   QString m_setName;
   QString m_setType;
   QString m_relSrcDir;
   std::vector<std::pair<QString, QString>> m_mapFiles;
   std::vector<std::pair<int, QStringList>> m_langMap;
+  std::vector<std::pair<QStringList, QStringList>>
+      m_commandsLibs;  // Collection of commands with corresponding libraries.
+                       // Synchronized with m_langMap.
 };
 }  // namespace FOEDAG
 #endif  // PROJECTFILESET_H
