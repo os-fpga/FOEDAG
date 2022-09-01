@@ -77,7 +77,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           QWidget* widget, QDockWidget* tabToAdd,
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
-  void cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets);
+  void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void openProject(const QString& dir);
 
   void showToolbars(bool show);
