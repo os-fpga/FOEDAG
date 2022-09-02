@@ -26,12 +26,13 @@ set (CPP_LIST
     Tcl/TclInterpreter_test.cpp
     Command/Command_test.cpp
     Utils/StringUtils_test.cpp
+    NewProject/ProjectManager_test.cpp
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST})
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 
-target_link_libraries(unittest PRIVATE gtest gmock gtest_main foedag)
+target_link_libraries(unittest PRIVATE gtest gmock gtest_main newproject foedag foedagcore)
 
 add_test(NAME unittest COMMAND unittest)

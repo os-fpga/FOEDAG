@@ -6,7 +6,6 @@
 #include <QTextStream>
 #include <QTime>
 #include <QXmlStreamWriter>
-#include <filesystem>
 
 #include "Compiler/CompilerDefines.h"
 
@@ -115,8 +114,22 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
 QString ProjectManager::ProjectFilesPath(const QString& projPath,
                                          const QString& projName,
-                                         const QString& fileSet) {
-  return QString("%1/%2.srcs/%3").arg(projPath, projName, fileSet);
+                                         const QString& fileSet,
+                                         const QString& file) {
+  return QString::fromStdString(
+      ProjectFilesPath(projPath.toStdString(), projName.toStdString(),
+                       fileSet.toStdString(), file.toStdString())
+          .string());
+}
+
+std::filesystem::path ProjectManager::ProjectFilesPath(
+    const std::string& projPath, const std::string& projName,
+    const std::string& fileSet, const std::string& file) {
+  std::filesystem::path p = projPath;
+  auto folder = projName + ".srcs";
+  p = p / folder / fileSet;
+  if (!file.empty()) p = p / file;
+  return p;
 }
 
 void ProjectManager::Tcl_CreateProject(int argc, const char* argv[]) {
@@ -398,7 +411,18 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
     }
     proFileSet->addFiles({}, {}, fullPathFileList, lang);
   } else {
-    proFileSet->addFiles({}, {}, fileList, lang);
+    if (isFileCopy) {
+      QStringList localFileList;
+      for (const auto& file : fileList) {
+        const QFileInfo info{file};
+        localFileList.append(
+            ProjectFilesPath(getProjectPath(), getProjectName(),
+                             m_currentFileSet, info.fileName()));
+      }
+      proFileSet->addFiles({}, {}, localFileList, lang);
+    } else {
+      proFileSet->addFiles({}, {}, fileList, lang);
+    }
   }
 
   int result{0};
