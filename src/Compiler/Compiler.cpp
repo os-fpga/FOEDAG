@@ -768,7 +768,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
         } else {
           compiler->ErrorMessage("Unknown analysis option: " + arg);
         }

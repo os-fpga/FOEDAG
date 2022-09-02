@@ -648,17 +648,152 @@ bool CompilerOpenFPGA::Analyze() {
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
 
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        Message("Skipping analysis, gate-level design.");
-        return true;
-        break;
-      default:
-        break;
+  // TODO: Awaiting interface from analyzer exec.
+  std::string analysisScript;
+
+  if (m_useVerific) {
+    // Verific parser
+    std::string fileList;
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += path + " ";
     }
+    fileList += "verific -vlog-incdir " + includes + "\n";
+
+    std::string libraries;
+    for (auto path : ProjManager()->libraryPathList()) {
+      libraries += path + " ";
+    }
+    fileList += "verific -vlog-libdir " + libraries + "\n";
+
+    for (auto ext : ProjManager()->libraryExtensionList()) {
+      fileList += "verific -vlog-libext " + ext + "\n";
+    }
+
+    std::string macros;
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += macro_value.first + "=" + macro_value.second + " ";
+    }
+    fileList += "verific -vlog-define " + macros + "\n";
+
+    std::string importLibs;
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      std::string lang;
+      std::string designLibraries;
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+          lang = "-vhdl87";
+          break;
+        case Design::Language::VHDL_1993:
+          lang = "-vhdl93";
+          break;
+        case Design::Language::VHDL_2000:
+          lang = "-vhdl2k";
+          break;
+        case Design::Language::VHDL_2008:
+          lang = "-vhdl2008";
+          break;
+        case Design::Language::VERILOG_1995:
+          lang = "-vlog95";
+          break;
+        case Design::Language::VERILOG_2001:
+          lang = "-vlog2k";
+          break;
+        case Design::Language::SYSTEMVERILOG_2005:
+          lang = "-sv2005";
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+          lang = "-sv2009";
+          break;
+        case Design::Language::SYSTEMVERILOG_2012:
+          lang = "-sv2012";
+          break;
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+          lang = "";
+          break;
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          lang = "BLIF";
+          ErrorMessage("Unsupported file format:" + lang);
+          return false;
+      }
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty()) {
+            auto commandLib = command + " " + libName + " ";
+            designLibraries += commandLib;
+            if (command == "-L") importLibs += commandLib;
+          }
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += "verific " + lang + " " + lang_file.second + "\n";
+      else
+        fileList += "verific " + designLibraries + " " + lang + " " +
+                    lang_file.second + "\n";
+    }
+    fileList += "verific " + importLibs + "-import " +
+                ProjManager()->DesignTopModule() + "\n";
+    analysisScript =
+        ReplaceAll(analysisScript, "${READ_DESIGN_FILES}", fileList);
+  } else {
+    // Default Yosys parser
+    std::string macros = "verilog_defines ";
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    }
+    macros += "\n";
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += "-I" + path + " ";
+    }
+    analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
+                                macros +
+                                    "read_verilog ${READ_VERILOG_OPTIONS} "
+                                    "${INCLUDE_PATHS} ${VERILOG_FILES}");
+    std::string fileList;
+    std::string lang;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+        case Design::Language::VERILOG_1995:
+        case Design::Language::VERILOG_2001:
+        case Design::Language::SYSTEMVERILOG_2005:
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+        case Design::Language::SYSTEMVERILOG_2012:
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+      }
+    }
+    analysisScript = ReplaceAll(analysisScript, "${INCLUDE_PATHS}", includes);
+    std::string options = lang;
+
+    analysisScript =
+        ReplaceAll(analysisScript, "${READ_VERILOG_OPTIONS}", options);
+    analysisScript = ReplaceAll(analysisScript, "${VERILOG_FILES}", fileList);
   }
 
   m_state = State::Analyzed;
