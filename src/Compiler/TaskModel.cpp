@@ -157,6 +157,8 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskManager = newTaskManager;
   int row{0};
   m_taskOrder.push_back({row++, IP_GENERATE});
+  m_taskOrder.push_back({row++, ANALYSIS});
+  m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS});
   m_taskOrder.push_back({row++, SYNTHESIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});

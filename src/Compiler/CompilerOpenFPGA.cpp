@@ -628,6 +628,45 @@ bool CompilerOpenFPGA::DesignChanged(
   return result;
 }
 
+bool CompilerOpenFPGA::Analyze() {
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + ProjManager()->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    // Remove generated json files
+    // std::filesystem::remove(
+    //    std::filesystem::path(ProjManager()->projectPath()) /
+    //    std::string(ProjManager()->projectName() + "_post_synth.blif"));
+    return true;
+  }
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Analysis has started");
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        Message("Skipping analysis, gate-level design.");
+        return true;
+        break;
+      default:
+        break;
+    }
+  }
+
+  m_state = State::Analyzed;
+  (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
+           << std::endl;
+  return true;
+}
+
 bool CompilerOpenFPGA::Synthesize() {
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());

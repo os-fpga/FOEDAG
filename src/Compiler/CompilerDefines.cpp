@@ -55,6 +55,10 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
 
 uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
+    case Compiler::Action::Analyze:
+      if (compiler->AnalyzeOpt() == Compiler::DesignAnalysisOpt::Clean)
+        return ANALYSIS_CLEAN;
+      return ANALYSIS;
     case Compiler::Action::Synthesis:
       if (compiler->SynthOpt() == Compiler::SynthesisOpt::Clean)
         return SYNTHESIS_CLEAN;
