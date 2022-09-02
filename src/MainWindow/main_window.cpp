@@ -139,14 +139,8 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  int ret = newProjdialog->exec();
   newProjdialog->Reset();
-  newProjdialog->close();
-  if (ret) {
-    QString strproject = newProjdialog->getProject();
-    newProjectAction->setEnabled(false);
-    ReShowWindow(strproject);
-  }
+  newProjdialog->open();
 }
 
 void MainWindow::openProject() { openProject(QString{}); }
@@ -322,11 +316,11 @@ void MainWindow::createActions() {
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&Open Project..."), this);
+  openProjectAction = new QAction(tr("Open &Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
-  openExampleAction = new QAction(tr("&Open Example Design..."), this);
+  openExampleAction = new QAction(tr("Open &Example Design..."), this);
   openExampleAction->setStatusTip(tr("Open example design"));
   connect(openExampleAction, SIGNAL(triggered()), this,
           SLOT(openExampleProject()));
@@ -336,6 +330,7 @@ void MainWindow::createActions() {
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
+  connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
@@ -674,4 +669,10 @@ void MainWindow::pinAssignmentActionTriggered() {
     }
   }
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+}
+
+void MainWindow::newDialogAccepted() {
+  const QString strproject = newProjdialog->getProject();
+  newProjectAction->setEnabled(false);
+  ReShowWindow(strproject);
 }

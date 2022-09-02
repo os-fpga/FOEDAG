@@ -111,14 +111,10 @@ void newProjectDialog::on_buttonBox_accepted() {
   } else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   m_projectManager->CreateProject(opt);
-  this->setResult(1);
-  this->hide();
+  accept();
 }
 
-void newProjectDialog::on_buttonBox_rejected() {
-  this->setResult(0);
-  this->hide();
-}
+void newProjectDialog::on_buttonBox_rejected() { reject(); }
 
 void newProjectDialog::on_next() {
   if (INDEX_LOCATION == m_index) {
