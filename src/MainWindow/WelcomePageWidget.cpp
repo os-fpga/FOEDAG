@@ -39,7 +39,6 @@ static constexpr auto HEADER_POINTSIZE = 24;
 static constexpr auto DESCRIPTION_POINTSIZE = 14;
 static constexpr auto PAGE_MARGIN = 30;
 static constexpr auto PAGE_SPACING = 20;
-static constexpr auto LOGO_SIZE = 400;
 
 static const auto ETC_DIR = "etc";
 static const auto WELCOME_PAGE_DIR = "Welcome_Page";
@@ -80,8 +79,7 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
   auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
   if (!logoPixmap.isNull())
-    logoLabel->setPixmap(
-        logoPixmap.scaled(QSize(LOGO_SIZE, LOGO_SIZE), Qt::KeepAspectRatio));
+    logoLabel->setPixmap(logoPixmap);
 
   // Main layout
   auto mainLayout = new QVBoxLayout(this);
