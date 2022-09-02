@@ -139,14 +139,8 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  int ret = newProjdialog->exec();
   newProjdialog->Reset();
-  newProjdialog->close();
-  if (ret) {
-    QString strproject = newProjdialog->getProject();
-    newProjectAction->setEnabled(false);
-    ReShowWindow(strproject);
-  }
+  newProjdialog->open();
 }
 
 void MainWindow::openProject() { openProject(QString{}); }
@@ -336,6 +330,7 @@ void MainWindow::createActions() {
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
+  connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
@@ -676,4 +671,10 @@ void MainWindow::pinAssignmentActionTriggered() {
     }
   }
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+}
+
+void MainWindow::newDialogAccepted() {
+  const QString strproject = newProjdialog->getProject();
+  newProjectAction->setEnabled(false);
+  ReShowWindow(strproject);
 }
