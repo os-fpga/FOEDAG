@@ -78,8 +78,7 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   auto logoLabel = new QLabel(this);
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
   auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
-  if (!logoPixmap.isNull())
-    logoLabel->setPixmap(logoPixmap);
+  if (!logoPixmap.isNull()) logoLabel->setPixmap(logoPixmap);
 
   // Main layout
   auto mainLayout = new QVBoxLayout(this);
