@@ -561,13 +561,12 @@ bool CompilerOpenFPGA::IPGenerate() {
 
 bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
-    const std::filesystem::path& synth_scrypt_path) {
+    const std::filesystem::path& synth_scrypt_path,
+    const std::filesystem::path& outputFile) {
   bool result = false;
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
-  std::string output =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string output = outputFile.string();
   time_t time_netlist = FileUtils::Mtime(output);
   if (time_netlist == -1) {
     result = true;
@@ -648,22 +647,189 @@ bool CompilerOpenFPGA::Analyze() {
            << std::endl;
   (*m_out) << "##################################################" << std::endl;
 
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        Message("Skipping analysis, gate-level design.");
-        return true;
-        break;
-      default:
-        break;
+  // TODO: Awaiting interface from analyzer exec.
+  std::string analysisScript;
+
+  if (m_useVerific) {
+    // Verific parser
+    std::string fileList;
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += path + " ";
     }
+    fileList += "-vlog-incdir " + includes + "\n";
+
+    std::string libraries;
+    for (auto path : ProjManager()->libraryPathList()) {
+      libraries += path + " ";
+    }
+    fileList += "-vlog-libdir " + libraries + "\n";
+
+    for (auto ext : ProjManager()->libraryExtensionList()) {
+      fileList += "-vlog-libext " + ext + "\n";
+    }
+
+    std::string macros;
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += macro_value.first + "=" + macro_value.second + " ";
+    }
+    fileList += "-vlog-define " + macros + "\n";
+
+    std::string importLibs;
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      std::string lang;
+      std::string designLibraries;
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+          lang = "-vhdl87";
+          break;
+        case Design::Language::VHDL_1993:
+          lang = "-vhdl93";
+          break;
+        case Design::Language::VHDL_2000:
+          lang = "-vhdl2k";
+          break;
+        case Design::Language::VHDL_2008:
+          lang = "-vhdl2008";
+          break;
+        case Design::Language::VERILOG_1995:
+          lang = "-vlog95";
+          break;
+        case Design::Language::VERILOG_2001:
+          lang = "-vlog2k";
+          break;
+        case Design::Language::SYSTEMVERILOG_2005:
+          lang = "-sv2005";
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+          lang = "-sv2009";
+          break;
+        case Design::Language::SYSTEMVERILOG_2012:
+          lang = "-sv2012";
+          break;
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+          lang = "";
+          break;
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          lang = "BLIF";
+          ErrorMessage("Unsupported file format:" + lang);
+          return false;
+      }
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty()) {
+            auto commandLib = command + " " + libName + " ";
+            designLibraries += commandLib;
+            if (command == "-L") importLibs += commandLib;
+          }
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += lang + " " + lang_file.second + "\n";
+      else
+        fileList +=
+            designLibraries + " " + lang + " " + lang_file.second + "\n";
+    }
+    if (!ProjManager()->DesignTopModule().empty()) {
+      fileList += "-top " + ProjManager()->DesignTopModule() + "\n";
+    }
+    analysisScript = fileList;
+  } else {
+    // TODO: develop an analysis step with only Yosys parser (no synthesis)
+    // Default Yosys parser
+    /*
+    std::string macros = "verilog_defines ";
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    }
+    macros += "\n";
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += "-I" + path + " ";
+    }
+    analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
+                                macros +
+                                    "read_verilog ${READ_VERILOG_OPTIONS} "
+                                    "${INCLUDE_PATHS} ${VERILOG_FILES}");
+    std::string fileList;
+    std::string lang;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+        case Design::Language::VERILOG_1995:
+        case Design::Language::VERILOG_2001:
+        case Design::Language::SYSTEMVERILOG_2005:
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+        case Design::Language::SYSTEMVERILOG_2012:
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+      }
+      analysisScript = fileList;
+      */
   }
 
-  m_state = State::Analyzed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
-           << std::endl;
+  std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
+  script_path =
+      (std::filesystem::path(ProjManager()->projectPath()) / script_path)
+          .string();
+  std::filesystem::path output_path =
+      std::filesystem::path(ProjManager()->projectPath()) /
+      (ProjManager()->projectName() + "_analysis.json");
+  if (!DesignChanged(analysisScript, script_path, output_path)) {
+    (*m_out) << "Design didn't change: " << ProjManager()->projectName()
+             << ", skipping analysis." << std::endl;
+    return true;
+  }
+  // Create Analyser command and execute
+  std::ofstream ofs(script_path);
+  ofs << analysisScript;
+  ofs.close();
+  std::string command;
+  int status = 0;
+  if (m_useVerific) {
+    if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
+      ErrorMessage("Cannot find executable: " +
+                   m_analyzeExecutablePath.string());
+      return false;
+    }
+    command = m_analyzeExecutablePath.string() + " -f " + script_path;
+    (*m_out) << "Analyze command: " << command << std::endl;
+    status = ExecuteAndMonitorSystemCommand(command);
+  }
+  // TODO: read back the Json file produced
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " analysis failed!");
+    return false;
+  } else {
+    m_state = State::Analyzed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
+             << std::endl;
+  }
   return true;
 }
 
@@ -870,7 +1036,10 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = FinishSynthesisScript(yosysScript);
 
   std::string script_path = ProjManager()->projectName() + ".ys";
-  if (!DesignChanged(yosysScript, script_path)) {
+  std::string output_path =
+      ProjManager()->projectName() +
+      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  if (!DesignChanged(yosysScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping synthesis." << std::endl;
     return true;
