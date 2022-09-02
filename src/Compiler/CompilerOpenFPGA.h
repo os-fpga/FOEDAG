@@ -121,7 +121,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool LoadDeviceData(const std::string& deviceName);
   virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
-                             const std::filesystem::path& synth_scrypt_path);
+                             const std::filesystem::path& synth_scrypt_path,
+                             const std::filesystem::path& outputFile);
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
   virtual std::string InitOpenFPGAScript();
