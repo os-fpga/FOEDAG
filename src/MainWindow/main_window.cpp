@@ -407,15 +407,14 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::gui_start(bool showWP) {
+  ReShowWindow({});
   if (showWP)
     showWelcomePage();
-  else
-    ReShowWindow({});
 }
 
 void MainWindow::showWelcomePage() {
   clearDockWidgets();
-  takeCentralWidget();
+  takeCentralWidget()->hide(); // we can't delete it because of singleton
 
   newDesignCreated({});
   showToolbars(false);
