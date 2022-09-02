@@ -1624,7 +1624,7 @@ void ProjectManager::setTargetDevice(const std::string& deviceName) {
   auto result = setSynthesisOption(
       {{PROJECT_PART_DEVICE, QString::fromStdString(deviceName)}});
   if (result != 0)
-    std::cerr << "setSynthesisOption(): something goes wrong, return value is: "
+    std::cerr << "setSynthesisOption(): something went wrong, return value is: "
               << result
               << std::endl;  // TODO @volodymyrk backlog,logging improve
   emit saveFile();
