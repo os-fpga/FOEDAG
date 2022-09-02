@@ -60,6 +60,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updatePRViewButton(int state);
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
+  void newDialogAccepted();
 
  private: /* Menu bar builders */
   void createMenus();
