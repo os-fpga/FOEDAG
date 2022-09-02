@@ -316,11 +316,11 @@ void MainWindow::createActions() {
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&Open Project..."), this);
+  openProjectAction = new QAction(tr("Open &Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
 
-  openExampleAction = new QAction(tr("&Open Example Design..."), this);
+  openExampleAction = new QAction(tr("Open &Example Design..."), this);
   openExampleAction->setStatusTip(tr("Open example design"));
   connect(openExampleAction, SIGNAL(triggered()), this,
           SLOT(openExampleProject()));
