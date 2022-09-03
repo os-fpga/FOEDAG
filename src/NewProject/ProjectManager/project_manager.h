@@ -25,6 +25,7 @@ project object is singleton mode.
 #define PROJECTMANAGER_H
 
 #include <QObject>
+#include <filesystem>
 
 #include "../source_grid.h"
 #include "project.h"
@@ -133,7 +134,12 @@ class ProjectManager : public QObject {
   void CreateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
                                   const QString &projName,
-                                  const QString &fileSet);
+                                  const QString &fileSet,
+                                  const QString &file = QString());
+
+  static std::filesystem::path ProjectFilesPath(
+      const std::string &projPath, const std::string &projName,
+      const std::string &fileSet, const std::string &file = std::string());
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
