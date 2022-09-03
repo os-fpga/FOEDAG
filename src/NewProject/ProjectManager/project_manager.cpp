@@ -6,6 +6,8 @@
 #include <QTextStream>
 #include <QTime>
 #include <QXmlStreamWriter>
+#include <filesystem>
+#include <iostream>
 
 #include "Compiler/CompilerDefines.h"
 
@@ -1643,12 +1645,18 @@ ProjectManager::macroList() const {
 }
 
 void ProjectManager::setTargetDevice(const std::string& deviceName) {
-  setSynthesisOption(
+  setCurrentRun(getActiveSynthRunName());
+  auto result = setSynthesisOption(
       {{PROJECT_PART_DEVICE, QString::fromStdString(deviceName)}});
+  if (result != 0)
+    std::cerr << "setSynthesisOption(): something went wrong, return value is: "
+              << result
+              << std::endl;  // TODO @volodymyrk backlog,logging improve
   emit saveFile();
 }
 
-std::string ProjectManager::getTargetDevice() const {
+std::string ProjectManager::getTargetDevice() {
+  setCurrentRun(getActiveSynthRunName());
   return getSynthOption(PROJECT_PART_DEVICE).toStdString();
 }
 

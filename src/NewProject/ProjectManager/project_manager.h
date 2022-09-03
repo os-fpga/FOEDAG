@@ -268,7 +268,7 @@ class ProjectManager : public QObject {
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
   void setTargetDevice(const std::string &deviceName);
-  std::string getTargetDevice() const;
+  std::string getTargetDevice();
   static QStringList StringSplit(const QString &str, const QString &sep);
 
  private:
