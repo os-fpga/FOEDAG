@@ -304,7 +304,8 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::showToolbars(bool show) {
+void MainWindow::showMenus(bool show) {
+  menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
 }
@@ -411,7 +412,7 @@ void MainWindow::showWelcomePage() {
   takeCentralWidget()->hide();  // we can't delete it because of singleton
 
   newDesignCreated({});
-  showToolbars(false);
+  showMenus(false);
 
   auto exeName =
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
@@ -436,7 +437,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   newDesignCreated(strProject);
 
-  showToolbars(true);
+  showMenus(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
