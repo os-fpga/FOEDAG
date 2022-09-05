@@ -83,3 +83,12 @@ void Session::setGuiType(FOEDAG::GUI_TYPE newGuiType) {
 void Session::setWindowModel(MainWindowModel *newWindowModel) {
   m_windowModel = newWindowModel;
 }
+
+void Session::ProjectFileLoader(
+    std::shared_ptr<FOEDAG::ProjectFileLoader> projectFileLoader) {
+  m_projectFileLoader = projectFileLoader;
+}
+
+std::shared_ptr<ProjectFileLoader> Session::ProjectFileLoader() const {
+  return m_projectFileLoader;
+}

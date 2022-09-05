@@ -149,7 +149,11 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/AboutWidget.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
-  
+
+install(
+    FILES ${PROJECT_SOURCE_DIR}/../Main/ProjectFile/ProjectFileLoader.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/ProjectFile/)
+
 install(
     FILES ${PROJECT_SOURCE_DIR}/../Command/Command.h
     ${PROJECT_SOURCE_DIR}/../Command/Logger.h

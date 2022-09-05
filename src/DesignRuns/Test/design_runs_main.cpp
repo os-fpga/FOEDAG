@@ -23,7 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/CompilerComponent.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
+#include "Main/ProjectFile/ProjectManagerComponent.h"
+#include "Main/ProjectFile/TaskManagerComponent.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
 #include "tclutils/TclUtils.h"
@@ -31,10 +34,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* DesignRunsBuilder(FOEDAG::Session* session) {
   FOEDAG::RunsForm* runForm = new FOEDAG::RunsForm();
   if (session->CmdLine()->Argc() > 2) {
-    FOEDAG::ProjectFileLoader loader{
-        {new FOEDAG::ProjectManagerComponent(runForm->projectManager()),
-         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager{}),
-         new FOEDAG::CompilerComponent(session->GetCompiler())}};
+    FOEDAG::ProjectFileLoader loader(FOEDAG::Project::Instance());
+    loader.registerComponent(
+        new FOEDAG::ProjectManagerComponent(runForm->projectManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::CompilerComponent(GlobalSession->GetCompiler()),
+        FOEDAG::ComponentId::Compiler);
     loader.Load(session->CmdLine()->Argv()[2]);
     runForm->InitRunsForm();
   }
