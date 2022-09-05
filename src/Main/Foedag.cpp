@@ -51,11 +51,16 @@ extern "C" {
 #include "Console/TclWorker.h"
 #include "FoedagStyle.h"
 #include "Main/Foedag.h"
+#include "Main/ProjectFile/CompilerComponent.h"
+#include "Main/ProjectFile/ProjectManagerComponent.h"
+#include "Main/ProjectFile/TaskManagerComponent.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/config.h"
 #include "ProjNavigator/tcl_command_integration.h"
+#include "ProjectFile/ProjectFileLoader.h"
+#include "ProjectFile/ProjectManagerComponent.h"
 #include "Tcl/TclInterpreter.h"
 #include "qttclnotifier.hpp"
 
@@ -349,6 +354,18 @@ bool Foedag::initBatch() {
   m_compiler->setGuiTclSync(
       new TclCommandIntegration{new ProjectManager, nullptr});
 
+  m_projectFileLoader.reset(new ProjectFileLoader{Project::Instance()});
+  m_projectFileLoader->registerComponent(
+      new ProjectManagerComponent{m_compiler->ProjManager()},
+      ComponentId::ProjectManager);
+  auto taskM = new TaskManager;
+  m_compiler->setTaskManager(taskM);
+  m_projectFileLoader->registerComponent(new TaskManagerComponent{taskM},
+                                         ComponentId::TaskManager);
+  m_projectFileLoader->registerComponent(new CompilerComponent{m_compiler},
+                                         ComponentId::Compiler);
+  GlobalSession->ProjectFileLoader(m_projectFileLoader);
+
   if (mute) {
     std::cout.rdbuf(nullptr);
   } else {
@@ -374,6 +391,7 @@ bool Foedag::initBatch() {
         GlobalSession->ReturnStatus(res);
         Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
       }
+      GlobalSession->ProjectFileLoader()->Save();
       exit(GlobalSession->ReturnStatus());
     }
     // --cmd \"tcl cmd\"

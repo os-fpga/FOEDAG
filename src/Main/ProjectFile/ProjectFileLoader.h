@@ -21,20 +21,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QObject>
 
-#include "CompilerComponent.h"
-#include "ProjectManagerComponent.h"
-#include "TaskManagerComponent.h"
-
 namespace FOEDAG {
 
+// the ID's should be changed since it is define the order of save/load
+enum class ComponentId {
+  ProjectManager = 0,
+  TaskManager = 1,
+  Compiler = 2,
+  Count,
+};
+
+class Project;
+class ProjectFileComponent;
 class ProjectFileLoader : public QObject {
  public:
-  explicit ProjectFileLoader(QObject *parent = nullptr);
-  explicit ProjectFileLoader(
-      const std::vector<ProjectFileComponent *> &components,
-      QObject *parent = nullptr);
+  explicit ProjectFileLoader(Project *project, QObject *parent = nullptr);
   ~ProjectFileLoader();
-  void registerComponent(ProjectFileComponent *comp);
+  void registerComponent(ProjectFileComponent *comp, ComponentId id);
 
  public slots:
   void Load(const QString &filename);
