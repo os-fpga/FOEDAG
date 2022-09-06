@@ -85,7 +85,7 @@ QString Settings::getLookupValue(
   QStringList options = GetStrList(optionsArrayKey);
   QStringList lookups = GetStrList(lookupArrayKey);
 
-  QString value = "";
+  QString value;
   // Find the given option in the option array
   int idx = options.indexOf(option);
   if (idx > -1 && idx < lookups.count()) {
@@ -187,7 +187,7 @@ void Settings::applyTclVars() {
     json& settingsJson = topJson.at(jsonPtr);
 
     // Look for a tclArgeKey
-    QString tclArgKey = "";
+    QString tclArgKey;
     if (settingsJson.contains("_META_")) {
       tclArgKey =
           QString::fromStdString(settingsJson["_META_"].value("tclArgKey", ""));
@@ -242,7 +242,7 @@ QStringList Settings::getSettingsJsonPtrPaths(
 // fields which it will use to create a tcl arg list string from
 QString Settings::getTclArgString(json& jsonData) {
   // Create a callback to collect and return tcl arg strings
-  QString argStr = "";
+  QString argStr;
   auto findCb = [&argStr](json& obj, const QString& path) {
     if (obj.type() == nlohmann::detail::value_t::object) {
       QString widgetType = QString::fromStdString(obj.value("widgetType", ""));
@@ -250,12 +250,10 @@ QString Settings::getTclArgString(json& jsonData) {
       // Check if the object has an "arg" field
       QString tclArg = QString::fromStdString(obj.value("arg", ""));
       if (!tclArg.isEmpty()) {
-        QString val = "";
-
         // Create a safe json look up that will read the expected value type
         // based off the widgetType
         auto getValStr = [obj, widgetType](const std::string& key) -> QString {
-          QString val = "";
+          QString val;
           if (obj.contains(key)) {
             // The json library can cause some issues if you try to read a
             // number into a string so we add special handling for widget types
@@ -274,7 +272,7 @@ QString Settings::getTclArgString(json& jsonData) {
 
         // Attempt to get a userValue and then a default if userValue isn't
         // provided
-        val = getValStr("userValue");
+        QString val = getValStr("userValue");
         if (val.isEmpty()) {
           val = getValStr("default");
         }
