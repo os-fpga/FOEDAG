@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
 #include <QXmlStreamWriter>
 
 #include "NewProject/ProjectManager/project_manager.h"
@@ -70,16 +71,12 @@ void ProjectFileLoader::Load(const QString &filename) {
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT &&
-          reader.attributes().hasAttribute(PROJECT_PATH)) {
-        QString strPath = reader.attributes().value(PROJECT_PATH).toString();
-        QString strName = strPath.mid(
-            strPath.lastIndexOf("/") + 1,
-            strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
-
+      if (reader.name() == PROJECT_PROJECT) {
+        QFileInfo path(filename);
+        QString projPath = path.absolutePath();
+        QString strName = path.baseName();
         Project::Instance()->setProjectName(strName);
-        Project::Instance()->setProjectPath(
-            strPath.left(strPath.lastIndexOf("/")));
+        Project::Instance()->setProjectPath(projPath);
       }
       for (const auto &component : m_components) component->Load(&reader);
     }
@@ -133,7 +130,6 @@ void ProjectFileLoader::Save() {
   stream.writeComment(
       tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
   stream.writeStartElement(PROJECT_PROJECT);
-  stream.writeAttribute(PROJECT_PATH, xmlPath);
   stream.writeAttribute(PROJECT_VERSION, TO_C_STR(FOEDAG_VERSION));
 
   for (const auto &component : m_components) component->Save(&stream);
