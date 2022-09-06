@@ -27,6 +27,7 @@ set (CPP_LIST
     Command/Command_test.cpp
     Utils/StringUtils_test.cpp
     NewProject/ProjectManager_test.cpp
+    Settings/Settings_test.cpp
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST})
