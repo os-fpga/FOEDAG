@@ -34,7 +34,7 @@ using ::testing::ElementsAre;
 namespace FOEDAG {
 namespace {
 
-TEST(Settings, loadSettings_merges_json) {
+TEST(Settings, LoadSettingsMergesJson) {
   Settings test;
 
   // The goal of this test is to load two json files w/ different child nodes
@@ -65,7 +65,7 @@ TEST(Settings, loadSettings_merges_json) {
                                      "combines similarly nested json objects";
 }
 
-TEST(Settings, json_is_editable) {
+TEST(Settings, JsonIsEditable) {
   Settings test;
   json empty;
 
@@ -104,7 +104,7 @@ TEST(Settings, json_is_editable) {
       << "Ensure that the json can be cleared 2/2";
 }
 
-TEST(Settings, traverseJson_works_for_objects_and_arrays) {
+TEST(Settings, TraverseJsonWorksForObjectsAndArrays) {
   // The goal of this test is to ensure that the traverseJson functionality can
   // traverse nested objects and arrays
 
@@ -150,7 +150,7 @@ TEST(Settings, traverseJson_works_for_objects_and_arrays) {
       << "Ensure that traverseJson found the _META_ tags and values";
 }
 
-TEST(Settings, getLookupValue_works) {
+TEST(Settings, GetLookupValueWorks) {
   // The goal of this test is to ensure that getLookupValue can lookup two
   // string lists and perform a lookup between the two
   json testJson = R"(
@@ -195,7 +195,7 @@ TEST(Settings, getLookupValue_works) {
                                      "lookupVals"));
 }
 
-TEST(Settings, getTclArgString) {
+TEST(Settings, GetTclArgString) {
   Settings test;
   // The goal of this test is to ensure that getTclArgString properly parses a
   // tcl arg list from a given a json object containing widget factory fields
@@ -215,7 +215,7 @@ TEST(Settings, getTclArgString) {
       << "Ensure tclArgsString properly parses widget factory json fields";
 }
 
-TEST(Settings, tclValsInit) {
+TEST(Settings, TclValsInit) {
   Settings test;
   // The goal of this test is to ensure that settings json that contains a
   // tclArgKey in its _META_ tag and supplies an "arg" value for a field will
