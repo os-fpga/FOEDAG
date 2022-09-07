@@ -11,6 +11,14 @@
 #include "create_file_dialog.h"
 using namespace FOEDAG;
 
+namespace {
+static const auto INDEX_COL = QObject::tr("Index");
+static const auto NAME_COL = QObject::tr("Name");
+static const auto LIBRARY_COL = QObject::tr("Library");
+static const auto IMPORT_COL = QObject::tr("Import");
+static const auto LOCATION_COL = QObject::tr("Location");
+}  // namespace
+
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
   m_btnAddFile = new QPushButton(tr("Add File..."), this);
@@ -54,7 +62,6 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_tableViewSrc->verticalHeader()->setDefaultSectionSize(30);
   // Last column adaptive width
   m_tableViewSrc->horizontalHeader()->setStretchLastSection(true);
-  m_tableViewSrc->setEditTriggers(QTableView::NoEditTriggers);
   m_tableViewSrc->setSelectionBehavior(QTableView::SelectRows);
   // Single line selection
   m_tableViewSrc->setSelectionMode(QTableView::SingleSelection);
@@ -69,11 +76,10 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_model = new QStandardItemModel(m_tableViewSrc);
   m_selectModel = new QItemSelectionModel(m_model, m_model);
 
-  m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
+  connect(m_model, &QStandardItemModel::itemChanged, this,
+          &sourceGrid::onItemChanged);
 
-  m_model->setHorizontalHeaderItem(0, new QStandardItem(tr("Index")));
-  m_model->setHorizontalHeaderItem(1, new QStandardItem(tr("Name")));
-  m_model->setHorizontalHeaderItem(2, new QStandardItem(tr("Location")));
+  m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
 
   m_tableViewSrc->setModel(m_model);
   m_tableViewSrc->setSelectionModel(m_selectModel);
@@ -91,6 +97,20 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
 }
 void sourceGrid::setGridType(GridType type) {
   m_type = type;
+
+  auto columnIndex{0};
+  m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(INDEX_COL));
+  m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(NAME_COL));
+  if (GT_SOURCE == m_type) {
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(LIBRARY_COL));
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(IMPORT_COL));
+  }
+
+  m_model->setHorizontalHeaderItem(columnIndex++,
+                                   new QStandardItem(LOCATION_COL));
+
   if (GT_CONSTRAINTS == m_type) {
     m_btnAddDri->setVisible(false);
   } else {
@@ -230,6 +250,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
 
   item = new QStandardItem(QString("%1").arg(rows + 1));
   item->setTextAlignment(Qt::AlignCenter);
+  item->setEditable(false);
   items.append(item);
 
   QIcon icon;
@@ -242,10 +263,24 @@ void sourceGrid::AddTableItem(filedata fdata) {
   item->setIcon(icon);
   item->setText(fdata.m_fileName);
   item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  item->setEditable(false);
   items.append(item);
+
+  if (GT_SOURCE == m_type) {
+    item = new QStandardItem(fdata.m_workLibrary);
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(true);
+    items.append(item);
+
+    item = new QStandardItem(fdata.m_importLibraries);
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(true);
+    items.append(item);
+  }
 
   item = new QStandardItem(fdata.m_filePath);
   item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  item->setEditable(false);
   items.append(item);
 
   m_model->insertRow(rows, items);
@@ -290,4 +325,17 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
     }
   }
   return false;
+}
+
+void sourceGrid::onItemChanged(QStandardItem *item) {
+  auto itemIndex = m_model->indexFromItem(item);
+
+  if (itemIndex.row() >= m_lisFileData.size())
+    qWarning("m_lisFileData: wrong indexes!");
+
+  if (m_model->headerData(itemIndex.column(), Qt::Horizontal).toString() ==
+      LIBRARY_COL)
+    m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
+  else
+    m_lisFileData[itemIndex.row()].m_importLibraries = item->text();
 }
