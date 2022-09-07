@@ -180,6 +180,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
 	grep "Found IP: axis_converter_V1_0" foedag.log
 	grep "Found IP: axis_converter_V1_1" foedag.log
+	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
 	./build/bin/foedag --batch --script tests/Testcases/project_file/test.tcl
 
 	

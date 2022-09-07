@@ -185,6 +185,7 @@ class Compiler {
    */
   virtual bool VerifyTargetDevice() const;
   bool HasTargetDevice();
+  bool HasIPInstances();
 
   bool CreateDesign(const std::string& name);
   static void PrintVersion(std::ostream* out);

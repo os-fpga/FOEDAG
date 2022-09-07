@@ -581,6 +581,10 @@ bool CompilerOpenFPGA::VerifyTargetDevice() const {
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   PERF_LOG("IPGenerate has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()

@@ -1489,6 +1489,10 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 
 bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
   bool status = GetIPGenerator()->Generate();
@@ -1621,6 +1625,15 @@ bool Compiler::HasTargetDevice() {
     return false;
   }
   return true;
+}
+
+bool Compiler::HasIPInstances() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen) {
+    result = (ipGen->IPInstances().size() > 0);
+  }
+  return result;
 }
 
 bool Compiler::CreateDesign(const std::string& name) {
