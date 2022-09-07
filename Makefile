@@ -181,7 +181,9 @@ test/batch: run-cmake-release
 	grep "Found IP: axis_converter_V1_0" foedag.log
 	grep "Found IP: axis_converter_V1_1" foedag.log
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
-	grep -L "IPs are generated" foedag.log
+	@if [ $(shell grep "IPs are generated" foedag.log) ]; then\
+        $(error Error: test_ipgenerate_instances should not print out "IPs are generated" when no IP instances have been made);\
+    fi
 
 	
 lib-only: run-cmake-release
