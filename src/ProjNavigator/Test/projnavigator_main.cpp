@@ -22,10 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 
 #include "Main/Foedag.h"
-#include "Main/ProjectFile/CompilerComponent.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
-#include "Main/ProjectFile/ProjectManagerComponent.h"
-#include "Main/ProjectFile/TaskManagerComponent.h"
 #include "Main/qttclnotifier.hpp"
 #include "ProjNavigator/sources_form.h"
 #include "Tcl/TclInterpreter.h"

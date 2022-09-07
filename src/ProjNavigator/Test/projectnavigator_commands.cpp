@@ -23,10 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTextStream>
 #include <iostream>
 
-#include "Main/ProjectFile/CompilerComponent.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
-#include "Main/ProjectFile/ProjectManagerComponent.h"
-#include "Main/ProjectFile/TaskManagerComponent.h"
 #include "MainWindow/Session.h"
 #include "ProjNavigator/sources_form.h"
 #include "tcl_command_integration.h"
