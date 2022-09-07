@@ -304,7 +304,8 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::showToolbars(bool show) {
+void MainWindow::showMenus(bool show) {
+  menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
 }
@@ -411,7 +412,7 @@ void MainWindow::showWelcomePage() {
   takeCentralWidget()->hide();  // we can't delete it because of singleton
 
   newDesignCreated({});
-  showToolbars(false);
+  showMenus(false);
 
   auto exeName =
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
@@ -436,7 +437,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   newDesignCreated(strProject);
 
-  showToolbars(true);
+  showMenus(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -451,11 +452,10 @@ void MainWindow::ReShowWindow(QString strProject) {
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
 
   delete m_projectFileLoader;
-  m_projectFileLoader = new ProjectFileLoader;
+  m_projectFileLoader = new ProjectFileLoader{Project::Instance()};
   m_projectFileLoader->registerComponent(
-      new ProjectManagerComponent{sourcesForm->ProjManager()});
-  connect(Project::Instance(), &Project::saveFile, m_projectFileLoader,
-          &ProjectFileLoader::Save);
+      new ProjectManagerComponent{sourcesForm->ProjManager()},
+      ComponentId::ProjectManager);
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project
                      // info exists
@@ -553,8 +553,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
-      new TaskManagerComponent{m_taskManager});
-  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
+      new TaskManagerComponent{m_taskManager}, ComponentId::TaskManager);
+  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
+                                         ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
   taskDockWidget->setWidget(view);
   tabifyDockWidget(sourceDockWidget, taskDockWidget);

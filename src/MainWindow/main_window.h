@@ -81,7 +81,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void openProject(const QString& dir);
 
-  void showToolbars(bool show);
+  void showMenus(bool show);
   void showWelcomePage();
 
   bool saveConstraintFile();

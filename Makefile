@@ -154,7 +154,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negetive.tcl && exit 1 || (echo "PASSED: Caught negative test")
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
@@ -180,6 +180,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
 	grep "Found IP: axis_converter_V1_0" foedag.log
 	grep "Found IP: axis_converter_V1_1" foedag.log
+	./build/bin/foedag --batch --script tests/Testcases/project_file/test.tcl
 
 	
 lib-only: run-cmake-release
