@@ -162,6 +162,9 @@ class ProjectManager : public QObject {
                            bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
                      bool localToProject = true);
+  int setDesignFiles(const QString &commands, const QString &libs,
+                     const QString &fileNames, int lang, bool isFileCopy = true,
+                     bool localToProject = true);
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
                         bool localToProject = true);
