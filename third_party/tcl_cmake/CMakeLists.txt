@@ -74,7 +74,7 @@ if(MSVC)
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/Release_AMD64_VC1933/${TCL_STATIC_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/${CMAKE_BUILD_TYPE}_${PROCESSOR_ARCHITECTURE}_VC${_MSC_VER}/${TCL_STATIC_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STATIC_LIB}
   )
   add_custom_target(tcl_stubb_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../lib/${TCL_STUBB_LIB})
@@ -89,7 +89,7 @@ if(MSVC)
   # Copy the tcl lib from source to build directory
   add_custom_command(TARGET tcl_stubb_build POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
-            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/Release_AMD64_VC1933/${TCL_STUBB_LIB}
+            ${PROJECT_SOURCE_DIR}/../tcl8.6.12/win/${CMAKE_BUILD_TYPE}_${PROCESSOR_ARCHITECTURE}_VC${_MSC_VER}/${TCL_STUBB_LIB}
             ${CMAKE_CURRENT_BINARY_DIR}/../../lib/foedag/lib/${TCL_STUBB_LIB}         
   )
 else()
