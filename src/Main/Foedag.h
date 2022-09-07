@@ -71,6 +71,7 @@ class Foedag {
   Compiler* m_compiler = nullptr;
   Settings* m_settings = nullptr;
   TclWorker* m_tclChannelHandler{nullptr};
+  std::shared_ptr<ProjectFileLoader> m_projectFileLoader;
 };
 
 }  // namespace FOEDAG
