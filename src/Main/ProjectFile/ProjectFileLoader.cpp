@@ -31,21 +31,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-ProjectFileLoader::ProjectFileLoader(QObject *parent) : QObject(parent) {}
-
-ProjectFileLoader::ProjectFileLoader(
-    const std::vector<ProjectFileComponent *> &components, QObject *parent)
+ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
-  for (const auto &c : components) registerComponent(c);
+  connect(Project::Instance(), &Project::saveFile, this,
+          &ProjectFileLoader::Save);
+  m_components.resize(static_cast<size_t>(ComponentId::Count));
 }
 
 ProjectFileLoader::~ProjectFileLoader() {
   for (const auto &component : m_components) delete component;
 }
 
-void ProjectFileLoader::registerComponent(ProjectFileComponent *comp) {
+void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
+                                          ComponentId id) {
   connect(comp, &ProjectFileComponent::saveFile, this, [this]() { Save(); });
-  m_components.push_back(comp);
+  m_components[static_cast<size_t>(id)] = comp;
 }
 
 void ProjectFileLoader::Load(const QString &filename) {

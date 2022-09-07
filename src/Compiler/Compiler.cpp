@@ -1764,3 +1764,8 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
   }
   return result;
 }
+
+std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  return std::make_pair(true, std::string{});
+}
