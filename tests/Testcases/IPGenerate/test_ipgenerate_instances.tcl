@@ -30,3 +30,10 @@ create_design ip_gen_instances
 architecture ../../Arch/k6_frac_N10_tileable_40nm.xml ../../Arch/k6_N10_40nm_openfpga.xml
 add_litex_ip_catalog ./IP_Catalog
 ipgenerate
+
+# Error out if "IPs are generated" was printed
+set fp [open "foedag.log" r]
+set file_data [read $fp]
+close $fp
+set failed [regexp "IPs are generated" $file_data]
+exit $failed
