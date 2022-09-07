@@ -446,7 +446,16 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify a device size: xXy");
       return TCL_ERROR;
     }
-    compiler->DeviceSize(argv[1]);
+
+    const std::string deviceSize{argv[1]};
+
+    if (const auto& [res, errorMsg] = compiler->IsDeviceSizeCorrect(deviceSize);
+        !res) {
+      compiler->ErrorMessage(errorMsg);
+      return TCL_ERROR;
+    }
+
+    compiler->DeviceSize(deviceSize);
     return TCL_OK;
   };
   interp->registerCmd("set_device_size", set_device_size, this, 0);
@@ -531,6 +540,36 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("synthesis_type", synthesis_type, this, 0);
   return true;
+}
+
+std::pair<bool, std::string> CompilerOpenFPGA::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  if (m_architectureFile.empty())
+    return std::make_pair(false,
+                          "Please specify target device or architecture file.");
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::filesystem::path devicefile = datapath / "etc" / m_architectureFile;
+  QFile file(devicefile.string().c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    return std::make_pair(false,
+                          "Cannot open device file: " + devicefile.string());
+  }
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    return std::make_pair(false,
+                          "Incorrect device file: " + devicefile.string());
+  }
+  file.close();
+  auto fixedLayout = doc.elementsByTagName("fixed_layout");
+  if (fixedLayout.isEmpty())
+    return std::make_pair(false, "Architecture file: fixed_layout is missing");
+  for (int i = 0; i < fixedLayout.count(); i++) {
+    auto node = fixedLayout.at(i).toElement();
+    if (node.attribute("name").toStdString() == size)
+      return std::make_pair(true, std::string{});
+  }
+  return std::make_pair(false, std::string{"Device size is not correct"});
 }
 
 bool CompilerOpenFPGA::VerifyTargetDevice() const {

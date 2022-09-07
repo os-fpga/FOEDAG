@@ -91,7 +91,7 @@ class Compiler {
   std::ostream* GetOutStream() { return m_out; }
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
-  Session* GetSession() { return m_session; }
+  Session* GetSession() const { return m_session; }
   virtual ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
@@ -196,6 +196,8 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
+  virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
+      const std::string& size) const;
 
   /* Propected members */
   TclInterpreter* m_interp = nullptr;

@@ -128,6 +128,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual std::string InitOpenFPGAScript();
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
+      const std::string& size) const;
   bool VerifyTargetDevice() const;
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
