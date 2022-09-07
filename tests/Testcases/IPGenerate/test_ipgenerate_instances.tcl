@@ -28,5 +28,5 @@
 
 create_design ip_gen_instances
 architecture ../../Arch/k6_frac_N10_tileable_40nm.xml ../../Arch/k6_N10_40nm_openfpga.xml
-add_litex_ip_catalog /usr/local/share/foedag/IP_Catalog
+add_litex_ip_catalog ./IP_Catalog
 ipgenerate
