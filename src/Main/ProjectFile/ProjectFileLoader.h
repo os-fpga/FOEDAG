@@ -21,6 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QObject>
 
+#include "CompilerComponent.h"
+#include "ProjectManagerComponent.h"
+#include "TaskManagerComponent.h"
+
 namespace FOEDAG {
 
 // the ID's should be changed since it is define the order of save/load

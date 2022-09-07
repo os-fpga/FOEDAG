@@ -23,10 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DesignRuns/runs_form.h"
 #include "Main/Foedag.h"
-#include "Main/ProjectFile/CompilerComponent.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
-#include "Main/ProjectFile/ProjectManagerComponent.h"
-#include "Main/ProjectFile/TaskManagerComponent.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
 #include "tclutils/TclUtils.h"
