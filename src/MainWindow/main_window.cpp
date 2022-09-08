@@ -177,7 +177,13 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(m_projectInfo.name + " - " + design);
+  const QFileInfo path(design);
+  if (design.isEmpty()) {
+    setWindowTitle(m_projectInfo.name);
+  } else {
+    setWindowTitle(path.fileName() + " - " + path.baseName() + " - " +
+                   m_projectInfo.name);
+  }
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
 }
