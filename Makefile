@@ -121,6 +121,7 @@ test-parallel: release test/unittest
 test/openfpga: run-cmake-release
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
+	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial_rtl/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 
 test/openfpga_gui: run-cmake-release
