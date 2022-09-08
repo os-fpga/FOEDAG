@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QTreeWidget>
+#include <filesystem>
 
 namespace FOEDAG {
 
@@ -35,8 +36,8 @@ class IpCatalogTree : public QTreeWidget {
   QStringList prevIpCatalogResults;
   bool ipsLoaded = false;
 
-  QStringList getAvailableIPs(const QStringList& paths);
-  void loadIps(const QStringList& paths);
+  QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
+  void loadIps(const std::vector<std::filesystem::path>& paths);
 };
 
 }  // namespace FOEDAG

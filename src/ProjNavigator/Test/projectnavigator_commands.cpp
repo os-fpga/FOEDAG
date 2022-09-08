@@ -64,10 +64,16 @@ TCL_COMMAND(open_project) {
   QString filename{argv[2]};
   fileInfo.setFile(filename);
   if (fileInfo.exists()) {
-    FOEDAG::ProjectFileLoader loader{
-        {new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
-         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager)},
-        new FOEDAG::CompilerComponent(GlobalSession->GetCompiler())};
+    FOEDAG::ProjectFileLoader loader(FOEDAG::Project::Instance());
+    loader.registerComponent(
+        new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::CompilerComponent(GlobalSession->GetCompiler()),
+        FOEDAG::ComponentId::Compiler);
     loader.Load(filename);
     srcForm->InitSourcesForm();
   } else {
