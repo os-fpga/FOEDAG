@@ -94,7 +94,7 @@ QStringList IpCatalogTree::getAvailableIPs(
   loadIps(paths);
 
   // Request loaded IPs
-  if (ipsLoaded && tclCmdExists("ip_catalog")) {
+  if (tclCmdExists("ip_catalog")) {
     std::string result = GlobalSession->TclInterp()->evalCmd("ip_catalog");
     ips = QString::fromStdString(result).trimmed().split(" ");
   }
@@ -103,14 +103,13 @@ QStringList IpCatalogTree::getAvailableIPs(
 }
 
 void IpCatalogTree::loadIps(const std::vector<std::filesystem::path>& paths) {
-  if (!ipsLoaded && tclCmdExists("add_litex_ip_catalog")) {
+  if (tclCmdExists("add_litex_ip_catalog")) {
     for (auto path : paths) {
       if (std::filesystem::exists(path)) {
         QString cmd = QString("add_litex_ip_catalog %1")
                           .arg(QString::fromStdString(path.string()));
         int ok = TCL_ERROR;
         GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
-        ipsLoaded |= (ok == TCL_OK);
       }
     }
   }
