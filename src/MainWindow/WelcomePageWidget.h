@@ -40,6 +40,7 @@ class WelcomePageWidget final : public QWidget {
 
   // Adds a new QToolButton, representing given action, to the vertical layout
   void addAction(QAction &act);
+  void addRecentProject(QAction &act);
 
  signals:
   // Emitted whenever current page was closed. Parameter indicates whether it
@@ -48,14 +49,17 @@ class WelcomePageWidget final : public QWidget {
 
  private:
   void keyPressEvent(QKeyEvent *event) override;
+  void initRecentProjects();
 
-  QPushButton *createActionButton();
+  QPushButton *createActionButton(const QString &text);
 
   // Reads WelcomeDescription txt file, located in given path. Returns empty
   // string if the file doesn't exist.
   QString getDescription(const std::filesystem::path &srcDir) const;
 
   QVBoxLayout *m_actionsLayout{nullptr};
+  QVBoxLayout *m_recentProjectsLayout{nullptr};
+  QVBoxLayout *m_mainLayout{nullptr};
 };
 }  // namespace FOEDAG
 
