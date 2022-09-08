@@ -129,9 +129,11 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
                   moduleEdit.text() + " -version " +
                   QString::fromStdString(meta.version) + " " + params +
                   " -out_file " + outputPath.text();
+    cmd += "\nipgenerate";
 
-    // TODO @skyler-rs Sept2022 configure_ip command execution code will be
-    // added in a future update
+    GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
+    // TODO @skyler-rs Sept2022 remove below test print once once command format
+    // is finalized
     std::cout << cmd.toStdString() << std::endl;
   });
 
@@ -162,10 +164,9 @@ void IpConfigDlg::CreateParamFields() {
         json childJson;
         // Add P to the arg as the configure_ip format is -P{ARG_NAME}
         childJson["arg"] = "P" + param->Name();
-        // Convert label's underscores to spaces
-        childJson["label"] = QString::fromStdString(param->Name())
-                                 .replace('_', ' ')
-                                 .toStdString();
+
+        childJson["label"] =
+            QString::fromStdString(param->Name()).toStdString();
         std::string defaultValue;
 
         // Currently all fields are input/linedit
@@ -299,10 +300,12 @@ void IpConfigDlg::updateOutputPath() {
   QString version = QString::fromStdString(meta.version);
   QString name = QString::fromStdString(meta.name);
 
+  QString module = moduleEdit.text();
+
   // Create and set new path.
   // This follows VLNV order (Vendor/Library/Name/Version)
-  QStringList orderedPieces = {baseDir, vendor,  library,
-                               name,    version, fileName};
+  QStringList orderedPieces = {baseDir, vendor, library, name,
+                               version, module, "src",   fileName};
   QString path = orderedPieces.join(SEPARATOR);
   outputPath.setText(path);
 }
