@@ -1036,7 +1036,7 @@ bool CompilerOpenFPGA::Synthesize() {
     macros += "\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += "-I " + path + " ";
+      includes += "-I" + path + " ";
     }
 
     std::string designFiles;
