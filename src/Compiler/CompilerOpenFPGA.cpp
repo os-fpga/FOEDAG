@@ -1023,6 +1023,15 @@ bool CompilerOpenFPGA::Synthesize() {
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
+
+    for (const auto& commandLib : ProjManager()->DesignLibraries()) {
+      if (!commandLib.first.empty()) {
+        ErrorMessage(
+            "Yosys default parser doesn't support '-work' and '-L' design file "
+            "commands!");
+        break;
+      }
+    }
     std::string macros = "verilog_defines ";
     for (auto& macro_value : ProjManager()->macroList()) {
       macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
@@ -1030,16 +1039,17 @@ bool CompilerOpenFPGA::Synthesize() {
     macros += "\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += "-I" + path + " ";
+      includes += "-I " + path + " ";
     }
-    yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
-                             macros +
-                                 "read_verilog ${READ_VERILOG_OPTIONS} "
-                                 "${INCLUDE_PATHS} ${VERILOG_FILES}");
-    std::string fileList;
-    std::string lang;
+
+    std::string designFiles;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      fileList += lang_file.second + " ";
+      std::string filesScript =
+          "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
+          "${VERILOG_FILES}";
+      std::string lang;
+
+      auto files = lang_file.second + " ";
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
@@ -1062,12 +1072,14 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported language (Yosys default parser)!");
           break;
       }
-    }
-    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
-    std::string options = lang;
+      filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
+      filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
+      filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
 
-    yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
-    yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
+      designFiles += filesScript + "\n";
+    }
+    yosysScript =
+        ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
