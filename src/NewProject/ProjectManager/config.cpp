@@ -60,7 +60,8 @@ int Config::InitConfig(const QString &devicexml) {
       QDomElement e = node.toElement();
 
       QStringList devlist;
-      devlist.append(e.attribute("name"));
+      QString name = e.attribute("name");
+      devlist.append(name);
       devlist.append(e.attribute("pin_count"));
       devlist.append(e.attribute("speedgrade"));
       devlist.append(e.attribute("core_voltage"));
@@ -79,7 +80,11 @@ int Config::InitConfig(const QString &devicexml) {
       devlist.append(series);
       devlist.append(family);
       devlist.append(package);
-      m_map_device_info.insert(series + family + package, devlist);
+
+      // adding name to avoid key collisions when there are multiple devices
+      // with the same series/family/package
+      QString key = series + family + package + "_" + name;
+      m_map_device_info.insert(key, devlist);
       MakeDeviceMap(series, family, package);
     }
 
