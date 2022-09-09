@@ -125,6 +125,9 @@ test/openfpga: run-cmake-release
 	grep "verific -work lib2  -sv2012"  test_rtl/test_rtl.ys
 	grep "verific -L lib1 -L lib2 -import top"  test_rtl/test_rtl.ys
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/yosys_design_file/yosys_design_file.tcl
+	grep "read_verilog -sv -I"  yosys_design_file/yosys_design_file.ys
+	grep "read_verilog  -I"  yosys_design_file/yosys_design_file.ys
 
 test/openfpga_gui: run-cmake-release
 	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
