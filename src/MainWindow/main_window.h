@@ -85,6 +85,12 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void showWelcomePage();
 
   bool saveConstraintFile();
+  // Creates the new file in a working directory holding welcome page
+  // configuration
+  void saveWelcomePageConfig();
+
+  // Welcome page config file name
+  static const QString WELCOME_PAGE_CONFIG_FILE;
 
  private: /* Objects/Widgets under the main window */
   bool m_showWelcomePage{true};
