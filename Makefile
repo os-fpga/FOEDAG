@@ -122,6 +122,9 @@ test/openfpga: run-cmake-release
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/yosys_design_file/yosys_design_file.tcl
+	grep "read_verilog -sv -I"  yosys_design_file/yosys_design_file.ys
+	grep "read_verilog  -I"  yosys_design_file/yosys_design_file.ys
 
 test/openfpga_gui: run-cmake-release
 	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
