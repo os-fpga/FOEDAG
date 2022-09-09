@@ -121,6 +121,9 @@ test-parallel: release test/unittest
 test/openfpga: run-cmake-release
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
+	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial_rtl/test_rtl.tcl
+	grep "verific -work lib2  -sv2012"  test_rtl/test_rtl.ys
+	grep "verific -L lib1 -L lib2 -import top"  test_rtl/test_rtl.ys
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/yosys_design_file/yosys_design_file.tcl
 	grep "read_verilog -sv -I"  yosys_design_file/yosys_design_file.ys

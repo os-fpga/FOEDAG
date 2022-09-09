@@ -47,11 +47,20 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   QString strDefaultSrc;
   const QList<filedata> listFile = opt.sourceFileData.fileData;
   for (const filedata& fdata : listFile) {
+    auto libraries = fdata.m_workLibrary;
+    auto command = libraries.isEmpty() ? QString() : "-work";
+    auto importLibs = StringSplit(fdata.m_importLibraries, ",");
+    for (const auto& importLib : importLibs) {
+      command += " -L";
+      libraries += " " + importLib.simplified();
+    }
+
     if (LocalToProject == fdata.m_filePath) {
-      setDesignFiles(fdata.m_fileName, FromFileType(fdata.m_fileType), false,
-                     true);
+      setDesignFiles(command, libraries, fdata.m_fileName,
+                     FromFileType(fdata.m_fileType), false, true);
     } else {
-      setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
+      setDesignFiles(command, libraries,
+                     fdata.m_filePath + "/" + fdata.m_fileName,
                      FromFileType(fdata.m_fileType),
                      opt.sourceFileData.isCopySource, false);
     }
@@ -395,8 +404,17 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
 
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
                                    bool isFileCopy, bool localToProject) {
+  return setDesignFiles({}, {}, fileNames, lang, isFileCopy, localToProject);
+}
+
+int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
+                                   const QString& fileNames, int lang,
+                                   bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   const QStringList fileList = StringSplit(fileNames, " ");
+  const QStringList commandsList = StringSplit(commands, " ");
+  const QStringList libsList = StringSplit(libs, " ");
+
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) {
@@ -411,7 +429,7 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
     for (const auto& file : fileList) {
       fullPathFileList.append(QString("%1/%2").arg(path, file));
     }
-    proFileSet->addFiles({}, {}, fullPathFileList, lang);
+    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang);
   } else {
     if (isFileCopy) {
       QStringList localFileList;
@@ -421,9 +439,9 @@ int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
             ProjectFilesPath(getProjectPath(), getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
-      proFileSet->addFiles({}, {}, localFileList, lang);
+      proFileSet->addFiles(commandsList, libsList, localFileList, lang);
     } else {
-      proFileSet->addFiles({}, {}, fileList, lang);
+      proFileSet->addFiles(commandsList, libsList, fileList, lang);
     }
   }
 
