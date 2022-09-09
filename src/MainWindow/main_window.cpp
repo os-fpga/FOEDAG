@@ -56,11 +56,17 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
+
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
   setWindowTitle(tr("FOEDAG"));
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
+
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  m_showWelcomePage = !file.exists();  // Prevent welcome page from appearance
+                                       // if the file exists.
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -404,7 +410,7 @@ void MainWindow::createActions() {
 
 void MainWindow::gui_start(bool showWP) {
   ReShowWindow({});
-  if (showWP) showWelcomePage();
+  if (showWP && m_showWelcomePage) showWelcomePage();
 }
 
 void MainWindow::showWelcomePage() {
@@ -426,6 +432,7 @@ void MainWindow::showWelcomePage() {
   connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
           [&](bool permanently) {
             m_showWelcomePage = !permanently;
+            if (permanently) saveWelcomePageConfig();
             ReShowWindow({});
           });
   setCentralWidget(centralWidget);
@@ -676,4 +683,12 @@ void MainWindow::newDialogAccepted() {
   const QString strproject = newProjdialog->getProject();
   newProjectAction->setEnabled(false);
   ReShowWindow(strproject);
+}
+
+void MainWindow::saveWelcomePageConfig() {
+  // So far the only configuration is boolean, indicating whether welcome page
+  // should we shown. To store it we just save a file in a working directory -
+  // if it's there, we don't show the welcome page.
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  if (file.open(QIODevice::WriteOnly)) file.close();
 }
