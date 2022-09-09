@@ -436,6 +436,9 @@ void MainWindow::showWelcomePage() {
             ReShowWindow({});
           });
   setCentralWidget(centralWidget);
+
+  centralWidget->show();
+  centralWidget->setFocus();
 }
 
 void MainWindow::ReShowWindow(QString strProject) {
