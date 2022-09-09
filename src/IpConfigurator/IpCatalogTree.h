@@ -34,7 +34,6 @@ class IpCatalogTree : public QTreeWidget {
 
  private:
   QStringList prevIpCatalogResults;
-  bool ipsLoaded = false;
 
   QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
   void loadIps(const std::vector<std::filesystem::path>& paths);

@@ -99,9 +99,9 @@ class SParameter : public Value {
 
  private:
   std::string m_name;
-  std::string m_default = 0;
+  std::string m_default;
   bool m_useDefault = true;
-  std::string m_value = 0;
+  std::string m_value;
 };
 
 class Range {
