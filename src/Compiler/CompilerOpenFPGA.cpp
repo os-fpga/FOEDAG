@@ -140,6 +140,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
+  (*out) << "   analyze ?clean?            : Analyzes the RTL design, "
+            "generates top-level, pin and hierarchy information"
+         << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
