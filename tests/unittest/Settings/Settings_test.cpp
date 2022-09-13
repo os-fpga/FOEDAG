@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../src/Main/Settings.h"
 
+#include <QFile>
 #include <QStringList>
+#include <QTextStream>
 #include <fstream>
 
 #include "Main/Tasks.h"
@@ -43,8 +45,8 @@ TEST(Settings, LoadSettingsMergesJson) {
   // This implicitly tests Settings::loadJsonFile() which is used by
   // loadSettings() to load json files
 
-  QStringList files{"../tests/unittest/Settings/settings_loadJson_1.json",
-                    "../tests/unittest/Settings/settings_loadJson_2.json"};
+  QStringList files{":/Settings/settings_loadJson_1.json",
+                    ":/Settings/settings_loadJson_2.json"};
   test.loadSettings(files);
   json gold = R"(
     {
@@ -203,9 +205,14 @@ TEST(Settings, GetTclArgString) {
   // and DoubleSpinbox properly can read number values as well as only provide
   // an arg tag w/ no value when a checkbox is checked.
 
-  std::ifstream ifs(
-      "../tests/unittest/Settings/settings_tclExample_defaults.json");
-  json data = json::parse(ifs);
+  QString jsonStr{};
+  QFile file(":/Settings/settings_tclExample_defaults.json");
+  if (file.open(QFile::ReadOnly | QFile::Text)) {
+    QTextStream in(&file);
+    jsonStr = in.readAll();
+  }
+
+  json data = json::parse(jsonStr.toStdString());
   QString tclArgs = Settings::getTclArgString(data["Tasks"]["TclExample"]);
   QString expectedVals =
       " -double_spin_ex 2.5 -int_spin_ex1 2 -int_spin_ex2 3 "
@@ -226,8 +233,8 @@ TEST(Settings, TclValsInit) {
   auto [setter, getter] = FOEDAG::getTclArgFns("TclExample");
 
   // Load some default values w/ no userValues specified
-  test.loadSettings(QStringList{
-      "../tests/unittest/Settings/settings_tclExample_defaults.json"});
+  test.loadSettings(
+      QStringList{":/Settings/settings_tclExample_defaults.json"});
 
   // These pairs should match the "arg" and "default" fields of
   // settings_tclExample_defaults.json
@@ -244,8 +251,8 @@ TEST(Settings, TclValsInit) {
       << "Ensure the default TclExample values are reported";
 
   // Load json w/ "userValues" set to simulate saved user settings
-  test.loadSettings(QStringList{
-      "../tests/unittest/Settings/settings_tclExample_userVals.json"});
+  test.loadSettings(
+      QStringList{":/Settings/settings_tclExample_userVals.json"});
 
   // Now we expect the userValue's to be reported instead of default
   expectedVals =
