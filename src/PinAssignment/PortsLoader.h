@@ -30,7 +30,7 @@ class PortsLoader : public QObject {
  public:
   PortsLoader(PortsModel *model, QObject *parent = nullptr);
   virtual ~PortsLoader();
-  virtual bool load(const QString &file);
+  virtual std::pair<bool, QString> load(const QString &file);
 
  protected:
   PortsModel *m_model{nullptr};

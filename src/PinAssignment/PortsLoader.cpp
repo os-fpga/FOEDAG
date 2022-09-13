@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PortsLoader.h"
 
 #include <QFile>
-#include <iostream>
 
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
@@ -33,21 +32,23 @@ PortsLoader::PortsLoader(PortsModel *model, QObject *parent)
 
 PortsLoader::~PortsLoader() {}
 
-bool PortsLoader::load(const QString &file) {
-  if (!m_model) return false;
+std::pair<bool, QString> PortsLoader::load(const QString &file) {
+  if (!m_model) return std::make_pair(false, "Ports model is missing");
   QFile f{file};
-  if (!f.open(QFile::ReadOnly)) return false;
+  if (!f.exists())
+    return std::make_pair(false, QString("File %1 doesn't exist").arg(file));
+  if (!f.open(QFile::ReadOnly))
+    return std::make_pair(false, QString("Can't open file %1").arg(file));
 
   QString content = f.readAll();
   json jsonObject;
   try {
     jsonObject = json::parse(content.toStdString());
   } catch (json::parse_error &e) {
-    // output exception information
-    std::cerr << "Json Error: " << e.what() << '\n'
-              << "filePath: " << file.toStdString() << "\n"
-              << "byte position of error: " << e.byte << std::endl;
-    return false;
+    const QString error =
+        QString("Json Error: %1\nFile: %2\nByte position of error: %3")
+            .arg(e.what(), file, QString::number(e.byte));
+    return std::make_pair(false, error);
   }
   auto ports = jsonObject.at("Ports");
   IOPortGroup group;
@@ -65,7 +66,7 @@ bool PortsLoader::load(const QString &file) {
   }
   m_model->append(group);
   m_model->initListModel();
-  return true;
+  return std::make_pair(true, QString());
 }
 
 }  // namespace FOEDAG

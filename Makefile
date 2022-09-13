@@ -121,7 +121,13 @@ test-parallel: release test/unittest
 test/openfpga: run-cmake-release
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
+	./build/bin/foedag --batch --compiler openfpga --verific --script tests/Testcases/trivial_rtl/test_rtl.tcl
+	grep "verific -work lib2  -sv2012"  test_rtl/test_rtl.ys
+	grep "verific -L lib1 -L lib2 -import top"  test_rtl/test_rtl.ys
 	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/foedag --batch --compiler openfpga --script tests/Testcases/yosys_design_file/yosys_design_file.tcl
+	grep "read_verilog -sv -I"  yosys_design_file/yosys_design_file.ys
+	grep "read_verilog  -I"  yosys_design_file/yosys_design_file.ys
 
 test/openfpga_gui: run-cmake-release
 	./dbuild/bin/foedag --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
@@ -154,7 +160,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negetive.tcl && exit 1 || (echo "PASSED: Caught negative test")
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_foedag_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
@@ -180,6 +186,8 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
 	grep "Found IP: axis_converter_V1_0" foedag.log
 	grep "Found IP: axis_converter_V1_1" foedag.log
+	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
+	./build/bin/foedag --batch --script tests/Testcases/project_file/test.tcl
 
 	
 lib-only: run-cmake-release

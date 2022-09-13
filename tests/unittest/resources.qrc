@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>PinAssignment/Pin_Table.csv</file>
+        <file>PinAssignment/ports_test.json</file>
+    </qresource>
+</RCC>

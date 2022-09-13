@@ -18,25 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <QTreeWidget>
-#include <filesystem>
+#include "gtest/gtest.h"
+#include "PinAssignment/BufferedComboBox.h"
+#include <QStringListModel>
 
-namespace FOEDAG {
+using namespace FOEDAG;
 
-class IpCatalogTree : public QTreeWidget {
-  Q_OBJECT
+TEST(BufferedComboBox, Initialization) {
+  BufferedComboBox combo;
+  QStringListModel model;
+  model.setStringList({"test1", "test2", "test3"});
+  combo.setModel(&model);
+  EXPECT_EQ(combo.previousText(), QString());
+}
 
- public:
-  explicit IpCatalogTree(QWidget* parent = nullptr);
-  void refresh();
-
- private:
-  QStringList prevIpCatalogResults;
-
-  QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
-  void loadIps(const std::vector<std::filesystem::path>& paths);
-};
-
-}  // namespace FOEDAG
+TEST(BufferedComboBox, PreviousText) {
+  BufferedComboBox combo;
+  QStringListModel model;
+  model.setStringList({"test1", "test2", "test3"});
+  combo.setModel(&model);
+  combo.setCurrentIndex(1);
+  EXPECT_EQ(combo.previousText(), "test1");
+  combo.setCurrentIndex(2);
+  EXPECT_EQ(combo.previousText(), "test2");
+}

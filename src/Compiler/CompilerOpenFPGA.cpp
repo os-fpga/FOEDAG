@@ -140,6 +140,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
+  (*out) << "   analyze ?clean?            : Analyzes the RTL design, "
+            "generates top-level, pin and hierarchy information"
+         << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
@@ -446,7 +449,16 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify a device size: xXy");
       return TCL_ERROR;
     }
-    compiler->DeviceSize(argv[1]);
+
+    const std::string deviceSize{argv[1]};
+
+    if (const auto& [res, errorMsg] = compiler->IsDeviceSizeCorrect(deviceSize);
+        !res) {
+      compiler->ErrorMessage(errorMsg);
+      return TCL_ERROR;
+    }
+
+    compiler->DeviceSize(deviceSize);
     return TCL_OK;
   };
   interp->registerCmd("set_device_size", set_device_size, this, 0);
@@ -533,6 +545,36 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   return true;
 }
 
+std::pair<bool, std::string> CompilerOpenFPGA::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  if (m_architectureFile.empty())
+    return std::make_pair(false,
+                          "Please specify target device or architecture file.");
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::filesystem::path devicefile = datapath / "etc" / m_architectureFile;
+  QFile file(devicefile.string().c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    return std::make_pair(false,
+                          "Cannot open device file: " + devicefile.string());
+  }
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    return std::make_pair(false,
+                          "Incorrect device file: " + devicefile.string());
+  }
+  file.close();
+  auto fixedLayout = doc.elementsByTagName("fixed_layout");
+  if (fixedLayout.isEmpty())
+    return std::make_pair(false, "Architecture file: fixed_layout is missing");
+  for (int i = 0; i < fixedLayout.count(); i++) {
+    auto node = fixedLayout.at(i).toElement();
+    if (node.attribute("name").toStdString() == size)
+      return std::make_pair(true, std::string{});
+  }
+  return std::make_pair(false, std::string{"Device size is not correct"});
+}
+
 bool CompilerOpenFPGA::VerifyTargetDevice() const {
   const bool target = Compiler::VerifyTargetDevice();
   const bool archFile = FileUtils::FileExists(m_architectureFile);
@@ -542,6 +584,10 @@ bool CompilerOpenFPGA::VerifyTargetDevice() const {
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   PERF_LOG("IPGenerate has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
@@ -977,6 +1023,15 @@ bool CompilerOpenFPGA::Synthesize() {
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
+
+    for (const auto& commandLib : ProjManager()->DesignLibraries()) {
+      if (!commandLib.first.empty()) {
+        ErrorMessage(
+            "Yosys default parser doesn't support '-work' and '-L' design file "
+            "commands!");
+        break;
+      }
+    }
     std::string macros = "verilog_defines ";
     for (auto& macro_value : ProjManager()->macroList()) {
       macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
@@ -986,14 +1041,15 @@ bool CompilerOpenFPGA::Synthesize() {
     for (auto path : ProjManager()->includePathList()) {
       includes += "-I" + path + " ";
     }
-    yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
-                             macros +
-                                 "read_verilog ${READ_VERILOG_OPTIONS} "
-                                 "${INCLUDE_PATHS} ${VERILOG_FILES}");
-    std::string fileList;
-    std::string lang;
+
+    std::string designFiles;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      fileList += lang_file.second + " ";
+      std::string filesScript =
+          "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
+          "${VERILOG_FILES}";
+      std::string lang;
+
+      auto files = lang_file.second + " ";
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
@@ -1016,12 +1072,14 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported language (Yosys default parser)!");
           break;
       }
-    }
-    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
-    std::string options = lang;
+      filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
+      filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
+      filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
 
-    yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
-    yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
+      designFiles += filesScript + "\n";
+    }
+    yosysScript =
+        ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",

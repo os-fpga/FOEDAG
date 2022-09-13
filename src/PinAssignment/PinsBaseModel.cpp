@@ -25,9 +25,10 @@ namespace FOEDAG {
 PinsBaseModel::PinsBaseModel() {}
 
 bool PinsBaseModel::exists(const QString &port, const QString &pin) const {
-  return m_pinsMap.contains(port) &&
-         std::find(m_pinsMap.constBegin(), m_pinsMap.constEnd(), pin) !=
-             m_pinsMap.constEnd();
+  for (auto it = m_pinsMap.constBegin(); it != m_pinsMap.constEnd(); ++it) {
+    if (it.key() == port && it.value() == pin) return true;
+  }
+  return false;
 }
 
 void PinsBaseModel::insert(const QString &port, const QString &pin) {

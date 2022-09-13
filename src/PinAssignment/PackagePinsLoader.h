@@ -33,7 +33,7 @@ class PackagePinsLoader : public QObject {
  public:
   PackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
   virtual ~PackagePinsLoader();
-  virtual bool load(const QString &fileName);
+  virtual std::pair<bool, QString> load(const QString &fileName);
 
  protected:
   PackagePinsModel *m_model{nullptr};

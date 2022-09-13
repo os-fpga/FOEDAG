@@ -18,25 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <QTreeWidget>
-#include <filesystem>
+#include "PinAssignment/PinsBaseModel.h"
 
-namespace FOEDAG {
+#include "gtest/gtest.h"
+using namespace FOEDAG;
 
-class IpCatalogTree : public QTreeWidget {
-  Q_OBJECT
+TEST(PinsBaseModel, PinMap) {
+  PinsBaseModel model;
+  model.insert("port1", "pin1");
+  model.insert("port2", "pin2");
+  QMap<QString, QString> expectedMap{{"port1", "pin1"}, {"port2", "pin2"}};
+  QMap<QString, QString> actualMap = model.pinMap();
+  EXPECT_EQ(actualMap, expectedMap);
+}
 
- public:
-  explicit IpCatalogTree(QWidget* parent = nullptr);
-  void refresh();
+TEST(PinsBaseModel, Exists) {
+  PinsBaseModel model;
+  model.insert("port1", "pin1");
+  model.insert("port2", "pin2");
+  EXPECT_EQ(model.exists("port2", "pin2"), true);
+  EXPECT_EQ(model.exists("port1", "pin1"), true);
 
- private:
-  QStringList prevIpCatalogResults;
-
-  QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
-  void loadIps(const std::vector<std::filesystem::path>& paths);
-};
-
-}  // namespace FOEDAG
+  EXPECT_EQ(model.exists("port2", "pin1"), false);
+  EXPECT_EQ(model.exists("port1", "pin2"), false);
+}

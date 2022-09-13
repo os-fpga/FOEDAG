@@ -56,11 +56,16 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
+
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
-  setWindowTitle(tr("FOEDAG"));
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
+
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  m_showWelcomePage = !file.exists();  // Prevent welcome page from appearance
+                                       // if the file exists.
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -131,6 +136,17 @@ void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
 
 ProjectInfo MainWindow::Info() const { return m_projectInfo; }
 
+void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
+                                QString& projectInfo) {
+  if (project.isEmpty())
+    setWindowTitle(projectInfo);
+  else if (filename.isEmpty()) {
+    setWindowTitle(QString("%1 - %2").arg(project, projectInfo));
+  } else {
+    setWindowTitle(QString("%1 - %2 - %3").arg(filename, project, projectInfo));
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -177,7 +193,8 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(m_projectInfo.name + " - " + design);
+  const QFileInfo path(design);
+  SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
 }
@@ -304,7 +321,8 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::showToolbars(bool show) {
+void MainWindow::showMenus(bool show) {
+  menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
 }
@@ -403,7 +421,7 @@ void MainWindow::createActions() {
 
 void MainWindow::gui_start(bool showWP) {
   ReShowWindow({});
-  if (showWP) showWelcomePage();
+  if (showWP && m_showWelcomePage) showWelcomePage();
 }
 
 void MainWindow::showWelcomePage() {
@@ -411,7 +429,7 @@ void MainWindow::showWelcomePage() {
   takeCentralWidget()->hide();  // we can't delete it because of singleton
 
   newDesignCreated({});
-  showToolbars(false);
+  showMenus(false);
 
   auto exeName =
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
@@ -425,9 +443,13 @@ void MainWindow::showWelcomePage() {
   connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
           [&](bool permanently) {
             m_showWelcomePage = !permanently;
+            if (permanently) saveWelcomePageConfig();
             ReShowWindow({});
           });
   setCentralWidget(centralWidget);
+
+  centralWidget->show();
+  centralWidget->setFocus();
 }
 
 void MainWindow::ReShowWindow(QString strProject) {
@@ -436,7 +458,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   newDesignCreated(strProject);
 
-  showToolbars(true);
+  showMenus(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -451,11 +473,10 @@ void MainWindow::ReShowWindow(QString strProject) {
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
 
   delete m_projectFileLoader;
-  m_projectFileLoader = new ProjectFileLoader;
+  m_projectFileLoader = new ProjectFileLoader{Project::Instance()};
   m_projectFileLoader->registerComponent(
-      new ProjectManagerComponent{sourcesForm->ProjManager()});
-  connect(Project::Instance(), &Project::saveFile, m_projectFileLoader,
-          &ProjectFileLoader::Save);
+      new ProjectManagerComponent{sourcesForm->ProjManager()},
+      ComponentId::ProjectManager);
   reloadSettings();  // This needs to be after
                      // sourForm->InitSourcesForm(strProject); so the project
                      // info exists
@@ -474,11 +495,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
-
   connect(sourcesForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
+
+  connect(TextEditorForm::Instance()->GetTabWidget(),
+          SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
 
   QWidget* centralWidget = new QWidget(this);
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, centralWidget);
@@ -553,11 +576,12 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
-      new TaskManagerComponent{m_taskManager});
-  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
+      new TaskManagerComponent{m_taskManager}, ComponentId::TaskManager);
+  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
+                                         ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
   taskDockWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDockWidget);
+  addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -675,4 +699,18 @@ void MainWindow::newDialogAccepted() {
   const QString strproject = newProjdialog->getProject();
   newProjectAction->setEnabled(false);
   ReShowWindow(strproject);
+}
+
+void MainWindow::slotTabChanged(int index) {
+  QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
+  SetWindowTitle((index == -1) ? QString() : strName,
+                 m_projectManager->getProjectName(), m_projectInfo.name);
+}
+
+void MainWindow::saveWelcomePageConfig() {
+  // So far the only configuration is boolean, indicating whether welcome page
+  // should we shown. To store it we just save a file in a working directory -
+  // if it's there, we don't show the welcome page.
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  if (file.open(QIODevice::WriteOnly)) file.close();
 }
