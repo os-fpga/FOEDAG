@@ -568,7 +568,7 @@ void MainWindow::ReShowWindow(QString strProject) {
                                          ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
   taskDockWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDockWidget);
+  addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
