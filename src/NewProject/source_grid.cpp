@@ -1,5 +1,6 @@
 #include "source_grid.h"
 
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
@@ -148,20 +149,30 @@ void sourceGrid::AddFiles() {
 }
 
 void sourceGrid::AddDirectories() {
-  QString folder = QFileDialog::getExistingDirectory(
+  auto folder = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  QDir findFiles = folder;
-  QStringList files =
-      findFiles.entryList({"*.v", "*.sv", "*.vhd"}, QDir::Files);
-  foreach (QString fileName, files) {
-    QString suffix =
+
+  if (folder.isEmpty())  // The dialog was cancelled
+    return;
+  auto it = QDirIterator(folder, {"*.v", "*.sv", "*.vhd"}, QDir::NoFilter,
+                         QDirIterator::Subdirectories);
+  auto files =
+      std::vector<std::pair<QString, QString>>{};  // File names with directory
+                                                   // full paths
+  while (it.hasNext()) {
+    it.next();
+    files.emplace_back(it.fileName(), it.filePath());
+  }
+
+  for (auto &[fileName, filePath] : files) {
+    auto suffix =
         fileName.right(fileName.size() - (fileName.lastIndexOf(".") + 1));
     filedata fdata;
     fdata.m_isFolder = false;
     fdata.m_fileType = suffix;
     fdata.m_fileName = fileName;
-    fdata.m_filePath = folder;
+    fdata.m_filePath = filePath;
     AddTableItem(fdata);
   }
 }
