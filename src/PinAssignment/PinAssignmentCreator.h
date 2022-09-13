@@ -37,6 +37,13 @@ class PinAssignmentCreator : public QObject {
   QString generateSdc() const;
   PinsBaseModel *baseModel() const;
 
+  /*!
+   * \brief searchPortsFile
+   * Search file 'port_info.json' in path \param projectPath.
+   * \return full path to the file if it exists otherwise return empty string
+   */
+  static QString searchPortsFile(const QString &projectPath);
+
  signals:
   void selectionHasChanged();
 
@@ -45,7 +52,6 @@ class PinAssignmentCreator : public QObject {
   QString searchCsvFile(const QString &targetDevice,
                         ToolContext *context) const;
   QString targetDevice(ProjectManager *projectManager) const;
-  QString searchPortsFile(ToolContext *context) const;
 
  private:
   QWidget *m_portsView{nullptr};

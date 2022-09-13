@@ -40,7 +40,7 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
     : QObject(parent) {
   PortsModel *portsModel = new PortsModel{this};
   PortsLoader portsLoader{portsModel, this};
-  portsLoader.load(searchPortsFile(context));
+  portsLoader.load(searchPortsFile(projectManager->getProjectPath()));
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile(targetDevice(projectManager), context);
   PackagePinsLoader loader{packagePinModel, this};
@@ -106,13 +106,12 @@ QString PinAssignmentCreator::targetDevice(
   return QString::fromStdString(projectManager->getTargetDevice());
 }
 
-QString PinAssignmentCreator::searchPortsFile(ToolContext *context) const {
-  // TODO @volodymyrk GEMINIEDA-229. The path will be changed after this ticket
-  std::filesystem::path path{context->DataPath()};
-  path = path / "etc" / "templates";
-
-  QDir dir{path.string().c_str()};
-  return dir.filePath("ports_test.json");
+QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
+  const QDir dir{projectPath};
+  auto file = dir.filePath("port_info.json");
+  const QFileInfo fileInfo{file};
+  if (fileInfo.exists()) return file;
+  return QString();
 }
 
 PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }

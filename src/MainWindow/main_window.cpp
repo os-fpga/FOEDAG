@@ -657,6 +657,18 @@ void MainWindow::saveActionTriggered() {
 
 void MainWindow::pinAssignmentActionTriggered() {
   if (pinAssignmentAction->isChecked()) {
+    if (PinAssignmentCreator::searchPortsFile(
+            m_projectManager->getProjectPath())
+            .isEmpty()) {
+      auto res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(), "analyze");
+      if (res != TCL_OK) {
+        QMessageBox::critical(this, "'analyze' command failed",
+                              "Please read console logs for 'analyze' above");
+        pinAssignmentAction->setChecked(false);
+        return;
+      }
+    }
+
     PinAssignmentCreator* creator = new PinAssignmentCreator{
         m_projectManager, GlobalSession->Context(), this};
     connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
