@@ -60,7 +60,6 @@ const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
 
 MainWindow::MainWindow(Session* session) : m_session(session) {
   /* Window settings */
-  setWindowTitle(tr("FOEDAG"));
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
 
@@ -137,6 +136,17 @@ void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
 
 ProjectInfo MainWindow::Info() const { return m_projectInfo; }
 
+void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
+                                QString& projectInfo) {
+  if (project.isEmpty())
+    setWindowTitle(projectInfo);
+  else if (filename.isEmpty()) {
+    setWindowTitle(QString("%1 - %2").arg(project, projectInfo));
+  } else {
+    setWindowTitle(QString("%1 - %2 - %3").arg(filename, project, projectInfo));
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -183,7 +193,8 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(m_projectInfo.name + " - " + design);
+  const QFileInfo path(design);
+  SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
 }
@@ -484,11 +495,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
-
   connect(sourcesForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
+
+  connect(TextEditorForm::Instance()->GetTabWidget(),
+          SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
 
   QWidget* centralWidget = new QWidget(this);
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, centralWidget);
@@ -568,7 +581,7 @@ void MainWindow::ReShowWindow(QString strProject) {
                                          ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
   taskDockWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDockWidget);
+  addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -686,6 +699,12 @@ void MainWindow::newDialogAccepted() {
   const QString strproject = newProjdialog->getProject();
   newProjectAction->setEnabled(false);
   ReShowWindow(strproject);
+}
+
+void MainWindow::slotTabChanged(int index) {
+  QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
+  SetWindowTitle((index == -1) ? QString() : strName,
+                 m_projectManager->getProjectName(), m_projectInfo.name);
 }
 
 void MainWindow::saveWelcomePageConfig() {
