@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
 #include "TopLevelInterface.h"
-
 class QAction;
 class QLabel;
 
@@ -47,6 +46,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   newProjectDialog* NewProjectDialog() { return newProjdialog; }
   void Info(const ProjectInfo& info);
   ProjectInfo Info() const;
+  void SetWindowTitle(const QString& filename, const QString& project,
+                      QString& projectInfo);
 
  private slots: /* slots */
   void newFile();
@@ -61,6 +62,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
   void newDialogAccepted();
+
+  void slotTabChanged(int index);
 
  private: /* Menu bar builders */
   void createMenus();
