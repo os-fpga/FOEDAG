@@ -72,6 +72,7 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   expandItem(topLevel);
   setAlternatingRowColors(true);
   setColumnWidth(PortName, 120);
+  resizeColumnToContents(PackagePinCol);
 }
 
 void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {

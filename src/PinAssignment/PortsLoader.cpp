@@ -50,21 +50,23 @@ std::pair<bool, QString> PortsLoader::load(const QString &file) {
             .arg(e.what(), file, QString::number(e.byte));
     return std::make_pair(false, error);
   }
-  auto ports = jsonObject.at("Ports");
-  IOPortGroup group;
-  for (const auto &p : ports) {
-    const auto range = p["range"];
-    const int msb = range["msb"];
-    const int lsb = range["lsb"];
+  for (auto p{jsonObject.cbegin()}; p != jsonObject.cend(); ++p) {
+    IOPortGroup group;
+    auto ports = p->at("ports");
+    for (auto it{ports.cbegin()}; it != ports.cend(); ++it) {
+      const auto range = it->at("range");
+      const int msb = range["msb"];
+      const int lsb = range["lsb"];
 
-    const IOPort ioport{QString::fromStdString(p["name"]),
-                        QString::fromStdString(p["direction"]), QString(),
-                        QString::fromStdString(p["type"]),
-                        QString("Msb: %1, lsb: %2")
-                            .arg(QString::number(msb), QString::number(lsb))};
-    group.ports.append(ioport);
+      const IOPort ioport{QString::fromStdString(it->at("name")),
+                          QString::fromStdString(it->at("direction")),
+                          QString(), QString::fromStdString(it->at("type")),
+                          QString("Msb: %1, lsb: %2")
+                              .arg(QString::number(msb), QString::number(lsb))};
+      group.ports.append(ioport);
+    }
+    m_model->append(group);
   }
-  m_model->append(group);
   m_model->initListModel();
   return std::make_pair(true, QString());
 }
