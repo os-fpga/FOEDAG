@@ -46,3 +46,9 @@ TEST(PinAssignmentCreator, GetPortsWidget) {
   PinAssignmentCreator creator{new ProjectManager, new ToolContext("", "", "")};
   EXPECT_NE(creator.GetPortsWidget(), nullptr);
 }
+
+TEST(PinAssignmentCreator, SearchPortsFileEmptyFile) {
+  auto file = PinAssignmentCreator::searchPortsFile(
+      QString::fromStdString(std::filesystem::current_path().string()));
+  EXPECT_EQ(file, QString());
+}
