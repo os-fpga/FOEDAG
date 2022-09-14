@@ -33,6 +33,8 @@ struct IOPort {
   QString packagePin;
   QString type;
   QString range;
+  bool isBus;
+  QVector<IOPort> ports;
 };
 
 struct IOPortGroup {
