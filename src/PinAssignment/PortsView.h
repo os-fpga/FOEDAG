@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class QComboBox;
 namespace FOEDAG {
 
+struct IOPort;
 class PortsView : public PinAssignmentBaseView {
   Q_OBJECT
  public:
@@ -35,6 +36,7 @@ class PortsView : public PinAssignmentBaseView {
 
  private:
   void packagePinSelectionHasChanged(const QModelIndex &index);
+  void insertTableItem(QTreeWidgetItem *parent, const IOPort &port);
 
  private slots:
   void itemHasChanged(const QModelIndex &index, const QString &pin);
