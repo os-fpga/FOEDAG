@@ -931,9 +931,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -1180,9 +1178,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
