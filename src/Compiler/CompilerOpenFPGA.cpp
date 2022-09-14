@@ -1950,20 +1950,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                << " bitstream is not enabled, skipping!" << std::endl;
       return true;
     }
-#else
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " bitstream is skipped, use \"bitstream force\" to generate!"
-             << std::endl;
-    return true;
 #endif
   } else if (BitsOpt() == BitstreamOpt::Force) {
-#ifdef PRODUCTION_BUILD
-    if (BitstreamEnabled() == false) {
-      (*m_out) << "Device " << ProjManager()->getTargetDevice()
-               << " bitstream is not enabled, skipping!" << std::endl;
-      return true;
-    }
-#endif
+    // Force bitstream generation
   }
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
