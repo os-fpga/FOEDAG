@@ -1,0 +1,31 @@
+{
+    "Tasks": {
+        "TclExample": {
+            "double_spinbox_ex": {
+                "userValue": 4.5
+            },
+            "int_spinbox_ex": {
+                "userValue": 4
+            },
+            "int_spinbox_ex_double_truncate": {
+                "userValue": 4.5,
+                "arg": "int_spin_ex2"
+            },
+            "radiobuttons_horiz_ex": {
+                "userValue": "b1"
+            },
+            "checkbox_ex_checked": {
+                "userValue": "unchecked"
+            },
+            "checkbox_ex_unchecked": {
+                "userValue": "checked"
+            },
+            "dropdown_ex": {
+                "userValue": "option1"
+            },
+            "input_ex_1": {
+                "userValue": "new_text"
+            }
+        }
+    }
+}

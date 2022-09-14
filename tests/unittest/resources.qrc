@@ -2,5 +2,9 @@
     <qresource prefix="/">
         <file>PinAssignment/Pin_Table.csv</file>
         <file>PinAssignment/ports_test.json</file>
+        <file>Settings/settings_loadJson_1.json</file>
+        <file>Settings/settings_loadJson_2.json</file>
+        <file>Settings/settings_tclExample_defaults.json</file>
+        <file>Settings/settings_tclExample_userVals.json</file>
     </qresource>
 </RCC>

@@ -1,0 +1,11 @@
+{
+    "Nested1": {
+        "Nested2": {
+            "TestCategory": {
+                "_META_": {
+                    "metaValue2": 2
+                }
+            }
+        }
+    }
+}
