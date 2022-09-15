@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QDialog>
-
+#include <filesystem>
 namespace FOEDAG {
 
 struct ProjectInfo {
@@ -35,10 +35,13 @@ struct ProjectInfo {
 
 class AboutWidget : public QDialog {
  public:
-  explicit AboutWidget(const ProjectInfo &info, QWidget *parent = nullptr);
+  explicit AboutWidget(const ProjectInfo &info,
+                       const std::filesystem::path &srcPath,
+                       QWidget *parent = nullptr);
 
  private:
   static QString License();
+  static QString getTagLine(const std::filesystem::path &srcDir);
 };
 
 }  // namespace FOEDAG
