@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QFile>
 
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
+
 namespace FOEDAG {
 
 PackagePinsLoader::PackagePinsLoader(PackagePinsModel *model, QObject *parent)
@@ -30,16 +33,9 @@ PackagePinsLoader::PackagePinsLoader(PackagePinsModel *model, QObject *parent)
 PackagePinsLoader::~PackagePinsLoader() {}
 
 std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
-  if (!m_model) return std::make_pair(false, "Ports model is missing");
+  const auto &[success, content] = getFileContent(fileName);
+  if (!success) return std::make_pair(success, content);
 
-  QFile file{fileName};
-  if (!file.exists())
-    return std::make_pair(false,
-                          QString("File %1 doesn't exist").arg(fileName));
-  if (!file.open(QFile::ReadOnly))
-    return std::make_pair(false, QString("Can't open file %1").arg(fileName));
-
-  QString content = file.readAll();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
   QStringList lines = content.split("\n", Qt::SkipEmptyParts);
 #else
@@ -67,6 +63,46 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
   m_model->initListModel();
 
   return std::make_pair(true, QString());
+}
+
+std::pair<bool, QString> PackagePinsLoader::loadHeader(
+    const QString &fileName) {
+  const auto &[success, content] = getFileContent(fileName);
+  if (!success) return std::make_pair(success, content);
+
+  json jsonObject;
+  try {
+    jsonObject = json::parse(content.toStdString());
+  } catch (json::parse_error &e) {
+    const QString error =
+        QString("Json Error: %1\nFile: %2\nByte position of error: %3")
+            .arg(e.what(), fileName, QString::number(e.byte));
+    return std::make_pair(false, error);
+  }
+  auto columns = jsonObject.at("table");
+  for (const auto &c : columns) {
+    int id = c.at("colmumnid");
+    bool visible = c.at("visible");
+    const HeaderData header{QString::fromStdString(c.at("name")),
+                            QString::fromStdString(c.at("description")), id,
+                            visible};
+    m_model->appendHeaderData(header);
+  }
+
+  return std::make_pair(true, QString());
+}
+
+std::pair<bool, QString> PackagePinsLoader::getFileContent(
+    const QString &fileName) const {
+  if (!m_model) return std::make_pair(false, "Package pin model is missing");
+  QFile file{fileName};
+  if (!file.exists())
+    return std::make_pair(false,
+                          QString("File %1 doesn't exist").arg(fileName));
+  if (!file.open(QFile::ReadOnly))
+    return std::make_pair(false, QString("Can't open file %1").arg(fileName));
+
+  return std::make_pair(true, file.readAll());
 }
 
 }  // namespace FOEDAG
