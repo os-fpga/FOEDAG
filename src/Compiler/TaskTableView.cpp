@@ -26,7 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 #include <QMenu>
 #include <QPushButton>
-#include <QScrollBar>
 
 #include "TaskManager.h"
 
