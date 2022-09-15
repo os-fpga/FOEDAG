@@ -25,10 +25,10 @@ namespace FOEDAG {
 PackagePinsModel::PackagePinsModel(QObject *parent)
     : QObject(parent), m_listModel(new QStringListModel) {}
 
-QStringList PackagePinsModel::headerList() const {
-  return {"Name", "Available",  "Ports",     "Ref clock",   "Bank",
-          "ALT",  "Debug mode", "Scan mode", "Mbist mode",  "Type",
-          "Dir",  "Voltage",    "Power Pad", "Discription", "Voltage2"};
+const QVector<HeaderData> &PackagePinsModel::header() const { return m_header; }
+
+void PackagePinsModel::appendHeaderData(const HeaderData &h) {
+  m_header.append(h);
 }
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }

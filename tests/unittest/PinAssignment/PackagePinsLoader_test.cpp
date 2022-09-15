@@ -39,6 +39,21 @@ TEST(PackagePinsLoader, LoadGeneral) {
   EXPECT_EQ(model.pinData().count(), 3);
 }
 
+TEST(PackagePinsLoader, LoadNoModel) {
+  PackagePinsLoader loader{nullptr};
+  auto [res, error] = loader.load(":/PinAssignment/Pin_Table.csv");
+  EXPECT_EQ(res, false);
+  EXPECT_NE(error, QString());
+}
+
+TEST(PackagePinsLoader, LoadWrongFilePath) {
+  PackagePinsModel model;
+  PackagePinsLoader loader{&model};
+  auto [res, error] = loader.load("wrong/path/file.csv");
+  EXPECT_EQ(res, false);
+  EXPECT_NE(error, QString());
+}
+
 TEST(PackagePinsLoader, LoadAllPins) {
   PackagePinsModel model;
   PackagePinsLoader loader{&model};
@@ -74,4 +89,36 @@ TEST(PackagePinsLoader, LoadAllPins) {
   EXPECT_EQ(bank2.pinData.at(0).data.at(BallName), "A7");
   EXPECT_EQ(bank2.pinData.at(1).data.at(PinName), "A8");
   EXPECT_EQ(bank2.pinData.at(1).data.at(BallName), "A8");
+}
+
+TEST(PackagePinsLoader, LoadHeaderGeneral) {
+  PackagePinsModel model;
+  PackagePinsLoader loader{&model};
+  auto [res, error] =
+      loader.loadHeader(":/PinAssignment/package_pin_info.json");
+  EXPECT_EQ(res, true) << error.toStdString();
+
+  auto header = model.header();
+  EXPECT_EQ(header.size(), 15);
+  // check random column
+  auto col0 = header.at(0);
+  EXPECT_EQ(col0.name, "Name");
+  EXPECT_EQ(col0.id, 0);
+  EXPECT_EQ(col0.visible, true);
+  EXPECT_NE(col0.description, QString());
+}
+
+TEST(PackagePinsLoader, LoadHeaderNoModel) {
+  PackagePinsLoader loader{nullptr};
+  auto [res, error] = loader.loadHeader(":/PinAssignment/Pin_Table.csv");
+  EXPECT_EQ(res, false);
+  EXPECT_NE(error, QString());
+}
+
+TEST(PackagePinsLoader, LoadHeaderWrongFilePath) {
+  PackagePinsModel model;
+  PackagePinsLoader loader{&model};
+  auto [res, error] = loader.loadHeader("wrong/path/file.csv");
+  EXPECT_EQ(res, false);
+  EXPECT_NE(error, QString());
 }
