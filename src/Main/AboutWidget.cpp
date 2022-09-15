@@ -21,25 +21,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AboutWidget.h"
 
 #include <QDesktopServices>
+#include <QFile>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QUrl>
 
 namespace FOEDAG {
+static const auto ETC_DIR = "etc";
+static const auto WELCOME_PAGE_DIR = "Welcome_Page";
+static const auto DESCRIPTION_FILENAME = "WelcomeDescription.txt";
 
-AboutWidget::AboutWidget(const ProjectInfo &info, QWidget *parent)
+AboutWidget::AboutWidget(const ProjectInfo &info,
+                         const std::filesystem::path &srcPath, QWidget *parent)
     : QDialog{parent} {
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
   QString text = QString(
                      "<p><b>%1 %2</b></p>"
-                     "<p>Build on %3</p>"
+                     "<p><b>%3</b></p>"
+                     "<p>Build on %4</p>"
                      "<p>From revision <a "
-                     "href=\"%4%5\">%5</a></p>"
-                     "<p>Build type: %6</p>")
-                     .arg(info.name, info.version, __DATE__, info.url,
-                          info.git_hash, info.build_type);
+                     "href=\"%5%6\">%6</a></p>"
+                     "<p>Build type: %7</p>")
+                     .arg(info.name, info.version, getTagLine(srcPath),
+                          __DATE__, info.url, info.git_hash, info.build_type);
   if (info.showLicense) {
     text += QString("<p>%1</p>").arg(License());
   }
@@ -84,6 +90,20 @@ GNU General Public License for more details.</p>
 along with this program.  If not, see <a>http://www.gnu.org/licenses/</a>.</p>
 )";
   return license;
+}
+
+QString AboutWidget::getTagLine(const std::filesystem::path &srcDir) {
+  std::filesystem::path sourceDir = srcDir / ETC_DIR / WELCOME_PAGE_DIR;
+  auto result = QString{};
+
+  std::filesystem::path welcomeDescPath = sourceDir / DESCRIPTION_FILENAME;
+  auto descFile = QFile(QString::fromStdString(welcomeDescPath.string()));
+  if (!descFile.open(QIODevice::ReadOnly)) return result;
+
+  result = descFile.readAll();
+  descFile.close();
+
+  return result.trimmed();
 }
 
 }  // namespace FOEDAG
