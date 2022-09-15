@@ -22,13 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IPGenerate/IPGenerator.h"
 
 #include "Compiler/Compiler.h"
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-using ::testing::ElementsAre;
-
 namespace FOEDAG {
-namespace {
 
 TEST(IPGenerate, IpInstanceDupes) {
   // The goal of this test is to ensure that IPInstances are unique by
@@ -96,5 +92,4 @@ TEST(IPGenerate, IpInstanceDupes) {
       << "Ensure the IPInstances count is now 2 ";
 }
 
-}  // namespace
 }  // namespace FOEDAG

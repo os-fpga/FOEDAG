@@ -142,6 +142,8 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
     // Update the Ip Instances in the source tree
     MainWindow* win = qobject_cast<MainWindow*>(GlobalSession->MainWindow());
     if (win) {
+      // TODO @skyler-rs Sept2022 change this to a slot/signal implementation
+      // once this dlg is changed to a dock widget in the next sprint
       win->updateSourceTree();
     }
   });

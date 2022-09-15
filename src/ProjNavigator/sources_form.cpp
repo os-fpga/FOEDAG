@@ -600,19 +600,22 @@ void SourcesForm::CreateFolderHierachyTree() {
   topitemIpInstances->setData(0, Qt::WhatsThisPropertyRole,
                               SRC_TREE_IP_TOP_ITEM);
 
-  auto ipGen = GlobalSession->GetCompiler()->GetIPGenerator();
+  Compiler *compiler = nullptr;
+  IPGenerator *ipGen = nullptr;
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    iFileSum = 0;
+    QTreeWidgetItem *ipParentItem{topitemIpInstances};
+    for (auto instance : ipGen->IPInstances()) {
+      QString str = QString::fromStdString(instance->ModuleName());
 
-  iFileSum = 0;
-  QTreeWidgetItem *ipParentItem{topitemIpInstances};
-  for (auto instance : ipGen->IPInstances()) {
-    QString str = QString::fromStdString(instance->IPName());
+      QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
+      itemf->setText(0, str);
+      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
+      itemf->setData(0, SetFileDataRole, str);
 
-    QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
-    itemf->setText(0, str);
-    itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
-    itemf->setData(0, SetFileDataRole, str);
-
-    iFileSum += 1;
+      iFileSum += 1;
+    }
   }
   topitemIpInstances->setText(
       0, tr("IP Instances") + QString("(%1)").arg(iFileSum));
