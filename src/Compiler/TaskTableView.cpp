@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 #include <QMenu>
 #include <QPushButton>
+#include <QScrollBar>
 
 #include "TaskManager.h"
 
@@ -42,7 +43,8 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
   setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
   connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
-    setEnabled(m_taskManager->status() != TaskStatus::InProgress);
+    m_viewDisabled = m_taskManager->status() == TaskStatus::InProgress;
+    viewport()->setEnabled(!m_viewDisabled);
   });
   initializeResources();
 }
@@ -60,6 +62,9 @@ void TaskTableView::mousePressEvent(QMouseEvent *event) {
 }
 
 void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
+  // We only disabled the viewport in order to have scrollbar enabled.
+  // Mouse events keep on coming in this case though, so we catch them manually.
+  if (m_viewDisabled) return;
   auto idx = indexAt(event->pos());
   if (idx.isValid() && (idx.column() == TitleCol) &&
       !expandArea(idx).contains(event->pos())) {
@@ -91,6 +96,9 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
 }
 
 void TaskTableView::customMenuRequested(const QPoint &pos) {
+  // We only disabled the viewport in order to have scrollbar enabled.
+  // Mouse events keep on coming in this case though, so we catch them manually.
+  if (m_viewDisabled) return;
   QModelIndex index = indexAt(pos);
   if (index.column() == TitleCol) {
     auto task = m_taskManager->task(model()->data(index, TaskId).toUInt());

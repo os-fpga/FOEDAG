@@ -71,5 +71,7 @@ class TaskTableView : public QTableView {
  private:
   TaskManager *m_taskManager{nullptr};
   static constexpr uint TitleCol{1};
+  bool m_viewDisabled{
+      false};  // Indicates that view is disabled and shouldn't be interactive
 };
 }  // namespace FOEDAG
