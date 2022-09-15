@@ -291,9 +291,7 @@ void SourcesForm::SlotRemoveFile() {
            "will not be removed from the disk. It can be added back to the "
            "project afterwards.")
             .arg(strFileName);
-    if (QMessageBox::question(this, tr("Remove file"), questionStr) ==
-        QMessageBox::No)
-      return;
+    if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
     m_projManager->setCurrentFileSet(fileSet.toString());
     int ret = m_projManager->deleteFile(strFileName);
     if (0 == ret) {
