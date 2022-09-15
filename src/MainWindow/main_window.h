@@ -48,6 +48,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   ProjectInfo Info() const;
   void SetWindowTitle(const QString& filename, const QString& project,
                       QString& projectInfo);
+  void CloseOpenedTabs();
 
  private slots: /* slots */
   void newFile();
