@@ -33,6 +33,7 @@ set (CPP_LIST
     PinAssignment/PortsLoader_test.cpp
     PinAssignment/PackagePinsLoader_test.cpp
     Settings/Settings_test.cpp
+    IPGenerator/IPGenerator_test.cpp
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} resources.qrc)

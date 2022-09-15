@@ -62,8 +62,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
   void newDialogAccepted();
-
   void slotTabChanged(int index);
+
+ public slots:
+  void updateSourceTree();
 
  private: /* Menu bar builders */
   void createMenus();

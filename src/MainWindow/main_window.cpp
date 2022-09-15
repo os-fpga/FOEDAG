@@ -477,9 +477,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader->registerComponent(
       new ProjectManagerComponent{sourcesForm->ProjManager()},
       ComponentId::ProjectManager);
-  reloadSettings();  // This needs to be after
-                     // sourForm->InitSourcesForm(strProject); so the project
-                     // info exists
+  reloadSettings();
 
   QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
   PropertyWidget* propertyWidget =
@@ -711,6 +709,12 @@ void MainWindow::newDialogAccepted() {
   const QString strproject = newProjdialog->getProject();
   newProjectAction->setEnabled(false);
   ReShowWindow(strproject);
+}
+
+void MainWindow::updateSourceTree() {
+  if (sourcesForm) {
+    sourcesForm->InitSourcesForm();
+  }
 }
 
 void MainWindow::slotTabChanged(int index) {

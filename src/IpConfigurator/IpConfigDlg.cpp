@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
+#include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/project_manager.h"
 
 using namespace FOEDAG;
@@ -61,11 +62,13 @@ QString getUserProjectPath(const QString& suffix) {
 }
 
 IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/,
-                         QString requestedIpName /* "" */)
-    : requestedIpName(requestedIpName) {
+                         QString requestedIpName /* "" */,
+                         QStringList instanceValueArgs /*{}*/)
+    : m_requestedIpName(requestedIpName),
+      m_instanceValueArgs(instanceValueArgs) {
   this->setWindowTitle("Configure IP");
   this->setObjectName("IpConfigDlg");
-  baseDirDefault = getUserProjectPath("IPs");
+  m_baseDirDefault = getUserProjectPath("IPs");
 
   // Set the path related widgets' tooltips to whatever their text is so long
   // paths are easier to view
@@ -125,9 +128,9 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
     }
 
     // Build up a cmd string to generate the IP
-    QString cmd = "configure_ip " + this->requestedIpName + " -mod_name " +
+    QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
                   moduleEdit.text() + " -version " +
-                  QString::fromStdString(meta.version) + " " + params +
+                  QString::fromStdString(m_meta.version) + " " + params +
                   " -out_file " + outputPath.text();
     cmd += "\nipgenerate";
 
@@ -135,6 +138,12 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
     // TODO @skyler-rs Sept2022 remove below test print once once command format
     // is finalized
     std::cout << cmd.toStdString() << std::endl;
+
+    // Update the Ip Instances in the source tree
+    MainWindow* win = qobject_cast<MainWindow*>(GlobalSession->MainWindow());
+    if (win) {
+      win->updateSourceTree();
+    }
   });
 
   // Forward standard QDialogButtonBox signals to the parent dialog
@@ -151,13 +160,13 @@ void IpConfigDlg::CreateParamFields() {
   // Loop through IPDefinitions stored in IPCatalog
   for (auto def : getDefinitions()) {
     // if this definition is for the requested IP
-    if (requestedIpName.toStdString() == def->Name()) {
+    if (m_requestedIpName.toStdString() == def->Name()) {
       // Store VLNV meta data for the requested IP
-      meta = FOEDAG::getIpInfoFromPath(def->FilePath());
-      updateMetaLabel(meta);
+      m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
+      updateMetaLabel(m_meta);
 
       // set default module name to the VLNV name
-      moduleEdit.setText(QString::fromStdString(meta.name));
+      moduleEdit.setText(QString::fromStdString(m_meta.name));
 
       // Build widget factory json for each parameter
       for (auto param : def->Parameters()) {
@@ -202,6 +211,11 @@ void IpConfigDlg::CreateParamFields() {
                           .arg(QString::fromStdString(defaultValue));
       }
     }
+  }
+
+  // Use passed args if we are updating an IP instance
+  if (!m_instanceValueArgs.isEmpty()) {
+    tclArgList = m_instanceValueArgs;
   }
 
   // Create and add the child widget to our parent container
@@ -284,28 +298,10 @@ std::vector<FOEDAG::IPDefinition*> IpConfigDlg::getDefinitions() {
 
 void IpConfigDlg::updateOutputPath() {
   // Strip end separator from baseDir if there is one
-  QString baseDir = baseDirDefault;
+  QString baseDir = m_baseDirDefault;
   if (baseDir.endsWith(SEPARATOR)) {
     baseDir.chop(SEPARATOR.length());
   }
 
-  // add .v to module  name if it doesn't exist
-  QString fileName = moduleEdit.text();
-  if (!fileName.endsWith(".v")) {
-    fileName += ".v";
-  }
-
-  QString vendor = QString::fromStdString(meta.vendor);
-  QString library = QString::fromStdString(meta.library);
-  QString version = QString::fromStdString(meta.version);
-  QString name = QString::fromStdString(meta.name);
-
-  QString module = moduleEdit.text();
-
-  // Create and set new path.
-  // This follows VLNV order (Vendor/Library/Name/Version)
-  QStringList orderedPieces = {baseDir, vendor, library, name,
-                               version, module, "src",   fileName};
-  QString path = orderedPieces.join(SEPARATOR);
-  outputPath.setText(path);
+  outputPath.setText(baseDir);
 }
