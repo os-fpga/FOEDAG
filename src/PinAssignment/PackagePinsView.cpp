@@ -33,8 +33,11 @@ constexpr int PortsCol{2};
 
 PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     : PinAssignmentBaseView(model, parent) {
-  setHeaderLabels(model->packagePinModel()->headerList());
   header()->resizeSections(QHeaderView::ResizeToContents);
+  for (auto &h : model->packagePinModel()->header()) {
+    headerItem()->setText(h.id, h.name);
+    headerItem()->setToolTip(h.id, h.description);
+  }
 
   QTreeWidgetItem *topLevelPackagePin = new QTreeWidgetItem(this);
   topLevelPackagePin->setText(0, "All Pins");
@@ -74,12 +77,15 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       model->packagePinModel()->insert(pinItem->text(NameCol),
                                        indexFromItem(pinItem, NameCol));
     }
+    expandItem(bank);
   }
   connect(model->packagePinModel(), &PackagePinsModel::itemHasChanged, this,
           &PackagePinsView::itemHasChanged);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
   setColumnWidth(NameCol, 120);
+  resizeColumnToContents(PortsCol);
+  header()->setSectionResizeMode(PortsCol, QHeaderView::Fixed);
 }
 
 void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
