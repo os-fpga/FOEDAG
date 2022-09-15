@@ -382,7 +382,7 @@ void MainWindow::createActions() {
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
-    AboutWidget w(m_projectInfo, this);
+    AboutWidget w(m_projectInfo, GlobalSession->Context()->DataPath(), this);
     w.exec();
   });
 
