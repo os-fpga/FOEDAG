@@ -607,7 +607,7 @@ void SourcesForm::CreateFolderHierachyTree() {
     iFileSum = 0;
     QTreeWidgetItem *ipParentItem{topitemIpInstances};
     for (auto instance : ipGen->IPInstances()) {
-      QString str = QString::fromStdString(instance->ModuleName());
+      QString str = QString::fromStdString(instance->IPName());
 
       QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
       itemf->setText(0, str);
