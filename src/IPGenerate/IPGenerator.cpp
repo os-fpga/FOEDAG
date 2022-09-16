@@ -66,9 +66,10 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage(
           "Missing directory path for LiteX ip generator(s)");
     }
-    const std::string file = argv[1];
+    // const std::string file = argv[1];
+    const std::filesystem::path file = argv[1];
     std::cout << "add_litex_ip_catalog " << file << std::endl;
-    std::string expandedFile = file;
+    std::filesystem::path expandedFile = file;
     bool use_orig_path = false;
     if (FileUtils::FileExists(expandedFile) && expandedFile != "./") {
       use_orig_path = true;
@@ -80,15 +81,15 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
       std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
+      fullPath = fullPath / file;
+      expandedFile = fullPath;
       std::cout << "add_litex_ip_catalog2 " << fullPath << " " << scriptPath
                 << std::endl;
     }
     std::filesystem::path the_path = expandedFile;
     if (!the_path.is_absolute()) {
       const auto& path = std::filesystem::current_path();
-      expandedFile = std::filesystem::path(path / expandedFile).string();
+      expandedFile = path / expandedFile;
       std::cout << "add_litex_ip_catalog3 " << expandedFile << std::endl;
     }
     bool status = compiler->BuildLiteXIPCatalog(expandedFile);
