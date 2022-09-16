@@ -26,7 +26,7 @@ PortsModel::PortsModel(QObject *parent)
     : QObject(parent), m_model(new QStringListModel(this)) {}
 
 QStringList PortsModel::headerList() const {
-  return {"Name", "Dir", "Package Pin", "Type", "Range"};
+  return {"Name", "Dir", "Package Pin", "Type"};
 }
 
 void PortsModel::append(const IOPortGroup &p) { m_ioPorts.append(p); }
@@ -37,7 +37,13 @@ void PortsModel::initListModel() {
   QStringList portsList;
   portsList.append(QString());
   for (const auto &group : qAsConst(m_ioPorts))
-    for (const auto &p : qAsConst(group.ports)) portsList.append(p.name);
+    for (const auto &p : qAsConst(group.ports)) {
+      if (p.isBus) {
+        for (const auto &sub : p.ports) portsList.append(sub.name);
+      } else {
+        portsList.append(p.name);
+      }
+    };
   m_model->setStringList(portsList);
 }
 
