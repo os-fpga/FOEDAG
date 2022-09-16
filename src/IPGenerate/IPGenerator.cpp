@@ -108,6 +108,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->HasIPDefinitions()) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
+      std::cout << "auto load " << path << std::endl;
       compiler->TclInterp()->evalCmd("add_litex_ip_catalog " +
                                      path.lexically_normal().string());
     }
