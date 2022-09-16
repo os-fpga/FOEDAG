@@ -105,8 +105,9 @@ void IpCatalogTree::loadIps(const std::vector<std::filesystem::path>& paths) {
   if (tclCmdExists("add_litex_ip_catalog")) {
     for (auto path : paths) {
       if (std::filesystem::exists(path)) {
-        QString cmd = QString("add_litex_ip_catalog %1")
-                          .arg(QString::fromStdString(path.lexically_normal()));
+        QString cmd =
+            QString("add_litex_ip_catalog %1")
+                .arg(QString::fromStdString(path.lexically_normal().string()));
         int ok = TCL_ERROR;
         GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
       }
