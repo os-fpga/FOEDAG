@@ -730,7 +730,8 @@ void MainWindow::saveWelcomePageConfig() {
 }
 
 void MainWindow::slotWelcomePageCloseRequested(bool permanently) {
-    // TODO: This code will have to be reworked as soon as we have global settings storage.
+  // TODO: This code will have to be reworked as soon as we have global settings
+  // storage.
   if (permanently) {
     m_showWelcomePage = !m_showWelcomePage;
     saveWelcomePageConfig();
