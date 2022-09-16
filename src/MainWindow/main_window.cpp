@@ -440,12 +440,9 @@ void MainWindow::showWelcomePage() {
   centralWidget->addAction(*openProjectAction);
   centralWidget->addAction(*openExampleAction);
 
-  connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
-          [&](bool permanently) {
-            m_showWelcomePage = !permanently;
-            if (permanently) saveWelcomePageConfig();
-            ReShowWindow({});
-          });
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed, this,
+          &MainWindow::slotWelcomePageCloseRequested);
+
   setCentralWidget(centralWidget);
 
   centralWidget->show();
@@ -724,5 +721,20 @@ void MainWindow::saveWelcomePageConfig() {
   // should we shown. To store it we just save a file in a working directory -
   // if it's there, we don't show the welcome page.
   QFile file(WELCOME_PAGE_CONFIG_FILE);
-  if (file.open(QIODevice::WriteOnly)) file.close();
+  if (file.open(QIODevice::WriteOnly)) {
+    if (m_showWelcomePage)
+      file.remove();
+    else
+      file.close();
+  }
+}
+
+void MainWindow::slotWelcomePageCloseRequested(bool permanently) {
+    // TODO: This code will have to be reworked as soon as we have global settings storage.
+  if (permanently) {
+    m_showWelcomePage = !m_showWelcomePage;
+    saveWelcomePageConfig();
+  } else {
+    ReShowWindow({});
+  }
 }
