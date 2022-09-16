@@ -123,6 +123,8 @@ class Compiler {
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
   bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
+  bool HasIPInstances();
+  bool HasIPDefinitions();
 
   // VPR, Yosys generic opt
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
@@ -194,7 +196,6 @@ class Compiler {
    */
   virtual bool VerifyTargetDevice() const;
   bool HasTargetDevice();
-  bool HasIPInstances();
 
   bool CreateDesign(const std::string& name);
   static void PrintVersion(std::ostream* out);

@@ -1641,7 +1641,16 @@ bool Compiler::HasIPInstances() {
   bool result = false;
   auto ipGen = GetIPGenerator();
   if (ipGen) {
-    result = (ipGen->IPInstances().size() > 0);
+    result = !ipGen->IPInstances().empty();
+  }
+  return result;
+}
+
+bool Compiler::HasIPDefinitions() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen && ipGen->Catalog()) {
+    result = !ipGen->Catalog()->Definitions().empty();
   }
   return result;
 }
