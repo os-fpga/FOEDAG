@@ -108,7 +108,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->HasIPDefinitions()) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
-      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " + path.string());
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " +
+                                     path.lexically_normal().string());
     }
 
     bool status = true;
@@ -166,7 +167,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->HasIPDefinitions()) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
-      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " + path.string());
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " +
+                                     path.lexically_normal().string());
     }
 
     std::string ip_name;
@@ -285,10 +287,11 @@ bool IPGenerator::Generate() {
   for (IPInstance* inst : m_instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
-
+    std::cout << "IPGenerator::Generate path: " << out_path << std::endl;
     if (!std::filesystem::exists(out_path)) {
       std::filesystem::create_directories(out_path.parent_path());
     }
+    std::cout << "IPGenerator::Generate POST-CREATE" << std::endl;
 
     const IPDefinition* def = inst->Definition();
     switch (def->Type()) {
