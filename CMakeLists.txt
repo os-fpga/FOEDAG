@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 24)
+set(VERSION_PATCH 25)
 
 option(
   WITH_LIBCXX
@@ -498,23 +498,15 @@ install(
   DESTINATION cmake)
 
 install(
-  FILES etc/device.xml DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
+  DIRECTORY etc DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
 
 install(
   DIRECTORY tests/Testcases/IPGenerate/IP_Catalog DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
-  
-install(
-  FILES etc/settings/settings_test.json DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/settings/)
 
 install(
   DIRECTORY examples DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
-install(
-    DIRECTORY etc/templates/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/templates/)
-
-install(
-  DIRECTORY etc/Welcome_Page DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/Welcome_Page)
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
@@ -524,23 +516,12 @@ add_custom_target(link_target ALL
                   build/compile_commands.json ../compile_commands.json)
 endif()
 
-add_custom_command(TARGET foedag-bin POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
-                  COMMAND ${CMAKE_COMMAND} -E copy 
-                  ${PROJECT_SOURCE_DIR}/etc/device.xml        
-                          ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
                           
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
                   ${PROJECT_SOURCE_DIR}/tests/Testcases/IPGenerate/IP_Catalog
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog)
-                          
-add_custom_command(TARGET foedag-bin POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/settings/
-                  COMMAND ${CMAKE_COMMAND} -E copy 
-                  ${PROJECT_SOURCE_DIR}/etc/settings/settings_test.json
-                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/settings/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/examples/
@@ -549,16 +530,10 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/examples/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/
+                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc/Welcome_Page
-                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/Welcome_Page/)
-
-add_custom_command(TARGET foedag-bin POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/templates
-                  COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc/templates
-                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/templates)
+                  ${PROJECT_SOURCE_DIR}/etc
+                  ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/

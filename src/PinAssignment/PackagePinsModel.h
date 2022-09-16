@@ -52,11 +52,19 @@ struct PackagePinGroup {
   QVector<PackagePinData> pinData;
 };
 
+struct HeaderData {
+  QString name;
+  QString description;
+  int id;
+  bool visible;
+};
+
 class PackagePinsModel : public QObject {
   Q_OBJECT
  public:
   PackagePinsModel(QObject *parent = nullptr);
-  QStringList headerList() const;
+  const QVector<HeaderData> &header() const;
+  void appendHeaderData(const HeaderData &h);
 
   void append(const PackagePinGroup &g);
   const QVector<PackagePinGroup> &pinData() const;
@@ -74,6 +82,7 @@ class PackagePinsModel : public QObject {
   QVector<PackagePinGroup> m_pinData;
   QStringListModel *m_listModel{nullptr};
   QMap<QString, QModelIndex> m_indexes;
+  QVector<HeaderData> m_header;
 };
 
 }  // namespace FOEDAG
