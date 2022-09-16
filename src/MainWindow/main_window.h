@@ -64,7 +64,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newDialogAccepted();
 
   void slotTabChanged(int index);
-  // Either closes welcome page immediately or saves the configuration to not show it after closing the project
+  // Either closes welcome page immediately or saves the configuration to not
+  // show it after closing the project
   void slotWelcomePageCloseRequested(bool permanently);
 
  private: /* Menu bar builders */
