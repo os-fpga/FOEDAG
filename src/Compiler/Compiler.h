@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPILER_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -69,6 +70,7 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
+  enum class MsgSeverity { IGNORE, INFO, WARNING, ERROR };
   enum class IPGenerateOpt { None, Clean };
   enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
@@ -166,6 +168,13 @@ class Compiler {
 
   virtual const std::string GetNetlistPath();
 
+  void AddMsgSeverity(std::string msg, MsgSeverity severity) {
+    m_severityMap.insert(std::make_pair(msg, severity));
+  }
+  const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
+    return m_severityMap;
+  }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -241,6 +250,9 @@ class Compiler {
   bool m_bitstreamEnabled = true;
   class QProcess* m_process = nullptr;
   IPGenerator* m_IPGenerator = nullptr;
+
+  // Error message severity
+  std::map<std::string, MsgSeverity> m_severityMap;
 };
 
 }  // namespace FOEDAG
