@@ -449,15 +449,15 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     message = argv[1];
     severity = argv[2];
-    MsgSeverity sev = MsgSeverity::IGNORE;
+    MsgSeverity sev = MsgSeverity::Ignore;
     if (severity == "INFO") {
-      sev = MsgSeverity::INFO;
+      sev = MsgSeverity::Info;
     } else if (severity == "WARNING") {
-      sev = MsgSeverity::WARNING;
+      sev = MsgSeverity::Warning;
     } else if (severity == "ERROR") {
-      sev = MsgSeverity::ERROR;
+      sev = MsgSeverity::Error;
     } else if (severity == "IGNORE") {
-      sev = MsgSeverity::IGNORE;
+      sev = MsgSeverity::Ignore;
     }
 
     compiler->AddMsgSeverity(message, sev);
@@ -974,16 +974,16 @@ bool CompilerOpenFPGA::Synthesize() {
 
     for (auto msg_sev : MsgSeverityMap()) {
       switch (msg_sev.second) {
-        case MsgSeverity::IGNORE:
+        case MsgSeverity::Ignore:
           fileList += "verific -set-ignore " + msg_sev.first + "\n";
           break;
-        case MsgSeverity::INFO:
+        case MsgSeverity::Info:
           fileList += "verific -set-info " + msg_sev.first + "\n";
           break;
-        case MsgSeverity::WARNING:
+        case MsgSeverity::Warning:
           fileList += "verific -set-warning " + msg_sev.first + "\n";
           break;
-        case MsgSeverity::ERROR:
+        case MsgSeverity::Error:
           fileList += "verific -set-error " + msg_sev.first + "\n";
           break;
       }

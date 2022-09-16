@@ -70,7 +70,7 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
-  enum class MsgSeverity { IGNORE, INFO, WARNING, ERROR };
+  enum MsgSeverity { Ignore, Info, Warning, Error };
   enum class IPGenerateOpt { None, Clean };
   enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
