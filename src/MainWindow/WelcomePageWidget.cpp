@@ -59,16 +59,14 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   auto headerFont = headerLabel->font();
   headerFont.setPointSize(HEADER_POINTSIZE);
   headerLabel->setFont(headerFont);
-  headerLabel->setContentsMargins(HEADER_MARGIN, HEADER_MARGIN, HEADER_MARGIN,
-                                  0);
+  headerLabel->setContentsMargins(0, HEADER_MARGIN, HEADER_MARGIN, 0);
 
   // Description label
   auto descLabel = new QLabel(getDescription(srcDir), this);
   auto descFont = descLabel->font();
   descFont.setPointSize(DESCRIPTION_POINTSIZE);
   descLabel->setFont(descFont);
-  descLabel->setContentsMargins(HEADER_MARGIN, 0, HEADER_MARGIN,
-                                HEADER_MARGIN * 2);
+  descLabel->setContentsMargins(0, 0, HEADER_MARGIN, HEADER_MARGIN * 2);
 
   // Group box with start actions
   auto quickStartGroupBox = new QGroupBox(this);
@@ -94,7 +92,7 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   showPageCheckBox->setCheckState(Qt::Checked);
   connect(showPageCheckBox, &QAbstractButton::clicked,
           [this]() { emit welcomePageClosed(true); });
-  mainLayout->addWidget(showPageCheckBox);
+  mainLayout->addWidget(showPageCheckBox, 0, Qt::AlignHCenter);
   mainLayout->addStretch(1);
   m_mainLayout = mainLayout;
 
@@ -155,8 +153,7 @@ void WelcomePageWidget::initRecentProjects() {
   auto recentFont = recentLabel->font();
   recentFont.setPointSize(DESCRIPTION_POINTSIZE);
   recentLabel->setFont(recentFont);
-  recentLabel->setContentsMargins(HEADER_MARGIN, 0, HEADER_MARGIN,
-                                  HEADER_MARGIN * 2);
+  recentLabel->setContentsMargins(0, 0, HEADER_MARGIN, HEADER_MARGIN * 2);
   m_recentProjectsLayout->addWidget(recentLabel);
   auto recentProjectsGroupBox = new QGroupBox(this);
   recentProjectsGroupBox->setLayout(m_recentProjectsLayout);
