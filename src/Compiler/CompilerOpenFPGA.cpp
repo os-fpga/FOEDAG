@@ -449,7 +449,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     message = argv[1];
     severity = argv[2];
-    MsgSeverity sev;
+    MsgSeverity sev = MsgSeverity::IGNORE;
     if (severity == "INFO") {
       sev = MsgSeverity::INFO;
     } else if (severity == "WARNING") {
