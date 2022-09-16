@@ -92,7 +92,9 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = path / expandedFile;
       std::cout << "add_litex_ip_catalog3 " << expandedFile << std::endl;
     }
-    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
+    std::cout << "PATH: " << expandedFile.lexically_normal() << std::endl;
+    bool status =
+        compiler->BuildLiteXIPCatalog(expandedFile.lexically_normal());
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
