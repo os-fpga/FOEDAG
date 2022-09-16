@@ -66,8 +66,7 @@ void IpCatalogTree::refresh() {
   // catalog path. This path should be loaded in addition to the default
   std::filesystem::path UserCatalogPath = std::filesystem::path("");
   std::filesystem::path IpCatalogPath =
-      std::filesystem::path(GlobalSession->Context()->DataPath().string()) /
-      "IP_Catalog";
+      GlobalSession->Context()->DataPath() / "IP_Catalog";
   std::vector<std::filesystem::path> IpPaths{IpCatalogPath, UserCatalogPath};
 
   QStringList ips;
