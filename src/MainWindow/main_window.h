@@ -70,6 +70,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   // show it after closing the project
   void slotWelcomePageCloseRequested(bool permanently);
 
+ public slots:
+  void updateSourceTree();
+
  private: /* Menu bar builders */
   void createMenus();
   void createToolBars();
