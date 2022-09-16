@@ -28,7 +28,7 @@ architecture ../../Arch/k6_frac_N10_tileable_40nm.xml ../../Arch/k6_N10_40nm_ope
 # Typically you should load your IP_Catalog via add_litex_ip_catalog, but GEMINIEDA-352
 # requests new functionality to auto load the ip library before a configure_ip
 
-configure_ip axis_converter_V1_0 -mod_name axis_converter -version V1_1 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file /home/skyler/code/forks/FOEDAG/ipTest/ipTest.IPs/RapidSilicon/IP/axis_converter/V1_1/axis_converter/src/axis_converter.v
+configure_ip axis_converter_V1_0 -mod_name axis_converter -version V1_1 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file ./ip_load/ip_load.IPs/RapidSilicon/IP/axis_converter/V1_1/axis_converter/src/axis_converter.v
 ipgenerate
 
 # If the IP fails to generate, it means that axis_converter_V1_0 never got

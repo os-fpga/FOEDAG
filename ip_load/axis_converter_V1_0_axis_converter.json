@@ -3,7 +3,7 @@
    "core_out_width": 64,
    "core_user_width": 0,
    "core_reverse": 0,
-   "build_dir": "/home/skyler/code/forks/FOEDAG/ipTest/ipTest.IPs/RapidSilicon/IP/axis_converter/V1_1/axis_converter/src",
+   "build_dir": "./ip_load/ip_load.IPs/RapidSilicon/IP/axis_converter/V1_1/axis_converter/src",
    "build_name": "axis_converter.v",
    "build": true,
    "json": "axis_converter_V1_0_axis_converter.json",
