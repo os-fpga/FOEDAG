@@ -49,7 +49,9 @@ static const auto DESCRIPTION_FILENAME = "WelcomeDescription.txt";
 WelcomePageWidget::WelcomePageWidget(const QString &header,
                                      const std::filesystem::path &sourcesPath,
                                      QWidget *parent)
-    : QWidget(parent), m_actionsLayout(new QVBoxLayout()) {
+    : QWidget(parent),
+      m_actionsLayout(new QVBoxLayout()),
+      m_recentProjectsLayout(new QVBoxLayout()) {
   std::filesystem::path srcDir = sourcesPath / ETC_DIR / WELCOME_PAGE_DIR;
 
   // Header label
@@ -57,16 +59,14 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   auto headerFont = headerLabel->font();
   headerFont.setPointSize(HEADER_POINTSIZE);
   headerLabel->setFont(headerFont);
-  headerLabel->setContentsMargins(HEADER_MARGIN, HEADER_MARGIN, HEADER_MARGIN,
-                                  0);
+  headerLabel->setContentsMargins(0, HEADER_MARGIN, HEADER_MARGIN, 0);
 
   // Description label
   auto descLabel = new QLabel(getDescription(srcDir), this);
   auto descFont = descLabel->font();
   descFont.setPointSize(DESCRIPTION_POINTSIZE);
   descLabel->setFont(descFont);
-  descLabel->setContentsMargins(HEADER_MARGIN, 0, HEADER_MARGIN,
-                                HEADER_MARGIN * 2);
+  descLabel->setContentsMargins(0, 0, HEADER_MARGIN, HEADER_MARGIN * 2);
 
   // Group box with start actions
   auto quickStartGroupBox = new QGroupBox(this);
@@ -92,8 +92,9 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
   showPageCheckBox->setCheckState(Qt::Checked);
   connect(showPageCheckBox, &QAbstractButton::clicked,
           [this]() { emit welcomePageClosed(true); });
-  mainLayout->addWidget(showPageCheckBox);
+  mainLayout->addWidget(showPageCheckBox, 0, Qt::AlignHCenter);
   mainLayout->addStretch(1);
+  m_mainLayout = mainLayout;
 
   // Background setup
   auto defaultPalette = palette();
@@ -103,20 +104,26 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 }
 
 void WelcomePageWidget::addAction(QAction &act) {
-  auto actionButton = createActionButton();
+  auto actionButton = createActionButton(act.text());
   connect(actionButton, &QPushButton::clicked, [&act]() { act.trigger(); });
-  actionButton->setText(act.text());
   m_actionsLayout->addWidget(actionButton, 0, Qt::AlignLeft | Qt::AlignTop);
 }
 
-QPushButton *WelcomePageWidget::createActionButton() {
-  auto btn = new QPushButton();
+void WelcomePageWidget::addRecentProject(QAction &act) {
+  initRecentProjects();
+  auto buttons = createActionButton(act.text());
+  connect(buttons, &QPushButton::clicked, this, [&act]() { act.trigger(); });
+  m_recentProjectsLayout->addWidget(buttons, 0, Qt::AlignLeft | Qt::AlignTop);
+}
+
+QPushButton *WelcomePageWidget::createActionButton(const QString &text) {
+  auto btn = new QPushButton(text);
   btn->setFlat(true);
   btn->setCursor(Qt::PointingHandCursor);
 
   btn->setStyleSheet(
-      "QPushButton:hover { background-color: transparent; text-decoration: "
-      "underline;}");
+      "QPushButton:hover { border: none; text-decoration: "
+      "underline;} QPushButton { text-align:left;} ");
 
   return btn;
 }
@@ -138,4 +145,17 @@ QString WelcomePageWidget::getDescription(
 
 void WelcomePageWidget::keyPressEvent(QKeyEvent *event) {
   if (event->key() == Qt::Key_Escape) emit welcomePageClosed(false);
+}
+
+void WelcomePageWidget::initRecentProjects() {
+  if (m_recentProjectsLayout->count() != 0) return;
+  auto recentLabel = new QLabel("Recent Projects", this);
+  auto recentFont = recentLabel->font();
+  recentFont.setPointSize(DESCRIPTION_POINTSIZE);
+  recentLabel->setFont(recentFont);
+  recentLabel->setContentsMargins(0, 0, HEADER_MARGIN, HEADER_MARGIN * 2);
+  m_recentProjectsLayout->addWidget(recentLabel);
+  auto recentProjectsGroupBox = new QGroupBox(this);
+  recentProjectsGroupBox->setLayout(m_recentProjectsLayout);
+  m_mainLayout->insertWidget(2, recentProjectsGroupBox);
 }

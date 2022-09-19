@@ -52,6 +52,7 @@ class PinAssignmentCreator : public QObject {
   QString searchCsvFile(const QString &targetDevice,
                         ToolContext *context) const;
   QString targetDevice(ProjectManager *projectManager) const;
+  QString packagePinHeaderFile(ToolContext *context) const;
 
  private:
   QWidget *m_portsView{nullptr};

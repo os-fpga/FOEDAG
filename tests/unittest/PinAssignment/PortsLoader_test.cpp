@@ -31,7 +31,9 @@ TEST(PortsLoader, LoadGeneral) {
   EXPECT_EQ(res, true) << error.toStdString();
 
   auto listModel = model.listModel();
-  QStringList expected = {"", "inp1", "out1", "inout1"};
+  QStringList expected = {"",          "inp1",     "out1[4]", "out1[3]",
+                          "out1[2]",   "out1[1]",  "out1[0]", "inout1[2]",
+                          "inout1[1]", "inout1[0]"};
   EXPECT_EQ(listModel->stringList(), expected);
   EXPECT_EQ(model.ports().count(), 1);
 }
@@ -66,5 +68,26 @@ TEST(PortsLoader, LoadAllData) {
     EXPECT_EQ(port3.packagePin, "") << port3.packagePin.toStdString();
     EXPECT_EQ(port3.type, "LOGIC") << port3.type.toStdString();
     EXPECT_EQ(port3.range, "Msb: 2, lsb: 0") << port3.range.toStdString();
+  }
+}
+
+TEST(PortsLoader, LoadBus) {
+  PortsModel model;
+  PortsLoader loader{&model};
+  auto [res, error] = loader.load(":/PinAssignment/ports_test.json");
+  EXPECT_EQ(res, true) << error.toStdString();
+
+  const int groupIndex{0};
+  const int portIndex{1};
+  auto port = model.ports().at(groupIndex).ports.at(portIndex);
+  EXPECT_EQ(port.isBus, true);
+  EXPECT_EQ(port.ports.count(), 5);
+  for (int i = 0; i < port.ports.count(); i++) {
+    auto p = port.ports.at(i);
+    EXPECT_EQ(p.name, QString("out1[%1]").arg(QString::number(4 - i)));
+    EXPECT_EQ(p.dir, "Output");
+    EXPECT_EQ(p.packagePin, "");
+    EXPECT_EQ(p.type, "REG");
+    EXPECT_EQ(p.range, "Msb: 4, lsb: 0");
   }
 }

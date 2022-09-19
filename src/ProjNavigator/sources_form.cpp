@@ -6,7 +6,10 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTextStream>
+#include <algorithm>
 
+#include "IpConfigurator/IpConfigDlg.h"
+#include "Main/Foedag.h"
 #include "tcl_command_integration.h"
 #include "ui_sources_form.h"
 
@@ -149,6 +152,13 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
+      }
+    } else if (SRC_TREE_IP_FILE_ITEM == strPropertyRole ||
+               SRC_TREE_IP_TOP_ITEM == strPropertyRole) {
+      menu->addAction(m_actRefresh);
+      if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
+        menu->addSeparator();
+        menu->addAction(m_actReconfigureIp);
       }
     }
 
@@ -422,6 +432,45 @@ void SourcesForm::CreateActions() {
 
   m_actCloseProject = new QAction(tr("Close project"), m_treeSrcHierachy);
   connect(m_actCloseProject, SIGNAL(triggered()), this, SIGNAL(CloseProject()));
+
+  m_actReconfigureIp = new QAction(tr("Re-Configure IP"), m_treeSrcHierachy);
+  connect(m_actReconfigureIp, &QAction::triggered, this, [this]() {
+    QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+    if (item == nullptr) {
+      return;
+    }
+    std::string ipName = item->text(0).toStdString();
+
+    auto instances =
+        GlobalSession->GetCompiler()->GetIPGenerator()->IPInstances();
+
+    // Find the ip instance with a matching name
+    // This assumes the IPInstances() interface stores unique IPName's
+    // Additional qualifiers can be added to this search if IPName becomes
+    // non-unique
+    auto isMatch = [ipName](IPInstance *instance) {
+      return instance->IPName() == ipName;
+    };
+    auto result =
+        std::find_if(std::begin(instances), std::end(instances), isMatch);
+
+    QStringList args{};
+    if (result != std::end(instances)) {
+      // Step through this instance's paremeters
+      for (auto param : (*result)->Parameters()) {
+        // Create a list of parameter value pairs in the format of
+        // -P<param_name> <value>
+        args.append(QString("-P%1 %2")
+                        .arg(QString::fromStdString(param.Name()))
+                        .arg(QString::number(param.GetValue())));
+      }
+    }
+
+    // Load IP Config dialog with the previously configured values
+    FOEDAG::IpConfigDlg *dlg =
+        new FOEDAG::IpConfigDlg(this, QString::fromStdString(ipName), args);
+    dlg->show();
+  });
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
@@ -555,6 +604,32 @@ void SourcesForm::CreateFolderHierachyTree() {
   }
   topitemSS->setText(0,
                      tr("Simulation Sources") + QString("(%1)").arg(iFileSum));
+
+  // Initialize IP instances tree
+  QTreeWidgetItem *topitemIpInstances = new QTreeWidgetItem(topItem);
+  m_treeSrcHierachy->addTopLevelItem(topitemIpInstances);
+  topitemIpInstances->setData(0, Qt::WhatsThisPropertyRole,
+                              SRC_TREE_IP_TOP_ITEM);
+
+  Compiler *compiler = nullptr;
+  IPGenerator *ipGen = nullptr;
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    iFileSum = 0;
+    QTreeWidgetItem *ipParentItem{topitemIpInstances};
+    for (auto instance : ipGen->IPInstances()) {
+      QString str = QString::fromStdString(instance->IPName());
+
+      QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
+      itemf->setText(0, str);
+      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
+      itemf->setData(0, SetFileDataRole, str);
+
+      iFileSum += 1;
+    }
+  }
+  topitemIpInstances->setText(
+      0, tr("IP Instances") + QString("(%1)").arg(iFileSum));
 }
 
 QTreeWidgetItem *SourcesForm::CreateFolderHierachyTree(QTreeWidgetItem *topItem,

@@ -34,6 +34,10 @@ class PackagePinsLoader : public QObject {
   PackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
   virtual ~PackagePinsLoader();
   virtual std::pair<bool, QString> load(const QString &fileName);
+  virtual std::pair<bool, QString> loadHeader(const QString &fileName);
+
+ protected:
+  std::pair<bool, QString> getFileContent(const QString &fileName) const;
 
  protected:
   PackagePinsModel *m_model{nullptr};
