@@ -227,6 +227,14 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   bool status = true;
   const IPDefinition* def = instance->Definition();
 
+  // Remove old IP Instance if an instance with the same ModuleName is passed
+  auto isMatch = [instance](IPInstance* targetInstance) {
+    return targetInstance->ModuleName() == instance->ModuleName();
+  };
+  m_instances.erase(
+      std::remove_if(m_instances.begin(), m_instances.end(), isMatch),
+      m_instances.end());
+
   // Check parameters
   std::set<std::string> legalParams;
 

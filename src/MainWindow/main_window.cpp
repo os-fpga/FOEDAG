@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2021 The Foedag team
 
 GPL License
@@ -38,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
-#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/WelcomePageWidget.h"
 #include "NewFile/new_file.h"
@@ -57,8 +56,12 @@ extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
 const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
+const QString RECENT_PROJECT_KEY{"recent/proj%1"};
+constexpr uint RECENT_PROJECT_COUNT{10};
+constexpr uint RECENT_PROJECT_COUNT_WP{5};
 
-MainWindow::MainWindow(Session* session) : m_session(session) {
+MainWindow::MainWindow(Session* session)
+    : m_session(session), m_settings("settings", QSettings::IniFormat) {
   /* Window settings */
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
@@ -97,6 +100,9 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   /* Create status bar */
   statusBar();
+
+  /* Create actions for recent projects */
+  createRecentMenu();
 
   //  /* Add dummy text editors */
   //  QTextEdit* editor1 = new QTextEdit;
@@ -147,6 +153,13 @@ void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
   }
 }
 
+void MainWindow::CloseOpenedTabs() {
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  while (tabWidget->count() != 0) {
+    tabWidget->tabCloseRequested(tabWidget->currentIndex());
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -159,28 +172,24 @@ void MainWindow::newProjectDlg() {
   newProjdialog->open();
 }
 
-void MainWindow::openProject() { openProject(QString{}); }
-
 void MainWindow::openExampleProject() {
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
-  openProject(QString::fromStdString(examplesPath.string()));
+  openProjectDialog(QString::fromStdString(examplesPath.string()));
 }
 
-void MainWindow::openProject(const QString& dir) {
+void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) {
-    ReShowWindow(fileName);
-    loadFile(fileName);
-  }
+  if (!fileName.isEmpty()) openProject(fileName);
 }
 
 void MainWindow::closeProject() {
   if (m_projectManager && m_projectManager->HasDesign()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
+    CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
   }
@@ -197,6 +206,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
+  saveToRecentSettings(design);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -226,6 +236,39 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
     delete dock;
   }
   dockWidgets.clear();
+}
+
+void MainWindow::openProject(const QString& project) {
+  ReShowWindow(project);
+  loadFile(project);
+}
+
+void MainWindow::saveToRecentSettings(const QString& project) {
+  if (project.isEmpty()) return;
+
+  std::list<QString> projects;
+
+  for (uint i = 0; i < RECENT_PROJECT_COUNT; i++) {
+    auto key = RECENT_PROJECT_KEY.arg(QString::number(i));
+    auto pr = m_settings.value(key).toString();
+    if (pr.isEmpty()) break;
+    projects.push_back(pr);
+  }
+
+  // check if exists
+  auto it = std::find_if(projects.cbegin(), projects.cend(),
+                         [&project](const QString& p) { return p == project; });
+  if (it != projects.cend()) projects.erase(it);
+
+  projects.push_back(project);
+  while (projects.size() > RECENT_PROJECT_COUNT) projects.pop_front();
+
+  uint projCounter = 0;
+  for (const auto& pr : projects) {
+    m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter++)),
+                        pr);
+  }
+  createRecentMenu();
 }
 
 bool MainWindow::saveConstraintFile() {
@@ -284,7 +327,29 @@ void MainWindow::createProgressBar() {
   m_progressWidget->hide();
 }
 
+void MainWindow::createRecentMenu() {
+  for (auto it{m_recentProjectsActions.begin()};
+       it != m_recentProjectsActions.end(); ++it)
+    delete it->first;
+  m_recentProjectsActions.clear();
+
+  for (int projCounter = RECENT_PROJECT_COUNT - 1; projCounter >= 0;
+       projCounter--) {
+    QString key = RECENT_PROJECT_KEY.arg(QString::number(projCounter));
+    QString project = m_settings.value(key).toString();
+    if (!project.isEmpty()) {
+      QFileInfo info{project};
+      auto projAction = new QAction(info.baseName());
+      connect(projAction, &QAction::triggered, this,
+              &MainWindow::recentProjectOpen);
+      recentMenu->addAction(projAction);
+      m_recentProjectsActions.push_back(std::make_pair(projAction, project));
+    }
+  }
+}
+
 void MainWindow::createMenus() {
+  recentMenu = new QMenu("Recent Projects");
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
   fileMenu->addAction(openFile);
@@ -293,6 +358,7 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openProjectAction);
   fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
+  fileMenu->addMenu(recentMenu);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -336,7 +402,8 @@ void MainWindow::createActions() {
 
   openProjectAction = new QAction(tr("Open &Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
-  connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
+  connect(openProjectAction, SIGNAL(triggered()), this,
+          SLOT(openProjectDialog()));
 
   openExampleAction = new QAction(tr("Open &Example Design..."), this);
   openExampleAction->setStatusTip(tr("Open example design"));
@@ -439,13 +506,17 @@ void MainWindow::showWelcomePage() {
   centralWidget->addAction(*newProjectAction);
   centralWidget->addAction(*openProjectAction);
   centralWidget->addAction(*openExampleAction);
+  uint counter{0};
+  for (auto it{m_recentProjectsActions.cbegin()};
+       it != m_recentProjectsActions.cend() &&
+       counter < RECENT_PROJECT_COUNT_WP;
+       ++it, counter++) {
+    centralWidget->addRecentProject(*it->first);
+  }
 
-  connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
-          [&](bool permanently) {
-            m_showWelcomePage = !permanently;
-            if (permanently) saveWelcomePageConfig();
-            ReShowWindow({});
-          });
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed, this,
+          &MainWindow::slotWelcomePageCloseRequested);
+
   setCentralWidget(centralWidget);
 
   centralWidget->show();
@@ -477,9 +548,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader->registerComponent(
       new ProjectManagerComponent{sourcesForm->ProjManager()},
       ComponentId::ProjectManager);
-  reloadSettings();  // This needs to be after
-                     // sourForm->InitSourcesForm(strProject); so the project
-                     // info exists
+  reloadSettings();
 
   QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
   PropertyWidget* propertyWidget =
@@ -713,6 +782,12 @@ void MainWindow::newDialogAccepted() {
   ReShowWindow(strproject);
 }
 
+void MainWindow::updateSourceTree() {
+  if (sourcesForm) {
+    sourcesForm->InitSourcesForm();
+  }
+}
+
 void MainWindow::slotTabChanged(int index) {
   QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
   SetWindowTitle((index == -1) ? QString() : strName,
@@ -724,5 +799,34 @@ void MainWindow::saveWelcomePageConfig() {
   // should we shown. To store it we just save a file in a working directory -
   // if it's there, we don't show the welcome page.
   QFile file(WELCOME_PAGE_CONFIG_FILE);
-  if (file.open(QIODevice::WriteOnly)) file.close();
+  if (file.open(QIODevice::WriteOnly)) {
+    if (m_showWelcomePage)
+      file.remove();
+    else
+      file.close();
+  }
+}
+
+void MainWindow::slotWelcomePageCloseRequested(bool permanently) {
+  // TODO: This code will have to be reworked as soon as we have global settings
+  // storage.
+  if (permanently) {
+    m_showWelcomePage = !m_showWelcomePage;
+    saveWelcomePageConfig();
+  } else {
+    ReShowWindow({});
+  }
+}
+
+void MainWindow::recentProjectOpen() {
+  auto action = qobject_cast<QAction*>(sender());
+  auto project = std::find_if(m_recentProjectsActions.cbegin(),
+                              m_recentProjectsActions.cend(),
+                              [action](const std::pair<QAction*, QString>& p) {
+                                return p.first == action;
+                              });
+  if (project != m_recentProjectsActions.end()) {
+    const QString name = project->second;
+    if (!name.isEmpty()) openProject(name);
+  }
 }
