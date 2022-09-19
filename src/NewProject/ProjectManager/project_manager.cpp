@@ -607,9 +607,8 @@ int ProjectManager::deleteFile(const QString& strFileName) {
   if (nullptr == proFileSet) {
     return -1;
   }
-  // target or top file cannot be deleted
-  if (strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TOP) ||
-      strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TARGET)) {
+  // target file cannot be deleted
+  if (strFileName == proFileSet->getOption(PROJECT_FILE_CONFIG_TARGET)) {
     return -1;
   }
 
