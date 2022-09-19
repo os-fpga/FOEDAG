@@ -107,6 +107,9 @@ class CompilerOpenFPGA : public Compiler {
   bool UseVerilogNetlist() { return m_useVerilogNetlist; }
   void UseVerilogNetlist(bool on) { m_useVerilogNetlist = on; }
 
+   bool UseEdifNetlist() { return m_useEdifNetlist; }
+  void UseEdifNetlist(bool on) { m_useEdifNetlist = on; }
+
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
@@ -174,6 +177,7 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
   bool m_useVerilogNetlist = false;
+   bool m_useEdifNetlist = false;
 };
 
 }  // namespace FOEDAG
