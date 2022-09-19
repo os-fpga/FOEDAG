@@ -148,9 +148,9 @@ void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
 }
 
 void MainWindow::CloseOpenedTabs() {
-  while (TextEditorForm::Instance()->GetTabWidget()->count() != 0) {
-    TextEditorForm::Instance()->GetTabWidget()->tabCloseRequested(
-        TextEditorForm::Instance()->GetTabWidget()->currentIndex());
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  while (tabWidget->count() != 0) {
+    tabWidget->tabCloseRequested(tabWidget->currentIndex());
   }
 }
 
