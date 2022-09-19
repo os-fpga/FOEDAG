@@ -126,9 +126,6 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
                              help.str());
     return false;
   }
-  std::cout << "python3Path: " << python3Path.string() << std::endl;
-  std::cout << "Python Command: " << command << std::endl;
-  std::cout << "Python Result: " << help.str() << std::endl;
   std::stringstream buffer;
   buffer << help.str();
   json jopts;
