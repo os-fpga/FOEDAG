@@ -109,8 +109,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
       std::cout << "auto load " << path << std::endl;
-      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " +
-                                     path.lexically_normal().string());
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog {" +
+                                     path.lexically_normal().string() + "}");
     }
 
     bool status = true;
@@ -168,8 +168,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->HasIPDefinitions()) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
-      compiler->TclInterp()->evalCmd("add_litex_ip_catalog " +
-                                     path.lexically_normal().string());
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog {" +
+                                     path.lexically_normal().string() + "}");
     }
 
     std::string ip_name;
