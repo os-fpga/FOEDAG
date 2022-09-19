@@ -66,9 +66,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage(
           "Missing directory path for LiteX ip generator(s)");
     }
-    // const std::string file = argv[1];
     const std::filesystem::path file = argv[1];
-    std::cout << "add_litex_ip_catalog " << file << std::endl;
     std::filesystem::path expandedFile = file;
     bool use_orig_path = false;
     if (FileUtils::FileExists(expandedFile) && expandedFile != "./") {
@@ -83,16 +81,12 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::filesystem::path fullPath = scriptPath;
       fullPath = fullPath / file;
       expandedFile = fullPath;
-      std::cout << "add_litex_ip_catalog2 " << fullPath << " " << scriptPath
-                << std::endl;
     }
     std::filesystem::path the_path = expandedFile;
     if (!the_path.is_absolute()) {
       const auto& path = std::filesystem::current_path();
       expandedFile = path / expandedFile;
-      std::cout << "add_litex_ip_catalog3 " << expandedFile << std::endl;
     }
-    std::cout << "PATH: " << expandedFile.lexically_normal() << std::endl;
     bool status =
         compiler->BuildLiteXIPCatalog(expandedFile.lexically_normal());
     return (status) ? TCL_OK : TCL_ERROR;
@@ -108,7 +102,6 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (!compiler->HasIPDefinitions()) {
       std::filesystem::path path =
           GlobalSession->Context()->DataPath() / "IP_Catalog";
-      std::cout << "auto load " << path << std::endl;
       compiler->TclInterp()->evalCmd("add_litex_ip_catalog {" +
                                      path.lexically_normal().string() + "}");
     }
@@ -296,11 +289,9 @@ bool IPGenerator::Generate() {
   for (IPInstance* inst : m_instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
-    std::cout << "IPGenerator::Generate path: " << out_path << std::endl;
     if (!std::filesystem::exists(out_path)) {
       std::filesystem::create_directories(out_path.parent_path());
     }
-    std::cout << "IPGenerator::Generate POST-CREATE" << std::endl;
 
     const IPDefinition* def = inst->Definition();
     switch (def->Type()) {
