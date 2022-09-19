@@ -45,6 +45,7 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   const QString fileName = searchCsvFile(targetDevice(projectManager), context);
   PackagePinsLoader loader{packagePinModel, this};
   loader.load(fileName);
+  loader.loadHeader(packagePinHeaderFile(context));
 
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
@@ -104,6 +105,11 @@ QString PinAssignmentCreator::targetDevice(
   if (!projectManager->HasDesign()) return QString();
   if (projectManager->getTargetDevice().empty()) return QString();
   return QString::fromStdString(projectManager->getTargetDevice());
+}
+
+QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
+  auto path = context->DataPath() / "etc" / "package_pin_info.json";
+  return QString::fromStdString(path.string());
 }
 
 QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {

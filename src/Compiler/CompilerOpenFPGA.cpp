@@ -96,13 +96,23 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
-  (*out)
-      << "   add_design_file <option> (-work, -L) <libName> <file>... <type> "
-         "(-VHDL_1987, -VHDL_1993, -VHDL_2000, "
-         "-VHDL_2008 (.vhd default), -V_1995, "
-         "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-         "default)) "
-      << std::endl;
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
+            "<libName>? "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
+         << std::endl;
+  (*out) << "              -L <libName>    : Import the library <libName> "
+            "needed to "
+            "compile the compilation unit, default is \"work\""
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -137,6 +147,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
             "ip_configure"
          << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
+         << std::endl;
+  (*out) << "   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : "
+            "Upgrade/downgrade RTL compilation message severity"
          << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
          << std::endl;
@@ -424,6 +437,33 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
+
+  auto message_severity = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string message;
+    std::string severity;
+    if (argc < 3) {
+      compiler->ErrorMessage(
+          "message_severity <message_id> <ERROR/WARNING/INFO/IGNORE>");
+    }
+    message = argv[1];
+    severity = argv[2];
+    MsgSeverity sev = MsgSeverity::Ignore;
+    if (severity == "INFO") {
+      sev = MsgSeverity::Info;
+    } else if (severity == "WARNING") {
+      sev = MsgSeverity::Warning;
+    } else if (severity == "ERROR") {
+      sev = MsgSeverity::Error;
+    } else if (severity == "IGNORE") {
+      sev = MsgSeverity::Ignore;
+    }
+
+    compiler->AddMsgSeverity(message, sev);
+    return TCL_OK;
+  };
+  interp->registerCmd("message_severity", message_severity, this, 0);
 
   auto keep = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -931,6 +971,24 @@ bool CompilerOpenFPGA::Synthesize() {
     // Verific parser
     std::string fileList;
     std::string includes;
+
+    for (auto msg_sev : MsgSeverityMap()) {
+      switch (msg_sev.second) {
+        case MsgSeverity::Ignore:
+          fileList += "verific -set-ignore " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Info:
+          fileList += "verific -set-info " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Warning:
+          fileList += "verific -set-warning " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Error:
+          fileList += "verific -set-error " + msg_sev.first + "\n";
+          break;
+      }
+    }
+
     for (auto path : ProjManager()->includePathList()) {
       includes += path + " ";
     }
@@ -1950,20 +2008,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                << " bitstream is not enabled, skipping!" << std::endl;
       return true;
     }
-#else
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " bitstream is skipped, use \"bitstream force\" to generate!"
-             << std::endl;
-    return true;
 #endif
   } else if (BitsOpt() == BitstreamOpt::Force) {
-#ifdef PRODUCTION_BUILD
-    if (BitstreamEnabled() == false) {
-      (*m_out) << "Device " << ProjManager()->getTargetDevice()
-               << " bitstream is not enabled, skipping!" << std::endl;
-      return true;
-    }
-#endif
+    // Force bitstream generation
   }
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +

@@ -90,11 +90,23 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out)
-      << "   add_design_file <option> (-work, -L) <libName> <file>... <type> "
-         "(-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, "
-         "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
-      << std::endl;
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
+            "<libName>? "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
+         << std::endl;
+  (*out) << "              -L <libName>    : Import the library <libName> "
+            "needed to "
+            "compile the compilation unit, default is \"work\""
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -931,9 +943,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -1180,9 +1190,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {

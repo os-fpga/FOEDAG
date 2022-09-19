@@ -207,7 +207,8 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     }
     FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3], argv[4], argv[5]};
     QWidget* parent = static_cast<QWidget*>(clientData);
-    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(info, parent);
+    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(
+        info, GlobalSession->Context()->DataPath(), parent);
     about->show();
     return TCL_OK;
   };

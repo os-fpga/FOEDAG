@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
@@ -53,7 +54,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
  private slots: /* slots */
   void newFile();
   void newProjectDlg();
-  void openProject();
+  void openProjectDialog(const QString& dir = QString{});
   void openExampleProject();
   void closeProject();
   void openFileSlot();
@@ -63,14 +64,22 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
   void newDialogAccepted();
+  void recentProjectOpen();
 
   void slotTabChanged(int index);
+  // Either closes welcome page immediately or saves the configuration to not
+  // show it after closing the project
+  void slotWelcomePageCloseRequested(bool permanently);
+
+ public slots:
+  void updateSourceTree();
 
  private: /* Menu bar builders */
   void createMenus();
   void createToolBars();
   void createActions();
   void createProgressBar();
+  void createRecentMenu();
   void connectProjectManager();
   void gui_start(bool showWP) override;
 
@@ -83,7 +92,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
-  void openProject(const QString& dir);
+  void openProject(const QString& project);
+  void saveToRecentSettings(const QString& project);
 
   void showMenus(bool show);
   void showWelcomePage();
@@ -103,6 +113,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* processMenu = nullptr;
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
+  QMenu* recentMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
@@ -116,6 +127,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* pinAssignmentAction = nullptr;
   QAction* ipConfiguratorAction = nullptr;
   QAction* saveAction = nullptr;
+  std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
   QToolBar* fileToolBar = nullptr;
@@ -134,6 +146,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDockWidget* m_dockConsole{nullptr};
   std::vector<QDockWidget*> m_pinAssignmentDocks;
   std::vector<QDockWidget*> m_ipConfiguratorDocks;
+  QSettings m_settings;
 };
 
 }  // namespace FOEDAG

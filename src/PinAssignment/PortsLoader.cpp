@@ -53,16 +53,38 @@ std::pair<bool, QString> PortsLoader::load(const QString &file) {
   for (auto p{jsonObject.cbegin()}; p != jsonObject.cend(); ++p) {
     IOPortGroup group;
     auto ports = p->at("ports");
+    group.ports.reserve(ports.size());
     for (auto it{ports.cbegin()}; it != ports.cend(); ++it) {
       const auto range = it->at("range");
       const int msb = range["msb"];
       const int lsb = range["lsb"];
 
-      const IOPort ioport{QString::fromStdString(it->at("name")),
-                          QString::fromStdString(it->at("direction")),
-                          QString(), QString::fromStdString(it->at("type")),
-                          QString("Msb: %1, lsb: %2")
-                              .arg(QString::number(msb), QString::number(lsb))};
+      IOPort ioport{QString::fromStdString(it->at("name")),
+                    QString::fromStdString(it->at("direction")),
+                    QString(),
+                    QString::fromStdString(it->at("type")),
+                    QString("Msb: %1, lsb: %2")
+                        .arg(QString::number(msb), QString::number(lsb)),
+                    (msb != lsb),
+                    {}};
+      if (ioport.isBus) {
+        const int step = msb > lsb ? -1 : 1;
+        const int end = lsb + step;
+        ioport.ports.reserve(std::abs(msb - lsb) + 1);
+        for (int i{msb}; i != end; i += step) {
+          const IOPort port{
+              QString("%1[%2]").arg(QString::fromStdString(it->at("name")),
+                                    QString::number(i)),
+              QString::fromStdString(it->at("direction")),
+              QString(),
+              QString::fromStdString(it->at("type")),
+              QString("Msb: %1, lsb: %2")
+                  .arg(QString::number(msb), QString::number(lsb)),
+              false,
+              {}};
+          ioport.ports.append(port);
+        }
+      }
       group.ports.append(ioport);
     }
     m_model->append(group);
