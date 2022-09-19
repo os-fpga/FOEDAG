@@ -287,9 +287,8 @@ void SourcesForm::SlotRemoveFile() {
   auto fileSet = item->data(0, SetFileDataRole);
   if (!fileSet.isNull()) {
     auto questionStr =
-        tr("Are you sure you want to remote %1 from the project? \n\nThe file "
-           "will not be removed from the disk. It can be added back to the "
-           "project afterwards.")
+        tr("Are you sure you want to remove %1 from the project? \n\nThe file "
+           "will not be removed from the disk.")
             .arg(strFileName);
     if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
     m_projManager->setCurrentFileSet(fileSet.toString());
