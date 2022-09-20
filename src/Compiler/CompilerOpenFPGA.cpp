@@ -1148,9 +1148,9 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
-  yosysScript = ReplaceAll(
-      yosysScript, "${OUTPUT_VERILOG}",
-      std::string(ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript = 
+      ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
+                std::string(ProjManager()->projectName() + "_post_synth.v"));
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
@@ -1164,7 +1164,7 @@ bool CompilerOpenFPGA::Synthesize() {
   } else if (UseEdifNetlist()) {
     output_path = ProjManager()->projectName() + "_post_synth.edif";
   } else {
-     output_path = ProjManager()->projectName() +  "_post_synth.blif";
+    output_path = ProjManager()->projectName() + "_post_synth.blif";
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
