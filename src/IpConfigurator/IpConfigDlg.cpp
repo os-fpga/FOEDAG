@@ -63,6 +63,7 @@ QString getUserProjectPath(const QString& suffix) {
 
 IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/,
                          QString requestedIpName /* "" */,
+                         QString moduleName /* "" */,
                          QStringList instanceValueArgs /*{}*/)
     : m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
@@ -90,6 +91,11 @@ IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/,
   // Add Output Box
   CreateOutputFields();
   topLayout->addWidget(&outputBox);
+  // Update the module name if one was passed (this occurs during a
+  // re-configure)
+  if (!moduleName.isEmpty()) {
+    moduleEdit.setText(moduleName);
+  }
 
   // Add Dialog Buttons
   topLayout->addStretch();

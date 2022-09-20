@@ -514,8 +514,12 @@ void MainWindow::showWelcomePage() {
     centralWidget->addRecentProject(*it->first);
   }
 
-  connect(centralWidget, &WelcomePageWidget::welcomePageClosed, this,
-          &MainWindow::slotWelcomePageCloseRequested);
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
+          [&](bool permanently) {
+            m_showWelcomePage = !permanently;
+            if (permanently) saveWelcomePageConfig();
+            ReShowWindow({});
+          });
 
   setCentralWidget(centralWidget);
 
@@ -660,6 +664,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+  updateViewMenu();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -788,6 +793,21 @@ void MainWindow::updateSourceTree() {
   }
 }
 
+void MainWindow::updateViewMenu() {
+  viewMenu->clear();
+  viewMenu->addAction(ipConfiguratorAction);
+  viewMenu->addAction(pinAssignmentAction);
+  const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
+  if (!dockwidgets.empty()) {
+    viewMenu->addSeparator();
+    for (int i = 0; i < dockwidgets.size(); ++i) {
+      QDockWidget* dockWidget = dockwidgets.at(i);
+      if (layout()->indexOf(dockWidget) == -1) continue;
+      viewMenu->addAction(dockWidget->toggleViewAction());
+    }
+  }
+}
+
 void MainWindow::slotTabChanged(int index) {
   QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
   SetWindowTitle((index == -1) ? QString() : strName,
@@ -799,23 +819,7 @@ void MainWindow::saveWelcomePageConfig() {
   // should we shown. To store it we just save a file in a working directory -
   // if it's there, we don't show the welcome page.
   QFile file(WELCOME_PAGE_CONFIG_FILE);
-  if (file.open(QIODevice::WriteOnly)) {
-    if (m_showWelcomePage)
-      file.remove();
-    else
-      file.close();
-  }
-}
-
-void MainWindow::slotWelcomePageCloseRequested(bool permanently) {
-  // TODO: This code will have to be reworked as soon as we have global settings
-  // storage.
-  if (permanently) {
-    m_showWelcomePage = !m_showWelcomePage;
-    saveWelcomePageConfig();
-  } else {
-    ReShowWindow({});
-  }
+  if (file.open(QIODevice::WriteOnly)) file.close();
 }
 
 void MainWindow::recentProjectOpen() {
