@@ -660,6 +660,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+  updateViewMenu();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -785,6 +786,21 @@ void MainWindow::newDialogAccepted() {
 void MainWindow::updateSourceTree() {
   if (sourcesForm) {
     sourcesForm->InitSourcesForm();
+  }
+}
+
+void MainWindow::updateViewMenu() {
+  viewMenu->clear();
+  viewMenu->addAction(ipConfiguratorAction);
+  viewMenu->addAction(pinAssignmentAction);
+  const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
+  if (!dockwidgets.empty()) {
+    viewMenu->addSeparator();
+    for (int i = 0; i < dockwidgets.size(); ++i) {
+      QDockWidget* dockWidget = dockwidgets.at(i);
+      if (layout()->indexOf(dockWidget) == -1) continue;
+      viewMenu->addAction(dockWidget->toggleViewAction());
+    }
   }
 }
 
