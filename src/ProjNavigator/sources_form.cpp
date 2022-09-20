@@ -115,6 +115,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
                SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_TOP)) {
         menu->addAction(m_actOpenFile);
+        menu->addAction(m_actRemoveFile);
         menu->addAction(m_actRefresh);
         menu->addSeparator();
         menu->addAction(m_actEditConstrsSets);
@@ -290,9 +291,16 @@ void SourcesForm::SlotRemoveFile() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) return;
 
+  auto strFileName = item->text(0);
+  if (strFileName.contains(SRC_TREE_FLG_TOP))
+    strFileName.remove(SRC_TREE_FLG_TOP);
   auto fileSet = item->data(0, SetFileDataRole);
   if (!fileSet.isNull()) {
-    QString strFileName = item->text(0);
+    auto questionStr =
+        tr("Are you sure you want to remove %1 from the project? \n\nThe file "
+           "will not be removed from the disk.")
+            .arg(strFileName);
+    if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
     m_projManager->setCurrentFileSet(fileSet.toString());
     int ret = m_projManager->deleteFile(strFileName);
     if (0 == ret) {
@@ -404,6 +412,8 @@ void SourcesForm::CreateActions() {
           SLOT(SlotRemoveFileSet()));
 
   m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
+  m_actRemoveFile->setShortcut(Qt::Key_Delete);
+  m_treeSrcHierachy->addAction(m_actRemoveFile);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
 
   m_actSetAsTop = new QAction(tr("Set As TopModule"), m_treeSrcHierachy);
@@ -504,6 +514,7 @@ void SourcesForm::CreateFolderHierachyTree() {
           itemf->setIcon(0, QIcon(":/img/file.png"));
           itemf->setData(0, Qt::WhatsThisPropertyRole,
                          SRC_TREE_DESIGN_FILE_ITEM);
+          itemf->setData(0, SetFileDataRole, str);
           parentItem = itemf;
         }
         break;

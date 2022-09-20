@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2021 The Foedag team
 
 GPL License
@@ -153,6 +153,13 @@ void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
   }
 }
 
+void MainWindow::CloseOpenedTabs() {
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  while (tabWidget->count() != 0) {
+    tabWidget->tabCloseRequested(tabWidget->currentIndex());
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -182,6 +189,7 @@ void MainWindow::closeProject() {
   if (m_projectManager && m_projectManager->HasDesign()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
+    CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
   }
