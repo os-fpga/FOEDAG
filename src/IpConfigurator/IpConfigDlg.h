@@ -35,6 +35,7 @@ class IpConfigDlg : public QDialog {
 
  public:
   explicit IpConfigDlg(QWidget* parent = nullptr, QString requestedIpName = "",
+                       QString moduleName = "",
                        QStringList instanceValueArgs = {});
 
  public slots:
