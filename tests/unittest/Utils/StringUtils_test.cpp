@@ -111,5 +111,13 @@ TEST(StringUtilsTest, endsWithTest) {
   EXPECT_EQ(StringUtils::endsWith("string123", "12"), false);
 }
 
+TEST(StringUtilsTest, toLowerTest) {
+    EXPECT_EQ(StringUtils::toLower("LOWERCASE"), std::string("lowercase"));
+}
+
+TEST(StringUtilsTest, toUpperTest) {
+    EXPECT_EQ(StringUtils::toUpper("upperCase"), std::string("UPPERCASE"));
+}
+
 }  // namespace
 }  // namespace FOEDAG

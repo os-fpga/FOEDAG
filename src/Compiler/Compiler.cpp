@@ -56,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -376,12 +377,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
-    auto file = QString(argv[1]).toLower();
-    if (file.contains(".vhd")) {
+    auto file = StringUtils::toLower(argv[1]);
+    if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
     }
-    if (file.contains(".sv")) {
+    if (strstr(file.c_str(), ".sv")) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
@@ -487,12 +488,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
 
     const std::string file = argv[1];
+    const std::string fileLowerCase = StringUtils::toLower(file);
     std::string actualType = "VERILOG";
     Design::Language language = Design::Language::VERILOG_NETLIST;
-    if (strstr(file.c_str(), ".blif")) {
+    if (strstr(fileLowerCase.c_str(), ".blif")) {
       language = Design::Language::BLIF;
       actualType = "BLIF";
-    } else if (strstr(file.c_str(), ".eblif")) {
+    } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
       language = Design::Language::EBLIF;
       actualType = "EBLIF";
     }
