@@ -1148,9 +1148,9 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
-  yosysScript = 
+  yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
-                std::string(ProjManager()->projectName() + "_post_synth.v"));
+                 std::string(ProjManager()->projectName() + "_post_synth.v"));
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
