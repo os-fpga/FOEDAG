@@ -24,6 +24,7 @@
 
 set platform $::tcl_platform(platform)
 if { $platform == "windows" } {
+    # TODO @skyler-rs Sept2022 Enable in windows once GH-661 is resolved
     puts "SKIPPING ON WINDOWS: This test requires python which FileUtils::ExecuteSystemCommand() currently fails to find on Windows. Disabling windows run of test until python issues on windows are resolved.\n"
     # returning a pass condition because this is an expected failure for now
     exit 0
