@@ -82,6 +82,15 @@ void ProjectFileLoader::Load(const QString &filename) {
     }
   }
 
+  // set device
+  auto proRun = Project::Instance()->getProjectRun(DEFAULT_FOLDER_SYNTH);
+  if (proRun) {
+    const auto device = proRun->getOption(PROJECT_PART_DEVICE);
+    if (!device.isEmpty()) {
+      target_device(device);
+    }
+  }
+
   if (reader.hasError()) {
     return;
   }

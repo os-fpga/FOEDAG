@@ -315,13 +315,6 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
       }
     }
   }
-
-  // set device
-  m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);
-  const auto device = m_projectManager->getSynthOption(PROJECT_PART_DEVICE);
-  if (!device.isEmpty()) {
-    target_device(device);
-  }
 }
 
 }  // namespace FOEDAG
