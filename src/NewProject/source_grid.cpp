@@ -162,7 +162,7 @@ void sourceGrid::AddDirectories() {
                                                    // full paths
   while (it.hasNext()) {
     it.next();
-    files.emplace_back(it.fileName(), it.filePath());
+    files.emplace_back(it.fileName(), it.path());
   }
 
   for (auto &[fileName, filePath] : files) {
