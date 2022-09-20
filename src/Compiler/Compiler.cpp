@@ -376,12 +376,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
-    const std::string file = argv[1];
-    if (strstr(file.c_str(), ".vhd")) {
+    auto file = QString(argv[1]).toLower();
+    if (file.contains(".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
     }
-    if (strstr(file.c_str(), ".sv")) {
+    if (file.contains(".sv")) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
