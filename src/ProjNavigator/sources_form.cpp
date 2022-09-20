@@ -439,23 +439,23 @@ void SourcesForm::CreateActions() {
     if (item == nullptr) {
       return;
     }
-    std::string ipName = item->text(0).toStdString();
+    std::string moduleName = item->text(0).toStdString();
 
     auto instances =
         GlobalSession->GetCompiler()->GetIPGenerator()->IPInstances();
 
-    // Find the ip instance with a matching name
-    // This assumes the IPInstances() interface stores unique IPName's
-    // Additional qualifiers can be added to this search if IPName becomes
-    // non-unique
-    auto isMatch = [ipName](IPInstance *instance) {
-      return instance->IPName() == ipName;
+    // Find the ip instance with a matching module name
+    auto isMatch = [moduleName](IPInstance *instance) {
+      return instance->ModuleName() == moduleName;
     };
     auto result =
         std::find_if(std::begin(instances), std::end(instances), isMatch);
 
+    std::string ipName{};
     QStringList args{};
     if (result != std::end(instances)) {
+      ipName = (*result)->IPName();
+
       // Step through this instance's paremeters
       for (auto param : (*result)->Parameters()) {
         // Create a list of parameter value pairs in the format of
@@ -468,7 +468,8 @@ void SourcesForm::CreateActions() {
 
     // Load IP Config dialog with the previously configured values
     FOEDAG::IpConfigDlg *dlg =
-        new FOEDAG::IpConfigDlg(this, QString::fromStdString(ipName), args);
+        new FOEDAG::IpConfigDlg(this, QString::fromStdString(ipName),
+                                QString::fromStdString(moduleName), args);
     dlg->show();
   });
 }
@@ -618,12 +619,14 @@ void SourcesForm::CreateFolderHierachyTree() {
     iFileSum = 0;
     QTreeWidgetItem *ipParentItem{topitemIpInstances};
     for (auto instance : ipGen->IPInstances()) {
-      QString str = QString::fromStdString(instance->IPName());
+      QString ipName = QString::fromStdString(instance->IPName());
+      QString moduleName = QString::fromStdString(instance->ModuleName());
 
       QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
-      itemf->setText(0, str);
+      itemf->setText(0, moduleName);
+      itemf->setData(0, Qt::UserRole, ipName);
       itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
-      itemf->setData(0, SetFileDataRole, str);
+      itemf->setData(0, SetFileDataRole, ipName);
 
       iFileSum += 1;
     }
