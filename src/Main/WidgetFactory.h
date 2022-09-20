@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFormLayout>
 #include <QLineEdit>
 #include <QRadioButton>
 
@@ -55,6 +56,8 @@ QWidget* createSettingsWidget(json& widgetsJson,
                               const QString& objNamePrefix = "",
                               const QString& tclArgs = "");
 
+QFormLayout* createWidgetFormLayout(json& widgetsJson,
+                                    const QStringList& tclArgList = {});
 QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
                       const QStringList& args = QStringList());
 QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
