@@ -104,7 +104,9 @@ void newProjectDialog::on_buttonBox_accepted() {
       {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
       m_devicePlanForm->getSelectedDevice(),
       false /*rewrite*/,
-      DEFAULT_FOLDER_SOURCE};
+      DEFAULT_FOLDER_SOURCE,
+      m_addSrcForm->TopModule(),
+      m_addSrcForm->LibraryForTopModule()};
   Compiler *compiler = GlobalSession->GetCompiler();
   if (m_addConstrsForm->IsRandom()) {
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);

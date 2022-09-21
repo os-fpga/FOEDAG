@@ -69,15 +69,8 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
     }
   }
 
-  if (!strDefaultSrc.isEmpty()) {
-    QString module = strDefaultSrc.left(strDefaultSrc.lastIndexOf("."));
-    setTopModule(module);
-
-    // set default simulation source
-    setCurrentFileSet(DEFAULT_FOLDER_SIM);
-    setDesignFile("sim_" + strDefaultSrc, false);
-    setTopModule("sim_" + module);
-  }
+  setTopModule(opt.topModule);
+  setTopModuleLibrary(opt.topModuleLib);
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   QString strDefaultCts;
@@ -628,6 +621,17 @@ int ProjectManager::setTopModule(const QString& strModuleName) {
   return ret;
 }
 
+int ProjectManager::setTopModuleLibrary(const QString& strModuleNameLib) {
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return EC_FileSetNotExist;
+  }
+
+  proFileSet->setOption(PROJECT_FILE_CONFIG_TOP_LIB, strModuleNameLib);
+  return EC_Success;
+}
+
 int ProjectManager::setTargetConstrs(const QString& strFileName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
@@ -814,6 +818,26 @@ QString ProjectManager::getDesignTopModule() const {
 
 std::string ProjectManager::DesignTopModule() const {
   return getDesignTopModule().toStdString();
+}
+
+QString ProjectManager::getDesignTopModuleLib(const QString& strFileSet) const {
+  QString strTopModuleLib;
+
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(strFileSet);
+
+  if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
+    strTopModuleLib = tmpFileSet->getOption(PROJECT_FILE_CONFIG_TOP_LIB);
+  }
+  return strTopModuleLib;
+}
+
+QString ProjectManager::getDesignTopModuleLib() const {
+  return getDesignTopModuleLib(getDesignActiveFileSet());
+}
+
+std::string ProjectManager::DesignTopModuleLib() const {
+  return getDesignTopModuleLib().toStdString();
 }
 
 int ProjectManager::setConstrFileSet(const QString& strSetName) {

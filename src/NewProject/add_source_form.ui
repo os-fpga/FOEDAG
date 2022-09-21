@@ -62,7 +62,7 @@
       <number>30</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,0,10">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -81,6 +81,33 @@
           <enum>QFrame::Raised</enum>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Top level module:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEditTopModule"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Library for top-level :</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEditTopModuleLib"/>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QCheckBox" name="m_ckkBoxCopy">

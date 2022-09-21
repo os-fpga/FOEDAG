@@ -35,3 +35,11 @@ bool addSourceForm::IsCopySource() {
   return ui->m_ckkBoxCopy->checkState() == Qt::CheckState::Checked ? true
                                                                    : false;
 }
+
+QString addSourceForm::TopModule() const {
+  return ui->lineEditTopModule->text().trimmed();
+}
+
+QString addSourceForm::LibraryForTopModule() const {
+  return ui->lineEditTopModuleLib->text().trimmed();
+}

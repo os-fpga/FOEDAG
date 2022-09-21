@@ -20,6 +20,8 @@ class addSourceForm : public QWidget {
 
   QList<filedata> getFileData();
   bool IsCopySource();
+  QString TopModule() const;
+  QString LibraryForTopModule() const;
 
  private:
   Ui::addSourceForm *ui;
