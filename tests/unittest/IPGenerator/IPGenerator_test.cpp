@@ -43,12 +43,12 @@ TEST(IPGenerate, IpInstanceDupes) {
   Port* port = new Port("clk", Port::Direction::Input, Port::Function::Clock,
                         Port::Polarity::High, range);
   connections.push_back(port);
-  IPDefinition* def =
-      new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP",
-                       "path_to_nowhere", connections, parameters);
-  IPDefinition* def2 =
-      new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP2",
-                       "path_to_nowhere", connections, parameters);
+  IPDefinition* def = new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP",
+                                       "MOCK_IP_wrapper", "path_to_nowhere",
+                                       connections, parameters);
+  IPDefinition* def2 = new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP2",
+                                        "MOCK_IP2_wrapper", "path_to_nowhere",
+                                        connections, parameters);
 
   ipCat->addIP(def);
 

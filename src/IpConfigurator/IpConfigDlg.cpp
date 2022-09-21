@@ -171,8 +171,13 @@ void IpConfigDlg::CreateParamFields() {
       m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
       updateMetaLabel(m_meta);
 
-      // set default module name to the VLNV name
-      moduleEdit.setText(QString::fromStdString(m_meta.name));
+      // set default module name to the BuildName provided by the generate
+      // script otherwise default to the to the VLNV name
+      std::string build_name = def->BuildName();
+      if (build_name.empty()) {
+        build_name = m_meta.name;
+      }
+      moduleEdit.setText(QString::fromStdString(build_name));
 
       // Build widget factory json for each parameter
       for (auto param : def->Parameters()) {
