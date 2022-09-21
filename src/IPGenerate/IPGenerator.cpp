@@ -66,8 +66,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage(
           "Missing directory path for LiteX ip generator(s)");
     }
-    const std::string file = argv[1];
-    std::string expandedFile = file;
+    const std::filesystem::path file = argv[1];
+    std::filesystem::path expandedFile = file;
     bool use_orig_path = false;
     if (FileUtils::FileExists(expandedFile) && expandedFile != "./") {
       use_orig_path = true;
@@ -79,15 +79,16 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
       std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
+      fullPath = fullPath / file;
+      expandedFile = fullPath;
     }
     std::filesystem::path the_path = expandedFile;
     if (!the_path.is_absolute()) {
       const auto& path = std::filesystem::current_path();
-      expandedFile = std::filesystem::path(path / expandedFile).string();
+      expandedFile = path / expandedFile;
     }
-    bool status = compiler->BuildLiteXIPCatalog(expandedFile);
+    bool status =
+        compiler->BuildLiteXIPCatalog(expandedFile.lexically_normal());
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
@@ -96,6 +97,15 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
     IPGenerator* generator = (IPGenerator*)clientData;
     Compiler* compiler = generator->GetCompiler();
+
+    // Load IPs if no definitions are available
+    if (!compiler->HasIPDefinitions()) {
+      std::filesystem::path path =
+          GlobalSession->Context()->DataPath() / "IP_Catalog";
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog {" +
+                                     path.lexically_normal().string() + "}");
+    }
+
     bool status = true;
     if (argc == 1) {
       // List all IPs
@@ -146,6 +156,15 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "-out_file <filename> -version <ver_name> -P<param>=\"<value>\"...");
       return TCL_ERROR;
     }
+
+    // Load IPs if no definitions are available
+    if (!compiler->HasIPDefinitions()) {
+      std::filesystem::path path =
+          GlobalSession->Context()->DataPath() / "IP_Catalog";
+      compiler->TclInterp()->evalCmd("add_litex_ip_catalog {" +
+                                     path.lexically_normal().string() + "}");
+    }
+
     std::string ip_name;
     std::string mod_name;
     std::string out_file;
@@ -270,7 +289,6 @@ bool IPGenerator::Generate() {
   for (IPInstance* inst : m_instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
-
     if (!std::filesystem::exists(out_path)) {
       std::filesystem::create_directories(out_path.parent_path());
     }

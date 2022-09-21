@@ -133,7 +133,8 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     jopts = json::parse(buffer);
   } catch (json::parse_error& e) {
     std::string msg = "Json Parse Error: " + std::string(e.what()) + "\n" +
-                      "filePath: " + pythonConverterScript.string() + "\n";
+                      "filePath: " + pythonConverterScript.string() + "\n" +
+                      "genCmd: " + command + "\n" + "json: " + buffer.str();
     m_compiler->ErrorMessage(msg);
   }
 
