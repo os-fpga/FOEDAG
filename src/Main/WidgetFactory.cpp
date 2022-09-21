@@ -555,6 +555,7 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   QVBoxLayout* VLayout = new QVBoxLayout();
   widget->setLayout(VLayout);
 
+  // Create a QFormLayout containing the requested fields
   QFormLayout* form = createWidgetFormLayout(widgetsJson, tclArgs.split("-"));
   VLayout->addLayout(form);
   VLayout->addStretch();
@@ -575,7 +576,8 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
     QHash<QString, QString> patchHash;
     QString argsStr = "";
     for (int i = 0; i < form->rowCount(); i++) {
-      QWidget* settingsWidget = form->itemAt(i)->widget();
+      QWidget* settingsWidget =
+          form->itemAt(i, QFormLayout::FieldRole)->widget();
       if (settingsWidget) {
         QObject* targetObject =
             qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
@@ -669,7 +671,7 @@ QFormLayout* FOEDAG::createWidgetFormLayout(
   QFormLayout* form = new QFormLayout();
   form->setLabelAlignment(Qt::AlignRight);
 
-  // Create and add the child widget to our parent container
+  // Create and add the child widget to the form layout
   for (auto [widgetId, widgetJson] : widgetsJson.items()) {
     QWidget* subWidget = FOEDAG::createWidget(
         widgetJson, QString::fromStdString(widgetId), tclArgList);
