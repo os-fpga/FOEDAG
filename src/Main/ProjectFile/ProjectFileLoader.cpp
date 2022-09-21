@@ -49,6 +49,12 @@ void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
 }
 
 void ProjectFileLoader::Load(const QString &filename) {
+  m_loadDone = false;
+  LoadInternal(filename);
+  m_loadDone = true;
+}
+
+void ProjectFileLoader::LoadInternal(const QString &filename) {
   if (filename.isEmpty()) return;
 
   QString strTemp = QString("%1/%2%3").arg(Project::Instance()->projectPath(),
@@ -79,6 +85,15 @@ void ProjectFileLoader::Load(const QString &filename) {
         Project::Instance()->setProjectPath(projPath);
       }
       for (const auto &component : m_components) component->Load(&reader);
+    }
+  }
+
+  // set device
+  auto proRun = Project::Instance()->getProjectRun(DEFAULT_FOLDER_SYNTH);
+  if (proRun) {
+    const auto device = proRun->getOption(PROJECT_PART_DEVICE);
+    if (!device.isEmpty()) {
+      target_device(device);
     }
   }
 
@@ -115,6 +130,7 @@ QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {
 }
 
 void ProjectFileLoader::Save() {
+  if (!m_loadDone) return;
   QString tmpName = Project::Instance()->projectName();
   QString tmpPath = Project::Instance()->projectPath();
   QString xmlPath = tmpPath + "/" + tmpName + PROJECT_FILE_FORMAT;
