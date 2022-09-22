@@ -460,15 +460,10 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
     foreach (QString strfile, fileList) {
-      suffix = QFileInfo(strfile).suffix();
-      if (m_designSuffixes.TestSuffix(suffix)) {
-        ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
-      }
+      ret = AddOrCreateFileToFileSet(strfile, isFileCopy);
     }
   } else if (fileInfo.exists()) {
-    if (m_designSuffixes.TestSuffix(suffix)) {
-      ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
-    }
+    ret = AddOrCreateFileToFileSet(strFileName, isFileCopy);
   } else {
     if (strFileName.contains("/")) {
       if (m_designSuffixes.TestSuffix(suffix)) {
