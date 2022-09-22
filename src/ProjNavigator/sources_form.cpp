@@ -113,26 +113,14 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       }
     } else if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
                SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
-      if (strName.contains(SRC_TREE_FLG_TOP)) {
-        menu->addAction(m_actOpenFile);
-        menu->addAction(m_actRemoveFile);
-        menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
-      } else {
-        menu->addAction(m_actOpenFile);
-        menu->addAction(m_actRemoveFile);
-        menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
-        menu->addAction(m_actSetAsTop);
-      }
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRemoveFile);
+      menu->addAction(m_actRefresh);
+      menu->addSeparator();
+      menu->addAction(m_actEditConstrsSets);
+      menu->addAction(m_actEditSimulSets);
+      menu->addSeparator();
+      menu->addAction(m_actAddFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_TARGET)) {
         menu->addAction(m_actOpenFile);
@@ -292,8 +280,6 @@ void SourcesForm::SlotRemoveFile() {
   if (item == nullptr) return;
 
   auto strFileName = item->text(0);
-  if (strFileName.contains(SRC_TREE_FLG_TOP))
-    strFileName.remove(SRC_TREE_FLG_TOP);
   auto fileSet = item->data(0, SetFileDataRole);
   if (!fileSet.isNull()) {
     auto questionStr =
@@ -307,22 +293,6 @@ void SourcesForm::SlotRemoveFile() {
       UpdateSrcHierachyTree();
       m_projManager->FinishedProject();
     }
-  }
-}
-
-void SourcesForm::SlotSetAsTop() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
-  }
-  QString strFileName = item->text(0);
-
-  m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
-  QString module = strFileName.left(strFileName.lastIndexOf("."));
-  int ret = m_projManager->setTopModule(module);
-  if (0 == ret) {
-    UpdateSrcHierachyTree();
-    m_projManager->FinishedProject();
   }
 }
 
@@ -416,9 +386,6 @@ void SourcesForm::CreateActions() {
   m_treeSrcHierachy->addAction(m_actRemoveFile);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
 
-  m_actSetAsTop = new QAction(tr("Set As TopModule"), m_treeSrcHierachy);
-  connect(m_actSetAsTop, SIGNAL(triggered()), this, SLOT(SlotSetAsTop()));
-
   m_actSetAsTarget =
       new QAction(tr("Set as Target Constraint File"), m_treeSrcHierachy);
   connect(m_actSetAsTarget, SIGNAL(triggered()), this, SLOT(SlotSetAsTarget()));
@@ -502,26 +469,6 @@ void SourcesForm::CreateFolderHierachyTree() {
 
     QTreeWidgetItem *parentItem{topitemDS};
     for (auto &strfile : listDesFile) {
-      QString filename =
-          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-      QString module = filename.left(filename.lastIndexOf("."));
-      if (module == strTop) {
-        if (parentItem) {
-          QString filename =
-              strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-          QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
-          itemf->setData(0, Qt::UserRole, strfile);
-          itemf->setIcon(0, QIcon(":/img/file.png"));
-          itemf->setData(0, Qt::WhatsThisPropertyRole,
-                         SRC_TREE_DESIGN_FILE_ITEM);
-          itemf->setData(0, SetFileDataRole, str);
-          parentItem = itemf;
-        }
-        break;
-      }
-    }
-    for (auto &strfile : listDesFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
@@ -581,20 +528,13 @@ void SourcesForm::CreateFolderHierachyTree() {
   iFileSum = 0;
   for (const auto &str : listSimFset) {
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
-    QString strTop = m_projManager->getSimulationTopModule(str);
-
     QTreeWidgetItem *parentItem{topitemSS};
     for (auto &strfile : listSimFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
         QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-        QString module = filename.left(filename.lastIndexOf("."));
-        if (module == strTop) {
-          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
-        } else {
-          itemf->setText(0, filename);
-        }
+        itemf->setText(0, filename);
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);

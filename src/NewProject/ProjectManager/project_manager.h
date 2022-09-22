@@ -73,6 +73,7 @@ project object is singleton mode.
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
 
 #define PROJECT_FILE_CONFIG_TOP "TopModule"
+#define PROJECT_FILE_CONFIG_TOP_LIB "TopModuleLib"
 #define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
 #define PROJECT_RUN_OPTION_FLOW "Compilation Flow"
@@ -109,6 +110,8 @@ struct ProjectOptions {
   QStringList device;
   bool rewriteProject;
   QString currentFileSet;
+  QString topModule;
+  QString topModuleLib;
 };
 
 struct Suffixes {
@@ -178,6 +181,7 @@ class ProjectManager : public QObject {
 
   // Please set currentfileset before using this function
   int setTopModule(const QString &strModuleName);
+  int setTopModuleLibrary(const QString &strModuleNameLib);
   // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
 
@@ -194,6 +198,10 @@ class ProjectManager : public QObject {
   QString getDesignTopModule(const QString &strFileSet) const;
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;
+
+  QString getDesignTopModuleLib(const QString &strFileSet) const;
+  QString getDesignTopModuleLib() const;
+  std::string DesignTopModuleLib() const;
 
   int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;

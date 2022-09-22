@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileInfo>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QMetaEnum>
@@ -77,6 +78,12 @@ tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {
 
   return retVal;
 }
+
+QString getStr(const json& jsonObj, const QString& key,
+               const QString& defaultStr = "") {
+  std::string val = jsonObj.value(key.toStdString(), defaultStr.toStdString());
+  return QString::fromStdString(val);
+};
 
 static constexpr uint JsonPathRole = Qt::UserRole + 1;
 
@@ -548,15 +555,9 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   QVBoxLayout* VLayout = new QVBoxLayout();
   widget->setLayout(VLayout);
 
-  // Create and add the child widget to our parent container
-  QStringList tclArgList = tclArgs.split("-");
-  for (auto [widgetId, widgetJson] : widgetsJson.items()) {
-    QWidget* subWidget = FOEDAG::createWidget(
-        widgetJson, QString::fromStdString(widgetId), tclArgList);
-    if (subWidget != nullptr) {
-      VLayout->addWidget(subWidget);
-    }
-  }
+  // Create a QFormLayout containing the requested fields
+  QFormLayout* form = createWidgetFormLayout(widgetsJson, tclArgs.split("-"));
+  VLayout->addLayout(form);
   VLayout->addStretch();
 
   // Add ok/cancel/apply buttons
@@ -570,12 +571,13 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   // settings to a user file and add the changes to the passed in settings
   // This will also build up and store a tcl arg list for these
   // settings if the widgets have "arg" fields defined
-  auto checkVals = [VLayout, &widgetsJson, widget]() {
+  auto checkVals = [form, &widgetsJson, widget]() {
     bool save = false;
     QHash<QString, QString> patchHash;
     QString argsStr = "";
-    for (int i = 0; i < VLayout->count(); i++) {
-      QWidget* settingsWidget = VLayout->itemAt(i)->widget();
+    for (int i = 0; i < form->rowCount(); i++) {
+      QWidget* settingsWidget =
+          form->itemAt(i, QFormLayout::FieldRole)->widget();
       if (settingsWidget) {
         QObject* targetObject =
             qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
@@ -664,15 +666,26 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   return widget;
 }
 
+QFormLayout* FOEDAG::createWidgetFormLayout(
+    json& widgetsJson, const QStringList& tclArgList /* {} */) {
+  QFormLayout* form = new QFormLayout();
+  form->setLabelAlignment(Qt::AlignRight);
+
+  // Create and add the child widget to the form layout
+  for (auto [widgetId, widgetJson] : widgetsJson.items()) {
+    QWidget* subWidget = FOEDAG::createWidget(
+        widgetJson, QString::fromStdString(widgetId), tclArgList);
+    QString label = getStr(widgetJson, "label");
+
+    if (subWidget != nullptr) {
+      form->addRow(label, subWidget);
+    }
+  }
+  return form;
+}
+
 QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
                               const QStringList& args) {
-  auto getStr = [](const json& jsonObj, const QString& key,
-                   const QString& defaultStr = "") {
-    std::string val =
-        jsonObj.value(key.toStdString(), defaultStr.toStdString());
-    return QString::fromStdString(val);
-  };
-
   auto lookupStr = [](const QStringList& options, const QStringList& lookup,
                       const QString& option) -> QString {
     // Find the given option in the options array
@@ -1037,9 +1050,10 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     }
 
     if (createdWidget) {
-      // Add a containing widget and label if "label" property was provided
-      QString label = getStr(widgetJsonObj, "label");
-      retVal = FOEDAG::createContainerWidget(createdWidget, label);
+      // Only calling this for the container which will allow the widget to
+      // stretch, label is no longer provided here as labels are now added via
+      // QFormLayout at a different time
+      retVal = FOEDAG::createContainerWidget(createdWidget);
 
       // Store a pointer to the primary widget incase we wrapped it in a
       // container widget with a label

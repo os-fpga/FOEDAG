@@ -22,7 +22,6 @@
 #define SRC_TREE_IP_FILE_ITEM "ipfileitem"
 
 #define SRC_TREE_FLG_ACTIVE tr(" (Active)")
-#define SRC_TREE_FLG_TOP tr(" (Top)")
 #define SRC_TREE_FLG_TARGET tr(" (Target)")
 
 namespace Ui {
@@ -64,7 +63,6 @@ class SourcesForm : public QWidget {
   void SlotOpenFile();
   void SlotRemoveFileSet();
   void SlotRemoveFile();
-  void SlotSetAsTop();
   void SlotSetAsTarget();
   void SlotSetActive();
   void SlotProperties();
@@ -81,7 +79,6 @@ class SourcesForm : public QWidget {
   QAction* m_actOpenFile;
   QAction* m_actRemoveFileset;
   QAction* m_actRemoveFile;
-  QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
   QAction* m_actProperties;

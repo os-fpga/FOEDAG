@@ -66,8 +66,7 @@ void IpCatalogTree::refresh() {
   // catalog path. This path should be loaded in addition to the default
   std::filesystem::path UserCatalogPath = std::filesystem::path("");
   std::filesystem::path IpCatalogPath =
-      std::filesystem::path(GlobalSession->Context()->DataPath().string()) /
-      "IP_Catalog";
+      GlobalSession->Context()->DataPath() / "IP_Catalog";
   std::vector<std::filesystem::path> IpPaths{IpCatalogPath, UserCatalogPath};
 
   QStringList ips;
@@ -106,8 +105,9 @@ void IpCatalogTree::loadIps(const std::vector<std::filesystem::path>& paths) {
   if (tclCmdExists("add_litex_ip_catalog")) {
     for (auto path : paths) {
       if (std::filesystem::exists(path)) {
-        QString cmd = QString("add_litex_ip_catalog %1")
-                          .arg(QString::fromStdString(path.string()));
+        QString cmd =
+            QString("add_litex_ip_catalog {%1}")
+                .arg(QString::fromStdString(path.lexically_normal().string()));
         int ok = TCL_ERROR;
         GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
       }

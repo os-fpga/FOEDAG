@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IpConfigurator/IpConfigDlg.h"
 
 #include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QWidget>
@@ -160,9 +161,6 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
 }
 
 void IpConfigDlg::CreateParamFields() {
-  QVBoxLayout* vLayout = new QVBoxLayout();
-  paramsBox.setLayout(vLayout);
-
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
@@ -227,18 +225,14 @@ void IpConfigDlg::CreateParamFields() {
   }
 
   // Create and add the child widget to our parent container
-  for (auto [widgetId, widgetJson] : parentJson.items()) {
-    QWidget* subWidget = FOEDAG::createWidget(
-        widgetJson, QString::fromStdString(widgetId), tclArgList);
-    if (subWidget != nullptr) {
-      vLayout->addWidget(subWidget);
-    }
-  }
+
+  auto form = createWidgetFormLayout(parentJson, tclArgList);
+  paramsBox.setLayout(form);
 }
 
 void IpConfigDlg::CreateOutputFields() {
-  // Using grid for easy right justification of label fields
-  QGridLayout* grid = new QGridLayout(&outputBox);
+  QFormLayout* form = new QFormLayout(&outputBox);
+  form->setLabelAlignment(Qt::AlignRight);
 
   // Set objectNames for future testing targets
   moduleEdit.setObjectName("IpConfigurator_moduleLineEdit");
@@ -259,13 +253,7 @@ void IpConfigDlg::CreateOutputFields() {
   // Loop through pairs and add them to layout
   int count = 0;
   for (auto [labelName, widget] : pairs) {
-    grid->addWidget(new QLabel(QString::fromStdString(labelName)), count, 0,
-                    Qt::AlignRight);
-
-    // Add to a layout so the widget grows w/ the dialog
-    QHBoxLayout* hLayout = new QHBoxLayout();
-    hLayout->addWidget(widget);
-    grid->addLayout(hLayout, count, 1, Qt::AlignLeft);
+    form->addRow(QString::fromStdString(labelName), widget);
     count++;
   }
 
@@ -274,7 +262,7 @@ void IpConfigDlg::CreateOutputFields() {
                    &IpConfigDlg::updateOutputPath);
 
   // add the layout to the output group box
-  outputBox.setLayout(grid);
+  outputBox.setLayout(form);
 }
 
 void IpConfigDlg::updateMetaLabel(VLNV info) {

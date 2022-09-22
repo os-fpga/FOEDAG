@@ -41,10 +41,9 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
     return false;
   }
 
-  QString strFileName = QString(argv[1]);
+  const QString topModule = QString(argv[1]);
   m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
-  QString module = strFileName.left(strFileName.lastIndexOf("."));
-  int ret = m_projManager->setTopModule(module);
+  int ret = m_projManager->setTopModule(topModule);
   if (0 == ret) update();
   return true;
 }
@@ -254,7 +253,9 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
                      {{}, false},
                      {},
                      true /*rewrite*/,
-                     DEFAULT_FOLDER_SOURCE};
+                     DEFAULT_FOLDER_SOURCE,
+                     {},
+                     {}};
   m_projManager->CreateProject(opt);
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};
