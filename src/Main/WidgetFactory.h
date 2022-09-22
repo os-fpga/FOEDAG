@@ -33,10 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
-using tclArgSetterFn = std::function<void(const QString&)>;
-using tclArgGetterFn = std::function<QString()>;
+using tclArgSetterFn = std::function<void(const std::string&)>;
+using tclArgGetterFn = std::function<std::string()>;
 using tclArgFns = std::pair<tclArgSetterFn, tclArgGetterFn>;
-using tclArgFnMap = std::map<QString, tclArgFns>;
+using tclArgFnMap = std::map<std::string, tclArgFns>;
 
 #define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
 #define DlgBtnBoxName "SettingsDialogButtonBox"

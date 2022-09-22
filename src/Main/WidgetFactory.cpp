@@ -69,7 +69,7 @@ void FOEDAG::initTclArgFns() {
 void FOEDAG::clearTclArgFns() { TclArgFnLookup.clear(); }
 
 void FOEDAG::addTclArgFns(const std::string& tclArgKey, tclArgFns argFns) {
-  TclArgFnLookup.insert({QString::fromStdString(tclArgKey), argFns});
+  TclArgFnLookup.insert({tclArgKey, argFns});
 }
 
 // returns a pair of tcl setters/getters from the TclArgFnLookup
@@ -78,7 +78,7 @@ tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {
   tclArgSetterFn setter = nullptr;
   tclArgFns retVal = {setter, getter};
 
-  auto result = TclArgFnLookup.find(tclArgKey);
+  auto result = TclArgFnLookup.find(tclArgKey.toStdString());
   if (result != TclArgFnLookup.end()) {
     retVal = result->second;
   }
@@ -463,7 +463,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
       // Get any task settings that have been set via tcl commands
       QString tclArgs = "";
       if (tclArgGetter != nullptr) {
-        tclArgs = tclArgGetter();
+        tclArgs = QString::fromStdString(tclArgGetter());
       }
 
       // Create Settings Pane
@@ -540,7 +540,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                   // Set any tclArgList values for the given task
                   if (tclArgSetter != nullptr) {
                     QString tclArgs = widget->property("tclArgList").toString();
-                    tclArgSetter(tclArgs);
+                    tclArgSetter(tclArgs.toStdString());
                   }
                 }
               }
