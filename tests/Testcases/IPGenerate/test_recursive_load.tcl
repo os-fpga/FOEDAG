@@ -32,4 +32,18 @@ if { $platform == "windows" } {
     foreach ip [ip_catalog] {
         puts "Found IP: $ip"
     }
+
+    # Error out if the correct FOUND IP messages aren't printed
+    set fp [open "foedag.log" r]
+    set file_data [read $fp]
+    close $fp
+    set found1 [regexp "Found IP: axis_converter_V1_0" $file_data]
+    set found2 [regexp "Found IP: axis_converter_V1_0" $file_data]
+    set found [expr {$found1 && $found2}]
+    # invert the return value so the script will error properly
+    set failed [expr {!$found}]
+    if { $failed == 1 } {
+        puts "ERROR: add_litex_ip_catalog failed to recursively load ips"
+    }
+    exit $failed
 }
