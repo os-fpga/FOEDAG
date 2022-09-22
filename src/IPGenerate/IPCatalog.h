@@ -192,7 +192,7 @@ class IPDefinition {
   ~IPDefinition() {}
   IPType Type() const { return m_type; }
   const std::string& Name() const { return m_name; }
-  const std::string& BuildName() { return m_build_name; }
+  const std::string& BuildName() const { return m_build_name; }
   const std::vector<Connector*>& Connections() const { return m_connections; }
   const std::filesystem::path FilePath() const { return m_filePath; }
   const std::vector<Value*> Parameters() const { return m_parameters; }
