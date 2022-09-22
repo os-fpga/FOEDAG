@@ -465,23 +465,17 @@ void SourcesForm::CreateFolderHierachyTree() {
   int iFileSum = 0;
   for (auto &str : listDesFset) {
     QStringList listDesFile = m_projManager->getDesignFiles(str);
-    QString strTop = m_projManager->getDesignTopModule(str);
-
     QTreeWidgetItem *parentItem{topitemDS};
     for (auto &strfile : listDesFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-        QString module = filename.left(filename.lastIndexOf("."));
-        if (module != strTop) {
-          QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-          itemf->setText(0, filename);
-          itemf->setData(0, Qt::UserRole, strfile);
-          itemf->setIcon(0, QIcon(":/img/file.png"));
-          itemf->setData(0, Qt::WhatsThisPropertyRole,
-                         SRC_TREE_DESIGN_FILE_ITEM);
-          itemf->setData(0, SetFileDataRole, str);
-        }
+        QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+        itemf->setText(0, filename);
+        itemf->setData(0, Qt::UserRole, strfile);
+        itemf->setIcon(0, QIcon(":/img/file.png"));
+        itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
+        itemf->setData(0, SetFileDataRole, str);
       }
     }
     iFileSum += listDesFile.size();
