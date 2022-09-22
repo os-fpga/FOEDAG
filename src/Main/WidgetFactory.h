@@ -44,7 +44,6 @@ using tclArgFnMap = std::map<QString, tclArgFns>;
 namespace FOEDAG {
 void initTclArgFns();
 void clearTclArgFns();
-void addTclArgFns(const QString& tclArgKey, tclArgFns argFns);
 void addTclArgFns(const std::string& tclArgKey, tclArgFns argFns);
 tclArgFns getTclArgFns(const QString& tclArgKey);
 QDialog* createTopSettingsDialog(json& widgetsJson,

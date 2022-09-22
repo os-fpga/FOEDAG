@@ -56,27 +56,20 @@ static tclArgFnMap TclArgFnLookup;
 // and then add "YOUR_UNIQUE_KEY" and your set/get callbacks below
 
 void FOEDAG::initTclArgFns() {
-  TclArgFnLookup.insert({"Tasks_Synthesis",
-                         {FOEDAG::TclArgs_setSynthesisOptions,
-                          FOEDAG::TclArgs_getSynthesisOptions}});
-  TclArgFnLookup.insert({"Tasks_placement",
-                         {FOEDAG::TclArgs_setPlacementOptions,
-                          FOEDAG::TclArgs_getPlacementOptions}});
-  TclArgFnLookup.insert(
-      {"TclExample",
-       {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}});
+  addTclArgFns("Tasks_Synthesis", {FOEDAG::TclArgs_setSynthesisOptions,
+                                   FOEDAG::TclArgs_getSynthesisOptions});
+  addTclArgFns("Tasks_placement", {FOEDAG::TclArgs_setPlacementOptions,
+                                   FOEDAG::TclArgs_getPlacementOptions});
+  addTclArgFns("TclExample", {FOEDAG::TclArgs_setExampleArgs,
+                              FOEDAG::TclArgs_getExampleArgs});
 }
 
 // Clear out the default TclArgFns, this is provided for downstreams clients to
 // reset the lookup if they need
 void FOEDAG::clearTclArgFns() { TclArgFnLookup.clear(); }
 
-void FOEDAG::addTclArgFns(const QString& tclArgKey, tclArgFns argFns) {
-  TclArgFnLookup.insert({tclArgKey, argFns});
-}
-
 void FOEDAG::addTclArgFns(const std::string& tclArgKey, tclArgFns argFns) {
-  addTclArgFns(QString::fromStdString(tclArgKey), argFns);
+  TclArgFnLookup.insert({QString::fromStdString(tclArgKey), argFns});
 }
 
 // returns a pair of tcl setters/getters from the TclArgFnLookup
