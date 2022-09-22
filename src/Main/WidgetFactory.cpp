@@ -42,6 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 using nlohmann::json_pointer;
 
+static tclArgFnMap TclArgFnLookup;
+
 // This lookup provides tcl setters/getters based off a QString. When settings
 // widgets are generated, these setters are loaded if the associated widget json
 // defines a tclArgKey that will be used in this lookup.
@@ -52,18 +54,30 @@ using nlohmann::json_pointer;
 //     "tclArgKey": "YOUR_UNIQUE_KEY"
 // }
 // and then add "YOUR_UNIQUE_KEY" and your set/get callbacks below
-tclArgFnMap TclArgFnLookup = {
-    {"Tasks_Synthesis",
-     {FOEDAG::TclArgs_setSynthesisOptions,
-      FOEDAG::TclArgs_getSynthesisOptions}},
-    //{"Placement", {set,get}},
-    // {"Routing", {set,get}},
-    {"TclExample",
-     {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}},
-    {"Tasks_placement",
-     {FOEDAG::TclArgs_setPlacementOptions,
-      FOEDAG::TclArgs_getPlacementOptions}},
-};
+
+void FOEDAG::initTclArgFns() {
+  TclArgFnLookup.insert({"Tasks_Synthesis",
+                         {FOEDAG::TclArgs_setSynthesisOptions,
+                          FOEDAG::TclArgs_getSynthesisOptions}});
+  TclArgFnLookup.insert({"Tasks_placement",
+                         {FOEDAG::TclArgs_setPlacementOptions,
+                          FOEDAG::TclArgs_getPlacementOptions}});
+  TclArgFnLookup.insert(
+      {"TclExample",
+       {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}});
+}
+
+// Clear out the default TclArgFns, this is provided for downstreams clients to
+// reset the lookup if they need
+void FOEDAG::clearTclArgFns() { TclArgFnLookup.clear(); }
+
+void FOEDAG::addTclArgFns(const QString& tclArgKey, tclArgFns argFns) {
+  TclArgFnLookup.insert({tclArgKey, argFns});
+}
+
+void FOEDAG::addTclArgFns(const std::string& tclArgKey, tclArgFns argFns) {
+  addTclArgFns(QString::fromStdString(tclArgKey), argFns);
+}
 
 // returns a pair of tcl setters/getters from the TclArgFnLookup
 tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {

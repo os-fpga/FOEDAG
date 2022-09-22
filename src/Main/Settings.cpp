@@ -38,7 +38,7 @@ auto SETTINGS_DBG_PRINT = [](std::string printStr) {
   }
 };
 
-Settings::Settings() {}
+Settings::Settings() { FOEDAG::initTclArgFns(); }
 
 void Settings::clear() {
   m_json.clear();
@@ -197,7 +197,14 @@ void Settings::applyTclVars() {
     // apply and
     if (!tclArgKey.isEmpty()) {
       auto [setter, getter] = FOEDAG::getTclArgFns(tclArgKey);
-      setter(getTclArgString(settingsJson));
+      if (setter != nullptr) {
+        setter(getTclArgString(settingsJson));
+      } else {
+        SETTINGS_DBG_PRINT("Settings: getTclArgFns for key \"" +
+                           tclArgKey.toStdString() +
+                           "\" returned a null setter function pointer. Back "
+                           "end tcl values will not be set.\n");
+      }
     }
   }
 }
