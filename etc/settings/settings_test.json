@@ -152,49 +152,6 @@
                 ],
                 "arg": "_SynthOpt_"
             },
-            "effort_dropdown": {
-                "label": "Effort",
-                "widgetType": "dropdown",
-                "options": [
-                    "High",
-                    "Medium",
-                    "Low"
-                ],
-                "optionsLookup": [
-                    "high",
-                    "medium",
-                    "low"
-                ],
-                "arg": "effort"
-            },
-            "fsm_encoding_dropdown": {
-                "label": "FSM Encoding",
-                "widgetType": "dropdown",
-                "options": [
-                    "Binary",
-                    "One Hot"
-                ],
-                "optionsLookup": [
-                    "binary",
-                    "onehot"
-                ],
-                "arg": "fsm_encoding"
-            },
-            "carry_dropdown": {
-                "label": "Carry",
-                "widgetType": "dropdown",
-                "options": [
-                    "All",
-                    "No Const",
-                    "None"
-                ],
-                "optionsLookup": [
-                    "all",
-                    "no_const",
-                    "none"
-                ],
-                "arg": "carry"
-            },
             "no_dsp_checkbox": {
                 "label": "No DSP Blocks",
                 "widgetType": "checkbox",
@@ -205,11 +162,6 @@
                 "widgetType": "checkbox",
                 "arg": "no_bram"
             },
-            "fast_checkbox": {
-                "label": "Fast Synthesis",
-                "widgetType": "checkbox",
-                "arg": "fast"
-            },
             "_META_": {
                 "hidden": false,
                 "isSetting": true,
@@ -217,14 +169,14 @@
             }
         },
         "Placement": {
-        "pin_selection_radiobtn": {
+            "pin_selection_radiobtn": {
                 "label": "Pin Location Assign Method:",
                 "widgetType": "radiobuttons",
                 "options": [
                     "Random",
                     "In Define Order"
                 ],
-                "optionsLookup":[
+                "optionsLookup": [
                     "random",
                     "in_define_order"
                 ],
