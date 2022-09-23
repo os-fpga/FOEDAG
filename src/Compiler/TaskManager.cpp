@@ -52,6 +52,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(POWER, new Task{"Power"});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
+  m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
@@ -68,6 +69,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_CLEAN]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
+  m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");

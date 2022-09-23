@@ -84,6 +84,8 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
         return PLACE_AND_ROUTE_VIEW;
       return TIMING_SIGN_OFF;
     case Compiler::Action::Bitstream:
+      if (compiler->BitsOpt() == Compiler::BitstreamOpt::Clean)
+        return BITSTREAM_CLEAN;
       return BITSTREAM;
     case Compiler::Action::Power:
       return POWER;

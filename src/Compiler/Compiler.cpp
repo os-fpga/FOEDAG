@@ -1485,6 +1485,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
     });
+    m_taskManager->bindTaskCommand(BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream clean"));
+    });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
     });
