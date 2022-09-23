@@ -64,6 +64,7 @@ class sourceGrid : public QWidget {
 
   QList<filedata> m_lisFileData;
   QString m_currentFileSet;
+  QStringList GetAllDesignSourceExtentions() const;
 
  private:
   void MoveTableRow(int from, int to);

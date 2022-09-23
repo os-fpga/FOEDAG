@@ -18,6 +18,21 @@ static const auto NAME_COL = QObject::tr("Name");
 static const auto LIBRARY_COL = QObject::tr("Library");
 static const auto IMPORT_COL = QObject::tr("Import");
 static const auto LOCATION_COL = QObject::tr("Location");
+
+static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
+static const auto DESIGN_SOURCES_FILTER = QObject::tr(
+    "Design Source Files (*.vhd *.vhdl *.vhf *.vhdp *.vho *.v *.vf *.verilog "
+    "*.vr *.vg *.vb *.tf *.vlog *.vp *.vm *.veo *.svo *.vh *.h *.svh *.vhp "
+    "*.svhp *.edf *.edif *.sv *.svp *.bmm *.mif *.mem *.elf);;"
+    "AES Key Files (*.nky *.nkz);;"
+    "VHDL Files (*.vho *.vhd *.vhdl *.vhf *.vhdp);;"
+    "VERILOG Files (*.sv *.svp *.v *.veo *.svo *.vf *.verilog *.vr *.vg *.vb "
+    "*.tf *.vlog *.vp *.vm);;"
+    "VERILOG Header Files(*.vh *.h *.svh *.vhp *.svhp);;"
+    "NETLIST files (*.edif *.edf *.eblif *.blif *.v *.sv *.svp);;"
+    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.vho *.v *.vf *.verilog *.vr *.vg "
+    "*.vb *.tf *.vlog *.vp *.vm *.veo *.svo *.vh *.h *.svh *.vhp *.svhp *.sv "
+    "*.svp)");
 }  // namespace
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
@@ -126,15 +141,13 @@ void sourceGrid::currentFileSet(const QString &fileSet) {
 }
 
 void sourceGrid::AddFiles() {
-  QString fileformat;
-  if (GT_SOURCE == m_type) {
-    fileformat = QString(tr("Design Files(*.v *.sv *.vhd)"));
-  } else if (GT_CONSTRAINTS == m_type) {
-    fileformat = QString(tr("Constraint Files(*.SDC *.sdc)"));
-  }
-  QStringList fileNames =
-      QFileDialog::getOpenFileNames(this, tr("Select File"), "", fileformat);
-  foreach (QString str, fileNames) {
+  QString fileformat{DESIGN_SOURCES_FILTER};
+  if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
+  // this option will catch lower and upper cases extentions
+  auto option{QFileDialog::DontUseNativeDialog};
+  QStringList fileNames = QFileDialog::getOpenFileNames(
+      this, tr("Select File"), "", fileformat, nullptr, option);
+  for (const QString &str : fileNames) {
     QString name = str.right(str.size() - (str.lastIndexOf("/") + 1));
     QString path = str.left(str.lastIndexOf("/"));
     QString suffix = name.right(name.size() - (name.lastIndexOf(".") + 1));
@@ -151,11 +164,12 @@ void sourceGrid::AddFiles() {
 void sourceGrid::AddDirectories() {
   auto folder = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
-      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks |
+          QFileDialog::DontUseNativeDialog);
 
   if (folder.isEmpty())  // The dialog was cancelled
     return;
-  auto it = QDirIterator(folder, {"*.v", "*.sv", "*.vhd"}, QDir::NoFilter,
+  auto it = QDirIterator(folder, GetAllDesignSourceExtentions(), QDir::NoFilter,
                          QDirIterator::Subdirectories);
   auto files =
       std::vector<std::pair<QString, QString>>{};  // File names with directory
@@ -349,4 +363,19 @@ void sourceGrid::onItemChanged(QStandardItem *item) {
     m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
   else
     m_lisFileData[itemIndex.row()].m_importLibraries = item->text();
+}
+
+QStringList sourceGrid::GetAllDesignSourceExtentions() const {
+  QSet<QString> filters;
+  auto filterLine = DESIGN_SOURCES_FILTER.split(";;");
+  for (auto &f : filterLine) {
+    f.remove(0, f.indexOf("(") + 1);
+    f = f.mid(0, f.indexOf(")"));
+    const auto ext = f.split(" ");
+    for (const auto &e : ext) {
+      filters.insert(e);
+      filters.insert(e.toUpper());
+    }
+  }
+  return filters.values();
 }
