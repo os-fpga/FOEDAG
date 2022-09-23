@@ -1987,10 +1987,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     m_state = State::Routed;
     BitsOpt(BitstreamOpt::DefaultBitsOpt);
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_bitstream.bit"));
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_independent_bitstream.xml"));
     return true;
   }
