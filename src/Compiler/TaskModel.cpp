@@ -181,6 +181,7 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, BITSTREAM});
+  m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
 
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }

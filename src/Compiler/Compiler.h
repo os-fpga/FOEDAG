@@ -151,7 +151,7 @@ class Compiler {
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
 
-  BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
+  BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   // Compiler specific opt
   const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
