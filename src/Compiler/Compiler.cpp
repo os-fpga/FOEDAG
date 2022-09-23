@@ -990,7 +990,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
         } else {
           compiler->ErrorMessage("Unknown analysis option: " + arg);
         }
@@ -1445,6 +1445,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(ANALYSIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
+    });
+    m_taskManager->bindTaskCommand(ANALYSIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze clean"));
     });
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));

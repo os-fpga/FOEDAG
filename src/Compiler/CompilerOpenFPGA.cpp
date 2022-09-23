@@ -655,8 +655,7 @@ bool CompilerOpenFPGA::DesignChanged(
   bool result = false;
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
-  std::string output = outputFile.string();
-  time_t time_netlist = FileUtils::Mtime(output);
+  time_t time_netlist = FileUtils::Mtime(outputFile);
   if (time_netlist == -1) {
     result = true;
   }
@@ -722,9 +721,8 @@ bool CompilerOpenFPGA::Analyze() {
     m_state = State::IPGenerated;
     AnalyzeOpt(DesignAnalysisOpt::None);
     // Remove generated json files
-    // std::filesystem::remove(
-    //    std::filesystem::path(ProjManager()->projectPath()) /
-    //    std::string(ProjManager()->projectName() + "_post_synth.blif"));
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -886,8 +884,7 @@ bool CompilerOpenFPGA::Analyze() {
       (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
   std::filesystem::path output_path =
-      std::filesystem::path(ProjManager()->projectPath()) /
-      (ProjManager()->projectName() + "_analysis.json");
+      std::filesystem::path(ProjManager()->projectPath()) / "port_info.json";
   if (!DesignChanged(analysisScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping analysis." << std::endl;
