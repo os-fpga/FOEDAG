@@ -20,7 +20,7 @@ class newProjectDialog;
 namespace FOEDAG {
 
 enum FormIndex {
-  INDEX_LOCATION = 1,
+  INDEX_LOCATION = 0,
   INDEX_PROJTYPE,
   INDEX_ADDSOURC,
   INDEX_ADDCONST,

@@ -33,7 +33,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Add Constraints (optional)</string>
+      <string>Add Design Constraints (optional)</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

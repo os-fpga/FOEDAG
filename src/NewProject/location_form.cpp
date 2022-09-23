@@ -13,7 +13,7 @@ locationForm::locationForm(QWidget *parent)
   while (QDir(project_prefix + QString::number(count)).exists()) {
     count++;
   }
-  ui->m_labelTitle->setText(tr("Project Location"));
+  ui->m_labelTitle->setText(tr("Project Directory"));
   ui->m_labelCont->setText(
       tr("This wizard will guide you through the creation of a new project."));
   ui->m_labelTail->setText(
@@ -23,12 +23,12 @@ locationForm::locationForm(QWidget *parent)
          "Finally, you will specify your project sources and choose a default "
          "part."));
   ui->m_labelPname->setText(tr("Project Name:"));
-  ui->m_labelPpath->setText(tr("Project Location:"));
+  ui->m_labelPpath->setText(tr("Project Directory:"));
   ui->m_checkBox->setText(tr("Create Project Subdirectory"));
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
   ui->m_lineEditPname->setText(project_prefix + QString::number(count));
-  ui->m_lineEditPpath->setText(QDir::currentPath());
+  ui->m_lineEditPpath->setText(QDir::homePath());
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
 }
