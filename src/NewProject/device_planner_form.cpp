@@ -15,7 +15,7 @@ using namespace FOEDAG;
 devicePlannerForm::devicePlannerForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::devicePlannerForm) {
   ui->setupUi(this);
-  ui->m_labelTitle->setText(tr("Select Device"));
+  ui->m_labelTitle->setText(tr("Select Target Device"));
   ui->m_labelDetail->setText(
       tr("Select the series and device you want to target for compilation."));
 

@@ -7,7 +7,7 @@ using namespace FOEDAG;
 projectTypeForm::projectTypeForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::projectTypeForm) {
   ui->setupUi(this);
-  ui->m_labelTitle->setText(tr("Project Type"));
+  ui->m_labelTitle->setText(tr("Type of Project"));
   ui->m_labelDetail->setText(tr("Specify the type of project to create."));
   ui->m_radioBtnRTL->setText(tr("RTL Project"));
   ui->m_radioBtnPost->setText(tr("Post-synthesis Project"));

@@ -18,7 +18,7 @@
     <number>20</number>
    </property>
    <property name="leftMargin">
-    <number>15</number>
+    <number>9</number>
    </property>
    <property name="topMargin">
     <number>9</number>
@@ -39,7 +39,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Project Location</string>
+      <string>Project Directory</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
@@ -117,7 +117,7 @@
           <item>
            <widget class="QLabel" name="m_labelPpath">
             <property name="text">
-             <string>Project Location:</string>
+             <string>Project Directory:</string>
             </property>
             <property name="buddy">
              <cstring>m_lineEditPpath</cstring>

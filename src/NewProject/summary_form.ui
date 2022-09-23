@@ -85,7 +85,7 @@
      <item>
       <widget class="QLabel" name="m_labelSources">
        <property name="text">
-        <string>balabala</string>
+        <string>Sources</string>
        </property>
        <property name="textFormat">
         <enum>Qt::AutoText</enum>
@@ -112,7 +112,7 @@
      <item>
       <widget class="QLabel" name="m_labelConstraints">
        <property name="text">
-        <string>bala  bala</string>
+        <string>Constraints</string>
        </property>
       </widget>
      </item>
