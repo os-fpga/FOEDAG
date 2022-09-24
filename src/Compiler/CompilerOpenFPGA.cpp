@@ -109,10 +109,6 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
-  (*out) << "              -L <libName>    : Import the library <libName> "
-            "needed to "
-            "compile the compilation unit, default is \"work\""
-         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -1595,7 +1591,7 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string command = BaseVprCommand() + " --place";
-  if (!pin_loc_constraint_file.empty()) {
+  if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
@@ -2179,6 +2175,17 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 } else {
                   ErrorMessage("Invalid bitstream_enabled num (true, false): " +
                                num + "\n");
+                  status = false;
+                }
+              } else if (file_type == "pin_constraint_enabled") {
+                if (num == "true") {
+                  PinConstraintEnabled(true);
+                } else if (num == "false") {
+                  PinConstraintEnabled(false);
+                } else {
+                  ErrorMessage(
+                      "Invalid pin_constraint_enabled num (true, false): " +
+                      num + "\n");
                   status = false;
                 }
               } else {
