@@ -168,6 +168,9 @@ class Compiler {
   bool BitstreamEnabled() { return m_bitstreamEnabled; }
   void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
 
+  bool PinConstraintEnabled() { return m_pin_constraintEnabled; }
+  void PinConstraintEnabled(bool enabled) { m_pin_constraintEnabled = enabled; }
+
   virtual const std::string GetNetlistPath();
 
   void AddMsgSeverity(std::string msg, MsgSeverity severity) {
@@ -249,6 +252,7 @@ class Compiler {
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
   bool m_bitstreamEnabled = true;
+  bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
   IPGenerator* m_IPGenerator = nullptr;
 
