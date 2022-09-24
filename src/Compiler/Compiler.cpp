@@ -56,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -376,7 +377,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
-    const std::string file = argv[1];
+    auto file = StringUtils::toLower(argv[1]);
     if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
@@ -487,12 +488,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
 
     const std::string file = argv[1];
+    const std::string fileLowerCase = StringUtils::toLower(file);
     std::string actualType = "VERILOG";
     Design::Language language = Design::Language::VERILOG_NETLIST;
-    if (strstr(file.c_str(), ".blif")) {
+    if (strstr(fileLowerCase.c_str(), ".blif")) {
       language = Design::Language::BLIF;
       actualType = "BLIF";
-    } else if (strstr(file.c_str(), ".eblif")) {
+    } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
       language = Design::Language::EBLIF;
       actualType = "EBLIF";
     }
@@ -988,7 +990,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
         } else {
           compiler->ErrorMessage("Unknown analysis option: " + arg);
         }
@@ -1444,6 +1446,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(ANALYSIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
     });
+    m_taskManager->bindTaskCommand(ANALYSIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze clean"));
+    });
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
     });
@@ -1482,6 +1487,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
+    });
+    m_taskManager->bindTaskCommand(BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream clean"));
     });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
@@ -1639,7 +1647,16 @@ bool Compiler::HasIPInstances() {
   bool result = false;
   auto ipGen = GetIPGenerator();
   if (ipGen) {
-    result = (ipGen->IPInstances().size() > 0);
+    result = !ipGen->IPInstances().empty();
+  }
+  return result;
+}
+
+bool Compiler::HasIPDefinitions() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen && ipGen->Catalog()) {
+    result = !ipGen->Catalog()->Definitions().empty();
   }
   return result;
 }

@@ -11,15 +11,17 @@
 #define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
 #define SRC_TREE_CONSTR_TOP_ITEM "constrtopitem"
 #define SRC_TREE_SIM_TOP_ITEM "simtopitem"
+#define SRC_TREE_IP_TOP_ITEM "iptopitem"
 #define SRC_TREE_DESIGN_SET_ITEM "desfilesetitem"
 #define SRC_TREE_DESIGN_FILE_ITEM "desfileitem"
 #define SRC_TREE_CONSTR_SET_ITEM "constrfilesetitem"
 #define SRC_TREE_CONSTR_FILE_ITEM "constrfileitem"
 #define SRC_TREE_SIM_SET_ITEM "simfilesetitem"
 #define SRC_TREE_SIM_FILE_ITEM "simfileitem"
+#define SRC_TREE_IP_SET_ITEM "ipfilesetitem"
+#define SRC_TREE_IP_FILE_ITEM "ipfileitem"
 
 #define SRC_TREE_FLG_ACTIVE tr(" (Active)")
-#define SRC_TREE_FLG_TOP tr(" (Top)")
 #define SRC_TREE_FLG_TARGET tr(" (Target)")
 
 namespace Ui {
@@ -61,7 +63,6 @@ class SourcesForm : public QWidget {
   void SlotOpenFile();
   void SlotRemoveFileSet();
   void SlotRemoveFile();
-  void SlotSetAsTop();
   void SlotSetAsTarget();
   void SlotSetActive();
   void SlotProperties();
@@ -78,11 +79,11 @@ class SourcesForm : public QWidget {
   QAction* m_actOpenFile;
   QAction* m_actRemoveFileset;
   QAction* m_actRemoveFile;
-  QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
   QAction* m_actProperties;
   QAction* m_actCloseProject;
+  QAction* m_actReconfigureIp;
 
   ProjectManager* m_projManager;
 

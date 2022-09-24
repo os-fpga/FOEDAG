@@ -34,7 +34,9 @@ class IpConfigDlg : public QDialog {
   Q_OBJECT
 
  public:
-  explicit IpConfigDlg(QWidget* parent = nullptr, QString requestedIpName = "");
+  explicit IpConfigDlg(QWidget* parent = nullptr, QString requestedIpName = "",
+                       QString moduleName = "",
+                       QStringList instanceValueArgs = {});
 
  public slots:
   void updateOutputPath();
@@ -52,9 +54,10 @@ class IpConfigDlg : public QDialog {
   QLineEdit moduleEdit;
   QLineEdit outputPath;
 
-  QString baseDirDefault;
-  QString requestedIpName;
-  VLNV meta;
+  QString m_baseDirDefault;
+  QString m_requestedIpName;
+  QStringList m_instanceValueArgs;
+  VLNV m_meta;
 };
 
 }  // namespace FOEDAG

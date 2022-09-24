@@ -51,7 +51,11 @@ class ProjectFileLoader : public QObject {
   static QString ProjectVersion(const QString &filename);
 
  private:
+  void LoadInternal(const QString &filename);
+
+ private:
   std::vector<ProjectFileComponent *> m_components;
+  bool m_loadDone{true};
 };
 
 }  // namespace FOEDAG

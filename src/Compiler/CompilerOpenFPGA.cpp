@@ -222,6 +222,7 @@ synth -run check
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
 write_verilog -noexpr -nodec -defparam -norename ${OUTPUT_VERILOG}
+write_edif ${OUTPUT_EDIF}
   )";
 
 bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
@@ -513,6 +514,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     std::string arg = argv[1];
     if (arg == "verilog") {
       compiler->UseVerilogNetlist(true);
+    } else if (arg == "edif") {
+      compiler->UseEdifNetlist(true);
     } else if (arg == "blif") {
       compiler->UseVerilogNetlist(false);
     } else {
@@ -652,8 +655,7 @@ bool CompilerOpenFPGA::DesignChanged(
   bool result = false;
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
-  std::string output = outputFile.string();
-  time_t time_netlist = FileUtils::Mtime(output);
+  time_t time_netlist = FileUtils::Mtime(outputFile);
   if (time_netlist == -1) {
     result = true;
   }
@@ -719,9 +721,8 @@ bool CompilerOpenFPGA::Analyze() {
     m_state = State::IPGenerated;
     AnalyzeOpt(DesignAnalysisOpt::None);
     // Remove generated json files
-    // std::filesystem::remove(
-    //    std::filesystem::path(ProjManager()->projectPath()) /
-    //    std::string(ProjManager()->projectName() + "_post_synth.blif"));
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -883,8 +884,7 @@ bool CompilerOpenFPGA::Analyze() {
       (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
   std::filesystem::path output_path =
-      std::filesystem::path(ProjManager()->projectPath()) /
-      (ProjManager()->projectName() + "_analysis.json");
+      std::filesystem::path(ProjManager()->projectPath()) / "port_info.json";
   if (!DesignChanged(analysisScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping analysis." << std::endl;
@@ -1148,13 +1148,22 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_EDIF}",
+      std::string(ProjManager()->projectName() + "_post_synth.edif"));
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
   std::string script_path = ProjManager()->projectName() + ".ys";
-  std::string output_path =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string output_path;
+  if (UseVerilogNetlist()) {
+    output_path = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    output_path = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    output_path = ProjManager()->projectName() + "_post_synth.blif";
+  }
+
   if (!DesignChanged(yosysScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping synthesis." << std::endl;
@@ -1230,9 +1239,14 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
-  std::string netlistFile =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string netlistFile;
+  if (UseVerilogNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
@@ -1898,10 +1912,14 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
-
-  std::string netlistFile =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string netlistFile;
+  if (UseVerilogNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
@@ -1925,6 +1943,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFormat = "blif";
   if (UseVerilogNetlist()) {
     netlistFormat = "verilog";
+  }
+  if (UseEdifNetlist()) {
+    netlistFormat = "edif";
   }
   result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
   if (m_deviceSize.size()) {
@@ -1963,10 +1984,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     m_state = State::Routed;
     BitsOpt(BitstreamOpt::DefaultBitsOpt);
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_bitstream.bit"));
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_independent_bitstream.xml"));
     return true;
   }

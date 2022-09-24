@@ -37,15 +37,20 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
     : QDialog{parent} {
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
+
   QString text = QString(
                      "<p><b>%1 %2</b></p>"
                      "<p><b>%3</b></p>"
                      "<p>Build on %4</p>"
-                     "<p>From revision <a "
-                     "href=\"%5%6\">%6</a></p>"
-                     "<p>Build type: %7</p>")
+                     "<p>Build type: %5</p>")
                      .arg(info.name, info.version, getTagLine(srcPath),
-                          __DATE__, info.url, info.git_hash, info.build_type);
+                          __DATE__, info.build_type);
+  if (!info.url.isEmpty()) {
+    text += QString(
+                "<p>From revision <a "
+                "href=\"%1%2\">%2</a></p>")
+                .arg(info.url, info.git_hash);
+  }
   if (info.showLicense) {
     text += QString("<p>%1</p>").arg(License());
   }

@@ -66,9 +66,9 @@ void buildMockUpIPDef(IPCatalog* catalog) {
   Port* port = new Port("clk", Port::Direction::Input, Port::Function::Clock,
                         Port::Polarity::High, range);
   connections.push_back(port);
-  IPDefinition* def =
-      new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP",
-                       "path_to_nowhere", connections, parameters);
+  IPDefinition* def = new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP",
+                                       "MOCK_IP_wrapper", "path_to_nowhere",
+                                       connections, parameters);
   catalog->addIP(def);
   // catalog->WriteCatalog(std::cout);
 }
@@ -133,7 +133,8 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     jopts = json::parse(buffer);
   } catch (json::parse_error& e) {
     std::string msg = "Json Parse Error: " + std::string(e.what()) + "\n" +
-                      "filePath: " + pythonConverterScript.string() + "\n";
+                      "filePath: " + pythonConverterScript.string() + "\n" +
+                      "genCmd: " + command + "\n" + "json: " + buffer.str();
     m_compiler->ErrorMessage(msg);
   }
 
@@ -174,9 +175,13 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
       parameters.push_back(p);
     }
   }
+
+  // get default build_name which is used during ip configuration
+  std::string build_name = jopts.value("build_name", "");
+
   m_compiler->Message("IP Catalog, adding IP: " + IPName);
   IPDefinition* def =
-      new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName,
+      new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
                        pythonConverterScript, connections, parameters);
   catalog->addIP(def);
   return result;
