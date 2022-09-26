@@ -10,7 +10,10 @@ locationForm::locationForm(QWidget *parent)
   ui->setupUi(this);
   int count = 1;
   QString project_prefix = "project_";
-  while (QDir(project_prefix + QString::number(count)).exists()) {
+  QString homePath = QDir::homePath();
+  QString projectPathPrefix =
+      QDir::homePath() + QDir::separator() + project_prefix;
+  while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
   }
   ui->m_labelTitle->setText(tr("Project Directory"));
@@ -28,7 +31,7 @@ locationForm::locationForm(QWidget *parent)
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
   ui->m_lineEditPname->setText(project_prefix + QString::number(count));
-  ui->m_lineEditPpath->setText(QDir::homePath());
+  ui->m_lineEditPpath->setText(homePath);
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
 }
