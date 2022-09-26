@@ -1850,7 +1850,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin 
+build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -1961,6 +1961,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
+  if (m_OpenFpgaFabricKeyFile == "") {
+    result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
+  } else {
+    result =
+        ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}",
+                   "--load_fabric_key " + m_OpenFpgaFabricKeyFile.string());
+  }
   return result;
 }
 
@@ -2136,6 +2143,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaSimSettingFile(fullPath.string());
               } else if (file_type == "repack_settings") {
                 OpenFpgaRepackConstraintsFile(fullPath.string());
+              } else if (file_type == "fabric_key") {
+                OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pinmap_csv") {
