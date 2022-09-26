@@ -72,6 +72,9 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaRepackConstraintsFile(const std::filesystem::path& path) {
     m_OpenFpgaRepackConstraintsFile = path;
   }
+  void OpenFpgaFabricKeyFile(const std::filesystem::path& path) {
+    m_OpenFpgaFabricKeyFile = path;
+  }
   void OpenFpgaPinmapXMLFile(const std::filesystem::path& path) {
     m_OpenFpgaPinMapXml = path;
   }
@@ -151,19 +154,17 @@ class CompilerOpenFPGA : public Compiler {
    * \brief m_architectureFile
    * We required from user explicitly specify architecture file.
    */
-  std::filesystem::path m_architectureFile;
+  std::filesystem::path m_architectureFile = "";
 
   /*!
    * \brief m_OpenFpgaArchitectureFile
    * We required from user explicitly specify openfpga architecture file.
    */
-  std::filesystem::path m_OpenFpgaArchitectureFile;
-  std::filesystem::path m_OpenFpgaSimSettingFile =
-      "tests/Arch/fixed_sim_openfpga.xml";
-  std::filesystem::path m_OpenFpgaBitstreamSettingFile =
-      "tests/Arch/bitstream_annotation.xml";
-  std::filesystem::path m_OpenFpgaRepackConstraintsFile =
-      "tests/Arch/repack_design_constraint.xml";
+  std::filesystem::path m_OpenFpgaArchitectureFile = "";
+  std::filesystem::path m_OpenFpgaSimSettingFile = "";
+  std::filesystem::path m_OpenFpgaBitstreamSettingFile = "";
+  std::filesystem::path m_OpenFpgaRepackConstraintsFile = "";
+  std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
   std::filesystem::path m_OpenFpgaPinMapCSV = "";
   std::string m_deviceSize;
