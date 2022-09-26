@@ -247,7 +247,7 @@ TEST(Settings, TclValsInit) {
       "-radio_ex b2 -check_ex1 -dropdown_ex "
       "option2 -input_ex some_text";
 
-  EXPECT_EQ(expectedVals.toStdString(), getter().toStdString())
+  EXPECT_EQ(expectedVals.toStdString(), getter())
       << "Ensure the default TclExample values are reported";
 
   // Load json w/ "userValues" set to simulate saved user settings
@@ -260,7 +260,7 @@ TEST(Settings, TclValsInit) {
       "-radio_ex b1 -check_ex2 -dropdown_ex "
       "option1 -input_ex new_text";
 
-  EXPECT_EQ(expectedVals.toStdString(), getter().toStdString())
+  EXPECT_EQ(expectedVals.toStdString(), getter())
       << "Ensure the userValue TclExample values are reported";
 }
 

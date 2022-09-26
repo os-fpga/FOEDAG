@@ -109,10 +109,6 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
-  (*out) << "              -L <libName>    : Import the library <libName> "
-            "needed to "
-            "compile the compilation unit, default is \"work\""
-         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -1595,7 +1591,7 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string command = BaseVprCommand() + " --place";
-  if (!pin_loc_constraint_file.empty()) {
+  if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
@@ -1854,7 +1850,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin 
+build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -1965,6 +1961,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
+  if (m_OpenFpgaFabricKeyFile == "") {
+    result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
+  } else {
+    result =
+        ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}",
+                   "--load_fabric_key " + m_OpenFpgaFabricKeyFile.string());
+  }
   return result;
 }
 
@@ -2140,6 +2143,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaSimSettingFile(fullPath.string());
               } else if (file_type == "repack_settings") {
                 OpenFpgaRepackConstraintsFile(fullPath.string());
+              } else if (file_type == "fabric_key") {
+                OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pinmap_csv") {
@@ -2179,6 +2184,17 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 } else {
                   ErrorMessage("Invalid bitstream_enabled num (true, false): " +
                                num + "\n");
+                  status = false;
+                }
+              } else if (file_type == "pin_constraint_enabled") {
+                if (num == "true") {
+                  PinConstraintEnabled(true);
+                } else if (num == "false") {
+                  PinConstraintEnabled(false);
+                } else {
+                  ErrorMessage(
+                      "Invalid pin_constraint_enabled num (true, false): " +
+                      num + "\n");
                   status = false;
                 }
               } else {

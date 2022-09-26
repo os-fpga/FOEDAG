@@ -121,7 +121,7 @@ auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
 // This will grab Placement related options from Compiler::PlaceOpt &
 // Compiler::PlaceMoreOpt, convert/combine them, and return them as an
 // arg list QString
-QString FOEDAG::TclArgs_getSynthesisOptions() {
+std::string FOEDAG::TclArgs_getSynthesisOptions() {
   // Collect Synthesis Tcl Params
   QString tclOptions =
       QString::fromStdString(GlobalSession->GetCompiler()->SynthMoreOpt());
@@ -129,13 +129,14 @@ QString FOEDAG::TclArgs_getSynthesisOptions() {
   // SynthMoreOpt so we need to give it a fake arg and pass it
   tclOptions += " -" + QString(SYNTH_ARG) + " " +
                 synthOptToStr(GlobalSession->GetCompiler()->SynthOpt());
-  return tclOptions;
+  return tclOptions.toStdString();
 };
 
 // This will take an arg list, separate out the SynthOpt to set on the compiler
 // and then set the rest of the options under SynthMoreOpt
-void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
-  auto [synthArg, moreOpts] = separateArg(SYNTH_ARG, argsStr.trimmed());
+void FOEDAG::TclArgs_setSynthesisOptions(const std::string& argsStr) {
+  auto [synthArg, moreOpts] =
+      separateArg(SYNTH_ARG, QString::fromStdString(argsStr).trimmed());
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
     QStringList tokens = synthArg.split(" ");
@@ -146,17 +147,18 @@ void FOEDAG::TclArgs_setSynthesisOptions(const QString& argsStr) {
   }
 };
 
-QString FOEDAG::TclArgs_getPlacementOptions() {
+std::string FOEDAG::TclArgs_getPlacementOptions() {
   // Collect placement Tcl Params
   QString tclOptions =
       QString::fromStdString(GlobalSession->GetCompiler()->PlaceMoreOpt());
   tclOptions += " -" + QString(PLACE_ARG) + " " +
                 pinOptToStr(GlobalSession->GetCompiler()->PinAssignOpts());
-  return tclOptions;
+  return tclOptions.toStdString();
 }
 
-void FOEDAG::TclArgs_setPlacementOptions(const QString& argsStr) {
-  auto [pinArg, moreOpts] = separateArg(PLACE_ARG, argsStr);
+void FOEDAG::TclArgs_setPlacementOptions(const std::string& argsStr) {
+  auto [pinArg, moreOpts] =
+      separateArg(PLACE_ARG, QString::fromStdString(argsStr));
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (compiler) {
     QStringList tokens = pinArg.split(" ");
@@ -177,9 +179,11 @@ static QString TclExampleArgs =
     "option3 -input_ex "
     "spaces_TclArgSpace_require_TclArgSpace_extra_TclArgSpace_formatting";
 
-QString FOEDAG::TclArgs_getExampleArgs() { return TclExampleArgs; };
-void FOEDAG::TclArgs_setExampleArgs(const QString& argsStr) {
-  TclExampleArgs = argsStr;
+std::string FOEDAG::TclArgs_getExampleArgs() {
+  return TclExampleArgs.toStdString();
+};
+void FOEDAG::TclArgs_setExampleArgs(const std::string& argsStr) {
+  TclExampleArgs = QString::fromStdString(argsStr);
 };
 
 QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
