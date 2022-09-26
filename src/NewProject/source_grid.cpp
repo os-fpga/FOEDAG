@@ -21,18 +21,17 @@ static const auto LOCATION_COL = QObject::tr("Location");
 
 static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
 static const auto DESIGN_SOURCES_FILTER = QObject::tr(
-    "Design Source Files (*.vhd *.vhdl *.vhf *.vhdp *.vho *.v *.vf *.verilog "
-    "*.vr *.vg *.vb *.tf *.vlog *.vp *.vm *.veo *.svo *.vh *.h *.svh *.vhp "
+    "Design Source Files (*.vhd *.vhdl *.v *.vf *.verilog "
+    "*.vh *.h *.svh *.vhp "
     "*.svhp *.edf *.edif *.sv *.svp *.bmm *.mif *.mem *.elf);;"
-    "AES Key Files (*.nky *.nkz);;"
-    "VHDL Files (*.vho *.vhd *.vhdl *.vhf *.vhdp);;"
-    "VERILOG Files (*.sv *.svp *.v *.veo *.svo *.vf *.verilog *.vr *.vg *.vb "
-    "*.tf *.vlog *.vp *.vm);;"
-    "VERILOG Header Files(*.vh *.h *.svh *.vhp *.svhp);;"
-    "NETLIST files (*.edif *.edf *.eblif *.blif *.v *.sv *.svp);;"
-    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.vho *.v *.vf *.verilog *.vr *.vg "
-    "*.vb *.tf *.vlog *.vp *.vm *.veo *.svo *.vh *.h *.svh *.vhp *.svhp *.sv "
-    "*.svp)");
+    "VHDL Files (*.vhd *.vhdl *.vhf *.vhdp);;"
+    "VERILOG Files (*.v *.verilog);;"
+    "SystemVerilog Files(*.sv *.svp);;"
+    "VERILOG Header Files(*.vh *.h *.vhp);;"
+    "SystemVerilog Header Files (*.svh *.svhp);;"
+    "NETLIST files (*.eblif *.blif *.v *.sv *.svp);;"
+    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
+    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
 }  // namespace
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
