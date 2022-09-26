@@ -2352,6 +2352,9 @@ bool CompilerOpenFPGA_ql::Placement() {
   }
 #endif // #if UPSTREAM_UNUSED
 
+  // generate pin contraints file, if required.
+  if (!GeneratePinConstraints()) return false;
+
 #if UPSTREAM_UNUSED
   std::string command = BaseVprCommand() + " --place";
 #endif // #if UPSTREAM_UNUSED
@@ -2368,6 +2371,40 @@ bool CompilerOpenFPGA_ql::Placement() {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
 #endif // #if UPSTREAM_UNUSED
+
+  // set the PinConstraints file, if this option is enabled in the settings.json
+  // under "vpr" > "place" > "fix_pins_enabled"
+  // use the filename specified in "vpr" > "place" > "fix_pins_file"
+  // if blank or not specified, use "project_name_fix_pins.place"
+  // if file does not exist, this will fail.
+  std::string settings_json_filename = m_projManager->projectName() + ".json";
+  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+  Settings * currentSettings = GetSession()->GetSettings();
+  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
+
+  json settings_obj = GetSession()->GetSettings()->getJson();
+
+  if( (settings_obj.contains("vpr")) &&
+      (settings_obj["vpr"].contains("place")) &&
+      (settings_obj["vpr"]["place"].contains("fix_pins_enabled")) &&
+      (settings_obj["vpr"]["place"]["fix_pins_enabled"]["default"].get<std::string>() == "checked") ) {
+
+    std::filesystem::path filepath_fpga_fix_pins_place;
+    if( (settings_obj["vpr"]["place"].contains("fix_pins_file")) && 
+        (!settings_obj["vpr"]["place"]["fix_pins_file"]["default"].get<std::string>().empty()) ) {
+      filepath_fpga_fix_pins_place = settings_obj["vpr"]["place"]["fix_pins_file"]["default"].get<std::string>();
+    }
+    else {
+      filepath_fpga_fix_pins_place = ProjManager()->projectName() + std::string("_fix_pins.place");
+    }
+    if (!filepath_fpga_fix_pins_place.is_absolute()) {
+      filepath_fpga_fix_pins_place = std::filesystem::path(std::filesystem::path("..") / filepath_fpga_fix_pins_place);
+    }
+    command += std::string(" --fix_pins") + 
+               std::string(" ") + 
+               filepath_fpga_fix_pins_place.string();
+  }
+
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
@@ -2784,7 +2821,7 @@ exit
 
 )";
 
-const std::string qlOpenFPGABitstreamScript = R"( 
+const std::string qlOpenFPGABitstreamScript = R"(
 ${VPR_ANALYSIS_COMMAND}
 
 # Read OpenFPGA architecture definition
@@ -2834,6 +2871,14 @@ write_fabric_bitstream --format plain_text --keep_dont_care_bits --file fabric_b
 # Write io mapping 
 write_io_mapping -f PinMapping.xml
 
+${OPENFPGA_WRITE_FABRIC_IO_INFO_COMMAND}
+
+# Finish and exit OpenFPGA
+exit
+)";
+
+const std::string qlOpenFPGApcf2placeScript = R"(
+${OPENFPGA_PCF2PLACE_COMMAND}
 # Finish and exit OpenFPGA
 exit
 )";
@@ -2971,6 +3016,51 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   }
 
   Message(std::string("Using openfpga.xml for: ") + device );
+
+  // call openfpga to output the fpga_io_map XML file if 'write_fabric_io_info' is enabled
+  // write_fabric_io_info --file ${OPENFPGA_IO_MAP_FILE} --verbose
+  std::string openfpga_write_fabric_io_info_command = std::string("#${OPENFPGA_WRITE_FABRIC_IO_INFO_COMMAND} disabled");
+  json settings_obj = GetSession()->GetSettings()->getJson();
+  if ( (settings_obj.contains("openfpga")) &&
+       (settings_obj["openfpga"].contains("write_fabric_io_info")) &&
+       (settings_obj["openfpga"]["write_fabric_io_info"].contains("enabled")) &&
+       (settings_obj["openfpga"]["write_fabric_io_info"]["enabled"]["default"].get<std::string>() == "checked") ) {
+    
+    json settings_openfpga_write_fabric_io_info_obj = GetSession()->GetSettings()->getJson()["openfpga"]["write_fabric_io_info"];
+    openfpga_write_fabric_io_info_command = std::string("write_fabric_io_info");
+    
+    // fpga_io_map
+    std::filesystem::path filepath_fpga_io_map_xml;
+    if( (settings_openfpga_write_fabric_io_info_obj.contains("fpga_io_map")) && 
+        (!settings_openfpga_write_fabric_io_info_obj["fpga_io_map"]["default"].get<std::string>().empty()) ) {
+      filepath_fpga_io_map_xml = settings_openfpga_write_fabric_io_info_obj["fpga_io_map"]["default"].get<std::string>();
+    }
+    else {
+      // form the file name using the current device: family_foundy_node
+      std::string family = settings_obj["general"]["device"]["family"]["default"].get<std::string>();
+      std::string foundry = settings_obj["general"]["device"]["foundry"]["default"].get<std::string>();
+      std::string node = settings_obj["general"]["device"]["node"]["default"].get<std::string>();
+      std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
+      filepath_fpga_io_map_xml = family +
+                                 std::string("_") +
+                                 foundry +
+                                 std::string("_") +
+                                 node +
+                                 std::string("_") +
+                                 device_size + 
+                                 std::string("_fpga_io_map") +
+                                 std::string(".xml");
+    }
+    if (!filepath_fpga_io_map_xml.is_absolute()) {
+      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / filepath_fpga_io_map_xml);
+    }
+    openfpga_write_fabric_io_info_command += std::string(" --file") + 
+                                             std::string(" ") + 
+                                             filepath_fpga_io_map_xml.string();
+    openfpga_write_fabric_io_info_command += std::string(" --verbose");
+  }
+  result = ReplaceAll(result, "${OPENFPGA_WRITE_FABRIC_IO_INFO_COMMAND}", openfpga_write_fabric_io_info_command);
+
 
   // call vpr to execute analysis
   json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
@@ -3261,6 +3351,214 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
 
   (*m_out) << "Design " << ProjManager()->projectName()
            << " bitstream is generated!" << std::endl;
+  return true;
+}
+
+bool CompilerOpenFPGA_ql::GeneratePinConstraints() {
+  if (!ProjManager()->HasDesign()) {
+    ErrorMessage("No design specified");
+    return false;
+  }
+
+  std::string settings_json_filename = m_projManager->projectName() + ".json";
+  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
+  Settings * currentSettings = GetSession()->GetSettings();
+  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
+
+  json settings_obj = GetSession()->GetSettings()->getJson();
+
+  if ( (settings_obj.contains("openfpga")) &&
+       (settings_obj["openfpga"].contains("pcf2place")) &&
+       (settings_obj["openfpga"]["pcf2place"].contains("enabled")) &&
+       (settings_obj["openfpga"]["pcf2place"]["enabled"]["default"].get<std::string>() == "checked") ) {
+  
+    PERF_LOG("GeneratePinConstraints has started");
+    (*m_out) << "##################################################" << std::endl;
+    (*m_out) << "Pin Constraints generation for design \""
+            << ProjManager()->projectName() << "\" on device \""
+            << ProjManager()->getTargetDevice() << "\"" << std::endl;
+    (*m_out) << "##################################################" << std::endl;
+
+    std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      switch (lang_file.first) {
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF: {
+          netlistFile = lang_file.second;
+          std::filesystem::path the_path = netlistFile;
+          if (!the_path.is_absolute()) {
+            netlistFile =
+                std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                    .string();
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    std::string pin_constaints_openfpga_script_name = ProjManager()->projectName() + 
+                                                      std::string("_pinconstraints") + 
+                                                      std::string(".openfpga");
+
+    std::string command = m_openFpgaExecutablePath.string() + 
+                          std::string(" -f") +
+                          std::string(" ") +
+                          pin_constaints_openfpga_script_name;
+
+    std::string script = qlOpenFPGApcf2placeScript;
+
+    // call openfpga to generate pin_constraints 'fix_pins.place' if 'pcf2place' is enabled
+    // pcf2place --pcf ${OPENFPGA_PCF} --blif ${VPR_TESTBENCH_BLIF} --pin_table ${OPENFPGA_PIN_TABLE} --fpga_io_map ${OPENFPGA_IO_MAP_FILE} --fpga_fix_pins ${OPENFPGA_VPR_FIX_PINS_FILE}
+    // check if we user has enabled pin_constraints to be used
+    // replace command: ${OPENFPGA_PCF2PLACE_COMMAND}
+    // else make it empty.
+    
+    std::string openfpga_pcf2place_command;
+    
+    json settings_openfpga_pcf2place_obj = GetSession()->GetSettings()->getJson()["openfpga"]["pcf2place"];
+    
+    openfpga_pcf2place_command = std::string("pcf2place");
+
+    // pcf
+    std::filesystem::path filepath_pcf;
+    if( (settings_openfpga_pcf2place_obj.contains("pcf")) && 
+        (!settings_openfpga_pcf2place_obj["pcf"]["default"].get<std::string>().empty()) ) {
+      filepath_pcf = settings_openfpga_pcf2place_obj["pcf"]["default"].get<std::string>();
+    }
+    else {
+      filepath_pcf = ProjManager()->projectName() + std::string(".pcf");
+    }
+    if (FileUtils::FileExists(filepath_pcf)) {
+      // make it relative to the working directory (when openfpga is actually run)
+      if (!filepath_pcf.is_absolute()) {
+        filepath_pcf = std::filesystem::path(std::filesystem::path("..") / filepath_pcf);
+      }
+      openfpga_pcf2place_command += std::string(" --pcf") + 
+                                    std::string(" ") + 
+                                    filepath_pcf.string();
+    }
+    else {
+      // this does not seem to be supported.
+      // openfpga_pcf2place_command += std::string(" --assign_unconstrained_pins") + 
+      //                               std::string(" ") + 
+      //                               std::string("in_define_order"); // or "random"
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                  " pcf file does not exist!");
+      return false;
+    }
+    
+    // pin_table
+    std::filesystem::path filepath_pin_table_csv;
+    if( (settings_openfpga_pcf2place_obj.contains("pin_table")) && 
+        (!settings_openfpga_pcf2place_obj["pin_table"]["default"].get<std::string>().empty()) ) {
+      filepath_pin_table_csv = settings_openfpga_pcf2place_obj["pin_table"]["default"].get<std::string>();
+    }
+    else {
+      std::string family = settings_obj["general"]["device"]["family"]["default"].get<std::string>();
+      std::string foundry = settings_obj["general"]["device"]["foundry"]["default"].get<std::string>();
+      std::string node = settings_obj["general"]["device"]["node"]["default"].get<std::string>();
+      filepath_pin_table_csv = family +
+                               std::string("_") +
+                               foundry +
+                               std::string("_") +
+                               node +
+                               std::string("_pin_table") + std::string(".csv");
+    }
+    if (!filepath_pin_table_csv.is_absolute()) {
+      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / filepath_pin_table_csv);
+    }
+    openfpga_pcf2place_command += std::string(" --pin_table") + 
+                                  std::string(" ") + 
+                                  filepath_pin_table_csv.string();
+
+    // fpga_io_map
+    std::filesystem::path filepath_fpga_io_map_xml;
+    if( (settings_openfpga_pcf2place_obj.contains("fpga_io_map")) && 
+        (!settings_openfpga_pcf2place_obj["fpga_io_map"]["default"].get<std::string>().empty()) ) {
+      filepath_fpga_io_map_xml = settings_openfpga_pcf2place_obj["fpga_io_map"]["default"].get<std::string>();
+    }
+    else {
+      // form the file name using the current device: family_foundy_node
+      std::string family = settings_obj["general"]["device"]["family"]["default"].get<std::string>();
+      std::string foundry = settings_obj["general"]["device"]["foundry"]["default"].get<std::string>();
+      std::string node = settings_obj["general"]["device"]["node"]["default"].get<std::string>();
+      std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
+      filepath_fpga_io_map_xml = family +
+                                 std::string("_") +
+                                 foundry +
+                                 std::string("_") +
+                                 node +
+                                 std::string("_") +
+                                 device_size + 
+                                 std::string("_fpga_io_map") +
+                                 std::string(".xml");
+    }
+    if (!filepath_fpga_io_map_xml.is_absolute()) {
+      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / filepath_fpga_io_map_xml);
+    }
+    openfpga_pcf2place_command += std::string(" --fpga_io_map") + 
+                                  std::string(" ") + 
+                                  filepath_fpga_io_map_xml.string();
+
+    // fpga_fix_pins
+    std::filesystem::path filepath_fpga_fix_pins_place;
+    if( (settings_openfpga_pcf2place_obj.contains("fpga_fix_pins")) && 
+        (!settings_openfpga_pcf2place_obj["fpga_fix_pins"]["default"].get<std::string>().empty()) ) {
+
+      filepath_fpga_fix_pins_place = settings_openfpga_pcf2place_obj["fpga_fix_pins"]["default"].get<std::string>();
+    }
+    else {
+      filepath_fpga_fix_pins_place = ProjManager()->projectName() + std::string("_fix_pins") + std::string(".place");
+    }
+    if (!filepath_fpga_fix_pins_place.is_absolute()) {
+      filepath_fpga_fix_pins_place = std::filesystem::path(std::filesystem::path("..") / filepath_fpga_fix_pins_place);
+    }
+    openfpga_pcf2place_command += std::string(" --fpga_fix_pins") + 
+                                  std::string(" ") + 
+                                  filepath_fpga_fix_pins_place.string();
+
+    // blif
+    openfpga_pcf2place_command += std::string(" --blif") + 
+                                  std::string(" ") + 
+                                  netlistFile;
+    
+    script = ReplaceAll(script, "${OPENFPGA_PCF2PLACE_COMMAND}", openfpga_pcf2place_command);
+    
+    // std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
+    //                         std::string("fabric_bitstream.bit"));
+    // std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
+    //                         std::string("fabric_independent_bitstream.xml"));
+    
+    // Create OpenFpga command and execute
+    std::filesystem::path script_path =
+        (std::filesystem::path(ProjManager()->projectName()) / pin_constaints_openfpga_script_name)
+            .string();
+    std::ofstream sofs(script_path);
+    sofs << script;
+    sofs.close();
+
+    std::ofstream ofs(
+        (std::filesystem::path(ProjManager()->projectName()) /
+        std::string(ProjManager()->projectName() + "_pinconstraints.cmd"))
+            .string());
+    ofs << command << std::endl;
+    ofs.close();
+    int status = ExecuteAndMonitorSystemCommand(command);
+    CleanTempFiles();
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                  " pinconstraints generation failed!");
+      return false;
+    }
+
+    (*m_out) << "Design " << ProjManager()->projectName()
+           << " pinconstraints is generated!" << std::endl;
+  }
+
   return true;
 }
 
