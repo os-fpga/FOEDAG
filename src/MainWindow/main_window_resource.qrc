@@ -6,5 +6,6 @@
         <file>images/stop.png</file>
         <file>images/add.png</file>
         <file>images/error.png</file>
+        <file>images/save.png</file>
     </qresource>
 </RCC>

@@ -221,7 +221,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             }
             for (const auto& i : langList) {
               projectFileset.addFiles(
-                  ProjectManager::StringSplit(i.second, " "), i.first);
+                  {}, {}, ProjectManager::StringSplit(i.second, " "), i.first);
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {
@@ -314,13 +314,6 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         break;
       }
     }
-  }
-
-  // set device
-  m_projectManager->setCurrentRun(DEFAULT_FOLDER_SYNTH);
-  const auto device = m_projectManager->getSynthOption(PROJECT_PART_DEVICE);
-  if (!device.isEmpty()) {
-    target_device(device);
   }
 }
 

@@ -24,18 +24,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class PinAssignmentCreator {
+class ProjectManager;
+class ToolContext;
+class PinsBaseModel;
+class PinAssignmentCreator : public QObject {
+  Q_OBJECT
  public:
-  PinAssignmentCreator();
+  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
+                       QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
+  QString generateSdc() const;
+  PinsBaseModel *baseModel() const;
+
+  /*!
+   * \brief searchPortsFile
+   * Search file 'port_info.json' in path \param projectPath.
+   * \return full path to the file if it exists otherwise return empty string
+   */
+  static QString searchPortsFile(const QString &projectPath);
+
+ signals:
+  void selectionHasChanged();
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);
+  QString searchCsvFile(const QString &targetDevice,
+                        ToolContext *context) const;
+  QString targetDevice(ProjectManager *projectManager) const;
+  QString packagePinHeaderFile(ToolContext *context) const;
 
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
+  PinsBaseModel *m_baseModel{nullptr};
 };
 
 }  // namespace FOEDAG

@@ -20,11 +20,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QVector>
+
+#include "PackagePinsModel.h"
+
 namespace FOEDAG {
 
-class PackagePinsLoader {
+class PackagePinsLoader : public QObject {
  public:
-  PackagePinsLoader();
+  PackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
+  virtual ~PackagePinsLoader();
+  virtual std::pair<bool, QString> load(const QString &fileName);
+  virtual std::pair<bool, QString> loadHeader(const QString &fileName);
+
+ protected:
+  std::pair<bool, QString> getFileContent(const QString &fileName) const;
+
+ protected:
+  PackagePinsModel *m_model{nullptr};
 };
 
 }  // namespace FOEDAG

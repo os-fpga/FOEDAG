@@ -20,7 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QBoxLayout>
 #include <QDialog>
+#include <QGroupBox>
+#include <QLabel>
+#include <QLineEdit>
+
+#include "IPGenerate/IPCatalog.h"
 
 namespace FOEDAG {
 
@@ -28,9 +34,30 @@ class IpConfigDlg : public QDialog {
   Q_OBJECT
 
  public:
-  explicit IpConfigDlg(QWidget* parent = nullptr);
+  explicit IpConfigDlg(QWidget* parent = nullptr, QString requestedIpName = "",
+                       QString moduleName = "",
+                       QStringList instanceValueArgs = {});
+
+ public slots:
+  void updateOutputPath();
 
  private:
+  void AddDialogControls(QBoxLayout* layout);
+  void CreateParamFields();
+  void CreateOutputFields();
+  void updateMetaLabel(VLNV info);
+  std::vector<FOEDAG::IPDefinition*> getDefinitions();
+
+  QGroupBox paramsBox{"Parameters", this};
+  QGroupBox outputBox{"Output", this};
+  QLabel metaLabel;
+  QLineEdit moduleEdit;
+  QLineEdit outputPath;
+
+  QString m_baseDirDefault;
+  QString m_requestedIpName;
+  QStringList m_instanceValueArgs;
+  VLNV m_meta;
 };
 
 }  // namespace FOEDAG

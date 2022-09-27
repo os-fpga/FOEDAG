@@ -55,6 +55,10 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
 
 uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
+    case Compiler::Action::Analyze:
+      if (compiler->AnalyzeOpt() == Compiler::DesignAnalysisOpt::Clean)
+        return ANALYSIS_CLEAN;
+      return ANALYSIS;
     case Compiler::Action::Synthesis:
       if (compiler->SynthOpt() == Compiler::SynthesisOpt::Clean)
         return SYNTHESIS_CLEAN;
@@ -80,6 +84,8 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
         return PLACE_AND_ROUTE_VIEW;
       return TIMING_SIGN_OFF;
     case Compiler::Action::Bitstream:
+      if (compiler->BitsOpt() == Compiler::BitstreamOpt::Clean)
+        return BITSTREAM_CLEAN;
       return BITSTREAM;
     case Compiler::Action::Power:
       return POWER;

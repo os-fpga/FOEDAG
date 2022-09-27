@@ -22,31 +22,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QStringList>
 #include <QVector>
 
+#include "PackagePinsModel.h"
+#include "PortsModel.h"
+
 namespace FOEDAG {
-
-struct IOPort {
-  QString name;
-  QString dir;
-  QString packagePin;
-  QString bank;
-};
-
-struct PackagePin {
-  QString name;
-  QString ioPort;
-};
-
-struct PinBank {
-  QString id;
-  QVector<PackagePin> pins;
-};
 
 class PinsBaseModel {
  public:
   PinsBaseModel();
-  QStringList banks() const;
-  QVector<IOPort> ioPorts() const;
-  QVector<PinBank> packagePins() const;
+
+  bool exists(const QString &port, const QString &pin) const;
+  void insert(const QString &port, const QString &pin);
+
+  PackagePinsModel *packagePinModel() const;
+  void setPackagePinModel(PackagePinsModel *newPackagePinModel);
+
+  PortsModel *portsModel() const;
+  void setPortsModel(PortsModel *newPortsModel);
+
+  const QMap<QString, QString> &pinMap() const;
+
+ private:
+  QMap<QString, QString> m_pinsMap;
+  PackagePinsModel *m_packagePinModel;
+  PortsModel *m_portsModel;
 };
 
 }  // namespace FOEDAG

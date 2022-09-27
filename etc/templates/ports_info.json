@@ -1,0 +1,10 @@
+[
+	{
+	  "topModule": "NAME_OF_THE_TOP_MODULE",
+	  "ports": [
+	    {"name": "inp1", "direction": "Input", "range": {"msb":0, "lsb":0}, "type": "LOGIC"},
+	    {"name": "out1", "direction": "Output", "range": {"msb":4, "lsb":0}, "type": "REG"},
+	    {"name": "inout1", "direction": "Inout", "range": {"msb":2, "lsb":0}, "type": "LOGIC"}
+	  ]
+	}
+]

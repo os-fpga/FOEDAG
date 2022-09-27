@@ -56,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -90,9 +91,22 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
+            "<libName>? "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
+         << std::endl;
+  (*out) << "              -L <libName>    : Import the library <libName> "
+            "needed to "
+            "compile the compilation unit, default is \"work\""
          << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
@@ -354,6 +368,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
+          "[-work libraryName] [-L libraryName1 -L libraryName2]"
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
@@ -362,7 +377,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
-    const std::string file = argv[1];
+    auto file = StringUtils::toLower(argv[1]);
     if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
@@ -371,10 +386,22 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
+    std::string commandsList;
+    std::string libList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-VHDL_1987") {
+      if (type == "-work" || type == "-L") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_design_file <file(s)> "
+              "Library name should follow '-work' or '-L' tags");
+          return TCL_ERROR;
+        }
+        commandsList += type + " ";
+        const std::string libName = argv[++i];
+        libList += libName + " ";
+      } else if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
       } else if (type == "-VHDL_1993") {
@@ -437,7 +464,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          fileList.c_str(), language, out);
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -460,12 +488,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
 
     const std::string file = argv[1];
+    const std::string fileLowerCase = StringUtils::toLower(file);
     std::string actualType = "VERILOG";
     Design::Language language = Design::Language::VERILOG_NETLIST;
-    if (strstr(file.c_str(), ".blif")) {
+    if (strstr(fileLowerCase.c_str(), ".blif")) {
       language = Design::Language::BLIF;
       actualType = "BLIF";
-    } else if (strstr(file.c_str(), ".eblif")) {
+    } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
       language = Design::Language::EBLIF;
       actualType = "EBLIF";
     }
@@ -497,7 +526,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          origPathFileList.c_str(), language, out);
+          {}, {}, origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -747,6 +776,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      return compiler->Compile(Action::Analyze) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
+
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -901,9 +945,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -941,6 +983,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
+
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      WorkerThread* wthread =
+          new WorkerThread("analyze_th", Action::Analyze, compiler);
+      return wthread->start() ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1133,9 +1192,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -1228,6 +1285,37 @@ void Compiler::Stop() {
   if (m_process) m_process->terminate();
 }
 
+bool Compiler::Analyze() {
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + m_projManager->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    return true;
+  }
+  (*m_out) << "Analyzing design: " << m_projManager->projectName() << "..."
+           << std::endl;
+  auto currentPath = std::filesystem::current_path();
+  auto it = std::filesystem::directory_iterator{currentPath};
+  for (int i = 0; i < 100; i = i + 10) {
+    (*m_out) << std::setw(2) << i << "%";
+    if (it != std::filesystem::end(it)) {
+      std::string str =
+          " File: " + (*it).path().filename().string() + " just for test";
+      (*m_out) << str;
+      it++;
+    }
+    (*m_out) << std::endl;
+    std::chrono::milliseconds dura(1000);
+    std::this_thread::sleep_for(dura);
+    if (m_stop) return false;
+  }
+  m_state = State::Analyzed;
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+           << std::endl;
+  return true;
+}
+
 bool Compiler::Synthesize() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
   if (SynthOpt() == SynthesisOpt::Clean) {
@@ -1255,7 +1343,7 @@ bool Compiler::Synthesize() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1285,7 +1373,7 @@ bool Compiler::GlobalPlacement() {
            << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1323,6 +1411,8 @@ bool Compiler::RunCompileTask(Action action) {
   switch (action) {
     case Action::IPGen:
       return IPGenerate();
+    case Action::Analyze:
+      return Analyze();
     case Action::Synthesis:
       return Synthesize();
     case Action::Pack:
@@ -1352,6 +1442,12 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
   if (m_taskManager) {
     m_taskManager->bindTaskCommand(IP_GENERATE, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("ipgenerate"));
+    });
+    m_taskManager->bindTaskCommand(ANALYSIS, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
+    });
+    m_taskManager->bindTaskCommand(ANALYSIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze clean"));
     });
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
@@ -1392,6 +1488,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
     });
+    m_taskManager->bindTaskCommand(BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream clean"));
+    });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
     });
@@ -1406,6 +1505,10 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 
 bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
   bool status = GetIPGenerator()->Generate();
@@ -1540,6 +1643,24 @@ bool Compiler::HasTargetDevice() {
   return true;
 }
 
+bool Compiler::HasIPInstances() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen) {
+    result = !ipGen->IPInstances().empty();
+  }
+  return result;
+}
+
+bool Compiler::HasIPDefinitions() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen && ipGen->Catalog()) {
+    result = !ipGen->Catalog()->Definitions().empty();
+  }
+  return result;
+}
+
 bool Compiler::CreateDesign(const std::string& name) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
@@ -1667,4 +1788,9 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
     start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
   }
   return result;
+}
+
+std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  return std::make_pair(true, std::string{});
 }

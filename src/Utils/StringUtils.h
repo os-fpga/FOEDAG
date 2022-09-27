@@ -96,6 +96,14 @@ class StringUtils final {
 
   static std::string unquoted(const std::string& text);
 
+  // Returns bool indicating if `text` ends with `ending`
+  static bool endsWith(const std::string& text, const std::string& ending);
+
+  // Converts the input text to lower case
+  static std::string toLower(const std::string& text);
+  // Converts the input text to upper case
+  static std::string toUpper(const std::string& text);
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;

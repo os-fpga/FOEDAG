@@ -1,5 +1,6 @@
 #include "source_grid.h"
 
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QLabel>
@@ -9,8 +10,29 @@
 
 #include "ProjectManager/project_manager.h"
 #include "create_file_dialog.h"
-
 using namespace FOEDAG;
+
+namespace {
+static const auto INDEX_COL = QObject::tr("Index");
+static const auto NAME_COL = QObject::tr("Name");
+static const auto LIBRARY_COL = QObject::tr("Library");
+static const auto IMPORT_COL = QObject::tr("Import");
+static const auto LOCATION_COL = QObject::tr("Location");
+
+static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
+static const auto DESIGN_SOURCES_FILTER = QObject::tr(
+    "Design Source Files (*.vhd *.vhdl *.v *.vf *.verilog "
+    "*.vh *.h *.svh *.vhp "
+    "*.svhp *.edf *.edif *.sv *.svp *.bmm *.mif *.mem *.elf);;"
+    "VHDL Files (*.vhd *.vhdl *.vhf *.vhdp);;"
+    "VERILOG Files (*.v *.verilog);;"
+    "SystemVerilog Files(*.sv *.svp);;"
+    "VERILOG Header Files(*.vh *.h *.vhp);;"
+    "SystemVerilog Header Files (*.svh *.svhp);;"
+    "NETLIST files (*.eblif *.blif *.v *.sv *.svp);;"
+    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
+    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
+}  // namespace
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
@@ -55,7 +77,6 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_tableViewSrc->verticalHeader()->setDefaultSectionSize(30);
   // Last column adaptive width
   m_tableViewSrc->horizontalHeader()->setStretchLastSection(true);
-  m_tableViewSrc->setEditTriggers(QTableView::NoEditTriggers);
   m_tableViewSrc->setSelectionBehavior(QTableView::SelectRows);
   // Single line selection
   m_tableViewSrc->setSelectionMode(QTableView::SingleSelection);
@@ -70,11 +91,10 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_model = new QStandardItemModel(m_tableViewSrc);
   m_selectModel = new QItemSelectionModel(m_model, m_model);
 
-  m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
+  connect(m_model, &QStandardItemModel::itemChanged, this,
+          &sourceGrid::onItemChanged);
 
-  m_model->setHorizontalHeaderItem(0, new QStandardItem(tr("Index")));
-  m_model->setHorizontalHeaderItem(1, new QStandardItem(tr("Name")));
-  m_model->setHorizontalHeaderItem(2, new QStandardItem(tr("Location")));
+  m_tableViewSrc->horizontalHeader()->setMinimumHeight(30);
 
   m_tableViewSrc->setModel(m_model);
   m_tableViewSrc->setSelectionModel(m_selectModel);
@@ -92,6 +112,20 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
 }
 void sourceGrid::setGridType(GridType type) {
   m_type = type;
+
+  auto columnIndex{0};
+  m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(INDEX_COL));
+  m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(NAME_COL));
+  if (GT_SOURCE == m_type) {
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(LIBRARY_COL));
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(IMPORT_COL));
+  }
+
+  m_model->setHorizontalHeaderItem(columnIndex++,
+                                   new QStandardItem(LOCATION_COL));
+
   if (GT_CONSTRAINTS == m_type) {
     m_btnAddDri->setVisible(false);
   } else {
@@ -106,15 +140,13 @@ void sourceGrid::currentFileSet(const QString &fileSet) {
 }
 
 void sourceGrid::AddFiles() {
-  QString fileformat;
-  if (GT_SOURCE == m_type) {
-    fileformat = QString(tr("Design Files(*.v *.sv *.vhd)"));
-  } else if (GT_CONSTRAINTS == m_type) {
-    fileformat = QString(tr("Constraint Files(*.SDC *.sdc)"));
-  }
-  QStringList fileNames =
-      QFileDialog::getOpenFileNames(this, tr("Select File"), "", fileformat);
-  foreach (QString str, fileNames) {
+  QString fileformat{DESIGN_SOURCES_FILTER};
+  if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
+  // this option will catch lower and upper cases extentions
+  auto option{QFileDialog::DontUseNativeDialog};
+  QStringList fileNames = QFileDialog::getOpenFileNames(
+      this, tr("Select File"), "", fileformat, nullptr, option);
+  for (const QString &str : fileNames) {
     QString name = str.right(str.size() - (str.lastIndexOf("/") + 1));
     QString path = str.left(str.lastIndexOf("/"));
     QString suffix = name.right(name.size() - (name.lastIndexOf(".") + 1));
@@ -129,19 +161,33 @@ void sourceGrid::AddFiles() {
 }
 
 void sourceGrid::AddDirectories() {
-  QString pathName = QFileDialog::getExistingDirectory(
+  auto folder = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"), "",
-      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  if ("" == pathName) return;
-  QString folder =
-      pathName.right(pathName.size() - (pathName.lastIndexOf("/") + 1));
-  QString path = pathName.left(pathName.lastIndexOf("/"));
+      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks |
+          QFileDialog::DontUseNativeDialog);
 
-  filedata fdata;
-  fdata.m_isFolder = true;
-  fdata.m_fileName = folder;
-  fdata.m_filePath = path;
-  AddTableItem(fdata);
+  if (folder.isEmpty())  // The dialog was cancelled
+    return;
+  auto it = QDirIterator(folder, GetAllDesignSourceExtentions(), QDir::NoFilter,
+                         QDirIterator::Subdirectories);
+  auto files =
+      std::vector<std::pair<QString, QString>>{};  // File names with directory
+                                                   // full paths
+  while (it.hasNext()) {
+    it.next();
+    files.emplace_back(it.fileName(), it.path());
+  }
+
+  for (auto &[fileName, filePath] : files) {
+    auto suffix =
+        fileName.right(fileName.size() - (fileName.lastIndexOf(".") + 1));
+    filedata fdata;
+    fdata.m_isFolder = false;
+    fdata.m_fileType = suffix;
+    fdata.m_fileName = fileName;
+    fdata.m_filePath = filePath;
+    AddTableItem(fdata);
+  }
 }
 
 void sourceGrid::CreateFile() {
@@ -228,6 +274,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
 
   item = new QStandardItem(QString("%1").arg(rows + 1));
   item->setTextAlignment(Qt::AlignCenter);
+  item->setEditable(false);
   items.append(item);
 
   QIcon icon;
@@ -240,10 +287,24 @@ void sourceGrid::AddTableItem(filedata fdata) {
   item->setIcon(icon);
   item->setText(fdata.m_fileName);
   item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  item->setEditable(false);
   items.append(item);
+
+  if (GT_SOURCE == m_type) {
+    item = new QStandardItem(fdata.m_workLibrary);
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(true);
+    items.append(item);
+
+    item = new QStandardItem(fdata.m_importLibraries);
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(true);
+    items.append(item);
+  }
 
   item = new QStandardItem(fdata.m_filePath);
   item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  item->setEditable(false);
   items.append(item);
 
   m_model->insertRow(rows, items);
@@ -288,4 +349,32 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
     }
   }
   return false;
+}
+
+void sourceGrid::onItemChanged(QStandardItem *item) {
+  auto itemIndex = m_model->indexFromItem(item);
+
+  if (itemIndex.row() >= m_lisFileData.size())
+    qWarning("m_lisFileData: wrong indexes!");
+
+  if (m_model->headerData(itemIndex.column(), Qt::Horizontal).toString() ==
+      LIBRARY_COL)
+    m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
+  else
+    m_lisFileData[itemIndex.row()].m_importLibraries = item->text();
+}
+
+QStringList sourceGrid::GetAllDesignSourceExtentions() const {
+  QSet<QString> filters;
+  auto filterLine = DESIGN_SOURCES_FILTER.split(";;");
+  for (auto &f : filterLine) {
+    f.remove(0, f.indexOf("(") + 1);
+    f = f.mid(0, f.indexOf(")"));
+    const auto ext = f.split(" ");
+    for (const auto &e : ext) {
+      filters.insert(e);
+      filters.insert(e.toUpper());
+    }
+  }
+  return filters.values();
 }

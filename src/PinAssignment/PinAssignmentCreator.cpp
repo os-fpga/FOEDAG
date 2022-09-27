@@ -21,19 +21,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignmentCreator.h"
 
 #include <QBoxLayout>
+#include <QDir>
+#include <filesystem>
 
+#include "Main/ToolContext.h"
+#include "NewProject/ProjectManager/project_manager.h"
+#include "PackagePinsLoader.h"
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
+#include "PortsLoader.h"
 #include "PortsView.h"
 
 namespace FOEDAG {
 
-PinAssignmentCreator::PinAssignmentCreator() {
-  auto baseModel = new PinsBaseModel;
-  auto portsView = new PortsView(baseModel);
+PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
+                                           ToolContext *context,
+                                           QObject *parent)
+    : QObject(parent) {
+  PortsModel *portsModel = new PortsModel{this};
+  PortsLoader portsLoader{portsModel, this};
+  portsLoader.load(searchPortsFile(projectManager->getProjectPath()));
+  auto packagePinModel = new PackagePinsModel;
+  const QString fileName = searchCsvFile(targetDevice(projectManager), context);
+  PackagePinsLoader loader{packagePinModel, this};
+  loader.load(fileName);
+  loader.loadHeader(packagePinHeaderFile(context));
+
+  m_baseModel = new PinsBaseModel;
+  m_baseModel->setPackagePinModel(packagePinModel);
+  m_baseModel->setPortsModel(portsModel);
+
+  auto portsView = new PortsView(m_baseModel);
+  connect(portsView, &PortsView::selectionHasChanged, this,
+          &PinAssignmentCreator::selectionHasChanged);
   m_portsView = CreateLayoutedWidget(portsView);
 
-  auto packagePins = new PackagePinsView(baseModel);
+  auto packagePins = new PackagePinsView(m_baseModel);
+  connect(packagePins, &PackagePinsView::selectionHasChanged, this,
+          &PinAssignmentCreator::selectionHasChanged);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
 }
 
@@ -43,11 +68,58 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
 
+QString PinAssignmentCreator::generateSdc() const {
+  if (m_baseModel->pinMap().isEmpty()) return QString();
+  QString sdc;
+  const auto pinMap = m_baseModel->pinMap();
+  for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
+    sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
+  }
+  return sdc;
+}
+
 QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   QWidget *w = new QWidget;
   w->setLayout(new QVBoxLayout);
   w->layout()->addWidget(main);
   return w;
 }
+
+QString PinAssignmentCreator::searchCsvFile(const QString &targetDevice,
+                                            ToolContext *context) const {
+  std::filesystem::path path{context->DataPath()};
+  path = path / "etc" / "devices";
+  if (!targetDevice.isEmpty()) path /= targetDevice.toLower().toStdString();
+
+  QDir dir{path.string().c_str()};
+  auto files = dir.entryList({"*.csv"}, QDir::Files);
+  if (!files.isEmpty()) return dir.filePath(files.first());
+
+  std::filesystem::path pathDefault{context->DataPath()};
+  pathDefault = pathDefault / "etc" / "templates" / "Pin_Table.csv";
+  return QString(pathDefault.string().c_str());
+}
+
+QString PinAssignmentCreator::targetDevice(
+    ProjectManager *projectManager) const {
+  if (!projectManager->HasDesign()) return QString();
+  if (projectManager->getTargetDevice().empty()) return QString();
+  return QString::fromStdString(projectManager->getTargetDevice());
+}
+
+QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
+  auto path = context->DataPath() / "etc" / "package_pin_info.json";
+  return QString::fromStdString(path.string());
+}
+
+QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
+  const QDir dir{projectPath};
+  auto file = dir.filePath("port_info.json");
+  const QFileInfo fileInfo{file};
+  if (fileInfo.exists()) return file;
+  return QString();
+}
+
+PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }
 
 }  // namespace FOEDAG

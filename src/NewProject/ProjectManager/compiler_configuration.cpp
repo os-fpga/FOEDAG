@@ -71,12 +71,4 @@ const std::vector<std::pair<std::string, std::string> >
     &CompilerConfiguration::macroList() const {
   return m_macroList;
 }
-
-void CompilerConfiguration::setTargetDevice(const std::string &deviceName) {
-  m_deviceName = deviceName;
-}
-
-const std::string &CompilerConfiguration::getTargetDevice() const {
-  return m_deviceName;
-}
 }  // namespace FOEDAG

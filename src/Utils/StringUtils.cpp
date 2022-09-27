@@ -228,4 +228,28 @@ std::string StringUtils::unquoted(const std::string& text) {
   return text;
 }
 
+bool StringUtils::endsWith(const std::string& fullString,
+                           const std::string& ending) {
+  if (fullString.length() >= ending.length()) {
+    return (0 == fullString.compare(fullString.length() - ending.length(),
+                                    ending.length(), ending));
+  } else {
+    return false;
+  }
+}
+
+std::string StringUtils::toLower(const std::string& text) {
+  auto result = text;
+  std::transform(result.begin(), result.end(), result.begin(),
+                 [](auto c) { return std::tolower(c); });
+  return result;
+}
+
+std::string StringUtils::toUpper(const std::string& text) {
+  auto result = text;
+  std::transform(result.begin(), result.end(), result.begin(),
+                 [](auto c) { return std::toupper(c); });
+  return result;
+}
+
 }  // namespace FOEDAG

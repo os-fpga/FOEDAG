@@ -55,6 +55,14 @@ uint TaskModel::ToTaskId(const QModelIndex &index) const {
   return m_taskOrder[index.row()].second;
 }
 
+int TaskModel::ToRowIndex(uint taskId) const {
+  auto it = std::find_if(
+      m_taskOrder.cbegin(), m_taskOrder.cend(),
+      [=](const std::pair<int, uint> &p) { return p.second == taskId; });
+  if (it != m_taskOrder.cend()) return it->first;
+  return -1;
+}
+
 int TaskModel::rowCount(const QModelIndex &parent) const {
   return m_taskManager ? m_taskManager->tasks().count() : 0;
 }
@@ -101,7 +109,8 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (auto p = task->parentTask()) {
       uint id = m_taskManager->taskId(p);
       if (id != TaskManager::invalid_id) {
-        return m_expanded.value(createIndex(id, index.column()), true);
+        return m_expanded.value(createIndex(ToRowIndex(id), index.column()),
+                                true);
       }
     }
     return false;
@@ -148,6 +157,8 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskManager = newTaskManager;
   int row{0};
   m_taskOrder.push_back({row++, IP_GENERATE});
+  m_taskOrder.push_back({row++, ANALYSIS});
+  m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS});
   m_taskOrder.push_back({row++, SYNTHESIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});
@@ -170,6 +181,7 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, BITSTREAM});
+  m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
 
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }

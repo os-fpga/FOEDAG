@@ -31,10 +31,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* proNavigatorBuilder(FOEDAG::Session* session) {
   FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm();
   if (session->CmdLine()->Argc() > 2) {
-    FOEDAG::ProjectFileLoader loader{
-        {new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
-         new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager{}),
-         new FOEDAG::CompilerComponent(session->GetCompiler())}};
+    FOEDAG::ProjectFileLoader loader(FOEDAG::Project::Instance());
+    loader.registerComponent(
+        new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        FOEDAG::ComponentId::TaskManager);
+    loader.registerComponent(
+        new FOEDAG::CompilerComponent(session->GetCompiler()),
+        FOEDAG::ComponentId::Compiler);
     loader.Load(session->CmdLine()->Argv()[2]);
     srcForm->InitSourcesForm();
   }

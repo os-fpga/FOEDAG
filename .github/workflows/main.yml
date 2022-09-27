@@ -264,7 +264,7 @@ jobs:
     - name: Test
       run: |
         make test_install
-        make test/unittest
+        make XVFB="" test/unittest
         make regression
 
   windows-msvc:
@@ -339,7 +339,7 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
         make install
         if %errorlevel% neq 0 exit /b %errorlevel%
-        make test/unittest
+        make XVFB="" test/unittest
         if %errorlevel% neq 0 exit /b %errorlevel%
         make test_install
         if %errorlevel% neq 0 exit /b %errorlevel%
@@ -479,7 +479,7 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make test/unittest
+        make XVFB="" test/unittest
         make XVFB="" debug test/gui_mac
 
     - name: Regression tests

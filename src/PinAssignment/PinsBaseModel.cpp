@@ -24,27 +24,33 @@ namespace FOEDAG {
 
 PinsBaseModel::PinsBaseModel() {}
 
-QStringList PinsBaseModel::banks() const { return {"Bank 0", "Bank 1"}; }
-
-QVector<IOPort> PinsBaseModel::ioPorts() const {
-  QVector<IOPort> ports;
-  ports.append({"IN0", "INPUT", {}, {}});
-  ports.append({"IN1", "INPUT", {}, {}});
-  ports.append({"OUT", "OUTPUT", {}, {}});
-  return ports;
+bool PinsBaseModel::exists(const QString &port, const QString &pin) const {
+  for (auto it = m_pinsMap.constBegin(); it != m_pinsMap.constEnd(); ++it) {
+    if (it.key() == port && it.value() == pin) return true;
+  }
+  return false;
 }
 
-QVector<PinBank> PinsBaseModel::packagePins() const {
-  QVector<PinBank> banks;
-  banks.append({"System", {{"RST_N", {}}, {"XIN", {}}}});
-  banks.append({"JTAG", {{"JTAG_TDI", {}}, {"JTAG_TDO", {}}}});
-  banks.append({"GPIO", {{"GPIO_A_0", {}}, {"GPIO_A_1", {}}}});
-  banks.append({"GBe", {{"MDIO_MDCÂ", {}}, {"MDIO_DATAÂ", {}}}});
-  banks.append({"USB", {{"USB_DPÂ", {}}, {"USB_DNÂ", {}}}});
-  banks.append({"I2C CLK", {{"I2C_SCLÂ", {}}}});
-  banks.append({"SPI CLK", {{"SPI_SCLKÂ", {}}}});
-  banks.append({"GPT", {{"GPT_RTC", {}}}});
-  banks.append({"DDR", {{"PAD_MEM_DQS_N[0]", {}}, {"PAD_MEM_DQS_N[1]", {}}}});
-  return banks;
+void PinsBaseModel::insert(const QString &port, const QString &pin) {
+  m_pinsMap.insert(port, pin);
 }
+
+PackagePinsModel *PinsBaseModel::packagePinModel() const {
+  return m_packagePinModel;
+}
+
+void PinsBaseModel::setPackagePinModel(PackagePinsModel *newPackagePinModel) {
+  m_packagePinModel = newPackagePinModel;
+}
+
+PortsModel *PinsBaseModel::portsModel() const { return m_portsModel; }
+
+void PinsBaseModel::setPortsModel(PortsModel *newPortsModel) {
+  m_portsModel = newPortsModel;
+}
+
+const QMap<QString, QString> &PinsBaseModel::pinMap() const {
+  return m_pinsMap;
+}
+
 }  // namespace FOEDAG

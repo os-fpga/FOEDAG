@@ -22,7 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QTreeWidgetItem>
 
+#include "IpConfigurator/IpConfigDlg.h"
 #include "MainWindow/Session.h"
+#include "Utils/FileUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -47,13 +49,28 @@ bool tclCmdExists(const QString& cmdName) {
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
   this->setHeaderLabel("Available IPs");
+
+  QObject::connect(this, &QTreeWidget::itemDoubleClicked,
+                   [this](QTreeWidgetItem* item, int column) {
+                     FOEDAG::IpConfigDlg* dlg =
+                         new IpConfigDlg(this, item->text(0));
+                     dlg->setAttribute(Qt::WA_DeleteOnClose);
+                     dlg->show();
+                   });
+
   refresh();
 }
 
 void IpCatalogTree::refresh() {
-  // TODO @skyler-rs AUG-2020 update this to the proper path once it has been
-  // determined
-  QStringList ips = getAvailableIPs("./");
+  // TODO @skyler-rs AUG-2022 In future updates we plan to allow a user
+  // catalog path. This path should be loaded in addition to the default
+  std::filesystem::path UserCatalogPath = std::filesystem::path("");
+  std::filesystem::path IpCatalogPath =
+      GlobalSession->Context()->DataPath() / "IP_Catalog";
+  std::vector<std::filesystem::path> IpPaths{IpCatalogPath, UserCatalogPath};
+
+  QStringList ips;
+  ips = getAvailableIPs(IpPaths);
 
   // If available IPs have changed
   if (ips != prevIpCatalogResults) {
@@ -64,17 +81,19 @@ void IpCatalogTree::refresh() {
       item->setText(0, ip);
       this->addTopLevelItem(item);
     }
+    prevIpCatalogResults = ips;
   }
 }
 
-QStringList IpCatalogTree::getAvailableIPs(QString path) {
+QStringList IpCatalogTree::getAvailableIPs(
+    const std::vector<std::filesystem::path>& paths) {
   QStringList ips;
 
   // Load IPs
-  loadIps(path);
+  loadIps(paths);
 
   // Request loaded IPs
-  if (ipsLoaded && tclCmdExists("ip_catalog")) {
+  if (tclCmdExists("ip_catalog")) {
     std::string result = GlobalSession->TclInterp()->evalCmd("ip_catalog");
     ips = QString::fromStdString(result).trimmed().split(" ");
   }
@@ -82,11 +101,16 @@ QStringList IpCatalogTree::getAvailableIPs(QString path) {
   return ips;
 }
 
-void IpCatalogTree::loadIps(QString path) {
-  if (!ipsLoaded && tclCmdExists("add_litex_ip_catalog")) {
-    QString cmd = QString("add_litex_ip_catalog %1").arg(path);
-    int ok = TCL_ERROR;
-    GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
-    ipsLoaded = (ok == TCL_OK);
+void IpCatalogTree::loadIps(const std::vector<std::filesystem::path>& paths) {
+  if (tclCmdExists("add_litex_ip_catalog")) {
+    for (auto path : paths) {
+      if (std::filesystem::exists(path)) {
+        QString cmd =
+            QString("add_litex_ip_catalog {%1}")
+                .arg(QString::fromStdString(path.lexically_normal().string()));
+        int ok = TCL_ERROR;
+        GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &ok);
+      }
+    }
   }
 }

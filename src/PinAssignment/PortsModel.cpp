@@ -22,5 +22,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-PortsModel::PortsModel() {}
+PortsModel::PortsModel(QObject *parent)
+    : QObject(parent), m_model(new QStringListModel(this)) {}
+
+QStringList PortsModel::headerList() const {
+  return {"Name", "Dir", "Package Pin", "Type"};
+}
+
+void PortsModel::append(const IOPortGroup &p) { m_ioPorts.append(p); }
+
+const QVector<IOPortGroup> &PortsModel::ports() const { return m_ioPorts; }
+
+void PortsModel::initListModel() {
+  QStringList portsList;
+  portsList.append(QString());
+  for (const auto &group : qAsConst(m_ioPorts))
+    for (const auto &p : qAsConst(group.ports)) {
+      if (p.isBus) {
+        for (const auto &sub : p.ports) portsList.append(sub.name);
+      } else {
+        portsList.append(p.name);
+      }
+    };
+  m_model->setStringList(portsList);
+}
+
+QStringListModel *PortsModel::listModel() const { return m_model; }
+
+void PortsModel::insert(const QString &name, const QModelIndex &index) {
+  m_indexes.insert(name, index);
+}
+
+void PortsModel::itemChange(const QString &name, const QString &newPin) {
+  emit itemHasChanged(m_indexes.value(name), newPin);
+}
 }  // namespace FOEDAG

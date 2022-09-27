@@ -73,6 +73,9 @@ static constexpr uint TIMING_SIGN_OFF{19};
 static constexpr uint POWER{20};
 static constexpr uint BITSTREAM{21};
 static constexpr uint PLACE_AND_ROUTE_VIEW{22};
+static constexpr uint ANALYSIS{23};
+static constexpr uint ANALYSIS_CLEAN{24};
+static constexpr uint BITSTREAM_CLEAN{25};
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;

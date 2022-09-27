@@ -44,15 +44,11 @@ class CompilerConfiguration {
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 
-  void setTargetDevice(const std::string &deviceName);
-  const std::string &getTargetDevice() const;
-
  private:
   std::vector<std::string> m_includePathList;
   std::vector<std::string> m_libraryPathList;
   std::vector<std::string> m_libraryExtList;
   std::vector<std::pair<std::string, std::string>> m_macroList;
-  std::string m_deviceName;
 };
 
 }  // namespace FOEDAG

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPILER_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,7 @@ class Compiler {
   enum class Action {
     NoAction,
     IPGen,
+    Analyze,
     Synthesis,
     Pack,
     Global,
@@ -58,6 +60,7 @@ class Compiler {
   enum class State {
     None,
     IPGenerated,
+    Analyzed,
     Synthesized,
     Packed,
     GloballyPlaced,
@@ -67,7 +70,9 @@ class Compiler {
     PowerAnalyzed,
     BistreamGenerated
   };
+  enum MsgSeverity { Ignore, Info, Warning, Error };
   enum class IPGenerateOpt { None, Clean };
+  enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
@@ -88,7 +93,7 @@ class Compiler {
   std::ostream* GetOutStream() { return m_out; }
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
-  Session* GetSession() { return m_session; }
+  Session* GetSession() const { return m_session; }
   virtual ~Compiler();
 
   void BatchScript(const std::string& script) { m_batchScript = script; }
@@ -118,6 +123,8 @@ class Compiler {
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
   bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
+  bool HasIPInstances();
+  bool HasIPDefinitions();
 
   // VPR, Yosys generic opt
   void ChannelWidth(uint32_t width) { m_channel_width = width; }
@@ -125,6 +132,8 @@ class Compiler {
 
   IPGenerateOpt IPGenOpt() const { return m_ipGenerateOpt; }
   void IPGenOpt(IPGenerateOpt opt) { m_ipGenerateOpt = opt; }
+  DesignAnalysisOpt AnalyzeOpt() const { return m_analysisOpt; }
+  void AnalyzeOpt(DesignAnalysisOpt opt) { m_analysisOpt = opt; }
   PackingOpt PackOpt() const { return m_packingOpt; }
   void PackOpt(PackingOpt opt) { m_packingOpt = opt; }
   SynthesisOpt SynthOpt() const { return m_synthOpt; }
@@ -142,7 +151,7 @@ class Compiler {
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
 
-  BitstreamOpt BitsOpt() { return m_bitstreamOpt; }
+  BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
   // Compiler specific opt
   const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
@@ -159,11 +168,22 @@ class Compiler {
   bool BitstreamEnabled() { return m_bitstreamEnabled; }
   void BitstreamEnabled(bool enabled) { m_bitstreamEnabled = enabled; }
 
+  bool PinConstraintEnabled() { return m_pin_constraintEnabled; }
+  void PinConstraintEnabled(bool enabled) { m_pin_constraintEnabled = enabled; }
+
   virtual const std::string GetNetlistPath();
+
+  void AddMsgSeverity(std::string msg, MsgSeverity severity) {
+    m_severityMap.insert(std::make_pair(msg, severity));
+  }
+  const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
+    return m_severityMap;
+  }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
+  virtual bool Analyze();
   virtual bool Synthesize();
   virtual bool Packing();
   virtual bool GlobalPlacement();
@@ -190,6 +210,8 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
+  virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
+      const std::string& size) const;
 
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
@@ -210,6 +232,7 @@ class Compiler {
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;
+  DesignAnalysisOpt m_analysisOpt = DesignAnalysisOpt::None;
   SynthesisOpt m_synthOpt = SynthesisOpt::None;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
@@ -229,8 +252,12 @@ class Compiler {
   uint32_t m_channel_width = 100;
   uint32_t m_lut_size = 6;
   bool m_bitstreamEnabled = true;
+  bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
   IPGenerator* m_IPGenerator = nullptr;
+
+  // Error message severity
+  std::map<std::string, MsgSeverity> m_severityMap;
 };
 
 }  // namespace FOEDAG

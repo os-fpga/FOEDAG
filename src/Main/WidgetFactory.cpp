@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileInfo>
+#include <QFormLayout>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QMetaEnum>
@@ -41,6 +42,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace FOEDAG;
 using nlohmann::json_pointer;
 
+static tclArgFnMap TclArgFnLookup;
+
 // This lookup provides tcl setters/getters based off a QString. When settings
 // widgets are generated, these setters are loaded if the associated widget json
 // defines a tclArgKey that will be used in this lookup.
@@ -51,18 +54,23 @@ using nlohmann::json_pointer;
 //     "tclArgKey": "YOUR_UNIQUE_KEY"
 // }
 // and then add "YOUR_UNIQUE_KEY" and your set/get callbacks below
-tclArgFnMap TclArgFnLookup = {
-    {"Tasks_Synthesis",
-     {FOEDAG::TclArgs_setSynthesisOptions,
-      FOEDAG::TclArgs_getSynthesisOptions}},
-    //{"Placement", {set,get}},
-    // {"Routing", {set,get}},
-    {"TclExample",
-     {FOEDAG::TclArgs_setExampleArgs, FOEDAG::TclArgs_getExampleArgs}},
-    {"Tasks_placement",
-     {FOEDAG::TclArgs_setPlacementOptions,
-      FOEDAG::TclArgs_getPlacementOptions}},
-};
+
+void FOEDAG::initTclArgFns() {
+  addTclArgFns("Tasks_Synthesis", {FOEDAG::TclArgs_setSynthesisOptions,
+                                   FOEDAG::TclArgs_getSynthesisOptions});
+  addTclArgFns("Tasks_placement", {FOEDAG::TclArgs_setPlacementOptions,
+                                   FOEDAG::TclArgs_getPlacementOptions});
+  addTclArgFns("TclExample", {FOEDAG::TclArgs_setExampleArgs,
+                              FOEDAG::TclArgs_getExampleArgs});
+}
+
+// Clear out the default TclArgFns, this is provided for downstreams clients to
+// reset the lookup if they need
+void FOEDAG::clearTclArgFns() { TclArgFnLookup.clear(); }
+
+void FOEDAG::addTclArgFns(const std::string& tclArgKey, tclArgFns argFns) {
+  TclArgFnLookup.insert({tclArgKey, argFns});
+}
 
 // returns a pair of tcl setters/getters from the TclArgFnLookup
 tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {
@@ -70,13 +78,19 @@ tclArgFns FOEDAG::getTclArgFns(const QString& tclArgKey) {
   tclArgSetterFn setter = nullptr;
   tclArgFns retVal = {setter, getter};
 
-  auto result = TclArgFnLookup.find(tclArgKey);
+  auto result = TclArgFnLookup.find(tclArgKey.toStdString());
   if (result != TclArgFnLookup.end()) {
     retVal = result->second;
   }
 
   return retVal;
 }
+
+QString getStr(const json& jsonObj, const QString& key,
+               const QString& defaultStr = "") {
+  std::string val = jsonObj.value(key.toStdString(), defaultStr.toStdString());
+  return QString::fromStdString(val);
+};
 
 static constexpr uint JsonPathRole = Qt::UserRole + 1;
 
@@ -449,7 +463,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
       // Get any task settings that have been set via tcl commands
       QString tclArgs = "";
       if (tclArgGetter != nullptr) {
-        tclArgs = tclArgGetter();
+        tclArgs = QString::fromStdString(tclArgGetter());
       }
 
       // Create Settings Pane
@@ -526,7 +540,7 @@ QWidget* FOEDAG::createSettingsPane(const QString& jsonPath,
                   // Set any tclArgList values for the given task
                   if (tclArgSetter != nullptr) {
                     QString tclArgs = widget->property("tclArgList").toString();
-                    tclArgSetter(tclArgs);
+                    tclArgSetter(tclArgs.toStdString());
                   }
                 }
               }
@@ -548,15 +562,9 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   QVBoxLayout* VLayout = new QVBoxLayout();
   widget->setLayout(VLayout);
 
-  // Create and add the child widget to our parent container
-  QStringList tclArgList = tclArgs.split("-");
-  for (auto [widgetId, widgetJson] : widgetsJson.items()) {
-    QWidget* subWidget = FOEDAG::createWidget(
-        widgetJson, QString::fromStdString(widgetId), tclArgList);
-    if (subWidget != nullptr) {
-      VLayout->addWidget(subWidget);
-    }
-  }
+  // Create a QFormLayout containing the requested fields
+  QFormLayout* form = createWidgetFormLayout(widgetsJson, tclArgs.split("-"));
+  VLayout->addLayout(form);
   VLayout->addStretch();
 
   // Add ok/cancel/apply buttons
@@ -570,12 +578,13 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   // settings to a user file and add the changes to the passed in settings
   // This will also build up and store a tcl arg list for these
   // settings if the widgets have "arg" fields defined
-  auto checkVals = [VLayout, &widgetsJson, widget]() {
+  auto checkVals = [form, &widgetsJson, widget]() {
     bool save = false;
     QHash<QString, QString> patchHash;
     QString argsStr = "";
-    for (int i = 0; i < VLayout->count(); i++) {
-      QWidget* settingsWidget = VLayout->itemAt(i)->widget();
+    for (int i = 0; i < form->rowCount(); i++) {
+      QWidget* settingsWidget =
+          form->itemAt(i, QFormLayout::FieldRole)->widget();
       if (settingsWidget) {
         QObject* targetObject =
             qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
@@ -664,15 +673,26 @@ QWidget* FOEDAG::createSettingsWidget(json& widgetsJson,
   return widget;
 }
 
+QFormLayout* FOEDAG::createWidgetFormLayout(
+    json& widgetsJson, const QStringList& tclArgList /* {} */) {
+  QFormLayout* form = new QFormLayout();
+  form->setLabelAlignment(Qt::AlignRight);
+
+  // Create and add the child widget to the form layout
+  for (auto [widgetId, widgetJson] : widgetsJson.items()) {
+    QWidget* subWidget = FOEDAG::createWidget(
+        widgetJson, QString::fromStdString(widgetId), tclArgList);
+    QString label = getStr(widgetJson, "label");
+
+    if (subWidget != nullptr) {
+      form->addRow(label, subWidget);
+    }
+  }
+  return form;
+}
+
 QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
                               const QStringList& args) {
-  auto getStr = [](const json& jsonObj, const QString& key,
-                   const QString& defaultStr = "") {
-    std::string val =
-        jsonObj.value(key.toStdString(), defaultStr.toStdString());
-    return QString::fromStdString(val);
-  };
-
   auto lookupStr = [](const QStringList& options, const QStringList& lookup,
                       const QString& option) -> QString {
     // Find the given option in the options array
@@ -707,11 +727,19 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
   QHash<QString, QString> argPairs;
   for (auto argEntry : args) {
     QStringList tokens = argEntry.split(' ');
-    argPairs[tokens[0]];  // implicitly create an entry in case the arg is a
-                          // switch w/o a parameter
+    QString argTag = tokens[0];
+
+    // Remove leading -
+    if (!argTag.isEmpty() && argTag[0] == '-') {
+      argTag = argTag.remove(0, 1);
+    }
+
+    argPairs[argTag];  // implicitly create an entry in case the arg is a
+                       // switch w/o a parameter
+
     if (tokens.count() > 1) {
       // store parameter if it was passed with the argument
-      argPairs[tokens[0]] = tokens[1];
+      argPairs[argTag] = tokens[1];
     }
   }
 
@@ -738,18 +766,33 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Callback to handle value changes
       std::function<void(QLineEdit*, const QString&)> handleChange =
-          [](QLineEdit* ptr, const QString& val) {
+          [arg](QLineEdit* ptr, const QString& val) {
             QString userVal = ptr->text();
             json changeJson;
             changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
 
-            storeTclArg(ptr, convertSpaces(userVal));
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              QString argStr = "-" + arg + " " + convertSpaces(userVal);
+              storeTclArg(ptr, argStr);
+            }
           };
 
       // Create our widget
       auto ptr = createLineEdit(objName, sysDefaultVal, handleChange);
       createdWidget = ptr;
+
+      // Apply a validator if one was requested
+      QString validator = getStr(widgetJsonObj, "validator", "").toLower();
+      if (validator == "int") {
+        ptr->setValidator(new QIntValidator(ptr));
+      } else if (validator == "double") {
+        ptr->setValidator(new QDoubleValidator(ptr));
+      } else if (validator == "regex") {
+        ptr->setValidator(new QRegExpValidator(ptr));
+      }
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
@@ -1014,9 +1057,10 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     }
 
     if (createdWidget) {
-      // Add a containing widget and label if "label" property was provided
-      QString label = getStr(widgetJsonObj, "label");
-      retVal = FOEDAG::createContainerWidget(createdWidget, label);
+      // Only calling this for the container which will allow the widget to
+      // stretch, label is no longer provided here as labels are now added via
+      // QFormLayout at a different time
+      retVal = FOEDAG::createContainerWidget(createdWidget);
 
       // Store a pointer to the primary widget incase we wrapped it in a
       // container widget with a label
@@ -1197,4 +1241,23 @@ QCheckBox* FOEDAG::createCheckBox(
   };
 
   return widget;
+}
+
+// Searches a given layout for widgets created by widget factory
+// these widgets have additional meta data stored in properties
+// that can be used in dynamically generated UIs
+QList<QObject*> FOEDAG::getTargetObjectsFromLayout(QLayout* layout) {
+  QList<QObject*> settingsObjs;
+  for (int i = 0; i < layout->count(); i++) {
+    QWidget* settingsWidget = layout->itemAt(i)->widget();
+    if (settingsWidget) {
+      QObject* targetObject =
+          qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
+      if (targetObject) {
+        settingsObjs << targetObject;
+      }
+    }
+  }
+
+  return settingsObjs;
 }

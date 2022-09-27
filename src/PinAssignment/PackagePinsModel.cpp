@@ -22,6 +22,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-PackagePinsModel::PackagePinsModel() {}
+PackagePinsModel::PackagePinsModel(QObject *parent)
+    : QObject(parent), m_listModel(new QStringListModel) {}
+
+const QVector<HeaderData> &PackagePinsModel::header() const { return m_header; }
+
+void PackagePinsModel::appendHeaderData(const HeaderData &h) {
+  m_header.append(h);
+}
+
+void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
+
+const QVector<PackagePinGroup> &PackagePinsModel::pinData() const {
+  return m_pinData;
+}
+
+QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
+
+void PackagePinsModel::initListModel() {
+  QStringList pinsList;
+  pinsList.append(QString());
+  for (const auto &group : m_pinData) {
+    for (const auto &pin : group.pinData) {
+      pinsList.append(pin.data.at(PinName));
+    }
+  }
+  m_listModel->setStringList(pinsList);
+}
+
+void PackagePinsModel::insert(const QString &name, const QModelIndex &index) {
+  m_indexes.insert(name, index);
+}
+
+void PackagePinsModel::itemChange(const QString &name, const QString &pin) {
+  emit itemHasChanged(m_indexes.value(name), pin);
+}
 
 }  // namespace FOEDAG

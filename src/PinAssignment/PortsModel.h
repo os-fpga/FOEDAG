@@ -20,11 +20,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QObject>
+#include <QStringList>
+#include <QStringListModel>
+#include <QVector>
+
 namespace FOEDAG {
 
-class PortsModel {
+struct IOPort {
+  QString name;
+  QString dir;
+  QString packagePin;
+  QString type;
+  QString range;
+  bool isBus;
+  QVector<IOPort> ports;
+};
+
+struct IOPortGroup {
+  QString name;
+  QVector<IOPort> ports;
+};
+
+class PortsModel : public QObject {
+  Q_OBJECT
  public:
-  PortsModel();
+  PortsModel(QObject *parent = nullptr);
+  QStringList headerList() const;
+  void append(const IOPortGroup &p);
+  const QVector<IOPortGroup> &ports() const;
+  void initListModel();
+
+  QStringListModel *listModel() const;
+  void insert(const QString &name, const QModelIndex &index);
+  void itemChange(const QString &name, const QString &newPin);
+
+ signals:
+  void itemHasChanged(const QModelIndex &index, const QString &newPin);
+
+ private:
+  QVector<IOPortGroup> m_ioPorts;
+  QStringListModel *m_model;
+  QMap<QString, QModelIndex> m_indexes;
 };
 
 }  // namespace FOEDAG

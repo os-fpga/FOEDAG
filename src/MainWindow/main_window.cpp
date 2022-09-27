@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2021 The Foedag team
 
 GPL License
@@ -38,8 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
-#include "Main/Tasks.h"
 #include "MainWindow/Session.h"
+#include "MainWindow/WelcomePageWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -55,11 +55,20 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
-MainWindow::MainWindow(Session* session) : m_session(session) {
+const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
+const QString RECENT_PROJECT_KEY{"recent/proj%1"};
+constexpr uint RECENT_PROJECT_COUNT{10};
+constexpr uint RECENT_PROJECT_COUNT_WP{5};
+
+MainWindow::MainWindow(Session* session)
+    : m_session(session), m_settings("settings", QSettings::IniFormat) {
   /* Window settings */
-  setWindowTitle(tr("FOEDAG"));
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
+
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  m_showWelcomePage = !file.exists();  // Prevent welcome page from appearance
+                                       // if the file exists.
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -91,6 +100,9 @@ MainWindow::MainWindow(Session* session) : m_session(session) {
 
   /* Create status bar */
   statusBar();
+
+  /* Create actions for recent projects */
+  createRecentMenu();
 
   //  /* Add dummy text editors */
   //  QTextEdit* editor1 = new QTextEdit;
@@ -130,6 +142,24 @@ void MainWindow::Info(const ProjectInfo& info) { m_projectInfo = info; }
 
 ProjectInfo MainWindow::Info() const { return m_projectInfo; }
 
+void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
+                                QString& projectInfo) {
+  if (project.isEmpty())
+    setWindowTitle(projectInfo);
+  else if (filename.isEmpty()) {
+    setWindowTitle(QString("%1 - %2").arg(project, projectInfo));
+  } else {
+    setWindowTitle(QString("%1 - %2 - %3").arg(filename, project, projectInfo));
+  }
+}
+
+void MainWindow::CloseOpenedTabs() {
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  while (tabWidget->count() != 0) {
+    tabWidget->tabCloseRequested(tabWidget->currentIndex());
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -138,30 +168,29 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  int ret = newProjdialog->exec();
-  newProjdialog->close();
-  if (ret) {
-    QString strproject = newProjdialog->getProject();
-    newProjectAction->setEnabled(false);
-    ReShowWindow(strproject);
-  }
+  newProjdialog->Reset();
+  newProjdialog->open();
 }
 
-void MainWindow::openProject() {
+void MainWindow::openExampleProject() {
+  auto currentDir = GlobalSession->Context()->DataPath();
+  std::filesystem::path examplesPath = currentDir / "examples";
+  openProjectDialog(QString::fromStdString(examplesPath.string()));
+}
+
+void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
-  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), "",
+  fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) {
-    ReShowWindow(fileName);
-    loadFile(fileName);
-  }
+  if (!fileName.isEmpty()) openProject(fileName);
 }
 
 void MainWindow::closeProject() {
   if (m_projectManager && m_projectManager->HasDesign()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    ReShowWindow("");
+    CloseOpenedTabs();
+    m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
   }
 }
@@ -173,7 +202,11 @@ void MainWindow::openFileSlot() {
 }
 
 void MainWindow::newDesignCreated(const QString& design) {
-  setWindowTitle(m_projectInfo.name + " - " + design);
+  const QFileInfo path(design);
+  SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
+  pinAssignmentAction->setEnabled(!design.isEmpty());
+  pinAssignmentAction->setChecked(false);
+  saveToRecentSettings(design);
 }
 
 void MainWindow::startStopButtonsState() {
@@ -196,13 +229,79 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
   return dock;
 }
 
-void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*> dockWidgets) {
+void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   for (const auto& dock : dockWidgets) {
     removeDockWidget(dock);
     delete dock->widget();
     delete dock;
   }
   dockWidgets.clear();
+}
+
+void MainWindow::openProject(const QString& project) {
+  ReShowWindow(project);
+  loadFile(project);
+}
+
+void MainWindow::saveToRecentSettings(const QString& project) {
+  if (project.isEmpty()) return;
+
+  std::list<QString> projects;
+
+  for (uint i = 0; i < RECENT_PROJECT_COUNT; i++) {
+    auto key = RECENT_PROJECT_KEY.arg(QString::number(i));
+    auto pr = m_settings.value(key).toString();
+    if (pr.isEmpty()) break;
+    projects.push_back(pr);
+  }
+
+  // check if exists
+  auto it = std::find_if(projects.cbegin(), projects.cend(),
+                         [&project](const QString& p) { return p == project; });
+  if (it != projects.cend()) projects.erase(it);
+
+  projects.push_back(project);
+  while (projects.size() > RECENT_PROJECT_COUNT) projects.pop_front();
+
+  uint projCounter = 0;
+  for (const auto& pr : projects) {
+    m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter++)),
+                        pr);
+  }
+  createRecentMenu();
+}
+
+bool MainWindow::saveConstraintFile() {
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  auto constrFiles = m_projectManager->getConstrFiles();
+  if (constrFiles.empty()) {
+    auto form = findChild<SourcesForm*>();
+    form->CreateConstraint();
+  }
+  constrFiles = m_projectManager->getConstrFiles();
+  if (constrFiles.empty()) {
+    QMessageBox::warning(this, "No constraint file...",
+                         "Please create constraint file.");
+    return false;
+  }
+  bool rewrite = false;
+  QFile file{constrFiles[0].c_str()};  // TODO @volodymyrk, need to fix issue
+                                       // with target constraint
+  QFile::OpenMode openFlags = QFile::ReadWrite;
+  if (file.size() != 0) {
+    auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
+    auto answer = QMessageBox::question(
+        this, "Save constraint file...",
+        "Do you want to rewrite current constraint file?", btns);
+    if (answer == QMessageBox::Cancel) return false;
+    rewrite = (answer == QMessageBox::Yes);
+    if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
+  }
+  file.open(openFlags);
+  if (rewrite) file.resize(0);  // clean content
+  file.write(pinAssignment->generateSdc().toLatin1());
+  file.close();
+  return true;
 }
 
 void MainWindow::loadFile(const QString& file) {
@@ -228,14 +327,38 @@ void MainWindow::createProgressBar() {
   m_progressWidget->hide();
 }
 
+void MainWindow::createRecentMenu() {
+  for (auto it{m_recentProjectsActions.begin()};
+       it != m_recentProjectsActions.end(); ++it)
+    delete it->first;
+  m_recentProjectsActions.clear();
+
+  for (int projCounter = RECENT_PROJECT_COUNT - 1; projCounter >= 0;
+       projCounter--) {
+    QString key = RECENT_PROJECT_KEY.arg(QString::number(projCounter));
+    QString project = m_settings.value(key).toString();
+    if (!project.isEmpty()) {
+      QFileInfo info{project};
+      auto projAction = new QAction(info.baseName());
+      connect(projAction, &QAction::triggered, this,
+              &MainWindow::recentProjectOpen);
+      recentMenu->addAction(projAction);
+      m_recentProjectsActions.push_back(std::make_pair(projAction, project));
+    }
+  }
+}
+
 void MainWindow::createMenus() {
+  recentMenu = new QMenu("Recent Projects");
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
   fileMenu->addAction(openFile);
   fileMenu->addSeparator();
   fileMenu->addAction(newProjectAction);
   fileMenu->addAction(openProjectAction);
+  fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
+  fileMenu->addMenu(recentMenu);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -255,9 +378,19 @@ void MainWindow::createToolBars() {
   fileToolBar = addToolBar(tr("&File"));
   fileToolBar->addAction(newAction);
 
+  saveToolBar = addToolBar(tr("Save"));
+  saveToolBar->addAction(saveAction);
+  saveToolBar->setHidden(true);
+
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
   debugToolBar->addAction(stopAction);
+}
+
+void MainWindow::showMenus(bool show) {
+  menuBar()->setVisible(show);
+  fileToolBar->setVisible(show);
+  debugToolBar->setVisible(show);
 }
 
 void MainWindow::createActions() {
@@ -267,15 +400,22 @@ void MainWindow::createActions() {
   newAction->setStatusTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
-  openProjectAction = new QAction(tr("&Open Project..."), this);
+  openProjectAction = new QAction(tr("Open &Project..."), this);
   openProjectAction->setStatusTip(tr("Open a new project"));
-  connect(openProjectAction, SIGNAL(triggered()), this, SLOT(openProject()));
+  connect(openProjectAction, SIGNAL(triggered()), this,
+          SLOT(openProjectDialog()));
+
+  openExampleAction = new QAction(tr("Open &Example Design..."), this);
+  openExampleAction->setStatusTip(tr("Open example design"));
+  connect(openExampleAction, SIGNAL(triggered()), this,
+          SLOT(openExampleProject()));
 
   closeProjectAction = new QAction(tr("&Close Project"), this);
   closeProjectAction->setStatusTip(tr("Close current project"));
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
+  connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
@@ -309,7 +449,7 @@ void MainWindow::createActions() {
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
-    AboutWidget w(m_projectInfo, this);
+    AboutWidget w(m_projectInfo, GlobalSession->Context()->DataPath(), this);
     w.exec();
   });
 
@@ -320,20 +460,9 @@ void MainWindow::createActions() {
 
   pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
   pinAssignmentAction->setCheckable(true);
-  connect(pinAssignmentAction, &QAction::triggered, this, [this]() {
-    if (pinAssignmentAction->isChecked()) {
-      PinAssignmentCreator creator;
-      auto portsDockWidget =
-          PrepareTab(tr("IO Ports"), "portswidget", creator.GetPortsWidget(),
-                     m_dockConsole);
-      auto packagePinDockWidget =
-          PrepareTab(tr("Package Pins"), "packagepinwidget",
-                     creator.GetPackagePinsWidget(), portsDockWidget);
-      m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
-    } else {
-      cleanUpDockWidgets(m_pinAssignmentDocks);
-    }
-  });
+  pinAssignmentAction->setEnabled(false);
+  connect(pinAssignmentAction, &QAction::triggered, this,
+          &MainWindow::pinAssignmentActionTriggered);
 
   ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
   ipConfiguratorAction->setCheckable(true);
@@ -344,19 +473,67 @@ void MainWindow::createActions() {
           tr("IPs"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
           nullptr, Qt::RightDockWidgetArea);
       m_ipConfiguratorDocks = {availableIpsDockWidget};
+      m_console->showPrompt();
     } else {
       cleanUpDockWidgets(m_ipConfiguratorDocks);
     }
   });
+
+  saveAction = new QAction(tr("Save"), this);
+  connect(saveAction, &QAction::triggered, this,
+          &MainWindow::saveActionTriggered);
+  saveAction->setIcon(QIcon(":/images/save.png"));
+  saveAction->setEnabled(false);
 }
 
-void MainWindow::gui_start() { ReShowWindow(""); }
+void MainWindow::gui_start(bool showWP) {
+  ReShowWindow({});
+  if (showWP && m_showWelcomePage) showWelcomePage();
+}
+
+void MainWindow::showWelcomePage() {
+  clearDockWidgets();
+  takeCentralWidget()->hide();  // we can't delete it because of singleton
+
+  newDesignCreated({});
+  showMenus(false);
+
+  auto exeName =
+      QString::fromStdString(GlobalSession->Context()->ExecutableName());
+  auto centralWidget = new WelcomePageWidget(
+      exeName, GlobalSession->Context()->DataPath(), this);
+
+  centralWidget->addAction(*newProjectAction);
+  centralWidget->addAction(*openProjectAction);
+  centralWidget->addAction(*openExampleAction);
+  uint counter{0};
+  for (auto it{m_recentProjectsActions.cbegin()};
+       it != m_recentProjectsActions.cend() &&
+       counter < RECENT_PROJECT_COUNT_WP;
+       ++it, counter++) {
+    centralWidget->addRecentProject(*it->first);
+  }
+
+  connect(centralWidget, &WelcomePageWidget::welcomePageClosed,
+          [&](bool permanently) {
+            m_showWelcomePage = !permanently;
+            if (permanently) saveWelcomePageConfig();
+            ReShowWindow({});
+          });
+
+  setCentralWidget(centralWidget);
+
+  centralWidget->show();
+  centralWidget->setFocus();
+}
 
 void MainWindow::ReShowWindow(QString strProject) {
   clearDockWidgets();
   takeCentralWidget();
 
   newDesignCreated(strProject);
+
+  showMenus(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -371,14 +548,11 @@ void MainWindow::ReShowWindow(QString strProject) {
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
 
   delete m_projectFileLoader;
-  m_projectFileLoader = new ProjectFileLoader;
+  m_projectFileLoader = new ProjectFileLoader{Project::Instance()};
   m_projectFileLoader->registerComponent(
-      new ProjectManagerComponent{sourcesForm->ProjManager()});
-  connect(Project::Instance(), &Project::saveFile, m_projectFileLoader,
-          &ProjectFileLoader::Save);
-  reloadSettings();  // This needs to be after
-                     // sourForm->InitSourcesForm(strProject); so the project
-                     // info exists
+      new ProjectManagerComponent{sourcesForm->ProjManager()},
+      ComponentId::ProjectManager);
+  reloadSettings();
 
   QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
   PropertyWidget* propertyWidget =
@@ -394,11 +568,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
   textEditor->setObjectName("textEditor");
-
   connect(sourcesForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
+
+  connect(TextEditorForm::Instance()->GetTabWidget(),
+          SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
 
   QWidget* centralWidget = new QWidget(this);
   QBoxLayout* layout = new QBoxLayout(QBoxLayout::TopToBottom, centralWidget);
@@ -473,11 +649,12 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
   m_projectFileLoader->registerComponent(
-      new TaskManagerComponent{m_taskManager});
-  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler));
+      new TaskManagerComponent{m_taskManager}, ComponentId::TaskManager);
+  m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
+                                         ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
   taskDockWidget->setWidget(view);
-  tabifyDockWidget(sourceDockWidget, taskDockWidget);
+  addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
           [this]() { startStopButtonsState(); });
@@ -487,6 +664,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+  updateViewMenu();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -544,5 +722,115 @@ void MainWindow::updatePRViewButton(int state) {
          Compiler::State::PowerAnalyzed, Compiler::State::BistreamGenerated}};
     btn->setEnabled(
         availableState.contains(static_cast<Compiler::State>(state)));
+  }
+}
+
+void MainWindow::saveActionTriggered() {
+  if (saveConstraintFile()) saveAction->setEnabled(false);
+}
+
+void MainWindow::pinAssignmentActionTriggered() {
+  if (pinAssignmentAction->isChecked()) {
+    if (PinAssignmentCreator::searchPortsFile(
+            m_projectManager->getProjectPath())
+            .isEmpty()) {
+      auto res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(), "analyze");
+      if (res != TCL_OK) {
+        QMessageBox::critical(this, "'analyze' command failed",
+                              "Please read console logs for 'analyze' above");
+        pinAssignmentAction->setChecked(false);
+        return;
+      }
+    }
+
+    PinAssignmentCreator* creator = new PinAssignmentCreator{
+        m_projectManager, GlobalSession->Context(), this};
+    connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
+            [this]() { saveAction->setEnabled(true); });
+
+    auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
+                                      creator->GetPortsWidget(), m_dockConsole);
+    auto packagePinDockWidget =
+        PrepareTab(tr("Package Pins"), "packagepinwidget",
+                   creator->GetPackagePinsWidget(), portsDockWidget);
+    m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
+  } else {
+    if (saveAction->isEnabled()) {
+      auto answer = QMessageBox::question(
+          this, "Warning",
+          "Pin assignment data were modified. Do you want to save it?",
+          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+          QMessageBox::Yes);
+      if (answer == QMessageBox::No) {
+        saveAction->setEnabled(false);
+        cleanUpDockWidgets(m_pinAssignmentDocks);
+      } else if (answer == QMessageBox::Yes) {
+        saveActionTriggered();
+        const bool saved = !saveAction->isEnabled();
+        if (saved)
+          cleanUpDockWidgets(m_pinAssignmentDocks);
+        else
+          pinAssignmentAction->setChecked(true);
+      } else {  // Cancel or close button
+        pinAssignmentAction->setChecked(true);
+      }
+    } else {
+      cleanUpDockWidgets(m_pinAssignmentDocks);
+    }
+  }
+  saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+}
+
+void MainWindow::newDialogAccepted() {
+  const QString strproject = newProjdialog->getProject();
+  newProjectAction->setEnabled(false);
+  ReShowWindow(strproject);
+}
+
+void MainWindow::updateSourceTree() {
+  if (sourcesForm) {
+    sourcesForm->InitSourcesForm();
+  }
+}
+
+void MainWindow::updateViewMenu() {
+  viewMenu->clear();
+  viewMenu->addAction(ipConfiguratorAction);
+  viewMenu->addAction(pinAssignmentAction);
+  const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
+  if (!dockwidgets.empty()) {
+    viewMenu->addSeparator();
+    for (int i = 0; i < dockwidgets.size(); ++i) {
+      QDockWidget* dockWidget = dockwidgets.at(i);
+      if (layout()->indexOf(dockWidget) == -1) continue;
+      viewMenu->addAction(dockWidget->toggleViewAction());
+    }
+  }
+}
+
+void MainWindow::slotTabChanged(int index) {
+  QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
+  SetWindowTitle((index == -1) ? QString() : strName,
+                 m_projectManager->getProjectName(), m_projectInfo.name);
+}
+
+void MainWindow::saveWelcomePageConfig() {
+  // So far the only configuration is boolean, indicating whether welcome page
+  // should we shown. To store it we just save a file in a working directory -
+  // if it's there, we don't show the welcome page.
+  QFile file(WELCOME_PAGE_CONFIG_FILE);
+  if (file.open(QIODevice::WriteOnly)) file.close();
+}
+
+void MainWindow::recentProjectOpen() {
+  auto action = qobject_cast<QAction*>(sender());
+  auto project = std::find_if(m_recentProjectsActions.cbegin(),
+                              m_recentProjectsActions.cend(),
+                              [action](const std::pair<QAction*, QString>& p) {
+                                return p.first == action;
+                              });
+  if (project != m_recentProjectsActions.end()) {
+    const QString name = project->second;
+    if (!name.isEmpty()) openProject(name);
   }
 }

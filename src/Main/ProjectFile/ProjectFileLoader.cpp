@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
 #include <QXmlStreamWriter>
 
 #include "NewProject/ProjectManager/project_manager.h"
@@ -30,24 +31,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-ProjectFileLoader::ProjectFileLoader(QObject *parent) : QObject(parent) {}
-
-ProjectFileLoader::ProjectFileLoader(
-    const std::vector<ProjectFileComponent *> &components, QObject *parent)
+ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
-  for (const auto &c : components) registerComponent(c);
+  connect(Project::Instance(), &Project::saveFile, this,
+          &ProjectFileLoader::Save);
+  m_components.resize(static_cast<size_t>(ComponentId::Count));
 }
 
 ProjectFileLoader::~ProjectFileLoader() {
   for (const auto &component : m_components) delete component;
 }
 
-void ProjectFileLoader::registerComponent(ProjectFileComponent *comp) {
+void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
+                                          ComponentId id) {
   connect(comp, &ProjectFileComponent::saveFile, this, [this]() { Save(); });
-  m_components.push_back(comp);
+  m_components[static_cast<size_t>(id)] = comp;
 }
 
 void ProjectFileLoader::Load(const QString &filename) {
+  m_loadDone = false;
+  LoadInternal(filename);
+  m_loadDone = true;
+}
+
+void ProjectFileLoader::LoadInternal(const QString &filename) {
   if (filename.isEmpty()) return;
 
   QString strTemp = QString("%1/%2%3").arg(Project::Instance()->projectPath(),
@@ -70,18 +77,23 @@ void ProjectFileLoader::Load(const QString &filename) {
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
-      if (reader.name() == PROJECT_PROJECT &&
-          reader.attributes().hasAttribute(PROJECT_PATH)) {
-        QString strPath = reader.attributes().value(PROJECT_PATH).toString();
-        QString strName = strPath.mid(
-            strPath.lastIndexOf("/") + 1,
-            strPath.lastIndexOf(".") - (strPath.lastIndexOf("/")) - 1);
-
+      if (reader.name() == PROJECT_PROJECT) {
+        QFileInfo path(filename);
+        QString projPath = path.absolutePath();
+        QString strName = path.baseName();
         Project::Instance()->setProjectName(strName);
-        Project::Instance()->setProjectPath(
-            strPath.left(strPath.lastIndexOf("/")));
+        Project::Instance()->setProjectPath(projPath);
       }
       for (const auto &component : m_components) component->Load(&reader);
+    }
+  }
+
+  // set device
+  auto proRun = Project::Instance()->getProjectRun(DEFAULT_FOLDER_SYNTH);
+  if (proRun) {
+    const auto device = proRun->getOption(PROJECT_PART_DEVICE);
+    if (!device.isEmpty()) {
+      target_device(device);
     }
   }
 
@@ -118,6 +130,7 @@ QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {
 }
 
 void ProjectFileLoader::Save() {
+  if (!m_loadDone) return;
   QString tmpName = Project::Instance()->projectName();
   QString tmpPath = Project::Instance()->projectPath();
   QString xmlPath = tmpPath + "/" + tmpName + PROJECT_FILE_FORMAT;
@@ -133,7 +146,6 @@ void ProjectFileLoader::Save() {
   stream.writeComment(
       tr("Copyright (c) 2021-2022 The Open-Source FPGA Foundation."));
   stream.writeStartElement(PROJECT_PROJECT);
-  stream.writeAttribute(PROJECT_PATH, xmlPath);
   stream.writeAttribute(PROJECT_VERSION, TO_C_STR(FOEDAG_VERSION));
 
   for (const auto &component : m_components) component->Save(&stream);

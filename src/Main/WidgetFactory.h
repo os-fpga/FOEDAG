@@ -26,21 +26,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QFormLayout>
 #include <QLineEdit>
 #include <QRadioButton>
 
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
-using tclArgSetterFn = std::function<void(const QString&)>;
-using tclArgGetterFn = std::function<QString()>;
+using tclArgSetterFn = std::function<void(const std::string&)>;
+using tclArgGetterFn = std::function<std::string()>;
 using tclArgFns = std::pair<tclArgSetterFn, tclArgGetterFn>;
-using tclArgFnMap = std::map<QString, tclArgFns>;
+using tclArgFnMap = std::map<std::string, tclArgFns>;
 
 #define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
 #define DlgBtnBoxName "SettingsDialogButtonBox"
 
 namespace FOEDAG {
+void initTclArgFns();
+void clearTclArgFns();
+void addTclArgFns(const std::string& tclArgKey, tclArgFns argFns);
 tclArgFns getTclArgFns(const QString& tclArgKey);
 QDialog* createTopSettingsDialog(json& widgetsJson,
                                  const QString& selectedCategoryTitle = "");
@@ -55,6 +59,8 @@ QWidget* createSettingsWidget(json& widgetsJson,
                               const QString& objNamePrefix = "",
                               const QString& tclArgs = "");
 
+QFormLayout* createWidgetFormLayout(json& widgetsJson,
+                                    const QStringList& tclArgList = {});
 QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
                       const QStringList& args = QStringList());
 QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
@@ -85,6 +91,7 @@ QButtonGroup* createRadioButtons(
 QCheckBox* createCheckBox(
     const QString& objectName, const QString& text, Qt::CheckState checked,
     std::function<void(QCheckBox*, const int&)> onChange = nullptr);
+QList<QObject*> getTargetObjectsFromLayout(QLayout* layout);
 
 }  // namespace FOEDAG
 

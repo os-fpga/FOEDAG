@@ -96,11 +96,18 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, "
-            "-VHDL_2008 (.vhd default), -V_1995, "
-            "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-            "default)) "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
+            "<libName>? "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
          << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
@@ -137,7 +144,13 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
+  (*out) << "   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : "
+            "Upgrade/downgrade RTL compilation message severity"
+         << std::endl;
   (*out) << "   synthesis_type Yosys/QL/RS : Selects Synthesis type"
+         << std::endl;
+  (*out) << "   analyze ?clean?            : Analyzes the RTL design, "
+            "generates top-level, pin and hierarchy information"
          << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
@@ -205,6 +218,7 @@ synth -run check
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
 write_verilog -noexpr -nodec -defparam -norename ${OUTPUT_VERILOG}
+write_edif ${OUTPUT_EDIF}
   )";
 
 bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
@@ -421,6 +435,33 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
 
+  auto message_severity = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    std::string message;
+    std::string severity;
+    if (argc < 3) {
+      compiler->ErrorMessage(
+          "message_severity <message_id> <ERROR/WARNING/INFO/IGNORE>");
+    }
+    message = argv[1];
+    severity = argv[2];
+    MsgSeverity sev = MsgSeverity::Ignore;
+    if (severity == "INFO") {
+      sev = MsgSeverity::Info;
+    } else if (severity == "WARNING") {
+      sev = MsgSeverity::Warning;
+    } else if (severity == "ERROR") {
+      sev = MsgSeverity::Error;
+    } else if (severity == "IGNORE") {
+      sev = MsgSeverity::Ignore;
+    }
+
+    compiler->AddMsgSeverity(message, sev);
+    return TCL_OK;
+  };
+  interp->registerCmd("message_severity", message_severity, this, 0);
+
   auto keep = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
@@ -445,7 +486,16 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ErrorMessage("Specify a device size: xXy");
       return TCL_ERROR;
     }
-    compiler->DeviceSize(argv[1]);
+
+    const std::string deviceSize{argv[1]};
+
+    if (const auto& [res, errorMsg] = compiler->IsDeviceSizeCorrect(deviceSize);
+        !res) {
+      compiler->ErrorMessage(errorMsg);
+      return TCL_ERROR;
+    }
+
+    compiler->DeviceSize(deviceSize);
     return TCL_OK;
   };
   interp->registerCmd("set_device_size", set_device_size, this, 0);
@@ -460,6 +510,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     std::string arg = argv[1];
     if (arg == "verilog") {
       compiler->UseVerilogNetlist(true);
+    } else if (arg == "edif") {
+      compiler->UseEdifNetlist(true);
     } else if (arg == "blif") {
       compiler->UseVerilogNetlist(false);
     } else {
@@ -532,6 +584,36 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
   return true;
 }
 
+std::pair<bool, std::string> CompilerOpenFPGA::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  if (m_architectureFile.empty())
+    return std::make_pair(false,
+                          "Please specify target device or architecture file.");
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  std::filesystem::path devicefile = datapath / "etc" / m_architectureFile;
+  QFile file(devicefile.string().c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    return std::make_pair(false,
+                          "Cannot open device file: " + devicefile.string());
+  }
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    return std::make_pair(false,
+                          "Incorrect device file: " + devicefile.string());
+  }
+  file.close();
+  auto fixedLayout = doc.elementsByTagName("fixed_layout");
+  if (fixedLayout.isEmpty())
+    return std::make_pair(false, "Architecture file: fixed_layout is missing");
+  for (int i = 0; i < fixedLayout.count(); i++) {
+    auto node = fixedLayout.at(i).toElement();
+    if (node.attribute("name").toStdString() == size)
+      return std::make_pair(true, std::string{});
+  }
+  return std::make_pair(false, std::string{"Device size is not correct"});
+}
+
 bool CompilerOpenFPGA::VerifyTargetDevice() const {
   const bool target = Compiler::VerifyTargetDevice();
   const bool archFile = FileUtils::FileExists(m_architectureFile);
@@ -541,6 +623,10 @@ bool CompilerOpenFPGA::VerifyTargetDevice() const {
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   PERF_LOG("IPGenerate has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "IP generation for design: " << ProjManager()->projectName()
@@ -560,14 +646,12 @@ bool CompilerOpenFPGA::IPGenerate() {
 
 bool CompilerOpenFPGA::DesignChanged(
     const std::string& synth_script,
-    const std::filesystem::path& synth_scrypt_path) {
+    const std::filesystem::path& synth_scrypt_path,
+    const std::filesystem::path& outputFile) {
   bool result = false;
   auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(ProjManager()->projectPath());  // setting path
-  std::string output =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
-  time_t time_netlist = FileUtils::Mtime(output);
+  time_t time_netlist = FileUtils::Mtime(outputFile);
   if (time_netlist == -1) {
     result = true;
   }
@@ -627,6 +711,210 @@ bool CompilerOpenFPGA::DesignChanged(
   return result;
 }
 
+bool CompilerOpenFPGA::Analyze() {
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + ProjManager()->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    // Remove generated json files
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    return true;
+  }
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Analysis has started");
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+
+  // TODO: Awaiting interface from analyzer exec.
+  std::string analysisScript;
+
+  if (m_useVerific) {
+    // Verific parser
+    std::string fileList;
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += path + " ";
+    }
+    fileList += "-vlog-incdir " + includes + "\n";
+
+    std::string libraries;
+    for (auto path : ProjManager()->libraryPathList()) {
+      libraries += path + " ";
+    }
+    fileList += "-vlog-libdir " + libraries + "\n";
+
+    for (auto ext : ProjManager()->libraryExtensionList()) {
+      fileList += "-vlog-libext " + ext + "\n";
+    }
+
+    std::string macros;
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += macro_value.first + "=" + macro_value.second + " ";
+    }
+    fileList += "-vlog-define " + macros + "\n";
+
+    std::string importLibs;
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      std::string lang;
+      std::string designLibraries;
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+          lang = "-vhdl87";
+          break;
+        case Design::Language::VHDL_1993:
+          lang = "-vhdl93";
+          break;
+        case Design::Language::VHDL_2000:
+          lang = "-vhdl2k";
+          break;
+        case Design::Language::VHDL_2008:
+          lang = "-vhdl2008";
+          break;
+        case Design::Language::VERILOG_1995:
+          lang = "-vlog95";
+          break;
+        case Design::Language::VERILOG_2001:
+          lang = "-vlog2k";
+          break;
+        case Design::Language::SYSTEMVERILOG_2005:
+          lang = "-sv2005";
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+          lang = "-sv2009";
+          break;
+        case Design::Language::SYSTEMVERILOG_2012:
+          lang = "-sv2012";
+          break;
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+          lang = "";
+          break;
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          lang = "BLIF";
+          ErrorMessage("Unsupported file format:" + lang);
+          return false;
+      }
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty()) {
+            auto commandLib = command + " " + libName + " ";
+            designLibraries += commandLib;
+            if (command == "-L") importLibs += commandLib;
+          }
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += lang + " " + lang_file.second + "\n";
+      else
+        fileList +=
+            designLibraries + " " + lang + " " + lang_file.second + "\n";
+    }
+    if (!ProjManager()->DesignTopModule().empty()) {
+      fileList += "-top " + ProjManager()->DesignTopModule() + "\n";
+    }
+    analysisScript = fileList;
+  } else {
+    // TODO: develop an analysis step with only Yosys parser (no synthesis)
+    // Default Yosys parser
+    /*
+    std::string macros = "verilog_defines ";
+    for (auto& macro_value : ProjManager()->macroList()) {
+      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+    }
+    macros += "\n";
+    std::string includes;
+    for (auto path : ProjManager()->includePathList()) {
+      includes += "-I" + path + " ";
+    }
+    analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
+                                macros +
+                                    "read_verilog ${READ_VERILOG_OPTIONS} "
+                                    "${INCLUDE_PATHS} ${VERILOG_FILES}");
+    std::string fileList;
+    std::string lang;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      fileList += lang_file.second + " ";
+      switch (lang_file.first) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+        case Design::Language::VERILOG_1995:
+        case Design::Language::VERILOG_2001:
+        case Design::Language::SYSTEMVERILOG_2005:
+          break;
+        case Design::Language::SYSTEMVERILOG_2009:
+        case Design::Language::SYSTEMVERILOG_2012:
+        case Design::Language::SYSTEMVERILOG_2017:
+          lang = "-sv";
+          break;
+        case Design::Language::VERILOG_NETLIST:
+        case Design::Language::BLIF:
+        case Design::Language::EBLIF:
+          ErrorMessage("Unsupported language (Yosys default parser)!");
+          break;
+      }
+      analysisScript = fileList;
+      */
+  }
+
+  std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
+  script_path =
+      (std::filesystem::path(ProjManager()->projectPath()) / script_path)
+          .string();
+  std::filesystem::path output_path =
+      std::filesystem::path(ProjManager()->projectPath()) / "port_info.json";
+  if (!DesignChanged(analysisScript, script_path, output_path)) {
+    (*m_out) << "Design didn't change: " << ProjManager()->projectName()
+             << ", skipping analysis." << std::endl;
+    return true;
+  }
+  // Create Analyser command and execute
+  std::ofstream ofs(script_path);
+  ofs << analysisScript;
+  ofs.close();
+  std::string command;
+  int status = 0;
+  if (m_useVerific) {
+    if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
+      ErrorMessage("Cannot find executable: " +
+                   m_analyzeExecutablePath.string());
+      return false;
+    }
+    command = m_analyzeExecutablePath.string() + " -f " + script_path;
+    (*m_out) << "Analyze command: " << command << std::endl;
+    status = ExecuteAndMonitorSystemCommand(command);
+  }
+  // TODO: read back the Json file produced
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " analysis failed!");
+    return false;
+  } else {
+    m_state = State::Analyzed;
+    (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
+             << std::endl;
+  }
+  return true;
+}
+
 bool CompilerOpenFPGA::Synthesize() {
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
@@ -679,6 +967,24 @@ bool CompilerOpenFPGA::Synthesize() {
     // Verific parser
     std::string fileList;
     std::string includes;
+
+    for (auto msg_sev : MsgSeverityMap()) {
+      switch (msg_sev.second) {
+        case MsgSeverity::Ignore:
+          fileList += "verific -set-ignore " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Info:
+          fileList += "verific -set-info " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Warning:
+          fileList += "verific -set-warning " + msg_sev.first + "\n";
+          break;
+        case MsgSeverity::Error:
+          fileList += "verific -set-error " + msg_sev.first + "\n";
+          break;
+      }
+    }
+
     for (auto path : ProjManager()->includePathList()) {
       includes += path + " ";
     }
@@ -700,8 +1006,12 @@ bool CompilerOpenFPGA::Synthesize() {
     }
     fileList += "verific -vlog-define " + macros + "\n";
 
+    std::string importLibs;
+    auto commandsLibs = ProjManager()->DesignLibraries();
+    size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
+      std::string designLibraries;
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
@@ -742,12 +1052,40 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported file format:" + lang);
           return false;
       }
-      fileList += "verific " + lang + " " + lang_file.second + "\n";
+      if (filesIndex < commandsLibs.size()) {
+        const auto& filesCommandsLibs = commandsLibs[filesIndex];
+        for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+          auto command = filesCommandsLibs.first[i];
+          auto libName = filesCommandsLibs.second[i];
+          if (!command.empty() && !libName.empty()) {
+            auto commandLib = command + " " + libName + " ";
+            designLibraries += commandLib;
+            if (command == "-L") importLibs += commandLib;
+          }
+        }
+      }
+      ++filesIndex;
+
+      if (designLibraries.empty())
+        fileList += "verific " + lang + " " + lang_file.second + "\n";
+      else
+        fileList += "verific " + designLibraries + " " + lang + " " +
+                    lang_file.second + "\n";
     }
-    fileList += "verific -import " + ProjManager()->DesignTopModule() + "\n";
+    fileList += "verific " + importLibs + "-import " +
+                ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
+
+    for (const auto& commandLib : ProjManager()->DesignLibraries()) {
+      if (!commandLib.first.empty()) {
+        ErrorMessage(
+            "Yosys default parser doesn't support '-work' and '-L' design file "
+            "commands!");
+        break;
+      }
+    }
     std::string macros = "verilog_defines ";
     for (auto& macro_value : ProjManager()->macroList()) {
       macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
@@ -757,14 +1095,15 @@ bool CompilerOpenFPGA::Synthesize() {
     for (auto path : ProjManager()->includePathList()) {
       includes += "-I" + path + " ";
     }
-    yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}",
-                             macros +
-                                 "read_verilog ${READ_VERILOG_OPTIONS} "
-                                 "${INCLUDE_PATHS} ${VERILOG_FILES}");
-    std::string fileList;
-    std::string lang;
+
+    std::string designFiles;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      fileList += lang_file.second + " ";
+      std::string filesScript =
+          "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
+          "${VERILOG_FILES}";
+      std::string lang;
+
+      auto files = lang_file.second + " ";
       switch (lang_file.first) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
@@ -787,12 +1126,14 @@ bool CompilerOpenFPGA::Synthesize() {
           ErrorMessage("Unsupported language (Yosys default parser)!");
           break;
       }
-    }
-    yosysScript = ReplaceAll(yosysScript, "${INCLUDE_PATHS}", includes);
-    std::string options = lang;
+      filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
+      filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
+      filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
 
-    yosysScript = ReplaceAll(yosysScript, "${READ_VERILOG_OPTIONS}", options);
-    yosysScript = ReplaceAll(yosysScript, "${VERILOG_FILES}", fileList);
+      designFiles += filesScript + "\n";
+    }
+    yosysScript =
+        ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
@@ -803,11 +1144,23 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_EDIF}",
+      std::string(ProjManager()->projectName() + "_post_synth.edif"));
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
   std::string script_path = ProjManager()->projectName() + ".ys";
-  if (!DesignChanged(yosysScript, script_path)) {
+  std::string output_path;
+  if (UseVerilogNetlist()) {
+    output_path = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    output_path = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    output_path = ProjManager()->projectName() + "_post_synth.blif";
+  }
+
+  if (!DesignChanged(yosysScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping synthesis." << std::endl;
     return true;
@@ -882,9 +1235,14 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
-  std::string netlistFile =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string netlistFile;
+  if (UseVerilogNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
@@ -1233,7 +1591,7 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string command = BaseVprCommand() + " --place";
-  if (!pin_loc_constraint_file.empty()) {
+  if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
     command += " --fix_pins " + pin_loc_constraint_file;
   }
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
@@ -1492,7 +1850,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin 
+build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
@@ -1550,10 +1908,14 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
-
-  std::string netlistFile =
-      ProjManager()->projectName() +
-      ((UseVerilogNetlist()) ? "_post_synth.v" : "_post_synth.blif");
+  std::string netlistFile;
+  if (UseVerilogNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.v";
+  } else if (UseEdifNetlist()) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+  } else {
+    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first) {
       case Design::Language::VERILOG_NETLIST:
@@ -1578,6 +1940,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (UseVerilogNetlist()) {
     netlistFormat = "verilog";
   }
+  if (UseEdifNetlist()) {
+    netlistFormat = "edif";
+  }
   result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
   if (m_deviceSize.size()) {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}",
@@ -1596,6 +1961,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
+  if (m_OpenFpgaFabricKeyFile == "") {
+    result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
+  } else {
+    result =
+        ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}",
+                   "--load_fabric_key " + m_OpenFpgaFabricKeyFile.string());
+  }
   return result;
 }
 
@@ -1615,10 +1987,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     m_state = State::Routed;
     BitsOpt(BitstreamOpt::DefaultBitsOpt);
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_bitstream.bit"));
     std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectName()) /
+        std::filesystem::path(ProjManager()->projectPath()) /
         std::string("fabric_independent_bitstream.xml"));
     return true;
   }
@@ -1660,20 +2032,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                << " bitstream is not enabled, skipping!" << std::endl;
       return true;
     }
-#else
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " bitstream is skipped, use \"bitstream force\" to generate!"
-             << std::endl;
-    return true;
 #endif
   } else if (BitsOpt() == BitstreamOpt::Force) {
-#ifdef PRODUCTION_BUILD
-    if (BitstreamEnabled() == false) {
-      (*m_out) << "Device " << ProjManager()->getTargetDevice()
-               << " bitstream is not enabled, skipping!" << std::endl;
-      return true;
-    }
-#endif
+    // Force bitstream generation
   }
 
   std::string command = m_openFpgaExecutablePath.string() + " -f " +
@@ -1782,6 +2143,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaSimSettingFile(fullPath.string());
               } else if (file_type == "repack_settings") {
                 OpenFpgaRepackConstraintsFile(fullPath.string());
+              } else if (file_type == "fabric_key") {
+                OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pinmap_csv") {
@@ -1821,6 +2184,17 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 } else {
                   ErrorMessage("Invalid bitstream_enabled num (true, false): " +
                                num + "\n");
+                  status = false;
+                }
+              } else if (file_type == "pin_constraint_enabled") {
+                if (num == "true") {
+                  PinConstraintEnabled(true);
+                } else if (num == "false") {
+                  PinConstraintEnabled(false);
+                } else {
+                  ErrorMessage(
+                      "Invalid pin_constraint_enabled num (true, false): " +
+                      num + "\n");
                   status = false;
                 }
               } else {

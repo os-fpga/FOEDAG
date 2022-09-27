@@ -45,7 +45,7 @@ extern "C" {
 #include "CommandLine.h"
 #include "Compiler/Log.h"
 #include "Foedag.h"
-#include "IpConfigurator/IpConfigurator.h"
+#include "IpConfigurator/IpConfigDlg.h"
 #include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
@@ -207,7 +207,8 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     }
     FOEDAG::ProjectInfo info{argv[1], argv[2], argv[3], argv[4], argv[5]};
     QWidget* parent = static_cast<QWidget*>(clientData);
-    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(info, parent);
+    FOEDAG::AboutWidget* about = new FOEDAG::AboutWidget(
+        info, GlobalSession->Context()->DataPath(), parent);
     about->show();
     return TCL_OK;
   };
@@ -295,6 +296,27 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
       };
       session->TclInterp()->registerCmd("EditTaskSettings", EditTaskSettingsFn,
                                         0, 0);
+
+      auto ipconfiguratorDlgFn = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+        QWidget* w = static_cast<QWidget*>(clientData);
+
+        if (argc == 2) {
+          FOEDAG::IpConfigDlg* dlg = new FOEDAG::IpConfigDlg(w, argv[1]);
+          dlg->setAttribute(Qt::WA_DeleteOnClose);
+          dlg->show();
+
+          return TCL_OK;
+        } else {
+          Tcl_AppendResult(
+              interp,
+              qPrintable("Expected Syntax: ipconfigurator_show_dlg IpName"),
+              nullptr);
+          return TCL_ERROR;
+        }
+      };
+      session->TclInterp()->registerCmd("ipconfigurator_show_dlg",
+                                        ipconfiguratorDlgFn, 0, 0);
     }
   }
 }

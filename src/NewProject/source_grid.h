@@ -18,6 +18,8 @@ typedef struct tagFileData {
   QString m_fileType;
   QString m_fileName;
   QString m_filePath;
+  QString m_workLibrary;
+  QString m_importLibraries;
 } FILEDATA;
 
 typedef FILEDATA filedata;
@@ -44,6 +46,9 @@ class sourceGrid : public QWidget {
 
   void AddTableItem(filedata fdata);
 
+ private slots:
+  void onItemChanged(QStandardItem *item);
+
  private:
   GridType m_type;
   QPushButton *m_btnAddFile;
@@ -59,6 +64,7 @@ class sourceGrid : public QWidget {
 
   QList<filedata> m_lisFileData;
   QString m_currentFileSet;
+  QStringList GetAllDesignSourceExtentions() const;
 
  private:
   void MoveTableRow(int from, int to);
