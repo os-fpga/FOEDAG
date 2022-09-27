@@ -50,6 +50,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void SetWindowTitle(const QString& filename, const QString& project,
                       QString& projectInfo);
   void CloseOpenedTabs();
+  void closeEvent(QCloseEvent* event) override;
 
  private slots: /* slots */
   void newFile();
