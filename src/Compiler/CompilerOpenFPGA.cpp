@@ -807,12 +807,10 @@ bool CompilerOpenFPGA::Analyze() {
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
         for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
-          auto command = filesCommandsLibs.first[i];
           auto libName = filesCommandsLibs.second[i];
-          if (!command.empty() && !libName.empty()) {
-            auto commandLib = command + " " + libName + " ";
+          if (!libName.empty()) {
+            auto commandLib = "-work " + libName + " ";
             designLibraries += commandLib;
-            if (command == "-L") importLibs += commandLib;
           }
         }
       }
@@ -1009,6 +1007,7 @@ bool CompilerOpenFPGA::Synthesize() {
     std::string importLibs;
     auto importDesignFilesLibs = false;
 
+    auto topModuleLib = ProjManager()->DesignTopModuleLib();
     auto commandsLibs = ProjManager()->DesignLibraries();
     size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1066,7 +1065,8 @@ bool CompilerOpenFPGA::Synthesize() {
           if (!libName.empty()) {
             auto commandLib = "-work " + libName + " ";
             designLibraries += commandLib;
-            if (importDesignFilesLibs) importLibs += " -L " + libName + " ";
+            if (importDesignFilesLibs && libName != topModuleLib)
+              importLibs += "-L " + libName + " ";
           }
         }
       }
@@ -1079,8 +1079,7 @@ bool CompilerOpenFPGA::Synthesize() {
             "verific " + designLibraries + lang + " " + lang_file.second + "\n";
     }
     auto topModuleLibImport = std::string{};
-    if (auto topModuleLib = ProjManager()->DesignTopModuleLib();
-        !topModuleLib.empty())
+    if (!topModuleLib.empty())
       topModuleLibImport = "-work " + topModuleLib + " ";
     fileList += "verific " + topModuleLibImport + importLibs + "-import " +
                 ProjManager()->DesignTopModule() + "\n";
