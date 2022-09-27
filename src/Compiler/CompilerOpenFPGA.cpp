@@ -121,7 +121,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "                                Constraints: set_pin_loc, "
-            "set_region_loc, all SDC commands"
+            "set_mode, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   keep <signal list> OR all_signals : Keeps the list of signals "
             "or all signals through Synthesis unchanged (unoptimized in "
@@ -1358,6 +1358,9 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_pin_loc") != std::string::npos) {
       continue;
     }
+    if (constraint.find("set_mode") != std::string::npos) {
+      continue;
+    }
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
@@ -1468,24 +1471,41 @@ bool CompilerOpenFPGA::Placement() {
   }
   ifspcf.close();
 
-  std::ofstream ofspcf(pcfOut);
   bool userConstraint = false;
+  std::vector<std::string> constraints;
   for (auto constraint : m_constraints->getConstraints()) {
     std::vector<std::string> tokens;
     StringUtils::tokenize(constraint, " ", tokens);
     constraint = "";
-    for (uint32_t i = 0; i < tokens.size(); i++) {
+    constraint += tokens[0];
+    // last token tokens[tokens.size() - 1]  is "" (why?)
+    for (uint32_t i = 1; i < tokens.size() - 1; i++) {
       const std::string& tok = tokens[i];
-      constraint += tok + " ";
+      constraint += " " + tok;
     }
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
     // pin location constraints have to be translated to .place:
-    if (constraint.find("set_pin_loc") == std::string::npos) {
+    if ((constraint.find("set_pin_loc") != std::string::npos)) {
+      userConstraint = true;
+      constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
+      constraints.push_back(constraint);
+    } else if (constraint.find("set_mode") != std::string::npos) {
+      constraints.push_back(constraint);
+    } else {
       continue;
     }
-    userConstraint = true;
-    constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
+  }
+
+  // sanity check and convert to pcf format
+  if (!ConvertSdcPinConstrainToPcf(constraints)) {
+    ErrorMessage("Error in SDC file for placement constraint");
+    return false;
+  }
+
+  // write to file
+  std::ofstream ofspcf(pcfOut);
+  for (auto constraint : constraints) {
     ofspcf << constraint << "\n";
   }
   ofspcf.close();
@@ -1609,6 +1629,46 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed!"
            << std::endl;
 
+  return true;
+}
+
+bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
+    std::vector<std::string>& constraints) {
+  // do some simple sanity check during conversion
+  std::vector<std::string> constraint_and_mode;
+  std::map<std::string, std::string> pin_mode_map;
+  // capture pin and mode map
+  for (unsigned int i = 0; i < constraints.size(); i++) {
+    if (constraints[i].find("set_mode") != std::string::npos) {
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(constraints[i], " ", tokens);
+      if (tokens.size() != 3) {
+        ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
+        return false;
+      }
+      pin_mode_map.insert(
+          std::pair<std::string, std::string>(tokens[2], tokens[1]));
+    }
+  }
+  for (unsigned int i = 0; i < constraints.size(); i++) {
+    if (constraints[i].find("set_io") != std::string::npos) {
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(constraints[i], " ", tokens);
+      if (tokens.size() != 3) {
+        ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
+        return false;
+      }
+      if (pin_mode_map.find(tokens[2]) != pin_mode_map.end()) {
+        std::string constraint_with_mode =
+            constraints[i] + std::string(" -mode ") + pin_mode_map[tokens[2]];
+        constraint_and_mode.push_back(constraint_with_mode);
+      }
+    }
+  }
+  constraints.clear();
+  for (unsigned int i = 0; i < constraint_and_mode.size(); i++) {
+    constraints.push_back(constraint_and_mode[i]);
+  }
   return true;
 }
 
