@@ -44,6 +44,7 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
   const QString topModule = QString(argv[1]);
   m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
   int ret = m_projManager->setTopModule(topModule);
+  if (argc == 4) m_projManager->setTopModuleLibrary(QString(argv[3]));
   if (0 == ret) update();
   return true;
 }

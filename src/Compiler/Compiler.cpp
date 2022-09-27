@@ -91,7 +91,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
             "<libName>? "
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
@@ -103,10 +103,6 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
-         << std::endl;
-  (*out) << "              -L <libName>    : Import the library <libName> "
-            "needed to "
-            "compile the compilation unit, default is \"work\""
          << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
@@ -338,7 +334,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
-    if (argc != 2) {
+    if (argc < 2) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
@@ -365,19 +361,40 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
-    if (argc < 2) {
+    auto reportIncorrectSyntaxError = [compiler]() {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
-          "[-work libraryName] [-L libraryName1 -L libraryName2]"
+          "[-work libraryName]"
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
           "default))>");
+    };
+    if (argc < 2) {
+      reportIncorrectSyntaxError();
       return TCL_ERROR;
     }
+
+    std::string libCommand;
+    std::string library;
+    std::string fileList;
+    auto firstFileArgumentIdx = 1;
+    auto file = StringUtils::toLower(argv[firstFileArgumentIdx]);
+    if (file ==
+        "-work") {     // So far we only support one optional '-work' parameter.
+      if (argc < 4) {  // if '-work' is used, library name has to follow. then
+                       // at least 1 file name.
+        reportIncorrectSyntaxError();
+        return TCL_ERROR;
+      }
+      library = argv[2];
+      libCommand = file;
+      firstFileArgumentIdx = 3;
+      file = StringUtils::toLower(argv[firstFileArgumentIdx]);
+    }
+
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
-    auto file = StringUtils::toLower(argv[1]);
     if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
@@ -386,22 +403,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
-    std::string commandsList;
-    std::string libList;
-    std::string fileList;
-    for (int i = 1; i < argc; i++) {
+    for (int i = firstFileArgumentIdx; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-work" || type == "-L") {
-        if (i + 1 >= argc) {
-          compiler->ErrorMessage(
-              "Incorrect syntax for add_design_file <file(s)> "
-              "Library name should follow '-work' or '-L' tags");
-          return TCL_ERROR;
-        }
-        commandsList += type + " ";
-        const std::string libName = argv[++i];
-        libList += libName + " ";
-      } else if (type == "-VHDL_1987") {
+      if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
       } else if (type == "-VHDL_1993") {
@@ -464,8 +468,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
-          out);
+          libCommand.c_str(), library.c_str(), fileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;

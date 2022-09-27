@@ -16,7 +16,6 @@ namespace {
 static const auto INDEX_COL = QObject::tr("Index");
 static const auto NAME_COL = QObject::tr("Name");
 static const auto LIBRARY_COL = QObject::tr("Library");
-static const auto IMPORT_COL = QObject::tr("Import");
 static const auto LOCATION_COL = QObject::tr("Location");
 
 static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
@@ -120,8 +119,6 @@ void sourceGrid::setGridType(GridType type) {
   if (GT_SOURCE == m_type) {
     m_model->setHorizontalHeaderItem(columnIndex++,
                                      new QStandardItem(LIBRARY_COL));
-    m_model->setHorizontalHeaderItem(columnIndex++,
-                                     new QStandardItem(IMPORT_COL));
   }
 
   m_model->setHorizontalHeaderItem(columnIndex++,
@@ -296,11 +293,6 @@ void sourceGrid::AddTableItem(filedata fdata) {
     item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     item->setEditable(true);
     items.append(item);
-
-    item = new QStandardItem(fdata.m_importLibraries);
-    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    item->setEditable(true);
-    items.append(item);
   }
 
   item = new QStandardItem(fdata.m_filePath);
@@ -361,8 +353,6 @@ void sourceGrid::onItemChanged(QStandardItem *item) {
   if (m_model->headerData(itemIndex.column(), Qt::Horizontal).toString() ==
       LIBRARY_COL)
     m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
-  else
-    m_lisFileData[itemIndex.row()].m_importLibraries = item->text();
 }
 
 QStringList sourceGrid::GetAllDesignSourceExtentions() const {
