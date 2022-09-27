@@ -217,7 +217,7 @@ $body
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
     )";
@@ -241,7 +241,7 @@ static std::string TclInterpCloneVar() {
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
 
@@ -361,7 +361,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
-    auto reportIncorrectSyntaxError = [compiler]() {
+    if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
           "[-work libraryName]"
@@ -369,32 +369,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
           "default))>");
-    };
-    if (argc < 2) {
-      reportIncorrectSyntaxError();
       return TCL_ERROR;
     }
-
-    std::string libCommand;
-    std::string library;
-    std::string fileList;
-    auto firstFileArgumentIdx = 1;
-    auto file = StringUtils::toLower(argv[firstFileArgumentIdx]);
-    if (file ==
-        "-work") {     // So far we only support one optional '-work' parameter.
-      if (argc < 4) {  // if '-work' is used, library name has to follow. then
-                       // at least 1 file name.
-        reportIncorrectSyntaxError();
-        return TCL_ERROR;
-      }
-      library = argv[2];
-      libCommand = file;
-      firstFileArgumentIdx = 3;
-      file = StringUtils::toLower(argv[firstFileArgumentIdx]);
-    }
-
     std::string actualType = "VERILOG_2001";
     Design::Language language = Design::Language::VERILOG_2001;
+    auto file = StringUtils::toLower(argv[1]);
+    if (file == "-work")  // if optional -work parameter goes first, the first
+                          // file goes third, after library name
+      file = StringUtils::toLower(argv[3]);
     if (strstr(file.c_str(), ".vhd")) {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
@@ -403,9 +385,22 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
     }
-    for (int i = firstFileArgumentIdx; i < argc; i++) {
+    std::string commandsList;
+    std::string libList;
+    std::string fileList;
+    for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-VHDL_1987") {
+      if (type == "-work") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_design_file <file(s)> "
+              "Library name should follow '-work' tag");
+          return TCL_ERROR;
+        }
+        commandsList += type + " ";
+        const std::string libName = argv[++i];
+        libList += libName + " ";
+      } else if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
       } else if (type == "-VHDL_1993") {
@@ -468,7 +463,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          libCommand.c_str(), library.c_str(), fileList.c_str(), language, out);
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
