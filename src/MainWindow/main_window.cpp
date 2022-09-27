@@ -160,6 +160,18 @@ void MainWindow::CloseOpenedTabs() {
   }
 }
 
+void MainWindow::closeEvent(QCloseEvent* event) {
+  QMessageBox::StandardButton closeBtn = QMessageBox::warning(
+      this, "Warning", tr("Do you really want to close the project?\n"),
+      QMessageBox::No | QMessageBox::Yes);
+
+  if (closeBtn == QMessageBox::Yes) {
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
