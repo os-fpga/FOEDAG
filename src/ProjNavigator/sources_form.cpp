@@ -435,7 +435,7 @@ void SourcesForm::CreateActions() {
   m_actCloseProject = new QAction(tr("Close project"), m_treeSrcHierachy);
   connect(m_actCloseProject, SIGNAL(triggered()), this, SIGNAL(CloseProject()));
 
-  m_actReconfigureIp = new QAction(tr("Re-Configure IP"), m_treeSrcHierachy);
+  m_actReconfigureIp = new QAction(tr("Reconfigure IP"), m_treeSrcHierachy);
   connect(m_actReconfigureIp, &QAction::triggered, this,
           &SourcesForm::SlotReConfigureIp);
 }
