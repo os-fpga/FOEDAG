@@ -92,7 +92,6 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
   (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
-            "<libName>? "
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
             "file list into a compilation unit "
@@ -112,7 +111,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   set_top_module <top> ?-work <libName>? : Sets the top module"
+         << std::endl;
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
