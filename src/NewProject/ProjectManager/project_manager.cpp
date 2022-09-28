@@ -44,23 +44,18 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   setProjectType(opt.projectType);
 
   setCurrentFileSet(opt.currentFileSet);
-  QString strDefaultSrc;
   const QList<filedata> listFile = opt.sourceFileData.fileData;
   for (const filedata& fdata : listFile) {
     auto libraries = fdata.m_workLibrary;
     auto command = libraries.isEmpty() ? QString() : "-work";
 
     if (LocalToProject == fdata.m_filePath) {
-      setDesignFiles(command, libraries, fdata.m_fileName,
-                     FromFileType(fdata.m_fileType), false, true);
+      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
+                     false, true);
     } else {
       setDesignFiles(command, libraries,
                      fdata.m_filePath + "/" + fdata.m_fileName,
-                     FromFileType(fdata.m_fileType),
-                     opt.sourceFileData.isCopySource, false);
-    }
-    if (!fdata.m_isFolder) {
-      strDefaultSrc = fdata.m_fileName;
+                     fdata.m_language, opt.sourceFileData.isCopySource, false);
     }
   }
 

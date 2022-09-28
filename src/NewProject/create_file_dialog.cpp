@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "Compiler/CompilerDefines.h"
 #include "ui_create_file_dialog.h"
 
 using namespace FOEDAG;
@@ -78,6 +79,7 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
       default:
         break;
     }
+    fdata.m_language = FromFileType(fdata.m_fileType);
   } else if (GT_CONSTRAINTS == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:

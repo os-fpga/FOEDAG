@@ -1,5 +1,6 @@
 #include "source_grid.h"
 
+#include <QComboBox>
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -8,15 +9,19 @@
 #include <QStandardItem>
 #include <QVBoxLayout>
 
+#include "Compiler/CompilerDefines.h"
 #include "ProjectManager/project_manager.h"
 #include "create_file_dialog.h"
+
 using namespace FOEDAG;
 
 namespace {
 static const auto INDEX_COL = QObject::tr("Index");
 static const auto NAME_COL = QObject::tr("Name");
 static const auto LIBRARY_COL = QObject::tr("Library");
+static const auto LANGUAGE_COL = QObject::tr("Language");
 static const auto LOCATION_COL = QObject::tr("Location");
+static const int LANG_COL{4};
 
 static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
 static const auto DESIGN_SOURCES_FILTER = QObject::tr(
@@ -118,6 +123,8 @@ void sourceGrid::setGridType(GridType type) {
   if (GT_SOURCE == m_type) {
     m_model->setHorizontalHeaderItem(columnIndex++,
                                      new QStandardItem(LIBRARY_COL));
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(LANGUAGE_COL));
   }
 
   m_model->setHorizontalHeaderItem(columnIndex++,
@@ -144,15 +151,13 @@ void sourceGrid::AddFiles() {
   QStringList fileNames = QFileDialog::getOpenFileNames(
       this, tr("Select File"), "", fileformat, nullptr, option);
   for (const QString &str : fileNames) {
-    QString name = str.right(str.size() - (str.lastIndexOf("/") + 1));
-    QString path = str.left(str.lastIndexOf("/"));
-    QString suffix = name.right(name.size() - (name.lastIndexOf(".") + 1));
-
+    const QFileInfo info{str};
     filedata fdata;
     fdata.m_isFolder = false;
-    fdata.m_fileType = suffix;
-    fdata.m_fileName = name;
-    fdata.m_filePath = path;
+    fdata.m_fileType = info.suffix();
+    fdata.m_fileName = info.fileName();
+    fdata.m_filePath = info.path();
+    fdata.m_language = FromFileType(info.suffix());
     AddTableItem(fdata);
   }
 }
@@ -183,6 +188,7 @@ void sourceGrid::AddDirectories() {
     fdata.m_fileType = suffix;
     fdata.m_fileName = fileName;
     fdata.m_filePath = filePath;
+    fdata.m_language = FromFileType(suffix);
     AddTableItem(fdata);
   }
 }
@@ -292,6 +298,11 @@ void sourceGrid::AddTableItem(filedata fdata) {
     item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     item->setEditable(true);
     items.append(item);
+
+    item = new QStandardItem(QString());
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(false);
+    items.append(item);
   }
 
   item = new QStandardItem(fdata.m_filePath);
@@ -302,6 +313,11 @@ void sourceGrid::AddTableItem(filedata fdata) {
   m_model->insertRow(rows, items);
   TableViewSelectionChanged();
   m_lisFileData.append(fdata);
+  if (GT_SOURCE == m_type) {
+    initLanguageCombo(rows, fdata.m_language);
+  }
+  m_tableViewSrc->resizeColumnToContents(LANG_COL);
+  m_tableViewSrc->resizeColumnToContents(0);
 }
 
 void sourceGrid::MoveTableRow(int from, int to) {
@@ -315,6 +331,11 @@ void sourceGrid::MoveTableRow(int from, int to) {
     return;
   }
 
+  auto indexFrom = model->index(from, LANG_COL);
+  auto comboFrom =
+      qobject_cast<QComboBox *>(m_tableViewSrc->indexWidget(indexFrom));
+  if (!comboFrom) return;
+  auto fromData = comboFrom->currentData();
   QList<QStandardItem *> listItem = model->takeRow(from);
   model->insertRow(to, listItem);
 
@@ -332,6 +353,8 @@ void sourceGrid::MoveTableRow(int from, int to) {
     m_lisFileData.move(from, to);
   else
     qWarning("m_lisFileData: wrong indexes!");
+
+  initLanguageCombo(to, fromData);
 }
 
 bool sourceGrid::IsFileDataExit(filedata fdata) {
@@ -343,6 +366,24 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
   return false;
 }
 
+QComboBox *sourceGrid::CreateLanguageCombo() {
+  auto combo = new QComboBox;
+  combo->addItem("BLIF", Design::Language::BLIF);
+  combo->addItem("EBLIF", Design::Language::EBLIF);
+  combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
+  combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
+  combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
+  combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
+  combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
+  combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
+  combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
+  combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
+  combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
+  combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
+  combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+  return combo;
+}
+
 void sourceGrid::onItemChanged(QStandardItem *item) {
   auto itemIndex = m_model->indexFromItem(item);
 
@@ -352,6 +393,19 @@ void sourceGrid::onItemChanged(QStandardItem *item) {
   if (m_model->headerData(itemIndex.column(), Qt::Horizontal).toString() ==
       LIBRARY_COL)
     m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
+}
+
+void sourceGrid::languageHasChanged() {
+  QComboBox *combo = qobject_cast<QComboBox *>(sender());
+  if (!combo) return;
+  int row{-1};
+  for (uint i = 0; i < m_model->rowCount(); i++) {
+    if (m_tableViewSrc->indexWidget(m_model->index(i, LANG_COL)) == combo) {
+      row = i;
+      break;
+    }
+  }
+  if (row != -1) m_lisFileData[row].m_language = combo->currentData().toInt();
 }
 
 QStringList sourceGrid::GetAllDesignSourceExtentions() const {
@@ -367,4 +421,12 @@ QStringList sourceGrid::GetAllDesignSourceExtentions() const {
     }
   }
   return filters.values();
+}
+
+void sourceGrid::initLanguageCombo(int row, const QVariant &data) {
+  auto combo = CreateLanguageCombo();
+  combo->setCurrentIndex(combo->findData(data));
+  m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL), combo);
+  connect(combo, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(languageHasChanged()));
 }
