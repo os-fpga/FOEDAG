@@ -371,20 +371,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "default))>");
       return TCL_ERROR;
     }
-    std::string actualType = "VERILOG_2001";
+    std::string actualType;
     Design::Language language = Design::Language::VERILOG_2001;
-    auto file = StringUtils::toLower(argv[1]);
-    if (file == "-work")  // if optional -work parameter goes first, the first
-                          // file goes third, after library name
-      file = StringUtils::toLower(argv[3]);
-    if (strstr(file.c_str(), ".vhd")) {
-      language = Design::Language::VHDL_2008;
-      actualType = "VHDL_2008";
-    }
-    if (strstr(file.c_str(), ".sv")) {
-      language = Design::Language::SYSTEMVERILOG_2017;
-      actualType = "SV_2017";
-    }
+
     std::string commandsList;
     std::string libList;
     std::string fileList;
@@ -433,6 +422,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (type.find("-D") != std::string::npos) {
         fileList += type + " ";
       } else {
+        if (actualType.empty()) {
+          auto fileLowerCase = StringUtils::toLower(argv[i]);
+          if (strstr(fileLowerCase.c_str(), ".vhd")) {
+            language = Design::Language::VHDL_2008;
+            actualType = "VHDL_2008";
+          } else if (strstr(fileLowerCase.c_str(), ".sv")) {
+            language = Design::Language::SYSTEMVERILOG_2017;
+            actualType = "SV_2017";
+          } else {
+            actualType = "VERILOG_2001";
+          }
+        }
         const std::string file = argv[i];
         std::string expandedFile = file;
         bool use_orig_path = false;
