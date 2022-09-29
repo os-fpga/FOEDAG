@@ -1590,21 +1590,12 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  // VPR Version checking
-  std::string vprVersionCmd =
-      m_vprExecutablePath.string() + " --version > vpr.ver";
-  int status = ExecuteAndMonitorSystemCommand(vprVersionCmd);
-  if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " placement failed!");
-    return false;
-  }
-  std::ifstream ifs("vpr.ver");
-  std::string ver((std::istreambuf_iterator<char>(ifs)),
-                  std::istreambuf_iterator<char>());
-  ifs.close();
+  // VPR Version checking, until full migration to version >= 8.0
+  std::string vprVersionCmd = m_vprExecutablePath.string() + " --version";
+  std::ostringstream ver;
+  FileUtils::ExecuteSystemCommand(vprVersionCmd, &ver);
   bool version7 = true;
-  if (ver.find("Version: 8") != std::string::npos) {
+  if (ver.str().find("Version: 8") != std::string::npos) {
     version7 = false;
   }
 
@@ -1621,7 +1612,7 @@ bool CompilerOpenFPGA::Placement() {
                         .string());
   ofs << command << std::endl;
   ofs.close();
-  status = ExecuteAndMonitorSystemCommand(command);
+  int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " placement failed!");
