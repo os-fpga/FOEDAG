@@ -96,8 +96,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
-  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
-            "<libName>? "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?"
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
             "file list into a compilation unit "
@@ -117,7 +116,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   set_top_module <top> ?-work <libName>? : Sets the top module"
+         << std::endl;
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "                                Constraints: set_pin_loc, "
@@ -807,12 +807,10 @@ bool CompilerOpenFPGA::Analyze() {
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
         for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
-          auto command = filesCommandsLibs.first[i];
           auto libName = filesCommandsLibs.second[i];
-          if (!command.empty() && !libName.empty()) {
-            auto commandLib = command + " " + libName + " ";
+          if (!libName.empty()) {
+            auto commandLib = "-work " + libName + " ";
             designLibraries += commandLib;
-            if (command == "-L") importLibs += commandLib;
           }
         }
       }
@@ -1007,6 +1005,9 @@ bool CompilerOpenFPGA::Synthesize() {
     fileList += "verific -vlog-define " + macros + "\n";
 
     std::string importLibs;
+    auto importDesignFilesLibs = false;
+
+    auto topModuleLib = ProjManager()->DesignTopModuleLib();
     auto commandsLibs = ProjManager()->DesignLibraries();
     size_t filesIndex{0};
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1030,18 +1031,23 @@ bool CompilerOpenFPGA::Synthesize() {
           break;
         case Design::Language::VERILOG_2001:
           lang = "-vlog2k";
+          importDesignFilesLibs = true;
           break;
         case Design::Language::SYSTEMVERILOG_2005:
           lang = "-sv2005";
+          importDesignFilesLibs = true;
           break;
         case Design::Language::SYSTEMVERILOG_2009:
           lang = "-sv2009";
+          importDesignFilesLibs = true;
           break;
         case Design::Language::SYSTEMVERILOG_2012:
           lang = "-sv2012";
+          importDesignFilesLibs = true;
           break;
         case Design::Language::SYSTEMVERILOG_2017:
           lang = "-sv";
+          importDesignFilesLibs = true;
           break;
         case Design::Language::VERILOG_NETLIST:
           lang = "";
@@ -1055,12 +1061,12 @@ bool CompilerOpenFPGA::Synthesize() {
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
         for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
-          auto command = filesCommandsLibs.first[i];
           auto libName = filesCommandsLibs.second[i];
-          if (!command.empty() && !libName.empty()) {
-            auto commandLib = command + " " + libName + " ";
+          if (!libName.empty()) {
+            auto commandLib = "-work " + libName + " ";
             designLibraries += commandLib;
-            if (command == "-L") importLibs += commandLib;
+            if (importDesignFilesLibs && libName != topModuleLib)
+              importLibs += "-L " + libName + " ";
           }
         }
       }
@@ -1069,10 +1075,13 @@ bool CompilerOpenFPGA::Synthesize() {
       if (designLibraries.empty())
         fileList += "verific " + lang + " " + lang_file.second + "\n";
       else
-        fileList += "verific " + designLibraries + " " + lang + " " +
-                    lang_file.second + "\n";
+        fileList +=
+            "verific " + designLibraries + lang + " " + lang_file.second + "\n";
     }
-    fileList += "verific " + importLibs + "-import " +
+    auto topModuleLibImport = std::string{};
+    if (!topModuleLib.empty())
+      topModuleLibImport = "-work " + topModuleLib + " ";
+    fileList += "verific " + topModuleLibImport + importLibs + "-import " +
                 ProjManager()->DesignTopModule() + "\n";
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
@@ -1081,8 +1090,8 @@ bool CompilerOpenFPGA::Synthesize() {
     for (const auto& commandLib : ProjManager()->DesignLibraries()) {
       if (!commandLib.first.empty()) {
         ErrorMessage(
-            "Yosys default parser doesn't support '-work' and '-L' design file "
-            "commands!");
+            "Yosys default parser doesn't support '-work' design file "
+            "command!");
         break;
       }
     }

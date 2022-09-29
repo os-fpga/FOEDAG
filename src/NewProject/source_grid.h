@@ -19,7 +19,6 @@ typedef struct tagFileData {
   QString m_fileName;
   QString m_filePath;
   QString m_workLibrary;
-  QString m_importLibraries;
 } FILEDATA;
 
 typedef FILEDATA filedata;
