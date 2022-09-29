@@ -143,7 +143,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-  virtual bool GeneratePinConstraints();
+  bool GeneratePinConstraints(std::string& filepath_fpga_fix_pins_place_str);
   virtual bool LoadDeviceData(const std::string& deviceName);
   virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
