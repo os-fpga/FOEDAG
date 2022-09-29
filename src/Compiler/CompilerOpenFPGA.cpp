@@ -1590,9 +1590,22 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
+  // VPR Version checking, until full migration to version >= 8.0
+  std::string vprVersionCmd = m_vprExecutablePath.string() + " --version";
+  std::ostringstream ver;
+  FileUtils::ExecuteSystemCommand(vprVersionCmd, &ver);
+  bool version7 = true;
+  if (ver.str().find("Version: 8") != std::string::npos) {
+    version7 = false;
+  }
+
   std::string command = BaseVprCommand() + " --place";
   if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
-    command += " --fix_pins " + pin_loc_constraint_file;
+    if (version7) {
+      command += " --fix_pins " + pin_loc_constraint_file;
+    } else {
+      command += " --fix_clusters " + pin_loc_constraint_file;
+    }
   }
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
@@ -2037,7 +2050,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     // Force bitstream generation
   }
 
-  std::string command = m_openFpgaExecutablePath.string() + " -f " +
+  std::string command = m_openFpgaExecutablePath.string() + " -batch -f " +
                         ProjManager()->projectName() + ".openfpga";
 
   std::string script = InitOpenFPGAScript();
