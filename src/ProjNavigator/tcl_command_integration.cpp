@@ -41,10 +41,28 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
     return false;
   }
 
-  const QString topModule = QString(argv[1]);
+  auto topModule = QString{};
+  auto topModuleLib = QString{};
+
+  for (auto i = 1; i < argc; i++) {
+    auto argStr = QString(argv[i]);
+    if (argStr == "-work") {
+      if (i + 1 >= argc) {
+        out << "Incorrect syntax for set_top_module <top> ?-work <libName>?. "
+               "Library name should follow '-work' tag"
+            << std::endl;
+        return false;
+      }
+      topModuleLib = QString(argv[++i]);  // library name follows -work tag
+    } else {
+      topModule = argStr;
+    }
+  }
   m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
-  int ret = m_projManager->setTopModule(topModule);
+  auto ret = m_projManager->setTopModule(topModule);
+  if (!topModuleLib.isEmpty()) m_projManager->setTopModuleLibrary(topModuleLib);
   if (0 == ret) update();
+
   return true;
 }
 

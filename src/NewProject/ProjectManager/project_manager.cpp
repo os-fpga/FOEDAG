@@ -49,11 +49,6 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   for (const filedata& fdata : listFile) {
     auto libraries = fdata.m_workLibrary;
     auto command = libraries.isEmpty() ? QString() : "-work";
-    auto importLibs = StringSplit(fdata.m_importLibraries, ",");
-    for (const auto& importLib : importLibs) {
-      command += " -L";
-      libraries += " " + importLib.simplified();
-    }
 
     if (LocalToProject == fdata.m_filePath) {
       setDesignFiles(command, libraries, fdata.m_fileName,
