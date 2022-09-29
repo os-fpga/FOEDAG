@@ -45,7 +45,7 @@ extern "C" {
 #include "CommandLine.h"
 #include "Compiler/Log.h"
 #include "Foedag.h"
-#include "IpConfigurator/IpConfigDlg.h"
+#include "IpConfigurator/IpConfigWidget.h"
 #include "Main/Tasks.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
@@ -302,9 +302,9 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
         QWidget* w = static_cast<QWidget*>(clientData);
 
         if (argc == 2) {
-          FOEDAG::IpConfigDlg* dlg = new FOEDAG::IpConfigDlg(w, argv[1]);
-          dlg->setAttribute(Qt::WA_DeleteOnClose);
-          dlg->show();
+          FOEDAG::IpConfigWidget* widget =
+              new FOEDAG::IpConfigWidget(w, argv[1]);
+          widget->show();
 
           return TCL_OK;
         } else {

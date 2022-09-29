@@ -8,7 +8,6 @@
 #include <QTextStream>
 #include <algorithm>
 
-#include "IpConfigurator/IpConfigDlg.h"
 #include "Main/Foedag.h"
 #include "tcl_command_integration.h"
 #include "ui_sources_form.h"
@@ -355,6 +354,42 @@ void SourcesForm::SlotPropertiesTriggered() {
   SlotProperties();
 }
 
+void SourcesForm::SlotReConfigureIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  std::string moduleName = item->text(0).toStdString();
+
+  auto instances =
+      GlobalSession->GetCompiler()->GetIPGenerator()->IPInstances();
+
+  // Find the ip instance with a matching module name
+  auto isMatch = [moduleName](IPInstance *instance) {
+    return instance->ModuleName() == moduleName;
+  };
+  auto result =
+      std::find_if(std::begin(instances), std::end(instances), isMatch);
+
+  std::string ipName{};
+  QStringList args{};
+  if (result != std::end(instances)) {
+    ipName = (*result)->IPName();
+
+    // Step through this instance's paremeters
+    for (auto param : (*result)->Parameters()) {
+      // Create a list of parameter value pairs in the format of
+      // -P<param_name> <value>
+      args.append(QString("-P%1 %2")
+                      .arg(QString::fromStdString(param.Name()))
+                      .arg(QString::number(param.GetValue())));
+    }
+  }
+
+  emit IpReconfigRequested(QString::fromStdString(ipName),
+                           QString::fromStdString(moduleName), args);
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -400,45 +435,9 @@ void SourcesForm::CreateActions() {
   m_actCloseProject = new QAction(tr("Close project"), m_treeSrcHierachy);
   connect(m_actCloseProject, SIGNAL(triggered()), this, SIGNAL(CloseProject()));
 
-  m_actReconfigureIp = new QAction(tr("Re-Configure IP"), m_treeSrcHierachy);
-  connect(m_actReconfigureIp, &QAction::triggered, this, [this]() {
-    QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-    if (item == nullptr) {
-      return;
-    }
-    std::string moduleName = item->text(0).toStdString();
-
-    auto instances =
-        GlobalSession->GetCompiler()->GetIPGenerator()->IPInstances();
-
-    // Find the ip instance with a matching module name
-    auto isMatch = [moduleName](IPInstance *instance) {
-      return instance->ModuleName() == moduleName;
-    };
-    auto result =
-        std::find_if(std::begin(instances), std::end(instances), isMatch);
-
-    std::string ipName{};
-    QStringList args{};
-    if (result != std::end(instances)) {
-      ipName = (*result)->IPName();
-
-      // Step through this instance's paremeters
-      for (auto param : (*result)->Parameters()) {
-        // Create a list of parameter value pairs in the format of
-        // -P<param_name> <value>
-        args.append(QString("-P%1 %2")
-                        .arg(QString::fromStdString(param.Name()))
-                        .arg(QString::number(param.GetValue())));
-      }
-    }
-
-    // Load IP Config dialog with the previously configured values
-    FOEDAG::IpConfigDlg *dlg =
-        new FOEDAG::IpConfigDlg(this, QString::fromStdString(ipName),
-                                QString::fromStdString(moduleName), args);
-    dlg->show();
-  });
+  m_actReconfigureIp = new QAction(tr("Reconfigure IP"), m_treeSrcHierachy);
+  connect(m_actReconfigureIp, &QAction::triggered, this,
+          &SourcesForm::SlotReConfigureIp);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {

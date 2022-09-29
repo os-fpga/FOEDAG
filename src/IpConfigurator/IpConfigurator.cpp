@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDockWidget>
 
-#include "IpConfigurator/IpConfigDlg.h"
+#include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpTreesWidget.h"
 #include "MainWindow/Session.h"
 
@@ -72,8 +72,8 @@ void IpConfigurator::HideIpTrees() {
 }
 
 void IpConfigurator::ShowConfigDlg() {
-  IpConfigDlg dlg;
-  dlg.exec();
+  IpConfigWidget widget;
+  widget.show();
 }
 
 QWidget* IpConfigurator::GetIpTreesWidget() {
@@ -101,8 +101,8 @@ void FOEDAG::registerIpConfiguratorCommands(QWidget* widget,
   auto show_dlg = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     QWidget* w = static_cast<QWidget*>(clientData);
-    IpConfigDlg* dlg = new IpConfigDlg(w);
-    dlg->show();
+    IpConfigWidget* widget = new IpConfigWidget(w);
+    widget->show();
     return 0;
   };
   session->TclInterp()->registerCmd("ipconfigurator_show_dlg", show_dlg, widget,
