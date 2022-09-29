@@ -36,6 +36,7 @@ class sourceGrid : public QWidget {
   QList<filedata> getTableViewData();
 
   void currentFileSet(const QString &fileSet);
+  void selectRow(int row);
 
  public slots:
   void AddFiles();
@@ -46,7 +47,7 @@ class sourceGrid : public QWidget {
   void DownTableItem();
   void TableViewSelectionChanged();
 
-  void AddTableItem(filedata fdata);
+  void AddTableItem(FOEDAG::filedata fdata);
 
  private slots:
   void onItemChanged(QStandardItem *item);
@@ -76,4 +77,7 @@ class sourceGrid : public QWidget {
   static QComboBox *CreateLanguageCombo();
 };
 }  // namespace FOEDAG
+
+QDebug operator<<(QDebug debug, const FOEDAG::filedata &a);
+
 #endif  // SOURCEGRID_H

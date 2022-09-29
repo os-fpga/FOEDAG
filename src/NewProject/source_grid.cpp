@@ -1,6 +1,7 @@
 #include "source_grid.h"
 
 #include <QComboBox>
+#include <QDebug>
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QHeaderView>
@@ -21,7 +22,8 @@ static const auto NAME_COL = QObject::tr("Name");
 static const auto LIBRARY_COL = QObject::tr("Library");
 static const auto LANGUAGE_COL = QObject::tr("Language");
 static const auto LOCATION_COL = QObject::tr("Location");
-static const int LANG_COL{4};
+static const int LIBRARY_COL_NUM{2};
+static const int LANG_COL_NUM{3};
 
 static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
 static const auto DESIGN_SOURCES_FILTER = QObject::tr(
@@ -141,6 +143,10 @@ QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 
 void sourceGrid::currentFileSet(const QString &fileSet) {
   m_currentFileSet = fileSet;
+}
+
+void sourceGrid::selectRow(int row) {
+  if (row >= 0 && row < m_model->rowCount()) m_tableViewSrc->selectRow(row);
 }
 
 void sourceGrid::AddFiles() {
@@ -316,7 +322,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
   if (GT_SOURCE == m_type) {
     initLanguageCombo(rows, fdata.m_language);
   }
-  m_tableViewSrc->resizeColumnToContents(LANG_COL);
+  m_tableViewSrc->resizeColumnToContents(LANG_COL_NUM);
   m_tableViewSrc->resizeColumnToContents(0);
 }
 
@@ -331,7 +337,7 @@ void sourceGrid::MoveTableRow(int from, int to) {
     return;
   }
 
-  auto indexFrom = model->index(from, LANG_COL);
+  auto indexFrom = model->index(from, LANG_COL_NUM);
   auto comboFrom =
       qobject_cast<QComboBox *>(m_tableViewSrc->indexWidget(indexFrom));
   if (!comboFrom) return;
@@ -390,8 +396,7 @@ void sourceGrid::onItemChanged(QStandardItem *item) {
   if (itemIndex.row() >= m_lisFileData.size())
     qWarning("m_lisFileData: wrong indexes!");
 
-  if (m_model->headerData(itemIndex.column(), Qt::Horizontal).toString() ==
-      LIBRARY_COL)
+  if (item->index().column() == LIBRARY_COL_NUM)
     m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
 }
 
@@ -400,7 +405,7 @@ void sourceGrid::languageHasChanged() {
   if (!combo) return;
   int row{-1};
   for (uint i = 0; i < m_model->rowCount(); i++) {
-    if (m_tableViewSrc->indexWidget(m_model->index(i, LANG_COL)) == combo) {
+    if (m_tableViewSrc->indexWidget(m_model->index(i, LANG_COL_NUM)) == combo) {
       row = i;
       break;
     }
@@ -426,7 +431,18 @@ QStringList sourceGrid::GetAllDesignSourceExtentions() const {
 void sourceGrid::initLanguageCombo(int row, const QVariant &data) {
   auto combo = CreateLanguageCombo();
   combo->setCurrentIndex(combo->findData(data));
-  m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL), combo);
+  m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL_NUM), combo);
   connect(combo, SIGNAL(currentIndexChanged(int)), this,
           SLOT(languageHasChanged()));
+}
+
+QDebug operator<<(QDebug debug, const FOEDAG::filedata &a) {
+  debug << "filedata {" << a.m_isFolder << ",";
+  debug << a.m_fileType << ",";
+  debug << a.m_fileName << ",";
+  debug << a.m_language << ",";
+  debug << a.m_filePath << ",";
+  debug << a.m_workLibrary;
+  debug << "}";
+  return debug;
 }
