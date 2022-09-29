@@ -1590,16 +1590,38 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
+  // VPR Version checking
+  std::string vprVersionCmd =
+      m_vprExecutablePath.string() + " --version > vpr.ver";
+  int status = ExecuteAndMonitorSystemCommand(vprVersionCmd);
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " placement failed!");
+    return false;
+  }
+  std::ifstream ifs("vpr.ver");
+  std::string ver((std::istreambuf_iterator<char>(ifs)),
+                  std::istreambuf_iterator<char>());
+  ifs.close();
+  bool version7 = true;
+  if (ver.find("Version: 8") != std::string::npos) {
+    version7 = false;
+  }
+
   std::string command = BaseVprCommand() + " --place";
   if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
-    command += " --fix_pins " + pin_loc_constraint_file;
+    if (version7) {
+      command += " --fix_pins " + pin_loc_constraint_file;
+    } else {
+      command += " --fix_clusters " + pin_loc_constraint_file;
+    }
   }
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
   ofs << command << std::endl;
   ofs.close();
-  int status = ExecuteAndMonitorSystemCommand(command);
+  status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " placement failed!");
@@ -2037,7 +2059,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     // Force bitstream generation
   }
 
-  std::string command = m_openFpgaExecutablePath.string() + " -f " +
+  std::string command = m_openFpgaExecutablePath.string() + " -batch -f " +
                         ProjManager()->projectName() + ".openfpga";
 
   std::string script = InitOpenFPGAScript();
