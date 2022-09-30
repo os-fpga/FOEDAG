@@ -120,6 +120,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool Packing();
   virtual bool GlobalPlacement();
   virtual bool Placement();
+  virtual bool ConvertSdcPinConstrainToPcf(std::vector<std::string>&);
   virtual bool Route();
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
