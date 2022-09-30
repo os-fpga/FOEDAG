@@ -137,6 +137,7 @@ void TaskManager::startAll() {
   m_runStack.append(m_tasks[POWER]);
   m_runStack.append(m_tasks[BITSTREAM]);
   m_taskCount = m_runStack.count();
+  counter = 0;
   emit started();
   run();
 }
@@ -146,6 +147,7 @@ void TaskManager::startTask(Task *t) {
   if (!t->isValid()) return;
   m_runStack.append(t);
   m_taskCount = m_runStack.count();
+  counter = 0;
   emit started();
   run();
 }
@@ -163,6 +165,8 @@ void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
   if (auto t = task(id)) bindTaskCommand(t, cmd);
 }
 
+void TaskManager::setTaskCount(int count) { m_taskCount = count; }
+
 void TaskManager::runNext() {
   Task *t = qobject_cast<Task *>(sender());
   if (t) {
@@ -175,15 +179,16 @@ void TaskManager::runNext() {
     }
   }
 
+  emit progress(++counter, m_taskCount);
+
   if (m_runStack.isEmpty()) {
-    m_taskCount = std::nullopt;
     emit done();
   }
 }
 
 void TaskManager::run() {
   if (m_taskCount) {
-    const int max = m_taskCount.value();
+    const int max = m_taskCount;
     emit progress(max - m_runStack.count(), max);
   }
   m_runStack.first()->trigger();
