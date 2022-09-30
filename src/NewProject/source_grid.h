@@ -9,6 +9,8 @@
 #include <QToolButton>
 #include <QWidget>
 
+class QComboBox;
+
 namespace FOEDAG {
 
 enum GridType { GT_ADD, GT_SOURCE, GT_CONSTRAINTS, GT_NETLIST, GT_SIM };
@@ -17,6 +19,7 @@ typedef struct tagFileData {
   bool m_isFolder;
   QString m_fileType;
   QString m_fileName;
+  int m_language;
   QString m_filePath;
   QString m_workLibrary;
 } FILEDATA;
@@ -33,6 +36,7 @@ class sourceGrid : public QWidget {
   QList<filedata> getTableViewData();
 
   void currentFileSet(const QString &fileSet);
+  void selectRow(int row);
 
  public slots:
   void AddFiles();
@@ -43,10 +47,11 @@ class sourceGrid : public QWidget {
   void DownTableItem();
   void TableViewSelectionChanged();
 
-  void AddTableItem(filedata fdata);
+  void AddTableItem(FOEDAG::filedata fdata);
 
  private slots:
   void onItemChanged(QStandardItem *item);
+  void languageHasChanged();
 
  private:
   GridType m_type;
@@ -64,10 +69,15 @@ class sourceGrid : public QWidget {
   QList<filedata> m_lisFileData;
   QString m_currentFileSet;
   QStringList GetAllDesignSourceExtentions() const;
+  void initLanguageCombo(int row, const QVariant &data);
 
  private:
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
+  static QComboBox *CreateLanguageCombo();
 };
 }  // namespace FOEDAG
+
+QDebug operator<<(QDebug debug, const FOEDAG::filedata &a);
+
 #endif  // SOURCEGRID_H
