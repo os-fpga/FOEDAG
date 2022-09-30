@@ -112,6 +112,7 @@ class Compiler {
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
+  TaskManager* GetTaskManager() const;
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual void Help(std::ostream* out);

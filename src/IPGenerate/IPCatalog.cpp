@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
 #include "MainWindow/Session.h"
+#include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
@@ -112,4 +113,17 @@ VLNV FOEDAG::getIpInfoFromPath(std::filesystem::path path) {
   }
 
   return VLNV{vendor, library, name, version};
+}
+
+// This will return a path to the litex enabled python interpreter used by the
+// ip catalog. This will cache the return value the first time it's not empty
+std::filesystem::path IPCatalog::getPythonPath() {
+  static std::filesystem::path s_pythonPath{};
+  if (s_pythonPath.empty()) {
+    std::filesystem::path searchPath =
+        GlobalSession->Context()->DataPath() / "../envs/litex";
+    searchPath = FileUtils::GetFullPath(searchPath);
+    s_pythonPath = FileUtils::LocateFileRecursive(searchPath, "python");
+  }
+  return s_pythonPath;
 }
