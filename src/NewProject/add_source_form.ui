@@ -33,7 +33,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Add Sources</string>
+      <string>Add Design Files</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
