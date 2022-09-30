@@ -163,11 +163,7 @@ void MainWindow::CloseOpenedTabs() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-  QMessageBox::StandardButton closeBtn = QMessageBox::warning(
-      this, "Warning", tr("Do you really want to close the project?\n"),
-      QMessageBox::No | QMessageBox::Yes);
-
-  if (closeBtn == QMessageBox::Yes) {
+  if (confirmExitProgram()) {
     event->accept();
   } else {
     event->ignore();
@@ -200,7 +196,8 @@ void MainWindow::openProjectDialog(const QString& dir) {
 }
 
 void MainWindow::closeProject() {
-  if (m_projectManager && m_projectManager->HasDesign()) {
+  if (m_projectManager && m_projectManager->HasDesign() &&
+      confirmCloseProject()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
@@ -470,8 +467,10 @@ void MainWindow::createActions() {
   });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
-    Command cmd("gui_stop; exit");
-    GlobalSession->CmdStack()->push_and_exec(&cmd);
+    if (this->confirmExitProgram()) {
+      Command cmd("gui_stop; exit");
+      GlobalSession->CmdStack()->push_and_exec(&cmd);
+    }
   });
 
   pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
@@ -920,4 +919,17 @@ void MainWindow::replaceIpConfigDockWidget(QWidget* newWidget) {
         PrepareTab(tr("Configure IP"), "configureIpsWidget", newWidget, nullptr,
                    Qt::RightDockWidgetArea);
   }
+}
+
+bool MainWindow::confirmCloseProject() {
+  return (QMessageBox::question(
+              this, "Close Project?",
+              tr("Are you sure you want to close your project?\n"),
+              QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
+}
+bool MainWindow::confirmExitProgram() {
+  return (QMessageBox::question(
+              this, "Exit Program?",
+              tr("Are you sure you want to exit the program?\n"),
+              QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }

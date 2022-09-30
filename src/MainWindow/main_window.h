@@ -107,6 +107,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   // configuration
   void saveWelcomePageConfig();
   void replaceIpConfigDockWidget(QWidget* widget);
+  bool confirmCloseProject();
+  bool confirmExitProgram();
 
   // Welcome page config file name
   static const QString WELCOME_PAGE_CONFIG_FILE;
