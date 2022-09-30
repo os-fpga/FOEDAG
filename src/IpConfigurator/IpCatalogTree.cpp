@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QTreeWidgetItem>
 
-#include "IpConfigurator/IpConfigDlg.h"
 #include "MainWindow/Session.h"
 #include "Utils/FileUtils.h"
 
@@ -49,15 +48,6 @@ bool tclCmdExists(const QString& cmdName) {
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
   this->setHeaderLabel("Available IPs");
-
-  QObject::connect(this, &QTreeWidget::itemDoubleClicked,
-                   [this](QTreeWidgetItem* item, int column) {
-                     FOEDAG::IpConfigDlg* dlg =
-                         new IpConfigDlg(this, item->text(0));
-                     dlg->setAttribute(Qt::WA_DeleteOnClose);
-                     dlg->show();
-                   });
-
   refresh();
 }
 

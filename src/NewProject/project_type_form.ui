@@ -33,7 +33,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Project Type</string>
+      <string>Type of Project</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

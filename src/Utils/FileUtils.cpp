@@ -148,6 +148,28 @@ std::filesystem::path FileUtils::LocateExecFile(
   return result;
 }
 
+// This recursively searches searchPath for a file that exactly matches
+// filename. Partial matches and directory matches are not returned.
+std::filesystem::path FileUtils::LocateFileRecursive(
+    const std::filesystem::path& searchPath, const std::string filename) {
+  std::filesystem::path result{};
+  if (FileUtils::FileExists(searchPath)) {
+    // Recursively search searchPath
+    for (const std::filesystem::path& entry :
+         std::filesystem::recursive_directory_iterator(
+             searchPath,
+             std::filesystem::directory_options::follow_directory_symlink)) {
+      // If this is a file and the filename matches exactly
+      if (FileIsRegular(entry) && entry.filename() == filename) {
+        result = entry;
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
 int FileUtils::ExecuteSystemCommand(const std::string& command,
                                     std::ostream* result) {
   QProcess* m_process = new QProcess;

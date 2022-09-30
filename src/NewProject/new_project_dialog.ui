@@ -33,7 +33,7 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="75">
+    <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0">
      <property name="spacing">
       <number>15</number>
      </property>
@@ -41,15 +41,26 @@
       <number>10</number>
      </property>
      <item>
-      <widget class="QStackedWidget" name="m_stackedWidget">
-       <property name="styleSheet">
-        <string notr="true"/>
+      <widget class="QTabWidget" name="m_tabWidget">
+       <property name="tabPosition">
+        <enum>QTabWidget::West</enum>
+       </property>
+       <property name="tabShape">
+        <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="page"/>
-       <widget class="QWidget" name="page_2"/>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Tab 1</string>
+        </attribute>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Tab 2</string>
+        </attribute>
+       </widget>
       </widget>
      </item>
     </layout>

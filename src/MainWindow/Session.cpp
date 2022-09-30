@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/Session.h"
 
+#include "Compiler/TaskManager.h"
+#include "Main/TclSimpleParser.h"
 #include "TopLevelInterface.h"
 
 using namespace FOEDAG;
@@ -43,7 +45,20 @@ void Session::windowShow() {
       }
       if (hasScriptCmd) {
         int returnCode{TCL_OK};
-        if (m_compiler) m_compiler->start();
+        if (m_compiler) {
+          TclSimpleParser tclParser;
+          const auto &[res, msg] = tclParser.parse(CmdLine()->Script());
+          int counter{0};
+          if (!res)
+            m_compiler->ErrorMessage(msg);
+          else
+            counter = std::stoi(msg);
+          m_compiler->GetTaskManager()->setTaskCount(counter);
+          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
+            m->ProgressVisible(true);
+          }
+          m_compiler->start();
+        }
         auto result = TclInterp()->evalFile(CmdLine()->Script(), &returnCode);
         if (m_compiler) {
           if (returnCode == TCL_OK)
@@ -51,6 +66,9 @@ void Session::windowShow() {
           else
             m_compiler->ErrorMessage(result);
           m_compiler->finish();
+          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
+            m->ProgressVisible(false);
+          }
         }
       }
       break;

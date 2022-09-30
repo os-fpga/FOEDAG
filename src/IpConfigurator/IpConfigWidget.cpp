@@ -18,10 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "IpConfigurator/IpConfigDlg.h"
+#include "IpConfigurator/IpConfigWidget.h"
 
 #include <QDialogButtonBox>
-#include <QFormLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QWidget>
@@ -62,14 +61,14 @@ QString getUserProjectPath(const QString& suffix) {
   return path;
 }
 
-IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/,
-                         QString requestedIpName /* "" */,
-                         QString moduleName /* "" */,
-                         QStringList instanceValueArgs /*{}*/)
+IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
+                               const QString& requestedIpName /* "" */,
+                               const QString& moduleName /* "" */,
+                               const QStringList& instanceValueArgs /*{}*/)
     : m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
   this->setWindowTitle("Configure IP");
-  this->setObjectName("IpConfigDlg");
+  this->setObjectName("IpConfigWidget");
   m_baseDirDefault = getUserProjectPath("IPs");
 
   // Set the path related widgets' tooltips to whatever their text is so long
@@ -106,10 +105,13 @@ IpConfigDlg::IpConfigDlg(QWidget* parent /*nullptr*/,
   updateOutputPath();
 }
 
-void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
+void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
   // Dialog Buttons
-  QDialogButtonBox* btns = new QDialogButtonBox(QDialogButtonBox::Cancel);
-  btns->setObjectName("IpConfigDlg_QDialogButtonBox");
+  // Originally used QDialogButtonBox as this was a dlg. w/o cancel, buttonBox
+  // isn't necessary, but it doesn't hurt to have it and might still provide
+  // more standard rendering for location/alignment/etc
+  QDialogButtonBox* btns = new QDialogButtonBox(/*QDialogButtonBox::Cancel*/);
+  btns->setObjectName("IpConfigWidget_QDialogButtonBox");
   layout->addWidget(btns);
   QPushButton* generateBtn = new QPushButton("Generate IP", this);
   btns->addButton(generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
@@ -142,25 +144,16 @@ void IpConfigDlg::AddDialogControls(QBoxLayout* layout) {
     cmd += "\nipgenerate";
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
-    // TODO @skyler-rs Sept2022 remove below test print once once command format
-    // is finalized
-    std::cout << cmd.toStdString() << std::endl;
 
     // Update the Ip Instances in the source tree
     MainWindow* win = qobject_cast<MainWindow*>(GlobalSession->MainWindow());
     if (win) {
-      // TODO @skyler-rs Sept2022 change this to a slot/signal implementation
-      // once this dlg is changed to a dock widget in the next sprint
-      win->updateSourceTree();
+      emit ipInstancesUpdated();
     }
   });
-
-  // Forward standard QDialogButtonBox signals to the parent dialog
-  QObject::connect(btns, &QDialogButtonBox::rejected, this, &QDialog::reject);
-  QObject::connect(btns, &QDialogButtonBox::accepted, this, &QDialog::accept);
 }
 
-void IpConfigDlg::CreateParamFields() {
+void IpConfigWidget::CreateParamFields() {
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
@@ -169,7 +162,6 @@ void IpConfigDlg::CreateParamFields() {
     if (m_requestedIpName.toStdString() == def->Name()) {
       // Store VLNV meta data for the requested IP
       m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
-      updateMetaLabel(m_meta);
 
       // set default module name to the BuildName provided by the generate
       // script otherwise default to the to the VLNV name
@@ -178,6 +170,9 @@ void IpConfigDlg::CreateParamFields() {
         build_name = m_meta.name;
       }
       moduleEdit.setText(QString::fromStdString(build_name));
+
+      // Update meta label now that vlnv and module info is updated
+      updateMetaLabel(m_meta);
 
       // Build widget factory json for each parameter
       for (auto param : def->Parameters()) {
@@ -230,12 +225,11 @@ void IpConfigDlg::CreateParamFields() {
   }
 
   // Create and add the child widget to our parent container
-
   auto form = createWidgetFormLayout(parentJson, tclArgList);
   paramsBox.setLayout(form);
 }
 
-void IpConfigDlg::CreateOutputFields() {
+void IpConfigWidget::CreateOutputFields() {
   QFormLayout* form = new QFormLayout(&outputBox);
   form->setLabelAlignment(Qt::AlignRight);
 
@@ -256,24 +250,27 @@ void IpConfigDlg::CreateOutputFields() {
       {"Module Name", &moduleEdit}, {"Output Dir", &outputPath}};
 
   // Loop through pairs and add them to layout
-  int count = 0;
   for (auto [labelName, widget] : pairs) {
     form->addRow(QString::fromStdString(labelName), widget);
-    count++;
   }
 
   // Update the output dir when module name changes
   QObject::connect(&moduleEdit, &QLineEdit::textChanged, this,
-                   &IpConfigDlg::updateOutputPath);
+                   &IpConfigWidget::updateOutputPath);
 
   // add the layout to the output group box
   outputBox.setLayout(form);
 }
 
-void IpConfigDlg::updateMetaLabel(VLNV info) {
+void IpConfigWidget::updateMetaLabel(VLNV info) {
   // Create a descriptive sentence that lists all the VLNV info
   QString verStr = QString::fromStdString(info.version).replace("_", ".");
-  std::string text = "<em>Configuring " + info.name + " (" +
+  QString action = "Configuring";
+  if (!m_instanceValueArgs.empty()) {
+    // if params were passed then we are reconfiguring an existing instance
+    action = "Reconfiguring instance \"" + moduleEdit.text() + "\" for ";
+  }
+  std::string text = "<em>" + action.toStdString() + " " + info.name + " (" +
                      verStr.toStdString() + ")" + " from " + info.vendor +
                      "'s " + info.library + " library</em>";
   metaLabel.setTextFormat(Qt::RichText);
@@ -282,7 +279,7 @@ void IpConfigDlg::updateMetaLabel(VLNV info) {
 }
 
 // Returns the IPDefinitions stored in the current IPGenerator's IPCatalog
-std::vector<FOEDAG::IPDefinition*> IpConfigDlg::getDefinitions() {
+std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
   FOEDAG::Compiler* compiler = nullptr;
   FOEDAG::IPGenerator* ipgen = nullptr;
   FOEDAG::IPCatalog* ipcatalog = nullptr;
@@ -297,7 +294,7 @@ std::vector<FOEDAG::IPDefinition*> IpConfigDlg::getDefinitions() {
   return defs;
 }
 
-void IpConfigDlg::updateOutputPath() {
+void IpConfigWidget::updateOutputPath() {
   // Strip end separator from baseDir if there is one
   QString baseDir = m_baseDirDefault;
   if (baseDir.endsWith(SEPARATOR)) {

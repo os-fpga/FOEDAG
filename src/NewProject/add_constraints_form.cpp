@@ -11,7 +11,7 @@ using namespace FOEDAG;
 addConstraintsForm::addConstraintsForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::addConstraintsForm) {
   ui->setupUi(this);
-  ui->m_labelTitle->setText(tr("Add Constraints (optional)"));
+  ui->m_labelTitle->setText(tr("Add Design Constraints (optional)"));
   ui->m_labelDetail->setText(
       tr("Specify or create constraint file for physical and timing "
          "constraints."));
