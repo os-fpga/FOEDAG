@@ -116,9 +116,29 @@ static std::string& rtrim(std::string& str, char c) {
 bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
   bool result = true;
+
+  // Find path to litex enabled python interpreter
+  std::filesystem::path pythonPath = IPCatalog::getPythonPath();
+  if (pythonPath.empty()) {
+    std::filesystem::path python3Path = FileUtils::LocateExecFile("python3");
+    if (python3Path.empty()) {
+      m_compiler->ErrorMessage(
+          "IP Catalog, unable to find python interpreter in local "
+          "environment.\n");
+      return false;
+    } else {
+      pythonPath = python3Path;
+      m_compiler->ErrorMessage(
+          "IP Catalog, unable to find python interpreter in local "
+          "environment, using system copy '" +
+          python3Path.string() +
+          "'. Some IP Catalog features might not work with this "
+          "interpreter.\n");
+    }
+  }
+
   std::ostringstream help;
-  std::filesystem::path python3Path = FileUtils::LocateExecFile("python3");
-  std::string command = python3Path.string() + " " +
+  std::string command = pythonPath.string() + " " +
                         pythonConverterScript.string() + " --json-template";
   if (FileUtils::ExecuteSystemCommand(command, &help)) {
     m_compiler->ErrorMessage("IP Catalog, no IP information for " +
@@ -126,6 +146,8 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
                              help.str());
     return false;
   }
+
+  // Treat command's output as json and parse it
   std::stringstream buffer;
   buffer << help.str();
   json jopts;
@@ -133,9 +155,19 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     jopts = json::parse(buffer);
   } catch (json::parse_error& e) {
     std::string msg = "Json Parse Error: " + std::string(e.what()) + "\n" +
-                      "filePath: " + pythonConverterScript.string() + "\n" +
-                      "genCmd: " + command + "\n" + "json: " + buffer.str();
+                      "\tfilePath: " + pythonConverterScript.string() + "\n" +
+                      "\tgenCmd: " + command + "\n" +
+                      "\treturned json: " + buffer.str();
     m_compiler->ErrorMessage(msg);
+  }
+
+  // Error out if empty json was returned
+  if (jopts.empty()) {
+    m_compiler->ErrorMessage(
+        "IP Catalog, failed to load IP because the following command returned "
+        "an empty json object: " +
+        command + "\n");
+    return false;
   }
 
   std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
