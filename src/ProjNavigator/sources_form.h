@@ -50,6 +50,8 @@ class SourcesForm : public QWidget {
   void ShowProperty(const QString&);
   void ShowPropertyPanel();
   void CloseProject();
+  void IpReconfigRequested(const QString& ipName, const QString moduleName,
+                           const QStringList& paramList);
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -67,6 +69,7 @@ class SourcesForm : public QWidget {
   void SlotSetActive();
   void SlotProperties();
   void SlotPropertiesTriggered();
+  void SlotReConfigureIp();
 
  private:
   Ui::SourcesForm* ui;

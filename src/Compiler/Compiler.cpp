@@ -91,8 +91,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?   ?-L "
-            "<libName>? "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
             "file list into a compilation unit "
@@ -104,10 +103,6 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
-  (*out) << "              -L <libName>    : Import the library <libName> "
-            "needed to "
-            "compile the compilation unit, default is \"work\""
-         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -116,7 +111,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   set_top_module <top> ?-work <libName>? : Sets the top module"
+         << std::endl;
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
@@ -221,7 +217,7 @@ $body
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
     )";
@@ -245,7 +241,7 @@ static std::string TclInterpCloneVar() {
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
 
@@ -338,7 +334,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
-    if (argc != 2) {
+    if (argc < 2) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
@@ -368,34 +364,26 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
-          "[-work libraryName] [-L libraryName1 -L libraryName2]"
+          "[-work libraryName]"
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
           "default))>");
       return TCL_ERROR;
     }
-    std::string actualType = "VERILOG_2001";
+    std::string actualType;
     Design::Language language = Design::Language::VERILOG_2001;
-    auto file = StringUtils::toLower(argv[1]);
-    if (strstr(file.c_str(), ".vhd")) {
-      language = Design::Language::VHDL_2008;
-      actualType = "VHDL_2008";
-    }
-    if (strstr(file.c_str(), ".sv")) {
-      language = Design::Language::SYSTEMVERILOG_2017;
-      actualType = "SV_2017";
-    }
+
     std::string commandsList;
     std::string libList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-work" || type == "-L") {
+      if (type == "-work") {
         if (i + 1 >= argc) {
           compiler->ErrorMessage(
               "Incorrect syntax for add_design_file <file(s)> "
-              "Library name should follow '-work' or '-L' tags");
+              "Library name should follow '-work' tag");
           return TCL_ERROR;
         }
         commandsList += type + " ";
@@ -434,6 +422,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (type.find("-D") != std::string::npos) {
         fileList += type + " ";
       } else {
+        if (actualType.empty()) {
+          auto fileLowerCase = StringUtils::toLower(argv[i]);
+          if (strstr(fileLowerCase.c_str(), ".vhd")) {
+            language = Design::Language::VHDL_2008;
+            actualType = "VHDL_2008";
+          } else if (strstr(fileLowerCase.c_str(), ".sv")) {
+            language = Design::Language::SYSTEMVERILOG_2017;
+            actualType = "SV_2017";
+          } else {
+            actualType = "VERILOG_2001";
+          }
+        }
         const std::string file = argv[i];
         std::string expandedFile = file;
         bool use_orig_path = false;

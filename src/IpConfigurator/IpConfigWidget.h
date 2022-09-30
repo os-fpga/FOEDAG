@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QBoxLayout>
-#include <QDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -30,13 +29,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class IpConfigDlg : public QDialog {
+class IpConfigWidget : public QWidget {
   Q_OBJECT
 
  public:
-  explicit IpConfigDlg(QWidget* parent = nullptr, QString requestedIpName = "",
-                       QString moduleName = "",
-                       QStringList instanceValueArgs = {});
+  explicit IpConfigWidget(QWidget* parent = nullptr,
+                          const QString& requestedIpName = "",
+                          const QString& moduleName = "",
+                          const QStringList& instanceValueArgs = {});
+
+ signals:
+  void ipInstancesUpdated();
 
  public slots:
   void updateOutputPath();
