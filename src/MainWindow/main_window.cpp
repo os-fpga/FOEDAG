@@ -162,6 +162,11 @@ void MainWindow::CloseOpenedTabs() {
   }
 }
 
+void MainWindow::ProgressVisible(bool visible) {
+  m_progressVisible = visible;
+  m_progressWidget->setVisible(visible);
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
   QMessageBox::StandardButton closeBtn = QMessageBox::warning(
       this, "Warning", tr("Do you really want to close the project?\n"),
@@ -647,7 +652,7 @@ void MainWindow::ReShowWindow(QString strProject) {
       });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
-    m_progressWidget->hide();
+    if (!m_progressVisible) m_progressWidget->hide();
     m_compiler->finish();
   });
 

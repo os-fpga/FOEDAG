@@ -50,6 +50,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void SetWindowTitle(const QString& filename, const QString& project,
                       QString& projectInfo);
   void CloseOpenedTabs();
+  void ProgressVisible(bool visible) override;
+
+ protected:
   void closeEvent(QCloseEvent* event) override;
 
  private slots: /* slots */
@@ -154,6 +157,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDockWidget* m_ipConfigDockWidget{nullptr};
   QDockWidget* m_availableIpsgDockWidget{nullptr};
   QSettings m_settings;
+  bool m_progressVisible{false};
 };
 
 }  // namespace FOEDAG

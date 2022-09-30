@@ -1497,6 +1497,8 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
   }
 }
 
+TaskManager* Compiler::GetTaskManager() const { return m_taskManager; }
+
 void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   m_tclCmdIntegration = tclCommands;
   if (m_tclCmdIntegration)
