@@ -34,7 +34,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Device Planner</string>
+      <string>Select Target Device</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
