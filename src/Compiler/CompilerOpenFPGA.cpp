@@ -1,23 +1,23 @@
 /*
-Copyright 2021 The Foedag team
+   Copyright 2021 The Foedag team
 
-GPL License
+   GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+   Copyright (c) 2021 The Open-Source FPGA Foundation
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   */
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -830,47 +830,47 @@ bool CompilerOpenFPGA::Analyze() {
     // TODO: develop an analysis step with only Yosys parser (no synthesis)
     // Default Yosys parser
     /*
-    std::string macros = "verilog_defines ";
-    for (auto& macro_value : ProjManager()->macroList()) {
-      macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
-    }
-    macros += "\n";
-    std::string includes;
-    for (auto path : ProjManager()->includePathList()) {
-      includes += "-I" + path + " ";
-    }
-    analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
-                                macros +
-                                    "read_verilog ${READ_VERILOG_OPTIONS} "
-                                    "${INCLUDE_PATHS} ${VERILOG_FILES}");
-    std::string fileList;
-    std::string lang;
-    for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      fileList += lang_file.second + " ";
-      switch (lang_file.first) {
-        case Design::Language::VHDL_1987:
-        case Design::Language::VHDL_1993:
-        case Design::Language::VHDL_2000:
-        case Design::Language::VHDL_2008:
-          ErrorMessage("Unsupported language (Yosys default parser)!");
-          break;
-        case Design::Language::VERILOG_1995:
-        case Design::Language::VERILOG_2001:
-        case Design::Language::SYSTEMVERILOG_2005:
-          break;
-        case Design::Language::SYSTEMVERILOG_2009:
-        case Design::Language::SYSTEMVERILOG_2012:
-        case Design::Language::SYSTEMVERILOG_2017:
-          lang = "-sv";
-          break;
-        case Design::Language::VERILOG_NETLIST:
-        case Design::Language::BLIF:
-        case Design::Language::EBLIF:
-          ErrorMessage("Unsupported language (Yosys default parser)!");
-          break;
-      }
-      analysisScript = fileList;
-      */
+       std::string macros = "verilog_defines ";
+       for (auto& macro_value : ProjManager()->macroList()) {
+       macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+       }
+       macros += "\n";
+       std::string includes;
+       for (auto path : ProjManager()->includePathList()) {
+       includes += "-I" + path + " ";
+       }
+       analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
+       macros +
+       "read_verilog ${READ_VERILOG_OPTIONS} "
+       "${INCLUDE_PATHS} ${VERILOG_FILES}");
+       std::string fileList;
+       std::string lang;
+       for (const auto& lang_file : ProjManager()->DesignFiles()) {
+       fileList += lang_file.second + " ";
+       switch (lang_file.first) {
+       case Design::Language::VHDL_1987:
+       case Design::Language::VHDL_1993:
+       case Design::Language::VHDL_2000:
+       case Design::Language::VHDL_2008:
+       ErrorMessage("Unsupported language (Yosys default parser)!");
+       break;
+       case Design::Language::VERILOG_1995:
+       case Design::Language::VERILOG_2001:
+       case Design::Language::SYSTEMVERILOG_2005:
+       break;
+       case Design::Language::SYSTEMVERILOG_2009:
+       case Design::Language::SYSTEMVERILOG_2012:
+       case Design::Language::SYSTEMVERILOG_2017:
+       lang = "-sv";
+       break;
+       case Design::Language::VERILOG_NETLIST:
+       case Design::Language::BLIF:
+       case Design::Language::EBLIF:
+       ErrorMessage("Unsupported language (Yosys default parser)!");
+       break;
+       }
+       analysisScript = fileList;
+       */
   }
 
   std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
@@ -1677,14 +1677,17 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
       std::vector<std::string> tokens;
       StringUtils::tokenize(constraints[i], " ", tokens);
       if (tokens.size() != 3) {
-        ErrorMessage("Invalid set_mode command: <" + constraints[i] + ">");
+        ErrorMessage("Invalid set_io command: <" + constraints[i] + ">");
         return false;
       }
+      std::string constraint_with_mode = constraints[i];
       if (pin_mode_map.find(tokens[2]) != pin_mode_map.end()) {
-        std::string constraint_with_mode =
-            constraints[i] + std::string(" -mode ") + pin_mode_map[tokens[2]];
-        constraint_and_mode.push_back(constraint_with_mode);
+        constraint_with_mode +=
+            std::string(" -mode ") + pin_mode_map[tokens[2]];
+      } else {
+        constraint_with_mode += std::string(" -mode Mode_GPIO");
       }
+      constraint_and_mode.push_back(constraint_with_mode);
     }
   }
   constraints.clear();
