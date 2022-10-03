@@ -43,3 +43,19 @@ QString addSourceForm::TopModule() const {
 QString addSourceForm::LibraryForTopModule() const {
   return ui->lineEditTopModuleLib->text().trimmed();
 }
+
+QString addSourceForm::IncludePath() const {
+  return ui->lineEditIncludePath->text().trimmed();
+}
+
+QString addSourceForm::LibraryPath() const {
+  return ui->lineEditLibraryPath->text().trimmed();
+}
+
+QString addSourceForm::LibraryExt() const {
+  return ui->lineEditLibraryExt->text().trimmed();
+}
+
+QString addSourceForm::Macros() const {
+  return ui->lineEditSetMacro->text().trimmed();
+}

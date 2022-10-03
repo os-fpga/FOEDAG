@@ -22,6 +22,10 @@ class addSourceForm : public QWidget {
   bool IsCopySource();
   QString TopModule() const;
   QString LibraryForTopModule() const;
+  QString LibraryPath() const;
+  QString LibraryExt() const;
+  QString IncludePath() const;
+  QString Macros() const;
 
  private:
   Ui::addSourceForm *ui;
