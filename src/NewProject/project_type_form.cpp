@@ -17,7 +17,7 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_labelPost->setText(
       tr("- Add design netlist.\n"
          "- P&R, timing & generate bitstream.\n"
-         "- Run analysis (optional), Synthesis (Optional), timing and "
+         "- Run analysis (optional), Synthesis (optional), timing and "
          "generate bitstream."));
 
   ui->m_radioBtnRTL->setChecked(true);
