@@ -61,6 +61,7 @@ class newProjectDialog : public QDialog {
   summaryForm* m_sumForm;
 
   ProjectManager* m_projectManager;
+  bool m_skipSources{false};
   void UpdateDialogView();
 };
 }  // namespace FOEDAG
