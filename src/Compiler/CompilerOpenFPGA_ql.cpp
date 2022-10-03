@@ -755,10 +755,10 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
         compiler->Message("\n");
     }
 
-    std::vector<std::string> device_variants;
 
     // [2] check dir structure of the source_device_data_dir_path of the device to be added
     // and return the list of device_variants if everything is ok.
+    std::vector<std::string> device_variants;
     device_variants = compiler->list_device_variants(family,
                                                      foundry,
                                                      node,
@@ -793,7 +793,8 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     }
 
     // collect the list of every filepath in the source_device_data_dir that we want to encrypt.
-    std::vector<std::filesystem::path> source_device_data_file_list;
+    std::vector<std::filesystem::path> source_device_data_file_list_to_encrypt;
+    std::vector<std::filesystem::path> source_device_data_file_list_to_copy;
     for (const std::filesystem::directory_entry& dir_entry :
         std::filesystem::recursive_directory_iterator(source_device_data_dir_path_c,
                                                       std::filesystem::directory_options::skip_permission_denied,
@@ -806,11 +807,26 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       }
 
       if(dir_entry.is_regular_file(ec)) {
-          // we want xml files:
-          if (std::regex_match(dir_entry.path().filename().string(), 
-                                std::regex(".+\\.xml", 
+          // we want xml files for encryption
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+\\.xml",
                                 std::regex::icase))) {
-            source_device_data_file_list.push_back(dir_entry.path().string());
+            // exclude fpga_io_map xml files from encryption
+            // include them for copy
+            if (std::regex_match(dir_entry.path().filename().string(),
+                                  std::regex(".+_fpga_io_map\\.xml",
+                                  std::regex::icase))) {
+              source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+              continue;
+            }
+            source_device_data_file_list_to_encrypt.push_back(dir_entry.path().string());
+          }
+
+          // include pin_table csv files for copy
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+_pin_table\\.csv",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
       }
 
@@ -821,13 +837,13 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     }
 
     // debug prints
-    // std::sort(source_device_data_file_list.begin(),source_device_data_file_list.end());
-    // std::cout << "source_device_data_file_list" << std::endl;
-    // for(auto path : source_device_data_file_list) std::cout << path << std::endl;
+    // std::sort(source_device_data_file_list_to_encrypt.begin(),source_device_data_file_list_to_encrypt.end());
+    // std::cout << "source_device_data_file_list_to_encrypt" << std::endl;
+    // for(auto path : source_device_data_file_list_to_encrypt) std::cout << path << std::endl;
     // std::cout << std::endl;
 
     // encrypt the list of files
-    if (!CRFileCryptProc::getInstance()->encryptFiles(source_device_data_file_list)) {
+    if (!CRFileCryptProc::getInstance()->encryptFiles(source_device_data_file_list_to_encrypt)) {
         compiler->ErrorMessage("encrypt files failed!");
         return TCL_ERROR;
     } else {
@@ -869,7 +885,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     }
 
     // pass through the list of files we prepared earlier for encryption and process each one
-    for(std::filesystem::path source_file_path : source_device_data_file_list) {
+    for(std::filesystem::path source_file_path : source_device_data_file_list_to_encrypt) {
 
       // corresponding encrypted file path
       std::filesystem::path source_en_file_path = 
@@ -960,11 +976,576 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
 
+    // pass through the list of files we prepared earlier for copying without encryption and process each one
+    for(std::filesystem::path source_file_path : source_device_data_file_list_to_copy) {
+
+      // get the file path, relative to the source_device_data_dir_path
+      std::filesystem::path relative_file_path = 
+          std::filesystem::relative(source_file_path,
+                                    source_device_data_dir_path_c,
+                                    ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to create relative path: ") + source_file_path.string());
+        return TCL_ERROR;
+      }
+
+      // add the relative file path to the target_device_data_dir_path
+      std::filesystem::path target_file_path = 
+          target_device_data_dir_path / relative_file_path;
+
+      // ensure that the target file's parent dir is created if not existing:
+      std::filesystem::create_directories(target_file_path.parent_path(),
+                                          ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to create directory: ") + target_file_path.parent_path().string());
+        return TCL_ERROR;
+      }
+
+      // copy the source file to the target file path:
+      std::cout << "copying:" << relative_file_path << std::endl;
+      std::filesystem::copy_file(source_file_path,
+                                 target_file_path,
+                                 std::filesystem::copy_options::overwrite_existing,
+                                 ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to copy: ") + source_file_path.string());
+        return TCL_ERROR;
+      }
+    }
+
     compiler->Message("\ndevice added ok: " + device);
 
     return TCL_OK;
   };
   interp->registerCmd("add_device", add_device, this, 0);
+
+  auto generate_fpga_io_map = [](void* clientData, Tcl_Interp* interp, int argc,
+                                    const char* argv[]) -> int {
+
+    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+
+    // theory: 
+    // we want to generate the FPGA IO MAP XML file for every layout available
+    //    in the VPR architecture file(s)
+    // to do this, we need to use OpenFPGA which provides the option to do so, but
+    //    it requires that we run the full flow (yosys+vpr+openfpga) to generate this.
+    // so, we use a very simple and2 design, and for every layout that exists in the
+    //    vpr.xml (of each device variant) run the aurora flow for that layout.
+    // then, we take the generated fpga io map xml and copy it into the device data.
+    // so, we would be running the aurora flow for and2 for NxL times,
+    //    where N=number of device_variants, L=number of fixed_layouts
+    //
+    // implementation notes:
+    // iterate through all the 'vpr.xml' files in the device data dir:
+    // we know family, foundry, node
+    // vpr.xml -> dir = p_v_t_corner (best/worst etc.)
+    // vpr.xml -> dir -> parent = voltage_threshold (ulvt/lvt etc.)
+    // then, parse vpr.xml for the list of the 'fixed_layout' elements avaialble.
+    // for each fixed_layout:
+    //    generate the and2.json from the template with device settings(family, foundry...)
+    //    run aurora --batch --script and2.tcl to run regular flow to generate fpga_io_map xml
+    //    grab the _fpga_io_map.xml file generated, and copy into the device_data dir
+    //
+    // now, this has a redundancy:
+    // multiple vpr files, may have the same layout, so we would be repeating it unnecessarily!!
+    // current "worst case" assumption: each device variant may have different layout!
+    //  so, we need the io map for every variant + layout.
+    // if we know that ALL VPR XML variant files have the SAME LAYOUTs, we can just process
+    // the first VPR XML that we find, and be done with it.
+    // This is a reasonable ask, as we control the layouts in the XML files.
+    // how about a customer? different pvtcorner/thresholds should not need to have different
+    // fixed_layouts?
+    // <TODO>, if needed we will simplify as above.
+
+
+    // generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force] [size]
+    // this will perform the steps:
+    // 1. check the expected fpga_io_map.xml files, and if any are missing
+    //    by default, it will only generate the files if they are missing.
+    //    to force regeneration of all xml files, use "force"
+    // 2. the generated xml files are placed into device_data/family/foundry/node/fpga_io_map directory
+    // 3. if [source_device_data_dir_path] is specified, the files are also placed into [source_device_data_dir_path]/fpga_io_map directory
+
+    // check args:4 or 5 or 6(if source_device_data_dir_path/force is specified)
+    if (argc != 4 && argc != 5 && argc != 6) {
+      compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force]");
+      return TCL_ERROR;
+    }
+
+    // parse args
+    std::string family = compiler->ToUpper(std::string(argv[1]));
+    std::string foundry = compiler->ToUpper(std::string(argv[2]));
+    std::string node = compiler->ToLower(std::string(argv[3]));
+    std::filesystem::path source_device_data_dir_path;
+    bool force = false;
+    if(argc == 4) {
+      // no force
+      // no source_device_data_dir_path
+      // ok.
+    }
+    else if(argc == 5) {
+      // argv[4] can be either force, or source_device_data_dir_path:
+      if( compiler->ToLower(std::string(argv[4])).compare("force") == 0 ) {
+        force = true;
+      }
+      else {
+        source_device_data_dir_path = argv[4];
+      }
+    }
+    else if(argc == 6) {
+      // then argv[4] MUST be source_device_data_dir_path
+      // and argv[5] MUST be 'force'
+      if( compiler->ToLower(std::string(argv[4])).compare("force") == 0 ) {
+        compiler->ErrorMessage("\"force\" must be the last option!");
+        compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force]");
+        return TCL_ERROR;
+      }
+      else {
+        source_device_data_dir_path = argv[4];
+      }
+      
+      if( compiler->ToLower(std::string(argv[5])).compare("force") == 0 ) {
+        force = true;
+      }
+      else {
+        compiler->ErrorMessage("\"force\" must be the last option!");
+        compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force]");
+        return TCL_ERROR;
+      }
+    }
+    else {
+      compiler->ErrorMessage("Please enter command in the format:\n"
+                             "    generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force]");
+      return TCL_ERROR;
+    }
+
+    std::error_code ec;
+    std::filesystem::path source_device_data_dir_path_c;
+    if(!source_device_data_dir_path.empty()) {
+      // convert to canonical path, which will also check that the path exists.
+      source_device_data_dir_path_c = 
+              std::filesystem::canonical(source_device_data_dir_path, ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage("Please check if the path specified exists!");
+        compiler->ErrorMessage("path: " + source_device_data_dir_path.string());
+        return TCL_ERROR;
+      }
+    }
+
+    // debug prints
+    // std::cout << std::endl;
+    // std::cout << "family: " << family << std::endl;
+    // std::cout << "foundry: " << foundry << std::endl;
+    // std::cout << "node: " << node << std::endl;
+    // std::cout << "source_device_data_dir_path: " << source_device_data_dir_path_c << std::endl;
+    // std::cout << "force: " << std::string(force?"true":"false") << std::endl;
+    // std::cout << std::endl;
+
+    // collect the list of every filepath in the device_data directory that we want to use further
+    // we can work with vpr.xml or vpr.xml.en files
+    std::string vpr_xml_pattern = "vpr\\.xml.*";
+    std::filesystem::path device_data_dir_path = 
+        std::filesystem::path(compiler->GetSession()->Context()->DataPath() /
+                              family /
+                              foundry /
+                              node);
+
+    std::vector<std::filesystem::path> device_data_file_list;
+    for (const std::filesystem::directory_entry& dir_entry :
+        std::filesystem::recursive_directory_iterator(device_data_dir_path,
+                                                      std::filesystem::directory_options::skip_permission_denied,
+                                                      ec))
+    {
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed listing contents of ") +  device_data_dir_path.string());
+        return TCL_ERROR;
+      }
+
+      if(dir_entry.is_regular_file(ec)) {
+          // we want vpr.xml files:
+          if (std::regex_match(dir_entry.path().filename().string(), 
+                                std::regex(vpr_xml_pattern, 
+                                std::regex::icase))) {
+            device_data_file_list.push_back(dir_entry.path().string());
+          }
+      }
+
+      if(ec) {
+        compiler->ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+        return TCL_ERROR;
+      }
+    }
+
+    // for each vpr.xml, get all the "fixed_layout" elements
+    // for each "fixed_layout" element, generate the fpga_io_map xml file.
+    for(std::filesystem::path source_file_path : device_data_file_list) {
+      // we already have family, foundry, node from inputs.
+      // get the p_v_t_corner and voltage_threshold
+      std::string p_v_t_corner;
+      std::string voltage_threshold;
+      if(std::filesystem::equivalent(source_file_path.parent_path(), device_data_dir_path)) {
+        // this means that the vpr.xml is inside the source_device_data_path itself, so this is the
+        // "default" variant and does not have any p_v_t_corner or voltage_threshold defined.
+      }
+      else {
+        // get the dir-name component of the path, this is the p_v_t_corner
+        p_v_t_corner = source_file_path.parent_path().filename().string();
+      
+        // get the dir-name component of the parent of the parent of the path, this is the voltage_threshold
+        voltage_threshold = source_file_path.parent_path().parent_path().filename().string();
+      }
+
+      std::filesystem::path vpr_xml_filepath;
+      // if the file is encrypted, we need to decrypt it first
+      if(source_file_path.filename() == "vpr.xml.en") {
+        vpr_xml_filepath = compiler->GenerateTempFilePath();
+
+        std::filesystem::path m_cryptdbPath = 
+            CRFileCryptProc::getInstance()->getCryptDBFileName(device_data_dir_path.string(),
+                                                              family + "_" + foundry + "_" + node);
+
+        if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+          compiler->Message("load cryptdb failed!");
+          compiler->CleanTempFiles();
+          return TCL_ERROR;
+        }
+
+        if (!CRFileCryptProc::getInstance()->decryptFile(source_file_path, vpr_xml_filepath)) {
+          compiler->ErrorMessage("decryption failed!");
+          compiler->CleanTempFiles();
+          return TCL_ERROR;
+        }
+      }
+      else if(source_file_path.filename() == "vpr.xml") {
+        vpr_xml_filepath = source_file_path;
+      }
+      else {
+        // should never get here.
+        compiler->CleanTempFiles();
+        return TCL_ERROR;
+      }
+
+      // open file with Qt
+      // qDebug() << "vpr xml" << QString::fromStdString(vpr_xml_filepath.string());
+      QFile file(vpr_xml_filepath.string().c_str());
+      if (!file.open(QFile::ReadOnly)) {
+        compiler->ErrorMessage("Cannot open file: " + vpr_xml_filepath.string());
+        compiler->CleanTempFiles();
+        return TCL_ERROR;
+      }
+
+      // parse as XML with Qt
+      QDomDocument doc;
+      if (!doc.setContent(&file)) {
+        file.close();
+        compiler->ErrorMessage("Incorrect file: " + vpr_xml_filepath.string());
+        compiler->CleanTempFiles();
+        return TCL_ERROR;
+      }
+      file.close();
+      compiler->CleanTempFiles(); // the file is not needed anymore.
+
+      // get all "fixed_layout" tag elements
+      QStringList listOfFixedLayout;
+      QDomNodeList nodes = doc.elementsByTagName("fixed_layout");
+      for(int i = 0; i < nodes.count(); i++) {
+          QDomNode node = nodes.at(i);
+          if(node.isElement()) {
+              // get the "name" attribute for the "fixed_layout" tag element
+              QString fixed_layout_value = node.toElement().attribute("name", "notfound");
+              listOfFixedLayout.append(fixed_layout_value);
+          }
+      }
+
+      // dir path to store the fpga_io_map xml files:
+      std::filesystem::path device_data_fpga_io_map_dir_path = 
+          device_data_dir_path / "fpga_io_map";
+
+      // ensure that the dir path to store the fpga_io_map xml is created if not existing:
+      std::filesystem::create_directories(device_data_fpga_io_map_dir_path,
+                                          ec);
+      if(ec) {
+        // error
+        compiler->ErrorMessage(std::string("failed to create directory: ") + device_data_fpga_io_map_dir_path.string());
+        return TCL_ERROR;
+      }
+
+      // same for dir path to store the fpga_io_map xml files in source device data dir if specified:
+      std::filesystem::path source_device_data_fpga_io_map_dir_path;
+      if(!source_device_data_dir_path_c.empty()) {
+        source_device_data_fpga_io_map_dir_path = 
+            source_device_data_dir_path_c / "fpga_io_map";
+
+        // ensure that the dir path to store the fpga_io_map xml is created if not existing:
+        std::filesystem::create_directories(source_device_data_fpga_io_map_dir_path,
+                                            ec);
+        if(ec) {
+          // error
+          compiler->ErrorMessage(std::string("failed to create directory: ") + source_device_data_fpga_io_map_dir_path.string());
+          return TCL_ERROR;
+        }
+      }
+
+      // we don't need this yet.
+      // std::filesystem::path current_design_dir = std::filesystem::current_path();
+      // qDebug() << "current_design_dir: " << QString::fromStdString(current_design_dir.string());
+
+      std::filesystem::path current_working_dir = compiler->m_projManager->projectPath();
+      // qDebug() << "current_working_dir: " << QString::fromStdString(current_working_dir.string());
+
+      // reference design to use for the fpga_io_map xml generation
+      // this is guarnateed to be present in the scripts/and2/ path (refer CMakeLists.txt)
+      std::filesystem::path source_and2_design_dir = compiler->GetSession()->Context()->DataPath() /
+                                                      std::filesystem::path("..") /
+                                                      std::filesystem::path("scripts") /
+                                                      std::filesystem::path("and2");
+      // qDebug() << "source_and2_design_dir: " << QString::fromStdString(source_and2_design_dir.string());
+
+      // we need to copy the "and2/" dir **content** as is into the current working directory
+      std::filesystem::path target_and2_design_dir = current_working_dir;
+      // ensure that the dir path to store the and2/ files is created if not existing:
+      std::filesystem::create_directories(target_and2_design_dir,
+                                          ec);
+
+      // copy the "and2" dir **content** from source(scripts/) into the current project path,
+      // because, when foedag actually executes a command, it will first change dir
+      // to the current project path (working directory), and then execute it.
+      // the command that we want to execute would be "aurora --batch --script and2.tcl"
+      // so "and2" content should be present in the project path itself.
+      for (const std::filesystem::directory_entry& dir_entry :
+          std::filesystem::directory_iterator(source_and2_design_dir,
+                                              std::filesystem::directory_options::skip_permission_denied,
+                                              ec))
+      {
+        if(ec) {
+          // error
+          compiler->ErrorMessage(std::string("failed listing contents of ") +  source_and2_design_dir.string());
+          return TCL_ERROR;
+        }
+        if(dir_entry.is_regular_file(ec)) {
+
+          // MinGW g++ bug? overwrite_existing, still throws error if it exists? hence the check below.
+          if(FileUtils::FileExists(std::filesystem::path(target_and2_design_dir / dir_entry.path().filename()))) {
+            std::filesystem::remove(target_and2_design_dir / dir_entry.path().filename());
+          }
+          std::filesystem::copy_file(dir_entry.path().string(),
+                                      target_and2_design_dir / dir_entry.path().filename(),
+                                      std::filesystem::copy_options::overwrite_existing,
+                                      ec);
+          if(ec) {
+            std::cout << "error number : " << ec.value() << "\n"
+                      << "     message : " << ec.message() << "\n"
+                      << "    category : " << ec.category().name() << "\n"
+                      << std::endl;
+            // error
+            compiler->ErrorMessage(std::string("failed to copy: ") + dir_entry.path().string() + "\n" +
+                                    std::string("to: ") + target_and2_design_dir.string());
+            return TCL_ERROR;
+          }
+        }
+      }
+
+      // qDebug() << QString::fromStdString(family);
+      // qDebug() << QString::fromStdString(foundry);
+      // qDebug() << QString::fromStdString(node);
+      // qDebug() << QString::fromStdString(voltage_threshold);
+      // qDebug() << QString::fromStdString(p_v_t_corner);
+      for(QString fixed_layout_value: listOfFixedLayout) {
+
+        // qDebug() << fixed_layout_value;
+        compiler->Message(std::string("\n>>>> processing: ") +
+                          compiler->DeviceString(family, foundry, node, voltage_threshold, p_v_t_corner) +
+                          "," +
+                          fixed_layout_value.toStdString() +
+                          std::string("\n"));
+
+        // testing
+        //if(fixed_layout_value == QString("base")) continue; // exclude filter
+        // if( (fixed_layout_value != QString("4x4")) &&
+        //     (fixed_layout_value != QString("8x8"))) continue; // include filter
+
+        // form the expected device_data_fpga_io_map file name
+        std::string device_data_fpga_io_map_filename = family +
+                                                        std::string("_") +
+                                                        foundry +
+                                                        std::string("_") +
+                                                        node;
+        if(!voltage_threshold.empty()) {
+          device_data_fpga_io_map_filename += std::string("_") +
+                                              voltage_threshold;
+        }
+        if(!p_v_t_corner.empty()) {
+          device_data_fpga_io_map_filename += std::string("_") +
+                                              p_v_t_corner;
+        }
+        device_data_fpga_io_map_filename += std::string("_") +
+                                        fixed_layout_value.toStdString() +
+                                        std::string("_fpga_io_map.xml");
+        
+        // fpga_io_map xml should finally be here in the device data dir
+        std::filesystem::path device_data_fpga_io_map_filepath = device_data_fpga_io_map_dir_path / device_data_fpga_io_map_filename;
+        // qDebug() << "device_data_fpga_io_map_filepath: " << QString::fromStdString(device_data_fpga_io_map_filepath.string());
+
+        // fpga_io_map xml can also be output to the 'source' device data for future use if specified:
+        std::filesystem::path source_device_data_fpga_io_map_filepath;
+        if(!source_device_data_fpga_io_map_dir_path.empty()) {
+          source_device_data_fpga_io_map_filepath = 
+              source_device_data_fpga_io_map_dir_path / device_data_fpga_io_map_filename;
+        }
+
+        if(FileUtils::FileExists(device_data_fpga_io_map_filepath)) {
+          // the fpga_io_map xml seems to be already generated and present, so skip this fixed_layout combo.
+          // if we really need to regenerate the xml files, add the 'force' option!
+          if(force) {
+            compiler->Message("\nWARNING: The fpga_io_map xml already exists.");
+            compiler->Message(std::string("device_data_fpga_io_map_filename:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filename);
+            compiler->Message(std::string("target device_data_fpga_io_map_filepath:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filepath.string());
+            compiler->Message("'force' has been specified, this will overwrite the fpga_io_map xml.");
+            compiler->Message("\n");
+          }
+          else {
+            compiler->Message("\n");
+            compiler->Message("\nWARNING: The fpga_io_map xml already exists, skip this layout!");
+            compiler->Message(std::string("device_data_fpga_io_map_filename:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filename);
+            compiler->Message(std::string("target device_data_fpga_io_map_filepath:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filepath.string());
+            compiler->Message("Please specify 'force' to overwrite the fpga_io_map xml.");
+            compiler->Message("Please enter command in the format:\n"
+                              "    generate_fpga_io_map <family> <foundry> <node> [source_device_data_dir_path] [force]");
+            compiler->Message("\n");
+            continue; // with the next 'fixed_layout'
+          }
+        }
+        else {
+            compiler->Message("\nNew fpga_io_map xml will be generated.");
+            compiler->Message(std::string("device_data_fpga_io_map_filename:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filename);
+            compiler->Message(std::string("target device_data_fpga_io_map_filepath:") +
+                              std::string("\n    ") +
+                              device_data_fpga_io_map_filepath.string());
+            compiler->Message("\n");
+        }
+
+        // fpga_io_map xml will be generated using and2 design after aurora flow here
+        // the extra "and2" in the path below is because, again, foedag will change to 
+        // the corresponding "working_directory" when actually executing the command.
+        std::filesystem::path and2_fpga_io_map_filepath = target_and2_design_dir / "and2" / device_data_fpga_io_map_filename;
+        // qDebug() << "and2_fpga_io_map_filepath: " << QString::fromStdString(and2_fpga_io_map_filepath.string());
+
+        // read "and2" project json template
+        std::filesystem::path and2_json_template = target_and2_design_dir / "and2.json.in";
+        // qDebug() << "and2_json_template: " << QString::fromStdString(and2_json_template.string());
+        std::ifstream stream(and2_json_template.string());
+        if (!stream.good()) {
+          compiler->ErrorMessage("Cannot find and2_json_template: " +
+                                std::string(and2_json_template.string()));
+          return TCL_ERROR;
+        }
+        std::string and2_json_content((std::istreambuf_iterator<char>(stream)),
+                                      std::istreambuf_iterator<char>());
+        stream.close();
+
+        // qDebug() << "\n\n\n";
+        // qDebug() << QString::fromStdString(and2_json_content);
+        // qDebug() << "\n\n\n";
+
+        // update json content with actual variable values of current device and layout (size)
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_FAMILY}", family);
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_FOUNDRY}", foundry);
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_NODE}", node);
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_VOLTAGE_THRESHOLD}", voltage_threshold);
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_P_V_T_CORNER}", p_v_t_corner);
+        and2_json_content = compiler->ReplaceAll(and2_json_content, "${DEVICE_SIZE}", fixed_layout_value.toStdString());
+        
+        // now save updated json file
+        std::filesystem::path and2_json = target_and2_design_dir / "and2.json";
+        std::ofstream ofs(and2_json.string());
+        ofs << and2_json_content;
+        ofs.close();
+
+        // invoke aurora flow for the and2 design, using the updated json
+        std::string command = std::string("aurora") +
+                                std::string(" --batch") +
+                                std::string(" --mute") +
+                                std::string(" --script") +
+                                std::string(" ") +
+                                std::string("and2.tcl");
+        int status = compiler->ExecuteAndMonitorSystemCommand(command);
+        compiler->CleanTempFiles();
+        if (status) {
+          compiler->Message("oops! aurora2 flow to generate fpga_io_map failed!");
+          std::filesystem::remove(and2_json);
+          return TCL_ERROR;
+        }
+
+        // copy generated fpga io map from the and2 dir into the device data dir.
+        // MinGW g++ bug? overwrite_existing, still throws error if it exists? hence the check below.
+        if(FileUtils::FileExists(device_data_fpga_io_map_filepath)) {
+          std::filesystem::remove(device_data_fpga_io_map_filepath);
+        }
+        std::filesystem::copy_file(and2_fpga_io_map_filepath,
+                                    device_data_fpga_io_map_filepath,
+                                    std::filesystem::copy_options::overwrite_existing,
+                                    ec);
+        if(ec) {
+          std::cout << "error number : " << ec.value() << "\n"
+                    << "     message : " << ec.message() << "\n"
+                    << "    category : " << ec.category().name() << "\n"
+                    << std::endl;
+          // error
+          compiler->ErrorMessage(std::string("failed to copy: ") + and2_fpga_io_map_filepath.string() + "\n" +
+                                  std::string("to: ") + device_data_fpga_io_map_filepath.string());
+          return TCL_ERROR;
+        }
+
+        // also copy the fpga io map xml to the source device data dir if specified:
+        if(!source_device_data_fpga_io_map_filepath.empty()) {
+          // copy generated fpga io map from the and2 dir into the 'source' device data dir.
+          // MinGW g++ bug? overwrite_existing, still throws error if it exists? hence the check below.
+          if(FileUtils::FileExists(source_device_data_fpga_io_map_filepath)) {
+            std::filesystem::remove(source_device_data_fpga_io_map_filepath);
+          }
+          std::filesystem::copy_file(and2_fpga_io_map_filepath,
+                                      source_device_data_fpga_io_map_filepath,
+                                      std::filesystem::copy_options::overwrite_existing,
+                                      ec);
+          if(ec) {
+            std::cout << "error number : " << ec.value() << "\n"
+                      << "     message : " << ec.message() << "\n"
+                      << "    category : " << ec.category().name() << "\n"
+                      << std::endl;
+            // error
+            compiler->ErrorMessage(std::string("failed to copy: ") + and2_fpga_io_map_filepath.string() + "\n" +
+                                    std::string("to: ") + source_device_data_fpga_io_map_filepath.string());
+            return TCL_ERROR;
+          }
+        }
+
+        // finally delete the generated json for this combo.
+        std::filesystem::remove(and2_json);
+      }
+      // qDebug() << "\n\n";
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("generate_fpga_io_map", generate_fpga_io_map, this, 0);
 
   auto list_devices = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -1667,7 +2248,12 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     device_size = " --device " + m_deviceSize;
   }
 #endif // #if UPSTREAM_UNUSED
-  if(settings_vpr_general_obj.contains("device")) {
+  if (!m_deviceSize.empty()) {
+    vpr_options += std::string(" --device") + 
+                    std::string(" ") + 
+                    m_deviceSize;
+  }
+  else if(settings_vpr_general_obj.contains("device")) {
     vpr_options += std::string(" --device") + 
                     std::string(" ") + 
                     settings_vpr_general_obj["device"]["default"].get<std::string>();
@@ -3162,10 +3748,18 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
                              std::string("_") +
                              foundry +
                              std::string("_") +
-                             node +
-                             std::string("_") +
-                             device_size +
-                             std::string("_fpga_io_map") + std::string(".xml");
+                             node;
+  if(!voltage_threshold.empty()) {
+    filepath_fpga_io_map_xml += std::string("_") +
+                                voltage_threshold;
+  }
+  if(!p_v_t_corner.empty()) {
+    filepath_fpga_io_map_xml += std::string("_") +
+                                p_v_t_corner;
+  }
+  filepath_fpga_io_map_xml += std::string("_") +
+                              device_size +
+                              std::string("_fpga_io_map") + std::string(".xml");
   // generate the fpga_io_map file in the generated 'working_directory', not in the 'design_directory'
   // so the below part of code is commented out.
   // if (!filepath_fpga_io_map_xml.is_absolute()) {
@@ -3387,50 +3981,99 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   std::string foundry = settings_obj["general"]["device"]["foundry"]["default"].get<std::string>();
   std::string node = settings_obj["general"]["device"]["node"]["default"].get<std::string>();
   std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
+  std::string voltage_threshold;
+  std::string p_v_t_corner;
+  if( settings_obj["general"]["device"].contains("voltage_threshold") &&
+      settings_obj["general"]["device"].contains("p_v_t_corner") ) {
+    voltage_threshold = 
+        settings_obj["general"]["device"]["voltage_threshold"]["default"].get<std::string>();
+    p_v_t_corner = 
+            settings_obj["general"]["device"]["p_v_t_corner"]["default"].get<std::string>();
+  }
 
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV ++
-  // we expect the pin table csv to be named: family_foundry_node_size_pin_table.csv
-  // ideally in the device_data, but for now, it is in the design_directory
+  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
+  // this would be in the device_data/family/foundry/node/pin_table directory
+  // optionally, it can also be placed the design_directory
+  std::filesystem::path filename_pin_table_csv;
   std::filesystem::path filepath_pin_table_csv;
-  filepath_pin_table_csv = family +
-                            std::string("_") +
-                            foundry +
-                            std::string("_") +
-                            node +
-                            std::string("_") +
-                            device_size +
-                            std::string("_pin_table") + std::string(".csv");
-  if (FileUtils::FileExists(filepath_pin_table_csv)) {
-    if (!filepath_pin_table_csv.is_absolute()) {
-      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / filepath_pin_table_csv);
-    }
+  filename_pin_table_csv = family +
+                             std::string("_") +
+                             foundry +
+                             std::string("_") +
+                             node;
+  if(!voltage_threshold.empty()) {
+    filename_pin_table_csv += std::string("_") +
+                                voltage_threshold;
   }
-  else {
-    ErrorMessage(std::string(__func__) + ": Pin Table CSV File: " + filepath_pin_table_csv.string() + " not found!");
+  if(!p_v_t_corner.empty()) {
+    filename_pin_table_csv += std::string("_") +
+                                p_v_t_corner;
+  }
+  filename_pin_table_csv += std::string("_") +
+                              device_size +
+                              std::string("_pin_table") + std::string(".csv");
+
+  filepath_pin_table_csv = GetSession()->Context()->DataPath() /
+                            family /
+                            foundry /
+                            node /
+                            std::string("pin_table") /
+                            filename_pin_table_csv;
+  // if the file does not exist in the device data dir
+  if (!FileUtils::FileExists(filepath_pin_table_csv)) {
+    // check if the file exists in the design_directory instead?
+    if (FileUtils::FileExists(filename_pin_table_csv)) {
+      filepath_pin_table_csv = std::filesystem::path(std::filesystem::path("..") / filename_pin_table_csv);
+    }
+    else {
+      // no fpga io map xml available, we cannot proceed with the pcf flow!
+      ErrorMessage(std::string(__func__) + ": PIN TABLE CSV File: " + filename_pin_table_csv.string() + " not found!");
     return false;
+    }
   }
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV --
 
   ///////////////////////////////////////////////////////////////// FPGA IO MAP XML ++
-  // we expect the fpga io map xml to be named: family_foundry_node_size_fpga_io_map.xml
-  // ideally in the device_data, but for now, it is in the design_directory
+  // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_fpga_io_map.xml
+  // this would be in the device_data/family/foundry/node/fpga_io_map directory
+  // optionally, it can also be placed the design_directory
+  std::filesystem::path filename_fpga_io_map_xml;
   std::filesystem::path filepath_fpga_io_map_xml;
-  filepath_fpga_io_map_xml = family +
+  filename_fpga_io_map_xml = family +
                              std::string("_") +
                              foundry +
                              std::string("_") +
-                             node +
-                             std::string("_") +
-                             device_size + 
-                             std::string("_fpga_io_map") + std::string(".xml");
-  if (FileUtils::FileExists(filepath_fpga_io_map_xml)) {
-    if (!filepath_fpga_io_map_xml.is_absolute()) {
-      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / filepath_fpga_io_map_xml);
-    }
+                             node;
+  if(!voltage_threshold.empty()) {
+    filename_fpga_io_map_xml += std::string("_") +
+                                voltage_threshold;
   }
-  else {
-    ErrorMessage(std::string(__func__) + ": FPGA IO MAP XML File: " + filepath_fpga_io_map_xml.string() + " not found!");
+  if(!p_v_t_corner.empty()) {
+    filename_fpga_io_map_xml += std::string("_") +
+                                p_v_t_corner;
+  }
+  filename_fpga_io_map_xml += std::string("_") +
+                              device_size +
+                              std::string("_fpga_io_map") + std::string(".xml");
+
+  filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /
+                              family /
+                              foundry /
+                              node /
+                              std::string("fpga_io_map") /
+                              filename_fpga_io_map_xml;
+  // if the file does not exist in the device data dir
+  if (!FileUtils::FileExists(filepath_fpga_io_map_xml)) {
+    // check if the file exists in the design_directory instead?
+    if (FileUtils::FileExists(filename_fpga_io_map_xml)) {
+      filepath_fpga_io_map_xml = std::filesystem::path(std::filesystem::path("..") / filename_fpga_io_map_xml);
+    }
+    else {
+      // no fpga io map xml available, we cannot proceed with the pcf flow!
+      ErrorMessage(std::string(__func__) + ": FPGA IO MAP XML File: " + filename_fpga_io_map_xml.string() + " not found!");
     return false;
+    }
   }
   ///////////////////////////////////////////////////////////////// FPGA IO MAP XML --
 
