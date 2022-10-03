@@ -80,6 +80,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->setMinimumWidth(200);
+    if (m_projManager->HasDesign()) {
+      menu->addAction(m_actProjectSettings);
+    }
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
@@ -89,7 +92,6 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actEditSimulSets);
       menu->addSeparator();
       menu->addAction(m_actAddFile);
-
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
@@ -474,6 +476,10 @@ void SourcesForm::CreateActions() {
       "Remove the selectd IP instance from the project and delete its build "
       "files.");
   connect(m_actDeleteIp, &QAction::triggered, this, &SourcesForm::SlotDeleteIp);
+
+  m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
+  connect(m_actProjectSettings, &QAction::triggered, this,
+          &SourcesForm::OpenProjectSettings);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
@@ -482,6 +488,10 @@ void SourcesForm::UpdateSrcHierachyTree() {
   CreateFolderHierachyTree();
   m_treeSrcHierachy->setHeaderHidden(true);
   m_treeSrcHierachy->expandAll();
+}
+
+QAction *SourcesForm::ProjectSettingsActions() const {
+  return m_actProjectSettings;
 }
 
 void SourcesForm::CreateFolderHierachyTree() {

@@ -153,6 +153,11 @@ void sourceGrid::selectRow(int row) {
   if (row >= 0 && row < m_model->rowCount()) m_tableViewSrc->selectRow(row);
 }
 
+void sourceGrid::ClearTable() {
+  m_model->clear();
+  m_lisFileData.clear();
+}
+
 void sourceGrid::AddFiles() {
   QString fileformat{DESIGN_SOURCES_FILTER};
   if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;

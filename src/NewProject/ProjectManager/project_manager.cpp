@@ -17,7 +17,6 @@
 extern FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
-constexpr auto LocalToProject{"<Local to Project>"};
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
@@ -206,6 +205,68 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentRun(DEFAULT_FOLDER_SYNTH);
 
+  if (opt.device.count() >= 4) {
+    QStringList strlist = opt.device;
+    QList<QPair<QString, QString>> listParam;
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_PART_SERIES;
+    pair.second = strlist.at(0);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_FAMILY;
+    pair.second = strlist.at(1);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_PACKAGE;
+    pair.second = strlist.at(2);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = strlist.at(3);
+    listParam.append(pair);
+    setSynthesisOption(listParam);
+
+    auto targetDevice = strlist.at(3);
+    target_device(targetDevice);
+  }
+
+  FinishedProject();
+}
+
+void ProjectManager::UpdateProject(const ProjectOptions& opt) {
+  deleteFileSet(DEFAULT_FOLDER_SOURCE);
+  setDesignFileSet(DEFAULT_FOLDER_SOURCE);
+
+  setCurrentFileSet(opt.currentFileSet);
+  const QList<filedata> listFile = opt.sourceFileData.fileData;
+  for (const filedata& fdata : listFile) {
+    auto libraries = fdata.m_workLibrary;
+    auto command = libraries.isEmpty() ? QString() : "-work";
+
+    if (LocalToProject == fdata.m_filePath) {
+      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
+                     false, true);
+    } else {
+      setDesignFiles(command, libraries,
+                     fdata.m_filePath + "/" + fdata.m_fileName,
+                     fdata.m_language, opt.sourceFileData.isCopySource, false);
+    }
+  }
+
+  setTopModule(opt.topModule);
+  setTopModuleLibrary(opt.topModuleLib);
+
+  deleteFileSet(DEFAULT_FOLDER_CONSTRS);
+  setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
+  setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  const auto constr = opt.constrFileData.fileData;
+  for (const filedata& fdata : constr) {
+    if (LocalToProject == fdata.m_filePath) {
+      setConstrsFile(fdata.m_fileName, false);
+    } else {
+      setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
+                     opt.constrFileData.isCopySource);
+    }
+  }
+
+  setCurrentRun(DEFAULT_FOLDER_SYNTH);
   if (opt.device.count() >= 4) {
     QStringList strlist = opt.device;
     QList<QPair<QString, QString>> listParam;
@@ -1447,14 +1508,8 @@ int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(strSetName);
-  if (proFileSet && PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
-      strSetName == getDesignActiveFileSet()) {
-    return -1;
-  } else if (proFileSet && PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
-             strSetName == getConstrActiveFileSet()) {
-    return -1;
-  } else if (proFileSet && PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
-             strSetName == getSimulationActiveFileSet()) {
+  if (proFileSet && PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
+      strSetName == getSimulationActiveFileSet()) {
     return -1;
   }
   Project::Instance()->deleteProjectFileset(strSetName);

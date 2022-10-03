@@ -70,7 +70,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void ipConfiguratorActionTriggered();
   void newDialogAccepted();
   void recentProjectOpen();
-
+  void openProjectSettings();
   void slotTabChanged(int index);
 
  public slots:
@@ -126,6 +126,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
   QMenu* recentMenu = nullptr;
+  QMenu* projectMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;

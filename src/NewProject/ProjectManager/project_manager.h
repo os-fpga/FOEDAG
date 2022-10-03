@@ -94,6 +94,7 @@ project object is singleton mode.
 #define PROJECT_FILE_FORMAT ".ospr"
 
 #define PROJECT_OSRCDIR "$OSRCDIR"
+constexpr auto LocalToProject{"<Local to Project>"};
 
 namespace FOEDAG {
 
@@ -139,6 +140,7 @@ class ProjectManager : public QObject {
   };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  void UpdateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
                                   const QString &projName,
                                   const QString &fileSet,
