@@ -146,7 +146,7 @@
            <property name="text">
             <string>- Add design netlist
 - P&amp;R, timing &amp; generate bitstream
-- Run analysis (optional), Synthesis (Optional), timing and generate bitstream.</string>
+- Run analysis (optional), Synthesis (optional), timing and generate bitstream.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
