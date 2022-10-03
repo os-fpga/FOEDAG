@@ -151,7 +151,11 @@ void newProjectDialog::on_buttonBox_accepted() {
       false /*rewrite*/,
       DEFAULT_FOLDER_SOURCE,
       m_addSrcForm->TopModule(),
-      m_addSrcForm->LibraryForTopModule()};
+      m_addSrcForm->LibraryForTopModule(),
+      m_addSrcForm->IncludePath(),
+      m_addSrcForm->LibraryPath(),
+      m_addSrcForm->LibraryExt(),
+      m_addSrcForm->Macros()};
   Compiler *compiler = GlobalSession->GetCompiler();
   if (m_addConstrsForm->IsRandom()) {
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);

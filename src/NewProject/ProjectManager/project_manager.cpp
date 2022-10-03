@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "Compiler/CompilerDefines.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 constexpr auto LocalToProject{"<Local to Project>"};
@@ -61,6 +62,55 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setTopModule(opt.topModule);
   setTopModuleLibrary(opt.topModuleLib);
+
+  std::string delimiter = " ";
+  // Set Library Paths
+  if (!opt.libraryPathList.isEmpty()) {
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
+    if (!tokens.empty()) {
+      setLibraryPathList(tokens);
+    }
+  }
+
+  // Set Library Extensions
+  if (!opt.libraryExtList.isEmpty()) {
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(opt.libraryExtList.toStdString(), delimiter, tokens);
+    if (!tokens.empty()) {
+      setLibraryExtensionList(tokens);
+    }
+  }
+
+  // Set Include Paths
+  if (!opt.includePathList.isEmpty()) {
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, tokens);
+    if (!tokens.empty()) {
+      setIncludePathList(tokens);
+    }
+  }
+
+  // Set Macros
+  if (!opt.macroList.isEmpty()) {
+    std::vector<std::pair<std::string, std::string>> macros{};
+
+    // Split string by space into macro define strings like NAME=VAL
+    std::vector<std::string> macroStrs;
+    StringUtils::tokenize(opt.macroList.toStdString(), delimiter, macroStrs);
+    if (!macroStrs.empty()) {
+      for (auto macroStr : macroStrs) {
+        // Split each macro string by = to get NAME and VAL
+        std::vector<std::string> tokens;
+        StringUtils::tokenize(macroStr, "=", tokens);
+        if (tokens.size() == 2) {
+          macros.push_back(std::pair(tokens[0], tokens[1]));
+        }
+      }
+    }
+
+    setMacroList(macros);
+  }
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   QString strDefaultCts;
@@ -1658,6 +1708,11 @@ void ProjectManager::setLibraryExtensionList(
 
 void ProjectManager::addLibraryExtension(const std::string& libraryExt) {
   Project::Instance()->compilerConfig()->addLibraryExtension(libraryExt);
+}
+
+void ProjectManager::setMacroList(
+    const std::vector<std::pair<std::string, std::string>>& newMacroList) {
+  Project::Instance()->compilerConfig()->setMacroList(newMacroList);
 }
 
 void ProjectManager::addMacro(const std::string& macroName,

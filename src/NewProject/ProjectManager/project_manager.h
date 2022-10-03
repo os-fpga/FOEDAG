@@ -112,6 +112,10 @@ struct ProjectOptions {
   QString currentFileSet;
   QString topModule;
   QString topModuleLib;
+  QString includePathList;
+  QString libraryPathList;
+  QString libraryExtList;
+  QString macroList;
 };
 
 struct Suffixes {
@@ -275,6 +279,8 @@ class ProjectManager : public QObject {
       const std::vector<std::string> &newLibraryExtensionList);
   void addLibraryExtension(const std::string &libraryExt);
 
+  void setMacroList(
+      const std::vector<std::pair<std::string, std::string>> &newMacroList);
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
 

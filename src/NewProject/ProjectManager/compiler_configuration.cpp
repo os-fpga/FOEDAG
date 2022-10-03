@@ -62,12 +62,17 @@ void CompilerConfiguration::addLibraryExtension(const std::string &libraryExt) {
   m_libraryExtList.push_back(libraryExt);
 }
 
+void CompilerConfiguration::setMacroList(
+    const std::vector<std::pair<std::string, std::string>> &newMacroList) {
+  m_macroList = newMacroList;
+}
+
 void CompilerConfiguration::addMacro(const std::string &macroName,
                                      const std::string &macroValue) {
   m_macroList.push_back(std::pair(macroName, macroValue));
 }
 
-const std::vector<std::pair<std::string, std::string> >
+const std::vector<std::pair<std::string, std::string>>
     &CompilerConfiguration::macroList() const {
   return m_macroList;
 }
