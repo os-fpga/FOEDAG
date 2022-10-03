@@ -20,6 +20,9 @@
    <property name="leftMargin">
     <number>15</number>
    </property>
+   <property name="rightMargin">
+    <number>15</number>
+   </property>
    <property name="bottomMargin">
     <number>15</number>
    </property>
@@ -75,6 +78,9 @@
      <property name="spacing">
       <number>0</number>
      </property>
+     <property name="leftMargin">
+      <number>15</number>
+     </property>
      <item>
       <widget class="QLabel" name="m_labelSourcesPic">
        <property name="text">
@@ -102,6 +108,9 @@
      <property name="spacing">
       <number>0</number>
      </property>
+     <property name="leftMargin">
+      <number>15</number>
+     </property>
      <item>
       <widget class="QLabel" name="m_labelConstraintsPic">
        <property name="text">
@@ -119,69 +128,84 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="3,97">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="m_labelSDevPic">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="m_labelSeriesDevice">
-       <property name="text">
-        <string>The default series and device for the new project:</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
       <number>10</number>
      </property>
      <property name="leftMargin">
-      <number>25</number>
+      <number>0</number>
      </property>
      <property name="topMargin">
       <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>10</number>
+      <number>0</number>
      </property>
      <property name="bottomMargin">
-      <number>10</number>
+      <number>0</number>
      </property>
      <item>
-      <widget class="QLabel" name="m_labelSeries">
-       <property name="text">
-        <string>Series:</string>
+      <widget class="QTableWidget" name="m_deviceInfoTable">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>55</height>
+        </size>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="m_labelFamily">
-       <property name="text">
-        <string>Family:</string>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="m_labePackage">
-       <property name="text">
-        <string>Package:</string>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="m_labelDevice">
-       <property name="text">
-        <string>Device:</string>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
        </property>
+       <property name="showGrid">
+        <bool>false</bool>
+       </property>
+       <property name="rowCount">
+        <number>1</number>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="horizontalHeaderMinimumSectionSize">
+        <number>60</number>
+       </attribute>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>150</number>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderStretchLastSection">
+        <bool>false</bool>
+       </attribute>
+       <row/>
+       <column>
+        <property name="text">
+         <string>Series</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Family</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Package</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Device</string>
+        </property>
+       </column>
       </widget>
      </item>
     </layout>
