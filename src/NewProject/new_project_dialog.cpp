@@ -90,6 +90,8 @@ QString newProjectDialog::getProject() {
 
 void newProjectDialog::Reset() {
   m_index = INDEX_LOCATION;
+  m_skipSources = false;
+
   ui->m_tabWidget->clear();
 
   m_locationForm = new locationForm(this);
@@ -98,6 +100,8 @@ void newProjectDialog::Reset() {
   m_proTypeForm = new projectTypeForm(this);
   ui->m_tabWidget->insertTab(INDEX_PROJTYPE, m_proTypeForm,
                              tr("Type of Project"));
+  QObject::connect(m_proTypeForm, &projectTypeForm::skipSources,
+                   [this](bool skip) { m_skipSources = skip; });
   m_addSrcForm = new addSourceForm(this);
   ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                              tr("Add Design Files"));
@@ -190,11 +194,17 @@ void newProjectDialog::on_next() {
       return;
     }
   }
-  m_index++;
+  if (m_skipSources && m_index == INDEX_PROJTYPE)
+    m_index += 3;  // omit design and constraint files
+  else
+    m_index++;
   UpdateDialogView();
 }
 
 void newProjectDialog::on_back() {
-  m_index--;
+  if (m_skipSources && m_index == INDEX_DEVICEPL)
+    m_index -= 3;  // omit design and constraint files
+  else
+    m_index--;
   UpdateDialogView();
 }

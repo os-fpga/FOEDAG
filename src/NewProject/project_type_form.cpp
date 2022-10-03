@@ -12,15 +12,18 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_radioBtnRTL->setText(tr("RTL Project"));
   ui->m_radioBtnPost->setText(tr("Post-synthesis Project"));
   ui->m_labelRTL->setText(
-      tr("You will be able to add sources, create block designs in IP "
-         "integrator, generate IP, "
-         "run RTL analysis, synthesis, implementation, design planning and "
-         "analysis. "));
+      tr("- Generate IP.\n"
+         "- Run Analysis, Synthesis, P&R timing & generate bitstream."));
   ui->m_labelPost->setText(
-      tr("You will be able to add sources, view device resources, run design "
-         "analysis, planning and implementation. "));
+      tr("- Add design netlist.\n"
+         "- P&R, timing & generate bitstream.\n"
+         "- Run analysis (optional), Synthesis (optional), timing and "
+         "generate bitstream."));
 
   ui->m_radioBtnRTL->setChecked(true);
+
+  QObject::connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
+                   &projectTypeForm::skipSources);
 }
 
 projectTypeForm::~projectTypeForm() { delete ui; }

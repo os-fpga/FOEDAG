@@ -18,6 +18,9 @@ class projectTypeForm : public QWidget {
 
   QString getProjectType();
 
+ signals:
+  void skipSources(bool skip);
+
  private:
   Ui::projectTypeForm *ui;
 };

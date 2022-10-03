@@ -94,7 +94,7 @@
          <item>
           <widget class="QLabel" name="m_labelRTL">
            <property name="text">
-            <string>You will be able to add sources, create block designs in IP integrator, generate IP, run RTL analysis, synthesis, implementation, design planning and analysis.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;- Generate IP.&lt;/p&gt;&lt;p&gt;- Run Analysis, Synthesis, P&amp;amp;R timing &amp;amp; generate bitstream.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -144,7 +144,9 @@
          <item>
           <widget class="QLabel" name="m_labelPost">
            <property name="text">
-            <string>You will be able to add sources, view device resources, run design analysis, planning and implementation.</string>
+            <string>- Add design netlist
+- P&amp;R, timing &amp; generate bitstream
+- Run analysis (optional), Synthesis (optional), timing and generate bitstream.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -156,6 +158,13 @@
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="m_skipSourcesCheckbox">
+     <property name="text">
+      <string>Skip design sources</string>
+     </property>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
