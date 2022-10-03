@@ -59,7 +59,8 @@ set (SRC_H_LIST
   ProjectManager/project.h
   ProjectManager/project_manager.h
   ProjectManager/compiler_configuration.h
-  newprojectmodel.h)
+  newprojectmodel.h
+  SettingsGuiInterface.h)
 
 set (SRC_UI_LIST
   new_project_dialog.ui
@@ -93,6 +94,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/new_project_dialog.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/SettingsGuiInterface.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_constraints_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/source_grid.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_source_form.h
