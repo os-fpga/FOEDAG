@@ -308,11 +308,15 @@ bool MainWindow::saveConstraintFile() {
   QFile::OpenMode openFlags = QFile::ReadWrite;
   if (file.size() != 0) {
     auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
-    auto answer = QMessageBox::question(
-        this, "Save constraint file...",
-        "Do you want to rewrite current constraint file?", btns);
-    if (answer == QMessageBox::Cancel) return false;
-    rewrite = (answer == QMessageBox::Yes);
+    auto msgBox = QMessageBox(
+        QMessageBox::Question, tr("Save constraint file..."),
+        tr("Do you want to rewrite current constraint file?"), btns, this);
+    msgBox.button(QMessageBox::Yes)->setText("Rewrite");
+    msgBox.button(QMessageBox::No)->setText("Append");
+    msgBox.exec();
+    auto answer = msgBox.buttonRole(msgBox.clickedButton());
+    if (answer == QMessageBox::RejectRole) return false;
+    rewrite = (answer == QMessageBox::YesRole);
     if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
   file.open(openFlags);
@@ -409,6 +413,7 @@ void MainWindow::showMenus(bool show) {
   menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
+  saveToolBar->setVisible(show);
 }
 
 void MainWindow::createActions() {
@@ -478,7 +483,7 @@ void MainWindow::createActions() {
     }
   });
 
-  pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
+  pinAssignmentAction = new QAction(tr("Pin Planner"), this);
   pinAssignmentAction->setCheckable(true);
   pinAssignmentAction->setEnabled(false);
   connect(pinAssignmentAction, &QAction::triggered, this,
@@ -770,7 +775,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     if (saveAction->isEnabled()) {
       auto answer = QMessageBox::question(
           this, "Warning",
-          "Pin assignment data were modified. Do you want to save it?",
+          "Pin planner data were modified. Do you want to save it?",
           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
           QMessageBox::Yes);
       if (answer == QMessageBox::No) {

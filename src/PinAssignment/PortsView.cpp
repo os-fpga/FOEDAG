@@ -39,7 +39,7 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   header()->resizeSections(QHeaderView::ResizeToContents);
 
   QTreeWidgetItem *topLevel = new QTreeWidgetItem(this);
-  topLevel->setText(0, "All ports");
+  topLevel->setText(0, "Design ports");
   addTopLevelItem(topLevel);
   auto portsModel = model->portsModel();
   for (const auto &group : portsModel->ports()) {
