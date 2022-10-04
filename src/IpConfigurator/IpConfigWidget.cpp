@@ -140,7 +140,7 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
     std::filesystem::path baseDir(m_baseDirDefault.toStdString());
     std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
     QString outFileStr =
-        QString::fromStdString(FileUtils::GetFullPath(outFile));
+        QString::fromStdString(FileUtils::GetFullPath(outFile).string());
 
     // Build up a cmd string to generate the IP
     QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
@@ -310,6 +310,7 @@ void IpConfigWidget::updateOutputPath() {
   std::filesystem::path outPath = vlnvPath / moduleEdit.text().toStdString();
 
   // Update the output path text
-  QString outStr = QString::fromStdString(FileUtils::GetFullPath(outPath));
+  QString outStr =
+      QString::fromStdString(FileUtils::GetFullPath(outPath).string());
   outputPath.setText(outStr);
 }
