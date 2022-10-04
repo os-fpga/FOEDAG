@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
 
 using namespace FOEDAG;
 extern FOEDAG::Session* GlobalSession;
@@ -136,11 +137,16 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
       params += obj->property("tclArg").toString().replace(" ", "=");
     }
 
+    std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+    std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
+    QString outFileStr =
+        QString::fromStdString(FileUtils::GetFullPath(outFile));
+
     // Build up a cmd string to generate the IP
     QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
                   moduleEdit.text() + " -version " +
                   QString::fromStdString(m_meta.version) + " " + params +
-                  " -out_file " + outputPath.text();
+                  " -out_file " + outFileStr;
     cmd += "\nipgenerate";
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
@@ -295,11 +301,15 @@ std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
 }
 
 void IpConfigWidget::updateOutputPath() {
-  // Strip end separator from baseDir if there is one
-  QString baseDir = m_baseDirDefault;
-  if (baseDir.endsWith(SEPARATOR)) {
-    baseDir.chop(SEPARATOR.length());
-  }
+  // Create and add vlnv path to base IPs directory
+  std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+  std::filesystem::path vlnvPath =
+      baseDir / m_meta.vendor / m_meta.library / m_meta.name / m_meta.version;
 
-  outputPath.setText(baseDir);
+  // Add the module wrapper
+  std::filesystem::path outPath = vlnvPath / moduleEdit.text().toStdString();
+
+  // Update the output path text
+  QString outStr = QString::fromStdString(FileUtils::GetFullPath(outPath));
+  outputPath.setText(outStr);
 }
