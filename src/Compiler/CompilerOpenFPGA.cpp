@@ -1619,23 +1619,11 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  // VPR Version checking, until full migration to version >= 8.0
-  std::string vprVersionCmd = m_vprExecutablePath.string() + " --version";
-  std::ostringstream ver;
-  FileUtils::ExecuteSystemCommand(vprVersionCmd, &ver);
-  bool version7 = true;
-  if (ver.str().find("Version: 8") != std::string::npos) {
-    version7 = false;
-  }
-
   std::string command = BaseVprCommand() + " --place";
   if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
-    if (version7) {
-      command += " --fix_pins " + pin_loc_constraint_file;
-    } else {
-      command += " --fix_clusters " + pin_loc_constraint_file;
-    }
+    command += " --fix_clusters " + pin_loc_constraint_file;
   }
+
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
