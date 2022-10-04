@@ -3,13 +3,54 @@
 #include <QDebug>
 #include <QDesktopWidget>
 #include <QMessageBox>
+#include <QProxyStyle>
 #include <QThread>
 
 #include "Compiler/Compiler.h"
 #include "MainWindow/Session.h"
 #include "ui_new_project_dialog.h"
+
 extern FOEDAG::Session *GlobalSession;
 using namespace FOEDAG;
+
+namespace {
+// Custom style to get horizontally shown tab labels in QTabWidget
+class CustomTabStyle : public QProxyStyle {
+ public:
+  QSize sizeFromContents(ContentsType type, const QStyleOption *option,
+                         const QSize &size,
+                         const QWidget *widget) const override {
+    auto s = QProxyStyle::sizeFromContents(type, option, size, widget);
+    if (type == QStyle::CT_TabBarTab) {
+      s.transpose();
+    }
+    return s;
+  }
+
+  void drawControl(ControlElement element, const QStyleOption *option,
+                   QPainter *painter, const QWidget *widget) const override {
+    if (element == CE_TabBarTabLabel) {
+      if (const QStyleOptionTab *tab =
+              qstyleoption_cast<const QStyleOptionTab *>(option)) {
+        QStyleOptionTab opt(*tab);
+        opt.shape = QTabBar::RoundedNorth;
+        QProxyStyle::drawControl(element, &opt, painter, widget);
+        return;
+      }
+    }
+    QProxyStyle::drawControl(element, option, painter, widget);
+  }
+  // By default, tab label is centered. In the current method we align it left
+  void drawItemText(
+      QPainter *painter, const QRect &rect, int flags, const QPalette &pal,
+      bool enabled, const QString &text,
+      QPalette::ColorRole textRole = QPalette::NoRole) const override {
+    return QProxyStyle::drawItemText(painter, rect,
+                                     Qt::AlignLeft | Qt::AlignVCenter, pal,
+                                     enabled, text, textRole);
+  }
+};
+}  // namespace
 
 newProjectDialog::newProjectDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::newProjectDialog), m_index(INDEX_LOCATION) {
@@ -25,7 +66,7 @@ newProjectDialog::newProjectDialog(QWidget *parent)
   connect(NextBtn, &QPushButton::clicked, this, &newProjectDialog::on_next);
 
   ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Finish");
-
+  ui->m_tabWidget->tabBar()->setStyle(new CustomTabStyle);
   Reset();
 
   m_projectManager = new ProjectManager(this);
@@ -49,25 +90,33 @@ QString newProjectDialog::getProject() {
 
 void newProjectDialog::Reset() {
   m_index = INDEX_LOCATION;
-  for (int i = 0; i < ui->m_stackedWidget->count(); i++) {
-    auto w = ui->m_stackedWidget->widget(i);
-    ui->m_stackedWidget->removeWidget(w);
-    delete w;
-  }
+  m_skipSources = false;
+
+  ui->m_tabWidget->clear();
 
   m_locationForm = new locationForm(this);
-  ui->m_stackedWidget->insertWidget(1, m_locationForm);
+  ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
+                             tr("Project Directory"));
   m_proTypeForm = new projectTypeForm(this);
-  ui->m_stackedWidget->insertWidget(2, m_proTypeForm);
+  ui->m_tabWidget->insertTab(INDEX_PROJTYPE, m_proTypeForm,
+                             tr("Type of Project"));
+  QObject::connect(m_proTypeForm, &projectTypeForm::skipSources,
+                   [this](bool skip) { m_skipSources = skip; });
   m_addSrcForm = new addSourceForm(this);
-  ui->m_stackedWidget->insertWidget(3, m_addSrcForm);
+  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
+                             tr("Add Design Files"));
   m_addConstrsForm = new addConstraintsForm(this);
-  ui->m_stackedWidget->insertWidget(4, m_addConstrsForm);
+  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+                             tr("Add Design Constraints"));
   m_devicePlanForm = new devicePlannerForm(this);
-  ui->m_stackedWidget->insertWidget(5, m_devicePlanForm);
+  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+                             tr("Select Target Device"));
   m_sumForm = new summaryForm(this);
-  ui->m_stackedWidget->insertWidget(6, m_sumForm);
-  ui->m_stackedWidget->adjustSize();
+  ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
+  ui->m_tabWidget->adjustSize();
+  // Disable tab selection (by mouse and keyboard)
+  ui->m_tabWidget->tabBar()->setAttribute(Qt::WA_TransparentForMouseEvents);
+  ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
 
   UpdateDialogView();
 }
@@ -92,7 +141,7 @@ void newProjectDialog::UpdateDialogView() {
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
   }
 
-  ui->m_stackedWidget->setCurrentIndex(m_index);
+  ui->m_tabWidget->setCurrentIndex(m_index);
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
@@ -141,11 +190,17 @@ void newProjectDialog::on_next() {
       return;
     }
   }
-  m_index++;
+  if (m_skipSources && m_index == INDEX_PROJTYPE)
+    m_index += 3;  // omit design and constraint files
+  else
+    m_index++;
   UpdateDialogView();
 }
 
 void newProjectDialog::on_back() {
-  m_index--;
+  if (m_skipSources && m_index == INDEX_DEVICEPL)
+    m_index -= 3;  // omit design and constraint files
+  else
+    m_index--;
   UpdateDialogView();
 }

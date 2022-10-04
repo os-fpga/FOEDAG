@@ -7,7 +7,7 @@ using namespace FOEDAG;
 addSourceForm::addSourceForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::addSourceForm) {
   ui->setupUi(this);
-  ui->m_labelTitle->setText(tr("Add Sources"));
+  ui->m_labelTitle->setText(tr("Add Design Files"));
   ui->m_labelDetail->setText(tr(
       "Specify design files, or directories containing those files, to add to "
       "your project. "

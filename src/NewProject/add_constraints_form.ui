@@ -20,6 +20,9 @@
    <property name="leftMargin">
     <number>15</number>
    </property>
+   <property name="rightMargin">
+    <number>15</number>
+   </property>
    <property name="bottomMargin">
     <number>0</number>
    </property>
@@ -33,7 +36,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Add Constraints (optional)</string>
+      <string>Add Design Constraints (optional)</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -56,10 +59,10 @@
       <number>0</number>
      </property>
      <property name="leftMargin">
-      <number>30</number>
+      <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>30</number>
+      <number>0</number>
      </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout" stretch="90,0,10">

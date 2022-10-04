@@ -20,7 +20,7 @@ class newProjectDialog;
 namespace FOEDAG {
 
 enum FormIndex {
-  INDEX_LOCATION = 1,
+  INDEX_LOCATION = 0,
   INDEX_PROJTYPE,
   INDEX_ADDSOURC,
   INDEX_ADDCONST,
@@ -61,6 +61,7 @@ class newProjectDialog : public QDialog {
   summaryForm* m_sumForm;
 
   ProjectManager* m_projectManager;
+  bool m_skipSources{false};
   void UpdateDialogView();
 };
 }  // namespace FOEDAG

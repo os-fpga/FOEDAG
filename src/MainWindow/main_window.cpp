@@ -34,6 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "IpConfigurator/IpCatalogTree.h"
+#include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpConfiguratorCreator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
@@ -160,6 +162,19 @@ void MainWindow::CloseOpenedTabs() {
   }
 }
 
+void MainWindow::ProgressVisible(bool visible) {
+  m_progressVisible = visible;
+  m_progressWidget->setVisible(visible);
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+  if (confirmExitProgram()) {
+    event->accept();
+  } else {
+    event->ignore();
+  }
+}
+
 void MainWindow::newFile() {
   //  QTextStream out(stdout);
   //  out << "New file is requested\n";
@@ -186,7 +201,8 @@ void MainWindow::openProjectDialog(const QString& dir) {
 }
 
 void MainWindow::closeProject() {
-  if (m_projectManager && m_projectManager->HasDesign()) {
+  if (m_projectManager && m_projectManager->HasDesign() &&
+      confirmCloseProject()) {
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
@@ -231,9 +247,11 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
 
 void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   for (const auto& dock : dockWidgets) {
-    removeDockWidget(dock);
-    delete dock->widget();
-    delete dock;
+    if (dock) {
+      removeDockWidget(dock);
+      delete dock->widget();
+      delete dock;
+    }
   }
   dockWidgets.clear();
 }
@@ -290,11 +308,15 @@ bool MainWindow::saveConstraintFile() {
   QFile::OpenMode openFlags = QFile::ReadWrite;
   if (file.size() != 0) {
     auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
-    auto answer = QMessageBox::question(
-        this, "Save constraint file...",
-        "Do you want to rewrite current constraint file?", btns);
-    if (answer == QMessageBox::Cancel) return false;
-    rewrite = (answer == QMessageBox::Yes);
+    auto msgBox = QMessageBox(
+        QMessageBox::Question, tr("Save constraint file..."),
+        tr("Do you want to rewrite current constraint file?"), btns, this);
+    msgBox.button(QMessageBox::Yes)->setText("Rewrite");
+    msgBox.button(QMessageBox::No)->setText("Append");
+    msgBox.exec();
+    auto answer = msgBox.buttonRole(msgBox.clickedButton());
+    if (answer == QMessageBox::RejectRole) return false;
+    rewrite = (answer == QMessageBox::YesRole);
     if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
   file.open(openFlags);
@@ -391,6 +413,7 @@ void MainWindow::showMenus(bool show) {
   menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
+  saveToolBar->setVisible(show);
 }
 
 void MainWindow::createActions() {
@@ -454,11 +477,13 @@ void MainWindow::createActions() {
   });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
-    Command cmd("gui_stop; exit");
-    GlobalSession->CmdStack()->push_and_exec(&cmd);
+    if (this->confirmExitProgram()) {
+      Command cmd("gui_stop; exit");
+      GlobalSession->CmdStack()->push_and_exec(&cmd);
+    }
   });
 
-  pinAssignmentAction = new QAction(tr("Pin Assignment"), this);
+  pinAssignmentAction = new QAction(tr("Pin Planner"), this);
   pinAssignmentAction->setCheckable(true);
   pinAssignmentAction->setEnabled(false);
   connect(pinAssignmentAction, &QAction::triggered, this,
@@ -466,18 +491,8 @@ void MainWindow::createActions() {
 
   ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
   ipConfiguratorAction->setCheckable(true);
-  connect(ipConfiguratorAction, &QAction::triggered, this, [this]() {
-    if (ipConfiguratorAction->isChecked()) {
-      IpConfiguratorCreator creator;
-      auto availableIpsDockWidget = PrepareTab(
-          tr("IPs"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
-          nullptr, Qt::RightDockWidgetArea);
-      m_ipConfiguratorDocks = {availableIpsDockWidget};
-      m_console->showPrompt();
-    } else {
-      cleanUpDockWidgets(m_ipConfiguratorDocks);
-    }
-  });
+  connect(ipConfiguratorAction, &QAction::triggered, this,
+          &MainWindow::ipConfiguratorActionTriggered);
 
   saveAction = new QAction(tr("Save"), this);
   connect(saveAction, &QAction::triggered, this,
@@ -564,6 +579,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   propertiesDockWidget->setWidget(propertyWidget->Widget());
   addDockWidget(Qt::LeftDockWidgetArea, propertiesDockWidget);
   propertiesDockWidget->hide();
+  connect(sourcesForm, &SourcesForm::IpReconfigRequested, this,
+          &MainWindow::handleIpReConfigRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -639,7 +656,7 @@ void MainWindow::ReShowWindow(QString strProject) {
       });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
-    m_progressWidget->hide();
+    if (!m_progressVisible) m_progressWidget->hide();
     m_compiler->finish();
   });
 
@@ -758,7 +775,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     if (saveAction->isEnabled()) {
       auto answer = QMessageBox::question(
           this, "Warning",
-          "Pin assignment data were modified. Do you want to save it?",
+          "Pin planner data were modified. Do you want to save it?",
           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
           QMessageBox::Yes);
       if (answer == QMessageBox::No) {
@@ -781,6 +798,37 @@ void MainWindow::pinAssignmentActionTriggered() {
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
 }
 
+void MainWindow::ipConfiguratorActionTriggered() {
+  if (ipConfiguratorAction->isChecked()) {
+    IpConfiguratorCreator creator;
+    // Available IPs DockWidget
+    m_availableIpsgDockWidget = PrepareTab(tr("IPs"), "availableIpsWidget",
+                                           creator.GetAvailableIpsWidget(),
+                                           nullptr, Qt::RightDockWidgetArea);
+
+    // Get the actual IpCatalogTree
+    auto ipsWidgets = m_availableIpsgDockWidget->findChildren<IpCatalogTree*>();
+    if (ipsWidgets.count() > 0) {
+      m_ipCatalogTree = ipsWidgets[0];
+
+      // Update the IP Config widget when the Available IPs selection changes
+      QObject::connect(m_ipCatalogTree, &IpCatalogTree::itemSelectionChanged,
+                       this, &MainWindow::handleIpTreeSelectionChanged);
+    }
+
+    // update the console for input incase the IP system printed any messages
+    // which can break the console currently
+    m_console->showPrompt();
+  } else {
+    std::vector<QDockWidget*> docks = {m_availableIpsgDockWidget,
+                                       m_ipConfigDockWidget};
+    cleanUpDockWidgets(docks);
+    m_ipConfigDockWidget = nullptr;
+    m_availableIpsgDockWidget = nullptr;
+    m_ipCatalogTree = nullptr;
+  }
+}
+
 void MainWindow::newDialogAccepted() {
   const QString strproject = newProjdialog->getProject();
   newProjectAction->setEnabled(false);
@@ -791,6 +839,27 @@ void MainWindow::updateSourceTree() {
   if (sourcesForm) {
     sourcesForm->InitSourcesForm();
   }
+}
+
+void MainWindow::handleIpTreeSelectionChanged() {
+  // Create a config widget based off the current AvailableIps tree selection
+  if (m_ipCatalogTree != nullptr) {
+    auto items = m_ipCatalogTree->selectedItems();
+    if (items.count() > 0) {
+      // Create a new config widget for the selected IP
+      // Note: passing null for the last 2 args causes a configure instead of a
+      // re-configure
+      handleIpReConfigRequested(items[0]->text(0), {}, {});
+    }
+  }
+}
+
+void MainWindow::handleIpReConfigRequested(const QString& ipName,
+                                           const QString& moduleName,
+                                           const QStringList& paramList) {
+  IpConfigWidget* configWidget =
+      new IpConfigWidget(this, ipName, moduleName, paramList);
+  replaceIpConfigDockWidget(configWidget);
 }
 
 void MainWindow::updateViewMenu() {
@@ -833,4 +902,44 @@ void MainWindow::recentProjectOpen() {
     const QString name = project->second;
     if (!name.isEmpty()) openProject(name);
   }
+}
+
+void MainWindow::replaceIpConfigDockWidget(QWidget* newWidget) {
+  IpConfigWidget* configWidget = qobject_cast<IpConfigWidget*>(newWidget);
+  if (configWidget) {
+    // Listen for IpInstance selection changes in the source tree
+    QObject::connect(configWidget, &IpConfigWidget::ipInstancesUpdated, this,
+                     &MainWindow::updateSourceTree);
+  }
+
+  // If dock widget has already been created
+  if (m_ipConfigDockWidget) {
+    // remove old config widget
+    auto oldWidget = m_ipConfigDockWidget->widget();
+    if (oldWidget) {
+      delete m_ipConfigDockWidget->widget();
+    }
+
+    // set new config widget
+    m_ipConfigDockWidget->setWidget(newWidget);
+    m_ipConfigDockWidget->show();
+  } else {  // If dock widget hasn't been created
+    // Create and place new dockwidget
+    m_ipConfigDockWidget =
+        PrepareTab(tr("Configure IP"), "configureIpsWidget", newWidget, nullptr,
+                   Qt::RightDockWidgetArea);
+  }
+}
+
+bool MainWindow::confirmCloseProject() {
+  return (QMessageBox::question(
+              this, "Close Project?",
+              tr("Are you sure you want to close your project?\n"),
+              QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
+}
+bool MainWindow::confirmExitProgram() {
+  return (QMessageBox::question(
+              this, "Exit Program?",
+              tr("Are you sure you want to exit the program?\n"),
+              QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }

@@ -344,9 +344,29 @@ bool IPGenerator::Generate() {
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
-        std::filesystem::path python3Path =
-            FileUtils::LocateExecFile("python3");
-        std::string command = python3Path.string() + " " + executable.string() +
+
+        // Find path to litex enabled python interpreter
+        std::filesystem::path pythonPath = IPCatalog::getPythonPath();
+        if (pythonPath.empty()) {
+          std::filesystem::path python3Path =
+              FileUtils::LocateExecFile("python3");
+          if (python3Path.empty()) {
+            m_compiler->ErrorMessage(
+                "IP Generate, unable to find python interpreter in local "
+                "environment.\n");
+            return false;
+          } else {
+            pythonPath = python3Path;
+            m_compiler->ErrorMessage(
+                "IP Generate, unable to find python interpreter in local "
+                "environment, using system copy '" +
+                python3Path.string() +
+                "'. Some IP Catalog features might not work with this "
+                "interpreter.\n");
+          }
+        }
+
+        std::string command = pythonPath.string() + " " + executable.string() +
                               " --build --json " + jasonfile.string();
         std::ostringstream help;
 

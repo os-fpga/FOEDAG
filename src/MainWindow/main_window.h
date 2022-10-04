@@ -50,6 +50,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void SetWindowTitle(const QString& filename, const QString& project,
                       QString& projectInfo);
   void CloseOpenedTabs();
+  void ProgressVisible(bool visible) override;
+
+ protected:
+  void closeEvent(QCloseEvent* event) override;
 
  private slots: /* slots */
   void newFile();
@@ -63,6 +67,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updatePRViewButton(int state);
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
+  void ipConfiguratorActionTriggered();
   void newDialogAccepted();
   void recentProjectOpen();
 
@@ -70,6 +75,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  public slots:
   void updateSourceTree();
+  void handleIpTreeSelectionChanged();
+  void handleIpReConfigRequested(const QString& ipName,
+                                 const QString& moduleName,
+                                 const QStringList& paramList);
 
  private: /* Menu bar builders */
   void updateViewMenu();
@@ -100,6 +109,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   // Creates the new file in a working directory holding welcome page
   // configuration
   void saveWelcomePageConfig();
+  void replaceIpConfigDockWidget(QWidget* widget);
+  bool confirmCloseProject();
+  bool confirmExitProgram();
 
   // Welcome page config file name
   static const QString WELCOME_PAGE_CONFIG_FILE;
@@ -140,11 +152,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class ProjectManager* m_projectManager{nullptr};
   class ProjectFileLoader* m_projectFileLoader{nullptr};
   class SourcesForm* sourcesForm{nullptr};
+  class IpCatalogTree* m_ipCatalogTree{nullptr};
   QWidget* m_progressWidget{nullptr};
   QDockWidget* m_dockConsole{nullptr};
   std::vector<QDockWidget*> m_pinAssignmentDocks;
-  std::vector<QDockWidget*> m_ipConfiguratorDocks;
+  QDockWidget* m_ipConfigDockWidget{nullptr};
+  QDockWidget* m_availableIpsgDockWidget{nullptr};
   QSettings m_settings;
+  bool m_progressVisible{false};
 };
 
 }  // namespace FOEDAG
