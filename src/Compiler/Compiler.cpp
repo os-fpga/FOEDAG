@@ -1482,8 +1482,14 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
     });
+    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("sta clean"));
+    });
     m_taskManager->bindTaskCommand(POWER, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("power"));
+    });
+    m_taskManager->bindTaskCommand(POWER_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("power clean"));
     });
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
