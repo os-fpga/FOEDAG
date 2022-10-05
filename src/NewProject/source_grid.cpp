@@ -155,6 +155,7 @@ void sourceGrid::selectRow(int row) {
 
 void sourceGrid::ClearTable() {
   m_model->clear();
+  setGridType(m_type);  // update table header
   m_lisFileData.clear();
 }
 

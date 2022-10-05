@@ -68,6 +68,10 @@ void addSourceForm::updateUi(ProjectManager *pm) {
 
   ui->lineEditTopModule->setText(pm->getDesignTopModule());
   ui->lineEditTopModuleLib->setText(pm->getDesignTopModuleLib());
+  ui->lineEditLibraryExt->setText(pm->libraryExtension());
+  ui->lineEditLibraryPath->setText(pm->libraryPath());
+  ui->lineEditIncludePath->setText(pm->includePath());
+  ui->lineEditSetMacro->setText(pm->macros());
 
   m_widgetGrid->ClearTable();
   auto libs = pm->DesignLibraries();
