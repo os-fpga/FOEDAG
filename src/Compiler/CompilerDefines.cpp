@@ -82,12 +82,16 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
     case Compiler::Action::STA:
       if (compiler->TimingAnalysisOpt() == Compiler::STAOpt::View)
         return PLACE_AND_ROUTE_VIEW;
+      else if (compiler->TimingAnalysisOpt() == Compiler::STAOpt::Clean)
+        return TIMING_SIGN_OFF_CLEAN;
       return TIMING_SIGN_OFF;
     case Compiler::Action::Bitstream:
       if (compiler->BitsOpt() == Compiler::BitstreamOpt::Clean)
         return BITSTREAM_CLEAN;
       return BITSTREAM;
     case Compiler::Action::Power:
+      if (compiler->PowerAnalysisOpt() == Compiler::PowerOpt::Clean)
+        return POWER_CLEAN;
       return POWER;
     case Compiler::Action::IPGen:
       return IP_GENERATE;
