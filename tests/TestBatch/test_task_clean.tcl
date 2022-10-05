@@ -31,8 +31,4 @@ place clean
 place
 route clean
 route
-sta clean
-sta
-power clean
-power
 exit
