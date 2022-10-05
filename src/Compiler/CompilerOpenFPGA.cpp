@@ -1751,6 +1751,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (TimingAnalysisOpt() == STAOpt::Clean) {
+    Message("Cleaning TimingAnalysis results for " +
+            ProjManager()->projectName());
+    TimingAnalysisOpt(STAOpt::None);
+    m_state = State::Routed;
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_sta.cmd"));
+    return true;
+  }
+
   PERF_LOG("TimingAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
@@ -1864,6 +1876,15 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (PowerAnalysisOpt() == PowerOpt::Clean) {
+    Message("Cleaning PoweAnalysis results for " +
+            ProjManager()->projectName());
+    PowerAnalysisOpt(PowerOpt::None);
+    m_state = State::Routed;
+    return true;
+  }
+
   PERF_LOG("PowerAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()

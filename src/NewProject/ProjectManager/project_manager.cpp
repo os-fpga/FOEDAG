@@ -8,6 +8,7 @@
 #include <QXmlStreamWriter>
 #include <filesystem>
 #include <iostream>
+#include <set>
 
 #include "Compiler/CompilerDefines.h"
 #include "MainWindow/Session.h"
@@ -49,7 +50,94 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(opt.currentFileSet);
   const QList<filedata> listFile = opt.sourceFileData.fileData;
+
+  // Group and add files to project based off m_groupName
+  QMap<QString, QList<filedata>> fileGroups{};
   for (const filedata& fdata : listFile) {
+    fileGroups[fdata.m_groupName].append(fdata);
+  }
+
+  // Step through the group key and try to combine all the settings
+  for (auto key : fileGroups.keys()) {
+    if (key == "") {
+      // Skip files w/ no Compile Unit set they will be added sequentially after
+      // the groups are added
+      continue;
+    }
+    QString fileListStr{};
+    QStringList libs{};
+    int language = -1;
+    bool hasLocalFiles = false;
+    bool hasNonLocalFiles = false;
+    bool multipleLanguages = false;
+
+    // Loop through each file in this specific group
+    auto files = fileGroups[key];
+    for (auto fdata : files) {
+      QString addFilePath{};
+
+      // Track the language
+      if (language == -1) {
+        language = fdata.m_language;
+      } else {
+        if (language != fdata.m_language) {
+          multipleLanguages = true;
+        }
+      }
+
+      // Split libraries by space and then store any new, unique library names
+      for (auto lib : fdata.m_workLibrary.split(" ")) {
+        if (!libs.contains(lib)) {
+          libs.append(lib);
+        }
+      }
+
+      // Handle local and non-local paths
+      if (LocalToProject == fdata.m_filePath) {
+        hasLocalFiles = true;
+        addFilePath = fdata.m_fileName;
+      } else {
+        hasNonLocalFiles = true;
+        addFilePath = fdata.m_filePath + "/" + fdata.m_fileName;
+      }
+
+      // Add a delimeter if there's already a file in the string
+      if (!fileListStr.isEmpty()) {
+        fileListStr += " ";
+      }
+
+      // Add the file to the list
+      fileListStr += addFilePath;
+    }  // End looping through files
+
+    // create a string of the unique libs requested by the files in this group
+    QString libraries{};
+    for (auto lib : libs) {
+      if (!libraries.isEmpty()) {
+        libraries += " ";
+      }
+      libraries += lib;
+    }
+    auto command = libraries.isEmpty() ? QString{} : "-work";
+
+    // Check if we are combing local and non-local files in a group
+    if (hasLocalFiles && hasNonLocalFiles) {
+      // This is probably an error condition as the setDesignFiles call has
+      // different arguements when local or non-local
+    } else if (multipleLanguages) {
+      // This seems like a pontential error scenario as well
+    } else if (hasLocalFiles) {
+      setDesignFiles(command, libraries, fileListStr, language, false, true);
+    } else {
+      setDesignFiles(command, libraries, fileListStr, language,
+                     opt.sourceFileData.isCopySource, false);
+    }
+  }
+
+  // Use non-grouping project file logic for any file that didn't set a
+  // group/compileUnit
+  const QList<filedata> noGroupFiles = fileGroups[""];
+  for (const filedata& fdata : noGroupFiles) {
     auto libraries = fdata.m_workLibrary;
     auto command = libraries.isEmpty() ? QString() : "-work";
 
