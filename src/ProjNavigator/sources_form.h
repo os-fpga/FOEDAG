@@ -52,6 +52,8 @@ class SourcesForm : public QWidget {
   void CloseProject();
   void IpReconfigRequested(const QString& ipName, const QString moduleName,
                            const QStringList& paramList);
+  void IpRemoveRequested(const QString& moduleName);
+  void IpDeleteRequested(const QString& moduleName);
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -70,6 +72,8 @@ class SourcesForm : public QWidget {
   void SlotProperties();
   void SlotPropertiesTriggered();
   void SlotReConfigureIp();
+  void SlotRemoveIp();
+  void SlotDeleteIp();
 
  private:
   Ui::SourcesForm* ui;
@@ -87,6 +91,8 @@ class SourcesForm : public QWidget {
   QAction* m_actProperties;
   QAction* m_actCloseProject;
   QAction* m_actReconfigureIp;
+  QAction* m_actRemoveIp;
+  QAction* m_actDeleteIp;
 
   ProjectManager* m_projManager;
 

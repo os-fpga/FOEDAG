@@ -146,6 +146,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
         menu->addSeparator();
         menu->addAction(m_actReconfigureIp);
+        menu->addAction(m_actRemoveIp);
+        menu->addAction(m_actDeleteIp);
       }
     }
 
@@ -390,6 +392,24 @@ void SourcesForm::SlotReConfigureIp() {
                            QString::fromStdString(moduleName), args);
 }
 
+void SourcesForm::SlotRemoveIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpRemoveRequested(moduleName);
+}
+
+void SourcesForm::SlotDeleteIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpDeleteRequested(moduleName);
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -438,6 +458,18 @@ void SourcesForm::CreateActions() {
   m_actReconfigureIp = new QAction(tr("Reconfigure IP"), m_treeSrcHierachy);
   connect(m_actReconfigureIp, &QAction::triggered, this,
           &SourcesForm::SlotReConfigureIp);
+
+  m_actRemoveIp = new QAction(tr("Remove IP from Project"), m_treeSrcHierachy);
+  m_actRemoveIp->setToolTip(
+      "Remove the selectd IP instance from the project. Its build files will "
+      "remain.");
+  connect(m_actRemoveIp, &QAction::triggered, this, &SourcesForm::SlotRemoveIp);
+
+  m_actDeleteIp = new QAction(tr("Delete IP"), m_treeSrcHierachy);
+  m_actDeleteIp->setToolTip(
+      "Remove the selectd IP instance from the project and delete its build "
+      "files.");
+  connect(m_actDeleteIp, &QAction::triggered, this, &SourcesForm::SlotDeleteIp);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {

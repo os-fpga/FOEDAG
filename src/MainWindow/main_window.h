@@ -79,6 +79,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void handleIpReConfigRequested(const QString& ipName,
                                  const QString& moduleName,
                                  const QStringList& paramList);
+  void handleRemoveIpRequested(const QString& moduleName);
+  void handleDeleteIpRequested(const QString& moduleName);
 
  private: /* Menu bar builders */
   void updateViewMenu();
