@@ -147,7 +147,11 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actReconfigureIp);
         menu->addAction(m_actRemoveIp);
-        menu->addAction(m_actDeleteIp);
+        // TODO @skyler-rs Re-enable when ipgen and stored VLNV have same cases.
+        // Currenlty ip generators save to a path in lowercase which causes a
+        // file miss when trying to delete based off the VLNV data which has
+        // capitalizations etc
+        // menu->addAction(m_actDeleteIp);
       }
     }
 
