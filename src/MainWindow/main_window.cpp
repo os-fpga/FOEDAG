@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
+#include "Utils/FileUtils.h"
 #include "foedag_version.h"
 
 using namespace FOEDAG;
@@ -581,6 +582,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   propertiesDockWidget->hide();
   connect(sourcesForm, &SourcesForm::IpReconfigRequested, this,
           &MainWindow::handleIpReConfigRequested);
+  connect(sourcesForm, &SourcesForm::IpRemoveRequested, this,
+          &MainWindow::handleRemoveIpRequested);
+  connect(sourcesForm, &SourcesForm::IpDeleteRequested, this,
+          &MainWindow::handleDeleteIpRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -860,6 +865,30 @@ void MainWindow::handleIpReConfigRequested(const QString& ipName,
   IpConfigWidget* configWidget =
       new IpConfigWidget(this, ipName, moduleName, paramList);
   replaceIpConfigDockWidget(configWidget);
+}
+
+void MainWindow::handleRemoveIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    ipGen->RemoveIPInstance(moduleName.toStdString());
+  }
+
+  updateSourceTree();
+}
+
+void MainWindow::handleDeleteIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    ipGen->DeleteIPInstance(moduleName.toStdString());
+  }
+
+  updateSourceTree();
 }
 
 void MainWindow::updateViewMenu() {
