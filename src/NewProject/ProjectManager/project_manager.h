@@ -316,6 +316,7 @@ class ProjectManager : public QObject {
                       bool iscover = true);
   int CreateAndAddFile(const QString &suffix, const QString &filename,
                        const QString &filenameAdd, bool copyFile);
+  void UpdateProjectInternal(const ProjectOptions &opt, bool setTargetConstr);
 
  private:
   QString m_currentFileSet;

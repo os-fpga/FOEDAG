@@ -166,15 +166,14 @@ void newProjectDialog::ResetToProjectSettings() {
   m_settings.clear();
 
   m_addSrcForm = new addSourceForm(this);
-  m_addSrcForm->SetTitle("Modify Design Files");
+  m_addSrcForm->SetTitle("Design Files");
   m_settings.append(m_addSrcForm);
-  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
-                             tr("Modify Design Files"));
+  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm, tr("Design Files"));
   m_addConstrsForm = new addConstraintsForm(this);
-  m_addConstrsForm->SetTitle("Modify Design Constraints");
+  m_addConstrsForm->SetTitle("Design Constraints");
   m_settings.append(m_addConstrsForm);
   ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                             tr("Modify Design Constraints"));
+                             tr("Design Constraints"));
   m_devicePlanForm = new devicePlannerForm(this);
   m_settings.append(m_devicePlanForm);
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
