@@ -369,6 +369,10 @@ bool IPGenerator::Generate() {
   bool status = true;
   Compiler* compiler = GetCompiler();
   for (IPInstance* inst : m_instances) {
+    if (inst->Generated()) {
+      // Skip the instance if it's already been generated
+      continue;
+    }
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
     if (!std::filesystem::exists(out_path)) {
@@ -464,6 +468,9 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
+
+        // Mark this instance as generated
+        inst->setGenerated(true);
         break;
       }
     }
