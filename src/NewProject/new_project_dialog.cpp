@@ -56,7 +56,6 @@ newProjectDialog::newProjectDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::newProjectDialog), m_index(INDEX_LOCATION) {
   ui->setupUi(this);
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
-  setWindowTitle(tr("New Project"));
   BackBtn = new QPushButton("Back", this);
   ui->buttonBox->addButton(BackBtn, QDialogButtonBox::ButtonRole::ActionRole);
   connect(BackBtn, &QPushButton::clicked, this, &newProjectDialog::on_back);
@@ -88,40 +87,23 @@ QString newProjectDialog::getProject() {
          m_locationForm->getProjectName() + PROJECT_FILE_FORMAT;
 }
 
-void newProjectDialog::Reset() {
+void newProjectDialog::Reset(Mode mode) {
+  m_mode = mode;
   m_index = INDEX_LOCATION;
   m_skipSources = false;
-
   ui->m_tabWidget->clear();
 
-  m_locationForm = new locationForm(this);
-  ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
-                             tr("Project Directory"));
-  m_proTypeForm = new projectTypeForm(this);
-  ui->m_tabWidget->insertTab(INDEX_PROJTYPE, m_proTypeForm,
-                             tr("Type of Project"));
-  QObject::connect(m_proTypeForm, &projectTypeForm::skipSources,
-                   [this](bool skip) { m_skipSources = skip; });
-  m_addSrcForm = new addSourceForm(this);
-  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
-                             tr("Add Design Files"));
-  m_addConstrsForm = new addConstraintsForm(this);
-  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                             tr("Add Design Constraints"));
-  m_devicePlanForm = new devicePlannerForm(this);
-  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
-                             tr("Select Target Device"));
-  m_sumForm = new summaryForm(this);
-  ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
-  ui->m_tabWidget->adjustSize();
-  // Disable tab selection (by mouse and keyboard)
-  ui->m_tabWidget->tabBar()->setAttribute(Qt::WA_TransparentForMouseEvents);
-  ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
+  if (mode == NewProject)
+    ResetToNewProject();
+  else
+    ResetToProjectSettings();
 
-  UpdateDialogView();
+  UpdateDialogView(mode);
 }
 
-void newProjectDialog::UpdateDialogView() {
+Mode newProjectDialog::GetMode() const { return m_mode; }
+
+void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_LOCATION == m_index) {
     BackBtn->setEnabled(false);
   } else {
@@ -142,6 +124,70 @@ void newProjectDialog::UpdateDialogView() {
   }
 
   ui->m_tabWidget->setCurrentIndex(m_index);
+  if (mode == ProjectSettings)
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+}
+
+void newProjectDialog::ResetToNewProject() {
+  setWindowTitle(tr("New Project"));
+  ui->m_tabWidget->clear();
+
+  m_locationForm = new locationForm(this);
+  ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
+                             tr("Project Directory"));
+  m_proTypeForm = new projectTypeForm(this);
+  ui->m_tabWidget->insertTab(INDEX_PROJTYPE, m_proTypeForm,
+                             tr("Type of Project"));
+  QObject::connect(m_proTypeForm, &projectTypeForm::skipSources, this,
+                   [this](bool skip) { m_skipSources = skip; });
+  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm->SetTitle("Add Design Files");
+  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
+                             tr("Add Design Files"));
+  m_addConstrsForm = new addConstraintsForm(this);
+  m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
+  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+                             tr("Add Design Constraints"));
+  m_devicePlanForm = new devicePlannerForm(this);
+  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+                             tr("Select Target Device"));
+  m_sumForm = new summaryForm(this);
+  ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
+  ui->m_tabWidget->adjustSize();
+  // Disable tab selection (by mouse and keyboard)
+  ui->m_tabWidget->tabBar()->setAttribute(Qt::WA_TransparentForMouseEvents);
+  ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
+  BackBtn->setVisible(true);
+  NextBtn->setVisible(true);
+}
+
+void newProjectDialog::ResetToProjectSettings() {
+  setWindowTitle(tr("Project settings"));
+  m_settings.clear();
+
+  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm->SetTitle("Design Files");
+  m_settings.append(m_addSrcForm);
+  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm, tr("Design Files"));
+  m_addConstrsForm = new addConstraintsForm(this);
+  m_addConstrsForm->SetTitle("Design Constraints");
+  m_settings.append(m_addConstrsForm);
+  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+                             tr("Design Constraints"));
+  m_devicePlanForm = new devicePlannerForm(this);
+  m_settings.append(m_devicePlanForm);
+  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+                             tr("Select Target Device"));
+
+  for (auto &settings : m_settings) settings->updateUi(m_projectManager);
+
+  ui->m_tabWidget->adjustSize();
+  // Disable tab selection (by mouse and keyboard)
+  ui->m_tabWidget->tabBar()->setAttribute(Qt::WA_TransparentForMouseEvents,
+                                          false);
+  ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
+  BackBtn->setVisible(false);
+  NextBtn->setVisible(false);
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
@@ -165,7 +211,11 @@ void newProjectDialog::on_buttonBox_accepted() {
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
   } else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
-  m_projectManager->CreateProject(opt);
+  if (m_mode == NewProject) {
+    m_projectManager->CreateProject(opt);
+  } else {
+    m_projectManager->UpdateProject(opt);
+  }
   accept();
 }
 
