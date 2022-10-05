@@ -153,38 +153,33 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   setTopModule(opt.topModule);
   setTopModuleLibrary(opt.topModuleLib);
 
-  std::string delimiter = " ";
-  // Set Library Paths
-  if (!opt.libraryPathList.isEmpty()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
-    for (auto file : tokens) {
-      std::string cmd = "add_library_path " + file;
-      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-    }
-  }
-
+  const std::string delimiter = " ";
   // Set Library Extensions
-  if (!opt.libraryExtList.isEmpty()) {
-    std::string cmd = "add_library_ext " + opt.libraryExtList.toStdString();
-    GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-  }
+  std::vector<std::string> ext;
+  StringUtils::tokenize(opt.libraryExtList.toStdString(), delimiter, ext);
+  setLibraryExtensionList(ext);
+
+  // Set Library Paths
+  std::vector<std::string> tokens;
+  StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
+  setLibraryPathList(tokens);
 
   // Set Include Paths
-  if (!opt.includePathList.isEmpty()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, tokens);
-    for (auto file : tokens) {
-      std::string cmd = "add_include_path " + file;
-      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-    }
-  }
+  std::vector<std::string> inc;
+  StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, inc);
+  setIncludePathList(inc);
 
   // Set Macros
-  if (!opt.macroList.isEmpty()) {
-    std::string cmd = "set_macro " + opt.macroList.toStdString();
-    GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+  std::vector<std::pair<std::string, std::string>> macro;
+  const QStringList data = StringSplit(opt.macroList, " ");
+  for (const auto& d : data) {
+    auto splitted = StringSplit(d, "=");
+    if (!splitted.isEmpty())
+      macro.push_back(std::make_pair(
+          splitted.first().toStdString(),
+          splitted.count() > 1 ? splitted.at(1).toStdString() : std::string{}));
   }
+  setMacroList(macro);
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   QString strDefaultCts;
@@ -252,6 +247,34 @@ void ProjectManager::UpdateProject(const ProjectOptions& opt) {
 
   setTopModule(opt.topModule);
   setTopModuleLibrary(opt.topModuleLib);
+
+  const std::string delimiter = " ";
+  // Set Library Extensions
+  std::vector<std::string> ext;
+  StringUtils::tokenize(opt.libraryExtList.toStdString(), delimiter, ext);
+  setLibraryExtensionList(ext);
+
+  // Set Library Paths
+  std::vector<std::string> tokens;
+  StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
+  setLibraryPathList(tokens);
+
+  // Set Include Paths
+  std::vector<std::string> inc;
+  StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, inc);
+  setIncludePathList(inc);
+
+  // Set Macros
+  std::vector<std::pair<std::string, std::string>> macro;
+  const QStringList data = StringSplit(opt.macroList, " ");
+  for (const auto& d : data) {
+    auto splitted = StringSplit(d, "=");
+    if (!splitted.isEmpty())
+      macro.push_back(std::make_pair(
+          splitted.first().toStdString(),
+          splitted.count() > 1 ? splitted.at(1).toStdString() : std::string{}));
+  }
+  setMacroList(macro);
 
   deleteFileSet(DEFAULT_FOLDER_CONSTRS);
   setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
@@ -1817,6 +1840,13 @@ const std::vector<std::string>& ProjectManager::libraryPathList() const {
   return Project::Instance()->compilerConfig()->libraryPathList();
 }
 
+QString ProjectManager::libraryPath() const {
+  auto pathList = Project::Instance()->compilerConfig()->libraryPathList();
+  QStringList tmpList;
+  for (const auto& p : pathList) tmpList.append(QString::fromStdString(p));
+  return tmpList.join(" ");
+}
+
 void ProjectManager::setLibraryPathList(
     const std::vector<std::string>& newLibraryPathList) {
   Project::Instance()->compilerConfig()->setLibraryPathList(newLibraryPathList);
@@ -1828,6 +1858,13 @@ void ProjectManager::addLibraryPath(const std::string& libraryPath) {
 
 const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
   return Project::Instance()->compilerConfig()->libraryExtensionList();
+}
+
+QString ProjectManager::libraryExtension() const {
+  auto extList = Project::Instance()->compilerConfig()->libraryExtensionList();
+  QStringList tmpList;
+  for (const auto& ext : extList) tmpList.append(QString::fromStdString(ext));
+  return tmpList.join(" ");
 }
 
 void ProjectManager::setLibraryExtensionList(
@@ -1855,6 +1892,14 @@ ProjectManager::macroList() const {
   return Project::Instance()->compilerConfig()->macroList();
 }
 
+QString ProjectManager::macros() const {
+  auto macro = Project::Instance()->compilerConfig()->macroList();
+  QStringList tmpList;
+  for (const auto& m : macro)
+    tmpList.append(QString::fromStdString(m.first + "=" + m.second));
+  return tmpList.join(" ");
+}
+
 void ProjectManager::setTargetDevice(const std::string& deviceName) {
   setCurrentRun(getActiveSynthRunName());
   auto result = setSynthesisOption(
@@ -1873,6 +1918,13 @@ std::string ProjectManager::getTargetDevice() {
 
 const std::vector<std::string>& ProjectManager::includePathList() const {
   return Project::Instance()->compilerConfig()->includePathList();
+}
+
+QString ProjectManager::includePath() const {
+  auto includeList = Project::Instance()->compilerConfig()->includePathList();
+  QStringList tmpList;
+  for (const auto& i : includeList) tmpList.append(QString::fromStdString(i));
+  return tmpList.join(" ");
 }
 
 void ProjectManager::setIncludePathList(

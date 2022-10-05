@@ -57,6 +57,7 @@ void addConstraintsForm::updateUi(ProjectManager *pm) {
   pm->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
   auto activeSet = pm->getConstrActiveFileSet();
   const auto files = pm->getConstrFiles(activeSet);
+  m_widgetGrid->ClearTable();
   for (const auto &file : files) {
     const QFileInfo fileInfo{file};
     filedata data;
@@ -71,7 +72,6 @@ void addConstraintsForm::updateUi(ProjectManager *pm) {
     else
       data.m_filePath = fileInfo.path();
 
-    m_widgetGrid->ClearTable();
     m_widgetGrid->AddTableItem(data);
   }
 }

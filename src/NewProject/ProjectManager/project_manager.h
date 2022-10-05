@@ -269,14 +269,17 @@ class ProjectManager : public QObject {
   void setCurrentRun(const QString &currentRun);
 
   const std::vector<std::string> &includePathList() const;
+  QString includePath() const;
   void setIncludePathList(const std::vector<std::string> &newIncludePathList);
   void addIncludePath(const std::string &includePath);
 
   const std::vector<std::string> &libraryPathList() const;
+  QString libraryPath() const;
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
   const std::vector<std::string> &libraryExtensionList() const;
+  QString libraryExtension() const;
   void setLibraryExtensionList(
       const std::vector<std::string> &newLibraryExtensionList);
   void addLibraryExtension(const std::string &libraryExt);
@@ -285,6 +288,7 @@ class ProjectManager : public QObject {
       const std::vector<std::pair<std::string, std::string>> &newMacroList);
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
+  QString macros() const;
 
   void setTargetDevice(const std::string &deviceName);
   std::string getTargetDevice();
