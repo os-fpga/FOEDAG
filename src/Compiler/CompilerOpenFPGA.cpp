@@ -1755,6 +1755,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (TimingAnalysisOpt() == STAOpt::Clean) {
     Message("Cleaning TimingAnalysis results for " +
             ProjManager()->projectName());
+    TimingAnalysisOpt(STAOpt::None);
     m_state = State::Routed;
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
@@ -1879,6 +1880,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   if (PowerAnalysisOpt() == PowerOpt::Clean) {
     Message("Cleaning PoweAnalysis results for " +
             ProjManager()->projectName());
+    PowerAnalysisOpt(PowerOpt::None);
     m_state = State::Routed;
     return true;
   }
