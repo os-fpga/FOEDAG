@@ -17,7 +17,6 @@
 extern FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
-constexpr auto LocalToProject{"<Local to Project>"};
 
 ProjectManager::ProjectManager(QObject* parent) : QObject(parent) {
   // Re-emit projectPathChanged signals
@@ -47,188 +46,17 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
   CreateProject(opt.projectName, opt.projectPath, opt.currentFileSet);
 
   setProjectType(opt.projectType);
+  UpdateProjectInternal(opt, true);
+}
 
-  setCurrentFileSet(opt.currentFileSet);
-  const QList<filedata> listFile = opt.sourceFileData.fileData;
+void ProjectManager::UpdateProject(const ProjectOptions& opt) {
+  deleteFileSet(DEFAULT_FOLDER_SOURCE);
+  setDesignFileSet(DEFAULT_FOLDER_SOURCE);
 
-  // Group and add files to project based off m_groupName
-  QMap<QString, QList<filedata>> fileGroups{};
-  for (const filedata& fdata : listFile) {
-    fileGroups[fdata.m_groupName].append(fdata);
-  }
+  deleteFileSet(DEFAULT_FOLDER_CONSTRS);
+  setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
 
-  // Step through the group key and try to combine all the settings
-  for (auto key : fileGroups.keys()) {
-    if (key == "") {
-      // Skip files w/ no Compile Unit set they will be added sequentially after
-      // the groups are added
-      continue;
-    }
-    QString fileListStr{};
-    QStringList libs{};
-    int language = -1;
-    bool hasLocalFiles = false;
-    bool hasNonLocalFiles = false;
-    bool multipleLanguages = false;
-
-    // Loop through each file in this specific group
-    auto files = fileGroups[key];
-    for (auto fdata : files) {
-      QString addFilePath{};
-
-      // Track the language
-      if (language == -1) {
-        language = fdata.m_language;
-      } else {
-        if (language != fdata.m_language) {
-          multipleLanguages = true;
-        }
-      }
-
-      // Split libraries by space and then store any new, unique library names
-      for (auto lib : fdata.m_workLibrary.split(" ")) {
-        if (!libs.contains(lib)) {
-          libs.append(lib);
-        }
-      }
-
-      // Handle local and non-local paths
-      if (LocalToProject == fdata.m_filePath) {
-        hasLocalFiles = true;
-        addFilePath = fdata.m_fileName;
-      } else {
-        hasNonLocalFiles = true;
-        addFilePath = fdata.m_filePath + "/" + fdata.m_fileName;
-      }
-
-      // Add a delimeter if there's already a file in the string
-      if (!fileListStr.isEmpty()) {
-        fileListStr += " ";
-      }
-
-      // Add the file to the list
-      fileListStr += addFilePath;
-    }  // End looping through files
-
-    // create a string of the unique libs requested by the files in this group
-    QString libraries{};
-    for (auto lib : libs) {
-      if (!libraries.isEmpty()) {
-        libraries += " ";
-      }
-      libraries += lib;
-    }
-    auto command = libraries.isEmpty() ? QString{} : "-work";
-
-    // Check if we are combing local and non-local files in a group
-    if (hasLocalFiles && hasNonLocalFiles) {
-      // This is probably an error condition as the setDesignFiles call has
-      // different arguements when local or non-local
-    } else if (multipleLanguages) {
-      // This seems like a pontential error scenario as well
-    } else if (hasLocalFiles) {
-      setDesignFiles(command, libraries, fileListStr, language, false, true);
-    } else {
-      setDesignFiles(command, libraries, fileListStr, language,
-                     opt.sourceFileData.isCopySource, false);
-    }
-  }
-
-  // Use non-grouping project file logic for any file that didn't set a
-  // group/compileUnit
-  const QList<filedata> noGroupFiles = fileGroups[""];
-  for (const filedata& fdata : noGroupFiles) {
-    auto libraries = fdata.m_workLibrary;
-    auto command = libraries.isEmpty() ? QString() : "-work";
-
-    if (LocalToProject == fdata.m_filePath) {
-      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
-                     false, true);
-    } else {
-      setDesignFiles(command, libraries,
-                     fdata.m_filePath + "/" + fdata.m_fileName,
-                     fdata.m_language, opt.sourceFileData.isCopySource, false);
-    }
-  }
-
-  setTopModule(opt.topModule);
-  setTopModuleLibrary(opt.topModuleLib);
-
-  std::string delimiter = " ";
-  // Set Library Paths
-  if (!opt.libraryPathList.isEmpty()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
-    for (auto file : tokens) {
-      std::string cmd = "add_library_path " + file;
-      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-    }
-  }
-
-  // Set Library Extensions
-  if (!opt.libraryExtList.isEmpty()) {
-    std::string cmd = "add_library_ext " + opt.libraryExtList.toStdString();
-    GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-  }
-
-  // Set Include Paths
-  if (!opt.includePathList.isEmpty()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, tokens);
-    for (auto file : tokens) {
-      std::string cmd = "add_include_path " + file;
-      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-    }
-  }
-
-  // Set Macros
-  if (!opt.macroList.isEmpty()) {
-    std::string cmd = "set_macro " + opt.macroList.toStdString();
-    GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-  }
-
-  setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
-  QString strDefaultCts;
-  const auto constr = opt.constrFileData.fileData;
-  for (const filedata& fdata : constr) {
-    if (LocalToProject == fdata.m_filePath) {
-      setConstrsFile(fdata.m_fileName, false);
-    } else {
-      setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
-                     opt.constrFileData.isCopySource);
-    }
-    strDefaultCts = fdata.m_fileName;
-  }
-
-  if (!strDefaultCts.isEmpty()) {
-    setTargetConstrs(strDefaultCts);
-  }
-
-  setCurrentRun(DEFAULT_FOLDER_SYNTH);
-
-  if (opt.device.count() >= 4) {
-    QStringList strlist = opt.device;
-    QList<QPair<QString, QString>> listParam;
-    QPair<QString, QString> pair;
-    pair.first = PROJECT_PART_SERIES;
-    pair.second = strlist.at(0);
-    listParam.append(pair);
-    pair.first = PROJECT_PART_FAMILY;
-    pair.second = strlist.at(1);
-    listParam.append(pair);
-    pair.first = PROJECT_PART_PACKAGE;
-    pair.second = strlist.at(2);
-    listParam.append(pair);
-    pair.first = PROJECT_PART_DEVICE;
-    pair.second = strlist.at(3);
-    listParam.append(pair);
-    setSynthesisOption(listParam);
-
-    auto targetDevice = strlist.at(3);
-    target_device(targetDevice);
-  }
-
-  FinishedProject();
+  UpdateProjectInternal(opt, false);
 }
 
 QString ProjectManager::ProjectFilesPath(const QString& projPath,
@@ -1447,14 +1275,8 @@ int ProjectManager::deleteFileSet(const QString& strSetName) {
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(strSetName);
-  if (proFileSet && PROJECT_FILE_TYPE_DS == proFileSet->getSetType() &&
-      strSetName == getDesignActiveFileSet()) {
-    return -1;
-  } else if (proFileSet && PROJECT_FILE_TYPE_CS == proFileSet->getSetType() &&
-             strSetName == getConstrActiveFileSet()) {
-    return -1;
-  } else if (proFileSet && PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
-             strSetName == getSimulationActiveFileSet()) {
+  if (proFileSet && PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
+      strSetName == getSimulationActiveFileSet()) {
     return -1;
   }
   Project::Instance()->deleteProjectFileset(strSetName);
@@ -1758,8 +1580,195 @@ int ProjectManager::CreateAndAddFile(const QString& suffix,
   return ret;
 }
 
+void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
+                                           bool setTargetConstr) {
+  setCurrentFileSet(opt.currentFileSet);
+  const QList<filedata> listFile = opt.sourceFileData.fileData;
+
+  // Group and add files to project based off m_groupName
+  QMap<QString, QList<filedata>> fileGroups{};
+  for (const filedata& fdata : listFile) {
+    fileGroups[fdata.m_groupName].append(fdata);
+  }
+
+  // Step through the group key and try to combine all the settings
+  for (auto key : fileGroups.keys()) {
+    if (key == "") {
+      // Skip files w/ no Compile Unit set they will be added sequentially after
+      // the groups are added
+      continue;
+    }
+    QString fileListStr{};
+    QStringList libs{};
+    int language = -1;
+    bool hasLocalFiles = false;
+    bool hasNonLocalFiles = false;
+    bool multipleLanguages = false;
+
+    // Loop through each file in this specific group
+    auto files = fileGroups[key];
+    for (auto fdata : files) {
+      QString addFilePath{};
+
+      // Track the language
+      if (language == -1) {
+        language = fdata.m_language;
+      } else {
+        if (language != fdata.m_language) {
+          multipleLanguages = true;
+        }
+      }
+
+      // Split libraries by space and then store any new, unique library names
+      for (auto lib : fdata.m_workLibrary.split(" ")) {
+        if (!libs.contains(lib)) {
+          libs.append(lib);
+        }
+      }
+
+      // Handle local and non-local paths
+      if (LocalToProject == fdata.m_filePath) {
+        hasLocalFiles = true;
+        addFilePath = fdata.m_fileName;
+      } else {
+        hasNonLocalFiles = true;
+        addFilePath = fdata.m_filePath + "/" + fdata.m_fileName;
+      }
+
+      // Add a delimeter if there's already a file in the string
+      if (!fileListStr.isEmpty()) {
+        fileListStr += " ";
+      }
+
+      // Add the file to the list
+      fileListStr += addFilePath;
+    }  // End looping through files
+
+    // create a string of the unique libs requested by the files in this group
+    QString libraries{};
+    for (auto lib : libs) {
+      if (!libraries.isEmpty()) {
+        libraries += " ";
+      }
+      libraries += lib;
+    }
+    auto command = libraries.isEmpty() ? QString{} : "-work";
+
+    // Check if we are combing local and non-local files in a group
+    if (hasLocalFiles && hasNonLocalFiles) {
+      // This is probably an error condition as the setDesignFiles call has
+      // different arguements when local or non-local
+    } else if (multipleLanguages) {
+      // This seems like a pontential error scenario as well
+    } else if (hasLocalFiles) {
+      setDesignFiles(command, libraries, fileListStr, language, false, true);
+    } else {
+      setDesignFiles(command, libraries, fileListStr, language,
+                     opt.sourceFileData.isCopySource, false);
+    }
+  }
+
+  // Use non-grouping project file logic for any file that didn't set a
+  // group/compileUnit
+  const QList<filedata> noGroupFiles = fileGroups[""];
+  for (const filedata& fdata : noGroupFiles) {
+    auto libraries = fdata.m_workLibrary;
+    auto command = libraries.isEmpty() ? QString() : "-work";
+
+    if (LocalToProject == fdata.m_filePath) {
+      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
+                     false, true);
+    } else {
+      setDesignFiles(command, libraries,
+                     fdata.m_filePath + "/" + fdata.m_fileName,
+                     fdata.m_language, opt.sourceFileData.isCopySource, false);
+    }
+  }
+
+  setTopModule(opt.topModule);
+  setTopModuleLibrary(opt.topModuleLib);
+
+  const std::string delimiter = " ";
+  // Set Library Extensions
+  std::vector<std::string> ext;
+  StringUtils::tokenize(opt.libraryExtList.toStdString(), delimiter, ext);
+  setLibraryExtensionList(ext);
+
+  // Set Library Paths
+  std::vector<std::string> tokens;
+  StringUtils::tokenize(opt.libraryPathList.toStdString(), delimiter, tokens);
+  setLibraryPathList(tokens);
+
+  // Set Include Paths
+  std::vector<std::string> inc;
+  StringUtils::tokenize(opt.includePathList.toStdString(), delimiter, inc);
+  setIncludePathList(inc);
+
+  // Set Macros
+  std::vector<std::pair<std::string, std::string>> macro;
+  const QStringList data = StringSplit(opt.macroList, " ");
+  for (const auto& d : data) {
+    auto splitted = StringSplit(d, "=");
+    if (!splitted.isEmpty())
+      macro.push_back(std::make_pair(
+          splitted.first().toStdString(),
+          splitted.count() > 1 ? splitted.at(1).toStdString() : std::string{}));
+  }
+  setMacroList(macro);
+
+  setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  QString strDefaultCts;
+  const auto constr = opt.constrFileData.fileData;
+  for (const filedata& fdata : constr) {
+    if (LocalToProject == fdata.m_filePath) {
+      setConstrsFile(fdata.m_fileName, false);
+    } else {
+      setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
+                     opt.constrFileData.isCopySource);
+    }
+    strDefaultCts = fdata.m_fileName;
+  }
+
+  if (!strDefaultCts.isEmpty() && setTargetConstr) {
+    setTargetConstrs(strDefaultCts);
+  }
+
+  setCurrentRun(DEFAULT_FOLDER_SYNTH);
+
+  if (opt.device.count() >= 4) {
+    QStringList strlist = opt.device;
+    QList<QPair<QString, QString>> listParam;
+    QPair<QString, QString> pair;
+    pair.first = PROJECT_PART_SERIES;
+    pair.second = strlist.at(0);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_FAMILY;
+    pair.second = strlist.at(1);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_PACKAGE;
+    pair.second = strlist.at(2);
+    listParam.append(pair);
+    pair.first = PROJECT_PART_DEVICE;
+    pair.second = strlist.at(3);
+    listParam.append(pair);
+    setSynthesisOption(listParam);
+
+    auto targetDevice = strlist.at(3);
+    target_device(targetDevice);
+  }
+
+  FinishedProject();
+}
+
 const std::vector<std::string>& ProjectManager::libraryPathList() const {
   return Project::Instance()->compilerConfig()->libraryPathList();
+}
+
+QString ProjectManager::libraryPath() const {
+  auto pathList = Project::Instance()->compilerConfig()->libraryPathList();
+  QStringList tmpList;
+  for (const auto& p : pathList) tmpList.append(QString::fromStdString(p));
+  return tmpList.join(" ");
 }
 
 void ProjectManager::setLibraryPathList(
@@ -1773,6 +1782,13 @@ void ProjectManager::addLibraryPath(const std::string& libraryPath) {
 
 const std::vector<std::string>& ProjectManager::libraryExtensionList() const {
   return Project::Instance()->compilerConfig()->libraryExtensionList();
+}
+
+QString ProjectManager::libraryExtension() const {
+  auto extList = Project::Instance()->compilerConfig()->libraryExtensionList();
+  QStringList tmpList;
+  for (const auto& ext : extList) tmpList.append(QString::fromStdString(ext));
+  return tmpList.join(" ");
 }
 
 void ProjectManager::setLibraryExtensionList(
@@ -1800,6 +1816,14 @@ ProjectManager::macroList() const {
   return Project::Instance()->compilerConfig()->macroList();
 }
 
+QString ProjectManager::macros() const {
+  auto macro = Project::Instance()->compilerConfig()->macroList();
+  QStringList tmpList;
+  for (const auto& m : macro)
+    tmpList.append(QString::fromStdString(m.first + "=" + m.second));
+  return tmpList.join(" ");
+}
+
 void ProjectManager::setTargetDevice(const std::string& deviceName) {
   setCurrentRun(getActiveSynthRunName());
   auto result = setSynthesisOption(
@@ -1818,6 +1842,13 @@ std::string ProjectManager::getTargetDevice() {
 
 const std::vector<std::string>& ProjectManager::includePathList() const {
   return Project::Instance()->compilerConfig()->includePathList();
+}
+
+QString ProjectManager::includePath() const {
+  auto includeList = Project::Instance()->compilerConfig()->includePathList();
+  QStringList tmpList;
+  for (const auto& i : includeList) tmpList.append(QString::fromStdString(i));
+  return tmpList.join(" ");
 }
 
 void ProjectManager::setIncludePathList(

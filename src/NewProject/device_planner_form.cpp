@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "ProjectManager/config.h"
+#include "ProjectManager/project_manager.h"
 #include "ui_device_planner_form.h"
 
 using namespace FOEDAG;
@@ -84,6 +85,23 @@ QList<QString> devicePlannerForm::getSelectedDevice() const {
   }
 
   return listRtn;
+}
+
+void devicePlannerForm::updateUi(ProjectManager *pm) {
+  if (!pm) return;
+  pm->setCurrentRun(DEFAULT_FOLDER_SYNTH);
+  auto series = pm->getSynthOption(PROJECT_PART_SERIES);
+  auto family = pm->getSynthOption(PROJECT_PART_FAMILY);
+  auto package = pm->getSynthOption(PROJECT_PART_PACKAGE);
+
+  if (series.isEmpty() || family.isEmpty() || package.isEmpty()) return;
+  // The order is important here since every combo depends on previous selection
+  ui->m_comboBoxSeries->setCurrentIndex(
+      ui->m_comboBoxSeries->findData(series, Qt::DisplayRole));
+  ui->m_comboBoxFamily->setCurrentIndex(
+      ui->m_comboBoxFamily->findData(family, Qt::DisplayRole));
+  ui->m_comboBoxPackage->setCurrentIndex(
+      ui->m_comboBoxPackage->findData(package, Qt::DisplayRole));
 }
 
 void devicePlannerForm::onSeriestextChanged(const QString &arg1) {

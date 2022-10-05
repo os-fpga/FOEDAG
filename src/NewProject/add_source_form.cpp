@@ -1,5 +1,8 @@
 #include "add_source_form.h"
 
+#include <QFileInfo>
+
+#include "ProjectManager/project_manager.h"
 #include "ui_add_source_form.h"
 
 using namespace FOEDAG;
@@ -58,4 +61,45 @@ QString addSourceForm::LibraryExt() const {
 
 QString addSourceForm::Macros() const {
   return ui->lineEditSetMacro->text().trimmed();
+}
+
+void addSourceForm::updateUi(ProjectManager *pm) {
+  if (!pm) return;
+
+  ui->lineEditTopModule->setText(pm->getDesignTopModule());
+  ui->lineEditTopModuleLib->setText(pm->getDesignTopModuleLib());
+  ui->lineEditLibraryExt->setText(pm->libraryExtension());
+  ui->lineEditLibraryPath->setText(pm->libraryPath());
+  ui->lineEditIncludePath->setText(pm->includePath());
+  ui->lineEditSetMacro->setText(pm->macros());
+
+  m_widgetGrid->ClearTable();
+  auto libs = pm->DesignLibraries();
+  int index{0};
+  for (const auto &lang_file : pm->DesignFiles()) {
+    filedata data;
+    data.m_language = lang_file.first;
+    if (index < libs.size()) {
+      if (!libs.at(index).first.empty()) {
+        if (!libs.at(index).second.empty())
+          data.m_workLibrary =
+              QString::fromStdString(libs.at(index).second.front());
+      }
+    }
+    const QStringList fileList =
+        QString::fromStdString(lang_file.second).split(" ");
+    for (const auto &file : fileList) {
+      const QFileInfo info{file};
+      data.m_fileName = info.fileName();
+      data.m_filePath = info.path();
+      data.m_isFolder = false;
+      data.m_fileType = info.suffix();
+      m_widgetGrid->AddTableItem(data);
+    }
+    index++;
+  }
+}
+
+void addSourceForm::SetTitle(const QString &title) {
+  ui->m_labelTitle->setText(title);
 }

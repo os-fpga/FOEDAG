@@ -94,6 +94,7 @@ project object is singleton mode.
 #define PROJECT_FILE_FORMAT ".ospr"
 
 #define PROJECT_OSRCDIR "$OSRCDIR"
+constexpr auto LocalToProject{"<Local to Project>"};
 
 namespace FOEDAG {
 
@@ -139,6 +140,7 @@ class ProjectManager : public QObject {
   };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  void UpdateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
                                   const QString &projName,
                                   const QString &fileSet,
@@ -267,14 +269,17 @@ class ProjectManager : public QObject {
   void setCurrentRun(const QString &currentRun);
 
   const std::vector<std::string> &includePathList() const;
+  QString includePath() const;
   void setIncludePathList(const std::vector<std::string> &newIncludePathList);
   void addIncludePath(const std::string &includePath);
 
   const std::vector<std::string> &libraryPathList() const;
+  QString libraryPath() const;
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
   const std::vector<std::string> &libraryExtensionList() const;
+  QString libraryExtension() const;
   void setLibraryExtensionList(
       const std::vector<std::string> &newLibraryExtensionList);
   void addLibraryExtension(const std::string &libraryExt);
@@ -283,6 +288,7 @@ class ProjectManager : public QObject {
       const std::vector<std::pair<std::string, std::string>> &newMacroList);
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
+  QString macros() const;
 
   void setTargetDevice(const std::string &deviceName);
   std::string getTargetDevice();
@@ -310,6 +316,7 @@ class ProjectManager : public QObject {
                       bool iscover = true);
   int CreateAndAddFile(const QString &suffix, const QString &filename,
                        const QString &filenameAdd, bool copyFile);
+  void UpdateProjectInternal(const ProjectOptions &opt, bool setTargetConstr);
 
  private:
   QString m_currentFileSet;

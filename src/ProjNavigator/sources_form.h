@@ -33,7 +33,6 @@ namespace FOEDAG {
 class TclCommandIntegration;
 class SourcesForm : public QWidget {
   Q_OBJECT
-  friend class TclCommandIntegration;
 
  public:
   explicit SourcesForm(QWidget* parent = nullptr);
@@ -44,6 +43,8 @@ class SourcesForm : public QWidget {
   ProjectManager* ProjManager();
 
   void CreateConstraint();
+  void UpdateSrcHierachyTree();
+  QAction* ProjectSettingsActions() const;
 
  signals:
   void OpenFile(QString);
@@ -54,6 +55,7 @@ class SourcesForm : public QWidget {
                            const QStringList& paramList);
   void IpRemoveRequested(const QString& moduleName);
   void IpDeleteRequested(const QString& moduleName);
+  void OpenProjectSettings();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -93,11 +95,11 @@ class SourcesForm : public QWidget {
   QAction* m_actReconfigureIp;
   QAction* m_actRemoveIp;
   QAction* m_actDeleteIp;
+  QAction* m_actProjectSettings;
 
   ProjectManager* m_projManager;
 
   void CreateActions();
-  void UpdateSrcHierachyTree();
   void CreateFolderHierachyTree();
   static QTreeWidgetItem* CreateFolderHierachyTree(QTreeWidgetItem* topItem,
                                                    const QString& path);

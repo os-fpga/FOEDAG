@@ -38,6 +38,7 @@ class sourceGrid : public QWidget {
 
   void currentFileSet(const QString &fileSet);
   void selectRow(int row);
+  void ClearTable();
 
  public slots:
   void AddFiles();

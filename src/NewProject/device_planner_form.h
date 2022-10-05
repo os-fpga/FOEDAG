@@ -4,13 +4,15 @@
 #include <QTableView>
 #include <QWidget>
 
+#include "SettingsGuiInterface.h"
+
 namespace Ui {
 class devicePlannerForm;
 }
 
 namespace FOEDAG {
 
-class devicePlannerForm : public QWidget {
+class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
  public:
@@ -18,6 +20,7 @@ class devicePlannerForm : public QWidget {
   ~devicePlannerForm();
 
   QList<QString> getSelectedDevice() const;
+  void updateUi(ProjectManager *pm) override;
 
  private slots:
   void onSeriestextChanged(const QString &arg1);

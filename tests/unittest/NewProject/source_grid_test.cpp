@@ -135,3 +135,20 @@ TEST(sourceGrid, DeleteTableItemLastElement) {
   auto actual = grid.getTableViewData();
   EXPECT_EQ(actual, expected);
 }
+
+TEST(sourceGrid, ClearTable) {
+  sourceGrid grid;
+  grid.setGridType(GT_SOURCE);
+  filedata data1{false,       "v",  "test1.v", Design::VERILOG_2001,
+                 "somePath/", "lib"};
+  grid.AddTableItem(data1);
+  filedata data2{false,       "sv",  "test2.sv", Design::SYSTEMVERILOG_2012,
+                 "somePath/", "lib2"};
+  grid.AddTableItem(data2);
+
+  grid.ClearTable();
+
+  QList<filedata> expected = {};
+  auto actual = grid.getTableViewData();
+  EXPECT_EQ(actual, expected);
+}
