@@ -36,11 +36,11 @@ if { $platform == "windows" } {
     add_litex_ip_catalog ./IP_Catalog
 
     # Generate an IP w/ module name inst1
-    configure_ip axis_converter_V1_0 -mod_name 64b -version V1_0 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file /home/skyler/code/forks/FOEDAG/delMe/delMe.IPs/inst1
+    configure_ip axis_converter_V1_0 -mod_name 64b -version V1_0 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file rs_ips/inst1
     ipgenerate
 
     # Generate an IP w/ module name inst2
-    configure_ip axis_converter_V1_0 -mod_name 64b -version V1_0 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file /home/skyler/code/forks/FOEDAG/delMe/delMe.IPs/inst2
+    configure_ip axis_converter_V1_0 -mod_name 64b -version V1_0 -Pcore_in_width=128 -Pcore_out_width=64 -Pcore_user_width=0 -Pcore_reverse=0 -out_file rs_ips/inst2
     ipgenerate
 
     # This is testing a bug where ipgenerate always regenerated all IP instances when ipgenerate was called
