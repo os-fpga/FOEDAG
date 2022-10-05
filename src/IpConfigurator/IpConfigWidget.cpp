@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QWidget>
 
 #include "Main/WidgetFactory.h"
@@ -80,18 +81,32 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Main Layout
   QVBoxLayout* topLayout = new QVBoxLayout();
+  topLayout->setContentsMargins(0, 0, 0, 0);
   this->setLayout(topLayout);
 
+  // Create container widget and QScrollArea so this widget can shrink
+  QWidget* containerWidget = new QWidget();
+  containerWidget->setObjectName("ipConfigContainerWidget");
+  QVBoxLayout* containerLayout = new QVBoxLayout();
+  // layout must be set before adding to the scroll area
+  // https://doc.qt.io/qt-6/qscrollarea.html#setWidget
+  containerWidget->setLayout(containerLayout);
+  QScrollArea* scrollArea = new QScrollArea();
+  scrollArea->setWidgetResizable(true);
+  scrollArea->setObjectName("ipConfigScrollArea");
+  scrollArea->setWidget(containerWidget);
+  topLayout->addWidget(scrollArea);
+
   // Add VLNV meta text description
-  topLayout->addWidget(&metaLabel);
+  containerLayout->addWidget(&metaLabel);
 
   // Fill and add Parameters box
   CreateParamFields();
-  topLayout->addWidget(&paramsBox);
+  containerLayout->addWidget(&paramsBox);
 
   // Add Output Box
   CreateOutputFields();
-  topLayout->addWidget(&outputBox);
+  containerLayout->addWidget(&outputBox);
   // Update the module name if one was passed (this occurs during a
   // re-configure)
   if (!moduleName.isEmpty()) {
