@@ -22,6 +22,7 @@ typedef struct tagFileData {
   int m_language;
   QString m_filePath;
   QString m_workLibrary;
+  QString m_groupName;
 } FILEDATA;
 
 typedef FILEDATA filedata;

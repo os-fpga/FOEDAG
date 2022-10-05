@@ -8,6 +8,7 @@
 #include <QXmlStreamWriter>
 #include <filesystem>
 #include <iostream>
+#include <set>
 
 #include "Compiler/CompilerDefines.h"
 #include "MainWindow/Session.h"
@@ -49,17 +50,99 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
 
   setCurrentFileSet(opt.currentFileSet);
   const QList<filedata> listFile = opt.sourceFileData.fileData;
-  for (const filedata& fdata : listFile) {
-    auto libraries = fdata.m_workLibrary;
-    auto command = libraries.isEmpty() ? QString() : "-work";
 
-    if (LocalToProject == fdata.m_filePath) {
-      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
-                     false, true);
+  // Group and add files to project
+  std::map<std::string, std::vector<filedata>> fileGroups{};
+  std::vector<std::string> keys;
+  // Step through each file to determine our group keys and store the file
+  // under it's group key
+  for (const filedata& fdata : listFile) {
+    // Track unique keys in order
+    std::string key = fdata.m_groupName.toStdString();
+    if (std::find(keys.begin(), keys.end(), key) == keys.end()) {
+      keys.push_back(key);
+    }
+    // Store the current file under it's m_groupName key
+    fileGroups[key].push_back(fdata);
+  }
+
+  // Step through the group key and try to combine all the settings
+  for (auto key : keys) {
+    std::string fileListStr{};
+    std::set<std::string> libs{};
+    int language = -1;
+    bool hasLocalFiles = false;
+    bool hasNonLocalFiles = false;
+    bool multipleLanguages = false;
+
+    // Loop through each file in this specific group
+    auto files = fileGroups[key];
+    for (auto fdata : files) {
+      std::string addFilePath{};
+
+      // Track the language
+      if (language == -1) {
+        language = fdata.m_language;
+      } else {
+        if (language != fdata.m_language) {
+          // This might be an error state, can you group files of diff
+          // languages?
+          multipleLanguages = true;
+        }
+      }
+
+      // Split libraries by space and then store any new, unique library names
+      // (the libs std::set will automatically remove dupes)
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(fdata.m_workLibrary.toStdString(), " ", tokens);
+      for (auto lib : tokens) {
+        libs.insert(lib);
+      }
+
+      // Handle local and non-local paths
+      if (LocalToProject == fdata.m_filePath) {
+        hasLocalFiles = true;
+        addFilePath = fdata.m_fileName.toStdString();
+      } else {
+        hasNonLocalFiles = true;
+        addFilePath = fdata.m_filePath.toStdString() + "/" +
+                      fdata.m_fileName.toStdString();
+      }
+
+      // Add a delimeter if there's already a file in the string
+      if (!fileListStr.empty()) {
+        fileListStr += " ";
+      }
+
+      // Add the file to the list
+      fileListStr += addFilePath;
+    }  // End looping through files
+
+    // create a string of the unique libs requested by the files in this group
+    std::string libraries{};
+    for (auto lib : libs) {
+      if (!libraries.empty()) {
+        libraries += " ";
+      }
+      libraries += lib;
+    }
+    auto command = libraries.empty() ? std::string{} : "-work";
+
+    // Check if we are combing local and non-local files in a group
+    if (hasLocalFiles && hasNonLocalFiles) {
+      // This is probably an error condition as the setDesignFiles call has
+      // different arguements when local or non-local
+    } else if (multipleLanguages) {
+      // This seems like an error scenario as well
+    } else if (hasLocalFiles) {
+      setDesignFiles(
+          QString::fromStdString(command), QString::fromStdString(libraries),
+          QString::fromStdString(fileListStr), language, false, true);
     } else {
-      setDesignFiles(command, libraries,
-                     fdata.m_filePath + "/" + fdata.m_fileName,
-                     fdata.m_language, opt.sourceFileData.isCopySource, false);
+      setDesignFiles(QString::fromStdString(command),
+                     QString::fromStdString(libraries),
+                     QString::fromStdString(fileListStr), language,
+                     opt.sourceFileData.isCopySource, false);
     }
   }
 
