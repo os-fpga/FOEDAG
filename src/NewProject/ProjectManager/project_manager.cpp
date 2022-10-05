@@ -81,8 +81,6 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
         language = fdata.m_language;
       } else {
         if (language != fdata.m_language) {
-          // This might be an error state, can you group files of diff
-          // languages?
           multipleLanguages = true;
         }
       }
@@ -127,7 +125,7 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
       // This is probably an error condition as the setDesignFiles call has
       // different arguements when local or non-local
     } else if (multipleLanguages) {
-      // This seems like an error scenario as well
+      // This seems like a pontential error scenario as well
     } else if (hasLocalFiles) {
       setDesignFiles(command, libraries, fileListStr, language, false, true);
     } else {
