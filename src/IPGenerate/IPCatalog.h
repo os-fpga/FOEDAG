@@ -225,6 +225,8 @@ class IPInstance {
   const std::vector<Parameter>& Parameters() { return m_parameters; }
   const std::string& ModuleName() { return m_moduleName; }
   const std::filesystem::path OutputFile() { return m_outputFile; }
+  const bool Generated() { return m_generated; }
+  void setGenerated(bool generated) { m_generated = generated; }
 
  private:
   std::string m_ipname;
@@ -233,6 +235,7 @@ class IPInstance {
   std::vector<Parameter> m_parameters;
   std::string m_moduleName;
   std::filesystem::path m_outputFile;
+  bool m_generated = false;
 };
 
 class IPCatalog {
