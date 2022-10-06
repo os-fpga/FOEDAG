@@ -129,12 +129,12 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
   QDialogButtonBox* btns = new QDialogButtonBox(/*QDialogButtonBox::Cancel*/);
   btns->setObjectName("IpConfigWidget_QDialogButtonBox");
   layout->addWidget(btns);
-  QPushButton* generateBtn = new QPushButton("Generate IP", this);
-  btns->addButton(generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
+  generateBtn.setText("Generate IP");
+  btns->addButton(&generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
 
   // Create our tcl command to generate the IP when the Generate IP button
   // is clicked
-  QObject::connect(generateBtn, &QPushButton::clicked, this, [this]() {
+  QObject::connect(&generateBtn, &QPushButton::clicked, this, [this]() {
     // Find settings fields in the parameter box layout
     QLayout* fieldsLayout = paramsBox.layout();
     QList<QObject*> settingsObjs =
@@ -162,7 +162,7 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
                   moduleEdit.text() + " -version " +
                   QString::fromStdString(m_meta.version) + " " + params +
                   " -out_file " + outFileStr;
-    cmd += "\nipgenerate";
+    cmd += "\nipgenerate -modules " + moduleEdit.text();
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
 
@@ -328,4 +328,7 @@ void IpConfigWidget::updateOutputPath() {
   QString outStr =
       QString::fromStdString(FileUtils::GetFullPath(outPath).string());
   outputPath.setText(outStr);
+
+  // Disable the generate button if the module name is empty
+  generateBtn.setEnabled(!moduleEdit.text().isEmpty());
 }

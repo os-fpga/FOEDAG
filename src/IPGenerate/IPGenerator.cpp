@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <thread>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
@@ -51,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -368,7 +370,24 @@ void IPGenerator::DeleteIPInstance(const std::string& moduleName) {
 bool IPGenerator::Generate() {
   bool status = true;
   Compiler* compiler = GetCompiler();
-  for (IPInstance* inst : m_instances) {
+  std::vector<IPInstance*> instances{};
+
+  if (compiler->IPGenOpt() == Compiler::IPGenerateOpt::List) {
+    // Take a list of moduleNames and only generate those IPs
+    std::vector<std::string> modules;
+    StringUtils::tokenize(compiler->IPGenMoreOpt(), " ", modules);
+    for (auto moduleName : modules) {
+      IPInstance* inst = GetIPInstance(moduleName);
+      if (inst) {
+        instances.push_back(inst);
+      }
+    }
+  } else {
+    // Generate all IPs
+    instances = m_instances;
+  }
+
+  for (IPInstance* inst : instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
     if (!std::filesystem::exists(out_path)) {
@@ -464,6 +483,7 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
+
         break;
       }
     }
