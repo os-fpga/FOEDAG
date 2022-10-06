@@ -21,8 +21,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjectManagerComponent.h"
 
 #include "Compiler/CompilerDefines.h"
+#include "Utils/StringUtils.h"
 
 namespace FOEDAG {
+
+constexpr auto COMPILER_CONFIG{"CompilerConfig"};
+constexpr auto COMPILER_OPTION{"Opt"};
+constexpr auto COMPILER_NAME{"Name"};
+constexpr auto COMPILER_VAL{"Val"};
+constexpr auto COMPILER_LIB_PATH{"LibPath"};
+constexpr auto COMPILER_INCLUDE_PATH{"IncludePath"};
+constexpr auto COMPILER_LIB_EXT{"LibExt"};
+constexpr auto COMPILER_MACRO{"Macro"};
+
+constexpr auto PROJECT_GROUP_LIB_COMMAND{"LibCommand"};
+constexpr auto PROJECT_GROUP_LIB_NAME{"LibName"};
 
 ProjectManagerComponent::ProjectManagerComponent(ProjectManager* pManager,
                                                  QObject* parent)
@@ -60,6 +73,25 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
   }
   stream.writeEndElement();
 
+  stream.writeStartElement(COMPILER_CONFIG);
+  stream.writeStartElement(COMPILER_OPTION);
+  stream.writeAttribute(COMPILER_NAME, COMPILER_LIB_PATH);
+  stream.writeAttribute(COMPILER_VAL, m_projectManager->libraryPath());
+  stream.writeEndElement();
+  stream.writeStartElement(COMPILER_OPTION);
+  stream.writeAttribute(COMPILER_NAME, COMPILER_INCLUDE_PATH);
+  stream.writeAttribute(COMPILER_VAL, m_projectManager->includePath());
+  stream.writeEndElement();
+  stream.writeStartElement(COMPILER_OPTION);
+  stream.writeAttribute(COMPILER_NAME, COMPILER_LIB_EXT);
+  stream.writeAttribute(COMPILER_VAL, m_projectManager->libraryExtension());
+  stream.writeEndElement();
+  stream.writeStartElement(COMPILER_OPTION);
+  stream.writeAttribute(COMPILER_NAME, COMPILER_MACRO);
+  stream.writeAttribute(COMPILER_VAL, m_projectManager->macros());
+  stream.writeEndElement();
+  stream.writeEndElement();
+
   stream.writeStartElement(PROJECT_FILESETS);
   QMap<QString, ProjectFileSet*> tmpFileSetMap =
       Project::Instance()->getMapProjectFileset();
@@ -81,10 +113,16 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
       stream.writeEndElement();
     }
     auto langMap = tmpFileSet->Files();
-    for (auto it = langMap.cbegin(); it != langMap.cend(); ++it) {
+    auto libs = tmpFileSet->getLibraries();
+    int index{0};
+    for (auto it = langMap.cbegin(); it != langMap.cend(); ++it, index++) {
       stream.writeStartElement(PROJECT_GROUP);
       stream.writeAttribute(PROJECT_GROUP_ID, QString::number(it->first));
       stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
+      stream.writeAttribute(PROJECT_GROUP_LIB_COMMAND,
+                            libs.at(index).first.join(" "));
+      stream.writeAttribute(PROJECT_GROUP_LIB_NAME,
+                            libs.at(index).second.join(" "));
       stream.writeEndElement();
     }
 
@@ -174,6 +212,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         QString strSetSrcDir;
         QStringList listFiles;
         std::vector<std::pair<int, QString>> langList;
+        std::vector<std::pair<QStringList, QStringList>> libs;
         QMap<QString, QString> mapOption;
         while (true) {
           type = reader.readNext();
@@ -206,6 +245,13 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             langList.push_back(std::make_pair(
                 reader.attributes().value(PROJECT_GROUP_ID).toInt(),
                 reader.attributes().value(PROJECT_GROUP_FILES).toString()));
+            auto command =
+                reader.attributes().value(PROJECT_GROUP_LIB_COMMAND).toString();
+            auto lib =
+                reader.attributes().value(PROJECT_GROUP_LIB_NAME).toString();
+            libs.push_back(
+                std::make_pair(ProjectManager::StringSplit(command, " "),
+                               ProjectManager::StringSplit(lib, " ")));
           } else if (type == QXmlStreamReader::EndElement &&
                      reader.name() == PROJECT_FILESET) {
             ProjectFileSet projectFileset;
@@ -219,9 +265,12 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                                 (strFile.lastIndexOf("/") + 1)),
                   strFile);
             }
+            int index{0};
             for (const auto& i : langList) {
               projectFileset.addFiles(
-                  {}, {}, ProjectManager::StringSplit(i.second, " "), i.first);
+                  libs.at(index).first, libs.at(index).second,
+                  ProjectManager::StringSplit(i.second, " "), i.first);
+              index++;
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
                  ++iter) {
@@ -234,6 +283,47 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             strSetSrcDir = "";
             listFiles.clear();
             mapOption.clear();
+          }
+        }
+      }
+      if (reader.name() == COMPILER_CONFIG) {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == COMPILER_CONFIG) {
+            break;
+          }
+
+          if (type == QXmlStreamReader::StartElement &&
+              reader.attributes().hasAttribute(COMPILER_NAME) &&
+              reader.attributes().hasAttribute(COMPILER_VAL)) {
+            if (reader.attributes().value(COMPILER_NAME).toString() ==
+                COMPILER_LIB_PATH) {
+              auto path = reader.attributes().value(COMPILER_VAL).toString();
+              std::vector<std::string> pathList;
+              StringUtils::tokenize(path.toStdString(), " ", pathList);
+              m_projectManager->setLibraryPathList(pathList);
+            }
+            if (reader.attributes().value(COMPILER_NAME).toString() ==
+                COMPILER_INCLUDE_PATH) {
+              auto inc = reader.attributes().value(COMPILER_VAL).toString();
+              std::vector<std::string> incList;
+              StringUtils::tokenize(inc.toStdString(), " ", incList);
+              m_projectManager->setIncludePathList(incList);
+            }
+            if (reader.attributes().value(COMPILER_NAME).toString() ==
+                COMPILER_LIB_EXT) {
+              auto ext = reader.attributes().value(COMPILER_VAL).toString();
+              std::vector<std::string> extList;
+              StringUtils::tokenize(ext.toStdString(), " ", extList);
+              m_projectManager->setLibraryExtensionList(extList);
+            }
+            if (reader.attributes().value(COMPILER_NAME).toString() ==
+                COMPILER_MACRO) {
+              auto macro = reader.attributes().value(COMPILER_VAL).toString();
+              auto macroList = ProjectManager::ParseMacro(macro);
+              m_projectManager->setMacroList(macroList);
+            }
           }
         }
       }
