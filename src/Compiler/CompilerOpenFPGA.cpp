@@ -1566,7 +1566,8 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+  if (PinConstraintEnabled() && FileUtils::FileExists(pincommand) &&
+      (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
@@ -1609,7 +1610,9 @@ bool CompilerOpenFPGA::Placement() {
             .string());
     ofsp << pincommand << std::endl;
     ofsp.close();
+
     int status = ExecuteAndMonitorSystemCommand(pincommand);
+
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " pin conversion failed!");
@@ -1618,7 +1621,6 @@ bool CompilerOpenFPGA::Placement() {
       pin_loc_constraint_file = pin_locFile;
     }
   }
-
   std::string command = BaseVprCommand() + " --place";
   if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
     command += " --fix_clusters " + pin_loc_constraint_file;
@@ -1944,7 +1946,7 @@ lut_truth_table_fixup
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
