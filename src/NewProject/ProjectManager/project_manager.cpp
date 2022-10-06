@@ -1552,6 +1552,20 @@ QStringList ProjectManager::StringSplit(const QString& str,
 #endif
 }
 
+std::vector<std::pair<std::string, std::string>> ProjectManager::ParseMacro(
+    const QString& macro) {
+  std::vector<std::pair<std::string, std::string>> macroList;
+  const QStringList data = StringSplit(macro, " ");
+  for (const auto& d : data) {
+    auto splitted = StringSplit(d, "=");
+    if (!splitted.isEmpty())
+      macroList.push_back(std::make_pair(
+          splitted.first().toStdString(),
+          splitted.count() > 1 ? splitted.at(1).toStdString() : std::string{}));
+  }
+  return macroList;
+}
+
 int ProjectManager::CreateAndAddFile(const QString& suffix,
                                      const QString& filename,
                                      const QString& filenameAdd,
@@ -1705,15 +1719,7 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   setIncludePathList(inc);
 
   // Set Macros
-  std::vector<std::pair<std::string, std::string>> macro;
-  const QStringList data = StringSplit(opt.macroList, " ");
-  for (const auto& d : data) {
-    auto splitted = StringSplit(d, "=");
-    if (!splitted.isEmpty())
-      macro.push_back(std::make_pair(
-          splitted.first().toStdString(),
-          splitted.count() > 1 ? splitted.at(1).toStdString() : std::string{}));
-  }
+  auto macro = ParseMacro(opt.macroList);
   setMacroList(macro);
 
   setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
