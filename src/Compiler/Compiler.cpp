@@ -129,8 +129,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "                              : Configures an IP <IP_NAME> and "
             "generates the corresponding file with module name"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
-            "ip_configure"
+  (*out) << "   ipgenerate ?clean? ?-modules {moduleName1 moduleName2} : "
+            "Generates all IP instances set by "
+            "ip_configure. -modules limits which IPs are generated."
          << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
@@ -974,6 +975,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->IPGenOpt(Compiler::IPGenerateOpt::Clean);
+        } else if (arg == "-modules") {
+          compiler->IPGenOpt(Compiler::IPGenerateOpt::List);
+          i++;
+          if (i < argc) {
+            compiler->IPGenMoreOpt(argv[i]);
+            compiler->Message("Modules: " + compiler->IPGenMoreOpt());
+          } else {
+            compiler->ErrorMessage(
+                "Incorrect syntax for ipgenerate -modules "
+                "moduleName or {moduleName1 moduleName2} should follow "
+                "'-modules' tag");
+            return TCL_ERROR;
+          }
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
