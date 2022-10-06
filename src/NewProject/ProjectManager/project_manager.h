@@ -293,6 +293,8 @@ class ProjectManager : public QObject {
   void setTargetDevice(const std::string &deviceName);
   std::string getTargetDevice();
   static QStringList StringSplit(const QString &str, const QString &sep);
+  static std::vector<std::pair<std::string, std::string>> ParseMacro(
+      const QString &macro);
 
  private:
   // Please set currentfileset before using this function
