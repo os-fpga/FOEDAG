@@ -1566,7 +1566,8 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (PinConstraintEnabled() && FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+  if (PinConstraintEnabled() && FileUtils::FileExists(pincommand) &&
+      (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
