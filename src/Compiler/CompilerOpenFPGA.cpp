@@ -1937,9 +1937,6 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
 
-# Apply fix-up to clustering nets based on routing results
-pb_pin_fixup --verbose
-
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
 
