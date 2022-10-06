@@ -980,7 +980,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           i++;
           if (i < argc) {
             compiler->IPGenMoreOpt(argv[i]);
-            compiler->Message("Modules: " + compiler->IPGenMoreOpt());
           } else {
             compiler->ErrorMessage(
                 "Incorrect syntax for ipgenerate -modules "
