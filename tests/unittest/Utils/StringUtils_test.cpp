@@ -119,5 +119,23 @@ TEST(StringUtilsTest, toUpperTest) {
     EXPECT_EQ(StringUtils::toUpper("upperCase"), std::string("UPPERCASE"));
 }
 
+TEST(StringUtilsTest, joinEmpty) {
+  std::vector<std::string> join{};
+  auto res = StringUtils::join(join, " ");
+  EXPECT_EQ(res, "");
+}
+
+TEST(StringUtilsTest, joinOneElement) {
+  std::vector<std::string> join{"element"};
+  auto res = StringUtils::join(join, "////");
+  EXPECT_EQ(res, "element");
+}
+
+TEST(StringUtilsTest, joinFewElements) {
+  std::vector<std::string> join{"element1", "element2"};
+  auto res = StringUtils::join(join, "---");
+  EXPECT_EQ(res, "element1---element2");
+}
+
 }  // namespace
 }  // namespace FOEDAG
