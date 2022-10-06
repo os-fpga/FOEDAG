@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 
 #include "IPGenerate/IPCatalog.h"
 
@@ -56,6 +57,7 @@ class IpConfigWidget : public QWidget {
   QLabel metaLabel;
   QLineEdit moduleEdit;
   QLineEdit outputPath;
+  QPushButton generateBtn;
 
   QString m_baseDirDefault;
   QString m_requestedIpName;
