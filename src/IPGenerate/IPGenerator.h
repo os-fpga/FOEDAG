@@ -55,6 +55,7 @@ class IPGenerator {
     m_instances.erase(m_instances.begin(), m_instances.end());
   }
   bool Generate();
+  std::filesystem::path GetBuildDir(IPInstance* instance) const;
 
  protected:
   IPCatalog* m_catalog = nullptr;

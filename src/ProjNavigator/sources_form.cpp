@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
@@ -9,6 +10,7 @@
 #include <algorithm>
 
 #include "Main/Foedag.h"
+#include "Utils/FileUtils.h"
 #include "tcl_command_integration.h"
 #include "ui_sources_form.h"
 
@@ -142,19 +144,21 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
       }
-    } else if (SRC_TREE_IP_FILE_ITEM == strPropertyRole ||
-               SRC_TREE_IP_TOP_ITEM == strPropertyRole) {
+    } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {
       menu->addAction(m_actRefresh);
-      if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
-        menu->addSeparator();
-        menu->addAction(m_actReconfigureIp);
-        menu->addAction(m_actRemoveIp);
-        // TODO @skyler-rs Re-enable when ipgen and stored VLNV have same cases.
-        // Currenlty ip generators save to a path in lowercase which causes a
-        // file miss when trying to delete based off the VLNV data which has
-        // capitalizations etc
-        // menu->addAction(m_actDeleteIp);
-      }
+      menu->addSeparator();
+      menu->addAction(m_actReconfigureIp);
+      menu->addAction(m_actRemoveIp);
+      // TODO @skyler-rs Re-enable when ipgen and stored VLNV have same cases.
+      // Currenlty ip generators save to a path in lowercase which causes a
+      // file miss when trying to delete based off the VLNV data which has
+      // capitalizations etc
+      // menu->addAction(m_actDeleteIp);
+    } else if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRefresh);
+    } else if (SRC_TREE_IP_TOP_ITEM == strPropertyRole) {
+      menu->addAction(m_actRefresh);
     }
 
     if (m_projManager->HasDesign()) {
@@ -183,7 +187,8 @@ void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
       SRC_TREE_SIM_FILE_ITEM == strPropertyRole ||
-      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
     SlotOpenFile();
   }
 }
@@ -586,32 +591,58 @@ void SourcesForm::CreateFolderHierachyTree() {
                      tr("Simulation Sources") + QString("(%1)").arg(iFileSum));
 
   // Initialize IP instances tree
+  AddIpInstanceTree(topItem);
+}
+
+void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
   QTreeWidgetItem *topitemIpInstances = new QTreeWidgetItem(topItem);
   m_treeSrcHierachy->addTopLevelItem(topitemIpInstances);
   topitemIpInstances->setData(0, Qt::WhatsThisPropertyRole,
                               SRC_TREE_IP_TOP_ITEM);
+  int instCount = 0;
 
   Compiler *compiler = nullptr;
   IPGenerator *ipGen = nullptr;
   if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
       (ipGen = compiler->GetIPGenerator())) {
-    iFileSum = 0;
     QTreeWidgetItem *ipParentItem{topitemIpInstances};
     for (auto instance : ipGen->IPInstances()) {
       QString ipName = QString::fromStdString(instance->IPName());
       QString moduleName = QString::fromStdString(instance->ModuleName());
 
-      QTreeWidgetItem *itemf = new QTreeWidgetItem(ipParentItem);
-      itemf->setText(0, moduleName);
-      itemf->setData(0, Qt::UserRole, ipName);
-      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
-      itemf->setData(0, SetFileDataRole, ipName);
+      // Add Instance moduleName to tree
+      QTreeWidgetItem *itemIp = new QTreeWidgetItem(ipParentItem);
+      itemIp->setText(0, moduleName);
+      itemIp->setData(0, Qt::UserRole, ipName);
+      itemIp->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_INST_ITEM);
+      itemIp->setData(0, SetFileDataRole, ipName);
 
-      iFileSum += 1;
+      // Get the IP build src directory for this instance
+      auto buildPath = ipGen->GetBuildDir(instance);
+      std::filesystem::path srcDirPath = buildPath / "src";
+      QString srcDirStr =
+          QString::fromStdString(FileUtils::GetFullPath(srcDirPath).string());
+
+      // Grab and add all files from the IP src dir (non-recursive)
+      QDirIterator it(srcDirStr, QDir::Files);
+      while (it.hasNext()) {
+        QFile file(it.next());
+
+        QTreeWidgetItem *itemFile = new QTreeWidgetItem(itemIp);
+        QFileInfo info(file);
+        itemFile->setText(0, info.fileName());
+        itemFile->setData(0, Qt::UserRole, info.absoluteFilePath());
+        itemFile->setIcon(0, QIcon(":/img/file.png"));
+        itemFile->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
+        itemFile->setData(0, SetFileDataRole, info.absoluteFilePath());
+        itemFile->setToolTip(0, info.absoluteFilePath());
+      }
+
+      instCount += 1;
     }
   }
   topitemIpInstances->setText(
-      0, tr("IP Instances") + QString("(%1)").arg(iFileSum));
+      0, tr("IP Instances") + QString("(%1)").arg(instCount));
 }
 
 QTreeWidgetItem *SourcesForm::CreateFolderHierachyTree(QTreeWidgetItem *topItem,

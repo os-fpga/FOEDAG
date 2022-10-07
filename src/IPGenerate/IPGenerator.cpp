@@ -336,31 +336,14 @@ void IPGenerator::RemoveIPInstance(const std::string& moduleName) {
 }
 
 void IPGenerator::DeleteIPInstance(IPInstance* instance) {
-  Compiler* compiler = GlobalSession->GetCompiler();
-  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  if (compiler) {
-    QString projName = compiler->ProjManager()->getProjectName();
-
-    // TODO @skyler-rs Oct2022 currently the path info stored for IPs doesn't
-    // directly correlate with actual ip output path, this should be cleaned up
-    // after code freeze
-
-    // Build up the expected ip build path
-    std::filesystem::path baseDir(
-        compiler->ProjManager()->getProjectPath().toStdString());
-    std::string projIpDir = projName.toStdString() + ".IPs";
-    std::filesystem::path buildPath = baseDir / projIpDir / meta.vendor /
-                                      meta.library / meta.name / meta.version /
-                                      instance->ModuleName();
-
-    // Delete the build folder if it exists
-    if (FileUtils::FileExists(buildPath) &&
-        FileUtils::FileIsDirectory(buildPath)) {
-      std::filesystem::remove_all(buildPath);
-    }
-
-    RemoveIPInstance(instance);
+  // Delete the build folder if it exists
+  auto buildPath = GetBuildDir(instance);
+  if (FileUtils::FileExists(buildPath) &&
+      FileUtils::FileIsDirectory(buildPath)) {
+    std::filesystem::remove_all(buildPath);
   }
+
+  RemoveIPInstance(instance);
 }
 
 void IPGenerator::DeleteIPInstance(const std::string& moduleName) {
@@ -489,4 +472,23 @@ bool IPGenerator::Generate() {
     }
   }
   return status;
+}
+
+// This will return the expected VLNV path for the given instance
+std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
+  std::filesystem::path dir{};
+
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
+  if (compiler) {
+    QString projName = compiler->ProjManager()->getProjectName();
+
+    // Build up the expected ip build path
+    std::filesystem::path baseDir(
+        compiler->ProjManager()->getProjectPath().toStdString());
+    std::string projIpDir = projName.toStdString() + ".IPs";
+    dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
+          meta.version / instance->ModuleName();
+  }
+  return dir;
 }
