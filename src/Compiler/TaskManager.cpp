@@ -84,8 +84,16 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
             &TaskManager::taskStateChanged);
     connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
-  QVector<Task *> tmp = {m_tasks[TIMING_SIGN_OFF], m_tasks[POWER],
-                         m_tasks[BITSTREAM], m_tasks[ROUTING]};
+  QVector<Task *> tmp = {m_tasks[BITSTREAM]};
+  m_rollBack.insert(m_tasks[BITSTREAM_CLEAN], tmp);
+
+  tmp += m_tasks[POWER];
+  m_rollBack.insert(m_tasks[POWER_CLEAN], tmp);
+
+  tmp += m_tasks[TIMING_SIGN_OFF];
+  m_rollBack.insert(m_tasks[TIMING_SIGN_OFF_CLEAN], tmp);
+
+  tmp += m_tasks[ROUTING];
   m_rollBack.insert(m_tasks[ROUTING_CLEAN], tmp);
 
   tmp += m_tasks[PLACEMENT];
