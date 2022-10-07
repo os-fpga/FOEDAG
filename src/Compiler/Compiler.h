@@ -183,6 +183,7 @@ class Compiler {
   const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
     return m_severityMap;
   }
+  static std::string AdjustPath(const std::string& p);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
