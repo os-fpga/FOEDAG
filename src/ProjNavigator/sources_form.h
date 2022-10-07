@@ -19,6 +19,7 @@
 #define SRC_TREE_SIM_SET_ITEM "simfilesetitem"
 #define SRC_TREE_SIM_FILE_ITEM "simfileitem"
 #define SRC_TREE_IP_SET_ITEM "ipfilesetitem"
+#define SRC_TREE_IP_INST_ITEM "ipinstitem"
 #define SRC_TREE_IP_FILE_ITEM "ipfileitem"
 
 #define SRC_TREE_FLG_ACTIVE tr(" (Active)")
@@ -109,6 +110,7 @@ class SourcesForm : public QWidget {
                                       const QString& text);
   static QString StripPath(const QString& path);
   void showAddFileDialog(GridType gridType);
+  void AddIpInstanceTree(QTreeWidgetItem* topItem);
 };
 }  // namespace FOEDAG
 
