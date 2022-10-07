@@ -1371,6 +1371,8 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
         //if(fixed_layout_value == QString("base")) continue; // exclude filter
         // if( (fixed_layout_value != QString("4x4")) &&
         //     (fixed_layout_value != QString("8x8"))) continue; // include filter
+        // if(fixed_layout_value != QString("76x76")) continue; // include filter
+        // if(!voltage_threshold.empty() && !p_v_t_corner.empty()) continue; // include filter
 
         // form the expected device_data_fpga_io_map file name
         std::string device_data_fpga_io_map_filename = family +
