@@ -22,6 +22,7 @@ typedef struct tagFileData {
   int m_language;
   QString m_filePath;
   QString m_workLibrary;
+  QString m_groupName;
 } FILEDATA;
 
 typedef FILEDATA filedata;
@@ -37,6 +38,7 @@ class sourceGrid : public QWidget {
 
   void currentFileSet(const QString &fileSet);
   void selectRow(int row);
+  void ClearTable();
 
  public slots:
   void AddFiles();

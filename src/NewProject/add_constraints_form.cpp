@@ -1,7 +1,10 @@
 #include "add_constraints_form.h"
 
+#include <QFileInfo>
+
 #include "Compiler/Compiler.h"
 #include "MainWindow/Session.h"
+#include "ProjectManager/project_manager.h"
 #include "ui_add_constraints_form.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -52,3 +55,30 @@ bool addConstraintsForm::IsRandom() const {
 }
 
 bool addConstraintsForm::IsFree() const { return ui->select_free->isChecked(); }
+void addConstraintsForm::updateUi(ProjectManager *pm) {
+  if (!pm) return;
+  pm->setCurrentFileSet(DEFAULT_FOLDER_CONSTRS);
+  auto activeSet = pm->getConstrActiveFileSet();
+  const auto files = pm->getConstrFiles(activeSet);
+  m_widgetGrid->ClearTable();
+  for (const auto &file : files) {
+    const QFileInfo fileInfo{file};
+    filedata data;
+    data.m_isFolder = false;
+    data.m_fileName = fileInfo.fileName();
+    data.m_fileType = fileInfo.suffix();
+    // TODO @volodymyrK temp solution, this should displayed as <Local to
+    // Project>
+    if (fileInfo.path().startsWith(PROJECT_OSRCDIR))
+      data.m_filePath =
+          fileInfo.path().replace(PROJECT_OSRCDIR, pm->getProjectPath());
+    else
+      data.m_filePath = fileInfo.path();
+
+    m_widgetGrid->AddTableItem(data);
+  }
+}
+
+void addConstraintsForm::SetTitle(const QString &title) {
+  ui->m_labelTitle->setText(title);
+}

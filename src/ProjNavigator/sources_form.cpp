@@ -80,6 +80,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->setMinimumWidth(200);
+    if (m_projManager->HasDesign()) {
+      menu->addAction(m_actProjectSettings);
+    }
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
@@ -89,7 +92,6 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actEditSimulSets);
       menu->addSeparator();
       menu->addAction(m_actAddFile);
-
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
@@ -146,6 +148,12 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
         menu->addSeparator();
         menu->addAction(m_actReconfigureIp);
+        menu->addAction(m_actRemoveIp);
+        // TODO @skyler-rs Re-enable when ipgen and stored VLNV have same cases.
+        // Currenlty ip generators save to a path in lowercase which causes a
+        // file miss when trying to delete based off the VLNV data which has
+        // capitalizations etc
+        // menu->addAction(m_actDeleteIp);
       }
     }
 
@@ -390,6 +398,24 @@ void SourcesForm::SlotReConfigureIp() {
                            QString::fromStdString(moduleName), args);
 }
 
+void SourcesForm::SlotRemoveIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpRemoveRequested(moduleName);
+}
+
+void SourcesForm::SlotDeleteIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpDeleteRequested(moduleName);
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -438,6 +464,22 @@ void SourcesForm::CreateActions() {
   m_actReconfigureIp = new QAction(tr("Reconfigure IP"), m_treeSrcHierachy);
   connect(m_actReconfigureIp, &QAction::triggered, this,
           &SourcesForm::SlotReConfigureIp);
+
+  m_actRemoveIp = new QAction(tr("Remove IP from Project"), m_treeSrcHierachy);
+  m_actRemoveIp->setToolTip(
+      "Remove the selectd IP instance from the project. Its build files will "
+      "remain.");
+  connect(m_actRemoveIp, &QAction::triggered, this, &SourcesForm::SlotRemoveIp);
+
+  m_actDeleteIp = new QAction(tr("Delete IP"), m_treeSrcHierachy);
+  m_actDeleteIp->setToolTip(
+      "Remove the selectd IP instance from the project and delete its build "
+      "files.");
+  connect(m_actDeleteIp, &QAction::triggered, this, &SourcesForm::SlotDeleteIp);
+
+  m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
+  connect(m_actProjectSettings, &QAction::triggered, this,
+          &SourcesForm::OpenProjectSettings);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
@@ -446,6 +488,10 @@ void SourcesForm::UpdateSrcHierachyTree() {
   CreateFolderHierachyTree();
   m_treeSrcHierachy->setHeaderHidden(true);
   m_treeSrcHierachy->expandAll();
+}
+
+QAction *SourcesForm::ProjectSettingsActions() const {
+  return m_actProjectSettings;
 }
 
 void SourcesForm::CreateFolderHierachyTree() {

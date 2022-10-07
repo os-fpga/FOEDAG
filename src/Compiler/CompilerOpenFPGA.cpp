@@ -1615,7 +1615,9 @@ bool CompilerOpenFPGA::Placement() {
             .string());
     ofsp << pincommand << std::endl;
     ofsp.close();
+
     int status = ExecuteAndMonitorSystemCommand(pincommand);
+
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " pin conversion failed!");
@@ -1756,6 +1758,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (TimingAnalysisOpt() == STAOpt::Clean) {
+    Message("Cleaning TimingAnalysis results for " +
+            ProjManager()->projectName());
+    TimingAnalysisOpt(STAOpt::None);
+    m_state = State::Routed;
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_sta.cmd"));
+    return true;
+  }
+
   PERF_LOG("TimingAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
@@ -1869,6 +1883,15 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (PowerAnalysisOpt() == PowerOpt::Clean) {
+    Message("Cleaning PoweAnalysis results for " +
+            ProjManager()->projectName());
+    PowerAnalysisOpt(PowerOpt::None);
+    m_state = State::Routed;
+    return true;
+  }
+
   PERF_LOG("PowerAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
@@ -1919,16 +1942,13 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
 
-# Apply fix-up to clustering nets based on routing results
-pb_pin_fixup --verbose
-
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
 
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation

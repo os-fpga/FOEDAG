@@ -33,7 +33,6 @@ namespace FOEDAG {
 class TclCommandIntegration;
 class SourcesForm : public QWidget {
   Q_OBJECT
-  friend class TclCommandIntegration;
 
  public:
   explicit SourcesForm(QWidget* parent = nullptr);
@@ -44,6 +43,8 @@ class SourcesForm : public QWidget {
   ProjectManager* ProjManager();
 
   void CreateConstraint();
+  void UpdateSrcHierachyTree();
+  QAction* ProjectSettingsActions() const;
 
  signals:
   void OpenFile(QString);
@@ -52,6 +53,9 @@ class SourcesForm : public QWidget {
   void CloseProject();
   void IpReconfigRequested(const QString& ipName, const QString moduleName,
                            const QStringList& paramList);
+  void IpRemoveRequested(const QString& moduleName);
+  void IpDeleteRequested(const QString& moduleName);
+  void OpenProjectSettings();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -70,6 +74,8 @@ class SourcesForm : public QWidget {
   void SlotProperties();
   void SlotPropertiesTriggered();
   void SlotReConfigureIp();
+  void SlotRemoveIp();
+  void SlotDeleteIp();
 
  private:
   Ui::SourcesForm* ui;
@@ -87,11 +93,13 @@ class SourcesForm : public QWidget {
   QAction* m_actProperties;
   QAction* m_actCloseProject;
   QAction* m_actReconfigureIp;
+  QAction* m_actRemoveIp;
+  QAction* m_actDeleteIp;
+  QAction* m_actProjectSettings;
 
   ProjectManager* m_projManager;
 
   void CreateActions();
-  void UpdateSrcHierachyTree();
   void CreateFolderHierachyTree();
   static QTreeWidgetItem* CreateFolderHierachyTree(QTreeWidgetItem* topItem,
                                                    const QString& path);

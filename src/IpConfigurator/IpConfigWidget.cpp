@@ -23,12 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QWidget>
 
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Utils/FileUtils.h"
 
 using namespace FOEDAG;
 extern FOEDAG::Session* GlobalSession;
@@ -79,18 +81,32 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Main Layout
   QVBoxLayout* topLayout = new QVBoxLayout();
+  topLayout->setContentsMargins(0, 0, 0, 0);
   this->setLayout(topLayout);
 
+  // Create container widget and QScrollArea so this widget can shrink
+  QWidget* containerWidget = new QWidget();
+  containerWidget->setObjectName("ipConfigContainerWidget");
+  QVBoxLayout* containerLayout = new QVBoxLayout();
+  // layout must be set before adding to the scroll area
+  // https://doc.qt.io/qt-6/qscrollarea.html#setWidget
+  containerWidget->setLayout(containerLayout);
+  QScrollArea* scrollArea = new QScrollArea();
+  scrollArea->setWidgetResizable(true);
+  scrollArea->setObjectName("ipConfigScrollArea");
+  scrollArea->setWidget(containerWidget);
+  topLayout->addWidget(scrollArea);
+
   // Add VLNV meta text description
-  topLayout->addWidget(&metaLabel);
+  containerLayout->addWidget(&metaLabel);
 
   // Fill and add Parameters box
   CreateParamFields();
-  topLayout->addWidget(&paramsBox);
+  containerLayout->addWidget(&paramsBox);
 
   // Add Output Box
   CreateOutputFields();
-  topLayout->addWidget(&outputBox);
+  containerLayout->addWidget(&outputBox);
   // Update the module name if one was passed (this occurs during a
   // re-configure)
   if (!moduleName.isEmpty()) {
@@ -113,12 +129,12 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
   QDialogButtonBox* btns = new QDialogButtonBox(/*QDialogButtonBox::Cancel*/);
   btns->setObjectName("IpConfigWidget_QDialogButtonBox");
   layout->addWidget(btns);
-  QPushButton* generateBtn = new QPushButton("Generate IP", this);
-  btns->addButton(generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
+  generateBtn.setText("Generate IP");
+  btns->addButton(&generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
 
   // Create our tcl command to generate the IP when the Generate IP button
   // is clicked
-  QObject::connect(generateBtn, &QPushButton::clicked, this, [this]() {
+  QObject::connect(&generateBtn, &QPushButton::clicked, this, [this]() {
     // Find settings fields in the parameter box layout
     QLayout* fieldsLayout = paramsBox.layout();
     QList<QObject*> settingsObjs =
@@ -136,12 +152,17 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
       params += obj->property("tclArg").toString().replace(" ", "=");
     }
 
+    std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+    std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
+    QString outFileStr =
+        QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+
     // Build up a cmd string to generate the IP
     QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
                   moduleEdit.text() + " -version " +
                   QString::fromStdString(m_meta.version) + " " + params +
-                  " -out_file " + outputPath.text();
-    cmd += "\nipgenerate";
+                  " -out_file " + outFileStr;
+    cmd += "\nipgenerate -modules " + moduleEdit.text();
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
 
@@ -295,11 +316,19 @@ std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
 }
 
 void IpConfigWidget::updateOutputPath() {
-  // Strip end separator from baseDir if there is one
-  QString baseDir = m_baseDirDefault;
-  if (baseDir.endsWith(SEPARATOR)) {
-    baseDir.chop(SEPARATOR.length());
-  }
+  // Create and add vlnv path to base IPs directory
+  std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+  std::filesystem::path vlnvPath =
+      baseDir / m_meta.vendor / m_meta.library / m_meta.name / m_meta.version;
 
-  outputPath.setText(baseDir);
+  // Add the module wrapper
+  std::filesystem::path outPath = vlnvPath / moduleEdit.text().toStdString();
+
+  // Update the output path text
+  QString outStr =
+      QString::fromStdString(FileUtils::GetFullPath(outPath).string());
+  outputPath.setText(outStr);
+
+  // Disable the generate button if the module name is empty
+  generateBtn.setEnabled(!moduleEdit.text().isEmpty());
 }
