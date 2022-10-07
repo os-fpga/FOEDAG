@@ -30,6 +30,8 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
   Compiler *compiler = GlobalSession->GetCompiler();
   if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Random)
     ui->select_random->setChecked(true);
+  else if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Free)
+    ui->select_free->setChecked(true);
   else
     ui->select_defineOrder->setChecked(true);
 }
