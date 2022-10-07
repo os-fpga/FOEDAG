@@ -77,7 +77,8 @@ static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
 // Lookup for PlaceOpt values
 static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
-    {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"}};
+    {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"},
+    {FOEDAG::Compiler::PinAssignOpt::Free, "free"}};
 
 // Helper to convert a SynthesisOpt enum to string
 auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
