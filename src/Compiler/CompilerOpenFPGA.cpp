@@ -156,9 +156,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
-  (*out)
-      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
-      << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: "
+            "(in_define_order(Default)/random/free)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
@@ -1565,8 +1565,13 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
+  std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (PinConstraintEnabled() && FileUtils::FileExists(pincommand) &&
+  bool pin_assign_free = false;
+  if (PinAssignOpts() == PinAssignOpt::Free) {
+    pin_assign_free = true;
+  }
+  if ((!pin_assign_free) && FileUtils::FileExists(pincommand) &&
       (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
@@ -1620,10 +1625,10 @@ bool CompilerOpenFPGA::Placement() {
     } else {
       pin_loc_constraint_file = pin_locFile;
     }
-  }
-  std::string command = BaseVprCommand() + " --place";
-  if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
-    command += " --fix_clusters " + pin_loc_constraint_file;
+
+    if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
+      command += " --fix_clusters " + pin_loc_constraint_file;
+    }
   }
 
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
