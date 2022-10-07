@@ -1567,12 +1567,8 @@ bool CompilerOpenFPGA::Placement() {
 
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
-  bool pin_assign_free = false;
-  if (PinAssignOpts() == PinAssignOpt::Free) {
-    pin_assign_free = true;
-  }
-  if ((!pin_assign_free) && FileUtils::FileExists(pincommand) &&
-      (!m_OpenFpgaPinMapCSV.empty())) {
+  if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
+      FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
