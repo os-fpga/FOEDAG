@@ -48,3 +48,5 @@ bool addConstraintsForm::IsCopySource() {
 bool addConstraintsForm::IsRandom() const {
   return ui->select_random->isChecked();
 }
+
+bool addConstraintsForm::IsFree() const { return ui->select_free->isChecked(); }

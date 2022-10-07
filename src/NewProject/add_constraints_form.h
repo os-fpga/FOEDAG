@@ -21,6 +21,7 @@ class addConstraintsForm : public QWidget {
   QList<filedata> getFileData();
   bool IsCopySource();
   bool IsRandom() const;
+  bool IsFree() const;
 
  private:
   Ui::addConstraintsForm *ui;

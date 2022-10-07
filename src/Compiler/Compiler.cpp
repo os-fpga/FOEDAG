@@ -137,9 +137,9 @@ void Compiler::Help(std::ostream* out) {
          "delay, mixed, none)"
       << std::endl;
   (*out) << "   place ?clean" << std::endl;
-  (*out)
-      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
-      << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: "
+            "(in_define_order(Default)/random/free)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -872,6 +872,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
@@ -882,7 +885,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         setPlaceOption(argv[1]);
       } else {
         compiler->ErrorMessage(
-            "No Argument passed: type random/in_define_order");
+            "No Argument passed: type random/in_define_order/free");
         return TCL_ERROR;
       }
       return TCL_OK;
@@ -1114,6 +1117,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
@@ -1124,7 +1130,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         setPlaceOption(argv[1]);
       } else {
         compiler->ErrorMessage(
-            "No Argument passed: type random/in_define_order");
+            "No Argument passed: type random/in_define_order/free");
         return TCL_ERROR;
       }
       return TCL_OK;

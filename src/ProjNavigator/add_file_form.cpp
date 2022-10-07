@@ -25,6 +25,8 @@ AddFileForm::AddFileForm(QWidget *parent)
   Compiler *compiler = GlobalSession->GetCompiler();
   if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Random)
     ui->select_random->setChecked(true);
+  else if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Free)
+    ui->select_free->setChecked(true);
   else
     ui->select_defineOrder->setChecked(true);
 
@@ -162,3 +164,4 @@ void AddFileForm::on_m_comboBoxSets_currentIndexChanged(const QString &arg1) {
 }
 
 bool AddFileForm::IsRandom() const { return ui->select_random->isChecked(); }
+bool AddFileForm::IsFree() const { return ui->select_free->isChecked(); }

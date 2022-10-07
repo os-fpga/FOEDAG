@@ -159,6 +159,8 @@ void newProjectDialog::on_buttonBox_accepted() {
   Compiler *compiler = GlobalSession->GetCompiler();
   if (m_addConstrsForm->IsRandom()) {
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+  } else if (m_addConstrsForm->IsFree()) {
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
   } else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   m_projectManager->CreateProject(opt);
