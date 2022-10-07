@@ -77,7 +77,7 @@ class Compiler {
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
-  enum class PinAssignOpt { Random, In_Define_Order };
+  enum class PinAssignOpt { Random, In_Define_Order, Free };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
