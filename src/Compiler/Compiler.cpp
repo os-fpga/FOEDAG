@@ -561,12 +561,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(file);
         expandedFile = fullPath.string();
       }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
-      }
       compiler->ProjManager()->addIncludePath(expandedFile);
     }
     return TCL_OK;
@@ -596,12 +590,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path fullPath = scriptPath;
         fullPath.append(file);
         expandedFile = fullPath.string();
-      }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
       }
       compiler->ProjManager()->addLibraryPath(expandedFile);
     }
@@ -1743,6 +1731,14 @@ const std::string Compiler::GetNetlistPath() {
     }
   }
   return netlistFile;
+}
+
+std::string Compiler::AdjustPath(const std::string& p) {
+  std::filesystem::path the_path = p;
+  if (!the_path.is_absolute()) {
+    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+  }
+  return the_path.string();
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
