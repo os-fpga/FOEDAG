@@ -178,18 +178,18 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/aurora --batch --script tests/TestBatch/test_ip_generate.tcl
-	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
-	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_stop.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_task_clean.tcl
-	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
-	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
-	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
-	./build/bin/aurora --batch --script tests/Testcases/project_file/test.tcl
-	./build/bin/aurora --batch --script tests/TestBatch/test_ip_configure_load.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_ip_generate.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestGui/compiler_flow.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_stop.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_task_clean.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_recursive_load.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/project_file/test.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_ip_configure_load.tcl
 	
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
