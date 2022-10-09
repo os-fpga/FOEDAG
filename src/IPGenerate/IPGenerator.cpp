@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <thread>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
@@ -51,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -213,6 +215,29 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("configure_ip", configure_ip, this, 0);
+
+  auto remove_ip = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    if (argc > 1) {
+      generator->RemoveIPInstance(argv[1]);
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("remove_ip", remove_ip, this, 0);
+
+  auto delete_ip = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    if (argc > 1) {
+      generator->DeleteIPInstance(argv[1]);
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("delete_ip", delete_ip, this, 0);
+
   return true;
 }
 
@@ -283,10 +308,69 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   return status;
 }
 
+IPInstance* IPGenerator::GetIPInstance(const std::string& moduleName) {
+  IPInstance* retVal{};
+  // Search instances based off moduleName
+  auto isMatch = [moduleName](IPInstance* instance) {
+    return instance->ModuleName() == moduleName;
+  };
+  auto it = std::find_if(m_instances.begin(), m_instances.end(), isMatch);
+
+  // return result
+  if (it != m_instances.end()) {
+    retVal = *it;
+  }
+
+  return retVal;
+}
+
+void IPGenerator::RemoveIPInstance(IPInstance* instance) {
+  auto it = std::find(m_instances.begin(), m_instances.end(), instance);
+  if (it != m_instances.end()) {
+    m_instances.erase(it);
+  }
+}
+
+void IPGenerator::RemoveIPInstance(const std::string& moduleName) {
+  RemoveIPInstance(GetIPInstance(moduleName));
+}
+
+void IPGenerator::DeleteIPInstance(IPInstance* instance) {
+  // Delete the build folder if it exists
+  auto buildPath = GetBuildDir(instance);
+  if (FileUtils::FileExists(buildPath) &&
+      FileUtils::FileIsDirectory(buildPath)) {
+    std::filesystem::remove_all(buildPath);
+  }
+
+  RemoveIPInstance(instance);
+}
+
+void IPGenerator::DeleteIPInstance(const std::string& moduleName) {
+  DeleteIPInstance(GetIPInstance(moduleName));
+}
+
 bool IPGenerator::Generate() {
   bool status = true;
   Compiler* compiler = GetCompiler();
-  for (IPInstance* inst : m_instances) {
+  std::vector<IPInstance*> instances{};
+
+  if (compiler->IPGenOpt() == Compiler::IPGenerateOpt::List) {
+    // Take a list of moduleNames and only generate those IPs
+    std::vector<std::string> modules;
+    StringUtils::tokenize(compiler->IPGenMoreOpt(), " ", modules);
+    for (auto moduleName : modules) {
+      IPInstance* inst = GetIPInstance(moduleName);
+      if (inst) {
+        instances.push_back(inst);
+      }
+    }
+  } else {
+    // Generate all IPs
+    instances = m_instances;
+  }
+
+  for (IPInstance* inst : instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
     if (!std::filesystem::exists(out_path)) {
@@ -382,9 +466,29 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
+
         break;
       }
     }
   }
   return status;
+}
+
+// This will return the expected VLNV path for the given instance
+std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
+  std::filesystem::path dir{};
+
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
+  if (compiler) {
+    QString projName = compiler->ProjManager()->getProjectName();
+
+    // Build up the expected ip build path
+    std::filesystem::path baseDir(
+        compiler->ProjManager()->getProjectPath().toStdString());
+    std::string projIpDir = projName.toStdString() + ".IPs";
+    dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
+          meta.version / instance->ModuleName();
+  }
+  return dir;
 }

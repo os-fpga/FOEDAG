@@ -156,9 +156,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
-  (*out)
-      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
-      << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: "
+            "(in_define_order(Default)/random/free)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
@@ -671,7 +671,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(path, " ", tokens);
+    StringUtils::tokenize(AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -685,7 +685,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(path, " ", tokens);
+    StringUtils::tokenize(AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -738,13 +738,13 @@ bool CompilerOpenFPGA::Analyze() {
     std::string fileList;
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += path + " ";
+      includes += AdjustPath(path) + " ";
     }
     fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += path + " ";
+      libraries += AdjustPath(path) + " ";
     }
     fileList += "-vlog-libdir " + libraries + "\n";
 
@@ -984,13 +984,13 @@ bool CompilerOpenFPGA::Synthesize() {
     }
 
     for (auto path : ProjManager()->includePathList()) {
-      includes += path + " ";
+      includes += AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += path + " ";
+      libraries += AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-libdir " + libraries + "\n";
 
@@ -1102,7 +1102,7 @@ bool CompilerOpenFPGA::Synthesize() {
     macros += "\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += "-I" + path + " ";
+      includes += "-I" + AdjustPath(path) + " ";
     }
 
     std::string designFiles;
@@ -1565,8 +1565,10 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
+  std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
+  if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
+      FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
@@ -1609,7 +1611,9 @@ bool CompilerOpenFPGA::Placement() {
             .string());
     ofsp << pincommand << std::endl;
     ofsp.close();
+
     int status = ExecuteAndMonitorSystemCommand(pincommand);
+
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " pin conversion failed!");
@@ -1617,25 +1621,12 @@ bool CompilerOpenFPGA::Placement() {
     } else {
       pin_loc_constraint_file = pin_locFile;
     }
-  }
 
-  // VPR Version checking, until full migration to version >= 8.0
-  std::string vprVersionCmd = m_vprExecutablePath.string() + " --version";
-  std::ostringstream ver;
-  FileUtils::ExecuteSystemCommand(vprVersionCmd, &ver);
-  bool version7 = true;
-  if (ver.str().find("Version: 8") != std::string::npos) {
-    version7 = false;
-  }
-
-  std::string command = BaseVprCommand() + " --place";
-  if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
-    if (version7) {
-      command += " --fix_pins " + pin_loc_constraint_file;
-    } else {
+    if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
       command += " --fix_clusters " + pin_loc_constraint_file;
     }
   }
+
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
@@ -1763,6 +1754,18 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (TimingAnalysisOpt() == STAOpt::Clean) {
+    Message("Cleaning TimingAnalysis results for " +
+            ProjManager()->projectName());
+    TimingAnalysisOpt(STAOpt::None);
+    m_state = State::Routed;
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_sta.cmd"));
+    return true;
+  }
+
   PERF_LOG("TimingAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
@@ -1876,6 +1879,15 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
   if (!HasTargetDevice()) return false;
+
+  if (PowerAnalysisOpt() == PowerOpt::Clean) {
+    Message("Cleaning PoweAnalysis results for " +
+            ProjManager()->projectName());
+    PowerAnalysisOpt(PowerOpt::None);
+    m_state = State::Routed;
+    return true;
+  }
+
   PERF_LOG("PowerAnalysis has started");
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
@@ -1926,16 +1938,13 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
 
-# Apply fix-up to clustering nets based on routing results
-pb_pin_fixup --verbose
-
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
 
 # Build the module graph
 #  - Enabled compression on routing architecture modules
 #  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation

@@ -71,13 +71,13 @@ class Compiler {
     BistreamGenerated
   };
   enum MsgSeverity { Ignore, Info, Warning, Error };
-  enum class IPGenerateOpt { None, Clean };
+  enum class IPGenerateOpt { None, Clean, List };
   enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
-  enum class PinAssignOpt { Random, In_Define_Order };
+  enum class PinAssignOpt { Random, In_Define_Order, Free };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
@@ -161,6 +161,9 @@ class Compiler {
   const std::string& PlaceMoreOpt() { return m_placeMoreOpt; }
   void PlaceMoreOpt(const std::string& opt) { m_placeMoreOpt = opt; }
 
+  const std::string& IPGenMoreOpt() { return m_ipGenMoreOpt; }
+  void IPGenMoreOpt(const std::string& opt) { m_ipGenMoreOpt = opt; }
+
   void PnROpt(const std::string& opt) { m_pnrOpt = opt; }
   const std::string& PnROpt() { return m_pnrOpt; }
 
@@ -180,6 +183,7 @@ class Compiler {
   const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
     return m_severityMap;
   }
+  static std::string AdjustPath(const std::string& p);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -248,6 +252,7 @@ class Compiler {
   std::string m_pnrOpt;
   std::string m_synthMoreOpt;
   std::string m_placeMoreOpt;
+  std::string m_ipGenMoreOpt;
 
   // VPR, Yosys options
   uint32_t m_channel_width = 100;

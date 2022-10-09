@@ -37,6 +37,10 @@ class StringUtils final {
   static void tokenize(std::string_view str, std::string_view separator,
                        std::vector<std::string>& result);
 
+  // join strings with separator
+  static std::string join(const std::vector<std::string>& strings,
+                          const std::string& separator);
+
   // Modify string string, remove whitespace at the beginning of the string.
   static std::string& ltrim(std::string& str);
 

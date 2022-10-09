@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TextEditor/text_editor.h"
+#include "Utils/FileUtils.h"
 #include "foedag_version.h"
 
 using namespace FOEDAG;
@@ -223,6 +224,8 @@ void MainWindow::newDesignCreated(const QString& design) {
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
   saveToRecentSettings(design);
+  if (sourcesForm)
+    sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
 }
 
 void MainWindow::startStopButtonsState() {
@@ -383,6 +386,8 @@ void MainWindow::createMenus() {
   fileMenu->addMenu(recentMenu);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
+
+  projectMenu = menuBar()->addMenu("Project");
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -555,9 +560,14 @@ void MainWindow::ReShowWindow(QString strProject) {
   sourcesForm = new SourcesForm(this);
   connect(sourcesForm, &SourcesForm::CloseProject, this,
           &MainWindow::closeProject, Qt::QueuedConnection);
+  connect(sourcesForm, &SourcesForm::OpenProjectSettings, this,
+          &MainWindow::openProjectSettings);
   sourceDockWidget->setWidget(sourcesForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
   m_projectManager = sourcesForm->ProjManager();
+  projectMenu->clear();
+  sourcesForm->ProjectSettingsActions()->setEnabled(!strProject.isEmpty());
+  projectMenu->addAction(sourcesForm->ProjectSettingsActions());
   // If the project manager path changes, reload settings
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
@@ -581,6 +591,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   propertiesDockWidget->hide();
   connect(sourcesForm, &SourcesForm::IpReconfigRequested, this,
           &MainWindow::handleIpReConfigRequested);
+  connect(sourcesForm, &SourcesForm::IpRemoveRequested, this,
+          &MainWindow::handleRemoveIpRequested);
+  connect(sourcesForm, &SourcesForm::IpDeleteRequested, this,
+          &MainWindow::handleDeleteIpRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -830,9 +844,13 @@ void MainWindow::ipConfiguratorActionTriggered() {
 }
 
 void MainWindow::newDialogAccepted() {
-  const QString strproject = newProjdialog->getProject();
-  newProjectAction->setEnabled(false);
-  ReShowWindow(strproject);
+  if (newProjdialog->GetMode() == Mode::NewProject) {
+    const QString strproject = newProjdialog->getProject();
+    newProjectAction->setEnabled(false);
+    ReShowWindow(strproject);
+  } else {
+    sourcesForm->UpdateSrcHierachyTree();
+  }
 }
 
 void MainWindow::updateSourceTree() {
@@ -860,6 +878,30 @@ void MainWindow::handleIpReConfigRequested(const QString& ipName,
   IpConfigWidget* configWidget =
       new IpConfigWidget(this, ipName, moduleName, paramList);
   replaceIpConfigDockWidget(configWidget);
+}
+
+void MainWindow::handleRemoveIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    ipGen->RemoveIPInstance(moduleName.toStdString());
+  }
+
+  updateSourceTree();
+}
+
+void MainWindow::handleDeleteIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    ipGen->DeleteIPInstance(moduleName.toStdString());
+  }
+
+  updateSourceTree();
 }
 
 void MainWindow::updateViewMenu() {
@@ -902,6 +944,11 @@ void MainWindow::recentProjectOpen() {
     const QString name = project->second;
     if (!name.isEmpty()) openProject(name);
   }
+}
+
+void MainWindow::openProjectSettings() {
+  newProjdialog->Reset(Mode::ProjectSettings);
+  newProjdialog->open();
 }
 
 void MainWindow::replaceIpConfigDockWidget(QWidget* newWidget) {

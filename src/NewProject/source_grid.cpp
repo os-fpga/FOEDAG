@@ -21,9 +21,11 @@ static const auto INDEX_COL = QObject::tr("Index");
 static const auto NAME_COL = QObject::tr("Name");
 static const auto LIBRARY_COL = QObject::tr("Library");
 static const auto LANGUAGE_COL = QObject::tr("Language");
+static const auto COMPILE_UNIT_COL = QObject::tr("Compile Unit");
 static const auto LOCATION_COL = QObject::tr("Location");
 static const int LIBRARY_COL_NUM{2};
 static const int LANG_COL_NUM{3};
+static const int COMPILE_UNIT_COL_NUM{4};
 
 static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
 static const auto DESIGN_SOURCES_FILTER = QObject::tr(
@@ -127,6 +129,8 @@ void sourceGrid::setGridType(GridType type) {
                                      new QStandardItem(LIBRARY_COL));
     m_model->setHorizontalHeaderItem(columnIndex++,
                                      new QStandardItem(LANGUAGE_COL));
+    m_model->setHorizontalHeaderItem(columnIndex++,
+                                     new QStandardItem(COMPILE_UNIT_COL));
   }
 
   m_model->setHorizontalHeaderItem(columnIndex++,
@@ -147,6 +151,12 @@ void sourceGrid::currentFileSet(const QString &fileSet) {
 
 void sourceGrid::selectRow(int row) {
   if (row >= 0 && row < m_model->rowCount()) m_tableViewSrc->selectRow(row);
+}
+
+void sourceGrid::ClearTable() {
+  m_model->clear();
+  setGridType(m_type);  // update table header
+  m_lisFileData.clear();
 }
 
 void sourceGrid::AddFiles() {
@@ -309,6 +319,12 @@ void sourceGrid::AddTableItem(filedata fdata) {
     item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     item->setEditable(false);
     items.append(item);
+
+    // Group
+    item = new QStandardItem(fdata.m_groupName);
+    item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    item->setEditable(true);
+    items.append(item);
   }
 
   item = new QStandardItem(fdata.m_filePath);
@@ -398,6 +414,10 @@ void sourceGrid::onItemChanged(QStandardItem *item) {
 
   if (item->index().column() == LIBRARY_COL_NUM)
     m_lisFileData[itemIndex.row()].m_workLibrary = item->text();
+
+  if (item->index().column() == COMPILE_UNIT_COL_NUM) {
+    m_lisFileData[itemIndex.row()].m_groupName = item->text();
+  }
 }
 
 void sourceGrid::languageHasChanged() {

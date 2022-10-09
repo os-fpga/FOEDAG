@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "gtest/gtest.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "gtest/gtest.h"
 using namespace FOEDAG;
 
 TEST(ProjectManager, ProjectFilesPath_withFile) {
@@ -49,4 +49,40 @@ TEST(ProjectManager, ProjectFilesPath_noFile) {
   p /= folder;
   p /= fileSet.toStdString();
   EXPECT_EQ(actualPath.toStdString(), p.string());
+}
+
+TEST(ProjectManager, ParseMacroEmpty) {
+  QString macro{};
+  auto list = ProjectManager::ParseMacro(macro);
+  EXPECT_EQ(list.size(), 0);
+}
+
+TEST(ProjectManager, ParseMacroOneElement) {
+  QString macro{"p=20"};
+  auto list = ProjectManager::ParseMacro(macro);
+  EXPECT_EQ(list.size(), 1);
+  EXPECT_EQ(list.at(0).first, "p");
+  EXPECT_EQ(list.at(0).second, "20");
+}
+
+TEST(ProjectManager, ParseMacroTwoElements) {
+  QString macro{"p=20 k=30"};
+  auto list = ProjectManager::ParseMacro(macro);
+  EXPECT_EQ(list.size(), 2);
+  EXPECT_EQ(list.at(0).first, "p");
+  EXPECT_EQ(list.at(0).second, "20");
+
+  EXPECT_EQ(list.at(1).first, "k");
+  EXPECT_EQ(list.at(1).second, "30");
+}
+
+TEST(ProjectManager, ParseMacroWithDefine) {
+  QString macro{"def= k=30"};
+  auto list = ProjectManager::ParseMacro(macro);
+  EXPECT_EQ(list.size(), 2);
+  EXPECT_EQ(list.at(0).first, "def");
+  EXPECT_EQ(list.at(0).second, "");
+
+  EXPECT_EQ(list.at(1).first, "k");
+  EXPECT_EQ(list.at(1).second, "30");
 }

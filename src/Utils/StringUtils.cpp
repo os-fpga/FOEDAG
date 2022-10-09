@@ -58,6 +58,15 @@ void StringUtils::tokenize(std::string_view str, std::string_view separator,
   }
 }
 
+std::string StringUtils::join(const std::vector<std::string>& strings,
+                              const std::string& separator) {
+  std::string result;
+  for (const auto& s : strings) result += s + separator;
+  if (!result.empty())
+    for (size_t count = 0; count < separator.size(); count++) result.pop_back();
+  return result;
+}
+
 std::string StringUtils::to_string(double a_value, const int n) {
   std::ostringstream out;
   out.precision(n);

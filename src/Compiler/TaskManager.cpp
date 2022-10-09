@@ -50,7 +50,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
                  new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
+  m_tasks.insert(TIMING_SIGN_OFF_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(POWER, new Task{"Power"});
+  m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
@@ -70,6 +72,8 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
+  m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
+  m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
@@ -80,8 +84,16 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
             &TaskManager::taskStateChanged);
     connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
-  QVector<Task *> tmp = {m_tasks[TIMING_SIGN_OFF], m_tasks[POWER],
-                         m_tasks[BITSTREAM], m_tasks[ROUTING]};
+  QVector<Task *> tmp = {m_tasks[BITSTREAM]};
+  m_rollBack.insert(m_tasks[BITSTREAM_CLEAN], tmp);
+
+  tmp += m_tasks[POWER];
+  m_rollBack.insert(m_tasks[POWER_CLEAN], tmp);
+
+  tmp += m_tasks[TIMING_SIGN_OFF];
+  m_rollBack.insert(m_tasks[TIMING_SIGN_OFF_CLEAN], tmp);
+
+  tmp += m_tasks[ROUTING];
   m_rollBack.insert(m_tasks[ROUTING_CLEAN], tmp);
 
   tmp += m_tasks[PLACEMENT];

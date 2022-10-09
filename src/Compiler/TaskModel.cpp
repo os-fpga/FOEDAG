@@ -179,7 +179,9 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, ROUTING_WRITE_NETLIST});
   m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
+  m_taskOrder.push_back({row++, TIMING_SIGN_OFF_CLEAN});
   m_taskOrder.push_back({row++, POWER});
+  m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
   m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
 

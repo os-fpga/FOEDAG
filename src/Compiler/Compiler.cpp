@@ -129,17 +129,18 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "                              : Configures an IP <IP_NAME> and "
             "generates the corresponding file with module name"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
-            "ip_configure"
+  (*out) << "   ipgenerate ?clean? ?-modules {moduleName1 moduleName2} : "
+            "Generates all IP instances set by "
+            "ip_configure. -modules limits which IPs are generated."
          << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
   (*out) << "   place ?clean" << std::endl;
-  (*out)
-      << "   pin_loc_assign_method <Method>: (in_define_order(Default)/random)"
-      << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: "
+            "(in_define_order(Default)/random/free)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -560,12 +561,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(file);
         expandedFile = fullPath.string();
       }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
-      }
       compiler->ProjManager()->addIncludePath(expandedFile);
     }
     return TCL_OK;
@@ -595,12 +590,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path fullPath = scriptPath;
         fullPath.append(file);
         expandedFile = fullPath.string();
-      }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
       }
       compiler->ProjManager()->addLibraryPath(expandedFile);
     }
@@ -872,6 +861,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
@@ -882,7 +874,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         setPlaceOption(argv[1]);
       } else {
         compiler->ErrorMessage(
-            "No Argument passed: type random/in_define_order");
+            "No Argument passed: type random/in_define_order/free");
         return TCL_ERROR;
       }
       return TCL_OK;
@@ -974,6 +966,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->IPGenOpt(Compiler::IPGenerateOpt::Clean);
+        } else if (arg == "-modules") {
+          compiler->IPGenOpt(Compiler::IPGenerateOpt::List);
+          i++;
+          if (i < argc) {
+            compiler->IPGenMoreOpt(argv[i]);
+          } else {
+            compiler->ErrorMessage(
+                "Incorrect syntax for ipgenerate -modules "
+                "moduleName or {moduleName1 moduleName2} should follow "
+                "'-modules' tag");
+            return TCL_ERROR;
+          }
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1114,6 +1118,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "in_define_order") {
           compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
           compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
         } else {
           compiler->ErrorMessage("Unknown Placement Option: " + arg);
         }
@@ -1124,7 +1131,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         setPlaceOption(argv[1]);
       } else {
         compiler->ErrorMessage(
-            "No Argument passed: type random/in_define_order");
+            "No Argument passed: type random/in_define_order/free");
         return TCL_ERROR;
       }
       return TCL_OK;
@@ -1482,8 +1489,14 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
     });
+    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("sta clean"));
+    });
     m_taskManager->bindTaskCommand(POWER, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("power"));
+    });
+    m_taskManager->bindTaskCommand(POWER_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("power clean"));
     });
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
@@ -1724,6 +1737,14 @@ const std::string Compiler::GetNetlistPath() {
     }
   }
   return netlistFile;
+}
+
+std::string Compiler::AdjustPath(const std::string& p) {
+  std::filesystem::path the_path = p;
+  if (!the_path.is_absolute()) {
+    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+  }
+  return the_path.string();
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
