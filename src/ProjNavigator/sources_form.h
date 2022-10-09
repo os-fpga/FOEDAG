@@ -11,15 +11,18 @@
 #define SRC_TREE_DESIGN_TOP_ITEM "destopitem"
 #define SRC_TREE_CONSTR_TOP_ITEM "constrtopitem"
 #define SRC_TREE_SIM_TOP_ITEM "simtopitem"
+#define SRC_TREE_IP_TOP_ITEM "iptopitem"
 #define SRC_TREE_DESIGN_SET_ITEM "desfilesetitem"
 #define SRC_TREE_DESIGN_FILE_ITEM "desfileitem"
 #define SRC_TREE_CONSTR_SET_ITEM "constrfilesetitem"
 #define SRC_TREE_CONSTR_FILE_ITEM "constrfileitem"
 #define SRC_TREE_SIM_SET_ITEM "simfilesetitem"
 #define SRC_TREE_SIM_FILE_ITEM "simfileitem"
+#define SRC_TREE_IP_SET_ITEM "ipfilesetitem"
+#define SRC_TREE_IP_INST_ITEM "ipinstitem"
+#define SRC_TREE_IP_FILE_ITEM "ipfileitem"
 
 #define SRC_TREE_FLG_ACTIVE tr(" (Active)")
-#define SRC_TREE_FLG_TOP tr(" (Top)")
 #define SRC_TREE_FLG_TARGET tr(" (Target)")
 
 namespace Ui {
@@ -31,7 +34,6 @@ namespace FOEDAG {
 class TclCommandIntegration;
 class SourcesForm : public QWidget {
   Q_OBJECT
-  friend class TclCommandIntegration;
 
  public:
   explicit SourcesForm(QWidget* parent = nullptr);
@@ -41,11 +43,20 @@ class SourcesForm : public QWidget {
   TclCommandIntegration* createTclCommandIntegarion();
   ProjectManager* ProjManager();
 
+  void CreateConstraint();
+  void UpdateSrcHierachyTree();
+  QAction* ProjectSettingsActions() const;
+
  signals:
   void OpenFile(QString);
   void ShowProperty(const QString&);
   void ShowPropertyPanel();
   void CloseProject();
+  void IpReconfigRequested(const QString& ipName, const QString moduleName,
+                           const QStringList& paramList);
+  void IpRemoveRequested(const QString& moduleName);
+  void IpDeleteRequested(const QString& moduleName);
+  void OpenProjectSettings();
 
  private slots:
   void SlotItempressed(QTreeWidgetItem* item, int column);
@@ -59,11 +70,13 @@ class SourcesForm : public QWidget {
   void SlotOpenFile();
   void SlotRemoveFileSet();
   void SlotRemoveFile();
-  void SlotSetAsTop();
   void SlotSetAsTarget();
   void SlotSetActive();
   void SlotProperties();
   void SlotPropertiesTriggered();
+  void SlotReConfigureIp();
+  void SlotRemoveIp();
+  void SlotDeleteIp();
 
  private:
   Ui::SourcesForm* ui;
@@ -76,16 +89,18 @@ class SourcesForm : public QWidget {
   QAction* m_actOpenFile;
   QAction* m_actRemoveFileset;
   QAction* m_actRemoveFile;
-  QAction* m_actSetAsTop;
   QAction* m_actSetAsTarget;
   QAction* m_actMakeActive;
   QAction* m_actProperties;
   QAction* m_actCloseProject;
+  QAction* m_actReconfigureIp;
+  QAction* m_actRemoveIp;
+  QAction* m_actDeleteIp;
+  QAction* m_actProjectSettings;
 
   ProjectManager* m_projManager;
 
   void CreateActions();
-  void UpdateSrcHierachyTree();
   void CreateFolderHierachyTree();
   static QTreeWidgetItem* CreateFolderHierachyTree(QTreeWidgetItem* topItem,
                                                    const QString& path);
@@ -94,6 +109,8 @@ class SourcesForm : public QWidget {
   static QTreeWidgetItem* ChildByText(QTreeWidgetItem* topItem,
                                       const QString& text);
   static QString StripPath(const QString& path);
+  void showAddFileDialog(GridType gridType);
+  void AddIpInstanceTree(QTreeWidgetItem* topItem);
 };
 }  // namespace FOEDAG
 

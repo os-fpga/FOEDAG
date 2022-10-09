@@ -54,6 +54,9 @@ class FileUtils final {
   static std::filesystem::path LocateExecFile(
       const std::filesystem::path& path);
 
+  static std::filesystem::path LocateFileRecursive(
+      const std::filesystem::path& searchPath, const std::string filename);
+
   static int ExecuteSystemCommand(const std::string& command,
                                   std::ostream* result);
 

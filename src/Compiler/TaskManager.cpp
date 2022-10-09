@@ -26,6 +26,8 @@ namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
+  m_tasks.insert(ANALYSIS, new Task{"Analysis"});
+  m_tasks.insert(ANALYSIS_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SYNTHESIS, new Task{"Synthesis"});
   m_tasks.insert(SYNTHESIS_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SYNTHESIS_SETTINGS,
@@ -48,12 +50,16 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
                  new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
+  m_tasks.insert(TIMING_SIGN_OFF_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(POWER, new Task{"Power"});
+  m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
+  m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
+  m_tasks[ANALYSIS]->appendSubTask(m_tasks[ANALYSIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_WRITE_NETLIST]);
@@ -65,6 +71,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_CLEAN]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
+  m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
+  m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
+  m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
@@ -75,8 +84,16 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
             &TaskManager::taskStateChanged);
     connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
-  QVector<Task *> tmp = {m_tasks[TIMING_SIGN_OFF], m_tasks[POWER],
-                         m_tasks[BITSTREAM], m_tasks[ROUTING]};
+  QVector<Task *> tmp = {m_tasks[BITSTREAM]};
+  m_rollBack.insert(m_tasks[BITSTREAM_CLEAN], tmp);
+
+  tmp += m_tasks[POWER];
+  m_rollBack.insert(m_tasks[POWER_CLEAN], tmp);
+
+  tmp += m_tasks[TIMING_SIGN_OFF];
+  m_rollBack.insert(m_tasks[TIMING_SIGN_OFF_CLEAN], tmp);
+
+  tmp += m_tasks[ROUTING];
   m_rollBack.insert(m_tasks[ROUTING_CLEAN], tmp);
 
   tmp += m_tasks[PLACEMENT];
@@ -90,6 +107,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
 
   tmp += m_tasks[SYNTHESIS];
   m_rollBack.insert(m_tasks[SYNTHESIS_CLEAN], tmp);
+
+  tmp += m_tasks[ANALYSIS];
+  m_rollBack.insert(m_tasks[ANALYSIS_CLEAN], tmp);
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -119,6 +139,7 @@ void TaskManager::startAll() {
   if (!m_runStack.isEmpty()) return;
   reset();
   m_runStack.append(m_tasks[IP_GENERATE]);
+  m_runStack.append(m_tasks[ANALYSIS]);
   m_runStack.append(m_tasks[SYNTHESIS]);
   m_runStack.append(m_tasks[PACKING]);
   m_runStack.append(m_tasks[GLOBAL_PLACEMENT]);
@@ -128,6 +149,7 @@ void TaskManager::startAll() {
   m_runStack.append(m_tasks[POWER]);
   m_runStack.append(m_tasks[BITSTREAM]);
   m_taskCount = m_runStack.count();
+  counter = 0;
   emit started();
   run();
 }
@@ -137,6 +159,7 @@ void TaskManager::startTask(Task *t) {
   if (!t->isValid()) return;
   m_runStack.append(t);
   m_taskCount = m_runStack.count();
+  counter = 0;
   emit started();
   run();
 }
@@ -154,6 +177,8 @@ void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
   if (auto t = task(id)) bindTaskCommand(t, cmd);
 }
 
+void TaskManager::setTaskCount(int count) { m_taskCount = count; }
+
 void TaskManager::runNext() {
   Task *t = qobject_cast<Task *>(sender());
   if (t) {
@@ -166,15 +191,16 @@ void TaskManager::runNext() {
     }
   }
 
+  emit progress(++counter, m_taskCount);
+
   if (m_runStack.isEmpty()) {
-    m_taskCount = std::nullopt;
     emit done();
   }
 }
 
 void TaskManager::run() {
   if (m_taskCount) {
-    const int max = m_taskCount.value();
+    const int max = m_taskCount;
     emit progress(max - m_runStack.count(), max);
   }
   m_runStack.first()->trigger();

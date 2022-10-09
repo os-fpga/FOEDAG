@@ -18,6 +18,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "IpConfigurator/IpConfigDlg.h"
+#pragma once
 
-using namespace FOEDAG;
+#include <QComboBox>
+
+namespace FOEDAG {
+
+/*!
+ * \brief The BufferedComboBox class
+ * This implementation of combo box holds previous value of the combo box
+ * after user changed current selection
+ */
+class BufferedComboBox : public QComboBox {
+  Q_OBJECT
+ public:
+  explicit BufferedComboBox(QWidget *parent = nullptr);
+  QString previousText() const;
+
+ private slots:
+  void textChanged(int);
+
+ private:
+  QString m_previousText;
+  QString m_currentText;
+};
+
+}  // namespace FOEDAG

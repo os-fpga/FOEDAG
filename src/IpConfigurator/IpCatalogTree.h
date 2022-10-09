@@ -20,4 +20,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-namespace FOEDAG {}  // namespace FOEDAG
+#include <QTreeWidget>
+#include <filesystem>
+
+namespace FOEDAG {
+
+class IpCatalogTree : public QTreeWidget {
+  Q_OBJECT
+
+ public:
+  explicit IpCatalogTree(QWidget* parent = nullptr);
+  void refresh();
+
+ private:
+  QStringList prevIpCatalogResults;
+
+  QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
+  void loadIps(const std::vector<std::filesystem::path>& paths);
+};
+
+}  // namespace FOEDAG

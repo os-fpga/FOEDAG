@@ -37,6 +37,7 @@ set (SRC_CPP_LIST
   ProjectManager/project_run.cpp
   ProjectManager/project.cpp
   ProjectManager/project_manager.cpp
+  ProjectManager/compiler_configuration.cpp
   newprojectmodel.cpp)
 
 set (SRC_H_LIST
@@ -57,7 +58,9 @@ set (SRC_H_LIST
   ProjectManager/project_run.h
   ProjectManager/project.h
   ProjectManager/project_manager.h
-  newprojectmodel.h)
+  ProjectManager/compiler_configuration.h
+  newprojectmodel.h
+  SettingsGuiInterface.h)
 
 set (SRC_UI_LIST
   new_project_dialog.ui
@@ -91,6 +94,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/new_project_dialog.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/SettingsGuiInterface.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_constraints_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/source_grid.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_source_form.h
@@ -112,6 +116,7 @@ install(
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_option.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_fileset.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_run.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/compiler_configuration.h
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/ProjectManager)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

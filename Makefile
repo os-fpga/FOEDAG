@@ -65,16 +65,16 @@ run-cmake-coverage:
 	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_RULE_MESSAGES=$(RULE_MESSAGES) -DMY_CXX_WARNING_FLAGS="--coverage" $(ADDITIONAL_CMAKE_OPTIONS) -S . -B coverage-build
 
 test/unittest: run-cmake-release
-	cmake --build build --target UnitTests -j $(CPU_CORES)
-	pushd build && ctest --output-on-failure && popd
+	cmake --build build --target unittest -j $(CPU_CORES)
+	pushd build && $(XVFB) tests/unittest/unittest && popd
 
 test/unittest-d: run-cmake-debug
-	cmake --build dbuild --target UnitTests -j $(CPU_CORES)
-	pushd dbuild && ctest --output-on-failure && popd
+	cmake --build dbuild --target unittest -j $(CPU_CORES)
+	pushd dbuild && $(XVFB) tests/unittest/unittest && popd
 
 test/unittest-coverage: run-cmake-coverage
-	cmake --build coverage-build --target UnitTests -j $(CPU_CORES)
-	pushd coverage-build && ctest --output-on-failure && popd
+	cmake --build coverage-build --target unittest -j $(CPU_CORES)
+	pushd coverage-build && $(XVFB) tests/unittest/unittest && popd
 
 coverage-build/foedag.coverage: test/unittest-coverage
 	lcov --no-external --exclude "*_test.cpp" --capture --directory coverage-build/CMakeFiles/foedag.dir --base-directory src --output-file coverage-build/foedag.coverage
@@ -104,9 +104,11 @@ test/valgrind: run-cmake-debug
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
-	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/foedag --replay tests/TestGui/gui_ipconfigurator.tcl
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/ipconfigurator --replay tests/TestGui/gui_ipconfigurator.tcl
+	grep "ERROR SUMMARY: 0" valgrind_gui.log
+	$(XVFB) valgrind --tool=memcheck --log-file=valgrind_gui.log dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	grep "ERROR SUMMARY: 0" valgrind_gui.log
 
 test: test/unittest test/regression
@@ -121,7 +123,13 @@ test-parallel: release test/unittest
 test/openfpga: run-cmake-release
 	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/trivial/test.tcl
 	./build/bin/aurora --batch --compiler openfpga --verific --script tests/Testcases/trivial/test.tcl
+	./build/bin/aurora --batch --compiler openfpga --verific --script tests/Testcases/trivial_rtl/test_rtl.tcl
+	grep "verific -work lib2  -sv2012"  test_rtl/test_rtl.ys
+	grep "verific -L lib1 -L lib2 -import top"  test_rtl/test_rtl.ys
 	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/yosys_design_file/yosys_design_file.tcl
+	grep "read_verilog -sv -I"  yosys_design_file/yosys_design_file.ys
+	grep "read_verilog  -I"  yosys_design_file/yosys_design_file.ys
 
 test/openfpga_gui: run-cmake-release
 	./dbuild/bin/aurora --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
@@ -154,12 +162,12 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/texteditor --replay tests/TestGui/gui_text_editor.tcl
 	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag.tcl
-	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag_negetive.tcl && exit 1 || (echo "PASSED: Caught negative test")
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_foedag_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/designruns --replay tests/TestGui/design_runs.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
-	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_task_dlg.tcl
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
-	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_ipconfigurator.tcl
+	$(XVFB) ./dbuild/bin/ipconfigurator --replay tests/TestGui/gui_ipconfigurator.tcl
+	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
@@ -176,7 +184,13 @@ test/batch: run-cmake-release
 	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_stop.tcl
 	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
-
+	./build/bin/aurora --batch --script tests/TestBatch/test_task_clean.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
+	./build/bin/aurora --batch --script tests/Testcases/project_file/test.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_ip_configure_load.tcl
+	
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
 

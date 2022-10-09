@@ -25,6 +25,7 @@ project object is singleton mode.
 #define PROJECTMANAGER_H
 
 #include <QObject>
+#include <filesystem>
 
 #include "../source_grid.h"
 #include "project.h"
@@ -72,6 +73,7 @@ project object is singleton mode.
 #define PROJECT_FILE_TYPE_SS "SimulationSrcs"
 
 #define PROJECT_FILE_CONFIG_TOP "TopModule"
+#define PROJECT_FILE_CONFIG_TOP_LIB "TopModuleLib"
 #define PROJECT_FILE_CONFIG_TARGET "TargetConstrsFile"
 
 #define PROJECT_RUN_OPTION_FLOW "Compilation Flow"
@@ -92,6 +94,7 @@ project object is singleton mode.
 #define PROJECT_FILE_FORMAT ".ospr"
 
 #define PROJECT_OSRCDIR "$OSRCDIR"
+constexpr auto LocalToProject{"<Local to Project>"};
 
 namespace FOEDAG {
 
@@ -108,6 +111,12 @@ struct ProjectOptions {
   QStringList device;
   bool rewriteProject;
   QString currentFileSet;
+  QString topModule;
+  QString topModuleLib;
+  QString includePathList;
+  QString libraryPathList;
+  QString libraryExtList;
+  QString macroList;
 };
 
 struct Suffixes {
@@ -131,9 +140,15 @@ class ProjectManager : public QObject {
   };
   explicit ProjectManager(QObject *parent = nullptr);
   void CreateProject(const ProjectOptions &opt);
+  void UpdateProject(const ProjectOptions &opt);
   static QString ProjectFilesPath(const QString &projPath,
                                   const QString &projName,
-                                  const QString &fileSet);
+                                  const QString &fileSet,
+                                  const QString &file = QString());
+
+  static std::filesystem::path ProjectFilesPath(
+      const std::string &projPath, const std::string &projName,
+      const std::string &fileSet, const std::string &file = std::string());
 
   void Tcl_CreateProject(int argc, const char *argv[]);
   int CreateProjectbyXml(const QString &strProXMl);
@@ -151,9 +166,13 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
-  ErrorInfo addDesignFiles(const QString &fileNames, int lang,
+  ErrorInfo addDesignFiles(const QString &commands, const QString &libs,
+                           const QString &fileNames, int lang,
                            bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
+                     bool localToProject = true);
+  int setDesignFiles(const QString &commands, const QString &libs,
+                     const QString &fileNames, int lang, bool isFileCopy = true,
                      bool localToProject = true);
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
@@ -168,6 +187,7 @@ class ProjectManager : public QObject {
 
   // Please set currentfileset before using this function
   int setTopModule(const QString &strModuleName);
+  int setTopModuleLibrary(const QString &strModuleNameLib);
   // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
 
@@ -177,11 +197,17 @@ class ProjectManager : public QObject {
   int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QStringList getDesignFiles() const;
+  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+  DesignLibraries() const;
   std::vector<std::pair<int, std::string>> DesignFiles() const;
   std::vector<std::pair<int, std::vector<std::string>>> DesignFileList() const;
   QString getDesignTopModule(const QString &strFileSet) const;
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;
+
+  QString getDesignTopModuleLib(const QString &strFileSet) const;
+  QString getDesignTopModuleLib() const;
+  std::string DesignTopModuleLib() const;
 
   int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
@@ -243,26 +269,32 @@ class ProjectManager : public QObject {
   void setCurrentRun(const QString &currentRun);
 
   const std::vector<std::string> &includePathList() const;
+  QString includePath() const;
   void setIncludePathList(const std::vector<std::string> &newIncludePathList);
   void addIncludePath(const std::string &includePath);
 
   const std::vector<std::string> &libraryPathList() const;
+  QString libraryPath() const;
   void setLibraryPathList(const std::vector<std::string> &newLibraryPathList);
   void addLibraryPath(const std::string &libraryPath);
 
   const std::vector<std::string> &libraryExtensionList() const;
+  QString libraryExtension() const;
   void setLibraryExtensionList(
       const std::vector<std::string> &newLibraryExtensionList);
   void addLibraryExtension(const std::string &libraryExt);
 
+  void setMacroList(
+      const std::vector<std::pair<std::string, std::string>> &newMacroList);
   void addMacro(const std::string &macroName, const std::string &macroValue);
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
+  QString macros() const;
 
-  void setTargetDevice(const std::string &deviceName) {
-    m_deviceName = deviceName;
-  }
-  const std::string &getTargetDevice() { return m_deviceName; }
+  void setTargetDevice(const std::string &deviceName);
+  std::string getTargetDevice();
   static QStringList StringSplit(const QString &str, const QString &sep);
+  static std::vector<std::pair<std::string, std::string>> ParseMacro(
+      const QString &macro);
 
  private:
   // Please set currentfileset before using this function
@@ -286,15 +318,11 @@ class ProjectManager : public QObject {
                       bool iscover = true);
   int CreateAndAddFile(const QString &suffix, const QString &filename,
                        const QString &filenameAdd, bool copyFile);
+  void UpdateProjectInternal(const ProjectOptions &opt, bool setTargetConstr);
 
  private:
   QString m_currentFileSet;
   QString m_currentRun;
-  std::vector<std::string> m_includePathList;
-  std::vector<std::string> m_libraryPathList;
-  std::vector<std::string> m_libraryExtList;
-  std::vector<std::pair<std::string, std::string>> m_macroList;
-  std::string m_deviceName;
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
   inline static const Suffixes m_constrSuffixes{{"SDC"}};

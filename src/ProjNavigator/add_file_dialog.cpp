@@ -2,10 +2,13 @@
 
 #include <QDesktopWidget>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
+#include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ui_add_file_dialog.h"
 
+extern FOEDAG::Session *GlobalSession;
 using namespace FOEDAG;
 
 AddFileDialog::AddFileDialog(QWidget *parent)
@@ -16,12 +19,6 @@ AddFileDialog::AddFileDialog(QWidget *parent)
   setWindowTitle(tr("Add Sources"));
 
   setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
-
-  // One thirds of desktop size
-  QDesktopWidget dw;
-  int w = dw.width() / 3;
-  int h = dw.height() / 3;
-  setGeometry(w, h, w, h);
 
   m_selectForm = new SelectFileTypeForm(this);
   ui->m_stackedWidget->insertWidget(1, m_selectForm);
@@ -49,8 +46,8 @@ void AddFileDialog::on_m_btnOK_clicked() {
     for (const filedata &fdata : listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (GT_SOURCE == iType) {
-          ret = m_pm->setDesignFiles(
-              fdata.m_fileName, FromFileType(fdata.m_fileType), false, true);
+          ret = m_pm->setDesignFiles(fdata.m_fileName, fdata.m_language, false,
+                                     true);
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_fileName, false, true);
         } else if (GT_SIM == iType) {
@@ -59,7 +56,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
       } else {
         if (GT_SOURCE == iType) {
           ret = m_pm->setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
-                                     FromFileType(fdata.m_fileType),
+                                     fdata.m_language,
                                      m_fileForm->IsCopySource(), false);
         } else if (GT_CONSTRAINTS == iType) {
           ret = m_pm->setConstrsFile(fdata.m_filePath + "/" + fdata.m_fileName,
@@ -71,6 +68,11 @@ void AddFileDialog::on_m_btnOK_clicked() {
         }
       }
     }
+    Compiler *compiler = GlobalSession->GetCompiler();
+    if (m_fileForm->IsRandom())
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+    else
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
     this->close();
     if (0 == ret) {
       m_pm->FinishedProject();

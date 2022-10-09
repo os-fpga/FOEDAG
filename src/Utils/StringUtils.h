@@ -37,6 +37,10 @@ class StringUtils final {
   static void tokenize(std::string_view str, std::string_view separator,
                        std::vector<std::string>& result);
 
+  // join strings with separator
+  static std::string join(const std::vector<std::string>& strings,
+                          const std::string& separator);
+
   // Modify string string, remove whitespace at the beginning of the string.
   static std::string& ltrim(std::string& str);
 
@@ -95,6 +99,14 @@ class StringUtils final {
   }
 
   static std::string unquoted(const std::string& text);
+
+  // Returns bool indicating if `text` ends with `ending`
+  static bool endsWith(const std::string& text, const std::string& ending);
+
+  // Converts the input text to lower case
+  static std::string toLower(const std::string& text);
+  // Converts the input text to upper case
+  static std::string toUpper(const std::string& text);
 
  private:
   StringUtils() = delete;

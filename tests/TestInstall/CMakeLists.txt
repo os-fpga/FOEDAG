@@ -82,23 +82,24 @@ else()
 
   if(APPLE) 
     set(TCL_STATIC_LIB libtcl8.6.dylib)
-  endif()
-  
-  add_library(tcl_static SHARED IMPORTED)
-
-  if(CMAKE_SYSTEM_NAME MATCHES "MSYS")
-    set(TCL_STATIC_LIB libtcl8.6.a)
+    add_library(tcl_static SHARED IMPORTED )
+  elseif ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+    set(TCL_STATIC_LIB libtcl86.dll.a)
+    set(ZLIB_STATIC_LIB libzlibstatic.a)
+    set(TCL_STUBB_LIB libtclstub86.a)
     add_library(tcl_static STATIC IMPORTED)
+  else()
+    add_library(tcl_static SHARED IMPORTED )
   endif()
-  
+
 endif()
 
 ADD_LIBRARY(tcl_stubb STATIC IMPORTED)
 
-SET_TARGET_PROPERTIES(tcl_static  PROPERTIES
+SET_TARGET_PROPERTIES(tcl_static PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STATIC_LIB})
   
-SET_TARGET_PROPERTIES(tcl_stubb  PROPERTIES
+SET_TARGET_PROPERTIES(tcl_stubb PROPERTIES
   IMPORTED_LOCATION ${INSTALL_DIR}/lib/foedag/lib/${TCL_STUBB_LIB})   
 
 
@@ -164,6 +165,7 @@ target_link_libraries(test_hellofoedag
   tcl_static
   zlib
   ipconfigurator
+  pinassignment
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
   Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
 #  Qt5::Quick

@@ -18,6 +18,7 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 puts "IP CONFIGURATOR GUI SHOW" ; flush stdout ; ipconfigurator_show
-puts "IP CONFIGURATOR GUI STOP"  ; flush stdout ; ipconfigurator_close
+puts "IP CONFIGURATOR DLG SHOW" ; flush stdout ; ipconfigurator_show_dlg
+puts "IP CONFIGURATOR GUI STOP"  ; flush stdout ; ipconfigurator_hide
 
 

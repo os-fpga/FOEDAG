@@ -169,6 +169,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     return 0;
   };
   interp->registerCmd("set_pin_loc", pin_loc, this, 0);
+  interp->registerCmd("set_mode", pin_loc, this, 0);
   interp->registerCmd("set_property", pin_loc, this, 0);
 
   auto region_loc = [](void* clientData, Tcl_Interp* interp, int argc,

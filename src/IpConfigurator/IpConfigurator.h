@@ -32,7 +32,8 @@ class IpConfigurator : public QWidget {
   explicit IpConfigurator(QWidget *parent = nullptr);
 
   void ShowIpTrees();
-  void CloseIpTrees();
+  void HideIpTrees();
+  void ShowConfigDlg();
   QWidget *GetIpTreesWidget();
 
  private:

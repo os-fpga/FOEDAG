@@ -8,7 +8,7 @@ execute_process(
     COMMAND cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release
     ERROR_QUIET
 )
-endif((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
+endif()
 
 execute_process(
     COMMAND make

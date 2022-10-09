@@ -20,6 +20,9 @@
    <property name="leftMargin">
     <number>15</number>
    </property>
+   <property name="rightMargin">
+    <number>15</number>
+   </property>
    <property name="bottomMargin">
     <number>0</number>
    </property>
@@ -33,7 +36,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Add Sources</string>
+      <string>Add Design Files</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -56,13 +59,13 @@
       <number>0</number>
      </property>
      <property name="leftMargin">
-      <number>30</number>
+      <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>30</number>
+      <number>0</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,10">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="90,0,10">
        <property name="spacing">
         <number>10</number>
        </property>
@@ -81,6 +84,73 @@
           <enum>QFrame::Raised</enum>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Top level module:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEditTopModule"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Library for top-level :</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEditTopModuleLib"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Include Path:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="lineEditIncludePath"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Library Path:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="lineEditLibraryPath"/>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Library Ext:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLineEdit" name="lineEditLibraryExt"/>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Set Macro:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="lineEditSetMacro"/>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QCheckBox" name="m_ckkBoxCopy">

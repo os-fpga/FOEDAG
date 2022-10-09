@@ -17,6 +17,7 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
   this->m_relSrcDir = other.m_relSrcDir;
   this->m_mapFiles = other.m_mapFiles;
   this->m_langMap = other.m_langMap;
+  this->m_commandsLibs = other.m_commandsLibs;
   ProjectOption::operator=(other);
 
   return *this;
@@ -27,8 +28,11 @@ void ProjectFileSet::addFile(const QString &strFileName,
   m_mapFiles.push_back(std::make_pair(strFileName, strFilePath));
 }
 
-void ProjectFileSet::addFiles(const QStringList &files, int language) {
+void ProjectFileSet::addFiles(const QStringList &commands,
+                              const QStringList &libs, const QStringList &files,
+                              int language) {
   m_langMap.push_back(std::make_pair(language, files));
+  m_commandsLibs.push_back(std::make_pair(commands, libs));
 }
 
 QString ProjectFileSet::getFilePath(const QString &strFileName) {
@@ -57,7 +61,11 @@ void ProjectFileSet::deleteFile(const QString &strFileName) {
     for (auto it = m_langMap.begin(); it != m_langMap.end(); ++it) {
       if (it->second.contains(file)) {
         it->second.removeOne(file);
-        if (it->second.isEmpty()) m_langMap.erase(it);
+        if (it->second.isEmpty()) {
+          auto dst = std::distance(m_langMap.begin(), it);
+          m_langMap.erase(it);
+          m_commandsLibs.erase(m_commandsLibs.begin() + dst);
+        }
         break;
       }
     }
@@ -85,4 +93,9 @@ const std::vector<std::pair<QString, QString>> &ProjectFileSet::getMapFiles()
 
 const std::vector<std::pair<int, QStringList>> &ProjectFileSet::Files() const {
   return m_langMap;
+}
+
+const std::vector<std::pair<QStringList, QStringList>>
+    &ProjectFileSet::getLibraries() const {
+  return m_commandsLibs;
 }

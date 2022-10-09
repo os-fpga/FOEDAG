@@ -46,10 +46,16 @@ class IPGenerator {
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::vector<IPInstance*> IPInstances() { return m_instances; }
   bool AddIPInstance(IPInstance* instance);
+  IPInstance* GetIPInstance(const std::string& moduleName);
+  void RemoveIPInstance(IPInstance* instance);
+  void RemoveIPInstance(const std::string& moduleName);
+  void DeleteIPInstance(IPInstance* instance);
+  void DeleteIPInstance(const std::string& moduleName);
   void ResetIPList() {
     m_instances.erase(m_instances.begin(), m_instances.end());
   }
   bool Generate();
+  std::filesystem::path GetBuildDir(IPInstance* instance) const;
 
  protected:
   IPCatalog* m_catalog = nullptr;

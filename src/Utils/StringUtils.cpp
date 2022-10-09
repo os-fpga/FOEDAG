@@ -58,6 +58,15 @@ void StringUtils::tokenize(std::string_view str, std::string_view separator,
   }
 }
 
+std::string StringUtils::join(const std::vector<std::string>& strings,
+                              const std::string& separator) {
+  std::string result;
+  for (const auto& s : strings) result += s + separator;
+  if (!result.empty())
+    for (size_t count = 0; count < separator.size(); count++) result.pop_back();
+  return result;
+}
+
 std::string StringUtils::to_string(double a_value, const int n) {
   std::ostringstream out;
   out.precision(n);
@@ -226,6 +235,30 @@ std::string StringUtils::unquoted(const std::string& text) {
     return text.substr(1, text.length() - 2);
   }
   return text;
+}
+
+bool StringUtils::endsWith(const std::string& fullString,
+                           const std::string& ending) {
+  if (fullString.length() >= ending.length()) {
+    return (0 == fullString.compare(fullString.length() - ending.length(),
+                                    ending.length(), ending));
+  } else {
+    return false;
+  }
+}
+
+std::string StringUtils::toLower(const std::string& text) {
+  auto result = text;
+  std::transform(result.begin(), result.end(), result.begin(),
+                 [](auto c) { return std::tolower(c); });
+  return result;
+}
+
+std::string StringUtils::toUpper(const std::string& text) {
+  auto result = text;
+  std::transform(result.begin(), result.end(), result.begin(),
+                 [](auto c) { return std::toupper(c); });
+  return result;
 }
 
 }  // namespace FOEDAG

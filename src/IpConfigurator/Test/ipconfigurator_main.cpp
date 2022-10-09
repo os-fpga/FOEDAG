@@ -20,15 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <QApplication>
+#include <QHBoxLayout>
 
 #include "IpConfigurator/IpConfigurator.h"
+#include "IpConfiguratorCreator.h"
 #include "Main/Foedag.h"
 #include "Main/qttclnotifier.hpp"
 #include "Tcl/TclInterpreter.h"
 
 QWidget* ipconfiguratorBuilder(FOEDAG::Session* session) {
-  Q_UNUSED(session);
-  return new FOEDAG::IpConfigurator();
+  FOEDAG::IpConfiguratorCreator* creator = new FOEDAG::IpConfiguratorCreator;
+  QWidget* w = new QWidget;
+  w->setLayout(new QHBoxLayout);
+  w->layout()->addWidget(creator->GetAvailableIpsWidget());
+  return w;
 }
 
 int main(int argc, char** argv) {

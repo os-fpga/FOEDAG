@@ -20,13 +20,20 @@ class newProjectDialog;
 namespace FOEDAG {
 
 enum FormIndex {
-  INDEX_LOCATION = 1,
+  INDEX_LOCATION = 0,
   INDEX_PROJTYPE,
   INDEX_ADDSOURC,
   INDEX_ADDCONST,
   INDEX_DEVICEPL,
   INDEX_SUMMARYF
 };
+
+enum Mode {
+  NewProject,
+  ProjectSettings,
+};
+
+class SettingsGuiInterface;
 
 class newProjectDialog : public QDialog {
   Q_OBJECT
@@ -39,7 +46,8 @@ class newProjectDialog : public QDialog {
   void CreateProject_Tcl_Test(int argc, const char* argv[]);
 
   QString getProject();
-  void Reset();
+  void Reset(Mode mode = NewProject);
+  Mode GetMode() const;
 
  private slots:
 
@@ -59,9 +67,14 @@ class newProjectDialog : public QDialog {
   addConstraintsForm* m_addConstrsForm;
   devicePlannerForm* m_devicePlanForm;
   summaryForm* m_sumForm;
+  Mode m_mode{NewProject};
+  QVector<SettingsGuiInterface*> m_settings;
 
   ProjectManager* m_projectManager;
-  void UpdateDialogView();
+  bool m_skipSources{false};
+  void UpdateDialogView(Mode mode = NewProject);
+  void ResetToNewProject();
+  void ResetToProjectSettings();
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

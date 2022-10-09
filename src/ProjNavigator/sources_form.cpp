@@ -2,11 +2,15 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
 #include <QTextStream>
+#include <algorithm>
 
+#include "Main/Foedag.h"
+#include "Utils/FileUtils.h"
 #include "tcl_command_integration.h"
 #include "ui_sources_form.h"
 
@@ -49,6 +53,8 @@ TclCommandIntegration *SourcesForm::createTclCommandIntegarion() {
 
 ProjectManager *SourcesForm::ProjManager() { return m_projManager; }
 
+void SourcesForm::CreateConstraint() { showAddFileDialog(GT_CONSTRAINTS); }
+
 void SourcesForm::SetCurrentFileItem(const QString &strFileName) {
   QString filename = strFileName.right(strFileName.size() -
                                        (strFileName.lastIndexOf("/") + 1));
@@ -76,6 +82,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     QMenu *menu = new QMenu(m_treeSrcHierachy);
     menu->setMinimumWidth(200);
+    if (m_projManager->HasDesign()) {
+      menu->addAction(m_actProjectSettings);
+    }
     if (SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
         SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
         SRC_TREE_SIM_TOP_ITEM == strPropertyRole) {
@@ -85,7 +94,6 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actEditSimulSets);
       menu->addSeparator();
       menu->addAction(m_actAddFile);
-
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
@@ -108,25 +116,14 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       }
     } else if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
                SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
-      if (strName.contains(SRC_TREE_FLG_TOP)) {
-        menu->addAction(m_actOpenFile);
-        menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
-      } else {
-        menu->addAction(m_actOpenFile);
-        menu->addAction(m_actRemoveFile);
-        menu->addAction(m_actRefresh);
-        menu->addSeparator();
-        menu->addAction(m_actEditConstrsSets);
-        menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
-        menu->addAction(m_actSetAsTop);
-      }
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRemoveFile);
+      menu->addAction(m_actRefresh);
+      menu->addSeparator();
+      menu->addAction(m_actEditConstrsSets);
+      menu->addAction(m_actEditSimulSets);
+      menu->addSeparator();
+      menu->addAction(m_actAddFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_TARGET)) {
         menu->addAction(m_actOpenFile);
@@ -147,6 +144,21 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
       }
+    } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {
+      menu->addAction(m_actRefresh);
+      menu->addSeparator();
+      menu->addAction(m_actReconfigureIp);
+      menu->addAction(m_actRemoveIp);
+      // TODO @skyler-rs Re-enable when ipgen and stored VLNV have same cases.
+      // Currenlty ip generators save to a path in lowercase which causes a
+      // file miss when trying to delete based off the VLNV data which has
+      // capitalizations etc
+      // menu->addAction(m_actDeleteIp);
+    } else if (SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
+      menu->addAction(m_actRefresh);
+    } else if (SRC_TREE_IP_TOP_ITEM == strPropertyRole) {
+      menu->addAction(m_actRefresh);
     }
 
     if (m_projManager->HasDesign()) {
@@ -175,7 +187,8 @@ void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
       SRC_TREE_SIM_FILE_ITEM == strPropertyRole ||
-      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
+      SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
     SlotOpenFile();
   }
 }
@@ -233,31 +246,19 @@ void SourcesForm::SlotAddFile() {
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
 
-  AddFileDialog *addFileDialog = new AddFileDialog(this);
   if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
       SRC_TREE_DESIGN_TOP_ITEM == strPropertyRole ||
       SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_SOURCE);
+    showAddFileDialog(GT_SOURCE);
   } else if (SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
              SRC_TREE_CONSTR_TOP_ITEM == strPropertyRole ||
              SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_CONSTRAINTS);
+    showAddFileDialog(GT_CONSTRAINTS);
   } else if (SRC_TREE_SIM_SET_ITEM == strPropertyRole ||
              SRC_TREE_SIM_TOP_ITEM == strPropertyRole ||
              SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
-    addFileDialog->setSelected(GT_SIM);
-  } else {
-    addFileDialog->deleteLater();
-    return;
+    showAddFileDialog(GT_SIM);
   }
-  connect(addFileDialog, SIGNAL(RefreshFiles()), this,
-          SLOT(SlotRefreshSourceTree()));
-  addFileDialog->exec();
-
-  addFileDialog->close();
-
-  disconnect(addFileDialog, SIGNAL(RefreshFiles()), this,
-             SLOT(SlotRefreshSourceTree()));
 }
 
 void SourcesForm::SlotOpenFile() {
@@ -290,31 +291,20 @@ void SourcesForm::SlotRemoveFile() {
   QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
   if (item == nullptr) return;
 
+  auto strFileName = item->text(0);
   auto fileSet = item->data(0, SetFileDataRole);
   if (!fileSet.isNull()) {
-    QString strFileName = item->text(0);
+    auto questionStr =
+        tr("Are you sure you want to remove %1 from the project? \n\nThe file "
+           "will not be removed from the disk.")
+            .arg(strFileName);
+    if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
     m_projManager->setCurrentFileSet(fileSet.toString());
     int ret = m_projManager->deleteFile(strFileName);
     if (0 == ret) {
       UpdateSrcHierachyTree();
       m_projManager->FinishedProject();
     }
-  }
-}
-
-void SourcesForm::SlotSetAsTop() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
-  }
-  QString strFileName = item->text(0);
-
-  m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
-  QString module = strFileName.left(strFileName.lastIndexOf("."));
-  int ret = m_projManager->setTopModule(module);
-  if (0 == ret) {
-    UpdateSrcHierachyTree();
-    m_projManager->FinishedProject();
   }
 }
 
@@ -377,6 +367,60 @@ void SourcesForm::SlotPropertiesTriggered() {
   SlotProperties();
 }
 
+void SourcesForm::SlotReConfigureIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  std::string moduleName = item->text(0).toStdString();
+
+  auto instances =
+      GlobalSession->GetCompiler()->GetIPGenerator()->IPInstances();
+
+  // Find the ip instance with a matching module name
+  auto isMatch = [moduleName](IPInstance *instance) {
+    return instance->ModuleName() == moduleName;
+  };
+  auto result =
+      std::find_if(std::begin(instances), std::end(instances), isMatch);
+
+  std::string ipName{};
+  QStringList args{};
+  if (result != std::end(instances)) {
+    ipName = (*result)->IPName();
+
+    // Step through this instance's paremeters
+    for (auto param : (*result)->Parameters()) {
+      // Create a list of parameter value pairs in the format of
+      // -P<param_name> <value>
+      args.append(QString("-P%1 %2")
+                      .arg(QString::fromStdString(param.Name()))
+                      .arg(QString::number(param.GetValue())));
+    }
+  }
+
+  emit IpReconfigRequested(QString::fromStdString(ipName),
+                           QString::fromStdString(moduleName), args);
+}
+
+void SourcesForm::SlotRemoveIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpRemoveRequested(moduleName);
+}
+
+void SourcesForm::SlotDeleteIp() {
+  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
+  if (item == nullptr) {
+    return;
+  }
+  QString moduleName = QString::fromStdString(item->text(0).toStdString());
+  emit IpDeleteRequested(moduleName);
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -404,10 +448,9 @@ void SourcesForm::CreateActions() {
           SLOT(SlotRemoveFileSet()));
 
   m_actRemoveFile = new QAction(tr("Remove File"), m_treeSrcHierachy);
+  m_actRemoveFile->setShortcut(Qt::Key_Delete);
+  m_treeSrcHierachy->addAction(m_actRemoveFile);
   connect(m_actRemoveFile, SIGNAL(triggered()), this, SLOT(SlotRemoveFile()));
-
-  m_actSetAsTop = new QAction(tr("Set As TopModule"), m_treeSrcHierachy);
-  connect(m_actSetAsTop, SIGNAL(triggered()), this, SLOT(SlotSetAsTop()));
 
   m_actSetAsTarget =
       new QAction(tr("Set as Target Constraint File"), m_treeSrcHierachy);
@@ -422,6 +465,26 @@ void SourcesForm::CreateActions() {
 
   m_actCloseProject = new QAction(tr("Close project"), m_treeSrcHierachy);
   connect(m_actCloseProject, SIGNAL(triggered()), this, SIGNAL(CloseProject()));
+
+  m_actReconfigureIp = new QAction(tr("Reconfigure IP"), m_treeSrcHierachy);
+  connect(m_actReconfigureIp, &QAction::triggered, this,
+          &SourcesForm::SlotReConfigureIp);
+
+  m_actRemoveIp = new QAction(tr("Remove IP from Project"), m_treeSrcHierachy);
+  m_actRemoveIp->setToolTip(
+      "Remove the selectd IP instance from the project. Its build files will "
+      "remain.");
+  connect(m_actRemoveIp, &QAction::triggered, this, &SourcesForm::SlotRemoveIp);
+
+  m_actDeleteIp = new QAction(tr("Delete IP"), m_treeSrcHierachy);
+  m_actDeleteIp->setToolTip(
+      "Remove the selectd IP instance from the project and delete its build "
+      "files.");
+  connect(m_actDeleteIp, &QAction::triggered, this, &SourcesForm::SlotDeleteIp);
+
+  m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
+  connect(m_actProjectSettings, &QAction::triggered, this,
+          &SourcesForm::OpenProjectSettings);
 }
 
 void SourcesForm::UpdateSrcHierachyTree() {
@@ -430,6 +493,10 @@ void SourcesForm::UpdateSrcHierachyTree() {
   CreateFolderHierachyTree();
   m_treeSrcHierachy->setHeaderHidden(true);
   m_treeSrcHierachy->expandAll();
+}
+
+QAction *SourcesForm::ProjectSettingsActions() const {
+  return m_actProjectSettings;
 }
 
 void SourcesForm::CreateFolderHierachyTree() {
@@ -448,42 +515,17 @@ void SourcesForm::CreateFolderHierachyTree() {
   int iFileSum = 0;
   for (auto &str : listDesFset) {
     QStringList listDesFile = m_projManager->getDesignFiles(str);
-    QString strTop = m_projManager->getDesignTopModule(str);
-
     QTreeWidgetItem *parentItem{topitemDS};
-    for (auto &strfile : listDesFile) {
-      QString filename =
-          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-      QString module = filename.left(filename.lastIndexOf("."));
-      if (module == strTop) {
-        if (parentItem) {
-          QString filename =
-              strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-          QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
-          itemf->setData(0, Qt::UserRole, strfile);
-          itemf->setIcon(0, QIcon(":/img/file.png"));
-          itemf->setData(0, Qt::WhatsThisPropertyRole,
-                         SRC_TREE_DESIGN_FILE_ITEM);
-          parentItem = itemf;
-        }
-        break;
-      }
-    }
     for (auto &strfile : listDesFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
-        QString module = filename.left(filename.lastIndexOf("."));
-        if (module != strTop) {
-          QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-          itemf->setText(0, filename);
-          itemf->setData(0, Qt::UserRole, strfile);
-          itemf->setIcon(0, QIcon(":/img/file.png"));
-          itemf->setData(0, Qt::WhatsThisPropertyRole,
-                         SRC_TREE_DESIGN_FILE_ITEM);
-          itemf->setData(0, SetFileDataRole, str);
-        }
+        QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+        itemf->setText(0, filename);
+        itemf->setData(0, Qt::UserRole, strfile);
+        itemf->setIcon(0, QIcon(":/img/file.png"));
+        itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
+        itemf->setData(0, SetFileDataRole, str);
       }
     }
     iFileSum += listDesFile.size();
@@ -530,20 +572,13 @@ void SourcesForm::CreateFolderHierachyTree() {
   iFileSum = 0;
   for (const auto &str : listSimFset) {
     QStringList listSimFile = m_projManager->getSimulationFiles(str);
-    QString strTop = m_projManager->getSimulationTopModule(str);
-
     QTreeWidgetItem *parentItem{topitemSS};
     for (auto &strfile : listSimFile) {
       if (parentItem) {
         QString filename =
             strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
         QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
-        QString module = filename.left(filename.lastIndexOf("."));
-        if (module == strTop) {
-          itemf->setText(0, filename + SRC_TREE_FLG_TOP);
-        } else {
-          itemf->setText(0, filename);
-        }
+        itemf->setText(0, filename);
         itemf->setData(0, Qt::UserRole, strfile);
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_SIM_FILE_ITEM);
@@ -554,6 +589,60 @@ void SourcesForm::CreateFolderHierachyTree() {
   }
   topitemSS->setText(0,
                      tr("Simulation Sources") + QString("(%1)").arg(iFileSum));
+
+  // Initialize IP instances tree
+  AddIpInstanceTree(topItem);
+}
+
+void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
+  QTreeWidgetItem *topitemIpInstances = new QTreeWidgetItem(topItem);
+  m_treeSrcHierachy->addTopLevelItem(topitemIpInstances);
+  topitemIpInstances->setData(0, Qt::WhatsThisPropertyRole,
+                              SRC_TREE_IP_TOP_ITEM);
+  int instCount = 0;
+
+  Compiler *compiler = nullptr;
+  IPGenerator *ipGen = nullptr;
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    QTreeWidgetItem *ipParentItem{topitemIpInstances};
+    for (auto instance : ipGen->IPInstances()) {
+      QString ipName = QString::fromStdString(instance->IPName());
+      QString moduleName = QString::fromStdString(instance->ModuleName());
+
+      // Add Instance moduleName to tree
+      QTreeWidgetItem *itemIp = new QTreeWidgetItem(ipParentItem);
+      itemIp->setText(0, moduleName);
+      itemIp->setData(0, Qt::UserRole, ipName);
+      itemIp->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_INST_ITEM);
+      itemIp->setData(0, SetFileDataRole, ipName);
+
+      // Get the IP build src directory for this instance
+      auto buildPath = ipGen->GetBuildDir(instance);
+      std::filesystem::path srcDirPath = buildPath / "src";
+      QString srcDirStr =
+          QString::fromStdString(FileUtils::GetFullPath(srcDirPath).string());
+
+      // Grab and add all files from the IP src dir (non-recursive)
+      QDirIterator it(srcDirStr, QDir::Files);
+      while (it.hasNext()) {
+        QFile file(it.next());
+
+        QTreeWidgetItem *itemFile = new QTreeWidgetItem(itemIp);
+        QFileInfo info(file);
+        itemFile->setText(0, info.fileName());
+        itemFile->setData(0, Qt::UserRole, info.absoluteFilePath());
+        itemFile->setIcon(0, QIcon(":/img/file.png"));
+        itemFile->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_IP_FILE_ITEM);
+        itemFile->setData(0, SetFileDataRole, info.absoluteFilePath());
+        itemFile->setToolTip(0, info.absoluteFilePath());
+      }
+
+      instCount += 1;
+    }
+  }
+  topitemIpInstances->setText(
+      0, tr("IP Instances") + QString("(%1)").arg(instCount));
 }
 
 QTreeWidgetItem *SourcesForm::CreateFolderHierachyTree(QTreeWidgetItem *topItem,
@@ -602,4 +691,15 @@ QString SourcesForm::StripPath(const QString &path) {
   if (p.startsWith(QDir::separator())) p.remove(0, 1);
   if (p.endsWith(QDir::separator())) p.remove(p.size() - 1, 1);
   return p;
+}
+
+void SourcesForm::showAddFileDialog(GridType gridType) {
+  AddFileDialog *addFileDialog = new AddFileDialog(this);
+  addFileDialog->setSelected(gridType);
+  connect(addFileDialog, SIGNAL(RefreshFiles()), this,
+          SLOT(SlotRefreshSourceTree()));
+  addFileDialog->exec();
+  addFileDialog->close();
+  disconnect(addFileDialog, SIGNAL(RefreshFiles()), this,
+             SLOT(SlotRefreshSourceTree()));
 }

@@ -13,6 +13,7 @@ void Project::InitProject() {
   m_projectConfig = new ProjectConfiguration;
   m_projectConfig->moveToThread(thread());
   m_projectConfig->setParent(this);
+  m_compilerConfig.reset(new CompilerConfiguration);
   qDeleteAll(m_mapProjectRun);
   m_mapProjectRun.clear();
   qDeleteAll(m_mapProjectFileset);
@@ -33,6 +34,10 @@ void Project::setProjectPath(const QString &projectPath) {
 }
 
 ProjectConfiguration *Project::projectConfig() const { return m_projectConfig; }
+
+CompilerConfiguration *Project::compilerConfig() const {
+  return m_compilerConfig.get();
+}
 
 ProjectFileSet *Project::getProjectFileset(const QString &strName) const {
   ProjectFileSet *retProFileSet = nullptr;

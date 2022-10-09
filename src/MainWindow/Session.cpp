@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "MainWindow/Session.h"
 
+#include "Compiler/TaskManager.h"
+#include "Main/TclSimpleParser.h"
 #include "TopLevelInterface.h"
 
 using namespace FOEDAG;
@@ -34,14 +36,29 @@ Session::~Session() {
 
 void Session::windowShow() {
   switch (m_guiType) {
-    case GUI_TYPE::GT_WIDGET:
+    case GUI_TYPE::GT_WIDGET: {
       m_mainWindow->show();
+      auto hasScriptCmd = !CmdLine()->Script().empty();
       if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-        topLevel->gui_start();
+        topLevel->gui_start(!hasScriptCmd &&
+                            CmdLine()->GuiTestScript().empty());
       }
-      if (!CmdLine()->Script().empty()) {
+      if (hasScriptCmd) {
         int returnCode{TCL_OK};
-        if (m_compiler) m_compiler->start();
+        if (m_compiler) {
+          TclSimpleParser tclParser;
+          const auto &[res, msg] = tclParser.parse(CmdLine()->Script());
+          int counter{0};
+          if (!res)
+            m_compiler->ErrorMessage(msg);
+          else
+            counter = std::stoi(msg);
+          m_compiler->GetTaskManager()->setTaskCount(counter);
+          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
+            m->ProgressVisible(true);
+          }
+          m_compiler->start();
+        }
         auto result = TclInterp()->evalFile(CmdLine()->Script(), &returnCode);
         if (m_compiler) {
           if (returnCode == TCL_OK)
@@ -49,9 +66,13 @@ void Session::windowShow() {
           else
             m_compiler->ErrorMessage(result);
           m_compiler->finish();
+          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
+            m->ProgressVisible(false);
+          }
         }
       }
       break;
+    }
     case GUI_TYPE::GT_QML:
       m_windowModel->setIsVisible(true);
       break;
@@ -79,4 +100,13 @@ void Session::setGuiType(FOEDAG::GUI_TYPE newGuiType) {
 
 void Session::setWindowModel(MainWindowModel *newWindowModel) {
   m_windowModel = newWindowModel;
+}
+
+void Session::ProjectFileLoader(
+    std::shared_ptr<FOEDAG::ProjectFileLoader> projectFileLoader) {
+  m_projectFileLoader = projectFileLoader;
+}
+
+std::shared_ptr<ProjectFileLoader> Session::ProjectFileLoader() const {
+  return m_projectFileLoader;
 }

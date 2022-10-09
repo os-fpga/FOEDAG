@@ -10,25 +10,22 @@ locationForm::locationForm(QWidget *parent)
   ui->setupUi(this);
   int count = 1;
   QString project_prefix = "project_";
-  while (QDir(project_prefix + QString::number(count)).exists()) {
+  QString homePath = QDir::homePath();
+  QString projectPathPrefix =
+      QDir::homePath() + QDir::separator() + project_prefix;
+  while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
   }
-  ui->m_labelTitle->setText(tr("Project Location"));
-  ui->m_labelCont->setText(
-      tr("This wizard will guide you through the creation of a new project."));
-  ui->m_labelTail->setText(
-      tr("To create a project you will need to provide a name and a location "
-         "for your project files. "
-         "Next, you will specify the type of flow you'll be working with. "
-         "Finally, you will specify your project sources and choose a default "
-         "part."));
+  ui->m_labelTitle->setText(tr("Project Directory"));
+  ui->m_labelText->setText(
+      tr("Specify the project name and directory location for your project."));
   ui->m_labelPname->setText(tr("Project Name:"));
-  ui->m_labelPpath->setText(tr("Project Location:"));
+  ui->m_labelPpath->setText(tr("Project Directory:"));
   ui->m_checkBox->setText(tr("Create Project Subdirectory"));
   ui->m_labelPath0->setText(tr("Project will be created at:"));
   ui->m_btnBrowse->setText(tr("Browse..."));
   ui->m_lineEditPname->setText(project_prefix + QString::number(count));
-  ui->m_lineEditPpath->setText(QDir::currentPath());
+  ui->m_lineEditPpath->setText(homePath);
   ui->m_labelPath1->setText(ui->m_lineEditPpath->text());
   ui->m_checkBox->setCheckState(Qt::CheckState::Checked);
 }

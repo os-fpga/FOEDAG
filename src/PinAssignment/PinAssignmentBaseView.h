@@ -20,4 +20,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-namespace FOEDAG {}  // namespace FOEDAG
+#include <QTreeWidget>
+
+class QComboBox;
+namespace FOEDAG {
+
+class PinsBaseModel;
+
+/*!
+ * \brief The PinAssignmentBaseView class
+ * The implemenation provide common funtionality to Package pin table and Ports
+ * table.
+ */
+class PinAssignmentBaseView : public QTreeWidget {
+ public:
+  PinAssignmentBaseView(PinsBaseModel *model, QWidget *parent = nullptr);
+
+ protected:
+  void removeDuplications(const QString &text, QComboBox *current);
+
+ protected:
+  PinsBaseModel *m_model{nullptr};
+  bool m_blockUpdate{false};
+  QVector<QComboBox *> m_allCombo;
+};
+
+}  // namespace FOEDAG

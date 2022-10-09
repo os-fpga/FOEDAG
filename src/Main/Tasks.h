@@ -30,10 +30,12 @@ QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
 
 // Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const QString& argsStr);
-QString TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const QString& argsStr);
-QString TclArgs_getExampleArgs();
+void TclArgs_setSynthesisOptions(const std::string& argsStr);
+std::string TclArgs_getSynthesisOptions();
+void TclArgs_setExampleArgs(const std::string& argsStr);
+std::string TclArgs_getExampleArgs();
+void TclArgs_setPlacementOptions(const std::string& argsStr);
+std::string TclArgs_getPlacementOptions();
 
 }  // namespace FOEDAG
 

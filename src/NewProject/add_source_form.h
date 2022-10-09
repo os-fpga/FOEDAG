@@ -3,6 +3,7 @@
 
 #include <QWidget>
 
+#include "SettingsGuiInterface.h"
 #include "source_grid.h"
 
 namespace Ui {
@@ -11,7 +12,7 @@ class addSourceForm;
 
 namespace FOEDAG {
 
-class addSourceForm : public QWidget {
+class addSourceForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
  public:
@@ -20,6 +21,14 @@ class addSourceForm : public QWidget {
 
   QList<filedata> getFileData();
   bool IsCopySource();
+  QString TopModule() const;
+  QString LibraryForTopModule() const;
+  QString LibraryPath() const;
+  QString LibraryExt() const;
+  QString IncludePath() const;
+  QString Macros() const;
+  void updateUi(ProjectManager *pm) override;
+  void SetTitle(const QString &title);
 
  private:
   Ui::addSourceForm *ui;

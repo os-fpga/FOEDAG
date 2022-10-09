@@ -45,7 +45,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
 #include "MainWindow/Session.h"
+#include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -78,4 +80,50 @@ void IPCatalog::WriteCatalog(std::ostream& out) {
   for (auto def : m_definitions) {
     out << "IP Name: " << def->Name() << std::endl;
   }
+}
+
+// This takes a path to an IP and parses the vendor, library, name, and version
+// info from the parent directories. This assumes that the directory format is
+// Vendor/Library/Name/Version
+VLNV FOEDAG::getIpInfoFromPath(std::filesystem::path path) {
+  std::string vendor, library, name, version;
+
+  std::string separator =
+      std::string(1, std::filesystem::path::preferred_separator);
+
+  // Specify our container variables in the order we will read into them
+  // Note we will read from the back of the path first
+  std::vector<std::string*> values = {&version, &name, &library, &vendor};
+
+  // split the path into tokens
+  std::vector<std::string> tokens;
+  StringUtils::tokenize(path.string(), separator, tokens);
+
+  // Take off the child node if it is a python file
+  if (StringUtils::endsWith(tokens.back(), ".py")) {
+    tokens.pop_back();
+  }
+
+  // Read each path section into a variable, starting from the back of the path
+  for (std::string* value : values) {
+    if (!tokens.empty()) {
+      *value = tokens.back();
+      tokens.pop_back();
+    }
+  }
+
+  return VLNV{vendor, library, name, version};
+}
+
+// This will return a path to the litex enabled python interpreter used by the
+// ip catalog. This will cache the return value the first time it's not empty
+std::filesystem::path IPCatalog::getPythonPath() {
+  static std::filesystem::path s_pythonPath{};
+  if (s_pythonPath.empty()) {
+    std::filesystem::path searchPath =
+        GlobalSession->Context()->DataPath() / "../envs/litex";
+    searchPath = FileUtils::GetFullPath(searchPath);
+    s_pythonPath = FileUtils::LocateFileRecursive(searchPath, "python");
+  }
+  return s_pythonPath;
 }

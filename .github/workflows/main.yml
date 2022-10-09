@@ -220,107 +220,59 @@ jobs:
       with:
         access_token: ${{ github.token }}
 
-# Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
-      with:
-        cmake-version: '3.21.3'
-
-    - name: Configure Git
-      run: git config --global core.autocrlf input
-      shell: bash
-
-    - name: Git pull
+    - name: Checkout repo
       uses: actions/checkout@v2
       with:
         token: ${{ secrets.QL_PRIVATE_TOKEN }}
         submodules: recursive
         fetch-depth: 0
 
-    - name: Install core dependencies
-      run: choco install -y swig --side-by-side --version=3.0.12
-      shell: powershell
-
-    - name: Setup Msys2
+    - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MSYS
+        msystem: MINGW64
+        path-type: minimal
         update: true
-        install:  gcc make cmake ninja python python-devel git diffutils autoconf
         release: false
-      env:
-        MSYS2_PATH_TYPE: inherit
+        install: >-
+          base-devel
+          git
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-qt5-base-debug
+          mingw-w64-x86_64-qt5
+          mingw-w64-x86_64-swig
+          mingw-w64-x86_64-qt5-declarative-debug
+          mingw-w64-x86_64-tcl
+          mingw-w64-x86_64-zlib
     
-# Install Qt
-    - shell: msys2 {0}
-      run: |
-        pacman --noconfirm -S zlib
-        pacman --noconfirm -S zlib-devel
-        pacman --noconfirm -S mingw-w64-x86_64-qt5
-        # Static version pacman --noconfirm -Syu mingw-w64-x86_64-qt5-static
-        find . -name qt5-config.cmake
-        find . -name Qt5Config.cmake
-        find /mingw64 -name qt5-config.cmake
-        find /mingw64 -name Qt5Config.cmake
-        find C:/msys64/ -name qt5-config.cmake
-        find C:/msys64/ -name Qt5Config.cmake
-        
     - name: Configure shell environment variables
       run: |
-        export SWIG_DIR=/c/ProgramData/chocolatey/lib/swig/tools/install/swigwin-3.0.12
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
-        # Static version: export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
-        export Qt5_DIR=$Qt5_Dir
         export CWD=`pwd`
-        echo "Qt5_DIR=$Qt5_DIR" >> $GITHUB_ENV
-        echo "SWIG_DIR=$SWIG_DIR" >> $GITHUB_ENV
-        echo 'CMAKE_GENERATOR=Ninja' >> $GITHUB_ENV
-        echo 'CC=gcc' >> $GITHUB_ENV
-        echo 'CXX=g++' >> $GITHUB_ENV
         echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
         echo "PREFIX=$CWD/install" >> $GITHUB_ENV
 
-        echo "$Qt5_DIR" >> $GITHUB_PATH
-        echo "$SWIG_DIR" >> $GITHUB_PATH
-
     - name: Show shell configuration
       run: |
-        export PATH=$SWIG_DIR:$PATH
-        env
-        where git && git --version
-        where cmake && cmake --version
-        where make && make --version
-        where swig && swig -version
-        where python && python --version
-        where ninja && ninja --version
-        where tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        where $CC && $CC --version
-        where $CXX && $CXX --version
+        which git && git --version || true
+        which cmake && cmake --version || true
+        which make && make --version || true
+        which swig && swig -version || true
+        which python && python --version || true
+        which ninja && ninja --version || true
+        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
 
     - name: Build
       run: |
-        export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
-        # export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
-        export Qt5_DIR=$Qt5_Dir
-        export PATH=$Qt5_DIR:$PATH
-        make lib-only
-# There are Qt linkage issues, so build only the libs for now        
-#        make VERBOSE=1 release
-#        make debug 
-#        make install
+        make VERBOSE=1 release
+        make debug
+        make install
 
     - name: Test
       run: |
-        export PATH=$SWIG_DIR:$PATH
-        export Qt5_Dir=/mingw64/lib/cmake/Qt5/
-        # export Qt5_Dir=/mingw64/qt5-static/lib/cmake/Qt5/
-        export Qt5_DIR=$Qt5_Dir
-        export PATH=$Qt5_DIR:$PATH
-# There Qt are linkage issues, so build only the libs for now        
-#        make test_install
-#        make test/unittest
-#        make regression
+        make test_install
+        make XVFB="" test/unittest
+        make regression
 
   windows-msvc:
     if: ${{ false }}  # KK: disable this until we need it.
@@ -396,7 +348,7 @@ jobs:
         if %errorlevel% neq 0 exit /b %errorlevel%
         make install
         if %errorlevel% neq 0 exit /b %errorlevel%
-        make test/unittest
+        make XVFB="" test/unittest
         if %errorlevel% neq 0 exit /b %errorlevel%
         make test_install
         if %errorlevel% neq 0 exit /b %errorlevel%
@@ -539,7 +491,7 @@ jobs:
     - name: Unit tests
       run: |
         make test_install
-        make test/unittest
+        make XVFB="" test/unittest
         make XVFB="" debug test/gui_mac
 
     - name: Regression tests

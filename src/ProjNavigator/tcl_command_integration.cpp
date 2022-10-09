@@ -41,11 +41,28 @@ bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],
     return false;
   }
 
-  QString strFileName = QString(argv[1]);
+  auto topModule = QString{};
+  auto topModuleLib = QString{};
+
+  for (auto i = 1; i < argc; i++) {
+    auto argStr = QString(argv[i]);
+    if (argStr == "-work") {
+      if (i + 1 >= argc) {
+        out << "Incorrect syntax for set_top_module <top> ?-work <libName>?. "
+               "Library name should follow '-work' tag"
+            << std::endl;
+        return false;
+      }
+      topModuleLib = QString(argv[++i]);  // library name follows -work tag
+    } else {
+      topModule = argStr;
+    }
+  }
   m_projManager->setCurrentFileSet(m_projManager->getDesignActiveFileSet());
-  QString module = strFileName.left(strFileName.lastIndexOf("."));
-  int ret = m_projManager->setTopModule(module);
+  auto ret = m_projManager->setTopModule(topModule);
+  if (!topModuleLib.isEmpty()) m_projManager->setTopModuleLibrary(topModuleLib);
   if (0 == ret) update();
+
   return true;
 }
 
@@ -126,7 +143,9 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
   return true;
 }
 
-bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
+bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
+                                              const QString &libs,
+                                              const QString &files, int lang,
                                               std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -135,7 +154,8 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &files, int lang,
 
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
-  const auto ret = m_projManager->addDesignFiles(files, lang, false, false);
+  const auto ret =
+      m_projManager->addDesignFiles(commands, libs, files, lang, false, false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;
@@ -251,7 +271,9 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
                      {{}, false},
                      {},
                      true /*rewrite*/,
-                     DEFAULT_FOLDER_SOURCE};
+                     DEFAULT_FOLDER_SOURCE,
+                     {},
+                     {}};
   m_projManager->CreateProject(opt);
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};

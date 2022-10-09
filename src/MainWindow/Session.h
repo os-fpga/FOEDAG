@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class ProjectFileLoader;
 class Settings;
 enum class GUI_TYPE { GT_NONE, GT_WIDGET, GT_QML };
 
@@ -76,6 +77,10 @@ class Session {
   int ReturnStatus() { return m_returnStatus; }
   void ReturnStatus(int status) { m_returnStatus = status; }
 
+  void ProjectFileLoader(
+      std::shared_ptr<FOEDAG::ProjectFileLoader> projectFileLoader);
+  std::shared_ptr<FOEDAG::ProjectFileLoader> ProjectFileLoader() const;
+
  private:
   QWidget *m_mainWindow = nullptr;
   MainWindowModel *m_windowModel = nullptr;
@@ -88,6 +93,7 @@ class Session {
   Settings *m_settings = nullptr;
   int m_returnStatus =
       0;  // When running in batch mode, executable returned status
+  std::shared_ptr<FOEDAG::ProjectFileLoader> m_projectFileLoader;
 };
 
 }  // namespace FOEDAG

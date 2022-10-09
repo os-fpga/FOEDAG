@@ -60,7 +60,11 @@ class Settings {
 
   void loadJsonFile(const QString& filePath);
   void loadJsonFile(json* jsonObject, const QString& filePath);
-  void saveJsonFile(const json& jsonObject, const QString& filePath);
+  void applyTclVars();
+  QStringList getSettingsJsonPtrPaths(bool includeHiddenSettings = true);
+  static QStringList getSettingsJsonPtrPaths(json& jsonData,
+                                             bool includeHiddenSettings = true);
+  static QString getTclArgString(json& jsonData);
 
   json& getJson() { return m_json; }
 };

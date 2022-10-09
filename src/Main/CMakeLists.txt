@@ -61,6 +61,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   #../Main/AboutWidget.cpp
   ../Main/AboutWidget_ql.cpp
   ../MainWindow/mainwindowmodel.cpp
+  ../MainWindow/WelcomePageWidget.cpp
+  ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
 )
 
@@ -85,7 +87,9 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/AboutWidget.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
+  ../MainWindow/WelcomePageWidget.h
   CompilerNotifier.h
+  ../Main/TclSimpleParser.h
 )
 
 set (SRC_UI_LIST "")

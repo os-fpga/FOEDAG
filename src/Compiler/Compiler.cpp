@@ -56,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -90,9 +91,17 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
          << std::endl;
-  (*out) << "   add_design_file <file>... <type> (-VHDL_1987, -VHDL_1993, "
+  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017) "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
          << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
@@ -102,7 +111,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
   (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
          << std::endl;
-  (*out) << "   set_top_module <top>       : Sets the top module" << std::endl;
+  (*out) << "   set_top_module <top> ?-work <libName>? : Sets the top module"
+         << std::endl;
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
@@ -119,13 +129,18 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "                              : Configures an IP <IP_NAME> and "
             "generates the corresponding file with module name"
          << std::endl;
-  (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
-            "ip_configure"
+  (*out) << "   ipgenerate ?clean? ?-modules {moduleName1 moduleName2} : "
+            "Generates all IP instances set by "
+            "ip_configure. -modules limits which IPs are generated."
          << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
       << std::endl;
+  (*out) << "   place ?clean" << std::endl;
+  (*out) << "   pin_loc_assign_method <Method>: "
+            "(in_define_order(Default)/random/free)"
+         << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
@@ -203,7 +218,7 @@ $body
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
     )";
@@ -227,7 +242,7 @@ static std::string TclInterpCloneVar() {
 "
         }
     }
-    return $script  
+    return $script
 }
 tcl_interp_clone
 
@@ -320,7 +335,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                            const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
-    if (argc != 2) {
+    if (argc < 2) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
@@ -350,27 +365,32 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
+          "[-work libraryName]"
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
           "default))>");
       return TCL_ERROR;
     }
-    std::string actualType = "VERILOG_2001";
+    std::string actualType;
     Design::Language language = Design::Language::VERILOG_2001;
-    const std::string file = argv[1];
-    if (strstr(file.c_str(), ".vhd")) {
-      language = Design::Language::VHDL_2008;
-      actualType = "VHDL_2008";
-    }
-    if (strstr(file.c_str(), ".sv")) {
-      language = Design::Language::SYSTEMVERILOG_2017;
-      actualType = "SV_2017";
-    }
+
+    std::string commandsList;
+    std::string libList;
     std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
-      if (type == "-VHDL_1987") {
+      if (type == "-work") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_design_file <file(s)> "
+              "Library name should follow '-work' tag");
+          return TCL_ERROR;
+        }
+        commandsList += type + " ";
+        const std::string libName = argv[++i];
+        libList += libName + " ";
+      } else if (type == "-VHDL_1987") {
         language = Design::Language::VHDL_1987;
         actualType = "VHDL_1987";
       } else if (type == "-VHDL_1993") {
@@ -403,6 +423,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (type.find("-D") != std::string::npos) {
         fileList += type + " ";
       } else {
+        if (actualType.empty()) {
+          auto fileLowerCase = StringUtils::toLower(argv[i]);
+          if (strstr(fileLowerCase.c_str(), ".vhd")) {
+            language = Design::Language::VHDL_2008;
+            actualType = "VHDL_2008";
+          } else if (strstr(fileLowerCase.c_str(), ".sv")) {
+            language = Design::Language::SYSTEMVERILOG_2017;
+            actualType = "SV_2017";
+          } else {
+            actualType = "VERILOG_2001";
+          }
+        }
         const std::string file = argv[i];
         std::string expandedFile = file;
         bool use_orig_path = false;
@@ -433,7 +465,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          fileList.c_str(), language, out);
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -456,12 +489,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
 
     const std::string file = argv[1];
+    const std::string fileLowerCase = StringUtils::toLower(file);
     std::string actualType = "VERILOG";
     Design::Language language = Design::Language::VERILOG_NETLIST;
-    if (strstr(file.c_str(), ".blif")) {
+    if (strstr(fileLowerCase.c_str(), ".blif")) {
       language = Design::Language::BLIF;
       actualType = "BLIF";
-    } else if (strstr(file.c_str(), ".eblif")) {
+    } else if (strstr(fileLowerCase.c_str(), ".eblif")) {
       language = Design::Language::EBLIF;
       actualType = "EBLIF";
     }
@@ -493,7 +527,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          origPathFileList.c_str(), language, out);
+          {}, {}, origPathFileList.c_str(), language, out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
         return TCL_ERROR;
@@ -527,12 +561,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         fullPath.append(file);
         expandedFile = fullPath.string();
       }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
-      }
       compiler->ProjManager()->addIncludePath(expandedFile);
     }
     return TCL_OK;
@@ -562,12 +590,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::filesystem::path fullPath = scriptPath;
         fullPath.append(file);
         expandedFile = fullPath.string();
-      }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
       }
       compiler->ProjManager()->addLibraryPath(expandedFile);
     }
@@ -743,6 +765,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      return compiler->Compile(Action::Analyze) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
+
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -814,6 +851,37 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order/free");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -838,6 +906,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -867,9 +937,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -898,6 +966,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->IPGenOpt(Compiler::IPGenerateOpt::Clean);
+        } else if (arg == "-modules") {
+          compiler->IPGenOpt(Compiler::IPGenerateOpt::List);
+          i++;
+          if (i < argc) {
+            compiler->IPGenMoreOpt(argv[i]);
+          } else {
+            compiler->ErrorMessage(
+                "Incorrect syntax for ipgenerate -modules "
+                "moduleName or {moduleName1 moduleName2} should follow "
+                "'-modules' tag");
+            return TCL_ERROR;
+          }
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -907,6 +987,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
+
+    auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->AnalyzeOpt(Compiler::DesignAnalysisOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown analysis option: " + arg);
+        }
+      }
+      WorkerThread* wthread =
+          new WorkerThread("analyze_th", Action::Analyze, compiler);
+      return wthread->start() ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("analyze", analyze, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1011,6 +1108,37 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("detailed_placement", placement, this, 0);
     interp->registerCmd("place", placement, this, 0);
 
+    auto pin_loc_assign_method = [](void* clientData, Tcl_Interp* interp,
+                                    int argc, const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      auto setPlaceOption = [compiler](const std::string& arg) {
+        if (arg == "random") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "in_define_order") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
+          compiler->Message("Pin Method :" + arg);
+        } else if (arg == "free") {
+          compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+          compiler->Message("Pin Method :" + arg);
+        } else {
+          compiler->ErrorMessage("Unknown Placement Option: " + arg);
+        }
+      };
+
+      // If we received a tcl argument
+      if (argc > 1) {
+        setPlaceOption(argv[1]);
+      } else {
+        compiler->ErrorMessage(
+            "No Argument passed: type random/in_define_order/free");
+        return TCL_ERROR;
+      }
+      return TCL_OK;
+    };
+    interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
+                        0);
+
     auto route = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1037,6 +1165,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+        } else if (arg == "opensta") {
+          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1069,9 +1199,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "force") {
-#ifndef PRODUCTION_BUILD
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
-#endif
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else {
@@ -1135,6 +1263,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("update_result", update_result, this, 0);
   }
+  auto architecture = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    // stub function
+    return TCL_OK;
+  };
+  interp->registerCmd("architecture", architecture, nullptr, nullptr);
   return true;
 }
 
@@ -1156,6 +1290,37 @@ bool Compiler::Compile(Action action) {
 void Compiler::Stop() {
   m_stop = true;
   if (m_process) m_process->terminate();
+}
+
+bool Compiler::Analyze() {
+  if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + m_projManager->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    return true;
+  }
+  (*m_out) << "Analyzing design: " << m_projManager->projectName() << "..."
+           << std::endl;
+  auto currentPath = std::filesystem::current_path();
+  auto it = std::filesystem::directory_iterator{currentPath};
+  for (int i = 0; i < 100; i = i + 10) {
+    (*m_out) << std::setw(2) << i << "%";
+    if (it != std::filesystem::end(it)) {
+      std::string str =
+          " File: " + (*it).path().filename().string() + " just for test";
+      (*m_out) << str;
+      it++;
+    }
+    (*m_out) << std::endl;
+    std::chrono::milliseconds dura(1000);
+    std::this_thread::sleep_for(dura);
+    if (m_stop) return false;
+  }
+  m_state = State::Analyzed;
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+           << std::endl;
+  return true;
 }
 
 bool Compiler::Synthesize() {
@@ -1185,7 +1350,7 @@ bool Compiler::Synthesize() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1200,6 +1365,13 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("No design specified");
     return false;
   }
+  if (GlobPlacementOpt() == GlobalPlacementOpt::Clean) {
+    Message("Cleaning global placement results for " +
+            ProjManager()->projectName());
+    m_state = State::Packed;
+    GlobPlacementOpt(GlobalPlacementOpt::None);
+    return true;
+  }
   if (m_state != State::Packed && m_state != State::GloballyPlaced) {
     ErrorMessage("Design needs to be in packed state");
     return false;
@@ -1208,7 +1380,7 @@ bool Compiler::GlobalPlacement() {
            << "..." << std::endl;
   for (int i = 0; i < 100; i = i + 10) {
     (*m_out) << i << "%" << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1246,6 +1418,8 @@ bool Compiler::RunCompileTask(Action action) {
   switch (action) {
     case Action::IPGen:
       return IPGenerate();
+    case Action::Analyze:
+      return Analyze();
     case Action::Synthesis:
       return Synthesize();
     case Action::Pack:
@@ -1275,6 +1449,12 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
   if (m_taskManager) {
     m_taskManager->bindTaskCommand(IP_GENERATE, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("ipgenerate"));
+    });
+    m_taskManager->bindTaskCommand(ANALYSIS, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze"));
+    });
+    m_taskManager->bindTaskCommand(ANALYSIS_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("analyze clean"));
     });
     m_taskManager->bindTaskCommand(SYNTHESIS, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("synth"));
@@ -1309,17 +1489,28 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(TIMING_SIGN_OFF, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta"));
     });
+    m_taskManager->bindTaskCommand(TIMING_SIGN_OFF_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("sta clean"));
+    });
     m_taskManager->bindTaskCommand(POWER, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("power"));
     });
+    m_taskManager->bindTaskCommand(POWER_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("power clean"));
+    });
     m_taskManager->bindTaskCommand(BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("bitstream"));
+    });
+    m_taskManager->bindTaskCommand(BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("bitstream clean"));
     });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
     });
   }
 }
+
+TaskManager* Compiler::GetTaskManager() const { return m_taskManager; }
 
 void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   m_tclCmdIntegration = tclCommands;
@@ -1329,6 +1520,10 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 
 bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasIPInstances()) {
+    // No instances configured, no-op w/o error
+    return true;
+  }
   (*m_out) << "IP generation for design: " << m_projManager->projectName()
            << "..." << std::endl;
   bool status = GetIPGenerator()->Generate();
@@ -1344,6 +1539,15 @@ bool Compiler::IPGenerate() {
 }
 
 bool Compiler::Packing() {
+  if (PackOpt() == PackingOpt::Clean) {
+    Message("Cleaning packing results for " + ProjManager()->projectName());
+    m_state = State::Synthesized;
+    PackOpt(PackingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    return true;
+  }
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1362,6 +1566,15 @@ bool Compiler::Placement() {
     ErrorMessage("No design specified");
     return false;
   }
+  if (PlaceOpt() == PlacementOpt::Clean) {
+    Message("Cleaning placement results for " + ProjManager()->projectName());
+    m_state = State::GloballyPlaced;
+    PlaceOpt(PlacementOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    return true;
+  }
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
@@ -1375,6 +1588,15 @@ bool Compiler::Route() {
   if (!m_projManager->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
+  }
+  if (RouteOpt() == RoutingOpt::Clean) {
+    Message("Cleaning routing results for " + ProjManager()->projectName());
+    m_state = State::Placed;
+    RouteOpt(RoutingOpt::None);
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    return true;
   }
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
@@ -1434,6 +1656,24 @@ bool Compiler::HasTargetDevice() {
     return false;
   }
   return true;
+}
+
+bool Compiler::HasIPInstances() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen) {
+    result = !ipGen->IPInstances().empty();
+  }
+  return result;
+}
+
+bool Compiler::HasIPDefinitions() {
+  bool result = false;
+  auto ipGen = GetIPGenerator();
+  if (ipGen && ipGen->Catalog()) {
+    result = !ipGen->Catalog()->Definitions().empty();
+  }
+  return result;
 }
 
 bool Compiler::CreateDesign(const std::string& name) {
@@ -1497,6 +1737,14 @@ const std::string Compiler::GetNetlistPath() {
     }
   }
   return netlistFile;
+}
+
+std::string Compiler::AdjustPath(const std::string& p) {
+  std::filesystem::path the_path = p;
+  if (!the_path.is_absolute()) {
+    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+  }
+  return the_path.string();
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
@@ -1563,4 +1811,9 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
     start_pos += to.length();  // Handles case where 'to' is a substr of 'from'
   }
   return result;
+}
+
+std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
+    const std::string& size) const {
+  return std::make_pair(true, std::string{});
 }

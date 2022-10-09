@@ -17,7 +17,7 @@ void summaryForm::setProjectName(const QString &proName,
                                  const QString &proType) {
   ui->m_labelNamePic->setStyleSheet(QString("image: url(:/img/info.png);"));
   ui->m_labelName->setText(
-      QString(tr("A new %1 project named '%2' will be created."))
+      QString(tr("A new %1 project named '%2' will be created:"))
           .arg(proType)
           .arg(proName));
 }
@@ -51,11 +51,13 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
 }
 
 void summaryForm::setDeviceInfo(const QStringList &listDevItem) {
-  ui->m_labelSDevPic->setStyleSheet(QString("image: url(:/img/info.png);"));
   if (listDevItem.count() > 3) {
-    ui->m_labelSeries->setText(QString("Series: %1").arg(listDevItem.at(0)));
-    ui->m_labelFamily->setText(QString("Family: %1").arg(listDevItem.at(1)));
-    ui->m_labePackage->setText(QString("Package: %1").arg(listDevItem.at(2)));
-    ui->m_labelDevice->setText(QString("Device: %1").arg(listDevItem.at(3)));
+    auto itemIndex = 0;
+    for (const auto &txt : listDevItem) {
+      auto item = new QTableWidgetItem(txt);
+      item->setTextAlignment(Qt::AlignCenter);
+      ui->m_deviceInfoTable->setItem(0, itemIndex, item);
+      ++itemIndex;
+    }
   }
 }
