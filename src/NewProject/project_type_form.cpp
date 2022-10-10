@@ -24,6 +24,9 @@ projectTypeForm::projectTypeForm(QWidget *parent)
 
   QObject::connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
                    &projectTypeForm::skipSources);
+
+  ui->m_radioBtnPost->hide();
+  ui->m_labelPost->hide();
 }
 
 projectTypeForm::~projectTypeForm() { delete ui; }
