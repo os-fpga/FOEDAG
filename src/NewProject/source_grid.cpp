@@ -353,11 +353,14 @@ void sourceGrid::MoveTableRow(int from, int to) {
     return;
   }
 
-  auto indexFrom = model->index(from, LANG_COL_NUM);
-  auto comboFrom =
-      qobject_cast<QComboBox *>(m_tableViewSrc->indexWidget(indexFrom));
-  if (!comboFrom) return;
-  auto fromData = comboFrom->currentData();
+  QVariant fromData{};
+  if (m_type == GT_SOURCE) {
+    auto indexFrom = model->index(from, LANG_COL_NUM);
+    auto comboFrom =
+        qobject_cast<QComboBox *>(m_tableViewSrc->indexWidget(indexFrom));
+    if (!comboFrom) return;
+    fromData = comboFrom->currentData();
+  }
   QList<QStandardItem *> listItem = model->takeRow(from);
   model->insertRow(to, listItem);
 
@@ -376,7 +379,7 @@ void sourceGrid::MoveTableRow(int from, int to) {
   else
     qWarning("m_lisFileData: wrong indexes!");
 
-  initLanguageCombo(to, fromData);
+  if (m_type == GT_SOURCE) initLanguageCombo(to, fromData);
 }
 
 bool sourceGrid::IsFileDataExit(filedata fdata) {
