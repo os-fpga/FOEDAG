@@ -109,7 +109,8 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   for (int i = 1; i < argc; i++) {
     QFileInfo strFileName = QString{argv[i]};
     ret = m_projManager->setDesignFiles(
-        strFileName.fileName(), FromFileType(strFileName.suffix()), false);
+        strFileName.fileName(), FromFileType(strFileName.suffix()),
+        m_projManager->getDefaulUnitName(), false);
 
     if (0 != ret) {
       out << "Failed to add file: " << strFileName.fileName().toStdString()
@@ -133,7 +134,8 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
   QString strSetName = m_projManager->getDesignActiveFileSet();
 
   m_projManager->setCurrentFileSet(strSetName);
-  int ret = m_projManager->setDesignFiles(files, lang, false);
+  int ret = m_projManager->setDesignFiles(
+      files, lang, m_projManager->getDefaulUnitName(), false);
   if (0 != ret) {
     out << "Failed to add files: " << files.toStdString() << std::endl;
     return false;
@@ -154,8 +156,9 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
 
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
-  const auto ret =
-      m_projManager->addDesignFiles(commands, libs, files, lang, false, false);
+  const auto ret = m_projManager->addDesignFiles(
+      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
+      false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;

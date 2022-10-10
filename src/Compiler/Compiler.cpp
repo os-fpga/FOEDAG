@@ -1721,7 +1721,7 @@ const std::string Compiler::GetNetlistPath() {
           .string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {

@@ -78,7 +78,8 @@ void addSourceForm::updateUi(ProjectManager *pm) {
   int index{0};
   for (const auto &lang_file : pm->DesignFiles()) {
     filedata data;
-    data.m_language = lang_file.first;
+    data.m_language = lang_file.first.language;
+    data.m_groupName = lang_file.first.group;
     if (index < libs.size()) {
       if (!libs.at(index).first.empty()) {
         if (!libs.at(index).second.empty())

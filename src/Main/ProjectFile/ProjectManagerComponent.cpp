@@ -136,7 +136,9 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
     int index{0};
     for (auto it = langMap.cbegin(); it != langMap.cend(); ++it, index++) {
       stream.writeStartElement(PROJECT_GROUP);
-      stream.writeAttribute(PROJECT_GROUP_ID, QString::number(it->first));
+      stream.writeAttribute(PROJECT_GROUP_ID,
+                            QString::number(it->first.language));
+      stream.writeAttribute(PROJECT_GROUP_NAME, it->first.group);
       stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
       stream.writeAttribute(PROJECT_GROUP_LIB_COMMAND,
                             libs.at(index).first.join(" "));
@@ -230,7 +232,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         QString strSetType;
         QString strSetSrcDir;
         QStringList listFiles;
-        std::vector<std::pair<int, QString>> langList;
+        std::vector<std::pair<CompilationUnit, QString>> langList;
         std::vector<std::pair<QStringList, QStringList>> libs;
         QMap<QString, QString> mapOption;
         while (true) {
@@ -262,7 +264,9 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                      reader.attributes().hasAttribute(PROJECT_GROUP_ID) &&
                      reader.attributes().hasAttribute(PROJECT_GROUP_FILES)) {
             langList.push_back(std::make_pair(
-                reader.attributes().value(PROJECT_GROUP_ID).toInt(),
+                CompilationUnit{
+                    reader.attributes().value(PROJECT_GROUP_ID).toInt(),
+                    reader.attributes().value(PROJECT_GROUP_NAME).toString()},
                 reader.attributes().value(PROJECT_GROUP_FILES).toString()));
             auto command =
                 reader.attributes().value(PROJECT_GROUP_LIB_COMMAND).toString();
@@ -291,7 +295,8 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
               designFiles.replace(PROJECT_OSRCDIR, projectPath);
               projectFileset.addFiles(
                   libs.at(index).first, libs.at(index).second,
-                  ProjectManager::StringSplit(designFiles, " "), i.first);
+                  ProjectManager::StringSplit(designFiles, " "),
+                  i.first.language, i.first.group);
               index++;
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();

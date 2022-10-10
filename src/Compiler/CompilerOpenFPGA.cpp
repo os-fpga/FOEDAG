@@ -764,7 +764,7 @@ bool CompilerOpenFPGA::Analyze() {
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
       std::string designLibraries;
-      switch (lang_file.first) {
+      switch (lang_file.first.language) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
           break;
@@ -937,7 +937,7 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string yosysScript = InitSynthesisScript();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF:
@@ -1013,7 +1013,7 @@ bool CompilerOpenFPGA::Synthesize() {
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string lang;
       std::string designLibraries;
-      switch (lang_file.first) {
+      switch (lang_file.first.language) {
         case Design::Language::VHDL_1987:
           lang = "-vhdl87";
           break;
@@ -1113,7 +1113,7 @@ bool CompilerOpenFPGA::Synthesize() {
       std::string lang;
 
       auto files = lang_file.second + " ";
-      switch (lang_file.first) {
+      switch (lang_file.first.language) {
         case Design::Language::VHDL_1987:
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
@@ -1254,7 +1254,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
@@ -1547,7 +1547,7 @@ bool CompilerOpenFPGA::Placement() {
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
@@ -1976,7 +1976,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFilePrefix = ProjManager()->projectName() + "_post_synth";
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
@@ -2011,7 +2011,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
     netlistFile = ProjManager()->projectName() + "_post_synth.blif";
   }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first) {
+    switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
       case Design::Language::BLIF:
       case Design::Language::EBLIF: {
