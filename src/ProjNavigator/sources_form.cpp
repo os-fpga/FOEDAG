@@ -92,8 +92,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addSeparator();
       menu->addAction(m_actEditConstrsSets);
       menu->addAction(m_actEditSimulSets);
-      menu->addSeparator();
-      menu->addAction(m_actAddFile);
+      // TODO RG-122 @volodymyrk
+      // menu->addSeparator();
+      // menu->addAction(m_actAddFile);
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
                SRC_TREE_CONSTR_SET_ITEM == strPropertyRole ||
                SRC_TREE_SIM_SET_ITEM == strPropertyRole) {
@@ -102,8 +103,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
+        // TODO RG-122 @volodymyrk
+        // menu->addSeparator();
+        // menu->addAction(m_actAddFile);
       } else {
         menu->addAction(m_actRemoveFileset);
         menu->addAction(m_actRefresh);
@@ -111,7 +113,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
         menu->addSeparator();
-        menu->addAction(m_actAddFile);
+        // TODO RG-122 @volodymyrk
+        // menu->addAction(m_actAddFile);
         menu->addAction(m_actMakeActive);
       }
     } else if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
@@ -122,8 +125,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addSeparator();
       menu->addAction(m_actEditConstrsSets);
       menu->addAction(m_actEditSimulSets);
-      menu->addSeparator();
-      menu->addAction(m_actAddFile);
+      // TODO RG-122 @volodymyrk
+      // menu->addSeparator();
+      // menu->addAction(m_actAddFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_TARGET)) {
         menu->addAction(m_actOpenFile);
@@ -131,8 +135,9 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
-        menu->addSeparator();
-        menu->addAction(m_actAddFile);
+        // TODO RG-122 @volodymyrk
+        // menu->addSeparator();
+        // menu->addAction(m_actAddFile);
       } else {
         menu->addAction(m_actOpenFile);
         menu->addAction(m_actRemoveFile);
@@ -141,7 +146,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
         menu->addSeparator();
-        menu->addAction(m_actAddFile);
+        // TODO RG-122 @volodymyrk
+        // menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
       }
     } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {

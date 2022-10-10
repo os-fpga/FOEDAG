@@ -44,6 +44,7 @@ project object is singleton mode.
 
 #define PROJECT_GROUP "Group"
 #define PROJECT_GROUP_ID "Id"
+#define PROJECT_GROUP_NAME "Name"
 #define PROJECT_GROUP_FILES "Files"
 
 #define PROJECT_FILESETS "FileSets"
@@ -168,12 +169,14 @@ class ProjectManager : public QObject {
 
   ErrorInfo addDesignFiles(const QString &commands, const QString &libs,
                            const QString &fileNames, int lang,
-                           bool isFileCopy = true, bool localToProject = true);
-  int setDesignFiles(const QString &fileNames, int lang, bool isFileCopy = true,
-                     bool localToProject = true);
+                           const QString &grName, bool isFileCopy = true,
+                           bool localToProject = true);
+  QString getDefaulUnitName() const;
+  int setDesignFiles(const QString &fileNames, int lang, const QString &grName,
+                     bool isFileCopy = true, bool localToProject = true);
   int setDesignFiles(const QString &commands, const QString &libs,
-                     const QString &fileNames, int lang, bool isFileCopy = true,
-                     bool localToProject = true);
+                     const QString &fileNames, int lang, const QString &grName,
+                     bool isFileCopy = true, bool localToProject = true);
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
                         bool localToProject = true);
@@ -199,8 +202,9 @@ class ProjectManager : public QObject {
   QStringList getDesignFiles() const;
   std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
   DesignLibraries() const;
-  std::vector<std::pair<int, std::string>> DesignFiles() const;
-  std::vector<std::pair<int, std::vector<std::string>>> DesignFileList() const;
+  std::vector<std::pair<CompilationUnit, std::string>> DesignFiles() const;
+  std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
+  DesignFileList() const;
   QString getDesignTopModule(const QString &strFileSet) const;
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;

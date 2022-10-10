@@ -310,7 +310,7 @@ int ProjectManager::setProjectType(const QString& strType) {
 
 ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
-    int lang, bool isFileCopy, bool localToProject) {
+    int lang, const QString& grName, bool isFileCopy, bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
@@ -328,7 +328,7 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
   }
   if (!notExistingFiles.isEmpty())
     return {EC_FileNotExist, notExistingFiles.join(", ")};
-  proFileSet->addFiles(commandsList, libsList, fileList, lang);
+  proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
 
   auto result{EC_Success};
   for (const auto& file : fileList) {
@@ -338,14 +338,24 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
   return {result};
 }
 
+QString ProjectManager::getDefaulUnitName() const {
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) return QString{};
+  return proFileSet->getDefaultUnitName();
+}
+
 int ProjectManager::setDesignFiles(const QString& fileNames, int lang,
-                                   bool isFileCopy, bool localToProject) {
-  return setDesignFiles({}, {}, fileNames, lang, isFileCopy, localToProject);
+                                   const QString& grName, bool isFileCopy,
+                                   bool localToProject) {
+  return setDesignFiles({}, {}, fileNames, lang, grName, isFileCopy,
+                        localToProject);
 }
 
 int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
                                    const QString& fileNames, int lang,
-                                   bool isFileCopy, bool localToProject) {
+                                   const QString& grName, bool isFileCopy,
+                                   bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
   const QStringList fileList = StringSplit(fileNames, " ");
   const QStringList commandsList = StringSplit(commands, " ");
@@ -365,7 +375,8 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
     for (const auto& file : fileList) {
       fullPathFileList.append(QString("%1/%2").arg(path, file));
     }
-    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang);
+    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang,
+                         grName);
   } else {
     if (isFileCopy) {
       QStringList localFileList;
@@ -375,9 +386,9 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
             ProjectFilesPath(getProjectPath(), getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
-      proFileSet->addFiles(commandsList, libsList, localFileList, lang);
+      proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
     } else {
-      proFileSet->addFiles(commandsList, libsList, fileList, lang);
+      proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
     }
   }
 
@@ -686,11 +697,12 @@ QStringList ProjectManager::getDesignFiles() const {
   return getDesignFiles(getDesignActiveFileSet());
 }
 
-std::vector<std::pair<int, std::string>> ProjectManager::DesignFiles() const {
+std::vector<std::pair<CompilationUnit, std::string>>
+ProjectManager::DesignFiles() const {
   ProjectFileSet* tmpFileSet =
       Project::Instance()->getProjectFileset(getDesignActiveFileSet());
 
-  std::vector<std::pair<int, std::string>> vec;
+  std::vector<std::pair<CompilationUnit, std::string>> vec;
   if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
     auto tmpMapFiles = tmpFileSet->Files();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
@@ -721,12 +733,12 @@ ProjectManager::DesignLibraries() const {
   return result;
 }
 
-std::vector<std::pair<int, std::vector<std::string>>>
+std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
 ProjectManager::DesignFileList() const {
   ProjectFileSet* tmpFileSet =
       Project::Instance()->getProjectFileset(getDesignActiveFileSet());
 
-  std::vector<std::pair<int, std::vector<std::string>>> vec;
+  std::vector<std::pair<CompilationUnit, std::vector<std::string>>> vec;
   if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
     auto tmpMapFiles = tmpFileSet->Files();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
@@ -1646,13 +1658,14 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   }
 
   // Step through the group key and try to combine all the settings
-  for (auto key : fileGroups.keys()) {
-    if (key == "") {
-      // Skip files w/ no Compile Unit set they will be added sequentially
-      // after the groups are added
+  for (auto it{fileGroups.begin()}; it != fileGroups.end(); ++it) {
+    const auto key = it.key();
+    if (key.isEmpty()) {
+      // Skip files w/ no Compile Unit set they will be added sequentially after
+      // the groups are added
       continue;
     }
-    QString fileListStr{};
+    QMap<QString, QString> fileListStr{};
     QStringList libs{};
     int language = -1;
     bool hasLocalFiles = false;
@@ -1660,8 +1673,8 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
     bool multipleLanguages = false;
 
     // Loop through each file in this specific group
-    auto files = fileGroups[key];
-    for (auto fdata : files) {
+    const auto files = fileGroups[key];
+    for (auto& fdata : files) {
       QString addFilePath{};
 
       // Track the language
@@ -1673,9 +1686,9 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
         }
       }
 
-      // Split libraries by space and then store any new, unique library
-      // names
-      for (auto lib : fdata.m_workLibrary.split(" ")) {
+      // Split libraries by space and then store any new, unique library names
+      const auto libList = fdata.m_workLibrary.split(" ");
+      for (const auto& lib : libList) {
         if (!libs.contains(lib)) {
           libs.append(lib);
         }
@@ -1692,17 +1705,17 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
 
       // Add a delimeter if there's already a file in the string
       if (!fileListStr.isEmpty()) {
-        fileListStr += " ";
+        fileListStr[key] += " ";
       }
 
       // Add the file to the list
-      fileListStr += addFilePath;
+      fileListStr[key] += addFilePath;
     }  // End looping through files
 
     // create a string of the unique libs requested by the files in this
     // group
     QString libraries{};
-    for (auto lib : libs) {
+    for (const auto& lib : libs) {
       if (!libraries.isEmpty()) {
         libraries += " ";
       }
@@ -1717,27 +1730,28 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
     } else if (multipleLanguages) {
       // This seems like a pontential error scenario as well
     } else if (hasLocalFiles) {
-      setDesignFiles(command, libraries, fileListStr, language, false, true);
+      setDesignFiles(command, libraries, fileListStr[key], language, key, false,
+                     true);
     } else {
-      setDesignFiles(command, libraries, fileListStr, language,
+      setDesignFiles(command, libraries, fileListStr[key], language, key,
                      opt.sourceFileData.isCopySource, false);
     }
   }
 
   // Use non-grouping project file logic for any file that didn't set a
   // group/compileUnit
-  const QList<filedata> noGroupFiles = fileGroups[""];
+  const QList<filedata> noGroupFiles = fileGroups.value(QString{});
   for (const filedata& fdata : noGroupFiles) {
     auto libraries = fdata.m_workLibrary;
     auto command = libraries.isEmpty() ? QString() : "-work";
 
     if (LocalToProject == fdata.m_filePath) {
       setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
-                     false, true);
+                     QString{}, false, true);
     } else {
-      setDesignFiles(command, libraries,
-                     fdata.m_filePath + "/" + fdata.m_fileName,
-                     fdata.m_language, opt.sourceFileData.isCopySource, false);
+      setDesignFiles(
+          command, libraries, fdata.m_filePath + "/" + fdata.m_fileName,
+          fdata.m_language, QString{}, opt.sourceFileData.isCopySource, false);
     }
   }
 

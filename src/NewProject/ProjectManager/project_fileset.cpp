@@ -23,6 +23,19 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
   return *this;
 }
 
+QString ProjectFileSet::getDefaultUnitName() const {
+  uint counter{0};
+  const QString base{"unit_"};
+  for (const auto &group : m_langMap) {
+    auto name{QString{"%1%2"}.arg(base, QString::number(counter))};
+    if (group.first.group == name)
+      counter++;
+    else
+      return name;
+  }
+  return QString{"%1%2"}.arg(base, QString::number(counter));
+}
+
 void ProjectFileSet::addFile(const QString &strFileName,
                              const QString &strFilePath) {
   m_mapFiles.push_back(std::make_pair(strFileName, strFilePath));
@@ -30,8 +43,8 @@ void ProjectFileSet::addFile(const QString &strFileName,
 
 void ProjectFileSet::addFiles(const QStringList &commands,
                               const QStringList &libs, const QStringList &files,
-                              int language) {
-  m_langMap.push_back(std::make_pair(language, files));
+                              int language, const QString &gr) {
+  m_langMap.push_back(std::make_pair(CompilationUnit{language, gr}, files));
   m_commandsLibs.push_back(std::make_pair(commands, libs));
 }
 
@@ -91,7 +104,8 @@ const std::vector<std::pair<QString, QString>> &ProjectFileSet::getMapFiles()
   return m_mapFiles;
 }
 
-const std::vector<std::pair<int, QStringList>> &ProjectFileSet::Files() const {
+const std::vector<std::pair<CompilationUnit, QStringList>>
+    &ProjectFileSet::Files() const {
   return m_langMap;
 }
 
