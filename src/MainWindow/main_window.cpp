@@ -553,6 +553,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   newDesignCreated(strProject);
 
+  resetIps();
+
   showMenus(true);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
@@ -902,6 +904,16 @@ void MainWindow::handleDeleteIpRequested(const QString& moduleName) {
   }
 
   updateSourceTree();
+}
+
+void MainWindow::resetIps() {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    ipGen->ResetIPList();
+  }
 }
 
 void MainWindow::updateViewMenu() {

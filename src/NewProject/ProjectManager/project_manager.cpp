@@ -1566,6 +1566,46 @@ std::vector<std::pair<std::string, std::string>> ProjectManager::ParseMacro(
   return macroList;
 }
 
+const std::vector<std::string>& ProjectManager::ipCatalogPathList() const {
+  return Project::Instance()->ipConfig()->ipCatalogPathList();
+}
+
+QString ProjectManager::ipCatalogPaths() const {
+  auto pathList = Project::Instance()->ipConfig()->ipCatalogPathList();
+  QStringList tmpList;
+  for (const auto& p : pathList) tmpList.append(QString::fromStdString(p));
+  return tmpList.join(" ");
+}
+
+void ProjectManager::setIpCatalogPathList(
+    const std::vector<std::string>& newIpCatalogPathList) {
+  Project::Instance()->ipConfig()->setIpCatalogPathList(newIpCatalogPathList);
+};
+
+void ProjectManager::addIpCatalogPath(const std::string& ipCatalogPath) {
+  Project::Instance()->ipConfig()->addIpCatalogPath(ipCatalogPath);
+}
+
+const std::vector<std::string>& ProjectManager::ipInstancePathList() const {
+  return Project::Instance()->ipConfig()->instancePathList();
+}
+
+QString ProjectManager::ipInstancePaths() const {
+  auto pathList = Project::Instance()->ipConfig()->instancePathList();
+  QStringList tmpList;
+  for (const auto& p : pathList) tmpList.append(QString::fromStdString(p));
+  return tmpList.join(" ");
+}
+
+void ProjectManager::setIpInstancePathList(
+    const std::vector<std::string>& newIpInstancePathList) {
+  Project::Instance()->ipConfig()->setInstancePathList(newIpInstancePathList);
+};
+
+void ProjectManager::addIpInstancePath(const std::string& ipInstancePath) {
+  Project::Instance()->ipConfig()->addInstancePath(ipInstancePath);
+}
+
 int ProjectManager::CreateAndAddFile(const QString& suffix,
                                      const QString& filename,
                                      const QString& filenameAdd,
@@ -1608,8 +1648,8 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   // Step through the group key and try to combine all the settings
   for (auto key : fileGroups.keys()) {
     if (key == "") {
-      // Skip files w/ no Compile Unit set they will be added sequentially after
-      // the groups are added
+      // Skip files w/ no Compile Unit set they will be added sequentially
+      // after the groups are added
       continue;
     }
     QString fileListStr{};
@@ -1633,7 +1673,8 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
         }
       }
 
-      // Split libraries by space and then store any new, unique library names
+      // Split libraries by space and then store any new, unique library
+      // names
       for (auto lib : fdata.m_workLibrary.split(" ")) {
         if (!libs.contains(lib)) {
           libs.append(lib);
@@ -1658,7 +1699,8 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
       fileListStr += addFilePath;
     }  // End looping through files
 
-    // create a string of the unique libs requested by the files in this group
+    // create a string of the unique libs requested by the files in this
+    // group
     QString libraries{};
     for (auto lib : libs) {
       if (!libraries.isEmpty()) {
@@ -1670,8 +1712,8 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
 
     // Check if we are combing local and non-local files in a group
     if (hasLocalFiles && hasNonLocalFiles) {
-      // This is probably an error condition as the setDesignFiles call has
-      // different arguements when local or non-local
+      // This is probably an error condition as the setDesignFiles call
+      // has different arguements when local or non-local
     } else if (multipleLanguages) {
       // This seems like a pontential error scenario as well
     } else if (hasLocalFiles) {

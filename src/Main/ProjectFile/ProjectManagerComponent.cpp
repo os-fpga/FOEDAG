@@ -25,6 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+constexpr auto GENERIC_OPTION{"Option"};
+constexpr auto GENERIC_NAME{"Name"};
+constexpr auto GENERIC_VAL{"Val"};
+
 constexpr auto COMPILER_CONFIG{"CompilerConfig"};
 constexpr auto COMPILER_OPTION{"Opt"};
 constexpr auto COMPILER_NAME{"Name"};
@@ -36,6 +40,10 @@ constexpr auto COMPILER_MACRO{"Macro"};
 
 constexpr auto PROJECT_GROUP_LIB_COMMAND{"LibCommand"};
 constexpr auto PROJECT_GROUP_LIB_NAME{"LibName"};
+
+constexpr auto IP_CONFIG{"IpConfig"};
+constexpr auto IP_INSTANCE_PATHS{"InstancePaths"};
+constexpr auto IP_CATALOG_PATHS{"CatalogPaths"};
 
 ProjectManagerComponent::ProjectManagerComponent(ProjectManager* pManager,
                                                  QObject* parent)
@@ -89,6 +97,17 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
   stream.writeStartElement(COMPILER_OPTION);
   stream.writeAttribute(COMPILER_NAME, COMPILER_MACRO);
   stream.writeAttribute(COMPILER_VAL, m_projectManager->macros());
+  stream.writeEndElement();
+  stream.writeEndElement();
+
+  stream.writeStartElement(IP_CONFIG);
+  stream.writeStartElement(GENERIC_OPTION);
+  stream.writeAttribute(GENERIC_NAME, IP_INSTANCE_PATHS);
+  stream.writeAttribute(GENERIC_VAL, m_projectManager->ipInstancePaths());
+  stream.writeEndElement();
+  stream.writeStartElement(GENERIC_OPTION);
+  stream.writeAttribute(GENERIC_NAME, IP_CATALOG_PATHS);
+  stream.writeAttribute(GENERIC_VAL, m_projectManager->ipCatalogPaths());
   stream.writeEndElement();
   stream.writeEndElement();
 
@@ -323,6 +342,34 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
               auto macro = reader.attributes().value(COMPILER_VAL).toString();
               auto macroList = ProjectManager::ParseMacro(macro);
               m_projectManager->setMacroList(macroList);
+            }
+          }
+        }
+      }
+      if (reader.name() == IP_CONFIG) {
+        while (true) {
+          type = reader.readNext();
+          if (type == QXmlStreamReader::EndElement &&
+              reader.name() == IP_CONFIG) {
+            break;
+          }
+
+          if (type == QXmlStreamReader::StartElement &&
+              reader.attributes().hasAttribute(GENERIC_NAME) &&
+              reader.attributes().hasAttribute(GENERIC_VAL)) {
+            if (reader.attributes().value(GENERIC_NAME).toString() ==
+                IP_INSTANCE_PATHS) {
+              auto path = reader.attributes().value(GENERIC_VAL).toString();
+              std::vector<std::string> pathList;
+              StringUtils::tokenize(path.toStdString(), " ", pathList);
+              m_projectManager->setIpInstancePathList(pathList);
+            }
+            if (reader.attributes().value(GENERIC_NAME).toString() ==
+                IP_CATALOG_PATHS) {
+              auto path = reader.attributes().value(GENERIC_VAL).toString();
+              std::vector<std::string> pathList;
+              StringUtils::tokenize(path.toStdString(), " ", pathList);
+              m_projectManager->setIpCatalogPathList(pathList);
             }
           }
         }
