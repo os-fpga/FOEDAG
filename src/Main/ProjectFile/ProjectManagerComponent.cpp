@@ -266,10 +266,13 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                   strFile);
             }
             int index{0};
+            auto projectPath = Project::Instance()->projectPath();
             for (const auto& i : langList) {
+              auto designFiles = i.second;
+              designFiles.replace(PROJECT_OSRCDIR, projectPath);
               projectFileset.addFiles(
                   libs.at(index).first, libs.at(index).second,
-                  ProjectManager::StringSplit(i.second, " "), i.first);
+                  ProjectManager::StringSplit(designFiles, " "), i.first);
               index++;
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();
