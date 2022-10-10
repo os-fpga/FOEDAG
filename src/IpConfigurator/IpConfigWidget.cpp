@@ -166,12 +166,23 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
 
-    // Update the Ip Instances in the source tree
-    MainWindow* win = qobject_cast<MainWindow*>(GlobalSession->MainWindow());
-    if (win) {
-      emit ipInstancesUpdated();
-    }
+    AddIpToProject(outFileStr);
+    emit ipInstancesUpdated();
   });
+}
+
+void IpConfigWidget::AddIpToProject(const QString& ipBuildPath) {
+  // TODO @skyler-rs oct2022, this is groundwork code for later
+  // The project doesn't currently track/load ips on project change, but the
+  // initial project file changes have been made so this starts saving ip paths
+  // there for future changes that will use this info
+  std::string outDir = ipBuildPath.toStdString();
+  auto instances =
+      GlobalSession->GetCompiler()->ProjManager()->ipInstancePathList();
+  if (std::find(instances.begin(), instances.end(), outDir) ==
+      instances.end()) {
+    GlobalSession->GetCompiler()->ProjManager()->addIpInstancePath(outDir);
+  }
 }
 
 void IpConfigWidget::CreateParamFields() {
