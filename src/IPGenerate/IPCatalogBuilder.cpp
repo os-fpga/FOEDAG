@@ -76,7 +76,6 @@ void buildMockUpIPDef(IPCatalog* catalog) {
 bool IPCatalogBuilder::buildLiteXCatalog(
     IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
   bool result = true;
-  buildMockUpIPDef(catalog);
   if (FileUtils::FileExists(litexIPgenPath)) {
     std::filesystem::path execPath = litexIPgenPath;
     if (!std::filesystem::is_directory(execPath)) {
