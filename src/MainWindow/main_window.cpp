@@ -348,8 +348,9 @@ bool MainWindow::saveConstraintFile() {
     return false;
   }
   bool rewrite = false;
-  QFile file{constrFiles[0].c_str()};  // TODO @volodymyrk, need to fix issue
-                                       // with target constraint
+  auto constraint{constrFiles[0].c_str()};
+  QFile file{constraint};  // TODO @volodymyrk, need to fix issue
+                           // with target constraint
   QFile::OpenMode openFlags = QFile::ReadWrite;
   if (file.size() != 0) {
     auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
@@ -368,6 +369,14 @@ bool MainWindow::saveConstraintFile() {
   if (rewrite) file.resize(0);  // clean content
   file.write(pinAssignment->generateSdc().toLatin1());
   file.close();
+
+  auto res{FOEDAG::read_sdc(constraint)};
+
+  if (res != TCL_OK) {
+    // TODO @volodymyrk backlog,logging improve
+    std::cerr << "Read sdc file" << constraint << "failed!" << std::endl;
+  }
+
   return true;
 }
 

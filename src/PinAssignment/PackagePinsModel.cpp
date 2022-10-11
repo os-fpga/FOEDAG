@@ -58,4 +58,12 @@ void PackagePinsModel::itemChange(const QString &name, const QString &pin) {
   emit itemHasChanged(m_indexes.value(name), pin);
 }
 
+const QVector<QString> &PackagePinsModel::userGroups() const {
+  return m_userGroups;
+}
+
+void PackagePinsModel::appendUserGroup(const QString &userGroup) {
+  m_userGroups.append(userGroup);
+}
+
 }  // namespace FOEDAG

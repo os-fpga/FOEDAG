@@ -44,8 +44,8 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile(targetDevice(projectManager), context);
   PackagePinsLoader loader{packagePinModel, this};
-  loader.load(fileName);
   loader.loadHeader(packagePinHeaderFile(context));
+  loader.load(fileName);
 
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);

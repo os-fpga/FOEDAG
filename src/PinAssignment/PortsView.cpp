@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PortsView.h"
 
+#include <QCompleter>
 #include <QHeaderView>
 #include <QStringListModel>
 
@@ -92,6 +93,11 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
   combo->setModel(m_model->packagePinModel()->listModel());
   combo->setAutoFillBackground(true);
   m_allCombo.append(combo);
+  combo->setEditable(true);
+  auto completer{new QCompleter{m_model->packagePinModel()->listModel()}};
+  completer->setFilterMode(Qt::MatchContains);
+  combo->setCompleter(completer);
+  combo->setInsertPolicy(QComboBox::NoInsert);
   connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           [=]() {
             packagePinSelectionHasChanged(indexFromItem(it, PackagePinCol));
