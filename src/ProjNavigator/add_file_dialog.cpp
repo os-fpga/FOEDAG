@@ -46,7 +46,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
     for (const filedata &fdata : listFile) {
       if ("<Local to Project>" == fdata.m_filePath) {
         if (GT_SOURCE == iType) {
-          // TODO RG-122 @volodymyrk. If group exists we should append to list
+          // TODO RG-132 @volodymyrk. If group exists we should append to list
           ret = m_pm->setDesignFiles(fdata.m_fileName, fdata.m_language,
                                      fdata.m_groupName, false, true);
         } else if (GT_CONSTRAINTS == iType) {
@@ -56,7 +56,7 @@ void AddFileDialog::on_m_btnOK_clicked() {
         }
       } else {
         if (GT_SOURCE == iType) {
-          // TODO RG-122 @volodymyrk. If group exists we should append to list
+          // TODO RG-132 @volodymyrk. If group exists we should append to list
           ret = m_pm->setDesignFiles(fdata.m_filePath + "/" + fdata.m_fileName,
                                      fdata.m_language, fdata.m_groupName,
                                      m_fileForm->IsCopySource(), false);

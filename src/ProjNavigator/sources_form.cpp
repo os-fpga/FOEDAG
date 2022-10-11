@@ -92,7 +92,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addSeparator();
       menu->addAction(m_actEditConstrsSets);
       menu->addAction(m_actEditSimulSets);
-      // TODO RG-122 @volodymyrk
+      // TODO RG-132 @volodymyrk
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
     } else if (SRC_TREE_DESIGN_SET_ITEM == strPropertyRole ||
@@ -103,7 +103,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
-        // TODO RG-122 @volodymyrk
+        // TODO RG-132 @volodymyrk
         // menu->addSeparator();
         // menu->addAction(m_actAddFile);
       } else {
@@ -113,7 +113,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
         menu->addSeparator();
-        // TODO RG-122 @volodymyrk
+        // TODO RG-132 @volodymyrk
         // menu->addAction(m_actAddFile);
         menu->addAction(m_actMakeActive);
       }
@@ -125,7 +125,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addSeparator();
       menu->addAction(m_actEditConstrsSets);
       menu->addAction(m_actEditSimulSets);
-      // TODO RG-122 @volodymyrk
+      // TODO RG-132 @volodymyrk
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
@@ -135,7 +135,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addSeparator();
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
-        // TODO RG-122 @volodymyrk
+        // TODO RG-132 @volodymyrk
         // menu->addSeparator();
         // menu->addAction(m_actAddFile);
       } else {
@@ -146,7 +146,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
         menu->addAction(m_actEditConstrsSets);
         menu->addAction(m_actEditSimulSets);
         menu->addSeparator();
-        // TODO RG-122 @volodymyrk
+        // TODO RG-132 @volodymyrk
         // menu->addAction(m_actAddFile);
         menu->addAction(m_actSetAsTarget);
       }
