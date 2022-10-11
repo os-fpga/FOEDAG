@@ -38,6 +38,7 @@ set (SRC_CPP_LIST
   ProjectManager/project.cpp
   ProjectManager/project_manager.cpp
   ProjectManager/compiler_configuration.cpp
+  ProjectManager/ip_configuration.cpp
   newprojectmodel.cpp)
 
 set (SRC_H_LIST
@@ -59,6 +60,7 @@ set (SRC_H_LIST
   ProjectManager/project.h
   ProjectManager/project_manager.h
   ProjectManager/compiler_configuration.h
+  ProjectManager/ip_configuration.h
   newprojectmodel.h
   SettingsGuiInterface.h)
 
@@ -117,6 +119,7 @@ install(
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_fileset.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_run.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/compiler_configuration.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/ip_configuration.h
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/ProjectManager)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

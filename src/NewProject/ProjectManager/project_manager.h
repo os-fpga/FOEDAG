@@ -296,6 +296,18 @@ class ProjectManager : public QObject {
   static std::vector<std::pair<std::string, std::string>> ParseMacro(
       const QString &macro);
 
+  const std::vector<std::string> &ipCatalogPathList() const;
+  QString ipCatalogPaths() const;
+  void setIpCatalogPathList(
+      const std::vector<std::string> &newIpCatalogPathList);
+  void addIpCatalogPath(const std::string &ipCatalogPath);
+
+  const std::vector<std::string> &ipInstancePathList() const;
+  QString ipInstancePaths() const;
+  void setIpInstancePathList(
+      const std::vector<std::string> &newIpInstancePathList);
+  void addIpInstancePath(const std::string &ipInstancePath);
+
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,
