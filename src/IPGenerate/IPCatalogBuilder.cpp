@@ -77,6 +77,7 @@ bool IPCatalogBuilder::buildLiteXCatalog(
     IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
   bool result = true;
   if (FileUtils::FileExists(litexIPgenPath)) {
+    int foundCount = 0;
     std::filesystem::path execPath = litexIPgenPath;
     if (!std::filesystem::is_directory(execPath)) {
       execPath = execPath.parent_path();
@@ -90,13 +91,16 @@ bool IPCatalogBuilder::buildLiteXCatalog(
       const std::string& exec_name = entry.string();
       if (exec_name.find("__init__.py") != std::string::npos) continue;
       if (exec_name.find("_gen.py") != std::string::npos) {
-        m_compiler->Message("IP Catalog, found IP compiler: " + exec_name);
+        foundCount++;
         bool res = buildLiteXIPFromGenerator(catalog, entry);
         if (res == false) {
           result = false;
         }
       }
     }
+    std::string msg =
+        std::string("IP Catalog, found ") + std::to_string(foundCount) + " IPs";
+    m_compiler->Message(msg);
   } else {
     result = false;
     m_compiler->ErrorMessage("IP Catalog, directory does not exist: " +
@@ -210,7 +214,6 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   // get default build_name which is used during ip configuration
   std::string build_name = jopts.value("build_name", "");
 
-  m_compiler->Message("IP Catalog, adding IP: " + IPName);
   IPDefinition* def =
       new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
                        pythonConverterScript, connections, parameters);
