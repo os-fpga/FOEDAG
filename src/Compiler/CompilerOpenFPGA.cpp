@@ -2146,7 +2146,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
                           std::string("fabric_independent_bitstream.xml"));
   // Create OpenFpga command and execute
   script_path =
-      (std::filesystem::path(ProjManager()->projectName()) / script_path)
+      (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
   std::ofstream sofs(script_path);
   sofs << script;
@@ -2158,7 +2158,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   }
 
   std::ofstream ofs(
-      (std::filesystem::path(ProjManager()->projectName()) /
+      (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_bitstream.cmd"))
           .string());
   ofs << command << std::endl;
