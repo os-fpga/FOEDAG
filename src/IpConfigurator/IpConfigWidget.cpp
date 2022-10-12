@@ -114,8 +114,8 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   }
 
   // Add Dialog Buttons
-  topLayout->addStretch();
   AddDialogControls(topLayout);
+  topLayout->addStretch();
 
   // Update output path now that meta data has been loaded
   updateOutputPath();
