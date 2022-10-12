@@ -67,6 +67,9 @@ class Task : public QObject {
   QString settingsKey() const;
   void setSettingsKey(QString key);
 
+  QString logFileReadPath() const;
+  void setLogFileReadPath(QString key);
+
   /*!
    * \brief trigger
    * Emits \a taskTriggered() signal to notify that some commend can be run.
@@ -109,6 +112,7 @@ class Task : public QObject {
   QVector<Task *> m_subTask;
   Task *m_parent{nullptr};
   bool m_valid{false};
+  QString m_logFilePath{};
 };
 
 }  // namespace FOEDAG

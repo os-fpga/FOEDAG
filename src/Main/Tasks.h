@@ -28,6 +28,7 @@ namespace FOEDAG {
 
 QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
+void handleViewFileRequested(const QString& filePath);
 
 // Setters/Getters for tclArgs
 void TclArgs_setSynthesisOptions(const std::string& argsStr);

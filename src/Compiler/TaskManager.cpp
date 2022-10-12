@@ -79,6 +79,22 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
 
+  // These point to log files that can be opened via r-click in the task view
+  // By default, sub-tasks open their parent log file, but you can set
+  // a specific log file on sub-tasks as well for finer control
+  // Ex: m_tasks[ANALYSIS_CLEAN]->setLogFileReadPath(<some_path>);
+  m_tasks[IP_GENERATE]->setLogFileReadPath("$OSRCDIR/ip_generate.rpt");
+  m_tasks[ANALYSIS]->setLogFileReadPath("$OSRCDIR/analysis.rpt");
+  m_tasks[SYNTHESIS]->setLogFileReadPath("$OSRCDIR/synthesis.rpt");
+  m_tasks[PACKING]->setLogFileReadPath("$OSRCDIR/packing.rpt");
+  m_tasks[GLOBAL_PLACEMENT]->setLogFileReadPath(
+      "$OSRCDIR/global_placement.rpt");
+  m_tasks[PLACEMENT]->setLogFileReadPath("$OSRCDIR/placement.rpt");
+  m_tasks[ROUTING]->setLogFileReadPath("$OSRCDIR/routing.rpt");
+  m_tasks[TIMING_SIGN_OFF]->setLogFileReadPath("$OSRCDIR/timing_analysis.rpt");
+  m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
+  m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
+
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this,
             &TaskManager::taskStateChanged);
