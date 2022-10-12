@@ -67,6 +67,18 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+auto CreateDummyLog = [](ProjectManager* projManager,
+                         const std::string& outfileName) {
+  if (projManager) {
+    std::filesystem::path projectPath(projManager->projectPath());
+    std::filesystem::path outputPath = projectPath / outfileName;
+    std::filesystem::remove(outputPath);
+    std::ofstream ofs(outputPath);
+    ofs << "Dummy log for " << outfileName << "\n";
+    ofs.close();
+  }
+};
+
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
@@ -1320,6 +1332,8 @@ bool Compiler::Analyze() {
   m_state = State::Analyzed;
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
            << std::endl;
+
+  CreateDummyLog(m_projManager, "analysis.rpt");
   return true;
 }
 
@@ -1357,6 +1371,8 @@ bool Compiler::Synthesize() {
   m_state = State::Synthesized;
   (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
            << std::endl;
+
+  CreateDummyLog(m_projManager, "synthesis.rpt");
   return true;
 }
 
@@ -1387,6 +1403,8 @@ bool Compiler::GlobalPlacement() {
   m_state = State::GloballyPlaced;
   (*m_out) << "Design " << m_projManager->projectName()
            << " is globally placed!" << std::endl;
+
+  CreateDummyLog(m_projManager, "global_placement.rpt");
   return true;
 }
 
@@ -1535,6 +1553,8 @@ bool Compiler::IPGenerate() {
     ErrorMessage("Design " + m_projManager->projectName() +
                  " IPs generation failed!");
   }
+
+  CreateDummyLog(m_projManager, "ip_generate.rpt");
   return status;
 }
 
@@ -1558,6 +1578,8 @@ bool Compiler::Packing() {
   (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
            << std::endl;
   m_state = State::Packed;
+
+  CreateDummyLog(m_projManager, "packing.rpt");
   return true;
 }
 
@@ -1581,6 +1603,8 @@ bool Compiler::Placement() {
   (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
            << std::endl;
   m_state = State::Placed;
+
+  CreateDummyLog(m_projManager, "placement.rpt");
   return true;
 }
 
@@ -1604,6 +1628,8 @@ bool Compiler::Route() {
   (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
            << std::endl;
   m_state = State::Routed;
+
+  CreateDummyLog(m_projManager, "routing.rpt");
   return true;
 }
 
@@ -1617,6 +1643,8 @@ bool Compiler::TimingAnalysis() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
            << std::endl;
+
+  CreateDummyLog(m_projManager, "timing_analysis.rpt");
   return true;
 }
 
@@ -1630,6 +1658,8 @@ bool Compiler::PowerAnalysis() {
 
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
            << std::endl;
+
+  CreateDummyLog(m_projManager, "power_analysis.rpt");
   return true;
 }
 
@@ -1643,6 +1673,8 @@ bool Compiler::GenerateBitstream() {
 
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated!" << std::endl;
+
+  CreateDummyLog(m_projManager, "bitstream.rpt");
   return true;
 }
 

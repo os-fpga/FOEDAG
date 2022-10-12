@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMenu>
 #include <QPushButton>
 
+#include "NewProject/ProjectManager/project.h"
+#include "NewProject/ProjectManager/project_manager.h"
 #include "TaskManager.h"
 
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
@@ -107,6 +109,7 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
       connect(start, &QAction::triggered, this,
               [this, index]() { userActionHandle(index); });
       menu->addAction(start);
+      addTaskLogAction(menu, task);
       menu->popup(viewport()->mapToGlobal(pos));
     }
   }
@@ -139,6 +142,36 @@ QRect TaskTableView::expandArea(const QModelIndex &index) const {
   int h = rowHeight(0);
   r.setSize({h, h});
   return r;
+}
+
+void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
+  // Grab the title and log file path of the given task
+  QString title{task->title()};
+  QString logFilePath{task->logFileReadPath()};
+  auto parent = task->parentTask();
+  // If this is a sub-task
+  if (parent != nullptr) {
+    // If the sub-task has its own log file
+    if (!logFilePath.isEmpty() && parent != nullptr) {
+      title = parent->title() + " - " + title;
+      logFilePath = parent->logFileReadPath();
+    } else {
+      // otherwise take parent title and log file
+      title = parent->title();
+      logFilePath = parent->logFileReadPath();
+    }
+  }
+
+  // Create View Log action and disable it if the file doesn't exist
+  QString viewLogStr = "View " + title + " Logs";
+  QAction *viewLog = new QAction(viewLogStr, this);
+  logFilePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  if (!QFile(logFilePath).exists()) {
+    viewLog->setEnabled(false);
+  }
+  connect(viewLog, &QAction::triggered, this,
+          [this, logFilePath]() { emit ViewFileRequested(logFilePath); });
+  menu->addAction(viewLog);
 }
 
 void ChildItemDelegate::paint(QPainter *painter,

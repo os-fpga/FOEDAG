@@ -57,6 +57,9 @@ void Task::setTaskType(TaskType newType) { m_type = newType; }
 QString Task::settingsKey() const { return m_settings_key; }
 void Task::setSettingsKey(QString key) { m_settings_key = key; }
 
+QString Task::logFileReadPath() const { return m_logFilePath; }
+void Task::setLogFileReadPath(QString path) { m_logFilePath = path; }
+
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();
 }
