@@ -223,6 +223,8 @@ void MainWindow::newDesignCreated(const QString& design) {
   SetWindowTitle(QString(), path.baseName(), m_projectInfo.name);
   pinAssignmentAction->setEnabled(!design.isEmpty());
   pinAssignmentAction->setChecked(false);
+  ipConfiguratorAction->setEnabled(!design.isEmpty());
+  ipConfiguratorAction->setChecked(false);
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
@@ -497,6 +499,7 @@ void MainWindow::createActions() {
 
   ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
   ipConfiguratorAction->setCheckable(true);
+  ipConfiguratorAction->setEnabled(false);
   connect(ipConfiguratorAction, &QAction::triggered, this,
           &MainWindow::ipConfiguratorActionTriggered);
 
