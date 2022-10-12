@@ -51,6 +51,7 @@ set (SRC_H_INSTALL_LIST
   FileUtils.h
   StringUtils.h
   ProcessUtils.h
+  sequential_map.h
 )
 
 set (SRC_H_LIST

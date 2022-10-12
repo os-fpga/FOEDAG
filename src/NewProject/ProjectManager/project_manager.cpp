@@ -13,6 +13,7 @@
 #include "Compiler/CompilerDefines.h"
 #include "MainWindow/Session.h"
 #include "Utils/StringUtils.h"
+#include "Utils/sequential_map.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -1652,20 +1653,38 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
   const QList<filedata> listFile = opt.sourceFileData.fileData;
 
   // Group and add files to project based off m_groupName
-  QMap<QString, QList<filedata>> fileGroups{};
+  sequential_map<QString, QList<filedata>> fileGroups{};
   for (const filedata& fdata : listFile) {
-    fileGroups[fdata.m_groupName].append(fdata);
+    if (fdata.m_groupName.isEmpty())
+      fileGroups.push_back(std::make_pair(fdata.m_groupName, QList{fdata}));
+    else
+      fileGroups[fdata.m_groupName].append(fdata);
   }
 
   // Step through the group key and try to combine all the settings
-  for (auto it{fileGroups.begin()}; it != fileGroups.end(); ++it) {
-    const auto key = it.key();
+  for (const auto& it : fileGroups.values()) {
+    const auto key = it.first;
     if (key.isEmpty()) {
-      // Skip files w/ no Compile Unit set they will be added sequentially after
-      // the groups are added
+      // Use non-grouping project file logic for any file that didn't set a
+      // group/compileUnit
+      const QList<filedata> noGroupFiles = it.second;
+      for (const filedata& fdata : noGroupFiles) {
+        auto libraries = fdata.m_workLibrary;
+        auto command = libraries.isEmpty() ? QString() : "-work";
+
+        if (LocalToProject == fdata.m_filePath) {
+          setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
+                         QString{}, false, true);
+        } else {
+          setDesignFiles(command, libraries,
+                         fdata.m_filePath + "/" + fdata.m_fileName,
+                         fdata.m_language, QString{},
+                         opt.sourceFileData.isCopySource, false);
+        }
+      }
       continue;
     }
-    QMap<QString, QString> fileListStr{};
+    sequential_map<QString, QString> fileListStr{};
     QStringList libs{};
     int language = -1;
     bool hasLocalFiles = false;
@@ -1704,7 +1723,7 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
       }
 
       // Add a delimeter if there's already a file in the string
-      if (!fileListStr.isEmpty()) {
+      if (!fileListStr.empty()) {
         fileListStr[key] += " ";
       }
 
@@ -1725,9 +1744,11 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
 
     // Check if we are combing local and non-local files in a group
     if (hasLocalFiles && hasNonLocalFiles) {
+      std::cerr << "different arguements when local or non-local" << std::endl;
       // This is probably an error condition as the setDesignFiles call
       // has different arguements when local or non-local
     } else if (multipleLanguages) {
+      std::cerr << "Multiple languages" << std::endl;
       // This seems like a pontential error scenario as well
     } else if (hasLocalFiles) {
       setDesignFiles(command, libraries, fileListStr[key], language, key, false,
@@ -1735,23 +1756,6 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
     } else {
       setDesignFiles(command, libraries, fileListStr[key], language, key,
                      opt.sourceFileData.isCopySource, false);
-    }
-  }
-
-  // Use non-grouping project file logic for any file that didn't set a
-  // group/compileUnit
-  const QList<filedata> noGroupFiles = fileGroups.value(QString{});
-  for (const filedata& fdata : noGroupFiles) {
-    auto libraries = fdata.m_workLibrary;
-    auto command = libraries.isEmpty() ? QString() : "-work";
-
-    if (LocalToProject == fdata.m_filePath) {
-      setDesignFiles(command, libraries, fdata.m_fileName, fdata.m_language,
-                     QString{}, false, true);
-    } else {
-      setDesignFiles(
-          command, libraries, fdata.m_filePath + "/" + fdata.m_fileName,
-          fdata.m_language, QString{}, opt.sourceFileData.isCopySource, false);
     }
   }
 
