@@ -1223,7 +1223,8 @@ bool CompilerOpenFPGA::Synthesize() {
     (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized!"
              << std::endl;
 
-    copyLog(ProjManager(), "synth.log", "synthesis.rpt");
+    copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+            "synthesis.rpt");
     return true;
   }
 }
