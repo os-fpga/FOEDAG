@@ -128,6 +128,7 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
   // more standard rendering for location/alignment/etc
   QDialogButtonBox* btns = new QDialogButtonBox(/*QDialogButtonBox::Cancel*/);
   btns->setObjectName("IpConfigWidget_QDialogButtonBox");
+  btns->setContentsMargins(0, 0, 5, 5);
   layout->addWidget(btns);
   generateBtn.setText("Generate IP");
   btns->addButton(&generateBtn, QDialogButtonBox::ButtonRole::ActionRole);
