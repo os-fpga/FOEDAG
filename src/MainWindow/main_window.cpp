@@ -232,7 +232,8 @@ void MainWindow::startStopButtonsState() {
   const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
   const bool consoleInProgress = m_console->isRunning();
   startAction->setEnabled(!inProgress && !consoleInProgress);
-  stopAction->setEnabled(inProgress && consoleInProgress);
+  // Enable Stop action when there is something to stop
+  stopAction->setEnabled(inProgress || consoleInProgress);
 }
 
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
