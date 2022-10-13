@@ -192,25 +192,21 @@ void newProjectDialog::ResetToProjectSettings() {
 }
 
 // This will check the project wizard for potential conflicts
-// If an errStr is passed in, the found issues will be appended
-// to it.
-// This function is intended to grow as more potential conflicts
-// are discovered.
-bool newProjectDialog::ValuesValid(QString *errStr /*nullptr*/) const {
-  QString temp;
-  if (!errStr) {
-    errStr = &temp;
-  }
+// it will return an std::pair of a bool representing the validity of the
+// current values and a QString with any issues found. This function is intended
+// to grow as more potential conflicts are discovered.
+std::pair<bool, QString> newProjectDialog::ValuesValid() const {
+  QString errStr{};
 
   // Check for Language type mistmatches in Compile Units
   auto conflictKeys = FindCompileUnitConflicts();
   if (!conflictKeys.isEmpty()) {
-    *errStr += "The following Compile Units have a language mismatch: " +
-               conflictKeys.join(", ") +
-               "\nReturn to the Design Files tab to fix this.";
+    errStr += "The following Compile Units have a language mismatch: " +
+              conflictKeys.join(", ") +
+              "\nReturn to the Design Files tab to fix this.";
   }
 
-  return errStr->isEmpty();
+  return std::make_pair(errStr.isEmpty(), errStr);
 }
 
 QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
@@ -245,8 +241,8 @@ QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
-  QString err;
-  if (!ValuesValid(&err)) {
+  auto [isValid, err] = ValuesValid();
+  if (!isValid) {
     QMessageBox::warning(this, "Project Settings Issue", err);
     return;
   }
