@@ -207,9 +207,11 @@ void newProjectDialog::on_buttonBox_accepted() {
       m_addSrcForm->LibraryExt(),
       m_addSrcForm->Macros()};
   Compiler *compiler = GlobalSession->GetCompiler();
-  if (m_addConstrsForm->IsRandom()) {
+  if (m_addConstrsForm->IsRandom())
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
-  } else
+  else if (m_addConstrsForm->IsFree())
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+  else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   if (m_mode == NewProject) {
     m_projectManager->CreateProject(opt);

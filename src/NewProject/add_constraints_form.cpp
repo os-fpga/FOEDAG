@@ -33,6 +33,8 @@ addConstraintsForm::addConstraintsForm(QWidget *parent)
   Compiler *compiler = GlobalSession->GetCompiler();
   if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Random)
     ui->select_random->setChecked(true);
+  else if (compiler->PinAssignOpts() == Compiler::PinAssignOpt::Free)
+    ui->select_free->setChecked(true);
   else
     ui->select_defineOrder->setChecked(true);
 }
@@ -51,6 +53,8 @@ bool addConstraintsForm::IsCopySource() {
 bool addConstraintsForm::IsRandom() const {
   return ui->select_random->isChecked();
 }
+
+bool addConstraintsForm::IsFree() const { return ui->select_free->isChecked(); }
 
 void addConstraintsForm::updateUi(ProjectManager *pm) {
   if (!pm) return;

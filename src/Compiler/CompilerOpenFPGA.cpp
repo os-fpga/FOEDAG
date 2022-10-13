@@ -1601,6 +1601,8 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " random";
     } else if (PinAssignOpts() == PinAssignOpt::In_Define_Order) {
       pincommand += " in_define_order";
+    } else if (PinAssignOpts() == PinAssignOpt::Free) {
+      pincommand += " free";
     } else {  // default behavior
       pincommand += " in_define_order";
     }

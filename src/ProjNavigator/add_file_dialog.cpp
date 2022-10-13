@@ -73,6 +73,8 @@ void AddFileDialog::on_m_btnOK_clicked() {
     Compiler *compiler = GlobalSession->GetCompiler();
     if (m_fileForm->IsRandom())
       compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
+    else if (m_fileForm->IsFree())
+      compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
     else
       compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
     this->close();
