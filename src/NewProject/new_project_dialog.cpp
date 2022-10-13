@@ -188,6 +188,7 @@ void newProjectDialog::ResetToProjectSettings() {
   ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
   BackBtn->setVisible(false);
   NextBtn->setVisible(false);
+  m_addSrcForm->SetBasePath(m_projectManager->getProjectPath());
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
@@ -243,6 +244,7 @@ void newProjectDialog::on_next() {
           QMessageBox::Ok);
       return;
     }
+    m_addSrcForm->SetBasePath(m_locationForm->getProjectPath());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
     m_index += 3;  // omit design and constraint files
