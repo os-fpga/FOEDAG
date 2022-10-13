@@ -1418,22 +1418,6 @@ int ProjectManager::CreateVerilogFile(QString strFile) {
   if (!file.open(QFile::WriteOnly | QFile::Text)) {
     return -1;
   }
-  QFile templ{":/templates/verilog_templ.v"};
-  if (!templ.open(QFile::ReadOnly | QFile::Text)) return -1;
-
-  QString verilog_templ{templ.readAll()};
-
-  QString tempname =
-      strFile.mid(strFile.lastIndexOf("/") + 1,
-                  strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
-  QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-  verilog_templ.replace("${DATE}", date);
-  verilog_templ.replace("${MODULE}", tempname);
-
-  file.write(verilog_templ.toLatin1());
-
-  bool ok = file.flush();
-  if (!ok) qWarning("%s", file.errorString().toLatin1().constData());
   file.close();
   return ret;
 }
@@ -1458,22 +1442,6 @@ int ProjectManager::CreateVHDLFile(QString strFile) {
     out << "failed:" << strFile << "\n";
     return -1;
   }
-  QFile templ{":/templates/vhdl_templ.vhd"};
-  if (!templ.open(QFile::ReadOnly | QFile::Text)) return -1;
-
-  QString vhdl_templ{templ.readAll()};
-  QString tempname =
-      strFile.mid(strFile.lastIndexOf("/") + 1,
-                  strFile.lastIndexOf(".") - (strFile.lastIndexOf("/")) - 1);
-  QString date{QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")};
-
-  vhdl_templ.replace("${DATE}", date);
-  vhdl_templ.replace("${MODULE}", tempname);
-
-  file.write(vhdl_templ.toLatin1());
-
-  bool ok = file.flush();
-  if (!ok) qWarning("%s", file.errorString().toLatin1().constData());
   file.close();
   return ret;
 }
