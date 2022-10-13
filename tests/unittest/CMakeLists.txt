@@ -35,6 +35,7 @@ set (CPP_LIST
     Settings/Settings_test.cpp
     IPGenerator/IPGenerator_test.cpp
     NewProject/source_grid_test.cpp
+    Utils/sequential_map_test.cpp
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} resources.qrc)
