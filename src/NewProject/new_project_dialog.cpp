@@ -196,7 +196,7 @@ void newProjectDialog::ResetToProjectSettings() {
 // to it.
 // This function is intended to grow as more potential conflicts
 // are discovered.
-bool newProjectDialog::ValuesValid(QString *errStr /*nullptr*/) {
+bool newProjectDialog::ValuesValid(QString *errStr /*nullptr*/) const {
   QString temp;
   if (!errStr) {
     errStr = &temp;
@@ -213,7 +213,7 @@ bool newProjectDialog::ValuesValid(QString *errStr /*nullptr*/) {
   return errStr->isEmpty();
 }
 
-QList<QString> newProjectDialog::FindCompileUnitConflicts() {
+QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
   // Group files by Compile Unit (m_groupName)
   QMap<QString, QList<filedata>> fileGroups{};
   for (const filedata &fdata : m_addSrcForm->getFileData()) {
