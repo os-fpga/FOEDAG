@@ -193,18 +193,17 @@ void sourceGrid::AddDirectories() {
                                                    // full paths
   while (it.hasNext()) {
     it.next();
-    files.emplace_back(it.fileName(), it.path());
+    files.emplace_back(it.fileName(), it.filePath());
   }
 
   for (auto &[fileName, filePath] : files) {
-    auto suffix =
-        fileName.right(fileName.size() - (fileName.lastIndexOf(".") + 1));
+    const QFileInfo info{filePath};
     filedata fdata;
     fdata.m_isFolder = false;
-    fdata.m_fileType = suffix;
+    fdata.m_fileType = info.suffix();
     fdata.m_fileName = fileName;
-    fdata.m_filePath = filePath;
-    fdata.m_language = FromFileType(suffix);
+    fdata.m_filePath = info.path();
+    fdata.m_language = FromFileType(info.suffix());
     AddTableItem(fdata);
   }
 }
