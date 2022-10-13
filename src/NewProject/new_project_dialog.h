@@ -75,6 +75,8 @@ class newProjectDialog : public QDialog {
   void UpdateDialogView(Mode mode = NewProject);
   void ResetToNewProject();
   void ResetToProjectSettings();
+  std::pair<bool, QString> ValuesValid() const;
+  QList<QString> FindCompileUnitConflicts() const;
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

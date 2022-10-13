@@ -191,7 +191,62 @@ void newProjectDialog::ResetToProjectSettings() {
   m_addSrcForm->SetBasePath(m_projectManager->getProjectPath());
 }
 
+// This will check the project wizard for potential conflicts
+// it will return an std::pair of a bool representing the validity of the
+// current values and a QString with any issues found. This function is intended
+// to grow as more potential conflicts are discovered.
+std::pair<bool, QString> newProjectDialog::ValuesValid() const {
+  QString errStr{};
+
+  // Check for Language type mistmatches in Compile Units
+  auto conflictKeys = FindCompileUnitConflicts();
+  if (!conflictKeys.isEmpty()) {
+    errStr += "The following Compile Units have a language mismatch: " +
+              conflictKeys.join(", ") +
+              "\nReturn to the Design Files tab to fix this.";
+  }
+
+  return std::make_pair(errStr.isEmpty(), errStr);
+}
+
+QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
+  // Group files by Compile Unit (m_groupName)
+  QMap<QString, QList<filedata>> fileGroups{};
+  for (const filedata &fdata : m_addSrcForm->getFileData()) {
+    if (!fdata.m_groupName.isEmpty()) {
+      fileGroups[fdata.m_groupName].append(fdata);
+    }
+  }
+
+  // Determine if any group has a language mismatch
+  QStringList conflictKeys{};
+  // Step through keys
+  for (auto key : fileGroups.keys()) {
+    int lang = -1;
+    // Step through files in this group
+    for (auto file : fileGroups[key]) {
+      if (lang == -1) {
+        lang = file.m_language;
+      } else {
+        // track any groups with a mismatch
+        if (lang != file.m_language) {
+          conflictKeys.append(key);
+          break;
+        }
+      }
+    }
+  }
+
+  return conflictKeys;
+}
+
 void newProjectDialog::on_buttonBox_accepted() {
+  auto [isValid, err] = ValuesValid();
+  if (!isValid) {
+    QMessageBox::warning(this, "Project Settings Issue", err);
+    return;
+  }
+
   ProjectOptions opt{
       m_locationForm->getProjectName(),
       m_locationForm->getProjectPath(),
