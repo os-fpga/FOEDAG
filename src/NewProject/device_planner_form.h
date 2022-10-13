@@ -39,6 +39,7 @@ class devicePlannerForm : public QWidget, public SettingsGuiInterface {
   void UpdateFamilyComboBox();
   void UpdatePackageComboBox();
   void UpdateDeviceTableView();
+  void UpdateSelection(const QModelIndex &index);
 };
 }  // namespace FOEDAG
 #endif  // DEVICEPLANNERFORM_H

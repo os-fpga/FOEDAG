@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 class TaskManager;
-
+class Task;
 /*!
  * \brief The ChildItemDelegate class
  * Implements item that has parent and it looks similar like in the tree view.
@@ -64,9 +64,11 @@ class TaskTableView : public QTableView {
 
  signals:
   void TaskDialogRequested(const QString &category);
+  void ViewFileRequested(const QString &filePath);
 
  private:
   QRect expandArea(const QModelIndex &index) const;
+  void addTaskLogAction(QMenu *menu, Task *task);
 
  private:
   TaskManager *m_taskManager{nullptr};

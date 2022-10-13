@@ -47,6 +47,23 @@
 
 using namespace FOEDAG;
 
+auto copyLog = [](FOEDAG::ProjectManager* projManager,
+                  const std::string& srcFileName,
+                  const std::string& destFileName) -> bool {
+  bool result = false;
+  if (projManager) {
+    std::filesystem::path projectPath(projManager->projectPath());
+    std::filesystem::path src = projectPath / srcFileName;
+    std::filesystem::path dest = projectPath / destFileName;
+    if (FileUtils::FileExists(src)) {
+      std::filesystem::remove(dest);
+      std::filesystem::copy_file(src, dest);
+      result = true;
+    }
+  }
+  return result;
+};
+
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
@@ -1205,6 +1222,9 @@ bool CompilerOpenFPGA::Synthesize() {
     m_state = State::Synthesized;
     (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized!"
              << std::endl;
+
+    copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+            "synthesis.rpt");
     return true;
   }
 }
@@ -1401,6 +1421,7 @@ bool CompilerOpenFPGA::Packing() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is packed!"
            << std::endl;
 
+  copyLog(ProjManager(), "vpr_stdout.log", "packing.rpt");
   return true;
 }
 
@@ -1644,6 +1665,7 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed!"
            << std::endl;
 
+  copyLog(ProjManager(), "vpr_stdout.log", "placement.rpt");
   return true;
 }
 
@@ -1747,6 +1769,7 @@ bool CompilerOpenFPGA::Route() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is routed!"
            << std::endl;
 
+  copyLog(ProjManager(), "vpr_stdout.log", "routing.rpt");
   return true;
 }
 
@@ -1872,6 +1895,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   (*m_out) << "Design " << ProjManager()->projectName()
            << " is timing analysed!" << std::endl;
 
+  copyLog(ProjManager(), "vpr_stdout.log", "timing_analysis.rpt");
   return true;
 }
 
@@ -1922,6 +1946,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 
   (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed!"
            << std::endl;
+
+  copyLog(ProjManager(), "vpr_stdout.log", "power_analysis.rpt");
   return true;
 }
 

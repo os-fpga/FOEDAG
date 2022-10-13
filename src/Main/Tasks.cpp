@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Foedag.h"
 #include "Settings.h"
+#include "TextEditor/text_editor.h"
 #include "WidgetFactory.h"
 using namespace FOEDAG;
 
@@ -199,4 +200,10 @@ void FOEDAG::handleTaskDialogRequested(const QString& category) {
   if (dlg) {
     dlg->exec();
   }
+}
+
+void FOEDAG::handleViewFileRequested(const QString& filePath) {
+  QString path = filePath;
+  path.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  TextEditorForm::Instance()->OpenFile(path);
 }

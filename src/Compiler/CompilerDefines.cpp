@@ -41,6 +41,9 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   TaskTableView *view = new TaskTableView{tManager};
   QObject::connect(view, &TaskTableView::TaskDialogRequested,
                    FOEDAG::handleTaskDialogRequested);
+  QObject::connect(view, &TaskTableView::ViewFileRequested,
+                   FOEDAG::handleViewFileRequested);
+
   view->setModel(model);
 
   view->resizeColumnsToContents();
