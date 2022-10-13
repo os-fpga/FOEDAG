@@ -1,5 +1,6 @@
 #include "add_source_form.h"
 
+#include <QFileDialog>
 #include <QFileInfo>
 
 #include "ProjectManager/project_manager.h"
@@ -26,9 +27,16 @@ addSourceForm::addSourceForm(QWidget *parent)
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
   ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Unchecked);
+
+  connect(ui->toolButtonIncludePath, &QToolButton::clicked, this,
+          &addSourceForm::includePathClicked);
+  connect(ui->toolButtonLibraryPath, &QToolButton::clicked, this,
+          &addSourceForm::libraryPathClicked);
 }
 
 addSourceForm::~addSourceForm() { delete ui; }
+
+void addSourceForm::SetBasePath(const QString &p) { m_basePath = p; }
 
 QList<filedata> addSourceForm::getFileData() {
   return m_widgetGrid->getTableViewData();
@@ -103,4 +111,39 @@ void addSourceForm::updateUi(ProjectManager *pm) {
 
 void addSourceForm::SetTitle(const QString &title) {
   ui->m_labelTitle->setText(title);
+}
+
+void addSourceForm::includePathClicked() {
+  auto relatedPath = GetRelatedPath(this, m_basePath);
+  if (!relatedPath.isEmpty()) {
+    auto actual = ui->lineEditIncludePath->text();
+    if (!actual.isEmpty()) actual += " ";
+    actual += relatedPath;
+    ui->lineEditIncludePath->setText(actual);
+  }
+}
+
+void addSourceForm::libraryPathClicked() {
+  auto relatedPath = GetRelatedPath(this, m_basePath);
+  if (!relatedPath.isEmpty()) {
+    auto actual = ui->lineEditLibraryPath->text();
+    if (!actual.isEmpty()) actual += " ";
+    actual += relatedPath;
+    ui->lineEditLibraryPath->setText(actual);
+  }
+}
+
+QString addSourceForm::GetRelatedPath(QWidget *parent, const QString &base) {
+  auto folder = QFileDialog::getExistingDirectory(
+      parent, tr("Select Directory"), base,
+      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks |
+          QFileDialog::DontUseNativeDialog);
+  if (folder.isEmpty()) return QString{};
+
+  std::filesystem::path f{folder.toStdString()};
+  std::filesystem::path b{base.toStdString()};
+  b = b / "..";  // out of project folder
+  std::error_code ec;
+  auto related = std::filesystem::relative(f, b, ec);
+  return ec ? QString{} : QString::fromStdString(related.string());
 }
