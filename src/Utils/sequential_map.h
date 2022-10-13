@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 namespace FOEDAG {
@@ -49,6 +50,8 @@ class sequential_map {
   }
 
   void push_back(const std::pair<Key, Value> &p) { m_data.push_back(p); }
+
+  size_t count() const { return m_data.size(); }
 
  private:
   std::vector<std::pair<Key, Value>> m_data;

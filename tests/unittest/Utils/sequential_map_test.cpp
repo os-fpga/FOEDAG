@@ -54,3 +54,33 @@ TEST(sequential_map, values) {
   EXPECT_EQ(values.at(1).first, "test1");
   EXPECT_EQ(values.at(1).second, 6);
 }
+
+TEST(sequential_map, value) {
+  sequential_map<std::string, int> m;
+  m["test0"] = 5;
+  m["test1"] = 6;
+  auto actual0 = m.value("test0");
+  auto actual1 = m.value("test1");
+  EXPECT_EQ(actual0, 5);
+  EXPECT_EQ(actual1, 6);
+}
+
+TEST(sequential_map, valueDefault) {
+  sequential_map<std::string, int> m;
+  m["test0"] = 5;
+  auto actual = m.value("not_exists", 10);
+  EXPECT_EQ(actual, 10);
+  EXPECT_EQ(m.count(), 1);
+}
+
+TEST(sequential_map, pushBack) {
+  sequential_map<std::string, int> m;
+  m["test0"] = 5;
+  m.push_back(std::make_pair("test1", 10));
+  auto values = m.values();
+  EXPECT_EQ(values.size(), 2);
+  EXPECT_EQ(values.at(0).first, "test0");
+  EXPECT_EQ(values.at(0).second, 5);
+  EXPECT_EQ(values.at(1).first, "test1");
+  EXPECT_EQ(values.at(1).second, 10);
+}
