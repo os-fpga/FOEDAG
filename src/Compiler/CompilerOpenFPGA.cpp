@@ -732,8 +732,8 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Analyze() {
-  auto printTopModule = [](const std::filesystem::path& filePath,
-                           std::ostream* out) {
+  auto printTopModules = [](const std::filesystem::path& filePath,
+                            std::ostream* out) {
     // Check for "topModule" in a given json filePath
     // Assumed json format is [ { "topModule" : "some_value"} ]
     if (out) {
@@ -741,11 +741,15 @@ bool CompilerOpenFPGA::Analyze() {
         std::ifstream file(filePath);
         json data = json::parse(file);
         if (data.is_array()) {
-          data = data.at(0);
-          if (data.contains("topModule")) {
-            std::string val = data.value("topModule", "");
-            (*out) << "Top Module: " << val << std::endl;
-          }
+          std::vector<std::string> topModules;
+          std::transform(data.begin(), data.end(),
+                         std::back_inserter(topModules),
+                         [](json val) -> std::string {
+                           return val.value("topModule", "");
+                         });
+
+          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
+                 << std::endl;
         }
       }
     }
@@ -921,7 +925,7 @@ bool CompilerOpenFPGA::Analyze() {
   if (!DesignChanged(analysisScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping analysis." << std::endl;
-    printTopModule(output_path, m_out);
+    printTopModules(output_path, m_out);
     return true;
   }
   // Create Analyser command and execute
@@ -951,7 +955,7 @@ bool CompilerOpenFPGA::Analyze() {
              << std::endl;
   }
 
-  printTopModule(output_path, m_out);
+  printTopModules(output_path, m_out);
   return true;
 }
 
