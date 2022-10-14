@@ -44,6 +44,9 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
+#include "nlohmann_json/json.hpp"
+
+using json = nlohmann::ordered_json;
 
 using namespace FOEDAG;
 
@@ -729,6 +732,25 @@ bool CompilerOpenFPGA::DesignChanged(
 }
 
 bool CompilerOpenFPGA::Analyze() {
+  auto printTopModule = [](const std::filesystem::path& filePath,
+                           std::ostream* out) {
+    // Check for "topModule" in a given json filePath
+    // Assumed json format is [ { "topModule" : "some_value"} ]
+    if (out) {
+      if (FileUtils::FileExists(filePath)) {
+        std::ifstream file(filePath);
+        json data = json::parse(file);
+        if (data.is_array()) {
+          data = data.at(0);
+          if (data.contains("topModule")) {
+            std::string val = data.value("topModule", "");
+            (*out) << "Top Module: " << val << std::endl;
+          }
+        }
+      }
+    }
+  };
+
   if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
     Message("Cleaning analysis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
@@ -899,6 +921,7 @@ bool CompilerOpenFPGA::Analyze() {
   if (!DesignChanged(analysisScript, script_path, output_path)) {
     (*m_out) << "Design didn't change: " << ProjManager()->projectName()
              << ", skipping analysis." << std::endl;
+    printTopModule(output_path, m_out);
     return true;
   }
   // Create Analyser command and execute
@@ -927,6 +950,8 @@ bool CompilerOpenFPGA::Analyze() {
     (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
              << std::endl;
   }
+
+  printTopModule(output_path, m_out);
   return true;
 }
 
