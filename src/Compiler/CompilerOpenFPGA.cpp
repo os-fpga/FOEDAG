@@ -1665,16 +1665,14 @@ bool CompilerOpenFPGA::Placement() {
     ofsp << pincommand << std::endl;
     ofsp.close();
 
-    if (userConstraint) {
-      int status = ExecuteAndMonitorSystemCommand(pincommand);
+    int status = ExecuteAndMonitorSystemCommand(pincommand);
 
-      if (status) {
-        ErrorMessage("Design " + ProjManager()->projectName() +
-                     " pin conversion failed!");
-        return false;
-      } else {
-        pin_loc_constraint_file = pin_locFile;
-      }
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " pin conversion failed!");
+      return false;
+    } else {
+      pin_loc_constraint_file = pin_locFile;
     }
 
     if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
