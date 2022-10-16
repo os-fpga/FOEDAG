@@ -1786,8 +1786,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   auto path = std::filesystem::current_path();  // getting path
   (*m_out) << "Path: " << path.string() << std::endl;
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
-  (*m_out) << "Changed path to: " << std::filesystem::current_path().string()
-           << std::endl;
+  // DEBUG: (*m_out) << "Changed path to: " <<
+  // std::filesystem::current_path().string()
+  //         << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
@@ -1814,7 +1815,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   std::filesystem::current_path(path);
   m_process->waitForFinished(-1);
   utils.Stop();
-  (*m_out) << "Changed path to: " << (path).string() << std::endl;
+  // DEBUG: (*m_out) << "Changed path to: " << (path).string() << std::endl;
   uint max_utiliation{utils.Utilization()};
   auto status = m_process->exitStatus();
   auto exitCode = m_process->exitCode();
