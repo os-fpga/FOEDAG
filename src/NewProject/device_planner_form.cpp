@@ -77,9 +77,10 @@ QList<QString> devicePlannerForm::getSelectedDevice() const {
   listRtn.append(ui->m_comboBoxFamily->currentText());
   listRtn.append(ui->m_comboBoxPackage->currentText());
 
-  if (m_selectmodel->hasSelection()) {
-    int curRow = m_selectmodel->currentIndex().row();
-    listRtn.append(m_model->data(m_model->index(curRow, 0)).toString());
+  if (m_selectmodel->hasSelection() &&
+      !m_selectmodel->selectedRows(0).isEmpty()) {
+    auto index = m_selectmodel->selectedRows(0).first();
+    listRtn.append(m_model->data(index).toString());
   } else {
     listRtn.append(m_model->data(m_model->index(0, 0)).toString());
   }
