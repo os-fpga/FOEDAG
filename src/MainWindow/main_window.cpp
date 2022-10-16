@@ -421,7 +421,6 @@ void MainWindow::showMenus(bool show) {
   menuBar()->setVisible(show);
   fileToolBar->setVisible(show);
   debugToolBar->setVisible(show);
-  saveToolBar->setVisible(show);
 }
 
 void MainWindow::createActions() {
