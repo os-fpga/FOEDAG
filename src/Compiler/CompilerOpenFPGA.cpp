@@ -1424,7 +1424,7 @@ bool CompilerOpenFPGA::Packing() {
   ofssdc.close();
 
   std::string command = BaseVprCommand() + " --pack";
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_pack.cmd"))
                         .string());
   ofs << command << std::endl;
@@ -1517,7 +1517,7 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   const std::string pcfOut =
-      (std::filesystem::path(ProjManager()->projectName()) /
+      (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_openfpga.pcf"))
           .string();
 
@@ -1551,6 +1551,7 @@ bool CompilerOpenFPGA::Placement() {
       constraints.push_back(constraint);
     } else if (constraint.find("set_mode") != std::string::npos) {
       constraints.push_back(constraint);
+      userConstraint = true;
     } else {
       continue;
     }
@@ -1591,8 +1592,6 @@ bool CompilerOpenFPGA::Placement() {
              << std::endl;
     return true;
   }
-
-  std::string pin_loc_constraint_file;
 
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
 
@@ -1657,21 +1656,25 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " in_define_order";
     }
 
+    std::string pin_loc_constraint_file;
+
     std::ofstream ofsp(
-        (std::filesystem::path(ProjManager()->projectName()) /
+        (std::filesystem::path(ProjManager()->projectPath()) /
          std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
             .string());
     ofsp << pincommand << std::endl;
     ofsp.close();
 
-    int status = ExecuteAndMonitorSystemCommand(pincommand);
+    if (userConstraint) {
+      int status = ExecuteAndMonitorSystemCommand(pincommand);
 
-    if (status) {
-      ErrorMessage("Design " + ProjManager()->projectName() +
-                   " pin conversion failed!");
-      return false;
-    } else {
-      pin_loc_constraint_file = pin_locFile;
+      if (status) {
+        ErrorMessage("Design " + ProjManager()->projectName() +
+                     " pin conversion failed!");
+        return false;
+      } else {
+        pin_loc_constraint_file = pin_locFile;
+      }
     }
 
     if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
@@ -1679,7 +1682,7 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_place.cmd"))
                         .string());
   ofs << command << std::endl;
@@ -1784,7 +1787,7 @@ bool CompilerOpenFPGA::Route() {
   }
 
   std::string command = BaseVprCommand() + " --route";
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
                         .string());
   ofs << command << std::endl;
@@ -1859,7 +1862,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (TimingAnalysisOpt() == STAOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
-    std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+    std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                        std::string(ProjManager()->projectName() + "_sta.cmd"))
                           .string());
     ofs.close();
@@ -1894,7 +1897,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       taCommand =
           BaseStaCommand() + " " +
           BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
-      std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+      std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                          std::string(ProjManager()->projectName() + "_sta.cmd"))
                             .string());
       ofs << taCommand << std::endl;
@@ -1907,7 +1910,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     }
   } else {  // use vpr/tatum engine
     taCommand = BaseVprCommand() + " --analysis";
-    std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
+    std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                        std::string(ProjManager()->projectName() + "_sta.cmd"))
                           .string());
     ofs << taCommand << " --disp on" << std::endl;
@@ -2197,9 +2200,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 
-  std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
+  std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
                           std::string("fabric_bitstream.bit"));
-  std::filesystem::remove(std::filesystem::path(ProjManager()->projectName()) /
+  std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
                           std::string("fabric_independent_bitstream.xml"));
   // Create OpenFpga command and execute
   script_path =

@@ -1812,9 +1812,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   args.pop_front();  // remove program
   m_process->start(program, args);
   std::filesystem::current_path(path);
-  (*m_out) << "Changed path to: " << (path).string() << std::endl;
   m_process->waitForFinished(-1);
   utils.Stop();
+  (*m_out) << "Changed path to: " << (path).string() << std::endl;
   uint max_utiliation{utils.Utilization()};
   auto status = m_process->exitStatus();
   auto exitCode = m_process->exitCode();
