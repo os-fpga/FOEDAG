@@ -191,7 +191,41 @@ void MainWindow::newProjectDlg() {
 void MainWindow::openExampleProject() {
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
-  openProjectDialog(QString::fromStdString(examplesPath.string()));
+  auto fileName = QFileDialog::getOpenFileName(
+      this, tr("Open Project"), QString::fromStdString(examplesPath.string()),
+      "FOEDAG Project File(*.ospr)");
+
+  if (!fileName.isEmpty()) {
+    QFileInfo info(fileName);
+    QString file = info.fileName();
+    QString src = info.dir().path();
+    QString sampleName = info.dir().dirName();
+    QString dest = QDir::homePath() + QDir::separator() + sampleName;
+
+    // Warn user if they've already copied this sample before
+    if (QDir(dest).exists()) {
+      auto result =
+          QMessageBox::question(this, "Copying Example",
+                                "Copying this example will overwrite " + dest +
+                                    ". Do you want to continue?",
+                                QMessageBox::Yes | QMessageBox::No);
+      if (result == QMessageBox::Yes) {
+        QDir(dest).removeRecursively();
+      } else {
+        return;
+      }
+    }
+
+    // QT doesn't have a convenience function for recursively copying a folder
+    // so we'll use std::filesystem instead
+    std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
+    std::filesystem::path destPath = std::filesystem::path(dest.toStdString());
+    std::filesystem::copy(srcPath, destPath,
+                          std::filesystem::copy_options::recursive);
+
+    // open the newly copied example project
+    openProject(dest + QDir::separator() + file);
+  }
 }
 
 void MainWindow::openProjectDialog(const QString& dir) {
