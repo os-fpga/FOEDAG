@@ -29,18 +29,18 @@ namespace FOEDAG {
 enum PinData {
   PinName = 0,
   BallName = 1,
-  RefClock = 12,
-  Bank = 13,
-  ALT = 14,
-  DebugMode = 15,
-  ScanMode = 16,
-  MbistMode = 17,
-  Type = 18,
-  Dir = 19,
-  Voltage = 20,
-  PowerPad = 21,
-  Discription = 22,
-  Voltage2 = 23,
+  RefClock = 43,
+  Bank = 44,
+  ALT = 45,
+  DebugMode = 46,
+  ScanMode = 47,
+  MbistMode = 48,
+  Type = 49,
+  Dir = 50,
+  Voltage = 51,
+  PowerPad = 52,
+  Discription = 53,
+  Voltage2 = 54,
 };
 
 struct PackagePinData {
@@ -75,6 +75,9 @@ class PackagePinsModel : public QObject {
   void insert(const QString &name, const QModelIndex &index);
   void itemChange(const QString &name, const QString &pin);
 
+  const QVector<QString> &userGroups() const;
+  void appendUserGroup(const QString &userGroup);
+
  signals:
   void itemHasChanged(const QModelIndex &index, const QString &pin);
 
@@ -83,6 +86,7 @@ class PackagePinsModel : public QObject {
   QStringListModel *m_listModel{nullptr};
   QMap<QString, QModelIndex> m_indexes;
   QVector<HeaderData> m_header;
+  QVector<QString> m_userGroups;
 };
 
 }  // namespace FOEDAG

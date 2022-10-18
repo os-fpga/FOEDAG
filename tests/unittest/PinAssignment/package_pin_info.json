@@ -1,4 +1,5 @@
 {
+  "groups" : ["Bank 0", "Bank 1", "Bank 2"],
   "table" : [
     {
       "name" : "Name",

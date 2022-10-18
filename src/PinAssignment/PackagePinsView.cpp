@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PackagePinsView.h"
 
+#include <QCompleter>
 #include <QHeaderView>
 #include <QStringListModel>
 
@@ -69,6 +70,11 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       combo->setModel(model->portsModel()->listModel());
       combo->setAutoFillBackground(true);
       m_allCombo.append(combo);
+      combo->setEditable(true);
+      auto completer{new QCompleter{model->portsModel()->listModel()}};
+      completer->setFilterMode(Qt::MatchContains);
+      combo->setCompleter(completer);
+      combo->setInsertPolicy(QComboBox::NoInsert);
       connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
               [=]() {
                 ioPortsSelectionHasChanged(indexFromItem(pinItem, PortsCol));
@@ -83,7 +89,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
           &PackagePinsView::itemHasChanged);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
-  setColumnWidth(NameCol, 120);
+  setColumnWidth(NameCol, 170);
   resizeColumnToContents(PortsCol);
   header()->setSectionResizeMode(PortsCol, QHeaderView::Fixed);
 }
@@ -97,7 +103,7 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
     removeDuplications(port, combo);
 
     auto pin = item->text(NameCol);
-    m_model->insert(port, pin);
+    m_model->update(port, pin);
     m_model->portsModel()->itemChange(port, pin);
 
     // unset previous selection

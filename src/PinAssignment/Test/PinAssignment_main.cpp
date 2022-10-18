@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 QWidget* PinAssignmentBuilder(FOEDAG::Session* session) {
   FOEDAG::PinAssignmentCreator* creator = new FOEDAG::PinAssignmentCreator{
-      session->GetCompiler()->ProjManager(), session->Context()};
+      session->GetCompiler()->ProjManager(), session->Context(),
+      session->GetCompiler()};
   QWidget* w = new QWidget;
   w->setLayout(new QHBoxLayout);
   w->layout()->addWidget(creator->GetPackagePinsWidget());

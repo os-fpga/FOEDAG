@@ -30,6 +30,7 @@ using namespace FOEDAG;
 TEST(PackagePinsLoader, LoadGeneral) {
   PackagePinsModel model;
   PackagePinsLoader loader{&model};
+  loader.loadHeader(":/PinAssignment/package_pin_info.json");
   auto [res, error] = loader.load(":/PinAssignment/Pin_Table.csv");
   EXPECT_EQ(res, true) << error.toStdString();
 
@@ -57,6 +58,7 @@ TEST(PackagePinsLoader, LoadWrongFilePath) {
 TEST(PackagePinsLoader, LoadAllPins) {
   PackagePinsModel model;
   PackagePinsLoader loader{&model};
+  loader.loadHeader(":/PinAssignment/package_pin_info.json");
   auto [res, error] = loader.load(":/PinAssignment/Pin_Table.csv");
   EXPECT_EQ(res, true) << error.toStdString();
 
