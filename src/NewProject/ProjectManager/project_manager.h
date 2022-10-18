@@ -312,6 +312,12 @@ class ProjectManager : public QObject {
       const std::vector<std::string> &newIpInstancePathList);
   void addIpInstancePath(const std::string &ipInstancePath);
 
+  const std::vector<std::string> &ipInstanceCmdList() const;
+  QString ipInstanceCmds() const;
+  void setIpInstanceCmdList(
+      const std::vector<std::string> &newIpInstanceCmdList);
+  void addIpInstanceCmd(const std::string &ipInstanceCmd);
+
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,

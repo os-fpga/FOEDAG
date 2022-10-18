@@ -48,4 +48,17 @@ void IpConfiguration::addInstancePath(const std::string &instancePath) {
   m_instancePathList.push_back(instancePath);
 }
 
+const std::vector<std::string> &IpConfiguration::instanceCmdList() const {
+  return m_instanceCmdList;
+}
+
+void IpConfiguration::setInstanceCmdList(
+    const std::vector<std::string> &newInstanceCmdList) {
+  m_instanceCmdList = newInstanceCmdList;
+}
+
+void IpConfiguration::addInstanceCmd(const std::string &instanceCmd) {
+  m_instanceCmdList.push_back(instanceCmd);
+}
+
 }  // namespace FOEDAG

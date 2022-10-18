@@ -72,6 +72,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void recentProjectOpen();
   void openProjectSettings();
   void slotTabChanged(int index);
+  void handleProjectOpened();
 
  public slots:
   void updateSourceTree();
@@ -82,6 +83,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void handleRemoveIpRequested(const QString& moduleName);
   void handleDeleteIpRequested(const QString& moduleName);
   void resetIps();
+
+ signals:
+  void projectOpened();
 
  private: /* Menu bar builders */
   void updateViewMenu();

@@ -40,9 +40,15 @@ class IpConfiguration {
   void setInstancePathList(const std::vector<std::string> &newInstancePathList);
   void addInstancePath(const std::string &instancePath);
 
+  // Instance Paths
+  const std::vector<std::string> &instanceCmdList() const;
+  void setInstanceCmdList(const std::vector<std::string> &newInstanceCmdList);
+  void addInstanceCmd(const std::string &instanceCmd);
+
  private:
   std::vector<std::string> m_ipCatalogPathList;
   std::vector<std::string> m_instancePathList;
+  std::vector<std::string> m_instanceCmdList;
 };
 
 }  // namespace FOEDAG
