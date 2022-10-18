@@ -1587,6 +1587,28 @@ void ProjectManager::addIpInstancePath(const std::string& ipInstancePath) {
   Project::Instance()->ipConfig()->addInstancePath(ipInstancePath);
 }
 
+const std::vector<std::string>& ProjectManager::ipInstanceCmdList() const {
+  return Project::Instance()->ipConfig()->instanceCmdList();
+}
+
+QString ProjectManager::ipInstanceCmds() const {
+  auto cmdList = Project::Instance()->ipConfig()->instanceCmdList();
+  QStringList tmpList;
+  for (const auto& p : cmdList) tmpList.append(QString::fromStdString(p));
+  return tmpList.join("_IP_CMD_SEP_");
+}
+
+void ProjectManager::setIpInstanceCmdList(
+    const std::vector<std::string>& newIpInstanceCmdList) {
+  Project::Instance()->ipConfig()->setInstanceCmdList(newIpInstanceCmdList);
+  emit saveFile();
+};
+
+void ProjectManager::addIpInstanceCmd(const std::string& ipInstanceCmd) {
+  Project::Instance()->ipConfig()->addInstanceCmd(ipInstanceCmd);
+  emit saveFile();
+}
+
 int ProjectManager::CreateAndAddFile(const QString& suffix,
                                      const QString& filename,
                                      const QString& filenameAdd,

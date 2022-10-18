@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DesignRuns/runs_form.h"
 #include "IpConfigurator/IpCatalogTree.h"
 #include "IpConfigurator/IpConfigWidget.h"
+#include "IpConfigurator/IpConfigurator.h"
 #include "IpConfigurator/IpConfiguratorCreator.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
@@ -134,6 +135,9 @@ MainWindow::MainWindow(Session* session)
   m_projectInfo = {"FOEDAG", foedag_version_number, foedag_git_hash,
                    "https://github.com/os-fpga/FOEDAG/commit/",
                    foedag_build_type};
+
+  connect(this, &MainWindow::projectOpened, this,
+          &MainWindow::handleProjectOpened);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -299,6 +303,7 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
 void MainWindow::openProject(const QString& project) {
   ReShowWindow(project);
   loadFile(project);
+  emit projectOpened();
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -972,6 +977,18 @@ void MainWindow::slotTabChanged(int index) {
   QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
   SetWindowTitle((index == -1) ? QString() : strName,
                  m_projectManager->getProjectName(), m_projectInfo.name);
+}
+
+void MainWindow::handleProjectOpened() {
+  // this fires after openProject() has been fired
+
+  // Reloading IPs after full project load as during ReShowWindow, the project
+  // path variables haven't been updated yet
+  IpConfigurator::ReloadIps();
+  // Update tree to show new instances
+  updateSourceTree();
+  // Fix command prompt if any errors were printed during load
+  m_console->showPrompt();
 }
 
 void MainWindow::saveWelcomePageConfig() {

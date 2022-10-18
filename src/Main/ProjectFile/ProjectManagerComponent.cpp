@@ -44,6 +44,7 @@ constexpr auto PROJECT_GROUP_LIB_NAME{"LibName"};
 constexpr auto IP_CONFIG{"IpConfig"};
 constexpr auto IP_INSTANCE_PATHS{"InstancePaths"};
 constexpr auto IP_CATALOG_PATHS{"CatalogPaths"};
+constexpr auto IP_INSTANCE_CMDS{"InstanceCmds"};
 
 ProjectManagerComponent::ProjectManagerComponent(ProjectManager* pManager,
                                                  QObject* parent)
@@ -108,6 +109,10 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
   stream.writeStartElement(GENERIC_OPTION);
   stream.writeAttribute(GENERIC_NAME, IP_CATALOG_PATHS);
   stream.writeAttribute(GENERIC_VAL, m_projectManager->ipCatalogPaths());
+  stream.writeEndElement();
+  stream.writeStartElement(GENERIC_OPTION);
+  stream.writeAttribute(GENERIC_NAME, IP_INSTANCE_CMDS);
+  stream.writeAttribute(GENERIC_VAL, m_projectManager->ipInstanceCmds());
   stream.writeEndElement();
   stream.writeEndElement();
 
@@ -378,6 +383,19 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
               std::vector<std::string> pathList;
               StringUtils::tokenize(path.toStdString(), " ", pathList);
               m_projectManager->setIpCatalogPathList(pathList);
+            }
+            if (reader.attributes().value(GENERIC_NAME).toString() ==
+                IP_INSTANCE_CMDS) {
+              QString cmdsStr =
+                  reader.attributes().value(GENERIC_VAL).toString();
+              // Using QStringList for multi-char split() function
+              QStringList cmds = cmdsStr.split("_IP_CMD_SEP_");
+              // Convert to std::vector<std::string>
+              std::vector<std::string> cmdList;
+              for (auto cmd : cmds) {
+                cmdList.push_back(cmd.toStdString());
+              }
+              m_projectManager->setIpInstanceCmdList(cmdList);
             }
           }
         }

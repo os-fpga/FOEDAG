@@ -47,7 +47,7 @@ class IpConfigWidget : public QWidget {
 
  private:
   void AddDialogControls(QBoxLayout* layout);
-  void AddIpToProject(const QString& ipBuildPath);
+  void AddIpToProject(const QString& cmd);
   void CreateParamFields();
   void CreateOutputFields();
   void updateMetaLabel(VLNV info);

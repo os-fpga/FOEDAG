@@ -25,6 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpTreesWidget.h"
 #include "MainWindow/Session.h"
+#include "NewProject/ProjectManager/project_manager.h"
+
+extern FOEDAG::Session* GlobalSession;
 
 using namespace FOEDAG;
 
@@ -78,6 +81,25 @@ void IpConfigurator::ShowConfigDlg() {
 
 QWidget* IpConfigurator::GetIpTreesWidget() {
   return IpTreesWidget::Instance();
+}
+
+void IpConfigurator::ReloadIps() {
+  FOEDAG::Compiler* compiler = nullptr;
+  ProjectManager* projManager = nullptr;
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (projManager = compiler->ProjManager())) {
+    // Get Ip Configuration/Generate cmds from project file
+    QString projPath = projManager->getProjectPath();
+    auto cmds = projManager->ipInstanceCmdList();
+
+    // If the project path is valid and there are IP cmds
+    if (!projPath.isEmpty() && cmds.size() > 0) {
+      // Execute each configure/generate command
+      for (auto cmd : cmds) {
+        GlobalSession->TclInterp()->evalCmd(cmd);
+      }
+    }
+  }
 }
 
 void FOEDAG::registerIpConfiguratorCommands(QWidget* widget,

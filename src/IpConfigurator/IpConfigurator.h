@@ -35,6 +35,7 @@ class IpConfigurator : public QWidget {
   void HideIpTrees();
   void ShowConfigDlg();
   QWidget *GetIpTreesWidget();
+  static void ReloadIps();
 
  private:
 };

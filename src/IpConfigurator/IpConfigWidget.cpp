@@ -163,26 +163,48 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
                   moduleEdit.text() + " -version " +
                   QString::fromStdString(m_meta.version) + " " + params +
                   " -out_file " + outFileStr;
-    cmd += "\nipgenerate -modules " + moduleEdit.text();
+    cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
 
     GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
 
-    AddIpToProject(outFileStr);
+    AddIpToProject(cmd);
     emit ipInstancesUpdated();
   });
 }
 
-void IpConfigWidget::AddIpToProject(const QString& ipBuildPath) {
-  // TODO @skyler-rs oct2022, this is groundwork code for later
-  // The project doesn't currently track/load ips on project change, but the
-  // initial project file changes have been made so this starts saving ip paths
-  // there for future changes that will use this info
-  std::string outDir = ipBuildPath.toStdString();
-  auto instances =
-      GlobalSession->GetCompiler()->ProjManager()->ipInstancePathList();
-  if (std::find(instances.begin(), instances.end(), outDir) ==
-      instances.end()) {
-    GlobalSession->GetCompiler()->ProjManager()->addIpInstancePath(outDir);
+void IpConfigWidget::AddIpToProject(const QString& cmd) {
+  FOEDAG::Compiler* compiler = nullptr;
+  ProjectManager* projManager = nullptr;
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (projManager = compiler->ProjManager())) {
+    auto getUniqueString = [](const QString& ipConfigCmd) -> QString {
+      // Use the configure command's first half(ipName and module name) as a
+      // unique id to determine if this IP configuration has already been stored
+      QStringList cmdParts = ipConfigCmd.split("-version");
+      if (cmdParts.length() > 0) {
+        QString id = cmdParts[0];
+        return id;
+      } else {
+        return QString{};
+      }
+    };
+
+    QString cmdId = getUniqueString(cmd);
+    // Helper function to see if a given cmd's id from getUniqueString matches
+    // the IP we are about to add
+    auto isMatch = [cmdId, getUniqueString](const std::string& str) {
+      QString cmdStr = getUniqueString(QString::fromStdString(str));
+      return (cmdStr == cmdId);
+    };
+
+    // Get current instance commands
+    auto cmds = projManager->ipInstanceCmdList();
+    // Remove any entires that match this new cmd
+    cmds.erase(std::remove_if(cmds.begin(), cmds.end(), isMatch), cmds.end());
+    // Add new instance command to the command list
+    cmds.push_back(cmd.toStdString());
+    // Store the updated instance list
+    projManager->setIpInstanceCmdList(cmds);
   }
 }
 
