@@ -59,6 +59,8 @@ void CommandLine::processArgs() {
     } else if (token == "--verific") {
       m_useVerific = true;
     } else if (token == "--script") {
+      if (!m_projectFile.empty())
+        ErrorAndExit("--script and --project can't be used at the same time!");
       i++;
       if (i < m_argc) {
         m_runScript = m_argv[i];
@@ -67,6 +69,16 @@ void CommandLine::processArgs() {
         }
       } else
         ErrorAndExit("Specify a script file!");
+    } else if (token == "--project") {
+      if (!m_runScript.empty())
+        ErrorAndExit("--script and --project can't be used at the same time!");
+      i++;
+      if (i < m_argc) {
+        m_projectFile = m_argv[i];
+        if (!FileExists(m_projectFile))
+          ErrorAndExit("Cannot open project file: " + m_projectFile);
+      } else
+        ErrorAndExit("Specify a project file!");
     } else if (token == "--cmd") {
       i++;
       if (i < m_argc) {

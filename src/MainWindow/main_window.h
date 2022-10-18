@@ -107,6 +107,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void openProject(const QString& project);
+  void openProject(const std::string& projectFile) override;
   void saveToRecentSettings(const QString& project);
 
   void showMenus(bool show);

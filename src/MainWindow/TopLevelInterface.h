@@ -20,12 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <string>
+
 namespace FOEDAG {
 
 class TopLevelInterface {
  public:
   virtual ~TopLevelInterface() = default;
   virtual void gui_start(bool showWP) = 0;
+  virtual void openProject(const std::string& projectFile) = 0;
   virtual void ProgressVisible(bool visible) = 0;
 };
 

@@ -306,6 +306,10 @@ void MainWindow::openProject(const QString& project) {
   emit projectOpened();
 }
 
+void MainWindow::openProject(const std::string& projectFile) {
+  openProject(QString::fromStdString(projectFile));
+}
+
 void MainWindow::saveToRecentSettings(const QString& project) {
   if (project.isEmpty()) return;
 
