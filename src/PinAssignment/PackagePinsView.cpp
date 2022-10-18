@@ -103,7 +103,7 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
     removeDuplications(port, combo);
 
     auto pin = item->text(NameCol);
-    m_model->insert(port, pin);
+    m_model->update(port, pin);
     m_model->portsModel()->itemChange(port, pin);
 
     // unset previous selection

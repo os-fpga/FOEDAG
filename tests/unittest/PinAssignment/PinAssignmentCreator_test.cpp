@@ -30,8 +30,8 @@ using namespace FOEDAG;
 TEST(PinAssignmentCreator, GenerateSdc) {
   PinAssignmentCreator creator{new ProjectManager, new ToolContext("", "", "")};
   auto model = creator.baseModel();
-  model->insert("port1", "pin1");
-  model->insert("port2", "pin2");
+  model->update("port1", "pin1");
+  model->update("port2", "pin2");
   auto actualSdc = creator.generateSdc();
   QString expected{"set_pin_loc port1 pin1\nset_pin_loc port2 pin2\n"};
   EXPECT_EQ(actualSdc, expected);

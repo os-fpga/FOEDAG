@@ -27,11 +27,12 @@ namespace FOEDAG {
 class ProjectManager;
 class ToolContext;
 class PinsBaseModel;
+class Compiler;
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
   PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
-                       QObject *parent = nullptr);
+                       Compiler *c, QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
