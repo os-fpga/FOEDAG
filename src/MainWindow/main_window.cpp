@@ -828,7 +828,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     }
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{
-        m_projectManager, GlobalSession->Context(), this};
+        m_projectManager, GlobalSession->Context(), m_compiler, this};
     connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
             [this]() { saveAction->setEnabled(true); });
 

@@ -21,33 +21,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PinAssignment/PinAssignmentCreator.h"
 
+#include "Compiler/Compiler.h"
 #include "Main/ToolContext.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "PinAssignment/PinsBaseModel.h"
 #include "gtest/gtest.h"
 using namespace FOEDAG;
 
-TEST(PinAssignmentCreator, GenerateSdc) {
-  PinAssignmentCreator creator{new ProjectManager, new ToolContext("", "", "")};
+class PinAssignmentCreatorFixture : public testing::Test {
+ public:
+  PinAssignmentCreatorFixture()
+      : compiler(new Compiler),
+        context(new ToolContext("", "", "")),
+        projectManager(new ProjectManager) {}
+  ~PinAssignmentCreatorFixture() {
+    delete compiler;
+    delete context;
+    delete projectManager;
+  }
+
+ protected:
+  Compiler *compiler;
+  ToolContext *context;
+  ProjectManager *projectManager;
+};
+
+TEST_F(PinAssignmentCreatorFixture, GenerateSdc) {
+  PinAssignmentCreator creator{projectManager, context, compiler};
   auto model = creator.baseModel();
-  model->insert("port1", "pin1");
-  model->insert("port2", "pin2");
+  model->update("port1", "pin1");
+  model->update("port2", "pin2");
   auto actualSdc = creator.generateSdc();
   QString expected{"set_pin_loc port1 pin1\nset_pin_loc port2 pin2\n"};
   EXPECT_EQ(actualSdc, expected);
 }
 
-TEST(PinAssignmentCreator, GetPackagePinsWidget) {
-  PinAssignmentCreator creator{new ProjectManager, new ToolContext("", "", "")};
+TEST_F(PinAssignmentCreatorFixture, GetPackagePinsWidget) {
+  PinAssignmentCreator creator{projectManager, context, compiler};
   EXPECT_NE(creator.GetPackagePinsWidget(), nullptr);
 }
 
-TEST(PinAssignmentCreator, GetPortsWidget) {
-  PinAssignmentCreator creator{new ProjectManager, new ToolContext("", "", "")};
+TEST_F(PinAssignmentCreatorFixture, GetPortsWidget) {
+  PinAssignmentCreator creator{projectManager, context, compiler};
   EXPECT_NE(creator.GetPortsWidget(), nullptr);
 }
 
-TEST(PinAssignmentCreator, SearchPortsFileEmptyFile) {
+TEST_F(PinAssignmentCreatorFixture, SearchPortsFileEmptyFile) {
   auto file = PinAssignmentCreator::searchPortsFile(
       QString::fromStdString(std::filesystem::current_path().string()));
   EXPECT_EQ(file, QString());

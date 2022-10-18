@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <filesystem>
 
+#include "Compiler/Compiler.h"
+#include "Compiler/Constraints.h"
 #include "Main/ToolContext.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "PackagePinsLoader.h"
@@ -35,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
-                                           ToolContext *context,
+                                           ToolContext *context, Compiler *c,
                                            QObject *parent)
     : QObject(parent) {
   PortsModel *portsModel = new PortsModel{this};
@@ -60,6 +62,18 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
           &PinAssignmentCreator::selectionHasChanged);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
+  if (c && c->getConstraints()) {
+    auto constraint = c->getConstraints();
+    for (const auto &con : constraint->getConstraints()) {
+      QString str{QString::fromStdString(con)};
+      if (str.startsWith("set_pin_loc")) {
+        auto list = str.split(" ");
+        if (list.size() >= 3) {
+          portsView->SetPin(list.at(1), list.at(2));
+        }
+      }
+    }
+  }
 }
 
 QWidget *PinAssignmentCreator::GetPackagePinsWidget() {

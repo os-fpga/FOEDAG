@@ -63,6 +63,21 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
   resizeColumnToContents(PackagePinCol);
 }
 
+void PortsView::SetPin(const QString &port, const QString &pin) {
+  QString portNormal{convertPortName(port)};
+  int count = topLevelItemCount();
+  QModelIndex index;
+  for (int i = 0; i < count; i++) {
+    index = indexFromPort(topLevelItem(i), portNormal);
+    if (index.isValid()) break;
+  }
+  if (index.isValid()) {
+    auto combo = qobject_cast<BufferedComboBox *>(
+        itemWidget(itemFromIndex(index), PackagePinCol));
+    combo->setCurrentIndex(combo->findData(pin, Qt::DisplayRole));
+  }
+}
+
 void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   if (m_blockUpdate) return;
   auto item = itemFromIndex(index);
@@ -73,7 +88,7 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
     removeDuplications(pin, combo);
 
     auto port = item->text(PortName);
-    m_model->insert(port, pin);
+    m_model->update(port, pin);
     m_model->packagePinModel()->itemChange(pin, port);
 
     // unset previous selection
@@ -107,6 +122,28 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
                                 indexFromItem(it, PortName));
 }
 
+QModelIndex PortsView::indexFromPort(QTreeWidgetItem *i, const QString &port) {
+  auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, port, -1,
+                                  Qt::MatchExactly);
+  if (!indexList.isEmpty()) return indexList.first();
+
+  int children = i->childCount();
+  for (int u = 0; u < children; u++) {
+    auto c = i->child(u);
+    QModelIndex index = indexFromPort(c, port);
+    if (index.isValid()) return index;
+  }
+  return QModelIndex{};
+}
+
+QString PortsView::convertPortName(const QString &port) const {
+  if (port.contains('@') && port.contains('%')) {
+    QString portNormal{port};
+    return portNormal.replace('@', '[').replace('%', ']');
+  }
+  return port;
+}
+
 void PortsView::itemHasChanged(const QModelIndex &index, const QString &pin) {
   auto item = itemFromIndex(index);
   if (item) {
@@ -114,6 +151,7 @@ void PortsView::itemHasChanged(const QModelIndex &index, const QString &pin) {
     m_blockUpdate = true;
     const int index = combo->findData(pin, Qt::DisplayRole);
     combo->setCurrentIndex(index != -1 ? index : 0);
+    if (pin.isEmpty()) m_model->update(item->text(PortName), QString{});
     m_blockUpdate = false;
   }
 }
