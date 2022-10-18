@@ -329,6 +329,24 @@ void IPGenerator::RemoveIPInstance(IPInstance* instance) {
   if (it != m_instances.end()) {
     m_instances.erase(it);
   }
+
+  // search for stored configure/generate commands stored for this module and
+  // remove them
+  Compiler* compiler = GetCompiler();
+  ProjectManager* projManager = nullptr;
+  if (compiler && (projManager = compiler->ProjManager())) {
+    // match if the command contains "ipgenerate -modules <moduleName>"
+    std::string modName = "ipgenerate -modules " + instance->ModuleName();
+    auto isMatch = [modName](const std::string& ipGenStr) {
+      return (ipGenStr.find(modName) == std::string::npos);
+    };
+
+    // Remove any found matches
+    auto cmds = projManager->ipInstanceCmdList();
+    cmds.erase(std::remove_if(cmds.begin(), cmds.end(), isMatch), cmds.end());
+    // Store the updated instance list
+    projManager->setIpInstanceCmdList(cmds);
+  }
 }
 
 void IPGenerator::RemoveIPInstance(const std::string& moduleName) {
