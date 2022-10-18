@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/TaskManager.h"
 #include "Main/TclSimpleParser.h"
-#include "main_window.h"
+#include "TopLevelInterface.h"
 
 using namespace FOEDAG;
 
@@ -47,7 +47,7 @@ void Session::windowShow() {
                             cmdLine->GuiTestScript().empty());
       }
       if (hasProjectFile) {
-        topLevel->openProject(cmdLine->ProjectFile());
+        topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()));
       } else if (hasScriptCmd) {
         int returnCode{TCL_OK};
         if (m_compiler) {
