@@ -37,4 +37,30 @@ void PinAssignmentBaseView::removeDuplications(const QString &text,
     }
   }
 }
+
+QModelIndex PinAssignmentBaseView::match(const QString &text) const {
+  int count = topLevelItemCount();
+  QModelIndex index;
+  for (int i = 0; i < count; i++) {
+    index = indexFromText(topLevelItem(i), text);
+    if (index.isValid()) break;
+  }
+  return index;
+}
+
+QModelIndex PinAssignmentBaseView::indexFromText(QTreeWidgetItem *i,
+                                                 const QString &text) const {
+  auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, text, -1,
+                                  Qt::MatchExactly);
+  if (!indexList.isEmpty()) return indexList.first();
+
+  int children = i->childCount();
+  for (int u = 0; u < children; u++) {
+    auto c = i->child(u);
+    QModelIndex index = indexFromText(c, text);
+    if (index.isValid()) return index;
+  }
+  return QModelIndex{};
+}
+
 }  // namespace FOEDAG

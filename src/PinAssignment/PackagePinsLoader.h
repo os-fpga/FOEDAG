@@ -38,6 +38,7 @@ class PackagePinsLoader : public QObject {
 
  protected:
   std::pair<bool, QString> getFileContent(const QString &fileName) const;
+  void parseHeader(const QString &header);
 
  protected:
   PackagePinsModel *m_model{nullptr};

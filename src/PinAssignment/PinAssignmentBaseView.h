@@ -38,6 +38,8 @@ class PinAssignmentBaseView : public QTreeWidget {
 
  protected:
   void removeDuplications(const QString &text, QComboBox *current);
+  QModelIndex match(const QString &text) const;
+  QModelIndex indexFromText(QTreeWidgetItem *i, const QString &text) const;
 
  protected:
   PinsBaseModel *m_model{nullptr};
