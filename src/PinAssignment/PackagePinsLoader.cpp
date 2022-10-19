@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PackagePinsLoader.h"
 
 #include <QFile>
+#include <QSet>
 
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
@@ -43,23 +44,24 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
 #endif
   lines.pop_front();  // header
   PackagePinGroup group{};
+  QSet<QString> uniquePins;
   for (const auto &line : lines) {
     QStringList data = line.split(",");
     if (!data.first().isEmpty()) {
       if (!group.name.isEmpty() && (group.name != data.first())) {
-        m_model->append(group);
+        if (m_model->userGroups().contains(group.name)) m_model->append(group);
         group.pinData.clear();
+        uniquePins.clear();
       }
       group.name = data.first();
     }
     data.pop_front();
-    if (!group.pinData.isEmpty()) {
-      if (group.pinData.last().data.count() > PinName && data.count() > PinName)
-        if (group.pinData.last().data.at(PinName) == data.at(PinName)) continue;
-    }
+    if (uniquePins.contains(data.at(PinName))) continue;
+    uniquePins.insert(data.at(PinName));
     group.pinData.append({data});
   }
-  m_model->append(group);  // append last
+  if (m_model->userGroups().contains(group.name))
+    m_model->append(group);  // append last
   m_model->initListModel();
 
   return std::make_pair(true, QString());
@@ -87,6 +89,10 @@ std::pair<bool, QString> PackagePinsLoader::loadHeader(
                             QString::fromStdString(c.at("description")), id,
                             visible};
     m_model->appendHeaderData(header);
+  }
+  auto groups = jsonObject.at("groups");
+  for (const auto &group : groups) {
+    m_model->appendUserGroup(QString::fromStdString(group));
   }
 
   return std::make_pair(true, QString());

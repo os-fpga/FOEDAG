@@ -31,8 +31,21 @@ bool PinsBaseModel::exists(const QString &port, const QString &pin) const {
   return false;
 }
 
-void PinsBaseModel::insert(const QString &port, const QString &pin) {
-  m_pinsMap.insert(port, pin);
+void PinsBaseModel::update(const QString &port, const QString &pin) {
+  if (pin.isEmpty()) {
+    m_pinsMap.remove(port);
+    auto iter = m_pinsMap.find(port);
+    if (iter != m_pinsMap.end()) m_pinsMap_reverted.remove(*iter);
+  } else if (port.isEmpty()) {
+    auto iter = m_pinsMap_reverted.find(pin);
+    if (iter != m_pinsMap_reverted.end()) {
+      m_pinsMap.remove(*iter);
+      m_pinsMap_reverted.erase(iter);
+    }
+  } else {
+    m_pinsMap.insert(port, pin);
+    m_pinsMap_reverted.insert(pin, port);
+  }
 }
 
 PackagePinsModel *PinsBaseModel::packagePinModel() const {
