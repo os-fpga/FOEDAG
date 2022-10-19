@@ -71,6 +71,11 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
         if (list.size() >= 3) {
           portsView->SetPin(list.at(1), list.at(2));
         }
+      } else if (str.startsWith("set_mode")) {
+        auto list = str.split(" ");
+        if (list.size() >= 3) {
+          packagePins->SetMode(list.at(2), list.at(1));
+        }
       }
     }
   }
@@ -83,11 +88,16 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
 
 QString PinAssignmentCreator::generateSdc() const {
-  if (m_baseModel->pinMap().isEmpty()) return QString();
   QString sdc;
   const auto pinMap = m_baseModel->pinMap();
+  // generate pin location
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
     sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
+  }
+  // generate mode
+  auto modeMap = m_baseModel->packagePinModel()->modeMap();
+  for (auto it{modeMap.begin()}; it != modeMap.end(); ++it) {
+    sdc.append(QString("set_mode %1 %2\n").arg(it.value(), it.key()));
   }
   return sdc;
 }

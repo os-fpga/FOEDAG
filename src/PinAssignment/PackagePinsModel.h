@@ -65,11 +65,14 @@ class PackagePinsModel : public QObject {
   PackagePinsModel(QObject *parent = nullptr);
   const QVector<HeaderData> &header() const;
   void appendHeaderData(const HeaderData &h);
+  void updateMode(const QString &pin, const QString &mode);
 
   void append(const PackagePinGroup &g);
   const QVector<PackagePinGroup> &pinData() const;
+  const QMap<QString, QString> &modeMap() const;
 
   QStringListModel *listModel() const;
+  QStringListModel *modeModel() const;
   void initListModel();
 
   void insert(const QString &name, const QModelIndex &index);
@@ -84,9 +87,11 @@ class PackagePinsModel : public QObject {
  private:
   QVector<PackagePinGroup> m_pinData;
   QStringListModel *m_listModel{nullptr};
+  QStringListModel *m_modeModel{nullptr};
   QMap<QString, QModelIndex> m_indexes;
   QVector<HeaderData> m_header;
   QVector<QString> m_userGroups;
+  QMap<QString, QString> m_modeMap;
 };
 
 }  // namespace FOEDAG

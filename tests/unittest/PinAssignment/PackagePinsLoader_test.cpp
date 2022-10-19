@@ -101,7 +101,7 @@ TEST(PackagePinsLoader, LoadHeaderGeneral) {
   EXPECT_EQ(res, true) << error.toStdString();
 
   auto header = model.header();
-  EXPECT_EQ(header.size(), 15);
+  EXPECT_EQ(header.size(), 16);
   // check random column
   auto col0 = header.at(0);
   EXPECT_EQ(col0.name, "Name");

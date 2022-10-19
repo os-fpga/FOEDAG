@@ -38,7 +38,6 @@ class PortsView : public PinAssignmentBaseView {
  private:
   void packagePinSelectionHasChanged(const QModelIndex &index);
   void insertTableItem(QTreeWidgetItem *parent, const IOPort &port);
-  QModelIndex indexFromPort(QTreeWidgetItem *i, const QString &port);
   QString convertPortName(const QString &port) const;
 
  private slots:

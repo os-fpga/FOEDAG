@@ -56,6 +56,16 @@ TEST_F(PinAssignmentCreatorFixture, GenerateSdc) {
   EXPECT_EQ(actualSdc, expected);
 }
 
+TEST_F(PinAssignmentCreatorFixture, GenerateSdcWithModes) {
+  PinAssignmentCreator creator{projectManager, context, compiler};
+  auto model = creator.baseModel();
+  model->packagePinModel()->updateMode("pin1", "Mode1");
+  model->packagePinModel()->updateMode("pin2", "Mode2");
+  auto actualSdc = creator.generateSdc();
+  QString expected{"set_mode Mode1 pin1\nset_mode Mode2 pin2\n"};
+  EXPECT_EQ(actualSdc, expected);
+}
+
 TEST_F(PinAssignmentCreatorFixture, GetPackagePinsWidget) {
   PinAssignmentCreator creator{projectManager, context, compiler};
   EXPECT_NE(creator.GetPackagePinsWidget(), nullptr);
