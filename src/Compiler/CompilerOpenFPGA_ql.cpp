@@ -2376,13 +2376,6 @@ bool CompilerOpenFPGA_ql::Synthesize() {
       }
     }
 
-#ifdef _WIN32
-  // plugins are not supported on WIN32, yosys is built with the plugin code directly instead.
-  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string(""));
-#else // #ifdef _WIN32
-  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
-#endif // #ifdef _WIN32
-
     std::string macros = "";
 	std::string includes = "";
 #if UPSTREAM_UNUSED
@@ -2438,6 +2431,14 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 	yosysScript =
         ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
+
+#ifdef _WIN32
+  // plugins are not supported on WIN32, yosys is built with the plugin code directly instead.
+  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string(""));
+#else // #ifdef _WIN32
+  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
+#endif // #ifdef _WIN32
+
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
                            ProjManager()->DesignTopModule());
