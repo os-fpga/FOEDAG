@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QMap>
 #include <QWidget>
 
 namespace FOEDAG {
@@ -28,6 +29,7 @@ class ProjectManager;
 class ToolContext;
 class PinsBaseModel;
 class Compiler;
+class PackagePinsLoader;
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
@@ -44,6 +46,7 @@ class PinAssignmentCreator : public QObject {
    * \return full path to the file if it exists otherwise return empty string
    */
   static QString searchPortsFile(const QString &projectPath);
+  static void RegisterLoader(const QString &device, PackagePinsLoader *l);
 
  signals:
   void selectionHasChanged();
@@ -54,11 +57,13 @@ class PinAssignmentCreator : public QObject {
                         ToolContext *context) const;
   QString targetDevice(ProjectManager *projectManager) const;
   QString packagePinHeaderFile(ToolContext *context) const;
+  PackagePinsLoader *CreateLoader(const QString &targetDevice) const;
 
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
   PinsBaseModel *m_baseModel{nullptr};
+  static QMap<QString, PackagePinsLoader *> m_loader;
 };
 
 }  // namespace FOEDAG
