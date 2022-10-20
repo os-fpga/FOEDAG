@@ -18,14 +18,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "AboutWidget.h"
-
 #include <QDesktopServices>
 #include <QFile>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QUrl>
+
+#include "AboutWidget.h"
 
 namespace FOEDAG {
 static const auto ETC_DIR = "etc";

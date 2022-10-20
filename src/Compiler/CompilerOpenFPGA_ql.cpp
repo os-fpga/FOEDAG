@@ -3618,6 +3618,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+#endif // #if UPSTREAM_UNUSED
 
   if (TimingAnalysisOpt() == STAOpt::View) {
     TimingAnalysisOpt(STAOpt::None);
@@ -3630,7 +3631,6 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     }
     return true;
   }
-#endif // #if UPSTREAM_UNUSED
 
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
@@ -3750,9 +3750,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                 std::string("--route") +
     #endif // #ifdef _WIN32
                 std::string(" ") + 
-                std::string("--analysis") +
-                std::string(" ") + 
-                std::string("--disp on");
+                std::string("--analysis");
 
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectName()) /
                         std::string(ProjManager()->projectName() + "_sta.cmd"))
@@ -3891,9 +3889,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
              std::string("--route") +
 #endif // #ifdef _WIN32
              std::string(" ") + 
-             std::string("--analysis") +
-             std::string(" ") + 
-             std::string("--disp on");
+             std::string("--analysis");
 
   int status = ExecuteAndMonitorSystemCommand(command);
   CleanTempFiles();
@@ -3939,7 +3935,7 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 build_architecture_bitstream
 
 build_fabric_bitstream
-write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+write_fabric_bitstream --format plain_text --file fabric_bitstream.bit --verbose
 write_io_mapping -f PinMapping.xml
 
 # Finish and exit OpenFPGA
