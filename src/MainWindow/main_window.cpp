@@ -366,8 +366,12 @@ bool MainWindow::saveConstraintFile() {
     if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
   file.open(openFlags);
-  if (rewrite) file.resize(0);  // clean content
-  file.write(pinAssignment->generateSdc().toLatin1());
+  QString sdc{pinAssignment->generateSdc()};
+  if (rewrite)
+    file.resize(0);  // clean content
+  else if (!sdc.isEmpty())
+    sdc.push_front('\n');  // make sure start with new line
+  file.write(sdc.toLatin1());
   file.close();
 
   auto res{FOEDAG::read_sdc(constraint)};

@@ -64,12 +64,14 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
 }
 
 void PortsView::SetPin(const QString &port, const QString &pin) {
-  QString portNormal{convertPortName(port)};
+  QString portNormal{normalizeName(port)};
   QModelIndex index{match(portNormal)};
   if (index.isValid()) {
     auto combo = qobject_cast<BufferedComboBox *>(
         itemWidget(itemFromIndex(index), PackagePinCol));
-    if (combo) combo->setCurrentIndex(combo->findData(pin, Qt::DisplayRole));
+    if (combo)
+      combo->setCurrentIndex(
+          combo->findData(normalizeName(pin), Qt::DisplayRole));
   }
 }
 
@@ -119,12 +121,12 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
                                 indexFromItem(it, PortName));
 }
 
-QString PortsView::convertPortName(const QString &port) const {
-  if (port.contains('@') && port.contains('%')) {
-    QString portNormal{port};
+QString PortsView::normalizeName(const QString &p) {
+  if (p.contains('@') && p.contains('%')) {
+    QString portNormal{p};
     return portNormal.replace('@', '[').replace('%', ']');
   }
-  return port;
+  return p;
 }
 
 void PortsView::itemHasChanged(const QModelIndex &index, const QString &pin) {
