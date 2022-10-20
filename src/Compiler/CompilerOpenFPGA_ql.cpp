@@ -202,7 +202,7 @@ ${PLUGIN_LOAD}
 
 ${READ_DESIGN_FILES}
 
-synth_quicklogic -top ${TOP_MODULE} -family ${FAMILY} -blif ${OUTPUT_BLIF} ${YOSYS_OPTIONS}
+${QL_SYNTH_PASS_NAME} -top ${TOP_MODULE} -family ${FAMILY} -blif ${OUTPUT_BLIF} ${YOSYS_OPTIONS}
 
 )";
 
@@ -2439,6 +2439,11 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
 #endif // #ifdef _WIN32
 
+#if(AURORA_USE_TABBYCAD == 1)
+  yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_qlf"));
+#else // #if(AURORA_USE_TABBYCAD == TRUE)
+  yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
+#endif // #if(AURORA_USE_TABBYCAD == TRUE)
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
                            ProjManager()->DesignTopModule());
