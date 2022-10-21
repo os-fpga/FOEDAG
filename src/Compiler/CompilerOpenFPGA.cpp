@@ -1788,7 +1788,8 @@ bool CompilerOpenFPGA::Route() {
     return true;
   }
 
-  std::string command = BaseVprCommand() + " --route";
+  std::string command =
+      BaseVprCommand() + " --route --gen_post_synthesis_netlist on";
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
                         .string());
