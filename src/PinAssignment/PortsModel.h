@@ -50,6 +50,7 @@ class PortsModel : public QObject {
   void append(const IOPortGroup &p);
   const QVector<IOPortGroup> &ports() const;
   void initListModel();
+  IOPort GetPort(const QString &portName) const;
 
   QStringListModel *listModel() const;
   void insert(const QString &name, const QModelIndex &index);

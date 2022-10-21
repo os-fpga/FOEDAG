@@ -25,7 +25,8 @@ namespace FOEDAG {
 PackagePinsModel::PackagePinsModel(QObject *parent)
     : QObject(parent),
       m_listModel(new QStringListModel),
-      m_modeModel(new QStringListModel) {}
+      m_modeModelTx(new QStringListModel),
+      m_modeModelRx(new QStringListModel) {}
 
 const QVector<HeaderData> &PackagePinsModel::header() const { return m_header; }
 
@@ -52,7 +53,13 @@ const QMap<QString, QString> &PackagePinsModel::modeMap() const {
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
 
-QStringListModel *PackagePinsModel::modeModel() const { return m_modeModel; }
+QStringListModel *PackagePinsModel::modeModelTx() const {
+  return m_modeModelTx;
+}
+
+QStringListModel *PackagePinsModel::modeModelRx() const {
+  return m_modeModelRx;
+}
 
 void PackagePinsModel::initListModel() {
   QStringList pinsList;
