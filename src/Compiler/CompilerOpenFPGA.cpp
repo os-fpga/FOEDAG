@@ -83,6 +83,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
+  (*out) << "   --project <project file>: Open a project" << std::endl;
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
@@ -91,6 +92,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   open_project <file>        : Opens a project in started "
+            "upfront GUI"
          << std::endl;
   (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
