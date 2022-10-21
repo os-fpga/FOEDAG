@@ -52,6 +52,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
+  void openProject(const QString& project) override;
+
  protected:
   void closeEvent(QCloseEvent* event) override;
 
@@ -106,7 +108,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
-  void openProject(const QString& project) override;
   void saveToRecentSettings(const QString& project);
 
   void showMenus(bool show);
