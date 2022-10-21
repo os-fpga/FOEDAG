@@ -40,6 +40,7 @@ class PackagePinsView : public PinAssignmentBaseView {
   void modeSelectionHasChanged(const QModelIndex &index);
   void insertData(const QStringList &data, int index, int column,
                   QTreeWidgetItem *item);
+  void updateModeCombo(const QString &port, const QModelIndex &index);
 
  private slots:
   void itemHasChanged(const QModelIndex &index, const QString &pin);

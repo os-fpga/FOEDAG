@@ -72,7 +72,8 @@ class PackagePinsModel : public QObject {
   const QMap<QString, QString> &modeMap() const;
 
   QStringListModel *listModel() const;
-  QStringListModel *modeModel() const;
+  QStringListModel *modeModelTx() const;
+  QStringListModel *modeModelRx() const;
   void initListModel();
 
   void insert(const QString &name, const QModelIndex &index);
@@ -87,7 +88,8 @@ class PackagePinsModel : public QObject {
  private:
   QVector<PackagePinGroup> m_pinData;
   QStringListModel *m_listModel{nullptr};
-  QStringListModel *m_modeModel{nullptr};
+  QStringListModel *m_modeModelTx{nullptr};
+  QStringListModel *m_modeModelRx{nullptr};
   QMap<QString, QModelIndex> m_indexes;
   QVector<HeaderData> m_header;
   QVector<QString> m_userGroups;

@@ -113,13 +113,20 @@ std::pair<bool, QString> PackagePinsLoader::getFileContent(
 
 void PackagePinsLoader::parseHeader(const QString &header) {
   const QStringList columns = header.split(",");
-  QStringList modes{};
-  for (const auto &col : columns)
-    if (col.startsWith("Mode_")) modes.append(col);
+  QStringList modesRx{};
+  QStringList modesTx{};
+  for (const auto &col : columns) {
+    if (col.startsWith("Mode_") && col.endsWith("tx", Qt::CaseInsensitive))
+      modesTx.append(col);
+    else if (col.startsWith("Mode_") && col.endsWith("rx", Qt::CaseInsensitive))
+      modesRx.append(col);
+  }
 
-  if (!modes.isEmpty()) modes.push_front({});  // one empty element
+  if (!modesRx.isEmpty()) modesRx.push_front({});  // one empty element
+  if (!modesTx.isEmpty()) modesTx.push_front({});  // one empty element
 
-  m_model->modeModel()->setStringList(modes);
+  m_model->modeModelTx()->setStringList(modesTx);
+  m_model->modeModelRx()->setStringList(modesRx);
 }
 
 }  // namespace FOEDAG

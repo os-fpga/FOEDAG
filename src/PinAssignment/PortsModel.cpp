@@ -47,6 +47,16 @@ void PortsModel::initListModel() {
   m_model->setStringList(portsList);
 }
 
+IOPort PortsModel::GetPort(const QString &portName) const {
+  for (const auto &group : m_ioPorts) {
+    auto iter = std::find_if(
+        group.ports.begin(), group.ports.end(),
+        [&portName](const IOPort &p) { return p.name == portName; });
+    if (iter != group.ports.end()) return (*iter);
+  }
+  return IOPort{};
+}
+
 QStringListModel *PortsModel::listModel() const { return m_model; }
 
 void PortsModel::insert(const QString &name, const QModelIndex &index) {

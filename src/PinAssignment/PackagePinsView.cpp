@@ -85,7 +85,6 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
                                        indexFromItem(pinItem, NameCol));
 
       auto modeCombo = new QComboBox{this};
-      modeCombo->setModel(m_model->packagePinModel()->modeModel());
       modeCombo->setEnabled(modeCombo->count() > 0);
       connect(
           modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
@@ -114,23 +113,29 @@ void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
 }
 
 void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
-  if (m_blockUpdate) return;
+  // update here Mode selection
   auto item = itemFromIndex(index);
-  if (item) {
-    auto combo = qobject_cast<BufferedComboBox *>(itemWidget(item, PortsCol));
-    if (combo) {
-      auto port = combo->currentText();
-      removeDuplications(port, combo);
+  auto combo =
+      item ? qobject_cast<BufferedComboBox *>(itemWidget(item, PortsCol))
+           : nullptr;
+  if (combo) {
+    updateModeCombo(combo->currentText(), index);
+  }
 
-      auto pin = item->text(NameCol);
-      m_model->update(port, pin);
-      m_model->portsModel()->itemChange(port, pin);
+  if (m_blockUpdate) return;
 
-      // unset previous selection
-      auto prevPort = combo->previousText();
-      m_model->portsModel()->itemChange(prevPort, QString());
-      emit selectionHasChanged();
-    }
+  if (combo) {
+    auto port = combo->currentText();
+    removeDuplications(port, combo);
+
+    auto pin = item->text(NameCol);
+    m_model->update(port, pin);
+    m_model->portsModel()->itemChange(port, pin);
+
+    // unset previous selection
+    auto prevPort = combo->previousText();
+    m_model->portsModel()->itemChange(prevPort, QString());
+    emit selectionHasChanged();
   }
 }
 
@@ -149,6 +154,29 @@ void PackagePinsView::modeSelectionHasChanged(const QModelIndex &index) {
 void PackagePinsView::insertData(const QStringList &data, int index, int column,
                                  QTreeWidgetItem *item) {
   if (data.count() > index) item->setText(column, data.at(index));
+}
+
+void PackagePinsView::updateModeCombo(const QString &port,
+                                      const QModelIndex &index) {
+  auto modeIndex = model()->index(index.row(), ModeCol, index.parent());
+  QComboBox *modeCombo{
+      qobject_cast<QComboBox *>(itemWidget(itemFromIndex(modeIndex), ModeCol))};
+  if (modeCombo) {
+    if (port.isEmpty()) {
+      modeCombo->setCurrentIndex(0);
+      modeCombo->setEnabled(false);
+    } else {
+      modeCombo->setEnabled(true);
+      auto ioPort = m_model->portsModel()->GetPort(port);
+      const bool output = ioPort.dir == "Output";
+      QAbstractItemModel *modeModel =
+          output ? m_model->packagePinModel()->modeModelTx()
+                 : m_model->packagePinModel()->modeModelRx();
+      if (modeCombo->model() != modeModel) {
+        modeCombo->setModel(modeModel);
+      }
+    }
+  }
 }
 
 void PackagePinsView::itemHasChanged(const QModelIndex &index,
