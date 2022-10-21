@@ -27,16 +27,16 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4.3.0
       with:
         python-version: 3.8
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
@@ -46,7 +46,7 @@ jobs:
         bash .github/workflows/install_ubuntu_dependencies_build.sh
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.3
       with:
         key: linux-${{ matrix.mode }}
 
@@ -98,7 +98,7 @@ jobs:
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
       if: matrix.mode == 'coverage'
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: coverage-build/foedag.coverage
         fail_ci_if_error: false
@@ -113,7 +113,7 @@ jobs:
 
     - name: Archive regression artifacts
       if: matrix.mode == 'regression' && always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.0
       with:
         name: foedag-linux-gcc-regression
         path: |
@@ -142,18 +142,18 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
     - name: Checkout code
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
       with:
         submodules: true
 
     - name: Download workflow artifact
       if: matrix.mode == 'test'
-      uses: dawidd6/action-download-artifact@v2.17.0
+      uses: dawidd6/action-download-artifact@v2.24.0
       with:
         workflow: main.yml
         repo: ${{ github.repository }}
@@ -170,7 +170,7 @@ jobs:
 
     - name: Archive QT build artifacts
       if: matrix.mode == 'test'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.0
       with:
         name: buildqt5-centos7-gcc
         path: buildqt5-centos7-gcc.tgz
@@ -210,12 +210,12 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
     - name: Checkout repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
@@ -277,13 +277,13 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
 # Fix Cmake version, 3.21.4 has a bug that prevents Tcl to build
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13.0
       with:
         cmake-version: '3.21.3'
     - name: Use cmake
@@ -295,18 +295,18 @@ jobs:
         choco install -y swig --side-by-side --version=3.0.12
 
     - name: Setup Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4.3.0
       with:
         python-version: 3.8
         architecture: x64
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3.0.0
 
     - run: git config --global core.autocrlf input
       shell: bash
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
@@ -348,14 +348,14 @@ jobs:
         make test/batch
 
     - name: Archive build artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.0
       with:
         name: foedag-windows-msvc
         path: ${{ github.workspace }}/install
 
     - name: Archive regression artifacts
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.0
       with:
         name: foedag-windows-msvc-regression
         path: |
@@ -370,33 +370,33 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4.3.0
       with:
         python-version: 3.8
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3.0.0
       with:
         setup-python: false
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.3
       with:
         key: macos-gcc
 
     - name: Configure shell
       run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
+        echo 'CC=gcc-11' >> $GITHUB_ENV
+        echo 'CXX=g++-11' >> $GITHUB_ENV
         echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
         echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
 
@@ -431,26 +431,26 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.9.1
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4.3.0
       with:
         python-version: 3.8
 
     - name: Install dependencies
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3.0.0
       with:
         setup-python: false
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.3
       with:
         key: macos-clang
 
@@ -492,7 +492,7 @@ jobs:
     steps:
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
@@ -511,12 +511,12 @@ jobs:
     steps:
 
     - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.8.0
+      uses: styfle/cancel-workflow-action@0.11.0
       with:
         access_token: ${{ github.token }}
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
         fetch-depth: 0
@@ -530,7 +530,7 @@ jobs:
                                 qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb
 
     - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.3
       with:
         key: clang-tidy-codegen
 
