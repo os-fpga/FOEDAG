@@ -5,7 +5,6 @@ sudo apt install -y \
   tclsh \
   cmake \
   build-essential \
-  swig \
   google-perftools \
   libgoogle-perftools-dev \
   uuid-dev \
