@@ -6,7 +6,6 @@
       tclsh \
       cmake \
       build-essential \
-      swig \
       google-perftools \
       libgoogle-perftools-dev \
       uuid-dev \
@@ -24,7 +23,6 @@
       tclsh \
       cmake \
       build-essential \
-      swig \
       google-perftools \
       libgoogle-perftools-dev \
       uuid-dev \
@@ -42,7 +40,6 @@
       tclsh \
       cmake \
       build-essential \
-      swig \
       google-perftools \
       libgoogle-perftools-dev \
       uuid-dev \
@@ -60,7 +57,6 @@
       tclsh \
       cmake \
       build-essential \
-      swig \
       google-perftools \
       libgoogle-perftools-dev \
       uuid-dev \

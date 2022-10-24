@@ -12,7 +12,6 @@ yum install -y devtoolset-9-gcc-c++
 scl enable devtoolset-9 bash
 yum install -y tcl
 yum install -y make
-yum install -y swig
 yum install -y which
 yum install -y google-perftools
 yum install -y gperftools gperftools-devel
