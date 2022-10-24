@@ -96,7 +96,7 @@ void IpConfigurator::ReloadIps() {
     if (!projPath.isEmpty() && cmds.size() > 0) {
       // Execute each configure/generate command
       for (auto cmd : cmds) {
-        GlobalSession->TclInterp()->evalCmd(cmd);
+        GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
       }
     }
   }
