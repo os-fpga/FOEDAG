@@ -863,6 +863,11 @@ void MainWindow::pinAssignmentActionTriggered() {
     }
   }
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+  if (!pinAssignmentAction->isChecked()) {
+    // cleanup pin planner
+    auto pinAssignment = findChild<PinAssignmentCreator*>();
+    if (pinAssignment) delete pinAssignment;
+  }
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {
@@ -996,8 +1001,6 @@ void MainWindow::handleProjectOpened() {
   IpConfigurator::ReloadIps();
   // Update tree to show new instances
   updateSourceTree();
-  // Fix command prompt if any errors were printed during load
-  m_console->showPrompt();
 }
 
 void MainWindow::saveWelcomePageConfig() {

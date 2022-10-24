@@ -79,7 +79,7 @@ MSYS2 env with the MinGW64 g++ compiler can be used to build FOEDAG.
   
   6. Run :code:`pacman -Su` for remaining base updates
   
-  7. Run :code:`pacman -S --needed base-devel mingw-w64-x86_64-toolchain git mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base-debug mingw-w64-x86_64-qt5 mingw-w64-x86_64-swig mingw-w64-x86_64-qt5-declarative-debug mingw-w64-x86_64-tcl mingw-w64-x86_64-zlib`
+  7. Run :code:`pacman -S --needed base-devel mingw-w64-x86_64-toolchain git mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base-debug mingw-w64-x86_64-qt5 mingw-w64-x86_64-qt5-declarative-debug mingw-w64-x86_64-tcl mingw-w64-x86_64-zlib`
      for installing required packages.
      
      Select default (all) packages to install here

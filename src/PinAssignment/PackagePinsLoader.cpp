@@ -42,7 +42,7 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
 #else
   QStringList lines = content.split("\n", QString::SkipEmptyParts);
 #endif
-  lines.pop_front();  // header
+  parseHeader(lines.takeFirst());
   PackagePinGroup group{};
   QSet<QString> uniquePins;
   for (const auto &line : lines) {
@@ -109,6 +109,24 @@ std::pair<bool, QString> PackagePinsLoader::getFileContent(
     return std::make_pair(false, QString("Can't open file %1").arg(fileName));
 
   return std::make_pair(true, file.readAll());
+}
+
+void PackagePinsLoader::parseHeader(const QString &header) {
+  const QStringList columns = header.split(",");
+  QStringList modesRx{};
+  QStringList modesTx{};
+  for (const auto &col : columns) {
+    if (col.startsWith("Mode_") && col.endsWith("tx", Qt::CaseInsensitive))
+      modesTx.append(col);
+    else if (col.startsWith("Mode_") && col.endsWith("rx", Qt::CaseInsensitive))
+      modesRx.append(col);
+  }
+
+  if (!modesRx.isEmpty()) modesRx.push_front({});  // one empty element
+  if (!modesTx.isEmpty()) modesTx.push_front({});  // one empty element
+
+  m_model->modeModelTx()->setStringList(modesTx);
+  m_model->modeModelRx()->setStringList(modesRx);
 }
 
 }  // namespace FOEDAG
