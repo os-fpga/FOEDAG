@@ -26,20 +26,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CompilerDefines.h"
 
+class QMovie;
+
 namespace FOEDAG {
 
 class TaskManager;
 class Task;
-/*!
- * \brief The ChildItemDelegate class
- * Implements item that has parent and it looks similar like in the tree view.
- */
-class ChildItemDelegate : public QStyledItemDelegate {
- public:
- protected:
-  void paint(QPainter *painter, const QStyleOptionViewItem &option,
-             const QModelIndex &index) const override;
-};
 
 /*!
  * \brief The TaskTableView class
@@ -71,7 +63,30 @@ class TaskTableView : public QTableView {
   void addTaskLogAction(QMenu *menu, Task *task);
 
  private:
+  /*!
+   * \brief The TasksDelegate class for painting TaskTableView.
+   * Takes care of painting following columns:
+   * - Status - makes sure animation is painted when task has InProgress status
+   * - Title - Implements the item that has parent and it looks similar like in
+   * the tree view.
+   */
+  class TasksDelegate : public QStyledItemDelegate {
+   public:
+    TasksDelegate(TaskTableView &view, QObject *parent = nullptr);
+
+   protected:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option,
+               const QModelIndex &index) const override;
+
+   private:
+    static const QString LOADING_GIF;
+
+    TaskTableView &m_view;
+    QMovie *m_inProgressMovie{nullptr};  // In progress gif animation
+  };
+
   TaskManager *m_taskManager{nullptr};
+  static constexpr uint StatusCol{0};
   static constexpr uint TitleCol{1};
   // Indicates that view is disabled and shouldn't be interactive
   bool m_viewDisabled{false};
