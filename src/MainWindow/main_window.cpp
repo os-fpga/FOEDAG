@@ -863,6 +863,11 @@ void MainWindow::pinAssignmentActionTriggered() {
     }
   }
   saveToolBar->setHidden(!pinAssignmentAction->isChecked());
+  if (!pinAssignmentAction->isChecked()) {
+    // cleanup pin planner
+    auto pinAssignment = findChild<PinAssignmentCreator*>();
+    if (pinAssignment) delete pinAssignment;
+  }
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {

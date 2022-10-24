@@ -65,16 +65,11 @@ PortsView::PortsView(PinsBaseModel *model, QWidget *parent)
 
 void PortsView::SetPin(const QString &port, const QString &pin) {
   QString portNormal{convertPortName(port)};
-  int count = topLevelItemCount();
-  QModelIndex index;
-  for (int i = 0; i < count; i++) {
-    index = indexFromPort(topLevelItem(i), portNormal);
-    if (index.isValid()) break;
-  }
+  QModelIndex index{match(portNormal)};
   if (index.isValid()) {
     auto combo = qobject_cast<BufferedComboBox *>(
         itemWidget(itemFromIndex(index), PackagePinCol));
-    combo->setCurrentIndex(combo->findData(pin, Qt::DisplayRole));
+    if (combo) combo->setCurrentIndex(combo->findData(pin, Qt::DisplayRole));
   }
 }
 
@@ -84,17 +79,19 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   if (item) {
     auto combo =
         qobject_cast<BufferedComboBox *>(itemWidget(item, PackagePinCol));
-    auto pin = combo->currentText();
-    removeDuplications(pin, combo);
+    if (combo) {
+      auto pin = combo->currentText();
+      removeDuplications(pin, combo);
 
-    auto port = item->text(PortName);
-    m_model->update(port, pin);
-    m_model->packagePinModel()->itemChange(pin, port);
+      auto port = item->text(PortName);
+      m_model->update(port, pin);
+      m_model->packagePinModel()->itemChange(pin, port);
 
-    // unset previous selection
-    auto prevPin = combo->previousText();
-    m_model->packagePinModel()->itemChange(prevPin, QString());
-    emit selectionHasChanged();
+      // unset previous selection
+      auto prevPin = combo->previousText();
+      m_model->packagePinModel()->itemChange(prevPin, QString());
+      emit selectionHasChanged();
+    }
   }
 }
 
@@ -122,20 +119,6 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
                                 indexFromItem(it, PortName));
 }
 
-QModelIndex PortsView::indexFromPort(QTreeWidgetItem *i, const QString &port) {
-  auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, port, -1,
-                                  Qt::MatchExactly);
-  if (!indexList.isEmpty()) return indexList.first();
-
-  int children = i->childCount();
-  for (int u = 0; u < children; u++) {
-    auto c = i->child(u);
-    QModelIndex index = indexFromPort(c, port);
-    if (index.isValid()) return index;
-  }
-  return QModelIndex{};
-}
-
 QString PortsView::convertPortName(const QString &port) const {
   if (port.contains('@') && port.contains('%')) {
     QString portNormal{port};
@@ -148,11 +131,13 @@ void PortsView::itemHasChanged(const QModelIndex &index, const QString &pin) {
   auto item = itemFromIndex(index);
   if (item) {
     auto combo = qobject_cast<QComboBox *>(itemWidget(item, PackagePinCol));
-    m_blockUpdate = true;
-    const int index = combo->findData(pin, Qt::DisplayRole);
-    combo->setCurrentIndex(index != -1 ? index : 0);
-    if (pin.isEmpty()) m_model->update(item->text(PortName), QString{});
-    m_blockUpdate = false;
+    if (combo) {
+      m_blockUpdate = true;
+      const int index = combo->findData(pin, Qt::DisplayRole);
+      combo->setCurrentIndex(index != -1 ? index : 0);
+      if (pin.isEmpty()) m_model->update(item->text(PortName), QString{});
+      m_blockUpdate = false;
+    }
   }
 }
 
