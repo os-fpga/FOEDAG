@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjectManagerComponent.h"
 
 #include "Compiler/CompilerDefines.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 
 namespace FOEDAG {
@@ -277,9 +278,8 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                 reader.attributes().value(PROJECT_GROUP_LIB_COMMAND).toString();
             auto lib =
                 reader.attributes().value(PROJECT_GROUP_LIB_NAME).toString();
-            libs.push_back(
-                std::make_pair(ProjectManager::StringSplit(command, " "),
-                               ProjectManager::StringSplit(lib, " ")));
+            libs.push_back(std::make_pair(QtUtils::StringSplit(command, ' '),
+                                          QtUtils::StringSplit(lib, ' ')));
           } else if (type == QXmlStreamReader::EndElement &&
                      reader.name() == PROJECT_FILESET) {
             ProjectFileSet projectFileset;
@@ -298,10 +298,10 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             for (const auto& i : langList) {
               auto designFiles = i.second;
               designFiles.replace(PROJECT_OSRCDIR, projectPath);
-              projectFileset.addFiles(
-                  libs.at(index).first, libs.at(index).second,
-                  ProjectManager::StringSplit(designFiles, " "),
-                  i.first.language, i.first.group);
+              projectFileset.addFiles(libs.at(index).first,
+                                      libs.at(index).second,
+                                      QtUtils::StringSplit(designFiles, ' '),
+                                      i.first.language, i.first.group);
               index++;
             }
             for (auto iter = mapOption.begin(); iter != mapOption.end();

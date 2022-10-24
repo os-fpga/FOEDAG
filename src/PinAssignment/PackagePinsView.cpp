@@ -36,6 +36,7 @@ constexpr int ModeCol{3};
 PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     : PinAssignmentBaseView(model, parent) {
   header()->resizeSections(QHeaderView::ResizeToContents);
+  setColumnCount(model->packagePinModel()->header().count());
   for (auto &h : model->packagePinModel()->header()) {
     headerItem()->setText(h.id, h.name);
     headerItem()->setToolTip(h.id, h.description);
@@ -111,6 +112,15 @@ void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
     auto combo =
         qobject_cast<QComboBox *>(itemWidget(itemFromIndex(index), ModeCol));
     if (combo) combo->setCurrentIndex(combo->findData(mode, Qt::DisplayRole));
+  }
+}
+
+void PackagePinsView::SetPort(const QString &pin, const QString &port) {
+  QModelIndex index{match(pin)};
+  if (index.isValid()) {
+    auto combo = qobject_cast<BufferedComboBox *>(
+        itemWidget(itemFromIndex(index), PortsCol));
+    if (combo) combo->setCurrentIndex(combo->findData(port, Qt::DisplayRole));
   }
 }
 

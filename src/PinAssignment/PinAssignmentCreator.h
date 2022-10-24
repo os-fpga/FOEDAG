@@ -30,11 +30,14 @@ class ToolContext;
 class PinsBaseModel;
 class Compiler;
 class PackagePinsLoader;
+class Constraints;
+class PortsLoader;
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
   PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
-                       Compiler *c, QObject *parent = nullptr);
+                       Compiler *c, const QString &target = QString{},
+                       QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
@@ -46,7 +49,9 @@ class PinAssignmentCreator : public QObject {
    * \return full path to the file if it exists otherwise return empty string
    */
   static QString searchPortsFile(const QString &projectPath);
-  static void RegisterLoader(const QString &device, PackagePinsLoader *l);
+  static void RegisterPackagePinLoader(const QString &device,
+                                       PackagePinsLoader *l);
+  static void RegisterPortsLoader(const QString &device, PortsLoader *l);
 
  signals:
   void changed();
@@ -55,15 +60,18 @@ class PinAssignmentCreator : public QObject {
   QWidget *CreateLayoutedWidget(QWidget *main);
   QString searchCsvFile(const QString &targetDevice,
                         ToolContext *context) const;
-  QString targetDevice(ProjectManager *projectManager) const;
   QString packagePinHeaderFile(ToolContext *context) const;
-  PackagePinsLoader *CreateLoader(const QString &targetDevice) const;
+  PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
+  PortsLoader *FindPortsLoader(const QString &targetDevice) const;
+  static void parseConstraints(Constraints *c, class PackagePinsView *ppView,
+                               class PortsView *portsView);
 
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
   PinsBaseModel *m_baseModel{nullptr};
   static QMap<QString, PackagePinsLoader *> m_loader;
+  static QMap<QString, PortsLoader *> m_portsLoader;
 };
 
 }  // namespace FOEDAG

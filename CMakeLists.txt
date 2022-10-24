@@ -42,9 +42,14 @@ option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
   On)
+option(CODE_COVERAGE "Generate code coverage information files when running unit tests" OFF)
 
 project(FOEDAG)
 
+if(CODE_COVERAGE)
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
+endif()
 
 set (BUILD_TYPE_STRING Engineering)
 if (PRODUCTION_BUILD)
