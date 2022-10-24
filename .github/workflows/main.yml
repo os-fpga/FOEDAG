@@ -141,6 +141,11 @@ jobs:
       MODE: ${{ matrix.mode }}
 
     steps:
+    - name: update Git
+      run: |
+        yum remove -y git*
+        yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+        yum install -y git
 
     - name: Cancel previous
       uses: styfle/cancel-workflow-action@0.11.0
