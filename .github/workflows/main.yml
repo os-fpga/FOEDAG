@@ -65,7 +65,6 @@ jobs:
         env
         which cmake && cmake --version
         which make && make --version
-        which swig && swig -version
         which python && python --version
         which ninja && ninja --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
@@ -242,7 +241,6 @@ jobs:
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-qt5-base-debug
           mingw-w64-x86_64-qt5
-          mingw-w64-x86_64-swig
           mingw-w64-x86_64-qt5-declarative-debug
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
@@ -258,7 +256,6 @@ jobs:
         which git && git --version || true
         which cmake && cmake --version || true
         which make && make --version || true
-        which swig && swig -version || true
         which python && python --version || true
         which ninja && ninja --version || true
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
@@ -300,7 +297,6 @@ jobs:
     - name: Install Core Dependencies
       run: |
         choco install -y make
-        choco install -y swig --side-by-side --version=3.0.12
 
     - name: Setup Python
       uses: actions/setup-python@v4.3.0
@@ -332,14 +328,12 @@ jobs:
 
         set MAKE_DIR=C:\make\bin
         #set TCL_DIR=%PROGRAMFILES%\Git\mingw64\bin
-        set SWIG_DIR=%PROGRMDATA%\chocolatey\lib\swig\tools\install\swigwin-3.0.12
-        set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%PATH%
-        #set PATH=%pythonLocation%;%SWIG_DIR%;%MAKE_DIR%;%TCL_DIR%;%PATH%
+        set PATH=%pythonLocation%;%MAKE_DIR%;%PATH%
+        #set PATH=%pythonLocation%;%MAKE_DIR%;%TCL_DIR%;%PATH%
 
         set
         where cmake && cmake --version
         where make && make --version
-        where swig && swig -version
         where python && python --version
         where ninja && ninja --version
 
@@ -419,7 +413,6 @@ jobs:
         env
         which cmake && cmake --version
         which make && make --version
-        which swig && swig -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
         which $CC && $CC --version
@@ -482,7 +475,6 @@ jobs:
         env
         which cmake && cmake --version
         which make && make --version
-        which swig && swig -version
         which python && python --version
         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
 
