@@ -31,6 +31,7 @@ class PackagePinsView : public PinAssignmentBaseView {
  public:
   PackagePinsView(PinsBaseModel *model, QWidget *parent = nullptr);
   void SetMode(const QString &pin, const QString &mode);
+  void SetPort(const QString &pin, const QString &port);
 
  signals:
   void selectionHasChanged();

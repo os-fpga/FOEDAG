@@ -33,26 +33,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinsBaseModel.h"
 #include "PortsLoader.h"
 #include "PortsView.h"
+#include "Utils/StringUtils.h"
 
 namespace FOEDAG {
 
 QMap<QString, PackagePinsLoader *> PinAssignmentCreator::m_loader{};
+QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 
 PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
                                            ToolContext *context, Compiler *c,
+                                           const QString &target,
                                            QObject *parent)
     : QObject(parent) {
   PortsModel *portsModel = new PortsModel{this};
-  PortsLoader portsLoader{portsModel, this};
-  portsLoader.load(searchPortsFile(projectManager->getProjectPath()));
   auto packagePinModel = new PackagePinsModel;
-  QString targetDevice{this->targetDevice(projectManager)};
-  const QString fileName = searchCsvFile(targetDevice, context);
+  const QString fileName = searchCsvFile(target, context);
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
 
-  PackagePinsLoader *loader{CreateLoader(targetDevice)};
+  PortsLoader *portsLoader{FindPortsLoader(target)};
+  portsLoader->load(searchPortsFile(projectManager->getProjectPath()));
+
+  PackagePinsLoader *loader{FindPackagePinLoader(target)};
   loader->loadHeader(packagePinHeaderFile(context));
   loader->load(fileName);
 
@@ -65,29 +68,8 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
           &PinAssignmentCreator::changed);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
-  if (c && c->getConstraints()) {
-    auto constraint = c->getConstraints();
-    // First need to setup ports and then modes sinse mode will apply only when
-    // port is selected.
-    for (const auto &con : constraint->getConstraints()) {
-      QString str{QString::fromStdString(con)};
-      if (str.startsWith("set_pin_loc")) {
-        auto list = ProjectManager::StringSplit(str, " ");
-        if (list.size() >= 3) {
-          portsView->SetPin(list.at(1), list.at(2));
-        }
-      }
-    }
-    for (const auto &con : constraint->getConstraints()) {
-      QString str{QString::fromStdString(con)};
-      if (str.startsWith("set_mode")) {
-        auto list = ProjectManager::StringSplit(str, " ");
-        if (list.size() >= 3) {
-          packagePins->SetMode(list.at(2), list.at(1));
-        }
-      }
-    }
-  }
+
+  if (c) parseConstraints(c->getConstraints(), packagePins, portsView);
 }
 
 QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
@@ -133,26 +115,59 @@ QString PinAssignmentCreator::searchCsvFile(const QString &targetDevice,
   return QString(pathDefault.string().c_str());
 }
 
-QString PinAssignmentCreator::targetDevice(
-    ProjectManager *projectManager) const {
-  if (!projectManager->HasDesign()) return QString();
-  if (projectManager->getTargetDevice().empty()) return QString();
-  return QString::fromStdString(projectManager->getTargetDevice());
-}
-
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
   auto path = context->DataPath() / "etc" / "package_pin_info.json";
   return QString::fromStdString(path.string());
 }
 
-PackagePinsLoader *PinAssignmentCreator::CreateLoader(
+PackagePinsLoader *PinAssignmentCreator::FindPackagePinLoader(
     const QString &targetDevice) const {
   if (!m_loader.contains(targetDevice)) {
-    RegisterLoader(targetDevice, new PackagePinsLoader{nullptr});
+    RegisterPackagePinLoader(targetDevice, new PackagePinsLoader{nullptr});
   }
   auto loader = m_loader.value(targetDevice);
   loader->setModel(m_baseModel->packagePinModel());
   return loader;
+}
+
+PortsLoader *PinAssignmentCreator::FindPortsLoader(
+    const QString &targetDevice) const {
+  if (!m_portsLoader.contains(targetDevice)) {
+    RegisterPortsLoader(targetDevice, new PortsLoader{nullptr});
+  }
+  auto loader = m_portsLoader.value(targetDevice);
+  loader->SetModel(m_baseModel->portsModel());
+  return loader;
+}
+
+void PinAssignmentCreator::parseConstraints(Constraints *c,
+                                            PackagePinsView *ppView,
+                                            PortsView *portsView) {
+  if (!c) return;
+
+  // First need to setup ports and then modes sinse mode will apply only when
+  // port is selected.
+  std::vector<std::string> strTmp;
+  for (const auto &con : c->getConstraints()) {
+    if (StringUtils::startsWith(con, "set_pin_loc")) {
+      strTmp.clear();
+      StringUtils::tokenize(con, " ", strTmp);
+      if (strTmp.size() >= 3) {
+        portsView->SetPin(QString::fromStdString(strTmp.at(1)),
+                          QString::fromStdString(strTmp.at(2)));
+      }
+    }
+  }
+  for (const auto &con : c->getConstraints()) {
+    if (StringUtils::startsWith(con, "set_mode")) {
+      strTmp.clear();
+      StringUtils::tokenize(con, " ", strTmp);
+      if (strTmp.size() >= 3) {
+        ppView->SetMode(QString::fromStdString(strTmp.at(2)),
+                        QString::fromStdString(strTmp.at(1)));
+      }
+    }
+  }
 }
 
 QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
@@ -163,9 +178,14 @@ QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
   return QString();
 }
 
-void PinAssignmentCreator::RegisterLoader(const QString &device,
-                                          PackagePinsLoader *l) {
+void PinAssignmentCreator::RegisterPackagePinLoader(const QString &device,
+                                                    PackagePinsLoader *l) {
   m_loader.insert(device, l);
+}
+
+void PinAssignmentCreator::RegisterPortsLoader(const QString &device,
+                                               PortsLoader *l) {
+  m_portsLoader.insert(device, l);
 }
 
 PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }

@@ -12,6 +12,7 @@
 
 #include "Compiler/CompilerDefines.h"
 #include "MainWindow/Session.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "Utils/sequential_map.h"
 
@@ -317,9 +318,9 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) return {EC_FileSetNotExist};
 
-  const QStringList commandsList = StringSplit(commands, " ");
-  const QStringList libsList = StringSplit(libs, " ");
-  const QStringList fileList = StringSplit(fileNames, " ");
+  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
+  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
+  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
 
   // check file exists
   QStringList notExistingFiles;
@@ -358,9 +359,9 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
                                    const QString& grName, bool isFileCopy,
                                    bool localToProject) {
   setCurrentFileSet(getDesignActiveFileSet());
-  const QStringList fileList = StringSplit(fileNames, " ");
-  const QStringList commandsList = StringSplit(commands, " ");
-  const QStringList libsList = StringSplit(libs, " ");
+  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
+  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
+  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
 
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
@@ -1524,21 +1525,12 @@ bool ProjectManager::CopyFileToPath(QString sourceDir, QString destinDir,
   return true;
 }
 
-QStringList ProjectManager::StringSplit(const QString& str,
-                                        const QString& sep) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-  return str.split(sep, Qt::SkipEmptyParts);
-#else
-  return str.split(sep, QString::SkipEmptyParts);
-#endif
-}
-
 std::vector<std::pair<std::string, std::string>> ProjectManager::ParseMacro(
     const QString& macro) {
   std::vector<std::pair<std::string, std::string>> macroList;
-  const QStringList data = StringSplit(macro, " ");
+  const QStringList data = QtUtils::StringSplit(macro, ' ');
   for (const auto& d : data) {
-    auto splitted = StringSplit(d, "=");
+    auto splitted = QtUtils::StringSplit(d, '=');
     if (!splitted.isEmpty())
       macroList.push_back(std::make_pair(
           splitted.first().toStdString(),

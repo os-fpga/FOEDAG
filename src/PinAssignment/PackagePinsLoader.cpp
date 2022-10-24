@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QSet>
 
+#include "Utils/QtUtils.h"
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
@@ -31,17 +32,11 @@ namespace FOEDAG {
 PackagePinsLoader::PackagePinsLoader(PackagePinsModel *model, QObject *parent)
     : QObject(parent), m_model(model) {}
 
-PackagePinsLoader::~PackagePinsLoader() {}
-
 std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
   const auto &[success, content] = getFileContent(fileName);
   if (!success) return std::make_pair(success, content);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-  QStringList lines = content.split("\n", Qt::SkipEmptyParts);
-#else
-  QStringList lines = content.split("\n", QString::SkipEmptyParts);
-#endif
+  QStringList lines = QtUtils::StringSplit(content, '\n');
   parseHeader(lines.takeFirst());
   PackagePinGroup group{};
   QSet<QString> uniquePins;
@@ -104,9 +99,6 @@ std::pair<bool, QString> PackagePinsLoader::getFileContent(
     const QString &fileName) const {
   if (!m_model) return std::make_pair(false, "Package pin model is missing");
   QFile file{fileName};
-  if (!file.exists())
-    return std::make_pair(false,
-                          QString("File %1 doesn't exist").arg(fileName));
   if (!file.open(QFile::ReadOnly))
     return std::make_pair(false, QString("Can't open file %1").arg(fileName));
 

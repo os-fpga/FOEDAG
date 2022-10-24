@@ -19,21 +19,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-
-#include <QObject>
-
-#include "PortsModel.h"
+#include "PinAssignment/PackagePinsLoader.h"
 
 namespace FOEDAG {
 
-class PortsLoader : public QObject {
+class TestLoader : public PackagePinsLoader {
  public:
-  PortsLoader(PortsModel *model, QObject *parent = nullptr);
-  virtual std::pair<bool, QString> load(const QString &file);
-  void SetModel(PortsModel *model);
-
- protected:
-  PortsModel *m_model{nullptr};
+  TestLoader();
+  std::pair<bool, QString> load(const QString &fileName) override;
+  std::pair<bool, QString> loadHeader(const QString &fileName) override;
 };
 
 }  // namespace FOEDAG

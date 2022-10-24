@@ -22,10 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignment/PinAssignmentCreator.h"
 
 #include "Compiler/Compiler.h"
+#include "Compiler/Constraints.h"
 #include "Main/ToolContext.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "PinAssignment/PackagePinsView.h"
 #include "PinAssignment/PinsBaseModel.h"
+#include "TestLoader.h"
+#include "TestPortsLoader.h"
 #include "gtest/gtest.h"
+
 using namespace FOEDAG;
 
 class PinAssignmentCreatorFixture : public testing::Test {
@@ -33,12 +38,17 @@ class PinAssignmentCreatorFixture : public testing::Test {
   PinAssignmentCreatorFixture()
       : compiler(new Compiler),
         context(new ToolContext("", "", "")),
-        projectManager(new ProjectManager) {}
+        projectManager(new ProjectManager) {
+    compiler->SetConstraints(new Constraints{compiler});
+  }
   ~PinAssignmentCreatorFixture() {
     delete compiler;
     delete context;
     delete projectManager;
   }
+
+ protected:
+  void TearDown() override { compiler->getConstraints()->reset(); }
 
  protected:
   Compiler *compiler;
@@ -64,6 +74,88 @@ TEST_F(PinAssignmentCreatorFixture, GenerateSdcWithModes) {
   auto actualSdc = creator.generateSdc();
   QString expected{"set_mode Mode1 pin1\nset_mode Mode2 pin2\n"};
   EXPECT_EQ(actualSdc, expected);
+}
+
+TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLoc) {
+  compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
+  compiler->getConstraints()->addConstraint("set_pin_loc b pin2");
+  const QString target{"testDevice"};
+
+  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
+  PinAssignmentCreator creator{projectManager, context, compiler, target};
+
+  auto actualSdc = creator.generateSdc();
+  QString expected{"set_pin_loc a pin1\nset_pin_loc b pin2\n"};
+  EXPECT_EQ(actualSdc, expected);
+}
+
+TEST_F(PinAssignmentCreatorFixture, PortsModelItemChange) {
+  compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
+  compiler->getConstraints()->addConstraint("set_pin_loc b pin2");
+  const QString target{"testDevice"};
+
+  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
+  PinAssignmentCreator creator{projectManager, context, compiler, target};
+
+  auto ppView = creator.GetPackagePinsWidget()->findChild<PackagePinsView *>();
+  if (ppView) ppView->SetPort("pin2", "c");
+
+  auto actualSdc = creator.generateSdc();
+  std::string expected{"set_pin_loc a pin1\nset_pin_loc c pin2\n"};
+  EXPECT_EQ(actualSdc.toStdString(), expected);
+}
+
+TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLocBus) {
+  compiler->getConstraints()->addConstraint("set_pin_loc d@0% pin1");
+  compiler->getConstraints()->addConstraint("set_pin_loc d@1% pin2");
+  const QString target{"testDevice"};
+
+  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
+  PinAssignmentCreator creator{projectManager, context, compiler, target};
+
+  auto actualSdc = creator.generateSdc();
+  QString expected{"set_pin_loc d[0] pin1\nset_pin_loc d[1] pin2\n"};
+  EXPECT_EQ(actualSdc, expected);
+}
+
+TEST_F(PinAssignmentCreatorFixture, ClearModeSelection) {
+  compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
+  compiler->getConstraints()->addConstraint("set_mode Mode1Tx pin1");
+  const QString target{"testDevice"};
+
+  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
+  PinAssignmentCreator creator{projectManager, context, compiler, target};
+
+  auto ppView = creator.GetPackagePinsWidget()->findChild<PackagePinsView *>();
+  if (ppView) ppView->SetPort("pin1", QString{});
+
+  auto actualSdc = creator.generateSdc();
+  std::string expected{};  // should be empty
+  EXPECT_EQ(actualSdc.toStdString(), expected);
+}
+
+TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetMode) {
+  compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
+  compiler->getConstraints()->addConstraint("set_pin_loc b pin2");
+  compiler->getConstraints()->addConstraint("set_pin_loc c pin3");
+  compiler->getConstraints()->addConstraint("set_mode Mode1Tx pin1");
+  compiler->getConstraints()->addConstraint("set_mode Mode2Rx pin2");
+  compiler->getConstraints()->addConstraint("set_mode Mode2Rx pin3");
+  const QString target{"testDevice"};
+
+  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
+  PinAssignmentCreator creator{projectManager, context, compiler, target};
+
+  auto actualSdc = creator.generateSdc();
+  std::string expected{
+      "set_pin_loc a pin1\nset_pin_loc b pin2\nset_pin_loc c pin3\nset_mode "
+      "Mode1Tx pin1\nset_mode Mode2Rx pin2\nset_mode Mode2Rx pin3\n"};
+  EXPECT_EQ(actualSdc.toStdString(), expected);
 }
 
 TEST_F(PinAssignmentCreatorFixture, GetPackagePinsWidget) {

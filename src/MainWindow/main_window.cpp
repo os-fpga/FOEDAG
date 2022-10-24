@@ -904,8 +904,10 @@ void MainWindow::pinAssignmentActionTriggered() {
       }
     }
 
+    const QString target =
+        QString::fromStdString(m_projectManager->getTargetDevice());
     PinAssignmentCreator* creator = new PinAssignmentCreator{
-        m_projectManager, GlobalSession->Context(), m_compiler, this};
+        m_projectManager, GlobalSession->Context(), m_compiler, target, this};
     connect(creator, &PinAssignmentCreator::changed, this,
             &MainWindow::pinAssignmentChanged);
 
