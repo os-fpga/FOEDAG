@@ -36,8 +36,11 @@ class PackagePinsLoader : public QObject {
   virtual std::pair<bool, QString> load(const QString &fileName);
   virtual std::pair<bool, QString> loadHeader(const QString &fileName);
 
+  void setModel(PackagePinsModel *model);
+
  protected:
   std::pair<bool, QString> getFileContent(const QString &fileName) const;
+  void parseHeader(const QString &header);
 
  protected:
   PackagePinsModel *m_model{nullptr};

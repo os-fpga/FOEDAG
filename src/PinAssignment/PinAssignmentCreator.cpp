@@ -36,6 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+QMap<QString, PackagePinsLoader *> PinAssignmentCreator::m_loader{};
+
 PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
                                            ToolContext *context, Compiler *c,
                                            QObject *parent)
@@ -44,14 +46,15 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   PortsLoader portsLoader{portsModel, this};
   portsLoader.load(searchPortsFile(projectManager->getProjectPath()));
   auto packagePinModel = new PackagePinsModel;
-  const QString fileName = searchCsvFile(targetDevice(projectManager), context);
-  PackagePinsLoader loader{packagePinModel, this};
-  loader.loadHeader(packagePinHeaderFile(context));
-  loader.load(fileName);
-
+  QString targetDevice{this->targetDevice(projectManager)};
+  const QString fileName = searchCsvFile(targetDevice, context);
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
+
+  PackagePinsLoader *loader{CreateLoader(targetDevice)};
+  loader->loadHeader(packagePinHeaderFile(context));
+  loader->load(fileName);
 
   auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
@@ -71,6 +74,11 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
         if (list.size() >= 3) {
           portsView->SetPin(list.at(1), list.at(2));
         }
+      } else if (str.startsWith("set_mode")) {
+        auto list = str.split(" ");
+        if (list.size() >= 3) {
+          packagePins->SetMode(list.at(2), list.at(1));
+        }
       }
     }
   }
@@ -83,11 +91,16 @@ QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
 QWidget *PinAssignmentCreator::GetPortsWidget() { return m_portsView; }
 
 QString PinAssignmentCreator::generateSdc() const {
-  if (m_baseModel->pinMap().isEmpty()) return QString();
   QString sdc;
   const auto pinMap = m_baseModel->pinMap();
+  // generate pin location
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
     sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
+  }
+  // generate mode
+  auto modeMap = m_baseModel->packagePinModel()->modeMap();
+  for (auto it{modeMap.begin()}; it != modeMap.end(); ++it) {
+    sdc.append(QString("set_mode %1 %2\n").arg(it.value(), it.key()));
   }
   return sdc;
 }
@@ -126,12 +139,27 @@ QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
   return QString::fromStdString(path.string());
 }
 
+PackagePinsLoader *PinAssignmentCreator::CreateLoader(
+    const QString &targetDevice) const {
+  if (!m_loader.contains(targetDevice)) {
+    RegisterLoader(targetDevice, new PackagePinsLoader{nullptr});
+  }
+  auto loader = m_loader.value(targetDevice);
+  loader->setModel(m_baseModel->packagePinModel());
+  return loader;
+}
+
 QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
   const QDir dir{projectPath};
   auto file = dir.filePath("port_info.json");
   const QFileInfo fileInfo{file};
   if (fileInfo.exists()) return file;
   return QString();
+}
+
+void PinAssignmentCreator::RegisterLoader(const QString &device,
+                                          PackagePinsLoader *l) {
+  m_loader.insert(device, l);
 }
 
 PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }

@@ -185,7 +185,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   pnr_netlist_lang <blif, verilog> : Chooses vpr input netlist "
+  (*out) << "   pnr_netlist_lang <blif, edif, verilog> : Chooses vpr input "
+            "netlist "
             "format"
          << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
@@ -533,11 +534,11 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     }
     std::string arg = argv[1];
     if (arg == "verilog") {
-      compiler->UseVerilogNetlist(true);
+      compiler->SetNetlistType(NetlistType::Verilog);
     } else if (arg == "edif") {
-      compiler->UseEdifNetlist(true);
+      compiler->SetNetlistType(NetlistType::Edif);
     } else if (arg == "blif") {
-      compiler->UseVerilogNetlist(false);
+      compiler->SetNetlistType(NetlistType::Blif);
     } else {
       compiler->ErrorMessage(
           "Invalid arg to netlist_type (verilog or blif), was: " + arg);
@@ -1197,6 +1198,9 @@ bool CompilerOpenFPGA::Synthesize() {
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
                            ProjManager()->DesignTopModule());
+
+  yosysScript = FinishSynthesisScript(yosysScript);
+
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
@@ -1207,16 +1211,18 @@ bool CompilerOpenFPGA::Synthesize() {
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
 
-  yosysScript = FinishSynthesisScript(yosysScript);
-
   std::string script_path = ProjManager()->projectName() + ".ys";
   std::string output_path;
-  if (UseVerilogNetlist()) {
-    output_path = ProjManager()->projectName() + "_post_synth.v";
-  } else if (UseEdifNetlist()) {
-    output_path = ProjManager()->projectName() + "_post_synth.edif";
-  } else {
-    output_path = ProjManager()->projectName() + "_post_synth.blif";
+  switch (GetNetlistType()) {
+    case NetlistType::Verilog:
+      output_path = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case NetlistType::Edif:
+      output_path = ProjManager()->projectName() + "_post_synth.edif";
+      break;
+    case NetlistType::Blif:
+      output_path = ProjManager()->projectName() + "_post_synth.blif";
+      break;
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
@@ -1298,12 +1304,16 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
     device_size = " --device " + m_deviceSize;
   }
   std::string netlistFile;
-  if (UseVerilogNetlist()) {
-    netlistFile = ProjManager()->projectName() + "_post_synth.v";
-  } else if (UseEdifNetlist()) {
-    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
-  } else {
-    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  switch (GetNetlistType()) {
+    case NetlistType::Verilog:
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case NetlistType::Edif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      break;
+    case NetlistType::Blif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      break;
   }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1788,8 +1798,7 @@ bool CompilerOpenFPGA::Route() {
     return true;
   }
 
-  std::string command =
-      BaseVprCommand() + " --route --gen_post_synthesis_netlist on";
+  std::string command = BaseVprCommand() + " --route";
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
                         .string());
@@ -2066,12 +2075,16 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
   std::string netlistFile;
-  if (UseVerilogNetlist()) {
-    netlistFile = ProjManager()->projectName() + "_post_synth.v";
-  } else if (UseEdifNetlist()) {
-    netlistFile = ProjManager()->projectName() + "_post_synth.edif";
-  } else {
-    netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  switch (GetNetlistType()) {
+    case NetlistType::Verilog:
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case NetlistType::Edif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      break;
+    case NetlistType::Blif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      break;
   }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -2093,13 +2106,19 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
   result = ReplaceAll(result, "${VPR_TESTBENCH_BLIF}", netlistFile);
 
-  std::string netlistFormat = "blif";
-  if (UseVerilogNetlist()) {
-    netlistFormat = "verilog";
+  std::string netlistFormat;
+  switch (GetNetlistType()) {
+    case NetlistType::Verilog:
+      netlistFormat = "verilog";
+      break;
+    case NetlistType::Edif:
+      netlistFormat = "edif";
+      break;
+    case NetlistType::Blif:
+      netlistFormat = "blif";
+      break;
   }
-  if (UseEdifNetlist()) {
-    netlistFormat = "edif";
-  }
+
   result = ReplaceAll(result, "${OPENFPGA_VPR_CIRCUIT_FORMAT}", netlistFormat);
   if (m_deviceSize.size()) {
     result = ReplaceAll(result, "${OPENFPGA_VPR_DEVICE_LAYOUT}",
