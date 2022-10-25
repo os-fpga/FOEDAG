@@ -205,8 +205,7 @@ void TaskTableView::TasksDelegate::paint(QPainter *painter,
     auto statusData = index.data(Qt::DecorationRole);
     auto label = qobject_cast<QLabel *>(m_view.indexWidget(index));
     // QTableView can't paint animations. Do it manually via QLabel.
-    if (statusData.type() == QVariant::String &&
-        statusData.toString() == LOADING_GIF) {
+    if (statusData.type() == QVariant::Bool) {
       label->setMovie(m_inProgressMovie);
       // Place the animation to cells left side, similar to other decorations
       label->move(m_view.visualRect(index).topLeft());

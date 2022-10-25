@@ -89,7 +89,7 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
         case TaskStatus::Fail:
           return QIcon(":/failed.png");
         case TaskStatus::InProgress:
-          return QString(":/loading.gif");
+          return true;
         default:
           return QVariant();
       }
