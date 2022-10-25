@@ -47,7 +47,8 @@ void Session::windowShow() {
                             cmdLine->GuiTestScript().empty());
       }
       if (hasProjectFile) {
-        topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()));
+        topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()),
+                              true);
       } else if (hasScriptCmd) {
         int returnCode{TCL_OK};
         if (m_compiler) {

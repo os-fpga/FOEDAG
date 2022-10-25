@@ -1317,7 +1317,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return TCL_ERROR;
     }
     qobject_cast<FOEDAG::MainWindow*>(mainWindow)
-        ->openProject(QString::fromStdString(expandedFile));
+        ->openProject(QString::fromStdString(expandedFile), false);
     return TCL_OK;
   };
   interp->registerCmd("open_project", open_project, this, nullptr);
