@@ -98,6 +98,8 @@ std::pair<bool, QString> PackagePinsLoader::loadHeader(
   return std::make_pair(true, QString());
 }
 
+void PackagePinsLoader::setModel(PackagePinsModel *model) { m_model = model; }
+
 std::pair<bool, QString> PackagePinsLoader::getFileContent(
     const QString &fileName) const {
   if (!m_model) return std::make_pair(false, "Package pin model is missing");

@@ -36,6 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+QMap<QString, PackagePinsLoader *> PinAssignmentCreator::m_loader{};
+
 PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
                                            ToolContext *context, Compiler *c,
                                            QObject *parent)
@@ -44,14 +46,15 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   PortsLoader portsLoader{portsModel, this};
   portsLoader.load(searchPortsFile(projectManager->getProjectPath()));
   auto packagePinModel = new PackagePinsModel;
-  const QString fileName = searchCsvFile(targetDevice(projectManager), context);
-  PackagePinsLoader loader{packagePinModel, this};
-  loader.loadHeader(packagePinHeaderFile(context));
-  loader.load(fileName);
-
+  QString targetDevice{this->targetDevice(projectManager)};
+  const QString fileName = searchCsvFile(targetDevice, context);
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
+
+  PackagePinsLoader *loader{CreateLoader(targetDevice)};
+  loader->loadHeader(packagePinHeaderFile(context));
+  loader->load(fileName);
 
   auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
@@ -136,12 +139,27 @@ QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
   return QString::fromStdString(path.string());
 }
 
+PackagePinsLoader *PinAssignmentCreator::CreateLoader(
+    const QString &targetDevice) const {
+  if (!m_loader.contains(targetDevice)) {
+    RegisterLoader(targetDevice, new PackagePinsLoader{nullptr});
+  }
+  auto loader = m_loader.value(targetDevice);
+  loader->setModel(m_baseModel->packagePinModel());
+  return loader;
+}
+
 QString PinAssignmentCreator::searchPortsFile(const QString &projectPath) {
   const QDir dir{projectPath};
   auto file = dir.filePath("port_info.json");
   const QFileInfo fileInfo{file};
   if (fileInfo.exists()) return file;
   return QString();
+}
+
+void PinAssignmentCreator::RegisterLoader(const QString &device,
+                                          PackagePinsLoader *l) {
+  m_loader.insert(device, l);
 }
 
 PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }
