@@ -75,6 +75,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openProjectSettings();
   void slotTabChanged(int index);
   void handleProjectOpened();
+  void onShowWelcomePage(bool show);
   void onOpenProjectRequested(const QString& project);
 
  public slots:
@@ -123,9 +124,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool confirmCloseProject();
   bool confirmExitProgram();
 
-  // Welcome page config file name
-  static const QString WELCOME_PAGE_CONFIG_FILE;
-
  private: /* Objects/Widgets under the main window */
   bool m_showWelcomePage{true};
   /* Menu bar objects */
@@ -148,6 +146,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* pinAssignmentAction = nullptr;
   QAction* ipConfiguratorAction = nullptr;
   QAction* saveAction = nullptr;
+  QAction* showWelcomePageAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
