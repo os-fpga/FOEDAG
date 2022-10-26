@@ -75,10 +75,19 @@ QWidgetList findWidgets(FindWidgetRequest request) {
   QString type = request.widgetType.toLower();
   bool forceIncludeHidden = false;
   QWidgetList results{};
-  // findChildren is intentionally passed null so that all widgets of that type
-  // are returned (passing "" only returns objects whose objectName is "")
-  // https://doc.qt.io/qt-5/qobject.html#findChildren
-  if (request.searchWidget) {
+
+  // Any widget that determines its own searchWidget (like QDialog which must
+  // search topLevelWidgets) can set this flag to false to make it into the
+  // conditional below w/o having set a searchWidget
+  bool searchWidgetRequired{true};
+  if (type == "dialog" || type == "qdialog") {
+    searchWidgetRequired = false;
+  }
+
+  // findChildren is intentionally passed null so that all widgets of that
+  // type are returned (passing "" only returns objects whose objectName is
+  // "") https://doc.qt.io/qt-5/qobject.html#findChildren
+  if (!searchWidgetRequired || request.searchWidget) {
     // sma if matchCase and type aren't set and objectName is, we could probably
     // shortcut the search and just do findChild<QWidget*>(objectName)
     if (type == "qpushbutton" || type == "button" || type == "pushbutton" ||
@@ -87,7 +96,7 @@ QWidgetList findWidgets(FindWidgetRequest request) {
         btn->setProperty(QT_TEST_TEXT, btn->text());
         results.append(btn);
       }
-    } else if (type == "dialog") {
+    } else if (type == "qdialog" || type == "dialog") {
       // QDialogs are always top level widgets so request.searchWidget is
       // ignored https://doc.qt.io/qt-5/qdialog.html#details
       for (QWidget* widget : qApp->topLevelWidgets()) {
@@ -268,6 +277,16 @@ void openMenu(QWidget* searchWidget, const QStringList& menuEntries) {
         menu->close();
       }
     }
+  }
+}
+
+// This is intended to be called on a ptr returned by findWidgets.
+// It will attempt to convert the ptr to a button type and then programatically
+// click it
+void clickButton(QWidget* ptr) {
+  QAbstractButton* btn = qobject_cast<QAbstractButton*>(ptr);
+  if (btn) {
+    btn->animateClick();
   }
 }
 
@@ -548,14 +567,63 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
     bool ok{false};
     QWidget* widget = widgetAddrToPtr(argv[1], ok);
-    QAbstractButton* btn = qobject_cast<QAbstractButton*>(widget);
-    if (ok && btn) {
-      btn->animateClick();
+    if (ok) {
+      clickButton(widget);
     }
 
     return TCL_OK;
   };
   session->TclInterp()->registerCmd("qt_clickButton", qt_clickButton,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_dlg_test = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    // This is a proof of concept to show that a modal dialog can be interacted
+    // with by storing the desired actions in a lambda and firing it w/ a delay
+    // so it executes after the modal dialog has started blocking
+    // Still need to come up with a way of queuing these through the tcl
+    // interface
+    if (argc < 1) {
+      Tcl_AppendResult(interp,
+                       qPrintable("Expected Syntax: qt_dlg_test 0x<ptr> or "
+                                  "qt_dlg_test QWidget(0x<ptr>)"),
+                       nullptr);
+      return TCL_ERROR;
+    }
+
+    QWidget* widget = static_cast<QWidget*>(clientData);
+    if (widget) {
+      QTimer::singleShot(1000, []() {
+        std::cout << "Continuing\n" << std::endl;
+
+        FindWidgetRequest findDlg;
+        findDlg.widgetType = "qdialog";
+        findDlg.widgetText = "Open File";
+        auto dlgs = findWidgets(findDlg);
+
+        if (dlgs.count()) {
+          std::cout << "found dlg" << std::endl;
+          FindWidgetRequest cancelBtn;
+          cancelBtn.widgetType = "qpushbutton";
+          cancelBtn.widgetText = "cancel";
+          cancelBtn.searchWidget = dlgs[0];
+          auto btn = findWidgets(cancelBtn);
+
+          if (btn.count()) {
+            std::cout << "found btn " << btn[0] << " "
+                      << btn[0]->metaObject()->className() << std::endl;
+            clickButton(btn[0]);
+          }
+        }
+      });
+      // Grab the top widget to search through
+      widget = QApplication::topLevelAt(widget->mapToGlobal(QPoint()));
+      openMenu(widget, {"File", "Open File..."});
+    }
+
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_dlg_test", qt_dlg_test,
                                     GlobalSession->MainWindow(), nullptr);
 
   auto qt_openMenu = [](void* clientData, Tcl_Interp* interp, int argc,
