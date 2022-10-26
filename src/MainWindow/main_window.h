@@ -52,6 +52,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
+  void openProject(const QString& project, bool delayed) override;
+
  protected:
   void closeEvent(QCloseEvent* event) override;
 
@@ -74,6 +76,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void slotTabChanged(int index);
   void handleProjectOpened();
   void onShowWelcomePage(bool show);
+  void onOpenProjectRequested(const QString& project);
 
  public slots:
   void updateSourceTree();
@@ -87,6 +90,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  signals:
   void projectOpened();
+  void openProjectRequested(const QString& project);
 
  private: /* Menu bar builders */
   void updateViewMenu();
@@ -107,7 +111,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                           Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
-  void openProject(const QString& project);
   void saveToRecentSettings(const QString& project);
 
   void showMenus(bool show);

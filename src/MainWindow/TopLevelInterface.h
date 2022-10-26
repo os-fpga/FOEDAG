@@ -20,12 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+class QString;
+
 namespace FOEDAG {
 
 class TopLevelInterface {
  public:
   virtual ~TopLevelInterface() = default;
   virtual void gui_start(bool showWP) = 0;
+  // Delayed argument indicates whether project opening should be delayed.
+  // May be necessary to initialize UI first and open the project afterwards
+  virtual void openProject(const QString& projectFile, bool delayed) = 0;
   virtual void ProgressVisible(bool visible) = 0;
 };
 

@@ -53,6 +53,8 @@ class CommandLine {
 
   const std::string& CompilerName() const { return m_compilerName; }
 
+  const std::string& ProjectFile() const { return m_projectFile; }
+
   bool UseVerific() { return m_useVerific; }
 
   bool PrintHelp() { return m_help; }
@@ -76,6 +78,7 @@ class CommandLine {
   std::string m_runGuiTest;
   std::string m_runTclCmd;
   std::string m_compilerName;
+  std::string m_projectFile;
   bool m_help = false;
   bool m_version = false;
   bool m_useVerific = false;
