@@ -59,8 +59,8 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
-const QString MainWindow::WELCOME_PAGE_CONFIG_FILE = "WelcomePageConfig";
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
+const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 
@@ -70,9 +70,7 @@ MainWindow::MainWindow(Session* session)
   m_compiler = session->GetCompiler();
   m_interpreter = session->TclInterp();
 
-  QFile file(WELCOME_PAGE_CONFIG_FILE);
-  m_showWelcomePage = !file.exists();  // Prevent welcome page from appearance
-                                       // if the file exists.
+  m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -138,6 +136,8 @@ MainWindow::MainWindow(Session* session)
 
   connect(this, &MainWindow::projectOpened, this,
           &MainWindow::handleProjectOpened);
+  connect(this, &MainWindow::openProjectRequested, this,
+          &MainWindow::onOpenProjectRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -228,7 +228,7 @@ void MainWindow::openExampleProject() {
                           std::filesystem::copy_options::recursive);
 
     // open the newly copied example project
-    openProject(dest + QDir::separator() + file);
+    openProject(dest + QDir::separator() + file, false);
   }
 }
 
@@ -236,7 +236,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) openProject(fileName);
+  if (!fileName.isEmpty()) openProject(fileName, false);
 }
 
 void MainWindow::closeProject() {
@@ -300,10 +300,18 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project) {
-  ReShowWindow(project);
-  loadFile(project);
-  emit projectOpened();
+void MainWindow::openProject(const QString& project, bool delayed) {
+  if (!delayed) {
+    ReShowWindow(project);
+    loadFile(project);
+    emit projectOpened();
+  } else {
+    emit openProjectRequested(project);
+  }
+}
+
+void MainWindow::onOpenProjectRequested(const QString& project) {
+  openProject(project, false);
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -454,6 +462,8 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
+  helpMenu->addSeparator();
+  helpMenu->addAction(showWelcomePageAction);
 }
 
 void MainWindow::createToolBars() {
@@ -559,6 +569,12 @@ void MainWindow::createActions() {
           &MainWindow::saveActionTriggered);
   saveAction->setIcon(QIcon(":/images/save.png"));
   saveAction->setEnabled(false);
+
+  showWelcomePageAction = new QAction(tr("Show welcome page"), this);
+  showWelcomePageAction->setCheckable(true);
+  showWelcomePageAction->setChecked(m_showWelcomePage);
+  connect(showWelcomePageAction, &QAction::triggered, this,
+          &MainWindow::onShowWelcomePage);
 }
 
 void MainWindow::gui_start(bool showWP) {
@@ -1008,11 +1024,8 @@ void MainWindow::handleProjectOpened() {
 }
 
 void MainWindow::saveWelcomePageConfig() {
-  // So far the only configuration is boolean, indicating whether welcome page
-  // should we shown. To store it we just save a file in a working directory -
-  // if it's there, we don't show the welcome page.
-  QFile file(WELCOME_PAGE_CONFIG_FILE);
-  if (file.open(QIODevice::WriteOnly)) file.close();
+  m_settings.setValue(SHOW_WELCOMEPAGE_KEY, m_showWelcomePage);
+  showWelcomePageAction->setChecked(m_showWelcomePage);
 }
 
 void MainWindow::recentProjectOpen() {
@@ -1024,7 +1037,7 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name);
+    if (!name.isEmpty()) openProject(name, false);
   }
 }
 
@@ -1071,4 +1084,9 @@ bool MainWindow::confirmExitProgram() {
               this, "Exit Program?",
               tr("Are you sure you want to exit the program?\n"),
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
+}
+
+void MainWindow::onShowWelcomePage(bool show) {
+  m_showWelcomePage = show;
+  saveWelcomePageConfig();
 }

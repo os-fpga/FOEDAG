@@ -51,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Settings.h"
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
+#include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
@@ -95,6 +96,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
   (*out) << "   --replay <script>: Replay GUI test" << std::endl;
   (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
+  (*out) << "   --project <project file>: Open a project" << std::endl;
   (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
             "a dummy compiler"
          << std::endl;
@@ -102,6 +104,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name>       : Creates a design with <name> name"
+         << std::endl;
+  (*out) << "   open_project <file>        : Opens a project in started "
+            "upfront GUI"
          << std::endl;
   (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
          << std::endl;
@@ -1281,6 +1286,41 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("architecture", architecture, nullptr, nullptr);
+
+  auto open_project = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify a project file name");
+      return TCL_ERROR;
+    }
+    std::string file = argv[1];
+    std::string expandedFile = file;
+    bool use_orig_path = false;
+    if (FileUtils::FileExists(expandedFile)) {
+      use_orig_path = true;
+    }
+
+    if ((!use_orig_path) &&
+        (!compiler->GetSession()->CmdLine()->Script().empty())) {
+      std::filesystem::path script =
+          compiler->GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      std::filesystem::path fullPath = scriptPath;
+      fullPath.append(file);
+      expandedFile = fullPath.string();
+    }
+    auto mainWindow = compiler->GetSession()->MainWindow();
+    if (!mainWindow) {
+      compiler->ErrorMessage(
+          "Gui has to be started before calling 'open_project'");
+      return TCL_ERROR;
+    }
+    qobject_cast<FOEDAG::MainWindow*>(mainWindow)
+        ->openProject(QString::fromStdString(expandedFile), false);
+    return TCL_OK;
+  };
+  interp->registerCmd("open_project", open_project, this, nullptr);
   return true;
 }
 

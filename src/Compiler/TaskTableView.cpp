@@ -24,7 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QBoxLayout>
 #include <QDebug>
 #include <QHeaderView>
+#include <QLabel>
 #include <QMenu>
+#include <QMovie>
 #include <QPushButton>
 
 #include "NewProject/ProjectManager/project.h"
@@ -34,10 +36,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
 
+const QString TaskTableView::TasksDelegate::LOADING_GIF = ":/loading.gif";
+
 TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
     : QTableView(parent), m_taskManager(tManager) {
   verticalHeader()->hide();
-  setItemDelegateForColumn(1, new ChildItemDelegate);
+  auto delegate = new TasksDelegate(*this, this);
+  setItemDelegateForColumn(StatusCol, delegate);
+  setItemDelegateForColumn(TitleCol, delegate);
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this,
           SLOT(customMenuRequested(const QPoint &)));
@@ -77,8 +83,11 @@ void TaskTableView::mouseDoubleClickEvent(QMouseEvent *event) {
 void TaskTableView::setModel(QAbstractItemModel *model) {
   QTableView::setModel(model);
   for (int i = 0; i < this->model()->rowCount(); i++) {
-    auto task = m_taskManager->task(
-        this->model()->data(this->model()->index(i, 0), TaskId).toUInt());
+    auto statusIndex = this->model()->index(i, StatusCol);
+    // Table view can't play gif animations automatically, so we set QLabel,
+    // which can.
+    setIndexWidget(statusIndex, new QLabel);
+    auto task = m_taskManager->task(statusIndex.data(TaskId).toUInt());
     if (task && ((task->type() == TaskType::Settings) ||
                  (task->type() == TaskType::Button))) {
       auto index = this->model()->index(i, TitleCol);
@@ -174,10 +183,16 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
   menu->addAction(viewLog);
 }
 
-void ChildItemDelegate::paint(QPainter *painter,
-                              const QStyleOptionViewItem &option,
-                              const QModelIndex &index) const {
-  if (index.data(ParentDataRole).toBool()) {
+TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,
+                                            QObject *parent)
+    : QStyledItemDelegate(parent),
+      m_view{view},
+      m_inProgressMovie{new QMovie(LOADING_GIF, {}, &view)} {}
+
+void TaskTableView::TasksDelegate::paint(QPainter *painter,
+                                         const QStyleOptionViewItem &option,
+                                         const QModelIndex &index) const {
+  if (index.column() == TitleCol && index.data(ParentDataRole).toBool()) {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
     const QWidget *widget = option.widget;
@@ -185,6 +200,21 @@ void ChildItemDelegate::paint(QPainter *painter,
     opt.rect.setTopLeft(opt.rect.topLeft() - QPoint(-30, 0));
     style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
     return;
+  }
+  if (index.column() == StatusCol) {
+    auto statusData = index.data(Qt::DecorationRole);
+    auto label = qobject_cast<QLabel *>(m_view.indexWidget(index));
+    // QTableView can't paint animations. Do it manually via QLabel.
+    if (statusData.type() == QVariant::Bool) {
+      label->setMovie(m_inProgressMovie);
+      // Place the animation to cells left side, similar to other decorations
+      label->move(m_view.visualRect(index).topLeft());
+      m_inProgressMovie->start();
+      return;
+    } else {
+      // Reset the movie when task is no longer in progress
+      label->setMovie(nullptr);
+    }
   }
   QStyledItemDelegate::paint(painter, option, index);
 }
