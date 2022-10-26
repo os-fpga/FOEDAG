@@ -111,12 +111,12 @@ class TaskManager : public QObject {
  private:
   void run();
   void reset();
-  void rollBack(Task *t);
+  void cleanDownStreamStatus(Task *t);
 
  private:
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
-  QMap<Task *, QVector<Task *>> m_rollBack;
+  QVector<Task *> m_taskQueue;
   int m_taskCount{0};
   int counter{0};
 };
