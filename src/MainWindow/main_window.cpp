@@ -452,6 +452,8 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
+  helpMenu->addSeparator();
+  helpMenu->addAction(showWelcomePageAction);
 }
 
 void MainWindow::createToolBars() {
@@ -560,6 +562,7 @@ void MainWindow::createActions() {
 
   showWelcomePageAction = new QAction(tr("Show welcome page"), this);
   showWelcomePageAction->setCheckable(true);
+  showWelcomePageAction->setChecked(m_showWelcomePage);
   connect(showWelcomePageAction, &QAction::triggered, this,
           &MainWindow::onShowWelcomePage);
 }
@@ -992,9 +995,6 @@ void MainWindow::updateViewMenu() {
       viewMenu->addAction(dockWidget->toggleViewAction());
     }
   }
-  viewMenu->addSeparator();
-  viewMenu->addAction(showWelcomePageAction);
-  showWelcomePageAction->setChecked(m_showWelcomePage);
 }
 
 void MainWindow::slotTabChanged(int index) {
@@ -1015,6 +1015,7 @@ void MainWindow::handleProjectOpened() {
 
 void MainWindow::saveWelcomePageConfig() {
   m_settings.setValue(SHOW_WELCOMEPAGE_KEY, m_showWelcomePage);
+  showWelcomePageAction->setChecked(m_showWelcomePage);
 }
 
 void MainWindow::recentProjectOpen() {
