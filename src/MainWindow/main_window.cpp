@@ -138,6 +138,8 @@ MainWindow::MainWindow(Session* session)
 
   connect(this, &MainWindow::projectOpened, this,
           &MainWindow::handleProjectOpened);
+  connect(this, &MainWindow::openProjectRequested, this,
+          &MainWindow::onOpenProjectRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -228,7 +230,7 @@ void MainWindow::openExampleProject() {
                           std::filesystem::copy_options::recursive);
 
     // open the newly copied example project
-    openProject(dest + QDir::separator() + file);
+    openProject(dest + QDir::separator() + file, false);
   }
 }
 
@@ -236,7 +238,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) openProject(fileName);
+  if (!fileName.isEmpty()) openProject(fileName, false);
 }
 
 void MainWindow::closeProject() {
@@ -300,10 +302,18 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project) {
-  ReShowWindow(project);
-  loadFile(project);
-  emit projectOpened();
+void MainWindow::openProject(const QString& project, bool delayed) {
+  if (!delayed) {
+    ReShowWindow(project);
+    loadFile(project);
+    emit projectOpened();
+  } else {
+    emit openProjectRequested(project);
+  }
+}
+
+void MainWindow::onOpenProjectRequested(const QString& project) {
+  openProject(project, false);
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -1024,7 +1034,7 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name);
+    if (!name.isEmpty()) openProject(name, false);
   }
 }
 
