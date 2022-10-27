@@ -151,7 +151,7 @@ test_install:
 
 test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/open_project_test/open_project.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/run_project_test/run_project.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow_with_clean.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
