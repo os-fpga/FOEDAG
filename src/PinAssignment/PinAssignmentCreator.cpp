@@ -67,15 +67,21 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   m_packagePinsView = CreateLayoutedWidget(packagePins);
   if (c && c->getConstraints()) {
     auto constraint = c->getConstraints();
+    // First need to setup ports and then modes sinse mode will apply only when
+    // port is selected.
     for (const auto &con : constraint->getConstraints()) {
       QString str{QString::fromStdString(con)};
       if (str.startsWith("set_pin_loc")) {
-        auto list = str.split(" ");
+        auto list = ProjectManager::StringSplit(str, " ");
         if (list.size() >= 3) {
           portsView->SetPin(list.at(1), list.at(2));
         }
-      } else if (str.startsWith("set_mode")) {
-        auto list = str.split(" ");
+      }
+    }
+    for (const auto &con : constraint->getConstraints()) {
+      QString str{QString::fromStdString(con)};
+      if (str.startsWith("set_mode")) {
+        auto list = ProjectManager::StringSplit(str, " ");
         if (list.size() >= 3) {
           packagePins->SetMode(list.at(2), list.at(1));
         }
