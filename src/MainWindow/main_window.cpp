@@ -136,8 +136,8 @@ MainWindow::MainWindow(Session* session)
 
   connect(this, &MainWindow::projectOpened, this,
           &MainWindow::handleProjectOpened);
-  connect(this, &MainWindow::openProjectRequested, this,
-          &MainWindow::onOpenProjectRequested, Qt::QueuedConnection);
+  connect(this, &MainWindow::runProjectRequested, this,
+          &MainWindow::onRunProjectRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -300,18 +300,19 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project, bool delayed) {
-  if (!delayed) {
+void MainWindow::openProject(const QString& project, bool delayedRunProject) {
+  if (!delayedRunProject) {
     ReShowWindow(project);
     loadFile(project);
     emit projectOpened();
   } else {
-    emit openProjectRequested(project);
+    emit runProjectRequested(project);
   }
 }
 
-void MainWindow::onOpenProjectRequested(const QString& project) {
+void MainWindow::onRunProjectRequested(const QString& project) {
   openProject(project, false);
+  startProject();
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -529,11 +530,7 @@ void MainWindow::createActions() {
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this, [this]() {
-    m_progressWidget->show();
-    m_compiler->start();
-    m_taskManager->startAll();
-  });
+  connect(startAction, &QAction::triggered, this, &MainWindow::startProject);
   connect(stopAction, &QAction::triggered, this, [this]() {
     m_compiler->Stop();
     m_progressWidget->hide();
@@ -1089,4 +1086,10 @@ bool MainWindow::confirmExitProgram() {
 void MainWindow::onShowWelcomePage(bool show) {
   m_showWelcomePage = show;
   saveWelcomePageConfig();
+}
+
+void MainWindow::startProject() {
+  m_progressWidget->show();
+  m_compiler->start();
+  m_taskManager->startAll();
 }

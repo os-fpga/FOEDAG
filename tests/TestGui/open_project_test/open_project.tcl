@@ -17,5 +17,5 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-puts "OPENING PROJECT"; flush stdout ; open_project test.ospr
-puts "PROJECT OPENED"; flush stdout ; exit
+puts "RUNNING PROJECT"; flush stdout ; run_project test.ospr
+puts "PROJECT RUN"; flush stdout ; exit
