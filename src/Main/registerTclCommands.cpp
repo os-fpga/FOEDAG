@@ -618,11 +618,11 @@ void registerGuiTestCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("qt_clickButton", qt_clickButton,
                                     GlobalSession->MainWindow(), nullptr);
 
-  auto qt_set_text = [](void* clientData, Tcl_Interp* interp, int argc,
-                        const char* argv[]) -> int {
+  auto qt_setText = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
     if (argc < 3) {
       Tcl_AppendResult(interp,
-                       qPrintable("Expected Syntax: qt_set_text 0x<ptr> text"),
+                       qPrintable("Expected Syntax: qt_setText 0x<ptr> text"),
                        nullptr);
       return TCL_ERROR;
     }
@@ -643,7 +643,7 @@ void registerGuiTestCommands(FOEDAG::Session* session) {
 
     return TCL_OK;
   };
-  session->TclInterp()->registerCmd("qt_set_text", qt_set_text,
+  session->TclInterp()->registerCmd("qt_setText", qt_setText,
                                     GlobalSession->MainWindow(), nullptr);
 
   auto qt_openMenu = [](void* clientData, Tcl_Interp* interp, int argc,

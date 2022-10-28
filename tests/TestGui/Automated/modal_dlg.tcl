@@ -21,7 +21,7 @@ try {
         # The text entries don't have unique objectNames so we'll just grab the first one because we know it's the file name field
         set entry [qt_findWidgets -parent $dlg -type qlineedit -nth 0]
         # Set the filename we want to load
-        qt_set_text $entry "./tests/TestGui/Automated/test_file.txt"
+        qt_setText $entry "./tests/TestGui/Automated/test_file.txt"
         qt_clickButton $btn;
     }
 
