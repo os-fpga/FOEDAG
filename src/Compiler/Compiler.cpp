@@ -287,26 +287,24 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
 // extra parameters or capture anything, static function had to be added.
 static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[], bool run) {
-  Compiler* compiler = (Compiler*)clientData;
+  auto compiler = (Compiler*)clientData;
+  auto cmdLine = compiler->GetSession()->CmdLine();
   if (argc != 2) {
     compiler->ErrorMessage("Specify a project file name");
     return TCL_ERROR;
   }
   std::string file = argv[1];
   std::string expandedFile = file;
-  bool use_orig_path = false;
-  if (FileUtils::FileExists(expandedFile)) {
-    use_orig_path = true;
-  }
-
-  if ((!use_orig_path) &&
-      (!compiler->GetSession()->CmdLine()->Script().empty())) {
-    std::filesystem::path script = compiler->GetSession()->CmdLine()->Script();
+  if (!FileUtils::FileExists(expandedFile)) {
+    auto scriptFile = cmdLine->Script();
+    std::filesystem::path script =
+        scriptFile.empty() ? cmdLine->GuiTestScript() : scriptFile;
     std::filesystem::path scriptPath = script.parent_path();
     std::filesystem::path fullPath = scriptPath;
     fullPath.append(file);
     expandedFile = fullPath.string();
   }
+
   auto mainWindow = compiler->GetSession()->MainWindow();
   if (!mainWindow) {
     compiler->ErrorMessage(
