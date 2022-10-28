@@ -407,15 +407,15 @@ bool IPGenerator::Generate() {
       }
       case IPDefinition::IPType::LiteXGenerator: {
         const std::filesystem::path executable = def->FilePath();
-        std::filesystem::path jasonfile = GetCachePath(inst);
+        std::filesystem::path jsonFile = GetCachePath(inst);
         std::stringstream previousbuffer;
-        if (FileUtils::FileExists(jasonfile)) {
-          std::ifstream previous(jasonfile);
+        if (FileUtils::FileExists(jsonFile)) {
+          std::ifstream previous(jsonFile);
           std::stringstream buffer;
           previousbuffer << previous.rdbuf();
         }
 
-        std::ofstream jsonF(jasonfile);
+        std::ofstream jsonF(jsonFile);
         jsonF << "{" << std::endl;
         for (auto param : inst->Parameters()) {
           std::string value;
@@ -437,14 +437,14 @@ bool IPGenerator::Generate() {
         jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
               << std::endl;
         jsonF << "   \"build\": true," << std::endl;
-        jsonF << "   \"json\": \"" << jasonfile.filename().string() << "\","
+        jsonF << "   \"json\": \"" << jsonFile.filename().string() << "\","
               << std::endl;
         jsonF << "   \"json_template\": false" << std::endl;
         jsonF << "}" << std::endl;
         jsonF.close();
         std::stringstream newbuffer;
-        if (FileUtils::FileExists(jasonfile)) {
-          std::ifstream newfile(jasonfile);
+        if (FileUtils::FileExists(jsonFile)) {
+          std::ifstream newfile(jsonFile);
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
@@ -471,7 +471,7 @@ bool IPGenerator::Generate() {
         }
 
         std::string command = pythonPath.string() + " " + executable.string() +
-                              " --build --json " + jasonfile.string();
+                              " --build --json " + jsonFile.string();
         std::ostringstream help;
 
         if (newbuffer.str() == previousbuffer.str()) {
