@@ -48,6 +48,10 @@ void PinsBaseModel::update(const QString &port, const QString &pin) {
   }
 }
 
+QString PinsBaseModel::getPort(const QString &pin) const {
+  return m_pinsMap_reverted.value(pin);
+}
+
 PackagePinsModel *PinsBaseModel::packagePinModel() const {
   return m_packagePinModel;
 }

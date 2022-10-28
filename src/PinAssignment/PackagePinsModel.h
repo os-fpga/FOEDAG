@@ -84,6 +84,7 @@ class PackagePinsModel : public QObject {
 
  signals:
   void itemHasChanged(const QModelIndex &index, const QString &pin);
+  void modeHasChanged(const QString &pin, const QString &mode);
 
  private:
   QVector<PackagePinGroup> m_pinData;
