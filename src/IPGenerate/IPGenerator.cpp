@@ -518,7 +518,7 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   ProjectManager* projManager = nullptr;
   if (m_compiler && (projManager = m_compiler->ProjManager())) {
-    std::string projectPath = m_compiler->ProjManager()->projectPath();
+    std::string projectPath = projManager->projectPath();
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
