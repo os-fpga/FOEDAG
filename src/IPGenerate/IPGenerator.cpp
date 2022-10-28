@@ -360,6 +360,11 @@ void IPGenerator::DeleteIPInstance(IPInstance* instance) {
       FileUtils::FileIsDirectory(buildPath)) {
     std::filesystem::remove_all(buildPath);
   }
+  // Delete the cached json file
+  auto filePath = GetCachePath(instance);
+  if (FileUtils::FileExists(filePath)) {
+    std::filesystem::remove_all(filePath);
+  }
 
   RemoveIPInstance(instance);
 }
@@ -401,12 +406,8 @@ bool IPGenerator::Generate() {
         break;
       }
       case IPDefinition::IPType::LiteXGenerator: {
-        std::string project = compiler->ProjManager()->projectPath();
         const std::filesystem::path executable = def->FilePath();
-        std::string ip_config_file =
-            def->Name() + "_" + inst->ModuleName() + ".json";
-        std::filesystem::path jasonfile =
-            std::filesystem::path(project) / ip_config_file;
+        std::filesystem::path jasonfile = GetCachePath(inst);
         std::stringstream previousbuffer;
         if (FileUtils::FileExists(jasonfile)) {
           std::ifstream previous(jasonfile);
@@ -436,7 +437,8 @@ bool IPGenerator::Generate() {
         jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
               << std::endl;
         jsonF << "   \"build\": true," << std::endl;
-        jsonF << "   \"json\": \"" << ip_config_file << "\"," << std::endl;
+        jsonF << "   \"json\": \"" << jasonfile.filename().string() << "\","
+              << std::endl;
         jsonF << "   \"json_template\": false" << std::endl;
         jsonF << "}" << std::endl;
         jsonF.close();
@@ -508,5 +510,23 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
     dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
           meta.version / instance->ModuleName();
   }
+  return dir;
+}
+
+// This will return the path to this instance's cached json file
+std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
+  std::filesystem::path dir{};
+
+  Compiler* compiler = GlobalSession->GetCompiler();
+
+  ProjectManager* projManager = nullptr;
+  if (compiler && (projManager = compiler->ProjManager())) {
+    std::string projectPath = compiler->ProjManager()->projectPath();
+    auto def = instance->Definition();
+    std::string ip_config_file =
+        def->Name() + "_" + instance->ModuleName() + ".json";
+    dir = std::filesystem::path(projectPath) / ip_config_file;
+  }
+
   return dir;
 }
