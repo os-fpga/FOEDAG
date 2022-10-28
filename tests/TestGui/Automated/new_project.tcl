@@ -24,7 +24,7 @@ try {
             # Find the Next Button
             set next [waitForWidget -parent $dlg -type button -text Next];
             qt_clickButton $next;
-            # need to wait a bit for the UI to update, could also try waitForObject, but that would require sourcing the harness commands in this cmd block (for now at least)
+            # need to wait a bit for the UI to update, could also try waitForObject on the sourcesForm widgets and checking their title, but we don't have code for that currently.
             sleep 1000
             qt_clickButton $next;
             set addDirsBtn [waitForWidget -parent $dlg -type button -text "Add Directory..."]
