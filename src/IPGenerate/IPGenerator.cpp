@@ -498,14 +498,13 @@ bool IPGenerator::Generate() {
 std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
   std::filesystem::path dir{};
 
-  Compiler* compiler = GlobalSession->GetCompiler();
   auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  if (compiler) {
-    QString projName = compiler->ProjManager()->getProjectName();
+  ProjectManager* projManager = nullptr;
+  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+    QString projName = projManager->getProjectName();
 
     // Build up the expected ip build path
-    std::filesystem::path baseDir(
-        compiler->ProjManager()->getProjectPath().toStdString());
+    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
     std::string projIpDir = projName.toStdString() + ".IPs";
     dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
           meta.version / instance->ModuleName();
@@ -517,11 +516,9 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
 std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
   std::filesystem::path dir{};
 
-  Compiler* compiler = GlobalSession->GetCompiler();
-
   ProjectManager* projManager = nullptr;
-  if (compiler && (projManager = compiler->ProjManager())) {
-    std::string projectPath = compiler->ProjManager()->projectPath();
+  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+    std::string projectPath = m_compiler->ProjManager()->projectPath();
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
