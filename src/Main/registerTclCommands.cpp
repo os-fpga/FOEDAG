@@ -35,6 +35,7 @@ extern "C" {
 
 #include <QApplication>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
 #include <fstream>
@@ -80,7 +81,7 @@ QWidgetList findWidgets(FindWidgetRequest request) {
   // search topLevelWidgets) can set this flag to false to make it into the
   // conditional below w/o having set a searchWidget
   bool searchWidgetRequired{true};
-  if (type == "dialog" || type == "qdialog") {
+  if (type == "dialog" || type == "qdialog" || type == "editor") {
     searchWidgetRequired = false;
   }
 
@@ -112,9 +113,31 @@ QWidgetList findWidgets(FindWidgetRequest request) {
         menu->setProperty(QT_TEST_TEXT, menu->title());
         results.append(menu);
       }
-      // } else if (type == "qaction" || type == "action") {
-      //   auto actions = request.searchWidget->findChildren<QAction*>();
-      // not yet implemented
+    } else if (type == "qlineedit" || type == "lineedit" ||
+               type == "textentry") {
+      for (auto ptr : request.searchWidget->findChildren<QLineEdit*>()) {
+        ptr->setProperty(QT_TEST_TEXT, ptr->text());
+        results.append(ptr);
+      }
+    } else if (type == "qtabbar") {
+      for (auto ptr : request.searchWidget->findChildren<QTabBar*>()) {
+        // not sure tabbars have any distinguishing variables we can search off
+        // of besides -parent and maybe the widgets it contains but we don't
+        // currently support a -contains concept
+        results.append(ptr);
+      }
+    } else if (type == "editor") {
+      for (auto ptr : FOEDAG::TextEditorForm::Instance()
+                          ->findChildren<FOEDAG::Editor*>()) {
+        // might want a more accurate tag than -text for this, this is storing a
+        // filename in this case.
+        // Might eventually want a custom property compare option so this class
+        // could store "filename" without requiring the FindWidgetRequest to add
+        // that field
+        QFileInfo info(ptr->getFileName());
+        ptr->setProperty(QT_TEST_TEXT, info.fileName());
+        results.append(ptr);
+      }
     } else if (type.isEmpty()) {
       // Grab all widgets if no type was specified
       results = request.searchWidget->findChildren<QWidget*>();
@@ -235,6 +258,7 @@ void openMenu(QWidget* searchWidget, const QStringList& menuEntries) {
     // have to duplicate logic like request.matchCase. It might be better to
     // implement this using only findWidgets to find each child action which
     // will then filter based on the request struct.
+    // This also fails to error out if the menu isn't found
 
     if (findResults.count() > 0) {
       QMenu* currentMenu = qobject_cast<QMenu*>(findResults[0]);
@@ -278,6 +302,20 @@ void openMenu(QWidget* searchWidget, const QStringList& menuEntries) {
       }
     }
   }
+}
+
+bool setText(QWidget* ptr, const QString& newText) {
+  // Not all widgets have a setText command so we need to provide specific
+  // handling for the widgets we want to support
+  bool handled = false;
+
+  QLineEdit* edit = qobject_cast<QLineEdit*>(ptr);
+  if (!handled && edit) {
+    edit->setText(newText);
+    handled = true;
+  }
+
+  return handled;
 }
 
 // This is intended to be called on a ptr returned by findWidgets.
@@ -448,6 +486,10 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("show_about", show_about,
                                     GlobalSession->MainWindow(), nullptr);
 
+  registerGuiTestCommands(session);
+}
+
+void registerGuiTestCommands(FOEDAG::Session* session) {
   auto qt_findWidgets = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     QString parent{};
@@ -557,7 +599,7 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
   auto qt_clickButton = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    if (argc < 1) {
+    if (argc < 2) {
       Tcl_AppendResult(interp,
                        qPrintable("Expected Syntax: qt_clickButton 0x<ptr> or "
                                   "qt_clickButton QWidget(0x<ptr>)"),
@@ -576,54 +618,32 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
   session->TclInterp()->registerCmd("qt_clickButton", qt_clickButton,
                                     GlobalSession->MainWindow(), nullptr);
 
-  auto qt_dlg_test = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto qt_set_text = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // This is a proof of concept to show that a modal dialog can be interacted
-    // with by storing the desired actions in a lambda and firing it w/ a delay
-    // so it executes after the modal dialog has started blocking
-    // Still need to come up with a way of queuing these through the tcl
-    // interface
-    if (argc < 1) {
+    if (argc < 3) {
       Tcl_AppendResult(interp,
-                       qPrintable("Expected Syntax: qt_dlg_test 0x<ptr> or "
-                                  "qt_dlg_test QWidget(0x<ptr>)"),
+                       qPrintable("Expected Syntax: qt_set_text 0x<ptr> text"),
                        nullptr);
       return TCL_ERROR;
     }
 
-    QWidget* widget = static_cast<QWidget*>(clientData);
-    if (widget) {
-      QTimer::singleShot(1000, []() {
-        std::cout << "Continuing\n" << std::endl;
-
-        FindWidgetRequest findDlg;
-        findDlg.widgetType = "qdialog";
-        findDlg.widgetText = "Open File";
-        auto dlgs = findWidgets(findDlg);
-
-        if (dlgs.count()) {
-          std::cout << "found dlg" << std::endl;
-          FindWidgetRequest cancelBtn;
-          cancelBtn.widgetType = "qpushbutton";
-          cancelBtn.widgetText = "cancel";
-          cancelBtn.searchWidget = dlgs[0];
-          auto btn = findWidgets(cancelBtn);
-
-          if (btn.count()) {
-            std::cout << "found btn " << btn[0] << " "
-                      << btn[0]->metaObject()->className() << std::endl;
-            clickButton(btn[0]);
-          }
-        }
-      });
-      // Grab the top widget to search through
-      widget = QApplication::topLevelAt(widget->mapToGlobal(QPoint()));
-      openMenu(widget, {"File", "Open File..."});
+    bool ok{false};
+    QWidget* widget = widgetAddrToPtr(argv[1], ok);
+    if (ok) {
+      bool success = setText(widget, argv[2]);
+      if (!success) {
+        QString msg = QString(
+                          "setText(): %1 doesn't accept text or the harness "
+                          "hasn't been expanded to support it yet.")
+                          .arg(widget->metaObject()->className());
+        Tcl_AppendResult(interp, qPrintable(msg), nullptr);
+        return TCL_ERROR;
+      }
     }
 
     return TCL_OK;
   };
-  session->TclInterp()->registerCmd("qt_dlg_test", qt_dlg_test,
+  session->TclInterp()->registerCmd("qt_set_text", qt_set_text,
                                     GlobalSession->MainWindow(), nullptr);
 
   auto qt_openMenu = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -657,12 +677,13 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
 
     return TCL_OK;
   };
+
   session->TclInterp()->registerCmd("qt_openMenu", qt_openMenu,
                                     GlobalSession->MainWindow(), nullptr);
 
   auto qt_isEnabled = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    if (argc < 1) {
+    if (argc < 2) {
       Tcl_AppendResult(interp,
                        qPrintable("Expected Syntax: qt_isEnabled 0x<ptr> or "
                                   "qt_clickButton QWidget(0x<ptr>)"),
@@ -684,6 +705,30 @@ void registerBasicGuiCommands(FOEDAG::Session* session) {
     }
   };
   session->TclInterp()->registerCmd("qt_isEnabled", qt_isEnabled,
+                                    GlobalSession->MainWindow(), nullptr);
+
+  auto qt_queue_cmds = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    if (argc != 3) {
+      Tcl_AppendResult(
+          interp,
+          qPrintable(
+              "Expected Syntax: qt_queue_cmds delay_ms {cmd1; cmd2; cmdN;}"),
+          nullptr);
+      return TCL_ERROR;
+    }
+
+    int delay_ms = QString(argv[1]).toInt();
+    QString cmds = argv[2];
+
+    QTimer::singleShot(delay_ms, [cmds, interp]() {
+      // std::cout << cmds.toStdString() << std::endl;
+      return Tcl_Eval(interp, cmds.toLatin1());
+    });
+
+    return TCL_OK;
+  };
+  session->TclInterp()->registerCmd("qt_queue_cmds", qt_queue_cmds,
                                     GlobalSession->MainWindow(), nullptr);
 }
 

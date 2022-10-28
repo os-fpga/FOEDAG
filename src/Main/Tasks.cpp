@@ -198,8 +198,7 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
 void FOEDAG::handleTaskDialogRequested(const QString& category) {
   QDialog* dlg = createTaskDialog(category);
   if (dlg) {
-    // temp switching to non-modal for script testing
-    dlg->show();
+    dlg->exec();
   }
 }
 

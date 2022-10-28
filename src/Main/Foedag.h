@@ -30,6 +30,7 @@ class TextEditor;
 }
 
 void registerBasicGuiCommands(FOEDAG::Session* session);
+void registerGuiTestCommands(FOEDAG::Session* session);
 void registerBasicBatchCommands(FOEDAG::Session* session);
 void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session);
 
