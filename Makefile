@@ -169,6 +169,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/Automated/modal_dlg.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/Automated/fail_test.tcl
+	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/Automated/new_project.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
