@@ -100,32 +100,25 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
             &TaskManager::taskStateChanged);
     connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
-  QVector<Task *> tmp = {m_tasks[BITSTREAM]};
-  m_rollBack.insert(m_tasks[BITSTREAM_CLEAN], tmp);
-
-  tmp += m_tasks[POWER];
-  m_rollBack.insert(m_tasks[POWER_CLEAN], tmp);
-
-  tmp += m_tasks[TIMING_SIGN_OFF];
-  m_rollBack.insert(m_tasks[TIMING_SIGN_OFF_CLEAN], tmp);
-
-  tmp += m_tasks[ROUTING];
-  m_rollBack.insert(m_tasks[ROUTING_CLEAN], tmp);
-
-  tmp += m_tasks[PLACEMENT];
-  m_rollBack.insert(m_tasks[PLACEMENT_CLEAN], tmp);
-
-  tmp += m_tasks[GLOBAL_PLACEMENT];
-  m_rollBack.insert(m_tasks[GLOBAL_PLACEMENT_CLEAN], tmp);
-
-  tmp += m_tasks[PACKING];
-  m_rollBack.insert(m_tasks[PACKING_CLEAN], tmp);
-
-  tmp += m_tasks[SYNTHESIS];
-  m_rollBack.insert(m_tasks[SYNTHESIS_CLEAN], tmp);
-
-  tmp += m_tasks[ANALYSIS];
-  m_rollBack.insert(m_tasks[ANALYSIS_CLEAN], tmp);
+  m_taskQueue.append(m_tasks[IP_GENERATE]);
+  m_taskQueue.append(m_tasks[ANALYSIS]);
+  m_taskQueue.append(m_tasks[ANALYSIS_CLEAN]);
+  m_taskQueue.append(m_tasks[SYNTHESIS]);
+  m_taskQueue.append(m_tasks[SYNTHESIS_CLEAN]);
+  m_taskQueue.append(m_tasks[PACKING]);
+  m_taskQueue.append(m_tasks[PACKING_CLEAN]);
+  m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT]);
+  m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
+  m_taskQueue.append(m_tasks[PLACEMENT]);
+  m_taskQueue.append(m_tasks[PLACEMENT_CLEAN]);
+  m_taskQueue.append(m_tasks[ROUTING]);
+  m_taskQueue.append(m_tasks[ROUTING_CLEAN]);
+  m_taskQueue.append(m_tasks[TIMING_SIGN_OFF]);
+  m_taskQueue.append(m_tasks[TIMING_SIGN_OFF_CLEAN]);
+  m_taskQueue.append(m_tasks[POWER]);
+  m_taskQueue.append(m_tasks[POWER_CLEAN]);
+  m_taskQueue.append(m_tasks[BITSTREAM]);
+  m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -198,7 +191,6 @@ void TaskManager::setTaskCount(int count) { m_taskCount = count; }
 void TaskManager::runNext() {
   Task *t = qobject_cast<Task *>(sender());
   if (t) {
-    rollBack(t);
     if (t->status() == TaskStatus::Success) {
       m_runStack.removeAll(t);
       if (!m_runStack.isEmpty()) run();
@@ -219,6 +211,7 @@ void TaskManager::run() {
     const int max = m_taskCount;
     emit progress(max - m_runStack.count(), max);
   }
+  cleanDownStreamStatus(m_runStack.first());
   m_runStack.first()->trigger();
 }
 
@@ -228,10 +221,17 @@ void TaskManager::reset() {
   }
 }
 
-void TaskManager::rollBack(Task *t) {
-  const auto &roll_back = m_rollBack.value(t);
-  for (const auto &task : roll_back) {
-    task->setStatus(TaskStatus::None);
+void TaskManager::cleanDownStreamStatus(Task *t) {
+  for (auto it{m_taskQueue.begin()}; it != m_taskQueue.end(); ++it) {
+    if (*it == t) {
+      // In case clean action, clean parent is required.
+      if (((*it)->type() == TaskType::Clean) && (it != m_taskQueue.begin()))
+        it--;
+      for (; it != m_taskQueue.end(); ++it) {
+        (*it)->setStatus(TaskStatus::None);
+      }
+      break;
+    }
   }
 }
 
