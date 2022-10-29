@@ -134,6 +134,9 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
          << std::endl;
+  (*out) << "   script_path                : path of the Tcl script passed "
+            "with --script"
+         << std::endl;
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
          << std::endl;
@@ -177,7 +180,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
-  m_constraints = new Constraints();
+  m_constraints = new Constraints(this);
   m_constraints->registerCommands(interp);
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
@@ -286,7 +289,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
-    m_constraints = new Constraints();
+    m_constraints = new Constraints(this);
     m_constraints->registerCommands(interp);
   }
 
@@ -297,6 +300,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("help", help, this, 0);
+
+  auto script_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::filesystem::path script = compiler->GetSession()->CmdLine()->Script();
+    std::filesystem::path scriptPath = script.parent_path();
+    Tcl_SetResult(interp, (char*)scriptPath.c_str(), TCL_VOLATILE);
+    return TCL_OK;
+  };
+  interp->registerCmd("script_path", script_path, this, 0);
 
   auto version = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -687,17 +700,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
-    int status = Tcl_Eval(
-        interp, std::string("read_sdc {" + expandedFile + "}").c_str());
-    if (status) {
-      return TCL_ERROR;
-    }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
           expandedFile.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
+        return TCL_ERROR;
+      }
+    } else {
+      int status = Tcl_Eval(
+          interp, std::string("read_sdc {" + expandedFile + "}").c_str());
+      if (status) {
         return TCL_ERROR;
       }
     }
