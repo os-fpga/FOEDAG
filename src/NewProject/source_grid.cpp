@@ -27,7 +27,7 @@ static const int LIBRARY_COL_NUM{2};
 static const int LANG_COL_NUM{3};
 static const int COMPILE_UNIT_COL_NUM{4};
 
-static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc)");
+static const auto CONSTR_FILTER = QObject::tr("Constraint Files(*.sdc *.pin)");
 static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "Design Source Files (*.vhd *.vhdl *.v *.vf *.verilog "
     "*.vh *.h *.svh *.vhp "
