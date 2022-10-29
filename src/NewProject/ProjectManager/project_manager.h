@@ -347,7 +347,7 @@ class ProjectManager : public QObject {
   QString m_currentRun;
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
-  inline static const Suffixes m_constrSuffixes{{"SDC"}};
+  inline static const Suffixes m_constrSuffixes{{"SDC", "PIN"}};
   inline static const Suffixes m_simSuffixes{{"v"}};
 
  signals:
