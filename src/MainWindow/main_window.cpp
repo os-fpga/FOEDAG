@@ -228,7 +228,7 @@ void MainWindow::openExampleProject() {
                           std::filesystem::copy_options::recursive);
 
     // open the newly copied example project
-    openProject(dest + QDir::separator() + file, false);
+    openProject(dest + QDir::separator() + file, false, false);
   }
 }
 
@@ -236,7 +236,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) openProject(fileName, false);
+  if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
 void MainWindow::closeProject() {
@@ -269,11 +269,10 @@ void MainWindow::newDesignCreated(const QString& design) {
 }
 
 void MainWindow::startStopButtonsState() {
-  const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
-  const bool consoleInProgress = m_console->isRunning();
-  startAction->setEnabled(!inProgress && !consoleInProgress);
+  startAction->setEnabled(m_taskManager->status() != TaskStatus::InProgress &&
+                          !m_console->isRunning());
   // Enable Stop action when there is something to stop
-  stopAction->setEnabled(inProgress || consoleInProgress);
+  stopAction->setEnabled(isRunning());
 }
 
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
@@ -300,19 +299,26 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project, bool delayedRunProject) {
-  if (!delayedRunProject) {
-    ReShowWindow(project);
-    loadFile(project);
-    emit projectOpened();
-  } else {
+void MainWindow::openProject(const QString& project, bool delayedOpen,
+                             bool run) {
+  if (delayedOpen) {
     emit runProjectRequested(project);
+    return;
   }
+
+  ReShowWindow(project);
+  loadFile(project);
+  emit projectOpened();
+  if (run) startProject();
+}
+
+bool MainWindow::isRunning() const {
+  return m_taskManager->status() == TaskStatus::InProgress ||
+         m_console->isRunning();
 }
 
 void MainWindow::onRunProjectRequested(const QString& project) {
-  openProject(project, false);
-  startProject();
+  openProject(project, false, true);
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -1034,7 +1040,7 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name, false);
+    if (!name.isEmpty()) openProject(name, false, false);
   }
 }
 

@@ -52,7 +52,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
-  void openProject(const QString& project, bool delayedRunProject) override;
+  void openProject(const QString& project, bool delayedOpen, bool run) override;
+  bool isRunning() const override;
 
  protected:
   void closeEvent(QCloseEvent* event) override;
