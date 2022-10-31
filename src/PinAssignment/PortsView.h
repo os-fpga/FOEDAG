@@ -39,9 +39,12 @@ class PortsView : public PinAssignmentBaseView {
   void packagePinSelectionHasChanged(const QModelIndex &index);
   void insertTableItem(QTreeWidgetItem *parent, const IOPort &port);
   static QString normalizeName(const QString &p);
+  void modeSelectionHasChanged(const QModelIndex &index);
+  void updateModeCombo(const QString &port, const QModelIndex &index);
 
  private slots:
   void itemHasChanged(const QModelIndex &index, const QString &pin);
+  void modeChanged(const QString &pin, const QString &mode);
 };
 
 }  // namespace FOEDAG

@@ -44,6 +44,7 @@ class PackagePinsView : public PinAssignmentBaseView {
 
  private slots:
   void itemHasChanged(const QModelIndex &index, const QString &pin);
+  void modeChanged(const QString &pin, const QString &mode);
 };
 
 }  // namespace FOEDAG

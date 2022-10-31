@@ -360,6 +360,11 @@ void IPGenerator::DeleteIPInstance(IPInstance* instance) {
       FileUtils::FileIsDirectory(buildPath)) {
     std::filesystem::remove_all(buildPath);
   }
+  // Delete the cached json file
+  auto filePath = GetCachePath(instance);
+  if (FileUtils::FileExists(filePath)) {
+    std::filesystem::remove_all(filePath);
+  }
 
   RemoveIPInstance(instance);
 }
@@ -401,20 +406,16 @@ bool IPGenerator::Generate() {
         break;
       }
       case IPDefinition::IPType::LiteXGenerator: {
-        std::string project = compiler->ProjManager()->projectPath();
         const std::filesystem::path executable = def->FilePath();
-        std::string ip_config_file =
-            def->Name() + "_" + inst->ModuleName() + ".json";
-        std::filesystem::path jasonfile =
-            std::filesystem::path(project) / ip_config_file;
+        std::filesystem::path jsonFile = GetCachePath(inst);
         std::stringstream previousbuffer;
-        if (FileUtils::FileExists(jasonfile)) {
-          std::ifstream previous(jasonfile);
+        if (FileUtils::FileExists(jsonFile)) {
+          std::ifstream previous(jsonFile);
           std::stringstream buffer;
           previousbuffer << previous.rdbuf();
         }
 
-        std::ofstream jsonF(jasonfile);
+        std::ofstream jsonF(jsonFile);
         jsonF << "{" << std::endl;
         for (auto param : inst->Parameters()) {
           std::string value;
@@ -436,13 +437,14 @@ bool IPGenerator::Generate() {
         jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
               << std::endl;
         jsonF << "   \"build\": true," << std::endl;
-        jsonF << "   \"json\": \"" << ip_config_file << "\"," << std::endl;
+        jsonF << "   \"json\": \"" << jsonFile.filename().string() << "\","
+              << std::endl;
         jsonF << "   \"json_template\": false" << std::endl;
         jsonF << "}" << std::endl;
         jsonF.close();
         std::stringstream newbuffer;
-        if (FileUtils::FileExists(jasonfile)) {
-          std::ifstream newfile(jasonfile);
+        if (FileUtils::FileExists(jsonFile)) {
+          std::ifstream newfile(jsonFile);
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
@@ -469,7 +471,7 @@ bool IPGenerator::Generate() {
         }
 
         std::string command = pythonPath.string() + " " + executable.string() +
-                              " --build --json " + jasonfile.string();
+                              " --build --json " + jsonFile.string();
         std::ostringstream help;
 
         if (newbuffer.str() == previousbuffer.str()) {
@@ -496,17 +498,32 @@ bool IPGenerator::Generate() {
 std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
   std::filesystem::path dir{};
 
-  Compiler* compiler = GlobalSession->GetCompiler();
   auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  if (compiler) {
-    QString projName = compiler->ProjManager()->getProjectName();
+  ProjectManager* projManager = nullptr;
+  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+    QString projName = projManager->getProjectName();
 
     // Build up the expected ip build path
-    std::filesystem::path baseDir(
-        compiler->ProjManager()->getProjectPath().toStdString());
+    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
     std::string projIpDir = projName.toStdString() + ".IPs";
     dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
           meta.version / instance->ModuleName();
   }
+  return dir;
+}
+
+// This will return the path to this instance's cached json file
+std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
+  std::filesystem::path dir{};
+
+  ProjectManager* projManager = nullptr;
+  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+    std::string projectPath = projManager->projectPath();
+    auto def = instance->Definition();
+    std::string ip_config_file =
+        def->Name() + "_" + instance->ModuleName() + ".json";
+    dir = std::filesystem::path(projectPath) / ip_config_file;
+  }
+
   return dir;
 }

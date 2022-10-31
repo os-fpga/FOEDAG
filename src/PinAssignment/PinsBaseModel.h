@@ -33,6 +33,7 @@ class PinsBaseModel {
 
   bool exists(const QString &port, const QString &pin) const;
   void update(const QString &port, const QString &pin);
+  QString getPort(const QString &pin) const;
 
   PackagePinsModel *packagePinModel() const;
   void setPackagePinModel(PackagePinsModel *newPackagePinModel);
@@ -43,8 +44,8 @@ class PinsBaseModel {
   const QMap<QString, QString> &pinMap() const;
 
  private:
-  QMap<QString, QString> m_pinsMap;
-  QMap<QString, QString> m_pinsMap_reverted;
+  QMap<QString, QString> m_pinsMap;           // key - port, value - pin
+  QMap<QString, QString> m_pinsMap_reverted;  // key - pin, value - port
   PackagePinsModel *m_packagePinModel;
   PortsModel *m_portsModel;
 };
