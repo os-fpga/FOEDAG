@@ -39,6 +39,7 @@ void PackagePinsModel::updateMode(const QString &pin, const QString &mode) {
     m_modeMap.remove(pin);
   else
     m_modeMap.insert(pin, mode);
+  emit modeHasChanged(pin, mode);
 }
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }

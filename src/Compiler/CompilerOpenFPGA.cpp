@@ -150,6 +150,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                                Constraints: set_pin_loc, "
             "set_mode, set_region_loc, all SDC commands"
          << std::endl;
+  (*out) << "   script_path                : path of the Tcl script passed "
+            "with --script"
+         << std::endl;
   (*out) << "   keep <signal list> OR all_signals : Keeps the list of signals "
             "or all signals through Synthesis unchanged (unoptimized in "
             "certain cases)"
@@ -1005,6 +1008,7 @@ bool CompilerOpenFPGA::Synthesize() {
 
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
+  m_constraints->reset();
   for (const auto& file : constrFiles) {
     int res{TCL_OK};
     auto status =

@@ -95,6 +95,8 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
   }
   connect(model->packagePinModel(), &PackagePinsModel::itemHasChanged, this,
           &PackagePinsView::itemHasChanged);
+  connect(model->packagePinModel(), &PackagePinsModel::modeHasChanged, this,
+          &PackagePinsView::modeChanged);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
   setColumnWidth(NameCol, 170);
@@ -191,6 +193,10 @@ void PackagePinsView::itemHasChanged(const QModelIndex &index,
       m_blockUpdate = false;
     }
   }
+}
+
+void PackagePinsView::modeChanged(const QString &pin, const QString &mode) {
+  SetMode(pin, mode);
 }
 
 }  // namespace FOEDAG
