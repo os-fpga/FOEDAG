@@ -49,7 +49,7 @@ class PinAssignmentCreator : public QObject {
   static void RegisterLoader(const QString &device, PackagePinsLoader *l);
 
  signals:
-  void selectionHasChanged();
+  void changed();
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);

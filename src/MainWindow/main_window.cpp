@@ -830,7 +830,15 @@ void MainWindow::updatePRViewButton(int state) {
 }
 
 void MainWindow::saveActionTriggered() {
-  if (saveConstraintFile()) saveAction->setEnabled(false);
+  if (saveConstraintFile()) {
+    saveAction->setEnabled(false);
+    for (auto& dock : m_pinAssignmentDocks) {
+      if (dock->windowTitle().endsWith("*")) {
+        dock->setWindowTitle(
+            dock->windowTitle().mid(0, dock->windowTitle().size() - 1));
+      }
+    }
+  }
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
@@ -849,8 +857,8 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{
         m_projectManager, GlobalSession->Context(), m_compiler, this};
-    connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
-            [this]() { saveAction->setEnabled(true); });
+    connect(creator, &PinAssignmentCreator::changed, this,
+            &MainWindow::pinAssignmentChanged);
 
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                       creator->GetPortsWidget(), m_dockConsole);
@@ -888,6 +896,15 @@ void MainWindow::pinAssignmentActionTriggered() {
     auto pinAssignment = findChild<PinAssignmentCreator*>();
     if (pinAssignment) delete pinAssignment;
   }
+}
+
+void MainWindow::pinAssignmentChanged() {
+  for (auto& dock : m_pinAssignmentDocks) {
+    if (!dock->windowTitle().endsWith("*")) {
+      dock->setWindowTitle(dock->windowTitle() + "*");
+    }
+  }
+  saveAction->setEnabled(true);
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {

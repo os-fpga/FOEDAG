@@ -58,12 +58,12 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
 
   auto portsView = new PortsView(m_baseModel);
   connect(portsView, &PortsView::selectionHasChanged, this,
-          &PinAssignmentCreator::selectionHasChanged);
+          &PinAssignmentCreator::changed);
   m_portsView = CreateLayoutedWidget(portsView);
 
   auto packagePins = new PackagePinsView(m_baseModel);
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
-          &PinAssignmentCreator::selectionHasChanged);
+          &PinAssignmentCreator::changed);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
   if (c && c->getConstraints()) {
     auto constraint = c->getConstraints();
