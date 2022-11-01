@@ -139,8 +139,8 @@ MainWindow::MainWindow(Session* session)
 
   connect(this, &MainWindow::projectOpened, this,
           &MainWindow::handleProjectOpened);
-  connect(this, &MainWindow::openProjectRequested, this,
-          &MainWindow::onOpenProjectRequested, Qt::QueuedConnection);
+  connect(this, &MainWindow::runProjectRequested, this,
+          &MainWindow::onRunProjectRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -231,7 +231,7 @@ void MainWindow::openExampleProject() {
                           std::filesystem::copy_options::recursive);
 
     // open the newly copied example project
-    openProject(dest + QDir::separator() + file, false);
+    openProject(dest + QDir::separator() + file, false, false);
   }
 }
 
@@ -239,7 +239,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) openProject(fileName, false);
+  if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
 void MainWindow::closeProject() {
@@ -272,11 +272,10 @@ void MainWindow::newDesignCreated(const QString& design) {
 }
 
 void MainWindow::startStopButtonsState() {
-  const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
-  const bool consoleInProgress = m_console->isRunning();
-  startAction->setEnabled(!inProgress && !consoleInProgress);
+  startAction->setEnabled(m_taskManager->status() != TaskStatus::InProgress &&
+                          !m_console->isRunning());
   // Enable Stop action when there is something to stop
-  stopAction->setEnabled(inProgress || consoleInProgress);
+  stopAction->setEnabled(isRunning());
 }
 
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
@@ -303,18 +302,26 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project, bool delayed) {
-  if (!delayed) {
-    ReShowWindow(project);
-    loadFile(project);
-    emit projectOpened();
-  } else {
-    emit openProjectRequested(project);
+void MainWindow::openProject(const QString& project, bool delayedOpen,
+                             bool run) {
+  if (delayedOpen) {
+    emit runProjectRequested(project);
+    return;
   }
+
+  ReShowWindow(project);
+  loadFile(project);
+  emit projectOpened();
+  if (run) startProject();
 }
 
-void MainWindow::onOpenProjectRequested(const QString& project) {
-  openProject(project, false);
+bool MainWindow::isRunning() const {
+  return m_taskManager->status() == TaskStatus::InProgress ||
+         m_console->isRunning();
+}
+
+void MainWindow::onRunProjectRequested(const QString& project) {
+  openProject(project, false, true);
 }
 
 void MainWindow::stopCompilation() {
@@ -556,11 +563,7 @@ void MainWindow::createActions() {
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this, [this]() {
-    m_progressWidget->show();
-    m_compiler->start();
-    m_taskManager->startAll();
-  });
+  connect(startAction, &QAction::triggered, this, &MainWindow::startProject);
   connect(stopAction, &QAction::triggered, this, &MainWindow::stopCompilation);
 
   aboutAction = new QAction(tr("About"), this);
@@ -1085,7 +1088,7 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name, false);
+    if (!name.isEmpty()) openProject(name, false, false);
   }
 }
 
@@ -1137,6 +1140,12 @@ bool MainWindow::confirmExitProgram() {
 void MainWindow::onShowWelcomePage(bool show) {
   m_showWelcomePage = show;
   saveWelcomePageConfig();
+}
+
+void MainWindow::startProject() {
+  m_progressWidget->show();
+  m_compiler->start();
+  m_taskManager->startAll();
 }
 
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {

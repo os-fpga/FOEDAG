@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QProcess>
 #include <charconv>
@@ -107,6 +108,9 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
+         << std::endl;
+  (*out) << "   run_project <file>         : Opens and immediately runs the "
+            "project"
          << std::endl;
   (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
          << std::endl;
@@ -280,6 +284,53 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   bool result =
       builder.buildLiteXCatalog(GetIPGenerator()->Catalog(), litexPath);
   return result;
+}
+
+// open_project and run_project tcl command implementation. As single
+// boolean parameter (run) is the only difference and tcl lambdas can't get
+// extra parameters or capture anything, static function had to be added.
+static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[], bool run) {
+  auto compiler = (Compiler*)clientData;
+  auto cmdLine = compiler->GetSession()->CmdLine();
+  if (argc != 2) {
+    compiler->ErrorMessage("Specify a project file name");
+    return TCL_ERROR;
+  }
+  std::string file = argv[1];
+  std::string expandedFile = file;
+  if (!FileUtils::FileExists(expandedFile)) {
+    auto scriptFile = cmdLine->Script();
+    std::filesystem::path script =
+        scriptFile.empty() ? cmdLine->GuiTestScript() : scriptFile;
+    std::filesystem::path scriptPath = script.parent_path();
+    std::filesystem::path fullPath = scriptPath;
+    fullPath.append(file);
+    expandedFile = fullPath.string();
+  }
+
+  auto mainWindow = compiler->GetSession()->MainWindow();
+  if (!mainWindow) {
+    compiler->ErrorMessage(
+        "GUI has to be started before calling 'open_project'");
+    return TCL_ERROR;
+  }
+  auto mainWindowImpl = qobject_cast<FOEDAG::MainWindow*>(mainWindow);
+  mainWindowImpl->openProject(QString::fromStdString(expandedFile), false, run);
+  if (run) {
+    // Wait till project run is finished
+    while (mainWindowImpl->isRunning())
+      QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
+  }
+  auto allTasks = compiler->GetTaskManager()->tasks();
+  for (auto task : allTasks) {
+    if (task && task->status() == TaskStatus::Fail) {
+      compiler->ErrorMessage(task->title().toStdString() + "task failed");
+      return TCL_ERROR;
+    }
+  }
+  compiler->Message("Project run successful");
+  return TCL_OK;
 }
 
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
@@ -1303,38 +1354,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto open_project = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    if (argc != 2) {
-      compiler->ErrorMessage("Specify a project file name");
-      return TCL_ERROR;
-    }
-    std::string file = argv[1];
-    std::string expandedFile = file;
-    bool use_orig_path = false;
-    if (FileUtils::FileExists(expandedFile)) {
-      use_orig_path = true;
-    }
+    return openRunProjectImpl(clientData, interp, argc, argv, false);
+  };
 
-    if ((!use_orig_path) &&
-        (!compiler->GetSession()->CmdLine()->Script().empty())) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
-    }
-    auto mainWindow = compiler->GetSession()->MainWindow();
-    if (!mainWindow) {
-      compiler->ErrorMessage(
-          "Gui has to be started before calling 'open_project'");
-      return TCL_ERROR;
-    }
-    qobject_cast<FOEDAG::MainWindow*>(mainWindow)
-        ->openProject(QString::fromStdString(expandedFile), false);
-    return TCL_OK;
+  auto run_project = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    return openRunProjectImpl(clientData, interp, argc, argv, true);
   };
   interp->registerCmd("open_project", open_project, this, nullptr);
+  interp->registerCmd("run_project", run_project, this, nullptr);
   return true;
 }
 

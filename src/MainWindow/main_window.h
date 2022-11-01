@@ -52,7 +52,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
-  void openProject(const QString& project, bool delayed) override;
+  void openProject(const QString& project, bool delayedOpen, bool run) override;
+  bool isRunning() const override;
 
  protected:
   void closeEvent(QCloseEvent* event) override;
@@ -77,8 +78,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void slotTabChanged(int index);
   void handleProjectOpened();
   void onShowWelcomePage(bool show);
+  void onRunProjectRequested(const QString& project);
+  void startProject();
   void onShowStopMessage(bool showStopCompilationMsg);
-  void onOpenProjectRequested(const QString& project);
   void stopCompilation();
 
  public slots:
@@ -93,7 +95,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  signals:
   void projectOpened();
-  void openProjectRequested(const QString& project);
+  void runProjectRequested(const QString& project);
 
  private: /* Menu bar builders */
   void updateViewMenu();

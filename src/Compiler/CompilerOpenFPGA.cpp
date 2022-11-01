@@ -96,6 +96,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
+  (*out) << "   run_project <file>         : Opens and immediately runs the "
+            "project"
+         << std::endl;
   (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
