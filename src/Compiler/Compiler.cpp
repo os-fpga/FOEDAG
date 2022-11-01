@@ -312,7 +312,7 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
   auto mainWindow = compiler->GetSession()->MainWindow();
   if (!mainWindow) {
     compiler->ErrorMessage(
-        "Gui has to be started before calling 'open_project'");
+        "GUI has to be started before calling 'open_project'");
     return TCL_ERROR;
   }
   auto mainWindowImpl = qobject_cast<FOEDAG::MainWindow*>(mainWindow);
@@ -325,7 +325,7 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
   auto allTasks = compiler->GetTaskManager()->tasks();
   for (auto task : allTasks) {
     if (task && task->status() == TaskStatus::Fail) {
-      compiler->ErrorMessage(task->title().toStdString() + "task failed!");
+      compiler->ErrorMessage(task->title().toStdString() + "task failed");
       return TCL_ERROR;
     }
   }
