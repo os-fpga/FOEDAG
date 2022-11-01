@@ -77,7 +77,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void slotTabChanged(int index);
   void handleProjectOpened();
   void onShowWelcomePage(bool show);
+  void onShowStopMessage(bool showStopCompilationMsg);
   void onOpenProjectRequested(const QString& project);
+  void stopCompilation();
 
  public slots:
   void updateSourceTree();
@@ -133,6 +135,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
   QMenu* recentMenu = nullptr;
+  QMenu* preferencesMenu = nullptr;
   QMenu* projectMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
@@ -148,6 +151,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* ipConfiguratorAction = nullptr;
   QAction* saveAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
+  QAction* stopCompileMessageAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
@@ -171,6 +175,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QDockWidget* m_availableIpsgDockWidget{nullptr};
   QSettings m_settings;
   bool m_progressVisible{false};
+  bool m_askStopCompilation{true};
 };
 
 }  // namespace FOEDAG
