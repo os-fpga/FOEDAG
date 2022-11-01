@@ -24,7 +24,7 @@ set fp [open "foedag.log" r]
 set file_data [read $fp]
 close $fp
 # Report an error if project run wasn't successful
-set found [regexp "Project run successful!" $file_data]
+set found [regexp "Project run successful" $file_data]
 if { !$found } {
      puts "TEST FAILED: test.ospr run failed."
      exit 1
