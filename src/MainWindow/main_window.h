@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updatePRViewButton(int state);
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
+  void pinAssignmentChanged();
   void ipConfiguratorActionTriggered();
   void newDialogAccepted();
   void recentProjectOpen();
