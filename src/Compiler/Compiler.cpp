@@ -329,7 +329,7 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
       return TCL_ERROR;
     }
   }
-  compiler->Message("Project run successful!");
+  compiler->Message("Project run successful");
   return TCL_OK;
 }
 
