@@ -61,6 +61,7 @@ extern const char* foedag_build_type;
 
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
+const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 
@@ -71,6 +72,8 @@ MainWindow::MainWindow(Session* session)
   m_interpreter = session->TclInterp();
 
   m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
+  m_askStopCompilation =
+      m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -321,6 +324,27 @@ void MainWindow::onRunProjectRequested(const QString& project) {
   openProject(project, false, true);
 }
 
+void MainWindow::stopCompilation() {
+  bool stop{true};
+  if (m_askStopCompilation) {
+    QMessageBox question{QMessageBox::Question, "Stop compilation",
+                         "Do you want stop compilation?",
+                         QMessageBox::No | QMessageBox::Yes, this};
+    auto combo = new QCheckBox("Do not show this message again");
+    connect(combo, &QCheckBox::stateChanged, this, [this](int state) {
+      stopCompileMessageAction->setChecked(state != Qt::Checked);
+    });
+    question.setCheckBox(combo);
+    auto res{question.exec()};
+    stop = (res == QMessageBox::Yes);
+  }
+
+  if (stop) {
+    m_compiler->Stop();
+    m_progressWidget->hide();
+  }
+}
+
 void MainWindow::saveToRecentSettings(const QString& project) {
   if (project.isEmpty()) return;
 
@@ -445,6 +469,7 @@ void MainWindow::createRecentMenu() {
 
 void MainWindow::createMenus() {
   recentMenu = new QMenu("Recent Projects");
+  preferencesMenu = new QMenu{"Preferences"};
   fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(newAction);
   fileMenu->addAction(openFile);
@@ -454,6 +479,8 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
   fileMenu->addMenu(recentMenu);
+  fileMenu->addSeparator();
+  fileMenu->addMenu(preferencesMenu);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -469,8 +496,8 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
-  helpMenu->addSeparator();
-  helpMenu->addAction(showWelcomePageAction);
+  preferencesMenu->addAction(showWelcomePageAction);
+  preferencesMenu->addAction(stopCompileMessageAction);
 }
 
 void MainWindow::createToolBars() {
@@ -537,10 +564,7 @@ void MainWindow::createActions() {
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this, &MainWindow::startProject);
-  connect(stopAction, &QAction::triggered, this, [this]() {
-    m_compiler->Stop();
-    m_progressWidget->hide();
-  });
+  connect(stopAction, &QAction::triggered, this, &MainWindow::stopCompilation);
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
@@ -578,6 +602,13 @@ void MainWindow::createActions() {
   showWelcomePageAction->setChecked(m_showWelcomePage);
   connect(showWelcomePageAction, &QAction::triggered, this,
           &MainWindow::onShowWelcomePage);
+
+  stopCompileMessageAction =
+      new QAction(tr("Show message on stop compilation"), this);
+  stopCompileMessageAction->setCheckable(true);
+  stopCompileMessageAction->setChecked(m_askStopCompilation);
+  connect(stopCompileMessageAction, &QAction::toggled, this,
+          &MainWindow::onShowStopMessage);
 }
 
 void MainWindow::gui_start(bool showWP) {
@@ -833,7 +864,15 @@ void MainWindow::updatePRViewButton(int state) {
 }
 
 void MainWindow::saveActionTriggered() {
-  if (saveConstraintFile()) saveAction->setEnabled(false);
+  if (saveConstraintFile()) {
+    saveAction->setEnabled(false);
+    for (auto& dock : m_pinAssignmentDocks) {
+      if (dock->windowTitle().endsWith("*")) {
+        dock->setWindowTitle(
+            dock->windowTitle().mid(0, dock->windowTitle().size() - 1));
+      }
+    }
+  }
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
@@ -852,8 +891,8 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{
         m_projectManager, GlobalSession->Context(), m_compiler, this};
-    connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
-            [this]() { saveAction->setEnabled(true); });
+    connect(creator, &PinAssignmentCreator::changed, this,
+            &MainWindow::pinAssignmentChanged);
 
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                       creator->GetPortsWidget(), m_dockConsole);
@@ -891,6 +930,15 @@ void MainWindow::pinAssignmentActionTriggered() {
     auto pinAssignment = findChild<PinAssignmentCreator*>();
     if (pinAssignment) delete pinAssignment;
   }
+}
+
+void MainWindow::pinAssignmentChanged() {
+  for (auto& dock : m_pinAssignmentDocks) {
+    if (!dock->windowTitle().endsWith("*")) {
+      dock->setWindowTitle(dock->windowTitle() + "*");
+    }
+  }
+  saveAction->setEnabled(true);
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {
@@ -1098,4 +1146,9 @@ void MainWindow::startProject() {
   m_progressWidget->show();
   m_compiler->start();
   m_taskManager->startAll();
+}
+
+void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
+  m_askStopCompilation = showStopCompilationMsg;
+  m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
 }

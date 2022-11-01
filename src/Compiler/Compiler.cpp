@@ -1383,6 +1383,7 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
+  ErrorMessage("Compilation was interrupted by user");
   if (m_process) m_process->terminate();
 }
 
@@ -1412,7 +1413,7 @@ bool Compiler::Analyze() {
     if (m_stop) return false;
   }
   m_state = State::Analyzed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "analysis.rpt");
@@ -1451,7 +1452,7 @@ bool Compiler::Synthesize() {
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
   CreateDummyLog(m_projManager, "synthesis.rpt");
@@ -1483,8 +1484,8 @@ bool Compiler::GlobalPlacement() {
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->projectName()
-           << " is globally placed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
+           << std::endl;
 
   CreateDummyLog(m_projManager, "global_placement.rpt");
   return true;
@@ -1629,11 +1630,11 @@ bool Compiler::IPGenerate() {
   bool status = GetIPGenerator()->Generate();
   if (status) {
     (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated!" << std::endl;
+             << " IPs are generated" << std::endl;
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +
-                 " IPs generation failed!");
+                 " IPs generation failed");
   }
 
   CreateDummyLog(m_projManager, "ip_generate.rpt");
@@ -1657,7 +1658,7 @@ bool Compiler::Packing() {
   (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is packed"
            << std::endl;
   m_state = State::Packed;
 
@@ -1682,7 +1683,7 @@ bool Compiler::Placement() {
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is placed"
            << std::endl;
   m_state = State::Placed;
 
@@ -1707,7 +1708,7 @@ bool Compiler::Route() {
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is routed"
            << std::endl;
   m_state = State::Routed;
 
@@ -1723,7 +1724,7 @@ bool Compiler::TimingAnalysis() {
   (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "timing_analysis.rpt");
@@ -1738,7 +1739,7 @@ bool Compiler::PowerAnalysis() {
   (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "power_analysis.rpt");
@@ -1754,7 +1755,7 @@ bool Compiler::GenerateBitstream() {
            << m_projManager->projectName() << "..." << std::endl;
 
   (*m_out) << "Design " << m_projManager->projectName()
-           << " bitstream is generated!" << std::endl;
+           << " bitstream is generated" << std::endl;
 
   CreateDummyLog(m_projManager, "bitstream.rpt");
   return true;
