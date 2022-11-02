@@ -40,11 +40,21 @@ class PinAssignmentCreatorFixture : public testing::Test {
         context(new ToolContext("", "", "")),
         projectManager(new ProjectManager) {
     compiler->SetConstraints(new Constraints{compiler});
+    data.context = context;
+    data.target = "testDevice";
+    data.commands = getCommands();
   }
   ~PinAssignmentCreatorFixture() {
     delete compiler;
     delete context;
     delete projectManager;
+  }
+
+  QStringList getCommands() const {
+    QStringList commands;
+    for (const auto &c : compiler->getConstraints()->getConstraints())
+      commands.append(QString::fromStdString(c));
+    return commands;
   }
 
  protected:
@@ -54,10 +64,11 @@ class PinAssignmentCreatorFixture : public testing::Test {
   Compiler *compiler;
   ToolContext *context;
   ProjectManager *projectManager;
+  PinAssignmentData data;
 };
 
 TEST_F(PinAssignmentCreatorFixture, GenerateSdc) {
-  PinAssignmentCreator creator{projectManager, context, compiler};
+  PinAssignmentCreator creator{data};
   auto model = creator.baseModel();
   model->update("port1", "pin1");
   model->update("port2", "pin2");
@@ -67,7 +78,7 @@ TEST_F(PinAssignmentCreatorFixture, GenerateSdc) {
 }
 
 TEST_F(PinAssignmentCreatorFixture, GenerateSdcWithModes) {
-  PinAssignmentCreator creator{projectManager, context, compiler};
+  PinAssignmentCreator creator{data};
   auto model = creator.baseModel();
   model->packagePinModel()->updateMode("pin1", "Mode1");
   model->packagePinModel()->updateMode("pin2", "Mode2");
@@ -79,11 +90,11 @@ TEST_F(PinAssignmentCreatorFixture, GenerateSdcWithModes) {
 TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLoc) {
   compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
   compiler->getConstraints()->addConstraint("set_pin_loc b pin2");
-  const QString target{"testDevice"};
+  data.commands = getCommands();
 
-  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
-  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
-  PinAssignmentCreator creator{projectManager, context, compiler, target};
+  PinAssignmentCreator::RegisterPackagePinLoader(data.target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(data.target, new TestPortsLoader{});
+  PinAssignmentCreator creator{data};
 
   auto actualSdc = creator.generateSdc();
   QString expected{"set_pin_loc a pin1\nset_pin_loc b pin2\n"};
@@ -93,11 +104,11 @@ TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLoc) {
 TEST_F(PinAssignmentCreatorFixture, PortsModelItemChange) {
   compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
   compiler->getConstraints()->addConstraint("set_pin_loc b pin2");
-  const QString target{"testDevice"};
+  data.commands = getCommands();
 
-  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
-  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
-  PinAssignmentCreator creator{projectManager, context, compiler, target};
+  PinAssignmentCreator::RegisterPackagePinLoader(data.target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(data.target, new TestPortsLoader{});
+  PinAssignmentCreator creator{data};
 
   auto ppView = creator.GetPackagePinsWidget()->findChild<PackagePinsView *>();
   if (ppView) ppView->SetPort("pin2", "c");
@@ -110,11 +121,11 @@ TEST_F(PinAssignmentCreatorFixture, PortsModelItemChange) {
 TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLocBus) {
   compiler->getConstraints()->addConstraint("set_pin_loc d@0% pin1");
   compiler->getConstraints()->addConstraint("set_pin_loc d@1% pin2");
-  const QString target{"testDevice"};
+  data.commands = getCommands();
 
-  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
-  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
-  PinAssignmentCreator creator{projectManager, context, compiler, target};
+  PinAssignmentCreator::RegisterPackagePinLoader(data.target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(data.target, new TestPortsLoader{});
+  PinAssignmentCreator creator{data};
 
   auto actualSdc = creator.generateSdc();
   QString expected{"set_pin_loc d[0] pin1\nset_pin_loc d[1] pin2\n"};
@@ -124,11 +135,11 @@ TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetPinLocBus) {
 TEST_F(PinAssignmentCreatorFixture, ClearModeSelection) {
   compiler->getConstraints()->addConstraint("set_pin_loc a pin1");
   compiler->getConstraints()->addConstraint("set_mode Mode1Tx pin1");
-  const QString target{"testDevice"};
+  data.commands = getCommands();
 
-  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
-  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
-  PinAssignmentCreator creator{projectManager, context, compiler, target};
+  PinAssignmentCreator::RegisterPackagePinLoader(data.target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(data.target, new TestPortsLoader{});
+  PinAssignmentCreator creator{data};
 
   auto ppView = creator.GetPackagePinsWidget()->findChild<PackagePinsView *>();
   if (ppView) ppView->SetPort("pin1", QString{});
@@ -145,11 +156,11 @@ TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetMode) {
   compiler->getConstraints()->addConstraint("set_mode Mode1Tx pin1");
   compiler->getConstraints()->addConstraint("set_mode Mode2Rx pin2");
   compiler->getConstraints()->addConstraint("set_mode Mode2Rx pin3");
-  const QString target{"testDevice"};
+  data.commands = getCommands();
 
-  PinAssignmentCreator::RegisterPackagePinLoader(target, new TestLoader{});
-  PinAssignmentCreator::RegisterPortsLoader(target, new TestPortsLoader{});
-  PinAssignmentCreator creator{projectManager, context, compiler, target};
+  PinAssignmentCreator::RegisterPackagePinLoader(data.target, new TestLoader{});
+  PinAssignmentCreator::RegisterPortsLoader(data.target, new TestPortsLoader{});
+  PinAssignmentCreator creator{data};
 
   auto actualSdc = creator.generateSdc();
   std::string expected{
@@ -159,12 +170,12 @@ TEST_F(PinAssignmentCreatorFixture, ParseConstraintSetMode) {
 }
 
 TEST_F(PinAssignmentCreatorFixture, GetPackagePinsWidget) {
-  PinAssignmentCreator creator{projectManager, context, compiler};
+  PinAssignmentCreator creator{data};
   EXPECT_NE(creator.GetPackagePinsWidget(), nullptr);
 }
 
 TEST_F(PinAssignmentCreatorFixture, GetPortsWidget) {
-  PinAssignmentCreator creator{projectManager, context, compiler};
+  PinAssignmentCreator creator{data};
   EXPECT_NE(creator.GetPortsWidget(), nullptr);
 }
 

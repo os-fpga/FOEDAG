@@ -911,6 +911,16 @@ std::vector<std::string> ProjectManager::getConstrFiles() const {
   return files;
 }
 
+std::string ProjectManager::getConstrPinFile() const {
+  const Suffixes pin{{"pin"}};
+  auto constraints = getConstrFiles();
+  for (const auto& c : constraints) {
+    const QFileInfo info{QString::fromStdString(c)};
+    if (pin.TestSuffix(info.suffix())) return c;
+  }
+  return std::string{};
+}
+
 int ProjectManager::setSimulationFileSet(const QString& strSetName) {
   int ret = 0;
   ret = CreateSrcsFolder(strSetName);
@@ -1620,7 +1630,9 @@ int ProjectManager::CreateAndAddFile(const QString& suffix,
     ret = CreateSystemVerilogFile(filename);
   } else if (!suffix.compare("vhd", Qt::CaseInsensitive)) {
     ret = CreateVHDLFile(filename);
-  } else if (!suffix.compare("SDC", Qt::CaseInsensitive)) {
+  } else if (!suffix.compare("sdc", Qt::CaseInsensitive)) {
+    ret = CreateSDCFile(filename);
+  } else if (!suffix.compare("pin", Qt::CaseInsensitive)) {
     ret = CreateSDCFile(filename);
   }
   if (0 == ret) {

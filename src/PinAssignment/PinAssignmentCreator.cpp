@@ -24,39 +24,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <filesystem>
 
-#include "Compiler/Compiler.h"
-#include "Compiler/Constraints.h"
 #include "Main/ToolContext.h"
-#include "NewProject/ProjectManager/project_manager.h"
 #include "PackagePinsLoader.h"
 #include "PackagePinsView.h"
 #include "PinsBaseModel.h"
 #include "PortsLoader.h"
 #include "PortsView.h"
-#include "Utils/StringUtils.h"
+#include "Utils/QtUtils.h"
 
 namespace FOEDAG {
 
 QMap<QString, PackagePinsLoader *> PinAssignmentCreator::m_loader{};
 QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 
-PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
-                                           ToolContext *context, Compiler *c,
-                                           const QString &target,
+PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
     : QObject(parent) {
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
-  const QString fileName = searchCsvFile(target, context);
+  const QString fileName = searchCsvFile(data.target, data.context);
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
 
-  PortsLoader *portsLoader{FindPortsLoader(target)};
-  portsLoader->load(searchPortsFile(projectManager->getProjectPath()));
+  PortsLoader *portsLoader{FindPortsLoader(data.target)};
+  portsLoader->load(searchPortsFile(data.projectPath));
 
-  PackagePinsLoader *loader{FindPackagePinLoader(target)};
-  loader->loadHeader(packagePinHeaderFile(context));
+  PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
+  loader->loadHeader(packagePinHeaderFile(data.context));
   loader->load(fileName);
 
   auto portsView = new PortsView(m_baseModel);
@@ -68,8 +63,7 @@ PinAssignmentCreator::PinAssignmentCreator(ProjectManager *projectManager,
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
           &PinAssignmentCreator::changed);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
-
-  if (c) parseConstraints(c->getConstraints(), packagePins, portsView);
+  parseConstraints(data.commands, packagePins, portsView);
 }
 
 QWidget *PinAssignmentCreator::GetPackagePinsWidget() {
@@ -140,31 +134,24 @@ PortsLoader *PinAssignmentCreator::FindPortsLoader(
   return loader;
 }
 
-void PinAssignmentCreator::parseConstraints(Constraints *c,
-                                            PackagePinsView *ppView,
+void PinAssignmentCreator::parseConstraints(const QStringList &commands,
+                                            PackagePinsView *packagePins,
                                             PortsView *portsView) {
-  if (!c) return;
-
   // First need to setup ports and then modes sinse mode will apply only when
   // port is selected.
-  std::vector<std::string> strTmp;
-  for (const auto &con : c->getConstraints()) {
-    if (StringUtils::startsWith(con, "set_pin_loc")) {
-      strTmp.clear();
-      StringUtils::tokenize(con, " ", strTmp);
-      if (strTmp.size() >= 3) {
-        portsView->SetPin(QString::fromStdString(strTmp.at(1)),
-                          QString::fromStdString(strTmp.at(2)));
+  for (const auto &cmd : commands) {
+    if (cmd.startsWith("set_pin_loc")) {
+      auto list = QtUtils::StringSplit(cmd, ' ');
+      if (list.size() >= 3) {
+        portsView->SetPin(list.at(1), list.at(2));
       }
     }
   }
-  for (const auto &con : c->getConstraints()) {
-    if (StringUtils::startsWith(con, "set_mode")) {
-      strTmp.clear();
-      StringUtils::tokenize(con, " ", strTmp);
-      if (strTmp.size() >= 3) {
-        ppView->SetMode(QString::fromStdString(strTmp.at(2)),
-                        QString::fromStdString(strTmp.at(1)));
+  for (const auto &cmd : commands) {
+    if (cmd.startsWith("set_mode")) {
+      auto list = QtUtils::StringSplit(cmd, ' ');
+      if (list.size() >= 3) {
+        packagePins->SetMode(list.at(2), list.at(1));
       }
     }
   }
