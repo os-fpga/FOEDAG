@@ -25,18 +25,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class ProjectManager;
 class ToolContext;
 class PinsBaseModel;
-class Compiler;
 class PackagePinsLoader;
-class Constraints;
 class PortsLoader;
+
+struct PinAssignmentData {
+  ToolContext *context{nullptr};
+  QString target{};
+  QStringList commands{};
+  QString projectPath{};
+};
+
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
-  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
-                       Compiler *c, const QString &target = QString{},
+  PinAssignmentCreator(const PinAssignmentData &data,
                        QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
@@ -63,7 +67,8 @@ class PinAssignmentCreator : public QObject {
   QString packagePinHeaderFile(ToolContext *context) const;
   PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
   PortsLoader *FindPortsLoader(const QString &targetDevice) const;
-  static void parseConstraints(Constraints *c, class PackagePinsView *ppView,
+  static void parseConstraints(const QStringList &commands,
+                               class PackagePinsView *packagePins,
                                class PortsView *portsView);
 
  private:

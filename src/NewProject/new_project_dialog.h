@@ -48,6 +48,7 @@ class newProjectDialog : public QDialog {
   QString getProject();
   void Reset(Mode mode = NewProject);
   Mode GetMode() const;
+  void SetPageActive(FormIndex index);
 
  private slots:
 
@@ -69,6 +70,7 @@ class newProjectDialog : public QDialog {
   summaryForm* m_sumForm;
   Mode m_mode{NewProject};
   QVector<SettingsGuiInterface*> m_settings;
+  QMap<FormIndex, int> m_tabIndexes;
 
   ProjectManager* m_projectManager;
   bool m_skipSources{false};
