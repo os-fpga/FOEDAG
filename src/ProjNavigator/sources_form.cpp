@@ -23,7 +23,7 @@ SourcesForm::SourcesForm(QWidget *parent)
 
   m_treeSrcHierachy = new QTreeWidget(ui->m_tabHierarchy);
   m_treeSrcHierachy->setSelectionMode(
-      QAbstractItemView::SelectionMode::SingleSelection);
+      QAbstractItemView::SelectionMode::ExtendedSelection);
 
   QVBoxLayout *vbox = new QVBoxLayout();
   vbox->addWidget(m_treeSrcHierachy);
@@ -264,15 +264,19 @@ void SourcesForm::SlotAddFile() {
 }
 
 void SourcesForm::SlotOpenFile() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
+  // Get selected file names
+  for (auto item : m_treeSrcHierachy->selectedItems()) {
+    // Using WhatsThis role to ensure selection is a file
+    // OpenFile quietly aborts on bad filenames, so this check could be removed
+    // if a desired type is being missing
+    if (item->data(0, Qt::WhatsThisPropertyRole)
+            .toString()
+            .contains("fileitem")) {
+      QString strFileName = (item->data(0, Qt::UserRole)).toString();
+      QString strPath = m_projManager->getProjectPath();
+      emit OpenFile(strFileName.replace(PROJECT_OSRCDIR, strPath));
+    }
   }
-  QString strFileName = (item->data(0, Qt::UserRole)).toString();
-
-  QString strPath = m_projManager->getProjectPath();
-
-  emit OpenFile(strFileName.replace(PROJECT_OSRCDIR, strPath));
 }
 
 void SourcesForm::SlotRemoveFileSet() {
@@ -290,23 +294,55 @@ void SourcesForm::SlotRemoveFileSet() {
 }
 
 void SourcesForm::SlotRemoveFile() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) return;
+  // Get all selections
+  auto selectedItems = m_treeSrcHierachy->selectedItems();
+  // Use the r-clicked item for determining what item type we are working with
+  QTreeWidgetItem *refItem = m_treeSrcHierachy->currentItem();
+  auto itemType = refItem->data(0, Qt::WhatsThisPropertyRole);
 
-  auto strFileName = item->text(0);
-  auto fileSet = item->data(0, SetFileDataRole);
-  if (!fileSet.isNull()) {
-    auto questionStr =
+  // Bail on no selection
+  if (refItem == nullptr) return;
+  if (!selectedItems.count()) return;
+
+  // Track string names for confirmation dialog
+  QStringList files;
+  // Store filename/fileset pairs for delete option
+  QList<QPair<QString, QVariant>> selections;
+  for (auto item : selectedItems) {
+    auto strFileName = item->text(0);
+    auto fileSet = item->data(0, SetFileDataRole);
+    // Only accept files that match the r-clicked item type to avoid acting on
+    // un-related selections
+    if ((item->data(0, Qt::WhatsThisPropertyRole) == itemType) &&
+        !fileSet.isNull()) {
+      selections.append(qMakePair(strFileName, fileSet));
+      files.append(strFileName);
+    }
+  }
+
+  // Display delete confirmation message
+  if (files.count()) {
+    // Single File Message
+    QString questionStr =
         tr("Are you sure you want to remove %1 from the project? \n\nThe file "
            "will not be removed from the disk.")
-            .arg(strFileName);
-    if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
-    m_projManager->setCurrentFileSet(fileSet.toString());
-    int ret = m_projManager->deleteFile(strFileName);
-    if (0 == ret) {
-      UpdateSrcHierachyTree();
-      m_projManager->FinishedProject();
+            .arg(files[0]);
+    if (files.count() > 1) {
+      // Multi File Message
+      questionStr = tr("Are you sure you want to remove the following files "
+                       "from the project?\n %1\n\nThey "
+                       "will not be removed from the disk.")
+                        .arg(files.join("\n "));
     }
+    if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
+
+    // Loop through and remove files
+    for (const QPair<QString, QVariant> &selection : selections) {
+      m_projManager->setCurrentFileSet(selection.second.toString());
+      m_projManager->deleteFile(selection.first);
+    }
+    UpdateSrcHierachyTree();
+    m_projManager->FinishedProject();
   }
 }
 
@@ -406,21 +442,15 @@ void SourcesForm::SlotReConfigureIp() {
 }
 
 void SourcesForm::SlotRemoveIp() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
+  for (auto moduleName : SelectedIpModules()) {
+    emit IpRemoveRequested(moduleName);
   }
-  QString moduleName = QString::fromStdString(item->text(0).toStdString());
-  emit IpRemoveRequested(moduleName);
 }
 
 void SourcesForm::SlotDeleteIp() {
-  QTreeWidgetItem *item = m_treeSrcHierachy->currentItem();
-  if (item == nullptr) {
-    return;
+  for (auto moduleName : SelectedIpModules()) {
+    emit IpDeleteRequested(moduleName);
   }
-  QString moduleName = QString::fromStdString(item->text(0).toStdString());
-  emit IpDeleteRequested(moduleName);
 }
 
 void SourcesForm::CreateActions() {
@@ -645,6 +675,21 @@ void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
   }
   topitemIpInstances->setText(
       0, tr("IP Instances") + QString("(%1)").arg(instCount));
+}
+
+QStringList SourcesForm::SelectedIpModules() const {
+  // Get module names of selected valid items
+  QStringList modules{};
+  for (auto item : m_treeSrcHierachy->selectedItems()) {
+    // Ignore non-ip instance types
+    if (item->data(0, Qt::WhatsThisPropertyRole).toString() ==
+        SRC_TREE_IP_INST_ITEM) {
+      QString moduleName = QString::fromStdString(item->text(0).toStdString());
+      modules.append(moduleName);
+    }
+  }
+
+  return modules;
 }
 
 QTreeWidgetItem *SourcesForm::CreateFolderHierachyTree(QTreeWidgetItem *topItem,

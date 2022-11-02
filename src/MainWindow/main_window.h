@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TopLevelInterface.h"
 class QAction;
 class QLabel;
+class QProgressBar;
 
 namespace FOEDAG {
 
@@ -171,6 +172,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class SourcesForm* sourcesForm{nullptr};
   class IpCatalogTree* m_ipCatalogTree{nullptr};
   QWidget* m_progressWidget{nullptr};
+  QLabel* m_progressWidgetLbl{nullptr};
+  QProgressBar* m_progressBar{nullptr};
   QDockWidget* m_dockConsole{nullptr};
   std::vector<QDockWidget*> m_pinAssignmentDocks;
   QDockWidget* m_ipConfigDockWidget{nullptr};

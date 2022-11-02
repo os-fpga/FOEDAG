@@ -103,7 +103,7 @@ class TaskManager : public QObject {
    * \brief progress
    * emits whenever current task done and send current progress and max steps.
    */
-  void progress(int progress, int max);
+  void progress(int progress, int max, const QString &msg = {});
 
  private slots:
   void runNext();
