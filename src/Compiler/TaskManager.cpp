@@ -198,8 +198,12 @@ void TaskManager::runNext() {
       m_runStack.clear();
     }
   }
-
-  emit progress(++counter, m_taskCount);
+  QString status{"Complete"};
+  if (t->status() == TaskStatus::Fail) {
+    status = "Failed";
+  }
+  emit progress(++counter, m_taskCount,
+                QString("%1 %2").arg(t->title()).arg(status));
 
   if (m_runStack.isEmpty()) {
     emit done();
@@ -207,11 +211,13 @@ void TaskManager::runNext() {
 }
 
 void TaskManager::run() {
+  auto task = m_runStack.first();
   if (m_taskCount) {
     const int max = m_taskCount;
-    emit progress(max - m_runStack.count(), max);
+    emit progress(max - m_runStack.count(), max,
+                  QString("%1 Running").arg(task->title()));
   }
-  cleanDownStreamStatus(m_runStack.first());
+  cleanDownStreamStatus(task);
   m_runStack.first()->trigger();
 }
 
