@@ -341,7 +341,7 @@ void MainWindow::stopCompilation() {
 
   if (stop) {
     m_compiler->Stop();
-    m_progressWidget->hide();
+    m_progressBar->hide();
   }
 }
 
@@ -433,17 +433,18 @@ void MainWindow::loadFile(const QString& file) {
 
 void MainWindow::createProgressBar() {
   m_progressWidget = new QWidget;
-  QProgressBar* progress = new QProgressBar(m_progressWidget);
-  progress->setFixedHeight(menuBar()->sizeHint().height() - 2);
-  progress->setFormat("%v/%m");
+  m_progressBar = new QProgressBar(m_progressWidget);
+  m_progressBar->setFixedHeight(menuBar()->sizeHint().height() - 2);
+  m_progressBar->setFormat("%v/%m");
   QHBoxLayout* layout = new QHBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
-  QLabel* label = new QLabel{"Progress: "};
-  layout->addWidget(label);
-  layout->addWidget(progress);
+  m_progressWidgetLbl = new QLabel{};
+  m_progressWidgetLbl->setFixedHeight(menuBar()->sizeHint().height());
+  layout->addWidget(m_progressWidgetLbl);
+  layout->addWidget(m_progressBar);
   m_progressWidget->setLayout(layout);
   menuBar()->setCornerWidget(m_progressWidget, Qt::Corner::TopRightCorner);
-  m_progressWidget->hide();
+  m_progressBar->hide();
 }
 
 void MainWindow::createRecentMenu() {
@@ -770,14 +771,28 @@ void MainWindow::ReShowWindow(QString strProject) {
   view->setParent(this);
 
   connect(
-      m_taskManager, &TaskManager::progress, this, [this](int val, int max) {
-        QProgressBar* progress = m_progressWidget->findChild<QProgressBar*>();
-        progress->setMaximum(max);
-        progress->setValue(val);
+      m_taskManager, &TaskManager::progress, this,
+      [this](int val, int max, const QString& statusMsg) {
+        if (max < 2) {
+          // If only 1 task is running, then change progress bar to permaloading
+          // since 0/1 will have no visual progress until it finishes
+          m_progressBar->setMaximum(0);
+          m_progressBar->setValue(0);
+        } else {
+          m_progressBar->setMaximum(max);
+          m_progressBar->setValue(val);
+        }
+        m_progressBar->show();
+        m_progressWidgetLbl->setText("<strong>STATUS</strong> " + statusMsg);
+        m_progressWidgetLbl->setVisible(!statusMsg.isEmpty());
+        menuBar()->adjustSize();
+
+        // Duplicate status in the actual window status bar
+        statusBar()->showMessage(statusMsg);
       });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
-    if (!m_progressVisible) m_progressWidget->hide();
+    if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
   });
 
