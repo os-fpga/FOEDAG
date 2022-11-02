@@ -337,7 +337,7 @@ void SourcesForm::SlotRemoveFile() {
     if (QMessageBox::question(this, {}, questionStr) == QMessageBox::No) return;
 
     // Loop through and remove files
-    for (QPair<QString, QVariant> selection : selections) {
+    for (const QPair<QString, QVariant> &selection : selections) {
       m_projManager->setCurrentFileSet(selection.second.toString());
       m_projManager->deleteFile(selection.first);
     }
@@ -677,7 +677,7 @@ void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
       0, tr("IP Instances") + QString("(%1)").arg(instCount));
 }
 
-QStringList SourcesForm::SelectedIpModules() {
+QStringList SourcesForm::SelectedIpModules() const {
   // Get module names of selected valid items
   QStringList modules{};
   for (auto item : m_treeSrcHierachy->selectedItems()) {

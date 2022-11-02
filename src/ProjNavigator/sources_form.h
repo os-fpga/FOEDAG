@@ -111,7 +111,7 @@ class SourcesForm : public QWidget {
   static QString StripPath(const QString& path);
   void showAddFileDialog(GridType gridType);
   void AddIpInstanceTree(QTreeWidgetItem* topItem);
-  QStringList SelectedIpModules();
+  QStringList SelectedIpModules() const;
 };
 }  // namespace FOEDAG
 
