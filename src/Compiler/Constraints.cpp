@@ -161,6 +161,15 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                     const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
     constraints->addConstraint(getConstraint(argc, argv));
+    if ((argc != 3) && (argc != 4)) {
+      Tcl_AppendResult(
+          interp,
+          strdup(std::string("set_pin_loc command takes 2 or 3 arguments: " +
+                             getConstraint(argc, argv))
+                     .c_str()),
+          (char*)NULL);
+      return TCL_ERROR;
+    }
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
       if (arg == "-name") {
@@ -171,8 +180,36 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     return TCL_OK;
   };
   interp->registerCmd("set_pin_loc", pin_loc, this, 0);
-  interp->registerCmd("set_mode", pin_loc, this, 0);
-  interp->registerCmd("set_property", pin_loc, this, 0);
+
+  auto set_mode = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("set_mode", set_mode, this, 0);
+
+  auto set_property = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("set_property", set_property, this, 0);
 
   auto script_path = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -213,7 +250,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     if (!stream.good()) {
       Tcl_AppendResult(
           interp,
-          std::string("ERROR: Cannot open the SDC file:" + fileName).c_str(),
+          strdup(std::string("ERROR: Cannot open the SDC file:" + fileName)
+                     .c_str()),
           (char*)NULL);
       return TCL_ERROR;
     }
@@ -242,7 +280,6 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     text = replaceAll(text, "{*}", "@*@");
     int status = Tcl_Eval(interp, text.c_str());
     if (status) {
-      Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
       return TCL_ERROR;
     }
     return TCL_OK;
@@ -262,8 +299,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     if (!stream.good()) {
       Tcl_AppendResult(
           interp,
-          std::string("ERROR: Cannot open the SDC file for writing:" + fileName)
-              .c_str(),
+          strdup(std::string("ERROR: Cannot open the SDC file for writing:" +
+                             fileName)
+                     .c_str()),
           (char*)NULL);
       return TCL_ERROR;
     }
