@@ -99,6 +99,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   run_project <file>         : Opens and immediately runs the "
             "project"
          << std::endl;
+
   (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
@@ -1741,8 +1742,8 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
     if (constraints[i].find("set_io") != std::string::npos) {
       std::vector<std::string> tokens;
       StringUtils::tokenize(constraints[i], " ", tokens);
-      if (tokens.size() != 3) {
-        ErrorMessage("Invalid set_io command: <" + constraints[i] + ">");
+      if ((tokens.size() != 3) && (tokens.size() != 4)) {
+        ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
         return false;
       }
       std::string constraint_with_mode = constraints[i];
