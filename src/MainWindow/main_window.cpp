@@ -533,7 +533,7 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::updateMenusVisibility(const bool welcomePageShown) {
+void MainWindow::updateMenusVisibility(bool welcomePageShown) {
   updateActionsVisibility(menuBar()->actions(), welcomePageShown);
 
   fileToolBar->setVisible(!welcomePageShown);
@@ -541,7 +541,7 @@ void MainWindow::updateMenusVisibility(const bool welcomePageShown) {
 }
 
 void MainWindow::updateActionsVisibility(const QList<QAction*>& actions,
-                                         const bool welcomePageShown) {
+                                         bool welcomePageShown) {
   for (auto menuAction : actions) {
     auto visibilityProp = menuAction->property(WELCOME_PAGE_MENU_PROP);
     if (auto actionMenu = menuAction->menu()) {
