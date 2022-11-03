@@ -54,18 +54,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "foedag_version.h"
 
-#define WELCOME_PAGE_MENU_PROP "showOnWelcomePage"
-
 using namespace FOEDAG;
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
+
+constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
+}  // namespace
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {

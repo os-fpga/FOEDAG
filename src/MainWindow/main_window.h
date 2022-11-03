@@ -119,11 +119,11 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveToRecentSettings(const QString& project);
 
   // Shows or hides menus depending on welcome page visibility
-  void updateMenusVisibility(const bool welcomePageShown);
+  void updateMenusVisibility(bool welcomePageShown);
   // Recursively goes through actions and their children and hides/shows them
   // depending on set property
   void updateActionsVisibility(const QList<QAction*>& actions,
-                               const bool welcomePageShown);
+                               bool welcomePageShown);
   void showWelcomePage();
 
   bool saveConstraintFile();
