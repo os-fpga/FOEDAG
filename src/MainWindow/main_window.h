@@ -119,7 +119,12 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
 
-  void showMenus(bool show);
+  // Shows or hides menus depending on welcome page visibility
+  void updateMenusVisibility(bool welcomePageShown);
+  // Recursively goes through actions and their children and hides/shows them
+  // depending on set property
+  void updateActionsVisibility(const QList<QAction*>& actions,
+                               bool welcomePageShown);
   void showWelcomePage();
 
   bool saveConstraintFile();
@@ -131,6 +136,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool confirmExitProgram();
 
  private: /* Objects/Widgets under the main window */
+  /* Enum holding different states of actions visibility on the welcome page.
+     Actually we can just have a single state - visible. But in this case each
+     action would have to be inspected. This enum allows to indicate the menu
+     as fully visible and not inspect all its sub actions.*/
+  enum WelcomePageActionVisibility {
+    PARTIAL,  // Menu is visible but some of its child actions aren't
+    FULL      // Menu and all its child actions are visible
+  };
   bool m_showWelcomePage{true};
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
