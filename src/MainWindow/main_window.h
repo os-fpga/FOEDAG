@@ -82,6 +82,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onRunProjectRequested(const QString& project);
   void startProject();
   void onShowStopMessage(bool showStopCompilationMsg);
+  void onShowLicenses();
   void stopCompilation();
 
  public slots:
@@ -150,6 +151,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* startAction = nullptr;
   QAction* stopAction = nullptr;
   QAction* aboutAction = nullptr;
+  QAction* documentationAction = nullptr;
+  QAction* releaseNotesAction = nullptr;
+  QAction* licensesAction = nullptr;
   QAction* pinAssignmentAction = nullptr;
   QAction* ipConfiguratorAction = nullptr;
   QAction* saveAction = nullptr;
