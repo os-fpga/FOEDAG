@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TopLevelInterface.h"
 class QAction;
 class QLabel;
+class QProgressBar;
 
 namespace FOEDAG {
 
@@ -52,7 +53,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
-  void openProject(const QString& project, bool delayed) override;
+  void openProject(const QString& project, bool delayedOpen, bool run) override;
+  bool isRunning() const override;
 
  protected:
   void closeEvent(QCloseEvent* event) override;
@@ -69,6 +71,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void updatePRViewButton(int state);
   void saveActionTriggered();
   void pinAssignmentActionTriggered();
+  void pinAssignmentChanged();
   void ipConfiguratorActionTriggered();
   void newDialogAccepted();
   void recentProjectOpen();
@@ -76,7 +79,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void slotTabChanged(int index);
   void handleProjectOpened();
   void onShowWelcomePage(bool show);
-  void onOpenProjectRequested(const QString& project);
+  void onRunProjectRequested(const QString& project);
+  void startProject();
+  void onShowStopMessage(bool showStopCompilationMsg);
+  void stopCompilation();
 
  public slots:
   void updateSourceTree();
@@ -90,7 +96,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  signals:
   void projectOpened();
-  void openProjectRequested(const QString& project);
+  void runProjectRequested(const QString& project);
 
  private: /* Menu bar builders */
   void updateViewMenu();
@@ -113,7 +119,12 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
 
-  void showMenus(bool show);
+  // Shows or hides menus depending on welcome page visibility
+  void updateMenusVisibility(bool welcomePageShown);
+  // Recursively goes through actions and their children and hides/shows them
+  // depending on set property
+  void updateActionsVisibility(const QList<QAction*>& actions,
+                               bool welcomePageShown);
   void showWelcomePage();
 
   bool saveConstraintFile();
@@ -125,6 +136,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool confirmExitProgram();
 
  private: /* Objects/Widgets under the main window */
+  /* Enum holding different states of actions visibility on the welcome page.
+     Actually we can just have a single state - visible. But in this case each
+     action would have to be inspected. This enum allows to indicate the menu
+     as fully visible and not inspect all its sub actions.*/
+  enum WelcomePageActionVisibility {
+    PARTIAL,  // Menu is visible but some of its child actions aren't
+    FULL      // Menu and all its child actions are visible
+  };
   bool m_showWelcomePage{true};
   /* Menu bar objects */
   QMenu* fileMenu = nullptr;
@@ -132,6 +151,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* helpMenu = nullptr;
   QMenu* viewMenu = nullptr;
   QMenu* recentMenu = nullptr;
+  QMenu* preferencesMenu = nullptr;
   QMenu* projectMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
@@ -147,6 +167,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* ipConfiguratorAction = nullptr;
   QAction* saveAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
+  QAction* stopCompileMessageAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
@@ -164,12 +185,15 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   class SourcesForm* sourcesForm{nullptr};
   class IpCatalogTree* m_ipCatalogTree{nullptr};
   QWidget* m_progressWidget{nullptr};
+  QLabel* m_progressWidgetLbl{nullptr};
+  QProgressBar* m_progressBar{nullptr};
   QDockWidget* m_dockConsole{nullptr};
   std::vector<QDockWidget*> m_pinAssignmentDocks;
   QDockWidget* m_ipConfigDockWidget{nullptr};
   QDockWidget* m_availableIpsgDockWidget{nullptr};
   QSettings m_settings;
   bool m_progressVisible{false};
+  bool m_askStopCompilation{true};
 };
 
 }  // namespace FOEDAG

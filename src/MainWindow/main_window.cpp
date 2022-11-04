@@ -59,10 +59,15 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
+const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
+
+constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
+}  // namespace
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
@@ -71,6 +76,8 @@ MainWindow::MainWindow(Session* session)
   m_interpreter = session->TclInterp();
 
   m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
+  m_askStopCompilation =
+      m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
 
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
 
@@ -136,8 +143,8 @@ MainWindow::MainWindow(Session* session)
 
   connect(this, &MainWindow::projectOpened, this,
           &MainWindow::handleProjectOpened);
-  connect(this, &MainWindow::openProjectRequested, this,
-          &MainWindow::onOpenProjectRequested, Qt::QueuedConnection);
+  connect(this, &MainWindow::runProjectRequested, this,
+          &MainWindow::onRunProjectRequested, Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -228,7 +235,7 @@ void MainWindow::openExampleProject() {
                           std::filesystem::copy_options::recursive);
 
     // open the newly copied example project
-    openProject(dest + QDir::separator() + file, false);
+    openProject(dest + QDir::separator() + file, false, false);
   }
 }
 
@@ -236,7 +243,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
-  if (!fileName.isEmpty()) openProject(fileName, false);
+  if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
 void MainWindow::closeProject() {
@@ -269,11 +276,10 @@ void MainWindow::newDesignCreated(const QString& design) {
 }
 
 void MainWindow::startStopButtonsState() {
-  const bool inProgress = m_taskManager->status() == TaskStatus::InProgress;
-  const bool consoleInProgress = m_console->isRunning();
-  startAction->setEnabled(!inProgress && !consoleInProgress);
+  startAction->setEnabled(m_taskManager->status() != TaskStatus::InProgress &&
+                          !m_console->isRunning());
   // Enable Stop action when there is something to stop
-  stopAction->setEnabled(inProgress || consoleInProgress);
+  stopAction->setEnabled(isRunning());
 }
 
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
@@ -300,18 +306,47 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   dockWidgets.clear();
 }
 
-void MainWindow::openProject(const QString& project, bool delayed) {
-  if (!delayed) {
-    ReShowWindow(project);
-    loadFile(project);
-    emit projectOpened();
-  } else {
-    emit openProjectRequested(project);
+void MainWindow::openProject(const QString& project, bool delayedOpen,
+                             bool run) {
+  if (delayedOpen) {
+    emit runProjectRequested(project);
+    return;
   }
+
+  ReShowWindow(project);
+  loadFile(project);
+  emit projectOpened();
+  if (run) startProject();
 }
 
-void MainWindow::onOpenProjectRequested(const QString& project) {
-  openProject(project, false);
+bool MainWindow::isRunning() const {
+  return m_taskManager->status() == TaskStatus::InProgress ||
+         m_console->isRunning();
+}
+
+void MainWindow::onRunProjectRequested(const QString& project) {
+  openProject(project, false, true);
+}
+
+void MainWindow::stopCompilation() {
+  bool stop{true};
+  if (m_askStopCompilation) {
+    QMessageBox question{QMessageBox::Question, "Stop compilation",
+                         "Do you want stop compilation?",
+                         QMessageBox::No | QMessageBox::Yes, this};
+    auto combo = new QCheckBox("Do not show this message again");
+    connect(combo, &QCheckBox::stateChanged, this, [this](int state) {
+      stopCompileMessageAction->setChecked(state != Qt::Checked);
+    });
+    question.setCheckBox(combo);
+    auto res{question.exec()};
+    stop = (res == QMessageBox::Yes);
+  }
+
+  if (stop) {
+    m_compiler->Stop();
+    m_progressBar->hide();
+  }
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -402,17 +437,18 @@ void MainWindow::loadFile(const QString& file) {
 
 void MainWindow::createProgressBar() {
   m_progressWidget = new QWidget;
-  QProgressBar* progress = new QProgressBar(m_progressWidget);
-  progress->setFixedHeight(menuBar()->sizeHint().height() - 2);
-  progress->setFormat("%v/%m");
+  m_progressBar = new QProgressBar(m_progressWidget);
+  m_progressBar->setFixedHeight(menuBar()->sizeHint().height() - 2);
+  m_progressBar->setFormat("%v/%m");
   QHBoxLayout* layout = new QHBoxLayout;
   layout->setContentsMargins(0, 0, 0, 0);
-  QLabel* label = new QLabel{"Progress: "};
-  layout->addWidget(label);
-  layout->addWidget(progress);
+  m_progressWidgetLbl = new QLabel{};
+  m_progressWidgetLbl->setFixedHeight(menuBar()->sizeHint().height());
+  layout->addWidget(m_progressWidgetLbl);
+  layout->addWidget(m_progressBar);
   m_progressWidget->setLayout(layout);
   menuBar()->setCornerWidget(m_progressWidget, Qt::Corner::TopRightCorner);
-  m_progressWidget->hide();
+  m_progressBar->hide();
 }
 
 void MainWindow::createRecentMenu() {
@@ -438,7 +474,12 @@ void MainWindow::createRecentMenu() {
 
 void MainWindow::createMenus() {
   recentMenu = new QMenu("Recent Projects");
+  recentMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                        WelcomePageActionVisibility::FULL);
+  preferencesMenu = new QMenu{"Preferences"};
   fileMenu = menuBar()->addMenu(tr("&File"));
+  fileMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                      WelcomePageActionVisibility::PARTIAL);
   fileMenu->addAction(newAction);
   fileMenu->addAction(openFile);
   fileMenu->addSeparator();
@@ -446,7 +487,17 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openProjectAction);
   fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
+
+  newProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                WelcomePageActionVisibility::FULL);
+  openProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                 WelcomePageActionVisibility::FULL);
+  openExampleAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                 WelcomePageActionVisibility::FULL);
+
   fileMenu->addMenu(recentMenu);
+  fileMenu->addSeparator();
+  fileMenu->addMenu(preferencesMenu);
   fileMenu->addSeparator();
   fileMenu->addAction(exitAction);
 
@@ -462,8 +513,11 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
-  helpMenu->addSeparator();
-  helpMenu->addAction(showWelcomePageAction);
+  preferencesMenu->addAction(showWelcomePageAction);
+  preferencesMenu->addAction(stopCompileMessageAction);
+
+  helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                      WelcomePageActionVisibility::FULL);
 }
 
 void MainWindow::createToolBars() {
@@ -479,10 +533,30 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::showMenus(bool show) {
-  menuBar()->setVisible(show);
-  fileToolBar->setVisible(show);
-  debugToolBar->setVisible(show);
+void MainWindow::updateMenusVisibility(bool welcomePageShown) {
+  updateActionsVisibility(menuBar()->actions(), welcomePageShown);
+
+  fileToolBar->setVisible(!welcomePageShown);
+  debugToolBar->setVisible(!welcomePageShown);
+}
+
+void MainWindow::updateActionsVisibility(const QList<QAction*>& actions,
+                                         bool welcomePageShown) {
+  for (auto menuAction : actions) {
+    auto visibilityProp = menuAction->property(WELCOME_PAGE_MENU_PROP);
+    if (auto actionMenu = menuAction->menu()) {
+      // PARTIAL visibility indicates that some child items should be hidden
+      if (visibilityProp.isValid() &&
+          visibilityProp.toInt() == WelcomePageActionVisibility::PARTIAL)
+        updateActionsVisibility(actionMenu->actions(), welcomePageShown);
+    }
+
+    if (welcomePageShown)
+      menuAction->setVisible(
+          menuAction->property(WELCOME_PAGE_MENU_PROP).isValid());
+    else
+      menuAction->setVisible(true);
+  }
 }
 
 void MainWindow::createActions() {
@@ -529,15 +603,8 @@ void MainWindow::createActions() {
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this, [this]() {
-    m_progressWidget->show();
-    m_compiler->start();
-    m_taskManager->startAll();
-  });
-  connect(stopAction, &QAction::triggered, this, [this]() {
-    m_compiler->Stop();
-    m_progressWidget->hide();
-  });
+  connect(startAction, &QAction::triggered, this, &MainWindow::startProject);
+  connect(stopAction, &QAction::triggered, this, &MainWindow::stopCompilation);
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
@@ -575,6 +642,13 @@ void MainWindow::createActions() {
   showWelcomePageAction->setChecked(m_showWelcomePage);
   connect(showWelcomePageAction, &QAction::triggered, this,
           &MainWindow::onShowWelcomePage);
+
+  stopCompileMessageAction =
+      new QAction(tr("Show message on stop compilation"), this);
+  stopCompileMessageAction->setCheckable(true);
+  stopCompileMessageAction->setChecked(m_askStopCompilation);
+  connect(stopCompileMessageAction, &QAction::toggled, this,
+          &MainWindow::onShowStopMessage);
 }
 
 void MainWindow::gui_start(bool showWP) {
@@ -587,7 +661,7 @@ void MainWindow::showWelcomePage() {
   takeCentralWidget()->hide();  // we can't delete it because of singleton
 
   newDesignCreated({});
-  showMenus(false);
+  updateMenusVisibility(true);
 
   auto exeName =
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
@@ -626,7 +700,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   resetIps();
 
-  showMenus(true);
+  updateMenusVisibility(false);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
@@ -736,14 +810,28 @@ void MainWindow::ReShowWindow(QString strProject) {
   view->setParent(this);
 
   connect(
-      m_taskManager, &TaskManager::progress, this, [this](int val, int max) {
-        QProgressBar* progress = m_progressWidget->findChild<QProgressBar*>();
-        progress->setMaximum(max);
-        progress->setValue(val);
+      m_taskManager, &TaskManager::progress, this,
+      [this](int val, int max, const QString& statusMsg) {
+        if (max < 2) {
+          // If only 1 task is running, then change progress bar to permaloading
+          // since 0/1 will have no visual progress until it finishes
+          m_progressBar->setMaximum(0);
+          m_progressBar->setValue(0);
+        } else {
+          m_progressBar->setMaximum(max);
+          m_progressBar->setValue(val);
+        }
+        m_progressBar->show();
+        m_progressWidgetLbl->setText("<strong>STATUS</strong> " + statusMsg);
+        m_progressWidgetLbl->setVisible(!statusMsg.isEmpty());
+        menuBar()->adjustSize();
+
+        // Duplicate status in the actual window status bar
+        statusBar()->showMessage(statusMsg);
       });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
-    if (!m_progressVisible) m_progressWidget->hide();
+    if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
   });
 
@@ -830,7 +918,15 @@ void MainWindow::updatePRViewButton(int state) {
 }
 
 void MainWindow::saveActionTriggered() {
-  if (saveConstraintFile()) saveAction->setEnabled(false);
+  if (saveConstraintFile()) {
+    saveAction->setEnabled(false);
+    for (auto& dock : m_pinAssignmentDocks) {
+      if (dock->windowTitle().endsWith("*")) {
+        dock->setWindowTitle(
+            dock->windowTitle().mid(0, dock->windowTitle().size() - 1));
+      }
+    }
+  }
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
@@ -849,8 +945,8 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{
         m_projectManager, GlobalSession->Context(), m_compiler, this};
-    connect(creator, &PinAssignmentCreator::selectionHasChanged, this,
-            [this]() { saveAction->setEnabled(true); });
+    connect(creator, &PinAssignmentCreator::changed, this,
+            &MainWindow::pinAssignmentChanged);
 
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                       creator->GetPortsWidget(), m_dockConsole);
@@ -888,6 +984,15 @@ void MainWindow::pinAssignmentActionTriggered() {
     auto pinAssignment = findChild<PinAssignmentCreator*>();
     if (pinAssignment) delete pinAssignment;
   }
+}
+
+void MainWindow::pinAssignmentChanged() {
+  for (auto& dock : m_pinAssignmentDocks) {
+    if (!dock->windowTitle().endsWith("*")) {
+      dock->setWindowTitle(dock->windowTitle() + "*");
+    }
+  }
+  saveAction->setEnabled(true);
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {
@@ -1037,7 +1142,7 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name, false);
+    if (!name.isEmpty()) openProject(name, false, false);
   }
 }
 
@@ -1089,4 +1194,15 @@ bool MainWindow::confirmExitProgram() {
 void MainWindow::onShowWelcomePage(bool show) {
   m_showWelcomePage = show;
   saveWelcomePageConfig();
+}
+
+void MainWindow::startProject() {
+  m_progressWidget->show();
+  m_compiler->start();
+  m_taskManager->startAll();
+}
+
+void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
+  m_askStopCompilation = showStopCompilationMsg;
+  m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
 }

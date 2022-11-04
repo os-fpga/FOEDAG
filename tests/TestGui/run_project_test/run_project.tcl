@@ -17,5 +17,19 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-puts "OPENING PROJECT"; flush stdout ; open_project test.ospr
-puts "PROJECT OPENED"; flush stdout ; exit
+
+puts "RUNNING PROJECT"
+run_project test.ospr
+set fp [open "foedag.log" r]
+set file_data [read $fp]
+close $fp
+# Report an error if project run wasn't successful
+set found [regexp "Project run successful" $file_data]
+if { !$found } {
+     puts "TEST FAILED: test.ospr run failed."
+     exit 1
+}
+
+puts "TEST SUCCEEDED"
+
+exit 0

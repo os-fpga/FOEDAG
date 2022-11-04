@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QProcess>
 #include <charconv>
@@ -108,6 +109,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
+  (*out) << "   run_project <file>         : Opens and immediately runs the "
+            "project"
+         << std::endl;
   (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
@@ -133,6 +137,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
+         << std::endl;
+  (*out) << "   script_path                : path of the Tcl script passed "
+            "with --script"
          << std::endl;
   (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
             "IP generators, adds the IP(s) to the IP Catalog"
@@ -177,7 +184,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
-  m_constraints = new Constraints();
+  m_constraints = new Constraints(this);
   m_constraints->registerCommands(interp);
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
@@ -279,6 +286,53 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   return result;
 }
 
+// open_project and run_project tcl command implementation. As single
+// boolean parameter (run) is the only difference and tcl lambdas can't get
+// extra parameters or capture anything, static function had to be added.
+static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[], bool run) {
+  auto compiler = (Compiler*)clientData;
+  auto cmdLine = compiler->GetSession()->CmdLine();
+  if (argc != 2) {
+    compiler->ErrorMessage("Specify a project file name");
+    return TCL_ERROR;
+  }
+  std::string file = argv[1];
+  std::string expandedFile = file;
+  if (!FileUtils::FileExists(expandedFile)) {
+    auto scriptFile = cmdLine->Script();
+    std::filesystem::path script =
+        scriptFile.empty() ? cmdLine->GuiTestScript() : scriptFile;
+    std::filesystem::path scriptPath = script.parent_path();
+    std::filesystem::path fullPath = scriptPath;
+    fullPath.append(file);
+    expandedFile = fullPath.string();
+  }
+
+  auto mainWindow = compiler->GetSession()->MainWindow();
+  if (!mainWindow) {
+    compiler->ErrorMessage(
+        "GUI has to be started before calling 'open_project'");
+    return TCL_ERROR;
+  }
+  auto mainWindowImpl = qobject_cast<FOEDAG::MainWindow*>(mainWindow);
+  mainWindowImpl->openProject(QString::fromStdString(expandedFile), false, run);
+  if (run) {
+    // Wait till project run is finished
+    while (mainWindowImpl->isRunning())
+      QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
+  }
+  auto allTasks = compiler->GetTaskManager()->tasks();
+  for (auto task : allTasks) {
+    if (task && task->status() == TaskStatus::Fail) {
+      compiler->ErrorMessage(task->title().toStdString() + "task failed");
+      return TCL_ERROR;
+    }
+  }
+  compiler->Message("Project run successful");
+  return TCL_OK;
+}
+
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
@@ -286,7 +340,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
-    m_constraints = new Constraints();
+    m_constraints = new Constraints(this);
     m_constraints->registerCommands(interp);
   }
 
@@ -297,6 +351,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("help", help, this, 0);
+
+  auto script_path = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    std::filesystem::path script = compiler->GetSession()->CmdLine()->Script();
+    std::filesystem::path scriptPath = script.parent_path();
+    Tcl_SetResult(interp, (char*)scriptPath.c_str(), TCL_VOLATILE);
+    return TCL_OK;
+  };
+  interp->registerCmd("script_path", script_path, this, 0);
 
   auto version = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
@@ -687,17 +751,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
-    int status = Tcl_Eval(
-        interp, std::string("read_sdc {" + expandedFile + "}").c_str());
-    if (status) {
-      return TCL_ERROR;
-    }
     if (compiler->m_tclCmdIntegration) {
       std::ostringstream out;
       bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
           expandedFile.c_str(), out);
       if (!ok) {
         compiler->ErrorMessage(out.str());
+        return TCL_ERROR;
+      }
+    } else {
+      int status = Tcl_Eval(
+          interp, std::string("read_sdc {" + expandedFile + "}").c_str());
+      if (status) {
         return TCL_ERROR;
       }
     }
@@ -1289,38 +1354,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto open_project = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    Compiler* compiler = (Compiler*)clientData;
-    if (argc != 2) {
-      compiler->ErrorMessage("Specify a project file name");
-      return TCL_ERROR;
-    }
-    std::string file = argv[1];
-    std::string expandedFile = file;
-    bool use_orig_path = false;
-    if (FileUtils::FileExists(expandedFile)) {
-      use_orig_path = true;
-    }
+    return openRunProjectImpl(clientData, interp, argc, argv, false);
+  };
 
-    if ((!use_orig_path) &&
-        (!compiler->GetSession()->CmdLine()->Script().empty())) {
-      std::filesystem::path script =
-          compiler->GetSession()->CmdLine()->Script();
-      std::filesystem::path scriptPath = script.parent_path();
-      std::filesystem::path fullPath = scriptPath;
-      fullPath.append(file);
-      expandedFile = fullPath.string();
-    }
-    auto mainWindow = compiler->GetSession()->MainWindow();
-    if (!mainWindow) {
-      compiler->ErrorMessage(
-          "Gui has to be started before calling 'open_project'");
-      return TCL_ERROR;
-    }
-    qobject_cast<FOEDAG::MainWindow*>(mainWindow)
-        ->openProject(QString::fromStdString(expandedFile), false);
-    return TCL_OK;
+  auto run_project = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    return openRunProjectImpl(clientData, interp, argc, argv, true);
   };
   interp->registerCmd("open_project", open_project, this, nullptr);
+  interp->registerCmd("run_project", run_project, this, nullptr);
   return true;
 }
 
@@ -1341,6 +1383,7 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
+  ErrorMessage("Compilation was interrupted by user");
   if (m_process) m_process->terminate();
 }
 
@@ -1370,7 +1413,7 @@ bool Compiler::Analyze() {
     if (m_stop) return false;
   }
   m_state = State::Analyzed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "analysis.rpt");
@@ -1409,7 +1452,7 @@ bool Compiler::Synthesize() {
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
   CreateDummyLog(m_projManager, "synthesis.rpt");
@@ -1441,8 +1484,8 @@ bool Compiler::GlobalPlacement() {
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->projectName()
-           << " is globally placed!" << std::endl;
+  (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
+           << std::endl;
 
   CreateDummyLog(m_projManager, "global_placement.rpt");
   return true;
@@ -1587,11 +1630,11 @@ bool Compiler::IPGenerate() {
   bool status = GetIPGenerator()->Generate();
   if (status) {
     (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated!" << std::endl;
+             << " IPs are generated" << std::endl;
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +
-                 " IPs generation failed!");
+                 " IPs generation failed");
   }
 
   CreateDummyLog(m_projManager, "ip_generate.rpt");
@@ -1615,7 +1658,7 @@ bool Compiler::Packing() {
   (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is packed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is packed"
            << std::endl;
   m_state = State::Packed;
 
@@ -1640,7 +1683,7 @@ bool Compiler::Placement() {
   (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is placed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is placed"
            << std::endl;
   m_state = State::Placed;
 
@@ -1665,7 +1708,7 @@ bool Compiler::Route() {
   (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
            << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is routed"
            << std::endl;
   m_state = State::Routed;
 
@@ -1681,7 +1724,7 @@ bool Compiler::TimingAnalysis() {
   (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "timing_analysis.rpt");
@@ -1696,7 +1739,7 @@ bool Compiler::PowerAnalysis() {
   (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
            << "..." << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed!"
+  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
   CreateDummyLog(m_projManager, "power_analysis.rpt");
@@ -1712,7 +1755,7 @@ bool Compiler::GenerateBitstream() {
            << m_projManager->projectName() << "..." << std::endl;
 
   (*m_out) << "Design " << m_projManager->projectName()
-           << " bitstream is generated!" << std::endl;
+           << " bitstream is generated" << std::endl;
 
   CreateDummyLog(m_projManager, "bitstream.rpt");
   return true;

@@ -96,6 +96,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
+  (*out) << "   run_project <file>         : Opens and immediately runs the "
+            "project"
+         << std::endl;
+
   (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
@@ -146,6 +150,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "                                Constraints: set_pin_loc, "
             "set_mode, set_region_loc, all SDC commands"
+         << std::endl;
+  (*out) << "   script_path                : path of the Tcl script passed "
+            "with --script"
          << std::endl;
   (*out) << "   keep <signal list> OR all_signals : Keeps the list of signals "
             "or all signals through Synthesis unchanged (unoptimized in "
@@ -660,11 +667,11 @@ bool CompilerOpenFPGA::IPGenerate() {
   bool status = GetIPGenerator()->Generate();
   if (status) {
     (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated!" << std::endl;
+             << " IPs are generated" << std::endl;
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +
-                 " IPs generation failed!");
+                 " IPs generation failed");
   }
   return true;
 }
@@ -900,7 +907,7 @@ bool CompilerOpenFPGA::Analyze() {
        case Design::Language::VHDL_1993:
        case Design::Language::VHDL_2000:
        case Design::Language::VHDL_2008:
-       ErrorMessage("Unsupported language (Yosys default parser)!");
+       ErrorMessage("Unsupported language (Yosys default parser)");
        break;
        case Design::Language::VERILOG_1995:
        case Design::Language::VERILOG_2001:
@@ -914,7 +921,7 @@ bool CompilerOpenFPGA::Analyze() {
        case Design::Language::VERILOG_NETLIST:
        case Design::Language::BLIF:
        case Design::Language::EBLIF:
-       ErrorMessage("Unsupported language (Yosys default parser)!");
+       ErrorMessage("Unsupported language (Yosys default parser)");
        break;
        }
        analysisScript = fileList;
@@ -951,12 +958,11 @@ bool CompilerOpenFPGA::Analyze() {
   }
   // TODO: read back the Json file produced
   if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " analysis failed!");
+    ErrorMessage("Design " + ProjManager()->projectName() + " analysis failed");
     return false;
   } else {
     m_state = State::Analyzed;
-    (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed!"
+    (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed"
              << std::endl;
   }
 
@@ -1002,6 +1008,7 @@ bool CompilerOpenFPGA::Synthesize() {
 
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
+  m_constraints->reset();
   for (const auto& file : constrFiles) {
     int res{TCL_OK};
     auto status =
@@ -1142,7 +1149,7 @@ bool CompilerOpenFPGA::Synthesize() {
       if (!commandLib.first.empty()) {
         ErrorMessage(
             "Yosys default parser doesn't support '-work' design file "
-            "command!");
+            "command");
         break;
       }
     }
@@ -1169,7 +1176,7 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
         case Design::Language::VHDL_2008:
-          ErrorMessage("Unsupported language (Yosys default parser)!");
+          ErrorMessage("Unsupported language (Yosys default parser)");
           break;
         case Design::Language::VERILOG_1995:
         case Design::Language::VERILOG_2001:
@@ -1183,7 +1190,7 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VERILOG_NETLIST:
         case Design::Language::BLIF:
         case Design::Language::EBLIF:
-          ErrorMessage("Unsupported language (Yosys default parser)!");
+          ErrorMessage("Unsupported language (Yosys default parser)");
           break;
       }
       filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
@@ -1255,11 +1262,11 @@ bool CompilerOpenFPGA::Synthesize() {
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " synthesis failed!");
+                 " synthesis failed");
     return false;
   } else {
     m_state = State::Synthesized;
-    (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized!"
+    (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized"
              << std::endl;
 
     copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
@@ -1457,11 +1464,11 @@ bool CompilerOpenFPGA::Packing() {
 
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() + " packing failed!");
+    ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
     return false;
   }
   m_state = State::Packed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is packed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is packed"
            << std::endl;
 
   copyLog(ProjManager(), "vpr_stdout.log", "packing.rpt");
@@ -1494,8 +1501,8 @@ bool CompilerOpenFPGA::GlobalPlacement() {
   (*m_out) << "##################################################" << std::endl;
   // TODO:
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << ProjManager()->projectName()
-           << " is globally placed!" << std::endl;
+  (*m_out) << "Design " << ProjManager()->projectName() << " is globally placed"
+           << std::endl;
   return true;
 }
 
@@ -1683,7 +1690,7 @@ bool CompilerOpenFPGA::Placement() {
 
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
-                   " pin conversion failed!");
+                   " pin conversion failed");
       return false;
     } else {
       pin_loc_constraint_file = pin_locFile;
@@ -1702,11 +1709,11 @@ bool CompilerOpenFPGA::Placement() {
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " placement failed!");
+                 " placement failed");
     return false;
   }
   m_state = State::Placed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is placed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
            << std::endl;
 
   copyLog(ProjManager(), "vpr_stdout.log", "placement.rpt");
@@ -1735,8 +1742,8 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
     if (constraints[i].find("set_io") != std::string::npos) {
       std::vector<std::string> tokens;
       StringUtils::tokenize(constraints[i], " ", tokens);
-      if (tokens.size() != 3) {
-        ErrorMessage("Invalid set_io command: <" + constraints[i] + ">");
+      if ((tokens.size() != 3) && (tokens.size() != 4)) {
+        ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
         return false;
       }
       std::string constraint_with_mode = constraints[i];
@@ -1806,11 +1813,11 @@ bool CompilerOpenFPGA::Route() {
   ofs.close();
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() + " routing failed!");
+    ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
     return false;
   }
   m_state = State::Routed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is routed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is routed"
            << std::endl;
 
   copyLog(ProjManager(), "vpr_stdout.log", "routing.rpt");
@@ -1851,7 +1858,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     const int status = ExecuteAndMonitorSystemCommand(command);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
-                   " place and route view failed!");
+                   " place and route view failed");
       return false;
     }
     return true;
@@ -1881,7 +1888,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     int status = ExecuteAndMonitorSystemCommand(command);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
-                   " timing analysis failed!");
+                   " timing analysis failed");
       return false;
     }
     // find files
@@ -1932,12 +1939,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   status = ExecuteAndMonitorSystemCommand(taCommand);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " timing analysis failed!");
+                 " timing analysis failed");
     return false;
   }
 
-  (*m_out) << "Design " << ProjManager()->projectName()
-           << " is timing analysed!" << std::endl;
+  (*m_out) << "Design " << ProjManager()->projectName() << " is timing analysed"
+           << std::endl;
 
   copyLog(ProjManager(), "vpr_stdout.log", "timing_analysis.rpt");
   return true;
@@ -1984,11 +1991,11 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " power analysis failed!");
+                 " power analysis failed");
     return false;
   }
 
-  (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed!"
+  (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed"
            << std::endl;
 
   copyLog(ProjManager(), "vpr_stdout.log", "power_analysis.rpt");
@@ -2205,7 +2212,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
       (*m_out) << "Device " << ProjManager()->getTargetDevice()
-               << " bitstream is not enabled, skipping!" << std::endl;
+               << " bitstream is not enabled, skipping" << std::endl;
       return true;
     }
 #endif
@@ -2248,13 +2255,13 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitstream generation failed!");
+                 " bitstream generation failed");
     return false;
   }
   m_state = State::BistreamGenerated;
 
   (*m_out) << "Design " << ProjManager()->projectName()
-           << " bitstream is generated!" << std::endl;
+           << " bitstream is generated" << std::endl;
   return true;
 }
 
