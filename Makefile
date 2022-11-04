@@ -150,6 +150,7 @@ test_install:
 	cmake --build tests/TestInstall/build -j $(CPU_CORES)
 
 test/gui: run-cmake-debug
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/compiler_flow.tcl
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/run_project_test/run_project.tcl
 	$(XVFB) ./dbuild/bin/foedag --compiler openfpga --replay tests/TestGui/run_project_test/run_project.tcl && exit 1 || (echo "PASSED: Caught negative test")
@@ -168,7 +169,6 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/ipconfigurator --replay tests/TestGui/gui_ipconfigurator.tcl
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
-	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl

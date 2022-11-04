@@ -27,6 +27,8 @@ set initFile "foedag_init.tcl"
 set fp [open $initFile a+];
 close $fp;
 
+glob *.tcl
+
 # load gui which should now find foedag_init.tcl locally
 gui_start
 gui_stop
@@ -35,6 +37,9 @@ set fp [open "foedag_cmd.tcl" r]
 set file_data [read $fp]
 # check the log for "source <somePath>/foedag_init.tcl"
 set found [regexp "source.*$initFile" $file_data]
+
+puts $file_data
+puts $found
 
 # Error out if the source command wasn't found
 # This is one line as --replay currently doesn't work with multi-line expressions like conditionals
