@@ -35,16 +35,17 @@ class PinsBaseModel;
 class PinAssignmentBaseView : public QTreeWidget {
  public:
   PinAssignmentBaseView(PinsBaseModel *model, QWidget *parent = nullptr);
+  ~PinAssignmentBaseView();
 
  protected:
   void removeDuplications(const QString &text, QComboBox *current);
-  QModelIndex match(const QString &text) const;
-  QModelIndex indexFromText(QTreeWidgetItem *i, const QString &text) const;
+  QModelIndexList match(const QString &text) const;
+  QModelIndexList indexFromText(QTreeWidgetItem *i, const QString &text) const;
 
  protected:
   PinsBaseModel *m_model{nullptr};
+  QMap<QComboBox *, QModelIndex> m_allCombo;
   bool m_blockUpdate{false};
-  QVector<QComboBox *> m_allCombo;
 };
 
 }  // namespace FOEDAG

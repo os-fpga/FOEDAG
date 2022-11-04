@@ -28,39 +28,39 @@ PinAssignmentBaseView::PinAssignmentBaseView(PinsBaseModel *model,
                                              QWidget *parent)
     : QTreeWidget(parent), m_model(model) {}
 
+PinAssignmentBaseView::~PinAssignmentBaseView() { m_allCombo.clear(); }
+
 void PinAssignmentBaseView::removeDuplications(const QString &text,
                                                QComboBox *current) {
-  for (auto &c : m_allCombo) {
-    if ((c != current) && (c->currentText() == text)) {
-      c->setCurrentIndex(0);
+  for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
+    if ((it.key() != current) && (it.key()->currentText() == text)) {
+      it.key()->setCurrentIndex(0);
       break;
     }
   }
 }
 
-QModelIndex PinAssignmentBaseView::match(const QString &text) const {
+QModelIndexList PinAssignmentBaseView::match(const QString &text) const {
   int count = topLevelItemCount();
-  QModelIndex index;
+  QModelIndexList indexList;
   for (int i = 0; i < count; i++) {
-    index = indexFromText(topLevelItem(i), text);
-    if (index.isValid()) break;
+    indexList = indexFromText(topLevelItem(i), text);
+    if (!indexList.isEmpty()) break;
   }
-  return index;
+  return indexList;
 }
 
-QModelIndex PinAssignmentBaseView::indexFromText(QTreeWidgetItem *i,
-                                                 const QString &text) const {
+QModelIndexList PinAssignmentBaseView::indexFromText(
+    QTreeWidgetItem *i, const QString &text) const {
   auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, text, -1,
                                   Qt::MatchExactly);
-  if (!indexList.isEmpty()) return indexList.first();
 
   int children = i->childCount();
   for (int u = 0; u < children; u++) {
     auto c = i->child(u);
-    QModelIndex index = indexFromText(c, text);
-    if (index.isValid()) return index;
+    indexList += indexFromText(c, text);
   }
-  return QModelIndex{};
+  return indexList;
 }
 
 }  // namespace FOEDAG

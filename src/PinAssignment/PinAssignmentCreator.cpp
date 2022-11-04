@@ -77,7 +77,13 @@ QString PinAssignmentCreator::generateSdc() const {
   const auto pinMap = m_baseModel->pinMap();
   // generate pin location
   for (auto it = pinMap.constBegin(); it != pinMap.constEnd(); ++it) {
-    sdc.append(QString("set_pin_loc %1 %2\n").arg(it.key(), it.value()));
+    auto internalPin = m_baseModel->packagePinModel()->internalPin(it.key());
+    if (internalPin.isEmpty())
+      sdc.append(
+          QString("set_pin_loc %1 %2\n").arg(it.key(), it.value().first));
+    else
+      sdc.append(QString("set_pin_loc %1 %2 %3\n")
+                     .arg(it.key(), it.value().first, internalPin));
   }
   // generate mode
   auto modeMap = m_baseModel->packagePinModel()->modeMap();
@@ -139,12 +145,15 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
                                             PortsView *portsView) {
   // First need to setup ports and then modes sinse mode will apply only when
   // port is selected.
+  QVector<QStringList> internalPins;
+  QMap<QString, int> indx{};
   for (const auto &cmd : commands) {
     if (cmd.startsWith("set_pin_loc")) {
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {
-        portsView->SetPin(list.at(1), list.at(2));
+        packagePins->SetPort(list.at(2), list.at(1), indx[list.at(2)]++);
       }
+      if (list.size() >= 4) internalPins.append(list);
     }
   }
   for (const auto &cmd : commands) {
@@ -154,6 +163,9 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
         packagePins->SetMode(list.at(2), list.at(1));
       }
     }
+  }
+  for (const auto &intPins : internalPins) {
+    packagePins->SetInternalPin(intPins.at(1), intPins.at(3));
   }
 }
 
