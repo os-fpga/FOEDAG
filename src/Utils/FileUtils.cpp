@@ -180,6 +180,7 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
     bool caseInsensitive) {
   std::vector<std::filesystem::path> results{};
   for (auto path : searchPaths) {
+    std::cout << "searching " << path.string() << std::endl;
     // Make sure search path is valid
     if (FileUtils::FileExists(path)) {
       // Iterate through files in path

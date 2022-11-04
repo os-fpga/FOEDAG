@@ -28,6 +28,7 @@ set fp [open $initFile a+];
 close $fp;
 
 puts [glob *.tcl]
+puts [pwd]
 
 # load gui which should now find foedag_init.tcl locally
 gui_start
