@@ -34,6 +34,7 @@ extern "C" {
 }
 
 #include <QApplication>
+#include <QDir>
 #include <QGuiApplication>
 #include <QLabel>
 //#include <QQmlApplicationEngine>
@@ -58,6 +59,7 @@ extern "C" {
 #include "ProjNavigator/tcl_command_integration.h"
 #include "ProjectFile/ProjectFileLoader.h"
 #include "Tcl/TclInterpreter.h"
+#include "Utils/FileUtils.h"
 #include "qttclnotifier.hpp"
 
 #if defined(_MSC_VER)
@@ -127,6 +129,26 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
   return progname;  // Didn't find anything, return progname as-is.
 }
 
+void loadTclInitFile(CommandStack* commandStack,
+                     const std::string& initFilePrefix) {
+  if (!commandStack) return;
+
+  // Get the home and the local paths
+  // std c++ doesn't have a concept of a home dir so we use QDir instead
+  std::filesystem::path homeDir =
+      std::filesystem::path(QDir::homePath().toStdString());
+  std::filesystem::path localDir =
+      std::filesystem::path(QDir::currentPath().toStdString());
+  std::vector<std::filesystem::path> searchPaths{homeDir, localDir};
+
+  // Search for and load/source each file match in searchPaths
+  std::string fileName = initFilePrefix + "_init.tcl";
+  for (auto path : FileUtils::FindFileInDirs(fileName, searchPaths, true)) {
+    std::string cmd = "source " + path.string();
+    commandStack->push_and_exec(new Command(cmd));
+  }
+}
+
 Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
                RegisterTclFunc* registerTclFunc, Compiler* compiler,
                Settings* settings, ToolContext* context)
@@ -161,6 +183,9 @@ bool Foedag::initGui() {
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
+
+  loadTclInitFile(commands, m_context->ExecutableName());
+
   Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
 
@@ -233,6 +258,8 @@ bool Foedag::initQmlGui() {
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
+
+  loadTclInitFile(commands, m_context->ExecutableName());
 
   MainWindowModel* windowModel = new MainWindowModel(interpreter);
 
@@ -341,6 +368,9 @@ bool Foedag::initBatch() {
   const bool mute{m_cmdLine->Mute() && !m_cmdLine->Script().empty()};
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName(), mute);
+
+  loadTclInitFile(commands, m_context->ExecutableName());
+
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
