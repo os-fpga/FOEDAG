@@ -703,7 +703,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(AdjustPath(path), " ", tokens);
+    StringUtils::tokenize(FileUtils::AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -717,7 +717,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(AdjustPath(path), " ", tokens);
+    StringUtils::tokenize(FileUtils::AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -793,13 +793,13 @@ bool CompilerOpenFPGA::Analyze() {
     std::string fileList;
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += AdjustPath(path) + " ";
+      includes += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += AdjustPath(path) + " ";
+      libraries += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "-vlog-libdir " + libraries + "\n";
 
@@ -1042,13 +1042,13 @@ bool CompilerOpenFPGA::Synthesize() {
     }
 
     for (auto path : ProjManager()->includePathList()) {
-      includes += AdjustPath(path) + " ";
+      includes += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += AdjustPath(path) + " ";
+      libraries += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-libdir " + libraries + "\n";
 
@@ -1160,7 +1160,7 @@ bool CompilerOpenFPGA::Synthesize() {
     macros += "\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += "-I" + AdjustPath(path) + " ";
+      includes += "-I" + FileUtils::AdjustPath(path) + " ";
     }
 
     std::string designFiles;

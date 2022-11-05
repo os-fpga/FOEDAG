@@ -238,4 +238,12 @@ bool FileUtils::IsUptoDate(const std::string& sourceFile,
   return true;
 }
 
+std::string FileUtils::AdjustPath(const std::string& p) {
+  std::filesystem::path the_path = p;
+  if (!the_path.is_absolute()) {
+    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+  }
+  return the_path.string();
+}
+
 }  // namespace FOEDAG

@@ -1854,14 +1854,6 @@ const std::string Compiler::GetNetlistPath() {
   return netlistFile;
 }
 
-std::string Compiler::AdjustPath(const std::string& p) {
-  std::filesystem::path the_path = p;
-  if (!the_path.is_absolute()) {
-    the_path = std::filesystem::path(std::filesystem::path("..") / p);
-  }
-  return the_path.string();
-}
-
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
