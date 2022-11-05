@@ -1746,12 +1746,17 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
         ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
         return false;
       }
-      std::string constraint_with_mode = constraints[i];
+      std::string constraint_with_mode = tokens[0] + std::string(" ") +
+                                         tokens[1] + std::string(" ") +
+                                         tokens[2];
       if (pin_mode_map.find(tokens[2]) != pin_mode_map.end()) {
         constraint_with_mode +=
             std::string(" -mode ") + pin_mode_map[tokens[2]];
       } else {
         constraint_with_mode += std::string(" -mode Mode_GPIO");
+      }
+      if (tokens.size() == 4) {
+        constraint_with_mode += std::string(" -internal_pin ") + tokens[3];
       }
       constraint_and_mode.push_back(constraint_with_mode);
     }
