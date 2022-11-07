@@ -70,6 +70,8 @@ class FileUtils final {
   static bool IsUptoDate(const std::string& sourceFile,
                          const std::string& outputFile);
 
+  static std::string AdjustPath(const std::string& p);
+
  private:
   FileUtils() = delete;
   FileUtils(const FileUtils& orig) = delete;
