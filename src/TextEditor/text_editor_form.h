@@ -1,6 +1,7 @@
 #ifndef TEXT_EDITOR_FORM_H
 #define TEXT_EDITOR_FORM_H
 
+#include <QFileSystemWatcher>
 #include <QTabWidget>
 #include <QWidget>
 
@@ -37,12 +38,14 @@ class TextEditorForm : public QWidget {
   void SlotReplaceAndFind(const QString &strFindWord,
                           const QString &strDesWord);
   void SlotReplaceAll(const QString &strFindWord, const QString &strDesWord);
+  void fileModifiedOnDisk(const QString &path);
 
  private:
   QTabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
 
   SearchDialog *m_searchDialog;
+  QFileSystemWatcher m_fileWatcher;
 };
 }  // namespace FOEDAG
 #endif  // TEXT_EDITOR_FORM_H

@@ -99,6 +99,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   run_project <file>         : Opens and immediately runs the "
             "project"
          << std::endl;
+
   (*out) << "   target_device <name>       : Targets a device with <name> name"
          << std::endl;
   (*out) << "   architecture <vpr_file.xml> ?<openfpga_file.xml>? :"
@@ -702,7 +703,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(AdjustPath(path), " ", tokens);
+    StringUtils::tokenize(FileUtils::AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -716,7 +717,7 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
-    StringUtils::tokenize(AdjustPath(path), " ", tokens);
+    StringUtils::tokenize(FileUtils::AdjustPath(path), " ", tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -792,13 +793,13 @@ bool CompilerOpenFPGA::Analyze() {
     std::string fileList;
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += AdjustPath(path) + " ";
+      includes += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += AdjustPath(path) + " ";
+      libraries += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "-vlog-libdir " + libraries + "\n";
 
@@ -1041,13 +1042,13 @@ bool CompilerOpenFPGA::Synthesize() {
     }
 
     for (auto path : ProjManager()->includePathList()) {
-      includes += AdjustPath(path) + " ";
+      includes += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
-      libraries += AdjustPath(path) + " ";
+      libraries += FileUtils::AdjustPath(path) + " ";
     }
     fileList += "verific -vlog-libdir " + libraries + "\n";
 
@@ -1159,7 +1160,7 @@ bool CompilerOpenFPGA::Synthesize() {
     macros += "\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
-      includes += "-I" + AdjustPath(path) + " ";
+      includes += "-I" + FileUtils::AdjustPath(path) + " ";
     }
 
     std::string designFiles;
@@ -1741,16 +1742,21 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
     if (constraints[i].find("set_io") != std::string::npos) {
       std::vector<std::string> tokens;
       StringUtils::tokenize(constraints[i], " ", tokens);
-      if (tokens.size() != 3) {
-        ErrorMessage("Invalid set_io command: <" + constraints[i] + ">");
+      if ((tokens.size() != 3) && (tokens.size() != 4)) {
+        ErrorMessage("Invalid set_pin_loc command: <" + constraints[i] + ">");
         return false;
       }
-      std::string constraint_with_mode = constraints[i];
+      std::string constraint_with_mode = tokens[0] + std::string(" ") +
+                                         tokens[1] + std::string(" ") +
+                                         tokens[2];
       if (pin_mode_map.find(tokens[2]) != pin_mode_map.end()) {
         constraint_with_mode +=
             std::string(" -mode ") + pin_mode_map[tokens[2]];
       } else {
         constraint_with_mode += std::string(" -mode Mode_GPIO");
+      }
+      if (tokens.size() == 4) {
+        constraint_with_mode += std::string(" -internal_pin ") + tokens[3];
       }
       constraint_and_mode.push_back(constraint_with_mode);
     }

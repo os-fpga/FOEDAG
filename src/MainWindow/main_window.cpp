@@ -60,11 +60,15 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
+
+constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
+}  // namespace
 
 MainWindow::MainWindow(Session* session)
     : m_session(session), m_settings("settings", QSettings::IniFormat) {
@@ -464,8 +468,12 @@ void MainWindow::createRecentMenu() {
 
 void MainWindow::createMenus() {
   recentMenu = new QMenu("Recent Projects");
+  recentMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                        WelcomePageActionVisibility::FULL);
   preferencesMenu = new QMenu{"Preferences"};
   fileMenu = menuBar()->addMenu(tr("&File"));
+  fileMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                      WelcomePageActionVisibility::PARTIAL);
   fileMenu->addAction(newAction);
   fileMenu->addAction(openFile);
   fileMenu->addSeparator();
@@ -473,6 +481,14 @@ void MainWindow::createMenus() {
   fileMenu->addAction(openProjectAction);
   fileMenu->addAction(openExampleAction);
   fileMenu->addAction(closeProjectAction);
+
+  newProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                WelcomePageActionVisibility::FULL);
+  openProjectAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                 WelcomePageActionVisibility::FULL);
+  openExampleAction->setProperty(WELCOME_PAGE_MENU_PROP,
+                                 WelcomePageActionVisibility::FULL);
+
   fileMenu->addMenu(recentMenu);
   fileMenu->addSeparator();
   fileMenu->addMenu(preferencesMenu);
@@ -493,6 +509,9 @@ void MainWindow::createMenus() {
   helpMenu->addAction(aboutAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
+
+  helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
+                                      WelcomePageActionVisibility::FULL);
 }
 
 void MainWindow::createToolBars() {
@@ -508,10 +527,30 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(stopAction);
 }
 
-void MainWindow::showMenus(bool show) {
-  menuBar()->setVisible(show);
-  fileToolBar->setVisible(show);
-  debugToolBar->setVisible(show);
+void MainWindow::updateMenusVisibility(bool welcomePageShown) {
+  updateActionsVisibility(menuBar()->actions(), welcomePageShown);
+
+  fileToolBar->setVisible(!welcomePageShown);
+  debugToolBar->setVisible(!welcomePageShown);
+}
+
+void MainWindow::updateActionsVisibility(const QList<QAction*>& actions,
+                                         bool welcomePageShown) {
+  for (auto menuAction : actions) {
+    auto visibilityProp = menuAction->property(WELCOME_PAGE_MENU_PROP);
+    if (auto actionMenu = menuAction->menu()) {
+      // PARTIAL visibility indicates that some child items should be hidden
+      if (visibilityProp.isValid() &&
+          visibilityProp.toInt() == WelcomePageActionVisibility::PARTIAL)
+        updateActionsVisibility(actionMenu->actions(), welcomePageShown);
+    }
+
+    if (welcomePageShown)
+      menuAction->setVisible(
+          menuAction->property(WELCOME_PAGE_MENU_PROP).isValid());
+    else
+      menuAction->setVisible(true);
+  }
 }
 
 void MainWindow::createActions() {
@@ -616,7 +655,7 @@ void MainWindow::showWelcomePage() {
   takeCentralWidget()->hide();  // we can't delete it because of singleton
 
   newDesignCreated({});
-  showMenus(false);
+  updateMenusVisibility(true);
 
   auto exeName =
       QString::fromStdString(GlobalSession->Context()->ExecutableName());
@@ -655,7 +694,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   resetIps();
 
-  showMenus(true);
+  updateMenusVisibility(false);
 
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");

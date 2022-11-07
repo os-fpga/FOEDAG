@@ -182,6 +182,7 @@ class Compiler {
   const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
     return m_severityMap;
   }
+
   void SetConstraints(Constraints* c);
 
  protected:
