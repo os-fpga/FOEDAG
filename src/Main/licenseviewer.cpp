@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QGridLayout>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QTextStream>
 
 namespace FOEDAG {
@@ -26,6 +27,20 @@ LicenseViewer::LicenseViewer(const std::filesystem::path &licensesDir,
   textEditor->moveCursor(QTextCursor::Start);
 
   dialogLayout->addWidget(textEditor);
+
+  // Close button
+  auto closeBtn = new QPushButton("Close", this);
+  auto closeBtnLayout = new QHBoxLayout;
+  closeBtnLayout->addStretch();
+  closeBtnLayout->addWidget(closeBtn);
+  connect(closeBtn, &QPushButton::clicked, this, &LicenseViewer::close);
+
+  dialogLayout->addLayout(closeBtnLayout, 1, 0);
+
+  auto margins = dialogLayout->contentsMargins();
+  margins.setBottom(dialogLayout->spacing());
+  dialogLayout->setContentsMargins(margins);
+
   setLayout(dialogLayout);
 
   setWindowTitle(QString("%1 Licenses").arg(appName));
