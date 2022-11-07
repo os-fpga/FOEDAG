@@ -57,6 +57,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ProjectFile/ProjectManagerComponent.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   ../Main/AboutWidget.cpp
+  ../Main/licenseviewer.cpp
   ../MainWindow/mainwindowmodel.cpp
   ../MainWindow/WelcomePageWidget.cpp
   ../Main/TclSimpleParser.cpp
@@ -82,6 +83,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ProjectFile/ProjectManagerComponent.h
   ../Main/ProjectFile/CompilerComponent.h
   ../Main/AboutWidget.h
+  ../Main/licenseviewer.h
   ../MainWindow/mainwindowmodel.h
   ../MainWindow/TopLevelInterface.h
   ../MainWindow/WelcomePageWidget.h

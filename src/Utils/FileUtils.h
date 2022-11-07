@@ -57,6 +57,11 @@ class FileUtils final {
   static std::filesystem::path LocateFileRecursive(
       const std::filesystem::path& searchPath, const std::string filename);
 
+  static std::vector<std::filesystem::path> FindFileInDirs(
+      const std::string& filename,
+      const std::vector<std::filesystem::path>& searchPaths,
+      bool caseInsensitive);
+
   static int ExecuteSystemCommand(const std::string& command,
                                   std::ostream* result);
 
@@ -64,6 +69,8 @@ class FileUtils final {
 
   static bool IsUptoDate(const std::string& sourceFile,
                          const std::string& outputFile);
+
+  static std::string AdjustPath(const std::string& p);
 
  private:
   FileUtils() = delete;

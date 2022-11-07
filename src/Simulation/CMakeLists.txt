@@ -1,10 +1,10 @@
 # -*- mode:cmake -*-
 
-# Copyright 2021 The Foedag team
+# Copyright 2022 The Foedag team
 
 # GPL License
 
-# Copyright (c) 2021 The Open-Source FPGA Foundation
+# Copyright (c) 2022 The Open-Source FPGA Foundation
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,12 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(foedagutils LANGUAGES CXX)
+project(compiler LANGUAGES CXX)
+
+if (PRODUCTION_BUILD)
+  message("Production Build type set to ON")
+  set (PRODUCTION_BUILD_FLAG "-DPRODUCTION_BUILD=1")
+endif(PRODUCTION_BUILD)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -30,8 +35,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
 else()
   set(CMAKE_CXX_FLAGS_DEBUG
-  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Werror")
+  "${CMAKE_CXX_FLAGS_DEBUG} ${TCMALLOC_COMPILE_OPTIONS} -Werror -Wall -O0 -g ${MSYS_COMPILE_OPTIONS} ${MY_CXX_WARNING_FLAGS} ${MEM_SANITIZER_FLAGS} ${PRODUCTION_BUILD_FLAG}")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PRODUCTION_BUILD_FLAG} -Werror -Wall")
 endif()
 
 include (../../cmake/cmake_qt.txt)
@@ -42,18 +47,11 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  FileUtils.cpp
-  StringUtils.cpp
-  ProcessUtils.cpp
-  QtUtils.cpp
+  Simulator.cpp
 )
 
 set (SRC_H_INSTALL_LIST
-  FileUtils.h
-  StringUtils.h
-  ProcessUtils.h
-  sequential_map.h
-  QtUtils.h
+  Simulator.h
 )
 
 set (SRC_H_LIST
@@ -61,27 +59,32 @@ set (SRC_H_LIST
 )
 
 set (res_LIST
+  simulation_resources.qrc
 )
 
-add_library(foedagutils STATIC
+add_library(simulation STATIC
   ${SRC_CPP_LIST}
   ${SRC_H_LIST}
   ${res_LIST}
 )
 
-target_link_libraries(foedagutils PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
-target_compile_definitions(foedagutils PRIVATE COMPILER_LIBRARY)
+target_link_libraries(simulation PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_compile_definitions(simulation PRIVATE SIMULATION_LIBRARY)
 
 install (
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:foedagutils>
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:simulation>
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag)
 
 foreach(file ${SRC_H_INSTALL_LIST})
   install(
-      FILES ${PROJECT_SOURCE_DIR}/../Utils/${file}
-      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Utils)
+      FILES ${PROJECT_SOURCE_DIR}/../Simulation/${file}
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Simulation)
 endforeach()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
+add_executable(simulation_bin
+	${PROJECT_SOURCE_DIR}/../Simulation/Test/simulation_main.cpp)
+target_link_libraries(simulation_bin foedag tcl_stubb tcl_static zlib compiler simulation)
+set_target_properties(simulation_bin PROPERTIES OUTPUT_NAME simulation_test)
 

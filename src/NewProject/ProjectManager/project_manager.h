@@ -220,6 +220,7 @@ class ProjectManager : public QObject {
   QStringList getConstrFiles(const QString &strFileSet) const;
   QString getConstrTargetFile(const QString &strFileSet) const;
   std::vector<std::string> getConstrFiles() const;
+  std::string getConstrPinFile() const;
 
   int setSimulationFileSet(const QString &strSetName);
   QStringList getSimulationFileSets() const;
@@ -296,7 +297,6 @@ class ProjectManager : public QObject {
 
   void setTargetDevice(const std::string &deviceName);
   std::string getTargetDevice();
-  static QStringList StringSplit(const QString &str, const QString &sep);
   static std::vector<std::pair<std::string, std::string>> ParseMacro(
       const QString &macro);
 
@@ -347,7 +347,7 @@ class ProjectManager : public QObject {
   QString m_currentRun;
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
-  inline static const Suffixes m_constrSuffixes{{"SDC", "PIN"}};
+  inline static const Suffixes m_constrSuffixes{{"sdc", "pin"}};
   inline static const Suffixes m_simSuffixes{{"v"}};
 
  signals:

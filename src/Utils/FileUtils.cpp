@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <string>
 
+#include "Utils/StringUtils.h"
+
 namespace FOEDAG {
 
 bool FileUtils::FileExists(const std::filesystem::path& name) {
@@ -170,6 +172,41 @@ std::filesystem::path FileUtils::LocateFileRecursive(
   return result;
 }
 
+// This will search the given paths (non-recursively) for a child file.
+// All matches will be returned in a vector
+std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
+    const std::string& filename,
+    const std::vector<std::filesystem::path>& searchPaths,
+    bool caseInsensitive) {
+  std::vector<std::filesystem::path> results{};
+  for (auto path : searchPaths) {
+    // Make sure search path is valid
+    if (FileUtils::FileExists(path)) {
+      // Iterate through files in path
+      for (const std::filesystem::path& entry :
+           std::filesystem::directory_iterator(
+               path,
+               std::filesystem::directory_options::follow_directory_symlink)) {
+        // Ensure this is a file
+        if (FileUtils::FileIsRegular(entry)) {
+          std::string entryName = entry.filename().string();
+          std::string searchName = filename;
+          if (caseInsensitive) {
+            // Convert both names to lowercase to ignore case
+            entryName = StringUtils::toLower(entryName);
+            searchName = StringUtils::toLower(searchName);
+          }
+          // Record the file on match
+          if (entryName == searchName) {
+            results.push_back(entry);
+          }
+        }
+      }
+    }
+  }
+  return results;
+}
+
 int FileUtils::ExecuteSystemCommand(const std::string& command,
                                     std::ostream* result) {
   QProcess* m_process = new QProcess;
@@ -236,6 +273,14 @@ bool FileUtils::IsUptoDate(const std::string& sourceFile,
   }
 
   return true;
+}
+
+std::string FileUtils::AdjustPath(const std::string& p) {
+  std::filesystem::path the_path = p;
+  if (!the_path.is_absolute()) {
+    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+  }
+  return the_path.string();
 }
 
 }  // namespace FOEDAG

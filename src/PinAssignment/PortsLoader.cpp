@@ -30,13 +30,9 @@ namespace FOEDAG {
 PortsLoader::PortsLoader(PortsModel *model, QObject *parent)
     : QObject(parent), m_model(model) {}
 
-PortsLoader::~PortsLoader() {}
-
 std::pair<bool, QString> PortsLoader::load(const QString &file) {
   if (!m_model) return std::make_pair(false, "Ports model is missing");
   QFile f{file};
-  if (!f.exists())
-    return std::make_pair(false, QString("File %1 doesn't exist").arg(file));
   if (!f.open(QFile::ReadOnly))
     return std::make_pair(false, QString("Can't open file %1").arg(file));
 
@@ -92,5 +88,7 @@ std::pair<bool, QString> PortsLoader::load(const QString &file) {
   m_model->initListModel();
   return std::make_pair(true, QString());
 }
+
+void PortsLoader::SetModel(PortsModel *model) { m_model = model; }
 
 }  // namespace FOEDAG

@@ -247,6 +247,14 @@ bool StringUtils::endsWith(const std::string& fullString,
   }
 }
 
+bool StringUtils::startsWith(const std::string& text,
+                             const std::string& start) {
+  if (text.length() >= start.length()) {
+    return (0 == text.compare(0, start.length(), start));
+  }
+  return false;
+}
+
 std::string StringUtils::toLower(const std::string& text) {
   auto result = text;
   std::transform(result.begin(), result.end(), result.begin(),

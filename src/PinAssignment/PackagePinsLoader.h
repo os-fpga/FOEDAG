@@ -32,7 +32,6 @@ namespace FOEDAG {
 class PackagePinsLoader : public QObject {
  public:
   PackagePinsLoader(PackagePinsModel *model, QObject *parent = nullptr);
-  virtual ~PackagePinsLoader();
   virtual std::pair<bool, QString> load(const QString &fileName);
   virtual std::pair<bool, QString> loadHeader(const QString &fileName);
 
