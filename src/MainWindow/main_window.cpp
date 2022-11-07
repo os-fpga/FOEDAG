@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
+#include "Main/licenseviewer.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/WelcomePageWidget.h"
 #include "NewFile/new_file.h"
@@ -60,14 +61,27 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
+static constexpr const char* LICENSES_DIR{"licenses"};
+
 namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
-
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
+
+void centerWidget(QWidget& widget) {
+  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
+
+  // Take 2/3 part of the screen.
+  auto mainWindowSize =
+      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
+  // Center main window on the screen. It will get this geometry after switching
+  // from maximized mode.
+  widget.setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
+                                         mainWindowSize, screenGeometry));
+}
 }  // namespace
 
 MainWindow::MainWindow(Session* session)
@@ -80,15 +94,8 @@ MainWindow::MainWindow(Session* session)
   m_askStopCompilation =
       m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
 
-  auto screenGeometry = qApp->primaryScreen()->availableGeometry();
+  centerWidget(*this);
 
-  // Take 2/3 part of the screen.
-  auto mainWindowSize =
-      QSize(screenGeometry.width() * 2 / 3, screenGeometry.height() * 2 / 3);
-  // Center main window on the screen. It will get this geometry after switching
-  // from maximized mode.
-  setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
-                                  mainWindowSize, screenGeometry));
   // Initially, main window should be maximized.
   showMaximized();
 
@@ -507,6 +514,12 @@ void MainWindow::createMenus() {
 
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
+  helpMenu->addSeparator();
+  helpMenu->addAction(documentationAction);
+  helpMenu->addAction(releaseNotesAction);
+  helpMenu->addSeparator();
+  helpMenu->addAction(licensesAction);
+
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
 
@@ -605,6 +618,13 @@ void MainWindow::createActions() {
     AboutWidget w(m_projectInfo, GlobalSession->Context()->DataPath(), this);
     w.exec();
   });
+
+  documentationAction = new QAction(tr("Documentation"), this);
+  releaseNotesAction = new QAction(tr("Release Notes"), this);
+  licensesAction = new QAction(tr("Licenses"), this);
+
+  connect(licensesAction, &QAction::triggered, this,
+          &MainWindow::onShowLicenses);
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
@@ -1207,4 +1227,13 @@ void MainWindow::startProject() {
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
   m_askStopCompilation = showStopCompilationMsg;
   m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
+}
+
+void MainWindow::onShowLicenses() {
+  auto licensePath = GlobalSession->Context()->DataPath() / LICENSES_DIR;
+  if (!FileUtils::FileExists(licensePath)) return;
+
+  LicenseViewer viewer(licensePath, m_projectInfo.name, this);
+  centerWidget(viewer);
+  viewer.exec();
 }
