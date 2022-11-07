@@ -103,6 +103,9 @@ class StringUtils final {
   // Returns bool indicating if `text` ends with `ending`
   static bool endsWith(const std::string& text, const std::string& ending);
 
+  // Returns bool indicating if `text` starts with `start`
+  static bool startsWith(const std::string& text, const std::string& start);
+
   // Converts the input text to lower case
   static std::string toLower(const std::string& text);
   // Converts the input text to upper case

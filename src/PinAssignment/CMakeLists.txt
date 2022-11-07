@@ -50,7 +50,6 @@ set (SRC_CPP_LIST
   PortsModel.cpp
   PackagePinsLoader.cpp
   PortsLoader.cpp
-  ConstraintCreator.cpp
   BufferedComboBox.cpp
   PinAssignmentBaseView.cpp
 )
@@ -68,7 +67,6 @@ set (SRC_H_LIST
   PortsModel.h
   PackagePinsLoader.h
   PortsLoader.h
-  ConstraintCreator.h
   BufferedComboBox.h
   PinAssignmentBaseView.h
 )

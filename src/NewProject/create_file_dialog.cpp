@@ -49,7 +49,8 @@ void createFileDialog::initialDialog(int type) {
     ui->m_labelDetailed->setText(
         tr("Create a new Constraints file and add it to your project."));
     ui->m_comboxFileType->clear();
-    ui->m_comboxFileType->addItem(tr("SDC"));
+    ui->m_comboxFileType->addItem(tr("sdc"));
+    ui->m_comboxFileType->addItem(tr("pin"));
   }
   // ui->m_comboxFileType->setStyleSheet("border: 1px solid gray;");
 }
@@ -81,16 +82,9 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
     }
     fdata.m_language = FromFileType(fdata.m_fileType);
   } else if (GT_CONSTRAINTS == m_type) {
-    switch (ui->m_comboxFileType->currentIndex()) {
-      case 0:
-        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".SDC");
-        fdata.m_fileType = QString("SDC");
-        break;
-      case 1:
-        break;
-      default:
-        break;
-    }
+    auto ext = ui->m_comboxFileType->currentText();
+    fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".%1").arg(ext);
+    fdata.m_fileType = ext;
   }
 
   fdata.m_filePath = ui->m_comboxFileLocation->currentText();

@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
+#include "Compiler/Constraints.h"
 #include "Compiler/TaskManager.h"
 #include "Console/DummyParser.h"
 #include "Console/StreamBuffer.h"
@@ -386,21 +387,22 @@ void MainWindow::saveToRecentSettings(const QString& project) {
 
 bool MainWindow::saveConstraintFile() {
   auto pinAssignment = findChild<PinAssignmentCreator*>();
-  auto constrFiles = m_projectManager->getConstrFiles();
-  if (constrFiles.empty()) {
-    auto form = findChild<SourcesForm*>();
-    form->CreateConstraint();
+  auto constrFile = m_projectManager->getConstrPinFile();
+  if (constrFile.empty()) {
+    newProjdialog->Reset(Mode::ProjectSettings);
+    newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
+    newProjdialog->exec();
   }
-  constrFiles = m_projectManager->getConstrFiles();
-  if (constrFiles.empty()) {
-    QMessageBox::warning(this, "No constraint file...",
-                         "Please create constraint file.");
+  constrFile = m_projectManager->getConstrPinFile();
+  if (constrFile.empty()) {
+    QMessageBox::warning(this, "No *.pin constraint file...",
+                         "Please create *.pin constraint file.");
     return false;
   }
   bool rewrite = false;
-  auto constraint{constrFiles[0].c_str()};
-  QFile file{constraint};  // TODO @volodymyrk, need to fix issue
-                           // with target constraint
+  auto constraint = QString::fromStdString(constrFile);
+  QFile file{constraint};  // TODO @volodymyrk, need to fix
+                           // issue with target constraint
   QFile::OpenMode openFlags = QFile::ReadWrite;
   if (file.size() != 0) {
     auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
@@ -419,18 +421,10 @@ bool MainWindow::saveConstraintFile() {
   QString sdc{pinAssignment->generateSdc()};
   if (rewrite)
     file.resize(0);  // clean content
-  else if (!sdc.isEmpty())
+  else if (!sdc.isEmpty() && file.size() != 0)
     sdc.push_front('\n');  // make sure start with new line
   file.write(sdc.toLatin1());
   file.close();
-
-  auto res{FOEDAG::read_sdc(constraint)};
-
-  if (res != TCL_OK) {
-    // TODO @volodymyrk backlog,logging improve
-    std::cerr << "Read sdc file" << constraint << "failed!" << std::endl;
-  }
-
   return true;
 }
 
@@ -963,8 +957,16 @@ void MainWindow::pinAssignmentActionTriggered() {
       }
     }
 
-    PinAssignmentCreator* creator = new PinAssignmentCreator{
-        m_projectManager, GlobalSession->Context(), m_compiler, this};
+    PinAssignmentData data;
+    data.context = GlobalSession->Context();
+    data.projectPath = m_projectManager->getProjectPath();
+    data.target = QString::fromStdString(m_projectManager->getTargetDevice());
+    QFile file{QString::fromStdString(m_projectManager->getConstrPinFile())};
+    if (file.open(QFile::ReadOnly)) {
+      data.commands = QString{file.readAll()}.split('\n');
+    }
+
+    PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};
     connect(creator, &PinAssignmentCreator::changed, this,
             &MainWindow::pinAssignmentChanged);
 

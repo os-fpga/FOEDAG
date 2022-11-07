@@ -36,9 +36,16 @@ set (CPP_LIST
     IPGenerator/IPGenerator_test.cpp
     NewProject/source_grid_test.cpp
     Utils/sequential_map_test.cpp
+    Utils/QtUtils_test.cpp
+    PinAssignment/TestLoader.cpp
+    PinAssignment/TestPortsLoader.cpp
+)
+set (H_LIST
+    PinAssignment/TestLoader.h
+    PinAssignment/TestPortsLoader.h
 )
 
-add_executable(unittest unittest_main.cpp ${CPP_LIST} resources.qrc)
+add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 

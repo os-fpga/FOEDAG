@@ -39,6 +39,7 @@ class sourceGrid : public QWidget {
   void currentFileSet(const QString &fileSet);
   void selectRow(int row);
   void ClearTable();
+  bool isPinFileAdded() const;
 
  public slots:
   void AddFiles();
@@ -49,6 +50,7 @@ class sourceGrid : public QWidget {
   void DownTableItem();
   void TableViewSelectionChanged();
 
+  void CreateNewFile(FOEDAG::filedata fdata);
   void AddTableItem(FOEDAG::filedata fdata);
 
  private slots:
@@ -77,6 +79,7 @@ class sourceGrid : public QWidget {
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
   static QComboBox *CreateLanguageCombo();
+  bool CheckPinFileExists(const QString &suffix);
 };
 }  // namespace FOEDAG
 
