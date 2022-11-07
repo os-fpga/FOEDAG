@@ -184,8 +184,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {
   if (m_tclInterpreterHandler) m_tclInterpreterHandler->setCompiler(this);
-  m_constraints = new Constraints(this);
-  m_constraints->registerCommands(interp);
+  SetConstraints(new Constraints{this});
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
 }
@@ -340,8 +339,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
-    m_constraints = new Constraints(this);
-    m_constraints->registerCommands(interp);
+    SetConstraints(new Constraints{this});
   }
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -1852,6 +1850,11 @@ const std::string Compiler::GetNetlistPath() {
     }
   }
   return netlistFile;
+}
+
+void Compiler::SetConstraints(Constraints* c) {
+  m_constraints = c;
+  if (m_interp) m_constraints->registerCommands(m_interp);
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {

@@ -1,4 +1,4 @@
-Group,Bump/Pin Name,Ball Name,Ball ID,Bump center_x,Bump center_y,Ball center_x,Ball center_y,X,X,X,X,Usable,Ref clock,Bank,ALT Function,Debug Mode,Scan Mode,Mbist Mode,Type,Direction,Voltage,Power Pad,Discription,Voltage2,Remark
+Group,Bump/Pin Name,Ball Name,Ball ID,Bump center_x,Bump center_y,Ball center_x,Ball center_y,Mode_RX,Mode_TX,X,X,Usable,Ref clock,Bank,ALT Function,Debug Mode,Scan Mode,Mbist Mode,Type,Direction,Voltage,Power Pad,Discription,Voltage2,Remark
 Bank 0,A1,A1,,,,,,,,,,,,,,,,,,,,,,,
 ,A2,A2,,,,,,,,,,,,,,,,,,,,,,,
 ,A3,A3,,,,,,,,,,,,,,,,,,,,,,,

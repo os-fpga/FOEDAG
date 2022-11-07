@@ -18,22 +18,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <QObject>
+#include "Utils/QtUtils.h"
 
-#include "PortsModel.h"
+#include "gtest/gtest.h"
 
-namespace FOEDAG {
+using namespace FOEDAG;
 
-class PortsLoader : public QObject {
- public:
-  PortsLoader(PortsModel *model, QObject *parent = nullptr);
-  virtual std::pair<bool, QString> load(const QString &file);
-  void SetModel(PortsModel *model);
+TEST(QtUtils, SplitStringEmpty) {
+  QString empty{};
+  EXPECT_EQ(QtUtils::StringSplit(empty, ' '), QStringList{});
+}
 
- protected:
-  PortsModel *m_model{nullptr};
-};
-
-}  // namespace FOEDAG
+TEST(QtUtils, SplitStringSkipEmpty) {
+  QString test{" test     test    "};
+  auto expect = QStringList{{"test", "test"}};
+  EXPECT_EQ(QtUtils::StringSplit(test, ' '), expect);
+}

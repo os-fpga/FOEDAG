@@ -103,6 +103,14 @@ void newProjectDialog::Reset(Mode mode) {
 
 Mode newProjectDialog::GetMode() const { return m_mode; }
 
+void newProjectDialog::SetPageActive(FormIndex index) {
+  if (m_tabIndexes.contains(index)) {
+    ui->m_tabWidget->setCurrentIndex(m_tabIndexes.value(index));
+  } else {
+    ui->m_tabWidget->setCurrentIndex(static_cast<int>(index));
+  }
+}
+
 void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_LOCATION == m_index) {
     BackBtn->setEnabled(false);
@@ -168,16 +176,20 @@ void newProjectDialog::ResetToProjectSettings() {
   m_addSrcForm = new addSourceForm(this);
   m_addSrcForm->SetTitle("Design Files");
   m_settings.append(m_addSrcForm);
-  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm, tr("Design Files"));
+  auto index = ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
+                                          tr("Design Files"));
+  m_tabIndexes.insert(INDEX_ADDSOURC, index);
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Design Constraints");
   m_settings.append(m_addConstrsForm);
-  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                             tr("Design Constraints"));
+  index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+                                     tr("Design Constraints"));
+  m_tabIndexes.insert(INDEX_ADDCONST, index);
   m_devicePlanForm = new devicePlannerForm(this);
   m_settings.append(m_devicePlanForm);
-  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
-                             tr("Select Target Device"));
+  index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+                                     tr("Select Target Device"));
+  m_tabIndexes.insert(INDEX_DEVICEPL, index);
 
   for (auto &settings : m_settings) settings->updateUi(m_projectManager);
 

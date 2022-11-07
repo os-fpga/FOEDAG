@@ -55,6 +55,14 @@ TEST(PackagePinsLoader, LoadWrongFilePath) {
   EXPECT_NE(error, QString());
 }
 
+TEST(PackagePinsLoader, LoadHeaderCorruptedJson) {
+  PackagePinsModel model;
+  PackagePinsLoader loader{&model};
+  auto [res, error] = loader.loadHeader(":/PinAssignment/corrupted.json");
+  EXPECT_EQ(res, false);
+  EXPECT_NE(error, QString());
+}
+
 TEST(PackagePinsLoader, LoadAllPins) {
   PackagePinsModel model;
   PackagePinsLoader loader{&model};
