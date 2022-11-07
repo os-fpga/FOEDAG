@@ -1852,14 +1852,6 @@ const std::string Compiler::GetNetlistPath() {
   return netlistFile;
 }
 
-std::string Compiler::AdjustPath(const std::string& p) {
-  std::filesystem::path the_path = p;
-  if (!the_path.is_absolute()) {
-    the_path = std::filesystem::path(std::filesystem::path("..") / p);
-  }
-  return the_path.string();
-}
-
 void Compiler::SetConstraints(Constraints* c) {
   m_constraints = c;
   if (m_interp) m_constraints->registerCommands(m_interp);
