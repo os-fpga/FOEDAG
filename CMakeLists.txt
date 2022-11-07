@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 40)
+set(VERSION_PATCH 42)
 
 option(
   WITH_LIBCXX
@@ -96,6 +96,7 @@ add_subdirectory(src/DesignRuns)
 add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
+add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
@@ -285,6 +286,7 @@ configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_ve
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
 add_dependencies(compiler tcl_stubb_build)
+add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
