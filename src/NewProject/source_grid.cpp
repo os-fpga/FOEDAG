@@ -7,6 +7,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
+#include <QMessageBox>
 #include <QStandardItem>
 #include <QVBoxLayout>
 
@@ -159,6 +160,14 @@ void sourceGrid::ClearTable() {
   m_lisFileData.clear();
 }
 
+bool sourceGrid::isPinFileAdded() const {
+  for (const auto &fileData : m_lisFileData) {
+    if (fileData.m_fileType.compare("pin", Qt::CaseInsensitive) == 0)
+      return true;
+  }
+  return false;
+}
+
 void sourceGrid::AddFiles() {
   QString fileformat{DESIGN_SOURCES_FILTER};
   if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
@@ -166,6 +175,11 @@ void sourceGrid::AddFiles() {
   auto option{QFileDialog::DontUseNativeDialog};
   QStringList fileNames = QFileDialog::getOpenFileNames(
       this, tr("Select File"), "", fileformat, nullptr, option);
+  for (const QString &str : fileNames) {
+    const QFileInfo info{str};
+    if (!CheckPinFileExists(info.suffix())) return;
+  }
+
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
     filedata fdata;
@@ -213,13 +227,11 @@ void sourceGrid::CreateFile() {
       Project::Instance()->projectPath(), Project::Instance()->projectName(),
       m_currentFileSet);
   if (Project::Instance()->projectPath().isEmpty()) path = QString();
-  createFileDialog *createdlg = new createFileDialog(path, this);
-  createdlg->initialDialog(m_type);
-  connect(createdlg, &createFileDialog::sig_updateGrid, this,
-          &sourceGrid::AddTableItem);
-  createdlg->exec();
-  disconnect(createdlg, &createFileDialog::sig_updateGrid, this,
-             &sourceGrid::AddTableItem);
+  createFileDialog createdlg{createFileDialog(path, this)};
+  createdlg.initialDialog(m_type);
+  connect(&createdlg, &createFileDialog::sig_updateGrid, this,
+          &sourceGrid::CreateNewFile);
+  createdlg.exec();
 }
 
 void sourceGrid::DeleteTableItem() {
@@ -281,6 +293,12 @@ void sourceGrid::TableViewSelectionChanged() {
     m_btnMoveUp->setEnabled(false);
   }
   return;
+}
+
+void sourceGrid::CreateNewFile(filedata fdata) {
+  if (CheckPinFileExists(fdata.m_fileType)) {
+    AddTableItem(fdata);
+  }
 }
 
 void sourceGrid::AddTableItem(filedata fdata) {
@@ -406,6 +424,15 @@ QComboBox *sourceGrid::CreateLanguageCombo() {
   combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
   combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
   return combo;
+}
+
+bool sourceGrid::CheckPinFileExists(const QString &suffix) {
+  if (suffix.compare("pin", Qt::CaseInsensitive) == 0 && isPinFileAdded()) {
+    QMessageBox::critical(this, "*.pin constraint file",
+                          "Only one *.pin constraint file supported");
+    return false;
+  }
+  return true;
 }
 
 void sourceGrid::onItemChanged(QStandardItem *item) {

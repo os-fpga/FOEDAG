@@ -198,6 +198,16 @@ bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
 
   const QString strSetName = m_projManager->getConstrActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
+
+  const QFileInfo info{file};
+  if ((info.suffix().compare("pin", Qt::CaseInsensitive) == 0) &&
+      !m_projManager->getConstrPinFile().empty()) {
+    out << "*.pin constraint file has already added. Only one *.pin file "
+           "supported"
+        << std::endl;
+    return false;
+  }
+
   const int ret = m_projManager->addConstrsFile(file, false, false);
 
   if (ProjectManager::EC_Success != ret) {

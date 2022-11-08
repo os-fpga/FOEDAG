@@ -103,7 +103,6 @@ class Compiler {
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
-  bool Clear();
   void start();
   void finish();
   class ProjectManager* ProjManager() const {
@@ -183,6 +182,8 @@ class Compiler {
   const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
     return m_severityMap;
   }
+
+  void SetConstraints(Constraints* c);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
