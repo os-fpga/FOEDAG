@@ -13,7 +13,8 @@ sudo apt install -y \
   xorg \
   qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
   xvfb \
-  yosys
+  yosys \
+  autotools-dev automake libgtk-3-dev libjudy-dev libbz2-dev liblzma-dev libgconf2-dev libgtk2.0-dev tcl-dev tk-dev gperf gtk2-engines-pixbuf
 
 # For QML: qtdeclarative5-dev
 
