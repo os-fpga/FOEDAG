@@ -35,7 +35,9 @@ extern "C" {
 
 #include <QApplication>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QLabel>
+#include <QProcess>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -317,6 +319,30 @@ void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session) {
       };
       session->TclInterp()->registerCmd("ipconfigurator_show_dlg",
                                         ipconfiguratorDlgFn, 0, 0);
+
+      auto gtkwave = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+        QStringList args{};
+        if (argc > 1) {
+          QString file = QString::fromStdString(argv[1]);
+          if (file.count() > 0 && file[0] == "~") {
+            // QProcess apparently can't substitue ~/ paths so we'll manually
+            // turn ~ paths into absolute paths
+            file = QDir::homePath() + file.mid(1);
+          }
+          args << file;
+        }
+
+        auto binPath = GlobalSession->Context()->BinaryPath();
+        auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
+
+        QProcess* process = new QProcess();
+        QString cmd = QString::fromStdString(exePath);
+        process->start(cmd, args);
+
+        return TCL_OK;
+      };
+      session->TclInterp()->registerCmd("gtkwave", gtkwave, 0, 0);
     }
   }
 }
