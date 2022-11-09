@@ -43,7 +43,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Compiler.h"
+#include "NewProject/ProjectManager/project_manager.h"
 #include "Simulator.h"
+#include "Utils/FileUtils.h"
 
 using namespace FOEDAG;
 
@@ -55,22 +57,22 @@ Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {}
 
-bool Simulator::Simulate(SimulationType action) {
+bool Simulator::Simulate(SimulationType action, SimulatorType type) {
   switch (action) {
     case SimulationType::RTL: {
-      return SimulateRTL();
+      return SimulateRTL(type);
       break;
     }
     case SimulationType::Gate: {
-      return SimulateGate();
+      return SimulateGate(type);
       break;
     }
     case SimulationType::PNR: {
-      return SimulatePNR();
+      return SimulatePNR(type);
       break;
     }
     case SimulationType::Bitstream: {
-      return SimulateBitstream();
+      return SimulateBitstream(type);
       break;
     }
   }
@@ -87,7 +89,124 @@ std::string Simulator::FileList(SimulationType action) {
   return list;
 }
 
-bool Simulator::SimulateRTL() { return true; }
-bool Simulator::SimulateGate() { return true; }
-bool Simulator::SimulatePNR() { return true; }
-bool Simulator::SimulateBitstream() { return true; }
+std::string Simulator::SimulatorName(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "verilator";
+    case SimulatorType::Icarus:
+      return "icarus";
+    case SimulatorType::Questa:
+      return "questa";
+    case SimulatorType::VCS:
+      return "vcs";
+    case SimulatorType::Xcelium:
+      return "xcelium";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::IncludeDirective(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "-I";
+    case SimulatorType::Icarus:
+      return "-I";
+    case SimulatorType::Questa:
+      return "-I";
+    case SimulatorType::VCS:
+      return "+incdir+";
+    case SimulatorType::Xcelium:
+      return "-I";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::LibraryPathDirective(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "-y ";
+    case SimulatorType::Icarus:
+      return "-y ";
+    case SimulatorType::Questa:
+      return "-y ";
+    case SimulatorType::VCS:
+      return "-y ";
+    case SimulatorType::Xcelium:
+      return "-y ";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::LibraryFileDirective(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "-v ";
+    case SimulatorType::Icarus:
+      return "-v ";
+    case SimulatorType::Questa:
+      return "-v ";
+    case SimulatorType::VCS:
+      return "-v ";
+    case SimulatorType::Xcelium:
+      return "-v ";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::LibraryExtDirective(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "+libext+";
+    case SimulatorType::Icarus:
+      return "+libext+";
+    case SimulatorType::Questa:
+      return "+libext+";
+    case SimulatorType::VCS:
+      return "+libext+";
+    case SimulatorType::Xcelium:
+      return "+libext+";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::MacroDirective(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "-D";
+    case SimulatorType::Icarus:
+      return "-D";
+    case SimulatorType::Questa:
+      return "-D";
+    case SimulatorType::VCS:
+      return "-D";
+    case SimulatorType::Xcelium:
+      return "-D";
+  }
+  return "Invalid";
+}
+
+bool Simulator::SimulateRTL(SimulatorType type) {
+  std::string fileList;
+  for (auto path : ProjManager()->includePathList()) {
+    fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+  }
+
+  for (auto path : ProjManager()->libraryPathList()) {
+    fileList += LibraryPathDirective(type) + FileUtils::AdjustPath(path) + " ";
+  }
+
+  for (auto ext : ProjManager()->libraryExtensionList()) {
+    fileList += LibraryExtDirective(type) + ext + " ";
+  }
+
+  for (auto& macro_value : ProjManager()->macroList()) {
+    fileList += MacroDirective(type) + macro_value.first + "=" +
+                macro_value.second + " ";
+  }
+
+  return true;
+}
+
+bool Simulator::SimulateGate(SimulatorType type) { return true; }
+bool Simulator::SimulatePNR(SimulatorType type) { return true; }
+bool Simulator::SimulateBitstream(SimulatorType type) { return true; }
