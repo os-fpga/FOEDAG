@@ -50,7 +50,7 @@ class Simulator {
   Session* GetSession() const { return m_session; }
   virtual ~Simulator();
 
-  bool Simulate(SimulationType action);
+  bool Simulate(SimulationType action, SimulatorType type);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
@@ -66,10 +66,18 @@ class Simulator {
   virtual void ErrorMessage(const std::string& message);
 
  protected:
-  virtual bool SimulateRTL();
-  virtual bool SimulateGate();
-  virtual bool SimulatePNR();
-  virtual bool SimulateBitstream();
+  virtual bool SimulateRTL(SimulatorType type);
+  virtual bool SimulateGate(SimulatorType type);
+  virtual bool SimulatePNR(SimulatorType type);
+  virtual bool SimulateBitstream(SimulatorType type);
+
+  virtual std::string SimulatorName(SimulatorType type);
+  virtual std::string IncludeDirective(SimulatorType type);
+  virtual std::string LibraryPathDirective(SimulatorType type);
+  virtual std::string LibraryFileDirective(SimulatorType type);
+  virtual std::string LibraryExtDirective(SimulatorType type);
+  virtual std::string MacroDirective(SimulatorType type);
+
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   /* Propected members */
