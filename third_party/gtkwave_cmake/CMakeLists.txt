@@ -33,22 +33,22 @@ else ()
     set(build_dir ${PROJECT_SOURCE_DIR}/../../build)
 endif()
 
-set(gtkwave_tar "gtkwave_linux_centos7.tar.gz")
-set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
-set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/${gtkwave_tar})
-set(install_path ${build_dir}/bin)
-set(gtkwave_path ${install_path}/gtkwave)
+# set(gtkwave_tar "gtkwave_linux_centos7.tar.gz")
+# set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
+# set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/${gtkwave_tar})
+# set(install_path ${build_dir}/bin)
+# set(gtkwave_path ${install_path}/gtkwave)
 
-if(NOT EXISTS ${gtkwave_path})
-    if(MSVC)
-        message("Windows build not currently supported")
-    else()
-        message(STATUS "Downloading GTKWave")
-        file(DOWNLOAD ${download_path} ${temp_path} SHOW_PROGRESS)
-        message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
-            WORKING_DIRECTORY ${install_path}
-        )
-    endif()
-endif()
+# if(NOT EXISTS ${gtkwave_path})
+#     if(MSVC)
+#         message("Windows build not currently supported")
+#     else()
+#         message(STATUS "Downloading GTKWave")
+#         file(DOWNLOAD ${download_path} ${temp_path} SHOW_PROGRESS)
+#         message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
+#         execute_process(
+#             COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
+#             WORKING_DIRECTORY ${install_path}
+#         )
+#     endif()
+# endif()
