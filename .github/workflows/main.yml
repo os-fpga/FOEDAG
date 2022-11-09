@@ -5,272 +5,272 @@ on:
   pull_request:
 
 jobs:
-  linux-gcc:
-    name: ${{ matrix.mode }}
+#   linux-gcc:
+#     name: ${{ matrix.mode }}
 
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        mode:
-        - test
-        - regression
-        - coverage
-        - install
-        - valgrind
-    env:
-      MODE: ${{ matrix.mode }}
+#     runs-on: ubuntu-latest
+#     defaults:
+#       run:
+#         shell: bash
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         mode:
+#         - test
+#         - regression
+#         - coverage
+#         - install
+#         - valgrind
+#     env:
+#       MODE: ${{ matrix.mode }}
 
-    steps:
+#     steps:
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+#     - name: Cancel previous
+#       uses: styfle/cancel-workflow-action@0.11.0
+#       with:
+#         access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v4.3.0
-      with:
-        python-version: 3.8
+#     - uses: actions/setup-python@v4.3.0
+#       with:
+#         python-version: 3.8
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+#     - name: Checkout code
+#       uses: actions/checkout@v3
+#       with:
+#         submodules: recursive
+#         fetch-depth: 0
 
-    - name: Install dependencies
-      run: |
-        bash .github/workflows/install_ubuntu_dependencies_build.sh
+#     - name: Install dependencies
+#       run: |
+#         bash .github/workflows/install_ubuntu_dependencies_build.sh
 
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
-      with:
-        key: linux-${{ matrix.mode }}
+#     - name: Use ccache
+#       uses: hendrikmuhs/ccache-action@v1.2.3
+#       with:
+#         key: linux-${{ matrix.mode }}
 
-    - name: Configure shell
-      run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
-        echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
-        echo "$PREFIX" >> $GITHUB_PATH
-        echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
-        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
+#     - name: Configure shell
+#       run: |
+#         echo 'CC=gcc-9' >> $GITHUB_ENV
+#         echo 'CXX=g++-9' >> $GITHUB_ENV
+#         echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+#         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
+#         echo "$PREFIX" >> $GITHUB_PATH
+#         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
+#         echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
 
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which python && python --version
-        which ninja && ninja --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which $CC && $CC --version
-        which $CXX && $CXX --version
+#     - name: Show shell configuration
+#       run: |
+#         env
+#         which cmake && cmake --version
+#         which make && make --version
+#         which python && python --version
+#         which ninja && ninja --version
+#         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
+#         which $CC && $CC --version
+#         which $CXX && $CXX --version
 
-    - name: Test
-      if: matrix.mode == 'test'
-      run: |
-        make debug test/unittest-d
-        make release test/batch
-        make test/gui
-#        make test/openfpga
+#     - name: Test
+#       if: matrix.mode == 'test'
+#       run: |
+#         make debug test/unittest-d
+#         make release test/batch
+#         make test/gui
+# #        make test/openfpga
 
-    - name: Regression
-      if: matrix.mode == 'regression'
-      run: |
-        make regression
+#     - name: Regression
+#       if: matrix.mode == 'regression'
+#       run: |
+#         make regression
 
-    - name: Coverage
-      if: matrix.mode == 'coverage'
-      run: |
-        make debug coverage-build/foedag.coverage
+#     - name: Coverage
+#       if: matrix.mode == 'coverage'
+#       run: |
+#         make debug coverage-build/foedag.coverage
 
-    - name: Valgrind
-      if: matrix.mode == 'valgrind'
-      run: |
-        make debug
-        make test/valgrind
+#     - name: Valgrind
+#       if: matrix.mode == 'valgrind'
+#       run: |
+#         make debug
+#         make test/valgrind
 
-    - name: Upload coverage
-      # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
-      if: matrix.mode == 'coverage'
-      uses: codecov/codecov-action@v3
-      with:
-        files: coverage-build/foedag.coverage
-        fail_ci_if_error: false
+#     - name: Upload coverage
+#       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
+#       if: matrix.mode == 'coverage'
+#       uses: codecov/codecov-action@v3
+#       with:
+#         files: coverage-build/foedag.coverage
+#         fail_ci_if_error: false
 
-    - name: Install Test
-      if: matrix.mode == 'install'
-      run: |
-        make release
-        make install
-        make clean   # make sure we only see installation artifacts
-        make test_install
+#     - name: Install Test
+#       if: matrix.mode == 'install'
+#       run: |
+#         make release
+#         make install
+#         make clean   # make sure we only see installation artifacts
+#         make test_install
 
-    - name: Archive regression artifacts
-      if: matrix.mode == 'regression' && always()
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        name: foedag-linux-gcc-regression
-        path: |
-          ${{ github.workspace }}/build/test/
-          ${{ github.workspace }}/build/tests/
+#     - name: Archive regression artifacts
+#       if: matrix.mode == 'regression' && always()
+#       uses: actions/upload-artifact@v3.1.0
+#       with:
+#         name: foedag-linux-gcc-regression
+#         path: |
+#           ${{ github.workspace }}/build/test/
+#           ${{ github.workspace }}/build/tests/
 
-# Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
-  centos7-gcc:
-    name:  ${{ matrix.mode }}
+# # Reference: https://github.com/OPM/ResInsight/blob/dev/.github/workflows/centos7.yml
+#   centos7-gcc:
+#     name:  ${{ matrix.mode }}
 
-    runs-on: ubuntu-latest
-    container:
-      image: centos:7
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        mode:
-        - test
+#     runs-on: ubuntu-latest
+#     container:
+#       image: centos:7
+#     defaults:
+#       run:
+#         shell: bash
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         mode:
+#         - test
 
-    env:
-      MODE: ${{ matrix.mode }}
+#     env:
+#       MODE: ${{ matrix.mode }}
 
-    steps:
-    - name: update Git
-      run: |
-        yum remove -y git*
-        yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
-        yum install -y git
+#     steps:
+#     - name: update Git
+#       run: |
+#         yum remove -y git*
+#         yum install -y https://packages.endpointdev.com/rhel/7/os/x86_64/endpoint-repo.x86_64.rpm
+#         yum install -y git
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+#     - name: Cancel previous
+#       uses: styfle/cancel-workflow-action@0.11.0
+#       with:
+#         access_token: ${{ github.token }}
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+#     - name: Checkout code
+#       uses: actions/checkout@v3
+#       with:
+#         submodules: recursive
+#         fetch-depth: 0
 
-    - name: Download workflow artifact
-      if: matrix.mode == 'test'
-      uses: dawidd6/action-download-artifact@v2.24.0
-      with:
-        workflow: main.yml
-        repo: ${{ github.repository }}
+#     - name: Download workflow artifact
+#       if: matrix.mode == 'test'
+#       uses: dawidd6/action-download-artifact@v2.24.0
+#       with:
+#         workflow: main.yml
+#         repo: ${{ github.repository }}
 
-    - name: Install dependencies and build QT
-      run: |
-        bash .github/workflows/install_centos_dependencies_build.sh
+#     - name: Install dependencies and build QT
+#       run: |
+#         bash .github/workflows/install_centos_dependencies_build.sh
 
-    - name: Prepare QT build artifacts
-      if: matrix.mode == 'test'
-      run: |
-        mkdir build
-        tar czvfp buildqt5-centos7-gcc.tgz buildqt5
+#     - name: Prepare QT build artifacts
+#       if: matrix.mode == 'test'
+#       run: |
+#         mkdir build
+#         tar czvfp buildqt5-centos7-gcc.tgz buildqt5
 
-    - name: Archive QT build artifacts
-      if: matrix.mode == 'test'
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        name: buildqt5-centos7-gcc
-        path: buildqt5-centos7-gcc.tgz
+#     - name: Archive QT build artifacts
+#       if: matrix.mode == 'test'
+#       uses: actions/upload-artifact@v3.1.0
+#       with:
+#         name: buildqt5-centos7-gcc
+#         path: buildqt5-centos7-gcc.tgz
 
-    - name: Show shell configuration
-      run: |
-        env
-        source /opt/rh/devtoolset-9/enable
-        which gcc 
-        which g++ 
+#     - name: Show shell configuration
+#       run: |
+#         env
+#         source /opt/rh/devtoolset-9/enable
+#         which gcc 
+#         which g++ 
 
-    - name: Configure shell
-      run: |
-        source /opt/rh/devtoolset-9/enable
-        echo 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
-        echo 'CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
-        echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
-        echo "$PREFIX" >> $GITHUB_PATH
-        echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
-        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
+#     - name: Configure shell
+#       run: |
+#         source /opt/rh/devtoolset-9/enable
+#         echo 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
+#         echo 'CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
+#         echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+#         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
+#         echo "$PREFIX" >> $GITHUB_PATH
+#         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
+#         echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
 
-    - name: Test
-      if: matrix.mode == 'test'
-      run: |
-        make debug test/unittest-d
-        make release test/batch
-        make test/gui
-        make regression
+#     - name: Test
+#       if: matrix.mode == 'test'
+#       run: |
+#         make debug test/unittest-d
+#         make release test/batch
+#         make test/gui
+#         make regression
 
-# Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
-  msys2-gcc:
-    runs-on: windows-2022
-    defaults:
-      run:
-        shell: msys2 {0}
+# # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
+#   msys2-gcc:
+#     runs-on: windows-2022
+#     defaults:
+#       run:
+#         shell: msys2 {0}
 
-    steps:
+#     steps:
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+#     - name: Cancel previous
+#       uses: styfle/cancel-workflow-action@0.11.0
+#       with:
+#         access_token: ${{ github.token }}
 
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+#     - name: Checkout repo
+#       uses: actions/checkout@v3
+#       with:
+#         submodules: recursive
+#         fetch-depth: 0
 
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        path-type: minimal
-        update: true
-        release: false
-        install: >-
-          base-devel
-          git
-          mingw-w64-x86_64-toolchain
-          mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-qt5-base-debug
-          mingw-w64-x86_64-qt5
-          mingw-w64-x86_64-qt5-declarative-debug
-          mingw-w64-x86_64-tcl
-          mingw-w64-x86_64-zlib
+#     - name: Setup MSYS2
+#       uses: msys2/setup-msys2@v2
+#       with:
+#         msystem: MINGW64
+#         path-type: minimal
+#         update: true
+#         release: false
+#         install: >-
+#           base-devel
+#           git
+#           mingw-w64-x86_64-toolchain
+#           mingw-w64-x86_64-cmake
+#           mingw-w64-x86_64-qt5-base-debug
+#           mingw-w64-x86_64-qt5
+#           mingw-w64-x86_64-qt5-declarative-debug
+#           mingw-w64-x86_64-tcl
+#           mingw-w64-x86_64-zlib
     
-    - name: Configure shell environment variables
-      run: |
-        export CWD=`pwd`
-        echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
-        echo "PREFIX=$CWD/install" >> $GITHUB_ENV
+#     - name: Configure shell environment variables
+#       run: |
+#         export CWD=`pwd`
+#         echo 'NO_TCMALLOC=On' >> $GITHUB_ENV
+#         echo "PREFIX=$CWD/install" >> $GITHUB_ENV
 
-    - name: Show shell configuration
-      run: |
-        which git && git --version || true
-        which cmake && cmake --version || true
-        which make && make --version || true
-        which python && python --version || true
-        which ninja && ninja --version || true
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
+#     - name: Show shell configuration
+#       run: |
+#         which git && git --version || true
+#         which cmake && cmake --version || true
+#         which make && make --version || true
+#         which python && python --version || true
+#         which ninja && ninja --version || true
+#         which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh || true
 
-    - name: Build
-      run: |
-        make VERBOSE=1 release
-        make debug
-        make install
+#     - name: Build
+#       run: |
+#         make VERBOSE=1 release
+#         make debug
+#         make install
 
-    - name: Test
-      run: |
-        make test_install
-        make XVFB="" test/unittest
-        make regression
+#     - name: Test
+#       run: |
+#         make test_install
+#         make XVFB="" test/unittest
+#         make regression
 
   windows-msvc:
     runs-on: windows-2022
@@ -366,191 +366,191 @@ jobs:
 
 
 
-  macos-gcc:
-    runs-on: macos-latest
+  # macos-gcc:
+  #   runs-on: macos-latest
 
-    steps:
+  #   steps:
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+  #   - name: Cancel previous
+  #     uses: styfle/cancel-workflow-action@0.11.0
+  #     with:
+  #       access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v4.3.0
-      with:
-        python-version: 3.8
+  #   - uses: actions/setup-python@v4.3.0
+  #     with:
+  #       python-version: 3.8
 
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #       fetch-depth: 0
 
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v3.0.0
-      with:
-        setup-python: false
+  #   - name: Install dependencies
+  #     uses: jurplel/install-qt-action@v3.0.0
+  #     with:
+  #       setup-python: false
 
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
-      with:
-        key: macos-gcc
+  #   - name: Use ccache
+  #     uses: hendrikmuhs/ccache-action@v1.2.3
+  #     with:
+  #       key: macos-gcc
 
-    - name: Configure shell
-      run: |
-        # Default xcode version 14.0.1 has reported bugs with linker
-        # Current recommended workaround is to downgrade to last known good version.
-        # https://github.com/actions/runner-images/issues/6350
-        sudo xcode-select -s '/Applications/Xcode_13.4.1.app/Contents/Developer'
+  #   - name: Configure shell
+  #     run: |
+  #       # Default xcode version 14.0.1 has reported bugs with linker
+  #       # Current recommended workaround is to downgrade to last known good version.
+  #       # https://github.com/actions/runner-images/issues/6350
+  #       sudo xcode-select -s '/Applications/Xcode_13.4.1.app/Contents/Developer'
         
-        echo 'CC=gcc-11' >> $GITHUB_ENV
-        echo 'CXX=g++-11' >> $GITHUB_ENV
-        echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
-        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
-        echo "$PREFIX" >> $GITHUB_PATH
+  #       echo 'CC=gcc-11' >> $GITHUB_ENV
+  #       echo 'CXX=g++-11' >> $GITHUB_ENV
+  #       echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
+  #       echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
+  #       echo "$PREFIX" >> $GITHUB_PATH
 
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which python && python --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
-        which $CC && $CC --version
-        which $CXX && $CXX --version
+  #   - name: Show shell configuration
+  #     run: |
+  #       env
+  #       which cmake && cmake --version
+  #       which make && make --version
+  #       which python && python --version
+  #       which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
+  #       which $CC && $CC --version
+  #       which $CXX && $CXX --version
 
-    - name: Build
-      run: |
-        make release
-        make install
+  #   - name: Build
+  #     run: |
+  #       make release
+  #       make install
 
-    - name: Unit tests
-      run: |
-        make test_install
+  #   - name: Unit tests
+  #     run: |
+  #       make test_install
 
-    - name: Regression tests
-      run: |
-        make regression
+  #   - name: Regression tests
+  #     run: |
+  #       make regression
 
 
-  macos-clang:
-    runs-on: macos-latest
+  # macos-clang:
+  #   runs-on: macos-latest
 
-    steps:
+  #   steps:
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+  #   - name: Cancel previous
+  #     uses: styfle/cancel-workflow-action@0.11.0
+  #     with:
+  #       access_token: ${{ github.token }}
 
-    - uses: actions/setup-python@v4.3.0
-      with:
-        python-version: 3.8
+  #   - uses: actions/setup-python@v4.3.0
+  #     with:
+  #       python-version: 3.8
 
-    - name: Install dependencies
-      uses: jurplel/install-qt-action@v3.0.0
-      with:
-        setup-python: false
+  #   - name: Install dependencies
+  #     uses: jurplel/install-qt-action@v3.0.0
+  #     with:
+  #       setup-python: false
 
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #       fetch-depth: 0
 
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
-      with:
-        key: macos-clang
+  #   - name: Use ccache
+  #     uses: hendrikmuhs/ccache-action@v1.2.3
+  #     with:
+  #       key: macos-clang
 
-    - name: Configure shell
-      run: |
-        echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
-        echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
-        echo "$PREFIX" >> $GITHUB_PATH
+  #   - name: Configure shell
+  #     run: |
+  #       echo 'PREFIX=${GITHUB_WORKSPACE}/install' >> $GITHUB_ENV
+  #       echo "PATH=$(brew --prefix)/opt/ccache/libexec:$PATH" >> $GITHUB_ENV
+  #       echo "$PREFIX" >> $GITHUB_PATH
 
-    - name: Install XQuartz on macOS
-      run: brew install xquartz --cask
+  #   - name: Install XQuartz on macOS
+  #     run: brew install xquartz --cask
 
-    - name: Show shell configuration
-      run: |
-        env
-        which cmake && cmake --version
-        which make && make --version
-        which python && python --version
-        which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
+  #   - name: Show shell configuration
+  #     run: |
+  #       env
+  #       which cmake && cmake --version
+  #       which make && make --version
+  #       which python && python --version
+  #       which tclsh && echo 'puts [info patchlevel];exit 0' | tclsh
 
-    - name: Build
-      run: |
-        make release 
-        make install
+  #   - name: Build
+  #     run: |
+  #       make release 
+  #       make install
 
-    - name: Unit tests
-      run: |
-        make test_install
-        make XVFB="" test/unittest
-        make XVFB="" debug test/gui_mac
+  #   - name: Unit tests
+  #     run: |
+  #       make test_install
+  #       make XVFB="" test/unittest
+  #       make XVFB="" debug test/gui_mac
 
-    - name: Regression tests
-      run: |
-        make regression
+  #   - name: Regression tests
+  #     run: |
+  #       make regression
 
-  CodeFormatting:
-    runs-on: ubuntu-20.04
+  # CodeFormatting:
+  #   runs-on: ubuntu-20.04
 
-    steps:
+  #   steps:
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+  #   - name: Checkout code
+  #     uses: actions/checkout@v3
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Install Dependencies
-      run: |
-        sudo apt-get install clang-format
-        clang-format --version
+  #   - name: Install Dependencies
+  #     run: |
+  #       sudo apt-get install clang-format
+  #       clang-format --version
 
-    - name: Run formatting style check
-      run: ./.github/bin/run-clang-format.sh
+  #   - name: Run formatting style check
+  #     run: ./.github/bin/run-clang-format.sh
 
-  ClangTidy:
-    runs-on: ubuntu-20.04
-    if: ${{github.event_name == 'pull_request'}}
+  # ClangTidy:
+  #   runs-on: ubuntu-20.04
+  #   if: ${{github.event_name == 'pull_request'}}
 
-    steps:
+  #   steps:
 
-    - name: Cancel previous
-      uses: styfle/cancel-workflow-action@0.11.0
-      with:
-        access_token: ${{ github.token }}
+  #   - name: Cancel previous
+  #     uses: styfle/cancel-workflow-action@0.11.0
+  #     with:
+  #       access_token: ${{ github.token }}
 
-    - name: Checkout code
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+  #   - name: Checkout code
+  #     uses: actions/checkout@v3
+  #     with:
+  #       submodules: recursive
+  #       fetch-depth: 0
 
-    - name: Install Dependencies
-      run: |
-        sudo apt-get update -qq
-        sudo apt -qq -y install clang-tidy-12 \
-                                g++-9 tclsh  default-jre cmake \
-                                uuid-dev build-essential xorg \
-                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb
+  #   - name: Install Dependencies
+  #     run: |
+  #       sudo apt-get update -qq
+  #       sudo apt -qq -y install clang-tidy-12 \
+  #                               g++-9 tclsh  default-jre cmake \
+  #                               uuid-dev build-essential xorg \
+  #                               qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb
 
-    - name: Use ccache
-      uses: hendrikmuhs/ccache-action@v1.2.3
-      with:
-        key: clang-tidy-codegen
+  #   - name: Use ccache
+  #     uses: hendrikmuhs/ccache-action@v1.2.3
+  #     with:
+  #       key: clang-tidy-codegen
 
-    - name: Configure shell
-      run: |
-        echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
-        echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
+  #   - name: Configure shell
+  #     run: |
+  #       echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+  #       echo 'RULE_MESSAGES=off' >> $GITHUB_ENV
 
-    - name: Prepare source
-      run: |
-        make run-cmake-release
-        ln -s build/compile_commands.json .
+  #   - name: Prepare source
+  #     run: |
+  #       make run-cmake-release
+  #       ln -s build/compile_commands.json .
 
-    - name: Run clang tidy
-      run: |
-        ./.github/bin/run-clang-tidy.sh
+  #   - name: Run clang tidy
+  #     run: |
+  #       ./.github/bin/run-clang-tidy.sh
