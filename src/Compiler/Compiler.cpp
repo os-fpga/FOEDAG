@@ -1380,7 +1380,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
 
     QProcess* process = new QProcess();
-    QString cmd = QString::fromStdString(exePath);
+    QString cmd = QString::fromStdString(exePath.string());
     process->start(cmd, args);
 
     return TCL_OK;
