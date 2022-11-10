@@ -124,6 +124,18 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   add_simulation_file <file list> ?type?   ?-work <libName>?  "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -437,10 +449,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->ProjManager()->HasDesign()) {
-      compiler->ErrorMessage("Create a design first: create_design <name>");
-      return TCL_ERROR;
-    }
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
@@ -451,12 +459,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "default))>");
       return TCL_ERROR;
     }
-    std::string actualType;
-    Design::Language language = Design::Language::VERILOG_2001;
-
-    std::string commandsList;
-    std::string libList;
-    std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
       if (type == "-work") {
@@ -466,94 +468,40 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               "Library name should follow '-work' tag");
           return TCL_ERROR;
         }
-        commandsList += type + " ";
-        const std::string libName = argv[++i];
-        libList += libName + " ";
-      } else if (type == "-VHDL_1987") {
-        language = Design::Language::VHDL_1987;
-        actualType = "VHDL_1987";
-      } else if (type == "-VHDL_1993") {
-        language = Design::Language::VHDL_1993;
-        actualType = "VHDL_1993";
-      } else if (type == "-VHDL_2000") {
-        language = Design::Language::VHDL_2000;
-        actualType = "VHDL_2000";
-      } else if (type == "-VHDL_2008") {
-        language = Design::Language::VHDL_2008;
-        actualType = "VHDL_2008";
-      } else if (type == "-V_1995") {
-        language = Design::Language::VERILOG_1995;
-        actualType = "VERILOG_1995";
-      } else if (type == "-V_2001") {
-        language = Design::Language::VERILOG_2001;
-        actualType = "VERILOG_2001";
-      } else if (type == "-V_2005") {
-        language = Design::Language::SYSTEMVERILOG_2005;
-        actualType = "SV_2005";
-      } else if (type == "-SV_2009") {
-        language = Design::Language::SYSTEMVERILOG_2009;
-        actualType = "SV_2009";
-      } else if (type == "-SV_2012") {
-        language = Design::Language::SYSTEMVERILOG_2012;
-        actualType = "SV_2012";
-      } else if (type == "-SV_2017") {
-        language = Design::Language::SYSTEMVERILOG_2017;
-        actualType = "SV_2017";
-      } else if (type.find("-D") != std::string::npos) {
-        fileList += type + " ";
-      } else {
-        if (actualType.empty()) {
-          auto fileLowerCase = StringUtils::toLower(argv[i]);
-          if (strstr(fileLowerCase.c_str(), ".vhd")) {
-            language = Design::Language::VHDL_2008;
-            actualType = "VHDL_2008";
-          } else if (strstr(fileLowerCase.c_str(), ".sv")) {
-            language = Design::Language::SYSTEMVERILOG_2017;
-            actualType = "SV_2017";
-          } else {
-            actualType = "VERILOG_2001";
-          }
-        }
-        const std::string file = argv[i];
-        std::string expandedFile = file;
-        bool use_orig_path = false;
-        if (FileUtils::FileExists(expandedFile)) {
-          use_orig_path = true;
-        }
-
-        if ((!use_orig_path) &&
-            (!compiler->GetSession()->CmdLine()->Script().empty())) {
-          std::filesystem::path script =
-              compiler->GetSession()->CmdLine()->Script();
-          std::filesystem::path scriptPath = script.parent_path();
-          std::filesystem::path fullPath = scriptPath;
-          fullPath.append(file);
-          expandedFile = fullPath.string();
-        }
-        std::filesystem::path the_path = expandedFile;
-        if (!the_path.is_absolute()) {
-          const auto& path = std::filesystem::current_path();
-          expandedFile = std::filesystem::path(path / expandedFile).string();
-        }
-        fileList += expandedFile + " ";
       }
     }
-
-    compiler->Message(std::string("Adding ") + actualType + " " + fileList +
-                      std::string("\n"));
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
-          out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
-    }
-    return TCL_OK;
+    return compiler->add_files(compiler, interp, argc, argv, Design);
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
+
+  auto add_simulation_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc < 2) {
+      compiler->ErrorMessage(
+          "Incorrect syntax for add_simulation_file <file(s)> "
+          "[-work libraryName]"
+          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
+          "default), -V_1995, "
+          "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+          "default))>");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      const std::string type = argv[i];
+      if (type == "-work") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_simulation_file <file(s)> "
+              "Library name should follow '-work' tag");
+          return TCL_ERROR;
+        }
+      }
+    }
+    return compiler->add_files(compiler, interp, argc, argv, Simulation);
+  };
+  interp->registerCmd("add_simulation_file", add_simulation_file, this,
+                      nullptr);
 
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1927,4 +1875,115 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
 std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
     const std::string& size) const {
   return std::make_pair(true, std::string{});
+}
+
+int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
+                        const char* argv[], AddFilesType filesType) {
+  if (!compiler->ProjManager()->HasDesign()) {
+    compiler->ErrorMessage("Create a design first: create_design <name>");
+    return TCL_ERROR;
+  }
+  std::string actualType;
+  Design::Language language = Design::Language::VERILOG_2001;
+
+  std::string commandsList;
+  std::string libList;
+  std::string fileList;
+  for (int i = 1; i < argc; i++) {
+    const std::string type = argv[i];
+    if (type == "-work") {
+      commandsList += type + " ";
+      const std::string libName = argv[++i];
+      libList += libName + " ";
+    } else if (type == "-VHDL_1987") {
+      language = Design::Language::VHDL_1987;
+      actualType = "VHDL_1987";
+    } else if (type == "-VHDL_1993") {
+      language = Design::Language::VHDL_1993;
+      actualType = "VHDL_1993";
+    } else if (type == "-VHDL_2000") {
+      language = Design::Language::VHDL_2000;
+      actualType = "VHDL_2000";
+    } else if (type == "-VHDL_2008") {
+      language = Design::Language::VHDL_2008;
+      actualType = "VHDL_2008";
+    } else if (type == "-V_1995") {
+      language = Design::Language::VERILOG_1995;
+      actualType = "VERILOG_1995";
+    } else if (type == "-V_2001") {
+      language = Design::Language::VERILOG_2001;
+      actualType = "VERILOG_2001";
+    } else if (type == "-V_2005") {
+      language = Design::Language::SYSTEMVERILOG_2005;
+      actualType = "SV_2005";
+    } else if (type == "-SV_2009") {
+      language = Design::Language::SYSTEMVERILOG_2009;
+      actualType = "SV_2009";
+    } else if (type == "-SV_2012") {
+      language = Design::Language::SYSTEMVERILOG_2012;
+      actualType = "SV_2012";
+    } else if (type == "-SV_2017") {
+      language = Design::Language::SYSTEMVERILOG_2017;
+      actualType = "SV_2017";
+    } else if (type.find("-D") != std::string::npos) {
+      fileList += type + " ";
+    } else {
+      if (actualType.empty()) {
+        auto fileLowerCase = StringUtils::toLower(argv[i]);
+        if (strstr(fileLowerCase.c_str(), ".vhd")) {
+          language = Design::Language::VHDL_2008;
+          actualType = "VHDL_2008";
+        } else if (strstr(fileLowerCase.c_str(), ".sv")) {
+          language = Design::Language::SYSTEMVERILOG_2017;
+          actualType = "SV_2017";
+        } else {
+          actualType = "VERILOG_2001";
+        }
+      }
+      const std::string file = argv[i];
+      std::string expandedFile = file;
+      bool use_orig_path = false;
+      if (FileUtils::FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(file);
+        expandedFile = fullPath.string();
+      }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        const auto& path = std::filesystem::current_path();
+        expandedFile = std::filesystem::path(path / expandedFile).string();
+      }
+      fileList += expandedFile + " ";
+    }
+  }
+
+  compiler->Message(std::string("Adding ") + actualType + " " + fileList +
+                    std::string("\n"));
+  if (compiler->m_tclCmdIntegration) {
+    std::ostringstream out;
+    bool ok{true};
+    if (filesType == Design) {
+      ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
+    } else {
+      ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
+    }
+
+    if (!ok) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
+    }
+  }
+  return TCL_OK;
 }
