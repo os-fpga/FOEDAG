@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QProcess>
 #include <charconv>
 #include <chrono>
@@ -1309,6 +1310,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("open_project", open_project, this, nullptr);
   interp->registerCmd("run_project", run_project, this, nullptr);
+
+  auto gtkwave = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    QStringList args{};
+    if (argc > 1) {
+      QString file = QString::fromStdString(argv[1]);
+      if (file.count() > 0 && file[0] == "~") {
+        // QProcess doesn't substitue ~/ paths so we'll manually turn ~ paths
+        // into absolute paths
+        file = QDir::homePath() + file.mid(1);
+      }
+      args << file;
+    }
+
+    auto binPath = GlobalSession->Context()->BinaryPath();
+    auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
+
+    QProcess* process = new QProcess();
+    QString cmd = QString::fromStdString(exePath.string());
+    process->start(cmd, args);
+
+    return TCL_OK;
+  };
+  interp->registerCmd("gtkwave", gtkwave, this, nullptr);
+
   return true;
 }
 
