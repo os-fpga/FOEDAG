@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "Compiler/Design.h"
+
 namespace FOEDAG {
 class TclInterpreter;
 class TclInterpreterHandler;
@@ -77,6 +79,8 @@ class Simulator {
   virtual std::string LibraryFileDirective(SimulatorType type);
   virtual std::string LibraryExtDirective(SimulatorType type);
   virtual std::string MacroDirective(SimulatorType type);
+  virtual std::string LanguageDirective(SimulatorType type,
+                                        Design::Language lang);
 
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);

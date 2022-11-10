@@ -185,6 +185,38 @@ std::string Simulator::MacroDirective(SimulatorType type) {
   return "Invalid";
 }
 
+std::string Simulator::LanguageDirective(SimulatorType type,
+                                         Design::Language lang) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      switch (lang) {
+        case Design::Language::VERILOG_1995:
+          return "+1364-1995ext+.v";
+        case Design::Language::VERILOG_2001:
+          return "+1364-2001ext+.v";
+        case Design::Language::SYSTEMVERILOG_2005:
+          return "+1364-2005ext+.v +1800-2005ext+.sv";
+        case Design::Language::SYSTEMVERILOG_2009:
+          return "+1800-2009ext+.v +1800-2009ext+.sv";
+        case Design::Language::SYSTEMVERILOG_2012:
+          return "+1800-2012ext+.v +1800-2012ext+.sv";
+        case Design::Language::SYSTEMVERILOG_2017:
+          return "+1800-2017ext+.v +1800-2017ext+.sv";
+        case Design::Language::VERILOG_NETLIST:
+          return "";
+        default:
+          return "--invalid-lang-for-verilator";
+      }
+    case SimulatorType::Icarus:
+    case SimulatorType::Questa:
+    case SimulatorType::VCS:
+    case SimulatorType::Xcelium:
+    default:
+      return "Invalid";
+  }
+  return "Invalid";
+}
+
 bool Simulator::SimulateRTL(SimulatorType type) {
   std::string fileList;
   for (auto path : ProjManager()->includePathList()) {
@@ -204,6 +236,12 @@ bool Simulator::SimulateRTL(SimulatorType type) {
                 macro_value.second + " ";
   }
 
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    fileList +=
+        LanguageDirective(type, (Design::Language)(lang_file.first.language)) +
+        " ";
+    fileList += lang_file.second + " ";
+  }
   return true;
 }
 
