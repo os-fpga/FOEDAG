@@ -101,6 +101,14 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
     case Compiler::Action::NoAction:
     case Compiler::Action::Batch:
       return TaskManager::invalid_id;
+    case Compiler::Action::SimulateRTL:
+      return SIMULATE_RTL;
+    case Compiler::Action::SimulateGate:
+      return SIMULATE_GATE;
+    case Compiler::Action::SimulatePNR:
+      return SIMULATE_PNR;
+    case Compiler::Action::SimulateBitstream:
+      return SIMULATE_BITSTREAM;
   }
   return TaskManager::invalid_id;
 }

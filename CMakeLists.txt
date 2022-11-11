@@ -356,6 +356,7 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
+  simulation
   foedagutils
   console
   QConsole
