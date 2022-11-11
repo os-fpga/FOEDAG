@@ -310,10 +310,9 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
-ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
+ProjectManager::ErrorInfo ProjectManager::addFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
-  setCurrentFileSet(getDesignActiveFileSet());
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) return {EC_FileSetNotExist};
@@ -338,6 +337,22 @@ ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
     if (res != EC_Success) result = static_cast<ErrorCode>(res);
   }
   return {result};
+}
+
+ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
+    const QString& commands, const QString& libs, const QString& fileNames,
+    int lang, const QString& grName, bool isFileCopy, bool localToProject) {
+  setCurrentFileSet(getDesignActiveFileSet());
+  return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
+                  localToProject);
+}
+
+ProjectManager::ErrorInfo ProjectManager::addSimulationFiles(
+    const QString& commands, const QString& libs, const QString& fileNames,
+    int lang, const QString& grName, bool isFileCopy, bool localToProject) {
+  setCurrentFileSet(getSimulationActiveFileSet());
+  return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
+                  localToProject);
 }
 
 QString ProjectManager::getDefaulUnitName() const {
@@ -744,6 +759,59 @@ ProjectManager::DesignFileList() const {
   if (tmpFileSet && PROJECT_FILE_TYPE_DS == tmpFileSet->getSetType()) {
     auto tmpMapFiles = tmpFileSet->Files();
     for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      std::vector<std::string> files;
+      for (const auto& f : iter->second) files.push_back(f.toStdString());
+      vec.push_back(std::make_pair(iter->first, files));
+    }
+  }
+  return vec;
+}
+
+std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+ProjectManager::SimulationLibraries() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getSimulationActiveFileSet());
+
+  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+      result;
+  for (const auto& commandsLibs : tmpFileSet->getLibraries()) {
+    std::vector<std::string> commands;
+    std::vector<std::string> libs;
+    for (auto i = 0; i < commandsLibs.first.size(); ++i) {
+      commands.push_back(commandsLibs.first[i].toStdString());
+      libs.push_back(commandsLibs.second[i].toStdString());
+    }
+    result.emplace_back(std::move(commands), std::move(libs));
+  }
+
+  return result;
+}
+
+std::vector<std::pair<CompilationUnit, std::string>>
+ProjectManager::SimulationFiles() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getSimulationActiveFileSet());
+
+  std::vector<std::pair<CompilationUnit, std::string>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.begin(); iter != tmpMapFiles.end(); ++iter) {
+      vec.push_back(
+          std::make_pair(iter->first, iter->second.join(" ").toStdString()));
+    }
+  }
+  return vec;
+}
+
+std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
+ProjectManager::SimulationFileList() const {
+  ProjectFileSet* tmpFileSet =
+      Project::Instance()->getProjectFileset(getSimulationActiveFileSet());
+
+  std::vector<std::pair<CompilationUnit, std::vector<std::string>>> vec;
+  if (tmpFileSet && PROJECT_FILE_TYPE_SS == tmpFileSet->getSetType()) {
+    auto tmpMapFiles = tmpFileSet->Files();
+    for (auto iter = tmpMapFiles.cbegin(); iter != tmpMapFiles.cend(); ++iter) {
       std::vector<std::string> files;
       for (const auto& f : iter->second) files.push_back(f.toStdString());
       vec.push_back(std::make_pair(iter->first, files));

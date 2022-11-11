@@ -228,6 +228,10 @@ class Compiler {
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
 
+  enum AddFilesType { Design, Simulation };
+  int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
+                const char* argv[], AddFilesType filesType);
+
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
