@@ -167,10 +167,20 @@ class ProjectManager : public QObject {
 
   int setProjectType(const QString &strType);
 
+  ErrorInfo addFiles(const QString &commands, const QString &libs,
+                     const QString &fileNames, int lang, const QString &grName,
+                     bool isFileCopy = true, bool localToProject = true);
+
   ErrorInfo addDesignFiles(const QString &commands, const QString &libs,
                            const QString &fileNames, int lang,
                            const QString &grName, bool isFileCopy = true,
                            bool localToProject = true);
+
+  ErrorInfo addSimulationFiles(const QString &commands, const QString &libs,
+                               const QString &fileNames, int lang,
+                               const QString &grName, bool isFileCopy = true,
+                               bool localToProject = true);
+
   QString getDefaulUnitName() const;
   int setDesignFiles(const QString &fileNames, int lang, const QString &grName,
                      bool isFileCopy = true, bool localToProject = true);
@@ -200,11 +210,20 @@ class ProjectManager : public QObject {
   int setDesignActive(const QString &strSetName);
   QStringList getDesignFiles(const QString &strFileSet) const;
   QStringList getDesignFiles() const;
+  // Compiler interface
+  // design
   std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
   DesignLibraries() const;
   std::vector<std::pair<CompilationUnit, std::string>> DesignFiles() const;
   std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
   DesignFileList() const;
+  // simulation
+  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
+  SimulationLibraries() const;
+  std::vector<std::pair<CompilationUnit, std::string>> SimulationFiles() const;
+  std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
+  SimulationFileList() const;
+  // --------------------
   QString getDesignTopModule(const QString &strFileSet) const;
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;

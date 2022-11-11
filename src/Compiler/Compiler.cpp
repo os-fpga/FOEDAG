@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QProcess>
 #include <charconv>
 #include <chrono>
@@ -124,6 +125,18 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   add_simulation_file <file list> ?type?   ?-work <libName>?  "
+         << std::endl;
+  (*out) << "              Each invocation of the command compiles the "
+            "file list into a compilation unit "
+         << std::endl;
+  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
+            "-VHDL_2000, -VHDL_2008, -V_1995, "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+         << std::endl;
+  (*out) << "              -work <libName> : Compiles the compilation unit "
+            "into library <libName>, default is \"work\""
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -187,6 +200,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   SetConstraints(new Constraints{this});
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
+  m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -199,6 +213,7 @@ Compiler::~Compiler() {
   delete m_taskManager;
   delete m_tclCmdIntegration;
   delete m_IPGenerator;
+  delete m_simulator;
 }
 
 void Compiler::Message(const std::string& message) {
@@ -278,6 +293,7 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
   bool result =
@@ -332,10 +348,18 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
   return TCL_OK;
 }
 
+Simulator* Compiler::GetSimulator() {
+  if (m_simulator == nullptr) {
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  }
+  return m_simulator;
+}
+
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
@@ -437,10 +461,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_design_file = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (!compiler->ProjManager()->HasDesign()) {
-      compiler->ErrorMessage("Create a design first: create_design <name>");
-      return TCL_ERROR;
-    }
     if (argc < 2) {
       compiler->ErrorMessage(
           "Incorrect syntax for add_design_file <file(s)> "
@@ -451,12 +471,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "default))>");
       return TCL_ERROR;
     }
-    std::string actualType;
-    Design::Language language = Design::Language::VERILOG_2001;
-
-    std::string commandsList;
-    std::string libList;
-    std::string fileList;
     for (int i = 1; i < argc; i++) {
       const std::string type = argv[i];
       if (type == "-work") {
@@ -466,94 +480,40 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               "Library name should follow '-work' tag");
           return TCL_ERROR;
         }
-        commandsList += type + " ";
-        const std::string libName = argv[++i];
-        libList += libName + " ";
-      } else if (type == "-VHDL_1987") {
-        language = Design::Language::VHDL_1987;
-        actualType = "VHDL_1987";
-      } else if (type == "-VHDL_1993") {
-        language = Design::Language::VHDL_1993;
-        actualType = "VHDL_1993";
-      } else if (type == "-VHDL_2000") {
-        language = Design::Language::VHDL_2000;
-        actualType = "VHDL_2000";
-      } else if (type == "-VHDL_2008") {
-        language = Design::Language::VHDL_2008;
-        actualType = "VHDL_2008";
-      } else if (type == "-V_1995") {
-        language = Design::Language::VERILOG_1995;
-        actualType = "VERILOG_1995";
-      } else if (type == "-V_2001") {
-        language = Design::Language::VERILOG_2001;
-        actualType = "VERILOG_2001";
-      } else if (type == "-V_2005") {
-        language = Design::Language::SYSTEMVERILOG_2005;
-        actualType = "SV_2005";
-      } else if (type == "-SV_2009") {
-        language = Design::Language::SYSTEMVERILOG_2009;
-        actualType = "SV_2009";
-      } else if (type == "-SV_2012") {
-        language = Design::Language::SYSTEMVERILOG_2012;
-        actualType = "SV_2012";
-      } else if (type == "-SV_2017") {
-        language = Design::Language::SYSTEMVERILOG_2017;
-        actualType = "SV_2017";
-      } else if (type.find("-D") != std::string::npos) {
-        fileList += type + " ";
-      } else {
-        if (actualType.empty()) {
-          auto fileLowerCase = StringUtils::toLower(argv[i]);
-          if (strstr(fileLowerCase.c_str(), ".vhd")) {
-            language = Design::Language::VHDL_2008;
-            actualType = "VHDL_2008";
-          } else if (strstr(fileLowerCase.c_str(), ".sv")) {
-            language = Design::Language::SYSTEMVERILOG_2017;
-            actualType = "SV_2017";
-          } else {
-            actualType = "VERILOG_2001";
-          }
-        }
-        const std::string file = argv[i];
-        std::string expandedFile = file;
-        bool use_orig_path = false;
-        if (FileUtils::FileExists(expandedFile)) {
-          use_orig_path = true;
-        }
-
-        if ((!use_orig_path) &&
-            (!compiler->GetSession()->CmdLine()->Script().empty())) {
-          std::filesystem::path script =
-              compiler->GetSession()->CmdLine()->Script();
-          std::filesystem::path scriptPath = script.parent_path();
-          std::filesystem::path fullPath = scriptPath;
-          fullPath.append(file);
-          expandedFile = fullPath.string();
-        }
-        std::filesystem::path the_path = expandedFile;
-        if (!the_path.is_absolute()) {
-          const auto& path = std::filesystem::current_path();
-          expandedFile = std::filesystem::path(path / expandedFile).string();
-        }
-        fileList += expandedFile + " ";
       }
     }
-
-    compiler->Message(std::string("Adding ") + actualType + " " + fileList +
-                      std::string("\n"));
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
-          out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
-    }
-    return TCL_OK;
+    return compiler->add_files(compiler, interp, argc, argv, Design);
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
+
+  auto add_simulation_file = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc < 2) {
+      compiler->ErrorMessage(
+          "Incorrect syntax for add_simulation_file <file(s)> "
+          "[-work libraryName]"
+          "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
+          "default), -V_1995, "
+          "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
+          "default))>");
+      return TCL_ERROR;
+    }
+    for (int i = 1; i < argc; i++) {
+      const std::string type = argv[i];
+      if (type == "-work") {
+        if (i + 1 >= argc) {
+          compiler->ErrorMessage(
+              "Incorrect syntax for add_simulation_file <file(s)> "
+              "Library name should follow '-work' tag");
+          return TCL_ERROR;
+        }
+      }
+    }
+    return compiler->add_files(compiler, interp, argc, argv, Simulation);
+  };
+  interp->registerCmd("add_simulation_file", add_simulation_file, this,
+                      nullptr);
 
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -845,6 +805,37 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
+    auto simulate = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      bool status = true;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "rtl") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::RTL, sim_tool);
+        } else if (arg == "gate") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Gate, sim_tool);
+        } else if (arg == "pnr") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::PNR, sim_tool);
+        } else if (arg == "bitstream") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Bitstream, sim_tool);
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+          return TCL_ERROR;
+        }
+        if (status == false) {
+          return TCL_ERROR;
+        }
+      }
+      return (status) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("simulate", simulate, this, 0);
+
     auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1084,6 +1075,44 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("analyze", analyze, this, 0);
+
+    auto simulate = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      bool status = true;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "rtl") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateRTL, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "gate") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateGate, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "pnr") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulatePNR, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "bitstream") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateBitstream, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+          return TCL_ERROR;
+        }
+        if (status == false) {
+          return TCL_ERROR;
+        }
+      }
+      return (status) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("simulate", simulate, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1361,6 +1390,31 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("open_project", open_project, this, nullptr);
   interp->registerCmd("run_project", run_project, this, nullptr);
+
+  auto gtkwave = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    QStringList args{};
+    if (argc > 1) {
+      QString file = QString::fromStdString(argv[1]);
+      if (file.count() > 0 && file[0] == "~") {
+        // QProcess doesn't substitue ~/ paths so we'll manually turn ~ paths
+        // into absolute paths
+        file = QDir::homePath() + file.mid(1);
+      }
+      args << file;
+    }
+
+    auto binPath = GlobalSession->Context()->BinaryPath();
+    auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
+
+    QProcess* process = new QProcess();
+    QString cmd = QString::fromStdString(exePath.string());
+    process->start(cmd, args);
+
+    return TCL_OK;
+  };
+  interp->registerCmd("gtkwave", gtkwave, this, nullptr);
+
   return true;
 }
 
@@ -1537,6 +1591,18 @@ bool Compiler::RunCompileTask(Action action) {
       return GenerateBitstream();
     case Action::Batch:
       return RunBatch();
+    case Action::SimulateRTL:
+      return GetSimulator()->Simulate(Simulator::SimulationType::RTL,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulateGate:
+      return GetSimulator()->Simulate(Simulator::SimulationType::Gate,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulatePNR:
+      return GetSimulator()->Simulate(Simulator::SimulationType::PNR,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulateBitstream:
+      return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
+                                      GetSimulator()->GetSimulatorType());
     default:
       break;
   }
@@ -1605,6 +1671,19 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_RTL, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_GATE, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_PNR, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate bitstream"));
     });
   }
 }
@@ -1927,4 +2006,115 @@ std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
 std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
     const std::string& size) const {
   return std::make_pair(true, std::string{});
+}
+
+int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
+                        const char* argv[], AddFilesType filesType) {
+  if (!compiler->ProjManager()->HasDesign()) {
+    compiler->ErrorMessage("Create a design first: create_design <name>");
+    return TCL_ERROR;
+  }
+  std::string actualType;
+  Design::Language language = Design::Language::VERILOG_2001;
+
+  std::string commandsList;
+  std::string libList;
+  std::string fileList;
+  for (int i = 1; i < argc; i++) {
+    const std::string type = argv[i];
+    if (type == "-work") {
+      commandsList += type + " ";
+      const std::string libName = argv[++i];
+      libList += libName + " ";
+    } else if (type == "-VHDL_1987") {
+      language = Design::Language::VHDL_1987;
+      actualType = "VHDL_1987";
+    } else if (type == "-VHDL_1993") {
+      language = Design::Language::VHDL_1993;
+      actualType = "VHDL_1993";
+    } else if (type == "-VHDL_2000") {
+      language = Design::Language::VHDL_2000;
+      actualType = "VHDL_2000";
+    } else if (type == "-VHDL_2008") {
+      language = Design::Language::VHDL_2008;
+      actualType = "VHDL_2008";
+    } else if (type == "-V_1995") {
+      language = Design::Language::VERILOG_1995;
+      actualType = "VERILOG_1995";
+    } else if (type == "-V_2001") {
+      language = Design::Language::VERILOG_2001;
+      actualType = "VERILOG_2001";
+    } else if (type == "-V_2005") {
+      language = Design::Language::SYSTEMVERILOG_2005;
+      actualType = "SV_2005";
+    } else if (type == "-SV_2009") {
+      language = Design::Language::SYSTEMVERILOG_2009;
+      actualType = "SV_2009";
+    } else if (type == "-SV_2012") {
+      language = Design::Language::SYSTEMVERILOG_2012;
+      actualType = "SV_2012";
+    } else if (type == "-SV_2017") {
+      language = Design::Language::SYSTEMVERILOG_2017;
+      actualType = "SV_2017";
+    } else if (type.find("-D") != std::string::npos) {
+      fileList += type + " ";
+    } else {
+      if (actualType.empty()) {
+        auto fileLowerCase = StringUtils::toLower(argv[i]);
+        if (strstr(fileLowerCase.c_str(), ".vhd")) {
+          language = Design::Language::VHDL_2008;
+          actualType = "VHDL_2008";
+        } else if (strstr(fileLowerCase.c_str(), ".sv")) {
+          language = Design::Language::SYSTEMVERILOG_2017;
+          actualType = "SV_2017";
+        } else {
+          actualType = "VERILOG_2001";
+        }
+      }
+      const std::string file = argv[i];
+      std::string expandedFile = file;
+      bool use_orig_path = false;
+      if (FileUtils::FileExists(expandedFile)) {
+        use_orig_path = true;
+      }
+
+      if ((!use_orig_path) &&
+          (!compiler->GetSession()->CmdLine()->Script().empty())) {
+        std::filesystem::path script =
+            compiler->GetSession()->CmdLine()->Script();
+        std::filesystem::path scriptPath = script.parent_path();
+        std::filesystem::path fullPath = scriptPath;
+        fullPath.append(file);
+        expandedFile = fullPath.string();
+      }
+      std::filesystem::path the_path = expandedFile;
+      if (!the_path.is_absolute()) {
+        const auto& path = std::filesystem::current_path();
+        expandedFile = std::filesystem::path(path / expandedFile).string();
+      }
+      fileList += expandedFile + " ";
+    }
+  }
+
+  compiler->Message(std::string("Adding ") + actualType + " " + fileList +
+                    std::string("\n"));
+  if (compiler->m_tclCmdIntegration) {
+    std::ostringstream out;
+    bool ok{true};
+    if (filesType == Design) {
+      ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
+    } else {
+      ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
+          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
+          out);
+    }
+
+    if (!ok) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
+    }
+  }
+  return TCL_OK;
 }

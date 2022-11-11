@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "Compiler/CompilerDefines.h"
+
 namespace FOEDAG {
 class TclInterpreter;
 class TclInterpreterHandler;
@@ -48,28 +50,37 @@ class Simulator {
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() const { return m_session; }
-  virtual ~Simulator();
-
-  bool Simulate(SimulationType action);
+  virtual ~Simulator() {}
+  bool Simulate(SimulationType action, SimulatorType type);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
   void finish();
 
   std::string& getResult() { return m_result; }
 
-  virtual void Help(std::ostream* out);
-  virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
+  void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
+  SimulatorType GetSimulatorType() { return m_simulatorTool; }
 
  protected:
-  virtual bool SimulateRTL();
-  virtual bool SimulateGate();
-  virtual bool SimulatePNR();
-  virtual bool SimulateBitstream();
+  virtual bool SimulateRTL(SimulatorType type);
+  virtual bool SimulateGate(SimulatorType type);
+  virtual bool SimulatePNR(SimulatorType type);
+  virtual bool SimulateBitstream(SimulatorType type);
+
+  virtual std::string SimulatorName(SimulatorType type);
+  virtual std::string IncludeDirective(SimulatorType type);
+  virtual std::string LibraryPathDirective(SimulatorType type);
+  virtual std::string LibraryFileDirective(SimulatorType type);
+  virtual std::string LibraryExtDirective(SimulatorType type);
+  virtual std::string MacroDirective(SimulatorType type);
+  virtual std::string LanguageDirective(SimulatorType type,
+                                        Design::Language lang);
+
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   /* Propected members */
@@ -81,7 +92,7 @@ class Simulator {
   std::ostream* m_err = &std::cerr;
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
-
+  SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
 };
 

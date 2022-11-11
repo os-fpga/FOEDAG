@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 42)
+set(VERSION_PATCH 46)
 
 option(
   WITH_LIBCXX
@@ -92,6 +92,7 @@ add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
+add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -355,6 +356,7 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
+  simulation
   foedagutils
   console
   QConsole
