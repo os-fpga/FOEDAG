@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/CommandStack.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
+#include "Simulation/Simulator.h"
 #include "Tcl/TclInterpreter.h"
 
 namespace FOEDAG {
@@ -42,6 +43,8 @@ class TclCommandIntegration;
 class Constraints;
 
 class Compiler {
+  friend Simulator;
+
  public:
   enum class Action {
     NoAction,
@@ -55,7 +58,11 @@ class Compiler {
     STA,
     Power,
     Bitstream,
-    Batch
+    Batch,
+    SimulateRTL,
+    SimulateGate,
+    SimulatePNR,
+    SimulateBitstream
   };
   enum class State {
     None,
@@ -122,6 +129,9 @@ class Compiler {
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
+  void SetSimulator(Simulator* simulator) { m_simulator = simulator; }
+  Simulator* GetSimulator();
+
   bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
   bool HasIPInstances();
   bool HasIPDefinitions();
@@ -264,7 +274,10 @@ class Compiler {
   bool m_bitstreamEnabled = true;
   bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
+
+  // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
+  Simulator* m_simulator = nullptr;
 
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;

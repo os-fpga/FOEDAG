@@ -200,6 +200,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   SetConstraints(new Constraints{this});
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
+  m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -212,6 +213,7 @@ Compiler::~Compiler() {
   delete m_taskManager;
   delete m_tclCmdIntegration;
   delete m_IPGenerator;
+  delete m_simulator;
 }
 
 void Compiler::Message(const std::string& message) {
@@ -291,6 +293,7 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
   bool result =
@@ -345,10 +348,18 @@ static int openRunProjectImpl(void* clientData, Tcl_Interp* interp, int argc,
   return TCL_OK;
 }
 
+Simulator* Compiler::GetSimulator() {
+  if (m_simulator == nullptr) {
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  }
+  return m_simulator;
+}
+
 bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+    m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
@@ -794,6 +805,37 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
 
+    auto simulate = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      bool status = true;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "rtl") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::RTL, sim_tool);
+        } else if (arg == "gate") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Gate, sim_tool);
+        } else if (arg == "pnr") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::PNR, sim_tool);
+        } else if (arg == "bitstream") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Bitstream, sim_tool);
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+          return TCL_ERROR;
+        }
+        if (status == false) {
+          return TCL_ERROR;
+        }
+      }
+      return (status) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("simulate", simulate, this, 0);
+
     auto analyze = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
@@ -1033,6 +1075,44 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("analyze", analyze, this, 0);
+
+    auto simulate = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      bool status = true;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "rtl") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateRTL, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "gate") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateGate, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "pnr") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulatePNR, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (arg == "bitstream") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateBitstream, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+          return TCL_ERROR;
+        }
+        if (status == false) {
+          return TCL_ERROR;
+        }
+      }
+      return (status) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("simulate", simulate, this, 0);
 
     auto synthesize = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -1511,6 +1591,18 @@ bool Compiler::RunCompileTask(Action action) {
       return GenerateBitstream();
     case Action::Batch:
       return RunBatch();
+    case Action::SimulateRTL:
+      return GetSimulator()->Simulate(Simulator::SimulationType::RTL,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulateGate:
+      return GetSimulator()->Simulate(Simulator::SimulationType::Gate,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulatePNR:
+      return GetSimulator()->Simulate(Simulator::SimulationType::PNR,
+                                      GetSimulator()->GetSimulatorType());
+    case Action::SimulateBitstream:
+      return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
+                                      GetSimulator()->GetSimulatorType());
     default:
       break;
   }
@@ -1579,6 +1671,19 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     });
     m_taskManager->bindTaskCommand(PLACE_AND_ROUTE_VIEW, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("sta view"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_RTL, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_GATE, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_PNR, []() {
+      GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate bitstream"));
     });
   }
 }

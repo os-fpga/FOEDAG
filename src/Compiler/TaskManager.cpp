@@ -56,6 +56,11 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
+  m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL", TaskType::Button});
+  m_tasks.insert(SIMULATE_GATE, new Task{"Simulate Gate", TaskType::Button});
+  m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR", TaskType::Button});
+  m_tasks.insert(SIMULATE_BITSTREAM,
+                 new Task{"Simulate Bitstream", TaskType::Button});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
@@ -119,6 +124,10 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_RTL]);
+  m_taskQueue.append(m_tasks[SIMULATE_GATE]);
+  m_taskQueue.append(m_tasks[SIMULATE_PNR]);
+  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

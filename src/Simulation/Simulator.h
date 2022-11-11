@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "Compiler/Design.h"
+#include "Compiler/CompilerDefines.h"
 
 namespace FOEDAG {
 class TclInterpreter;
@@ -50,22 +50,21 @@ class Simulator {
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() const { return m_session; }
-  virtual ~Simulator();
-
+  virtual ~Simulator() {}
   bool Simulate(SimulationType action, SimulatorType type);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   bool Clear();
   void start();
   void finish();
 
   std::string& getResult() { return m_result; }
 
-  virtual void Help(std::ostream* out);
-  virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
+  void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
+  SimulatorType GetSimulatorType() { return m_simulatorTool; }
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -93,7 +92,7 @@ class Simulator {
   std::ostream* m_err = &std::cerr;
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
-
+  SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
 };
 
