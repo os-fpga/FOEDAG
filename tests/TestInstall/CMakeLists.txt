@@ -157,6 +157,7 @@ target_link_libraries(test_hellofoedag
   texteditor
   console
   compiler
+  simulation
   ipgenerate
   foedagutils
   QConsole

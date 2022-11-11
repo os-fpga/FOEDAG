@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 45)
+set(VERSION_PATCH 46)
 
 option(
   WITH_LIBCXX
@@ -356,6 +356,7 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
+  simulation
   foedagutils
   console
   QConsole

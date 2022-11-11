@@ -78,6 +78,10 @@ static constexpr uint ANALYSIS_CLEAN{24};
 static constexpr uint BITSTREAM_CLEAN{25};
 static constexpr uint POWER_CLEAN{26};
 static constexpr uint TIMING_SIGN_OFF_CLEAN{27};
+static constexpr uint SIMULATE_RTL{28};
+static constexpr uint SIMULATE_GATE{29};
+static constexpr uint SIMULATE_PNR{30};
+static constexpr uint SIMULATE_BITSTREAM{31};
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;

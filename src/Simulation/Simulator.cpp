@@ -43,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Compiler.h"
+#include "Compiler/Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Simulator.h"
 #include "Utils/FileUtils.h"
@@ -56,6 +57,18 @@ Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
       m_compiler(compiler),
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {}
+
+bool Simulator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  bool ok = true;
+  return ok;
+}
+
+void Simulator::Message(const std::string& message) {
+  m_compiler->Message(message);
+}
+void Simulator::ErrorMessage(const std::string& message) {
+  m_compiler->ErrorMessage(message);
+}
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type) {
   switch (action) {
@@ -219,6 +232,9 @@ std::string Simulator::LanguageDirective(SimulatorType type,
 
 bool Simulator::SimulateRTL(SimulatorType type) {
   std::string fileList;
+  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
+    return false;
+  if (!m_compiler->HasTargetDevice()) return false;
   for (auto path : ProjManager()->includePathList()) {
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
@@ -242,9 +258,50 @@ bool Simulator::SimulateRTL(SimulatorType type) {
         " ";
     fileList += lang_file.second + " ";
   }
+  PERF_LOG("RTL Simulation has started");
+  Message("##################################################");
+  Message("RTL simulation for design: " + ProjManager()->projectName());
+  Message("##################################################");
+  std::string command = SimulatorName(type) + " " + fileList;
+  int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation failed!\n");
+    return false;
+  } else {
+    Message("RTL simulation for design: " + ProjManager()->projectName() +
+            " had ended");
+  }
   return true;
 }
 
-bool Simulator::SimulateGate(SimulatorType type) { return true; }
-bool Simulator::SimulatePNR(SimulatorType type) { return true; }
-bool Simulator::SimulateBitstream(SimulatorType type) { return true; }
+bool Simulator::SimulateGate(SimulatorType type) {
+  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
+    return false;
+  if (!m_compiler->HasTargetDevice()) return false;
+  PERF_LOG("Gate Simulation has started");
+  Message("##################################################");
+  Message("Gate simulation for design: " + ProjManager()->projectName());
+  Message("##################################################");
+  return true;
+}
+bool Simulator::SimulatePNR(SimulatorType type) {
+  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
+    return false;
+  if (!m_compiler->HasTargetDevice()) return false;
+  PERF_LOG("Post-PnR Simulation has started");
+  Message("##################################################");
+  Message("Post-PnR simulation for design: " + ProjManager()->projectName());
+  Message("##################################################");
+  return true;
+}
+bool Simulator::SimulateBitstream(SimulatorType type) {
+  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
+    return false;
+  if (!m_compiler->HasTargetDevice()) return false;
+  PERF_LOG("Bitstream Simulation has started");
+  Message("##################################################");
+  Message("Bitstream simulation for design: " + ProjManager()->projectName());
+  Message("##################################################");
+  return true;
+}
