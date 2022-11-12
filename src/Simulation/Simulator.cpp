@@ -182,6 +182,35 @@ std::string Simulator::LibraryExtDirective(SimulatorType type) {
   return "Invalid";
 }
 
+void Simulator::SetSimulatorPath(SimulatorType type, const std::string path) {
+  m_simulatorPathMap.emplace(type, path);
+}
+
+std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
+  std::map<SimulatorType, std::filesystem::path>::iterator itr =
+      m_simulatorPathMap.find(type);
+  if (itr != m_simulatorPathMap.end()) {
+    return (*itr).second;
+  }
+  return "";
+}
+
+std::string Simulator::SimulatorOptions(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "-cc -Wall";
+    case SimulatorType::Icarus:
+      return "";
+    case SimulatorType::Questa:
+      return "";
+    case SimulatorType::VCS:
+      return "";
+    case SimulatorType::Xcelium:
+      return "";
+  }
+  return "Invalid";
+}
+
 std::string Simulator::MacroDirective(SimulatorType type) {
   switch (type) {
     case SimulatorType::Verilator:
@@ -230,8 +259,25 @@ std::string Simulator::LanguageDirective(SimulatorType type,
   return "Invalid";
 }
 
+std::string Simulator::SimulatorRunCommand(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "obj_dir/Vsyn_tb";
+    case SimulatorType::Icarus:
+      return "Invalid";
+    case SimulatorType::Questa:
+      return "Invalid";
+    case SimulatorType::VCS:
+      return "simv";
+    case SimulatorType::Xcelium:
+      return "Invalid";
+  }
+  return "Invalid";
+}
+
 bool Simulator::SimulateRTL(SimulatorType type) {
   std::string fileList;
+
   if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
     return false;
   if (!m_compiler->HasTargetDevice()) return false;
@@ -252,26 +298,63 @@ bool Simulator::SimulateRTL(SimulatorType type) {
                 macro_value.second + " ";
   }
 
+  for (const auto& lang_file : ProjManager()->SimulationFiles()) {
+    fileList +=
+        LanguageDirective(type, (Design::Language)(lang_file.first.language)) +
+        " ";
+    if (type == SimulatorType::Verilator) {
+      if (lang_file.second.find(".c") != std::string::npos) {
+        fileList += "--exe ";
+      }
+    }
+    fileList += lang_file.second + " ";
+  }
+
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     fileList +=
         LanguageDirective(type, (Design::Language)(lang_file.first.language)) +
         " ";
     fileList += lang_file.second + " ";
   }
+
   PERF_LOG("RTL Simulation has started");
   Message("##################################################");
   Message("RTL simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
-  std::string command = SimulatorName(type) + " " + fileList;
+
+  // Simulator Model compilation step
+  std::string execPath =
+      (SimulatorExecPath(type) / SimulatorName(type)).string();
+  std::string command =
+      execPath + " " + SimulatorOptions(type) + " " + fileList;
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation compilation failed!\n");
+    return false;
+  }
+  // Extra Simulator Model compilation step
+  if (type == SimulatorType::Verilator) {
+    std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
+    status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " simulation compilation failed!\n");
+      return false;
+    }
+  }
+
+  // Actual simulation
+  command = SimulatorRunCommand(type);
+  status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation failed!\n");
     return false;
-  } else {
-    Message("RTL simulation for design: " + ProjManager()->projectName() +
-            " had ended");
   }
+
+  Message("RTL simulation for design: " + ProjManager()->projectName() +
+          " had ended");
   return true;
 }
 

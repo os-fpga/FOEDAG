@@ -293,6 +293,8 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+  }
+  if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
@@ -359,6 +361,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+  }
+  if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
