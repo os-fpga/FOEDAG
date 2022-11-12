@@ -65,6 +65,7 @@ class Simulator {
   virtual void ErrorMessage(const std::string& message);
   void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
   SimulatorType GetSimulatorType() { return m_simulatorTool; }
+  void SetSimulatorPath(SimulatorType type, const std::string path);
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -73,6 +74,7 @@ class Simulator {
   virtual bool SimulateBitstream(SimulatorType type);
 
   virtual std::string SimulatorName(SimulatorType type);
+  virtual std::filesystem::path SimulatorExecPath(SimulatorType type);
   virtual std::string IncludeDirective(SimulatorType type);
   virtual std::string LibraryPathDirective(SimulatorType type);
   virtual std::string LibraryFileDirective(SimulatorType type);
@@ -80,7 +82,8 @@ class Simulator {
   virtual std::string MacroDirective(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
-
+  virtual std::string SimulatorRunCommand(SimulatorType type);
+  virtual std::string SimulatorOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   /* Propected members */
@@ -94,6 +97,7 @@ class Simulator {
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
   SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
+  std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
 };
 
 }  // namespace FOEDAG
