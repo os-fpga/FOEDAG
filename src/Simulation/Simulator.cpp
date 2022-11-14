@@ -275,12 +275,9 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
   return "Invalid";
 }
 
-bool Simulator::SimulateRTL(SimulatorType type) {
+std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
 
-  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
-    return false;
-  if (!m_compiler->HasTargetDevice()) return false;
   for (auto path : ProjManager()->includePathList()) {
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
@@ -309,6 +306,51 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     }
     fileList += lang_file.second + " ";
   }
+  return fileList;
+}
+
+int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
+  if (type == SimulatorType::Verilator) {
+    std::string verilator_home =  SimulatorExecPath(type).parent_path();
+    std::cout << "VERILATOR_HOME=" << verilator_home << std::endl;
+    m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
+  }
+
+  // Simulator Model compilation step
+  std::string execPath =
+      (SimulatorExecPath(type) / SimulatorName(type)).string();
+  std::string command =
+      execPath + " " + SimulatorOptions(type) + " " + fileList;
+
+  int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation compilation failed!\n");
+    return status;
+  }
+  // Extra Simulator Model compilation step
+  if (type == SimulatorType::Verilator) {
+    std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
+    status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " simulation compilation failed!\n");
+      return status;
+    }
+  }
+
+  // Actual simulation
+  command = SimulatorRunCommand(type);
+  status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  return status;
+}
+
+bool Simulator::SimulateRTL(SimulatorType type) {
+  if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
+    return false;
+  if (!m_compiler->HasTargetDevice()) return false;
+
+  std::string fileList = SimulationFileList(type); 
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     fileList +=
@@ -322,31 +364,8 @@ bool Simulator::SimulateRTL(SimulatorType type) {
   Message("RTL simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  // Simulator Model compilation step
-  std::string execPath =
-      (SimulatorExecPath(type) / SimulatorName(type)).string();
-  std::string command =
-      execPath + " " + SimulatorOptions(type) + " " + fileList;
-  int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
-  if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " simulation compilation failed!\n");
-    return false;
-  }
-  // Extra Simulator Model compilation step
-  if (type == SimulatorType::Verilator) {
-    std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
-    status = m_compiler->ExecuteAndMonitorSystemCommand(command);
-    if (status) {
-      ErrorMessage("Design " + ProjManager()->projectName() +
-                   " simulation compilation failed!\n");
-      return false;
-    }
-  }
-
-  // Actual simulation
-  command = SimulatorRunCommand(type);
-  status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  bool status = SimulationJob(type, fileList);
+  
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation failed!\n");
@@ -366,6 +385,54 @@ bool Simulator::SimulateGate(SimulatorType type) {
   Message("##################################################");
   Message("Gate simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
+
+  std::string fileList = SimulationFileList(type); 
+
+  std::string netlistFile;
+  switch (m_compiler->GetNetlistType()) {
+    case Compiler::NetlistType::Verilog:
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case Compiler::NetlistType::Edif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      break;
+    case Compiler::NetlistType::Blif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      break;
+  }
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first.language) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        netlistFile = lang_file.second;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  
+  fileList += " " + netlistFile;
+
+  bool status = SimulationJob(type, fileList);
+  
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation failed!\n");
+    return false;
+  }
+
+  Message("Gate simulation for design: " + ProjManager()->projectName() +
+          " had ended");
+
   return true;
 }
 bool Simulator::SimulatePNR(SimulatorType type) {

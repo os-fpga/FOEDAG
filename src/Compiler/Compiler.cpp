@@ -1897,18 +1897,6 @@ void Compiler::PrintVersion(std::ostream* out) {
   (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
-bool Compiler::ExecuteSystemCommand(const std::string& command) {
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
-  // TODO: Windows System call
-#else
-  int result = system(command.c_str());
-  if (result == 0) {
-    return true;
-  }
-#endif
-
-  return false;
-}
 
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile =
@@ -1940,20 +1928,29 @@ void Compiler::SetConstraints(Constraints* c) {
   if (m_interp) m_constraints->registerCommands(m_interp);
 }
 
+void Compiler::SetEnvironmentVariable(const std::string variable, const std::string value) {
+  m_environmentVariableMap.emplace(variable, value);
+}
+
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
                                              const std::string logFile) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
   auto path = std::filesystem::current_path();  // getting path
-  //(*m_out) << "Path: " << path.string() << std::endl;
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
-  // DEBUG: (*m_out) << "Changed path to: " <<
-  // std::filesystem::current_path().string()
-  //         << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
+  QStringList env = QProcess::systemEnvironment();
+  if (!m_environmentVariableMap.empty()) {
+    for (std::map<std::string, std::string>::iterator itr =
+             m_environmentVariableMap.begin();
+         itr != m_environmentVariableMap.end(); itr++) {
+      env << strdup(((*itr).first + "=" + (*itr).second).c_str());
+    }
+  }
+  m_process->setEnvironment(env);
   std::ofstream ofs;
   if (!logFile.empty()) {
     ofs.open(logFile);

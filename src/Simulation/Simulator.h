@@ -82,6 +82,8 @@ class Simulator {
   virtual std::string MacroDirective(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
+  virtual std::string SimulationFileList(SimulatorType type);
+  virtual int SimulationJob(SimulatorType type, const std::string& file_list);
   virtual std::string SimulatorRunCommand(SimulatorType type);
   virtual std::string SimulatorOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
