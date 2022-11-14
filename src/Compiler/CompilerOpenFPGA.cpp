@@ -1362,7 +1362,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
       m_architectureFile.string() + std::string(" ") +
       std::string(netlistFile + std::string(" --sdc_file ") +
                   std::string(ProjManager()->projectName() + "_openfpga.sdc") +
-                  std::string(" --route_chan_width ") +
+                  std::string(" --clock_modeling ideal --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
 
   return command;

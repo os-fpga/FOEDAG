@@ -293,6 +293,8 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+  }
+  if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
@@ -359,6 +361,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
+  }
+  if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
@@ -1936,12 +1940,13 @@ void Compiler::SetConstraints(Constraints* c) {
   if (m_interp) m_constraints->registerCommands(m_interp);
 }
 
-int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
+int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
+                                             const std::string logFile) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
   auto path = std::filesystem::current_path();  // getting path
-  (*m_out) << "Path: " << path.string() << std::endl;
+  //(*m_out) << "Path: " << path.string() << std::endl;
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
   // DEBUG: (*m_out) << "Changed path to: " <<
   // std::filesystem::current_path().string()
@@ -1949,17 +1954,33 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
-  if (m_out)
+  std::ofstream ofs;
+  if (!logFile.empty()) {
+    ofs.open(logFile);
+    QObject::connect(m_process, &QProcess::readyReadStandardOutput,
+                     [this, &ofs]() {
+                       qint64 bytes = m_process->bytesAvailable();
+                       QByteArray bufout = m_process->readAllStandardOutput();
+                       ofs.write(bufout, bytes);
+                       m_out->write(bufout, bytes);
+                     });
+    QObject::connect(m_process, &QProcess::readyReadStandardError,
+                     [this, &ofs]() {
+                       QByteArray data = m_process->readAllStandardError();
+                       int bytes = data.size();
+                       ofs.write(data, bytes);
+                       m_err->write(data, bytes);
+                     });
+  } else {
     QObject::connect(m_process, &QProcess::readyReadStandardOutput, [this]() {
       m_out->write(m_process->readAllStandardOutput(),
                    m_process->bytesAvailable());
     });
-  if (m_err)
     QObject::connect(m_process, &QProcess::readyReadStandardError, [this]() {
       QByteArray data = m_process->readAllStandardError();
       m_err->write(data, data.size());
     });
-
+  }
   ProcessUtils utils;
   QObject::connect(m_process, &QProcess::started,
                    [&utils, this]() { utils.Start(m_process->processId()); });
@@ -1978,7 +1999,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command) {
   auto exitCode = m_process->exitCode();
   delete m_process;
   m_process = nullptr;
-
+  if (!logFile.empty()) {
+    ofs.close();
+  }
   auto end = Time::now();
   auto fs = end - start;
   ms d = std::chrono::duration_cast<ms>(fs);

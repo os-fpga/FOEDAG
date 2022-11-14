@@ -222,7 +222,8 @@ class Compiler {
   bool RunBatch();
   bool RunCompileTask(Action action);
   virtual bool ExecuteSystemCommand(const std::string& command);
-  virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
+  virtual int ExecuteAndMonitorSystemCommand(const std::string& command,
+                                             const std::string logFile = "");
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
