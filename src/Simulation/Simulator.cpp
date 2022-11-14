@@ -311,7 +311,7 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
 
 int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   if (type == SimulatorType::Verilator) {
-    std::string verilator_home =  SimulatorExecPath(type).parent_path();
+    std::string verilator_home = SimulatorExecPath(type).parent_path();
     std::cout << "VERILATOR_HOME=" << verilator_home << std::endl;
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
@@ -350,7 +350,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     return false;
   if (!m_compiler->HasTargetDevice()) return false;
 
-  std::string fileList = SimulationFileList(type); 
+  std::string fileList = SimulationFileList(type);
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     fileList +=
@@ -365,7 +365,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
   Message("##################################################");
 
   bool status = SimulationJob(type, fileList);
-  
+
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation failed!\n");
@@ -386,7 +386,7 @@ bool Simulator::SimulateGate(SimulatorType type) {
   Message("Gate simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  std::string fileList = SimulationFileList(type); 
+  std::string fileList = SimulationFileList(type);
 
   std::string netlistFile;
   switch (m_compiler->GetNetlistType()) {
@@ -419,11 +419,11 @@ bool Simulator::SimulateGate(SimulatorType type) {
         break;
     }
   }
-  
+
   fileList += " " + netlistFile;
 
   bool status = SimulationJob(type, fileList);
-  
+
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation failed!\n");

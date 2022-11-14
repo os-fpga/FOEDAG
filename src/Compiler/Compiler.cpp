@@ -1897,7 +1897,6 @@ void Compiler::PrintVersion(std::ostream* out) {
   (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
-
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile =
       (std::filesystem::path(ProjManager()->projectPath()) /
@@ -1928,7 +1927,8 @@ void Compiler::SetConstraints(Constraints* c) {
   if (m_interp) m_constraints->registerCommands(m_interp);
 }
 
-void Compiler::SetEnvironmentVariable(const std::string variable, const std::string value) {
+void Compiler::SetEnvironmentVariable(const std::string variable,
+                                      const std::string value) {
   m_environmentVariableMap.emplace(variable, value);
 }
 
@@ -1937,7 +1937,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
-  auto path = std::filesystem::current_path();  // getting path
+  auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads

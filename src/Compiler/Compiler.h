@@ -225,8 +225,9 @@ class Compiler {
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
-  
-  virtual void SetEnvironmentVariable(const std::string variable, const std::string value);
+
+  virtual void SetEnvironmentVariable(const std::string variable,
+                                      const std::string value);
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command,
                                              const std::string logFile = "");
   std::string ReplaceAll(std::string_view str, std::string_view from,
