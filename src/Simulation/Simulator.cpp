@@ -311,7 +311,7 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
 
 int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   if (type == SimulatorType::Verilator) {
-    std::string verilator_home = SimulatorExecPath(type).parent_path();
+    std::string verilator_home = SimulatorExecPath(type).parent_path().string();
     std::cout << "VERILATOR_HOME=" << verilator_home << std::endl;
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
