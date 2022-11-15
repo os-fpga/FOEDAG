@@ -199,6 +199,8 @@ class Compiler {
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
   NetlistType GetNetlistType() { return m_netlistType; }
 
+  void virtual CustomSimulatorSetup();
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();

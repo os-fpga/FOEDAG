@@ -191,6 +191,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "-------------------------" << std::endl;
 }
 
+void Compiler::CustomSimulatorSetup() {}
+
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),

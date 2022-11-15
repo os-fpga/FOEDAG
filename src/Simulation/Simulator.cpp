@@ -58,6 +58,10 @@ Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
       m_out(out),
       m_tclInterpreterHandler(tclInterpreterHandler) {}
 
+void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
+  m_gateSimulationModels.push_back(path);
+}
+
 bool Simulator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   bool ok = true;
   return ok;
@@ -421,6 +425,9 @@ bool Simulator::SimulateGate(SimulatorType type) {
   }
 
   fileList += " " + netlistFile;
+  for (auto path : m_gateSimulationModels) {
+    fileList += " -v " + path.string();
+  }
 
   bool status = SimulationJob(type, fileList);
 

@@ -93,7 +93,10 @@ class CompilerOpenFPGA : public Compiler {
     m_yosysPluginLib = libname;
   }
   void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
-  void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
+  void YosysMapTechnology(const std::string& tech) {
+    m_mapToTechnology = tech;
+    CustomSimulatorSetup();
+  }
 
   const std::string& PerDeviceSynthOptions() { return m_perDeviceSynthOptions; }
   void PerDeviceSynthOptions(const std::string& options) {
