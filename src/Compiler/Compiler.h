@@ -46,6 +46,7 @@ class Compiler {
   friend Simulator;
 
  public:
+  enum class NetlistType { Blif, Edif, Verilog };
   enum class Action {
     NoAction,
     IPGen,
@@ -195,6 +196,11 @@ class Compiler {
 
   void SetConstraints(Constraints* c);
 
+  void SetNetlistType(NetlistType type) { m_netlistType = type; }
+  NetlistType GetNetlistType() { return m_netlistType; }
+
+  void virtual CustomSimulatorSetup();
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -221,7 +227,9 @@ class Compiler {
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
-  virtual bool ExecuteSystemCommand(const std::string& command);
+
+  void SetEnvironmentVariable(const std::string variable,
+                              const std::string value);
   virtual int ExecuteAndMonitorSystemCommand(const std::string& command,
                                              const std::string logFile = "");
   std::string ReplaceAll(std::string_view str, std::string_view from,
@@ -282,6 +290,10 @@ class Compiler {
 
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
+
+  std::map<std::string, std::string> m_environmentVariableMap;
+
+  NetlistType m_netlistType = NetlistType::Blif;
 };
 
 }  // namespace FOEDAG

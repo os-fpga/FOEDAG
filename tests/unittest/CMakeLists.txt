@@ -28,10 +28,10 @@ set (CPP_LIST
     Utils/StringUtils_test.cpp
     NewProject/ProjectManager_test.cpp
     PinAssignment/BufferedComboBox_test.cpp
-    PinAssignment/PinAssignmentCreator_test.cpp
-    PinAssignment/PinsBaseModel_test.cpp
+#    PinAssignment/PinAssignmentCreator_test.cpp // TODO @volodymyrk RG-181
+#    PinAssignment/PinsBaseModel_test.cpp // TODO @volodymyrk RG-181
     PinAssignment/PortsLoader_test.cpp
-    PinAssignment/PackagePinsLoader_test.cpp
+#    PinAssignment/PackagePinsLoader_test.cpp // TODO @volodymyrk RG-181
     Settings/Settings_test.cpp
     IPGenerator/IPGenerator_test.cpp
     NewProject/source_grid_test.cpp

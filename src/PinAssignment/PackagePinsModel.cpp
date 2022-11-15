@@ -35,11 +35,40 @@ void PackagePinsModel::appendHeaderData(const HeaderData &h) {
 }
 
 void PackagePinsModel::updateMode(const QString &pin, const QString &mode) {
-  if (mode.isEmpty())
+  if (pin.isEmpty()) return;
+  if (mode.isEmpty()) {
     m_modeMap.remove(pin);
-  else
+    emit modeHasChanged(pin, mode);
+  } else {
+    auto currentMode = m_modeMap.value(pin);
     m_modeMap.insert(pin, mode);
-  emit modeHasChanged(pin, mode);
+    if (currentMode != mode) emit modeHasChanged(pin, mode);
+  }
+}
+
+QString PackagePinsModel::getMode(const QString &pin) const {
+  return m_modeMap.value(pin);
+}
+
+void PackagePinsModel::updateInternalPin(const QString &port,
+                                         const QString &intPin) {
+  if (intPin.isEmpty())
+    m_internalPinMap.remove(port);
+  else
+    m_internalPinMap.insert(port, intPin);
+  emit internalPinHasChanged(port, intPin);
+}
+
+void PackagePinsModel::insertMode(int id, const QString &mode) {
+  m_modes.insert(mode, id);
+}
+
+InternalPins &PackagePinsModel::internalPinsRef() { return m_internalPinsData; }
+
+QStringList PackagePinsModel::GetInternalPinsList(const QString &pin,
+                                                  const QString &mode) const {
+  int modeId = m_modes.value(mode);
+  return m_internalPinsData.value(pin).value(modeId);
 }
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
@@ -50,6 +79,10 @@ const QVector<PackagePinGroup> &PackagePinsModel::pinData() const {
 
 const QMap<QString, QString> &PackagePinsModel::modeMap() const {
   return m_modeMap;
+}
+
+QString PackagePinsModel::internalPin(const QString &port) const {
+  return m_internalPinMap.value(port);
 }
 
 QStringListModel *PackagePinsModel::listModel() const { return m_listModel; }
@@ -71,14 +104,6 @@ void PackagePinsModel::initListModel() {
     }
   }
   m_listModel->setStringList(pinsList);
-}
-
-void PackagePinsModel::insert(const QString &name, const QModelIndex &index) {
-  m_indexes.insert(name, index);
-}
-
-void PackagePinsModel::itemChange(const QString &name, const QString &pin) {
-  emit itemHasChanged(m_indexes.value(name), pin);
 }
 
 const QVector<QString> &PackagePinsModel::userGroups() const {

@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 enum class SynthesisType { Yosys, QL, RS };
-enum class NetlistType { Blif, Edif, Verilog };
 
 class CompilerOpenFPGA : public Compiler {
  public:
@@ -94,7 +93,10 @@ class CompilerOpenFPGA : public Compiler {
     m_yosysPluginLib = libname;
   }
   void YosysPluginName(const std::string& name) { m_yosysPlugin = name; }
-  void YosysMapTechnology(const std::string& tech) { m_mapToTechnology = tech; }
+  void YosysMapTechnology(const std::string& tech) {
+    m_mapToTechnology = tech;
+    CustomSimulatorSetup();
+  }
 
   const std::string& PerDeviceSynthOptions() { return m_perDeviceSynthOptions; }
   void PerDeviceSynthOptions(const std::string& options) {
@@ -107,9 +109,6 @@ class CompilerOpenFPGA : public Compiler {
   void PerDevicePnROptions(const std::string& options) {
     m_perDevicePnROptions = options;
   }
-
-  void SetNetlistType(NetlistType type) { m_netlistType = type; }
-  NetlistType GetNetlistType() { return m_netlistType; }
 
  protected:
   virtual bool IPGenerate();
@@ -176,7 +175,6 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdfFileName,
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
-  NetlistType m_netlistType = NetlistType::Blif;
 };
 
 }  // namespace FOEDAG

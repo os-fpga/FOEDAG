@@ -191,6 +191,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "-------------------------" << std::endl;
 }
 
+void Compiler::CustomSimulatorSetup() {}
+
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
     : m_interp(interp),
@@ -1897,19 +1899,6 @@ void Compiler::PrintVersion(std::ostream* out) {
   (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
-bool Compiler::ExecuteSystemCommand(const std::string& command) {
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
-  // TODO: Windows System call
-#else
-  int result = system(command.c_str());
-  if (result == 0) {
-    return true;
-  }
-#endif
-
-  return false;
-}
-
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile =
       (std::filesystem::path(ProjManager()->projectPath()) /
@@ -1940,20 +1929,30 @@ void Compiler::SetConstraints(Constraints* c) {
   if (m_interp) m_constraints->registerCommands(m_interp);
 }
 
+void Compiler::SetEnvironmentVariable(const std::string variable,
+                                      const std::string value) {
+  m_environmentVariableMap.emplace(variable, value);
+}
+
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
                                              const std::string logFile) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
-  auto path = std::filesystem::current_path();  // getting path
-  //(*m_out) << "Path: " << path.string() << std::endl;
+  auto path = std::filesystem::current_path();                  // getting path
   std::filesystem::current_path(m_projManager->projectPath());  // setting path
-  // DEBUG: (*m_out) << "Changed path to: " <<
-  // std::filesystem::current_path().string()
-  //         << std::endl;
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
+  QStringList env = QProcess::systemEnvironment();
+  if (!m_environmentVariableMap.empty()) {
+    for (std::map<std::string, std::string>::iterator itr =
+             m_environmentVariableMap.begin();
+         itr != m_environmentVariableMap.end(); itr++) {
+      env << strdup(((*itr).first + "=" + (*itr).second).c_str());
+    }
+  }
+  m_process->setEnvironment(env);
   std::ofstream ofs;
   if (!logFile.empty()) {
     ofs.open(logFile);
@@ -2079,6 +2078,12 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     } else if (type == "-SV_2017") {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
+    } else if (type == "-C") {
+      language = Design::Language::C;
+      actualType = "C";
+    } else if (type == "-CPP") {
+      language = Design::Language::CPP;
+      actualType = "C++";
     } else if (type.find("-D") != std::string::npos) {
       fileList += type + " ";
     } else {
@@ -2090,6 +2095,13 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
         } else if (strstr(fileLowerCase.c_str(), ".sv")) {
           language = Design::Language::SYSTEMVERILOG_2017;
           actualType = "SV_2017";
+        } else if (StringUtils::endsWith(fileLowerCase.c_str(), ".c") ||
+                   StringUtils::endsWith(fileLowerCase.c_str(), ".cc")) {
+          language = Design::Language::C;
+          actualType = "C";
+        } else if (strstr(fileLowerCase.c_str(), ".cpp")) {
+          language = Design::Language::CPP;
+          actualType = "C++";
         } else {
           actualType = "VERILOG_2001";
         }
