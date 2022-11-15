@@ -31,6 +31,8 @@ class TaskManager;
 
 namespace Design {
 enum Language {
+  C,
+  CPP,
   BLIF,
   EBLIF,
   VHDL_1987,
@@ -44,8 +46,6 @@ enum Language {
   SYSTEMVERILOG_2009,
   SYSTEMVERILOG_2012,
   SYSTEMVERILOG_2017,
-  C,
-  CPP,
 };
 }
 
