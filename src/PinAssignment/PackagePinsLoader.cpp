@@ -36,6 +36,7 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
   const auto &[success, content] = getFileContent(fileName);
   if (!success) return std::make_pair(success, content);
 
+  InternalPins &internalPins = m_model->internalPinsRef();
   QStringList lines = QtUtils::StringSplit(content, '\n');
   parseHeader(lines.takeFirst());
   PackagePinGroup group{};
@@ -51,6 +52,12 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
       group.name = data.first();
     }
     data.pop_front();
+    // internal pins parsing
+    for (int i = ModeFirst; (i <= ModeLast) && (i < data.count()); i++) {
+      if (data.at(i) == "Y")
+        internalPins[data.at(PinName)][i].append(data.at(InternalPinName));
+    }
+    // -------------
     if (uniquePins.contains(data.at(PinName))) continue;
     uniquePins.insert(data.at(PinName));
     group.pinData.append({data});
@@ -110,10 +117,13 @@ void PackagePinsLoader::parseHeader(const QString &header) {
   QStringList modesRx{};
   QStringList modesTx{};
   for (const auto &col : columns) {
-    if (col.startsWith("Mode_") && col.endsWith("tx", Qt::CaseInsensitive))
-      modesTx.append(col);
-    else if (col.startsWith("Mode_") && col.endsWith("rx", Qt::CaseInsensitive))
-      modesRx.append(col);
+    if (col.startsWith("Mode_")) {
+      m_model->insertMode(columns.indexOf(col) - 1, col);
+      if (col.endsWith("tx", Qt::CaseInsensitive))
+        modesTx.append(col);
+      else if (col.endsWith("rx", Qt::CaseInsensitive))
+        modesRx.append(col);
+    }
   }
 
   if (!modesRx.isEmpty()) modesRx.push_front({});  // one empty element

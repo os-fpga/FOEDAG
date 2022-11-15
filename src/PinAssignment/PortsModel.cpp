@@ -26,7 +26,7 @@ PortsModel::PortsModel(QObject *parent)
     : QObject(parent), m_model(new QStringListModel(this)) {}
 
 QStringList PortsModel::headerList() const {
-  return {"Name", "Dir", "Package Pin", "Mode", "Type"};
+  return {"Name", "Dir", "Package Pin", "Mode", "Internal pins", "Type"};
 }
 
 void PortsModel::append(const IOPortGroup &p) { m_ioPorts.append(p); }
@@ -59,11 +59,4 @@ IOPort PortsModel::GetPort(const QString &portName) const {
 
 QStringListModel *PortsModel::listModel() const { return m_model; }
 
-void PortsModel::insert(const QString &name, const QModelIndex &index) {
-  m_indexes.insert(name, index);
-}
-
-void PortsModel::itemChange(const QString &name, const QString &newPin) {
-  emit itemHasChanged(m_indexes.value(name), newPin);
-}
 }  // namespace FOEDAG
