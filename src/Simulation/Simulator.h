@@ -66,6 +66,7 @@ class Simulator {
   void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
   SimulatorType GetSimulatorType() { return m_simulatorTool; }
   void SetSimulatorPath(SimulatorType type, const std::string path);
+  void AddGateSimulationModel(const std::filesystem::path& path);
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -100,6 +101,7 @@ class Simulator {
   SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
+  std::vector<std::filesystem::path> m_gateSimulationModels;
 };
 
 }  // namespace FOEDAG
