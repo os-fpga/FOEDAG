@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 
+#include "Reports/SynthesisReportManager.h"
+
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
@@ -128,6 +130,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[SIMULATE_GATE]);
   m_taskQueue.append(m_tasks[SIMULATE_PNR]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
+
+  m_reportManagerRegistry.registerReportManager(
+      SYNTHESIS, std::make_unique<SynthesisReportManager>());
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -248,6 +253,10 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
       break;
     }
   }
+}
+
+TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() {
+  return m_reportManagerRegistry;
 }
 
 }  // namespace FOEDAG

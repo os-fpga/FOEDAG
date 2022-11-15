@@ -21,10 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
+#include <QHeaderView>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+
+#include "Compiler/Reports/ITaskReport.h"
+#include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
 #include "Settings.h"
 #include "TextEditor/text_editor.h"
 #include "WidgetFactory.h"
+
 using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
@@ -32,6 +39,37 @@ using namespace FOEDAG;
 #define PLACE_ARG "pin_assign_method"
 
 #define TASKS_DEBUG false
+
+namespace {
+void openReportView(const ITaskReport& report) {
+  auto reportsView = new QTableWidget();
+
+  for (auto i = 0; i < report.getColumns().size(); ++i)
+    reportsView->insertColumn(i);
+
+  auto rowIndex = 0;
+  auto colIndex = 0;
+  for (auto& lineData : report.getData()) {
+    for (auto& lineValue : lineData) {
+      auto item = new QTableWidgetItem(QString::fromStdString(lineValue));
+      item->setTextAlignment(Qt::AlignCenter);
+      reportsView->setItem(rowIndex, colIndex, item);
+      ++colIndex;
+    }
+    ++rowIndex;
+  }
+
+  reportsView->verticalHeader()->setVisible(false);
+  reportsView->horizontalHeader()->setVisible(false);
+  reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  reportsView->setShowGrid(false);
+  reportsView->horizontalHeader()->resizeSections(
+      QHeaderView::ResizeToContents);
+
+  TextEditorForm::Instance()->GetTabWidget()->addTab(
+      reportsView, QString::fromStdString(report.getName()));
+}
+}  // namespace
 
 auto TASKS_DBG_PRINT = [](std::string printStr) {
   if (TASKS_DEBUG) {
@@ -206,4 +244,18 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   QString path = filePath;
   path.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
   TextEditorForm::Instance()->OpenFile(path);
+}
+
+void FOEDAG::handleViewReportRequested(ITaskReportManager& reportManager) {
+  auto reports = std::vector<std::unique_ptr<ITaskReport>>{};
+  auto availableReports = reportManager.getAvailableReportIds();
+  if (availableReports.empty()) return;
+
+  reports.reserve(availableReports.size());
+  for (auto& reportId : availableReports)
+    reports.push_back(reportManager.createReport(reportId));
+
+  for (auto& report : reports) {
+    openReportView(*report);
+  }
 }

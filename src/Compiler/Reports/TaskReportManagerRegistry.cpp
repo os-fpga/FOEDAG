@@ -19,28 +19,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TASKS_H
-#define TASKS_H
-
-#include <QDialog>
+#include "TaskReportManagerRegistry.h"
 
 namespace FOEDAG {
 
-class ITaskReportManager;
+bool TaskReportManagerRegistry::registerReportManager(uint type,
+                                                      ReportManager manager) {
+  return m_managers.emplace(type, std::move(manager)).second;
+}
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
+ITaskReportManager *TaskReportManagerRegistry::getReportManager(
+    uint type) const {
+  auto findIt = m_managers.find(type);
+  if (findIt != m_managers.cend()) return findIt->second.get();
 
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
+  return nullptr;
+}
 
 }  // namespace FOEDAG
-
-#endif

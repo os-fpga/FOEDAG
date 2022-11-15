@@ -19,28 +19,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TASKS_H
-#define TASKS_H
+#include "SynthesisReportManager.h"
 
-#include <QDialog>
+#include "TableReport.h"
 
 namespace FOEDAG {
 
-class ITaskReportManager;
+std::vector<std::string> SynthesisReportManager::getAvailableReportIds() const {
+  return {"Synthesis report"};
+}
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
+std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
+    const std::string &reportId) {
+  return nullptr;
+}
 
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
+std::map<size_t, std::string> SynthesisReportManager::getMessages() {
+  return {};
+}
 
 }  // namespace FOEDAG
-
-#endif

@@ -18,29 +18,31 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef TASKS_H
-#define TASKS_H
-
-#include <QDialog>
+#include "ITaskReportManager.h"
 
 namespace FOEDAG {
 
-class ITaskReportManager;
-
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
-
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
+/* Synthesis-specific report manager. It triggers 'synthesis.rpt' log file
+ * parsing and creates a report, containing following data:
+ * Number of wires
+   Number of wire bits
+   Number of public wires
+   Number of public wire bits
+   Number of memories
+   Number of memory bits
+   Number of processes
+   Number of cells
+   Average level
+   Maximum level
+ */
+class SynthesisReportManager final : public ITaskReportManager {
+ public:
+  virtual std::vector<std::string> getAvailableReportIds() const override;
+  virtual std::unique_ptr<ITaskReport> createReport(
+      const std::string &reportId) override;
+  virtual std::map<size_t, std::string> getMessages() override;
+};
 
 }  // namespace FOEDAG
-
-#endif

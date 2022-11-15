@@ -1513,7 +1513,7 @@ bool Compiler::Synthesize() {
   (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "synthesis.rpt");
+  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
   return true;
 }
 

@@ -19,28 +19,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TASKS_H
-#define TASKS_H
-
-#include <QDialog>
+#include "TableReport.h"
 
 namespace FOEDAG {
 
-class ITaskReportManager;
+TableReport::TableReport(LineValues &&columnNames,
+                         std::vector<LineValues> &&linesData,
+                         const std::string &name)
+    : m_columnNames{columnNames}, m_linesData{linesData}, m_name{name} {}
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
+const ITaskReport::LineValues &TableReport::getColumns() const {
+  return m_columnNames;
+}
 
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
+const std::vector<ITaskReport::LineValues> &TableReport::getData() const {
+  return m_linesData;
+}
+
+const std::string &TableReport::getName() const { return m_name; }
 
 }  // namespace FOEDAG
-
-#endif
