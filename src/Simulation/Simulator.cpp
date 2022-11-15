@@ -250,6 +250,10 @@ std::string Simulator::LanguageDirective(SimulatorType type,
           return "+1800-2017ext+.v +1800-2017ext+.sv";
         case Design::Language::VERILOG_NETLIST:
           return "";
+        case Design::Language::C:
+          return "";
+        case Design::Language::CPP:
+          return "";
         default:
           return "--invalid-lang-for-verilator";
       }
