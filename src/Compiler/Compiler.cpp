@@ -2078,6 +2078,12 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     } else if (type == "-SV_2017") {
       language = Design::Language::SYSTEMVERILOG_2017;
       actualType = "SV_2017";
+    } else if (type == "-C") {
+      language = Design::Language::C;
+      actualType = "C";
+    } else if (type == "-CPP") {
+      language = Design::Language::CPP;
+      actualType = "C++";
     } else if (type.find("-D") != std::string::npos) {
       fileList += type + " ";
     } else {
@@ -2089,6 +2095,13 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
         } else if (strstr(fileLowerCase.c_str(), ".sv")) {
           language = Design::Language::SYSTEMVERILOG_2017;
           actualType = "SV_2017";
+        } else if (StringUtils::endsWith(fileLowerCase.c_str(), ".c") ||
+                   StringUtils::endsWith(fileLowerCase.c_str(), ".cc")) {
+          language = Design::Language::C;
+          actualType = "C";
+        } else if (strstr(fileLowerCase.c_str(), ".cpp")) {
+          language = Design::Language::CPP;
+          actualType = "C++";
         } else {
           actualType = "VERILOG_2001";
         }
