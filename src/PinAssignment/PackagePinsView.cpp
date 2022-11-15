@@ -21,8 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PackagePinsView.h"
 
 #include <QCompleter>
+#include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
 #include <QStringListModel>
+#include <QToolButton>
 
 #include "BufferedComboBox.h"
 
@@ -32,6 +35,7 @@ constexpr int NameCol{0};
 constexpr int AvailCol{1};
 constexpr int PortsCol{2};
 constexpr int ModeCol{3};
+constexpr int InternalPinCol{4};
 
 PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     : PinAssignmentBaseView(model, parent) {
@@ -68,56 +72,76 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       insertData(p.data, Voltage2, col++, pinItem);
       insertData(p.data, RefClock, col++, pinItem);
 
-      auto combo = new BufferedComboBox{this};
-      combo->setModel(model->portsModel()->listModel());
-      combo->setAutoFillBackground(true);
-      m_allCombo.append(combo);
-      combo->setEditable(true);
-      auto completer{new QCompleter{model->portsModel()->listModel()}};
-      completer->setFilterMode(Qt::MatchContains);
-      combo->setCompleter(completer);
-      combo->setInsertPolicy(QComboBox::NoInsert);
-      connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-              [=]() {
-                ioPortsSelectionHasChanged(indexFromItem(pinItem, PortsCol));
-              });
-      setItemWidget(pinItem, PortsCol, combo);
-      model->packagePinModel()->insert(pinItem->text(NameCol),
-                                       indexFromItem(pinItem, NameCol));
+      initLine(pinItem);
 
-      auto modeCombo = new QComboBox{this};
-      modeCombo->setEnabled(modeCombo->count() > 0);
-      connect(
-          modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-          [=]() { modeSelectionHasChanged(indexFromItem(pinItem, ModeCol)); });
-      setItemWidget(pinItem, ModeCol, modeCombo);
+      const auto &[widget, button] =
+          prepareButtonWithLabel(pinItem->text(0), QIcon{":/images/add.png"});
+      connect(button, &QToolButton::clicked, this,
+              [=]() { CreateNewLine(pinItem); });
+      setItemWidget(pinItem, NameCol, widget);
     }
     expandItem(bank);
   }
-  connect(model->packagePinModel(), &PackagePinsModel::itemHasChanged, this,
-          &PackagePinsView::itemHasChanged);
   connect(model->packagePinModel(), &PackagePinsModel::modeHasChanged, this,
           &PackagePinsView::modeChanged);
+  connect(model->packagePinModel(), &PackagePinsModel::internalPinHasChanged,
+          this, &PackagePinsView::internalPinChanged);
+  connect(model, &PinsBaseModel::portAssignmentChanged, this,
+          &PackagePinsView::portAssignmentChanged);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
-  setColumnWidth(NameCol, 170);
+  setColumnWidth(NameCol, 200);
   setColumnWidth(ModeCol, 180);
+  setColumnWidth(InternalPinCol, 170);
   resizeColumnToContents(PortsCol);
   header()->setSectionResizeMode(PortsCol, QHeaderView::Fixed);
 }
 
 void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
-  QModelIndex index{match(pin)};
-  if (index.isValid()) {
+  QModelIndexList indexes{match(pin)};
+  for (const auto &index : indexes) {
     auto combo =
         qobject_cast<QComboBox *>(itemWidget(itemFromIndex(index), ModeCol));
-    if (combo) combo->setCurrentIndex(combo->findData(mode, Qt::DisplayRole));
+    if (combo) {
+      const int index = combo->findData(mode, Qt::DisplayRole);
+      if (index != -1) combo->setCurrentIndex(index);
+    }
   }
 }
 
-void PackagePinsView::SetPort(const QString &pin, const QString &port) {
-  QModelIndex index{match(pin)};
-  if (index.isValid()) {
+void PackagePinsView::SetInternalPin(const QString &port,
+                                     const QString &intPin) {
+  for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
+    if (it.key()->currentIndex() != 0 && it.key()->currentText() == port) {
+      auto index = it.value();
+      auto combo = qobject_cast<QComboBox *>(
+          itemWidget(itemFromIndex(index), InternalPinCol));
+      if (combo)
+        combo->setCurrentIndex(combo->findData(intPin, Qt::DisplayRole));
+      break;
+    }
+  }
+}
+
+void PackagePinsView::SetPort(const QString &pin, const QString &port,
+                              int row) {
+  if (pin.isEmpty()) return;
+  if (row == -1) return;
+
+  QModelIndexList indexes{match(pin)};
+  if (indexes.count() == 1 && row != 0) {  // make first row as child
+    CreateNewLine(itemFromIndex(indexes.first()));
+  }
+  indexes = match(pin);
+  if (row != 0) {
+    while ((indexes.count() - 1) <= row) {
+      CreateNewLine(itemFromIndex(indexes.first()));
+      indexes = match(pin);
+    }
+  }
+
+  if (!indexes.isEmpty()) {
+    auto index = indexes.at((row == 0) ? 0 : row + 1);
     auto combo = qobject_cast<BufferedComboBox *>(
         itemWidget(itemFromIndex(index), PortsCol));
     if (combo) combo->setCurrentIndex(combo->findData(port, Qt::DisplayRole));
@@ -134,19 +158,17 @@ void PackagePinsView::ioPortsSelectionHasChanged(const QModelIndex &index) {
     updateModeCombo(combo->currentText(), index);
   }
 
-  if (m_blockUpdate) return;
-
   if (combo) {
     auto port = combo->currentText();
     removeDuplications(port, combo);
 
     auto pin = item->text(NameCol);
-    m_model->update(port, pin);
-    m_model->portsModel()->itemChange(port, pin);
-
-    // unset previous selection
     auto prevPort = combo->previousText();
-    m_model->portsModel()->itemChange(prevPort, QString());
+    int index = item->parent() ? item->parent()->indexOfChild(item) : 0;
+    m_blockUpdate = true;
+    if (!prevPort.isEmpty()) m_model->update(prevPort, QString{}, index);
+    m_model->update(port, pin, index);
+    m_blockUpdate = false;
     emit selectionHasChanged();
   }
 }
@@ -158,6 +180,23 @@ void PackagePinsView::modeSelectionHasChanged(const QModelIndex &index) {
     if (combo) {
       m_model->packagePinModel()->updateMode(item->text(NameCol),
                                              combo->currentText());
+      updateInternalPinCombo(combo->currentText(), index);
+      emit selectionHasChanged();
+    }
+  }
+}
+
+void PackagePinsView::internalPinSelectionHasChanged(const QModelIndex &index) {
+  auto item = itemFromIndex(index);
+  if (item) {
+    auto combo = qobject_cast<QComboBox *>(itemWidget(item, InternalPinCol));
+    if (combo) {
+      auto portIndex = model()->index(index.row(), PortsCol, index.parent());
+      QComboBox *portCombo{qobject_cast<QComboBox *>(
+          itemWidget(itemFromIndex(portIndex), PortsCol))};
+      if (portCombo)
+        m_model->packagePinModel()->updateInternalPin(portCombo->currentText(),
+                                                      combo->currentText());
       emit selectionHasChanged();
     }
   }
@@ -179,34 +218,180 @@ void PackagePinsView::updateModeCombo(const QString &port,
       modeCombo->setEnabled(false);
     } else {
       modeCombo->setEnabled(true);
+      auto currentMode = m_model->packagePinModel()->getMode(
+          itemFromIndex(modeIndex)->text(NameCol));
       auto ioPort = m_model->portsModel()->GetPort(port);
       const bool output = ioPort.dir == "Output";
       QAbstractItemModel *modeModel =
           output ? m_model->packagePinModel()->modeModelTx()
                  : m_model->packagePinModel()->modeModelRx();
+      modeCombo->blockSignals(!currentMode.isEmpty());
       if (modeCombo->model() != modeModel) {
         modeCombo->setModel(modeModel);
       }
+      if (!currentMode.isEmpty()) {
+        modeCombo->setCurrentIndex(
+            modeCombo->findData(currentMode, Qt::DisplayRole));
+        updateInternalPinCombo(currentMode, modeIndex);
+      }
+      modeCombo->blockSignals(false);
     }
   }
 }
 
-void PackagePinsView::itemHasChanged(const QModelIndex &index,
-                                     const QString &pin) {
-  auto item = itemFromIndex(index);
-  if (item) {
-    auto combo = qobject_cast<QComboBox *>(itemWidget(item, PortsCol));
-    if (combo) {
-      m_blockUpdate = true;
-      const int index = combo->findData(pin, Qt::DisplayRole);
-      combo->setCurrentIndex(index != -1 ? index : 0);
-      m_blockUpdate = false;
+void PackagePinsView::updateInternalPinCombo(const QString &mode,
+                                             const QModelIndex &index) {
+  auto intPinIndex =
+      model()->index(index.row(), InternalPinCol, index.parent());
+  QComboBox *intPinCombo{qobject_cast<QComboBox *>(
+      itemWidget(itemFromIndex(intPinIndex), InternalPinCol))};
+  if (intPinCombo) {
+    if (mode.isEmpty()) {
+      intPinCombo->setCurrentIndex(0);
+      intPinCombo->setEnabled(false);
+    } else {
+      intPinCombo->setEnabled(true);
+      auto current = intPinCombo->currentText();
+      auto pin = itemFromIndex(index)->text(PinName);
+      auto model = new QStringListModel{};
+      QStringList list{{""}};
+      list.append(m_model->packagePinModel()->GetInternalPinsList(pin, mode));
+      model->setStringList(list);
+      intPinCombo->setModel(model);
+      if (list.contains(current))
+        intPinCombo->setCurrentIndex(
+            intPinCombo->findData(current, Qt::DisplayRole));
     }
   }
+}
+
+std::pair<QWidget *, QToolButton *> PackagePinsView::prepareButtonWithLabel(
+    const QString &text, const QIcon &icon) {
+  QWidget *w = new QWidget;
+  w->setLayout(new QHBoxLayout);
+  w->layout()->setContentsMargins(0, 0, 0, 0);
+  w->layout()->addWidget(new QLabel{text});
+  auto btn = new QToolButton{};
+  btn->setIcon(icon);
+  w->layout()->addWidget(btn);
+  w->setAutoFillBackground(true);
+  return std::make_pair(w, btn);
+}
+
+void PackagePinsView::initLine(QTreeWidgetItem *item) {
+  auto combo = new BufferedComboBox;
+  combo->setModel(m_model->portsModel()->listModel());
+  combo->setAutoFillBackground(true);
+  combo->setEditable(true);
+  auto completer{new QCompleter{m_model->portsModel()->listModel()}};
+  completer->setFilterMode(Qt::MatchContains);
+  combo->setCompleter(completer);
+  combo->setInsertPolicy(QComboBox::NoInsert);
+  connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          [=]() { ioPortsSelectionHasChanged(indexFromItem(item, PortsCol)); });
+  connect(combo, &QComboBox::destroyed, this,
+          [=]() { m_allCombo.remove(combo); });
+  setItemWidget(item, PortsCol, combo);
+  m_allCombo.insert(combo, indexFromItem(item));
+
+  auto modeCombo = new QComboBox;
+  modeCombo->setEnabled(false);
+  connect(modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          [=]() { modeSelectionHasChanged(indexFromItem(item, ModeCol)); });
+  setItemWidget(item, ModeCol, modeCombo);
+
+  auto internalPinCombo = new QComboBox;
+  internalPinCombo->setEnabled(false);
+  internalPinCombo->setMinimumWidth(170);
+  connect(internalPinCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, [=]() {
+            internalPinSelectionHasChanged(indexFromItem(item, ModeCol));
+          });
+  setItemWidget(item, InternalPinCol, internalPinCombo);
+}
+
+void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
+  auto fromCombo = qobject_cast<QComboBox *>(itemWidget(from, PortsCol));
+  int portIndex{0};
+  int modeIndex{0};
+  int intPin{0};
+
+  if (fromCombo) portIndex = fromCombo->currentIndex();
+  fromCombo = qobject_cast<QComboBox *>(itemWidget(from, ModeCol));
+  if (fromCombo) modeIndex = fromCombo->currentIndex();
+  fromCombo = qobject_cast<QComboBox *>(itemWidget(from, InternalPinCol));
+  if (fromCombo) intPin = fromCombo->currentIndex();
+
+  for (auto column : {PortsCol, ModeCol, InternalPinCol})
+    removeItemWidget(from, column);
+
+  auto toCombo = qobject_cast<QComboBox *>(itemWidget(to, PortsCol));
+  if (toCombo) toCombo->setCurrentIndex(portIndex);
+  toCombo = qobject_cast<QComboBox *>(itemWidget(to, ModeCol));
+  if (toCombo) toCombo->setCurrentIndex(modeIndex);
+  toCombo = qobject_cast<QComboBox *>(itemWidget(to, InternalPinCol));
+  if (toCombo) toCombo->setCurrentIndex(intPin);
+}
+
+void PackagePinsView::resetItem(QTreeWidgetItem *item) {
+  auto combo = qobject_cast<QComboBox *>(itemWidget(item, InternalPinCol));
+  if (combo) combo->setCurrentIndex(0);
+  combo = qobject_cast<QComboBox *>(itemWidget(item, ModeCol));
+  if (combo) combo->setCurrentIndex(0);
+  combo = qobject_cast<QComboBox *>(itemWidget(item, PortsCol));
+  if (combo) combo->setCurrentIndex(0);
+}
+
+void PackagePinsView::removeItem(QTreeWidgetItem *parent,
+                                 QTreeWidgetItem *child) {
+  if (parent->childCount() == 1) {
+    initLine(parent);
+    copyData(child, parent);
+  } else {
+    auto combo = qobject_cast<QComboBox *>(itemWidget(child, PortsCol));
+    if (combo && combo->currentIndex() != 0) {
+      m_model->remove(combo->currentText(), child->text(NameCol),
+                      parent->indexOfChild(child));
+    }
+  }
+  parent->removeChild(child);
 }
 
 void PackagePinsView::modeChanged(const QString &pin, const QString &mode) {
   SetMode(pin, mode);
+}
+
+void PackagePinsView::internalPinChanged(const QString &port,
+                                         const QString &intPin) {
+  SetInternalPin(port, intPin);
+}
+
+void PackagePinsView::portAssignmentChanged(const QString &port,
+                                            const QString &pin, int row) {
+  if (m_blockUpdate) return;
+  SetPort(pin, port, row);
+}
+
+QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
+  auto child = new QTreeWidgetItem;
+  child->setText(0, parent->text(0));
+  parent->addChild(child);
+
+  const auto &[widget, button] = prepareButtonWithLabel(
+      parent->text(NameCol), QIcon{":/images/minus.png"});
+  connect(button, &QToolButton::clicked, this,
+          [=]() { removeItem(parent, child); });
+  setItemWidget(child, NameCol, widget);
+
+  initLine(child);
+
+  if (parent->childCount() == 1) {  // remove last
+    copyData(parent, child);
+    expandItem(parent);
+  }
+
+  updateEditorGeometries();
+  return child;
 }
 
 }  // namespace FOEDAG

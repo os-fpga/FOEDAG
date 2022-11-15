@@ -67,9 +67,9 @@ class PinAssignmentCreator : public QObject {
   QString packagePinHeaderFile(ToolContext *context) const;
   PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
   PortsLoader *FindPortsLoader(const QString &targetDevice) const;
-  static void parseConstraints(const QStringList &commands,
-                               class PackagePinsView *packagePins,
-                               class PortsView *portsView);
+  void parseConstraints(const QStringList &commands,
+                        class PackagePinsView *packagePins,
+                        class PortsView *portsView);
 
  private:
   QWidget *m_portsView{nullptr};

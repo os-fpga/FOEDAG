@@ -29,6 +29,9 @@ namespace FOEDAG {
 enum PinData {
   PinName = 0,
   BallName = 1,
+  InternalPinName = 12,
+  ModeFirst = 13,
+  ModeLast = 42,
   RefClock = 43,
   Bank = 44,
   ALT = 45,
@@ -59,6 +62,8 @@ struct HeaderData {
   bool visible;
 };
 
+using InternalPins = QMap<QString, QMap<int, QStringList>>;
+
 class PackagePinsModel : public QObject {
   Q_OBJECT
  public:
@@ -66,35 +71,45 @@ class PackagePinsModel : public QObject {
   const QVector<HeaderData> &header() const;
   void appendHeaderData(const HeaderData &h);
   void updateMode(const QString &pin, const QString &mode);
+  QString getMode(const QString &pin) const;
+  void updateInternalPin(const QString &port, const QString &intPin);
+  void insertMode(int id, const QString &mode);
+  InternalPins &internalPinsRef();
+  QStringList GetInternalPinsList(const QString &pin,
+                                  const QString &mode) const;
 
   void append(const PackagePinGroup &g);
   const QVector<PackagePinGroup> &pinData() const;
   const QMap<QString, QString> &modeMap() const;
+  QString internalPin(const QString &port) const;
 
   QStringListModel *listModel() const;
   QStringListModel *modeModelTx() const;
   QStringListModel *modeModelRx() const;
   void initListModel();
 
-  void insert(const QString &name, const QModelIndex &index);
+  void insert(const QString &pin, const QModelIndex &index);
+  void remove(const QString &pin);
   void itemChange(const QString &name, const QString &pin);
 
   const QVector<QString> &userGroups() const;
   void appendUserGroup(const QString &userGroup);
 
  signals:
-  void itemHasChanged(const QModelIndex &index, const QString &pin);
   void modeHasChanged(const QString &pin, const QString &mode);
+  void internalPinHasChanged(const QString &pin, const QString &intPin);
 
  private:
   QVector<PackagePinGroup> m_pinData;
   QStringListModel *m_listModel{nullptr};
   QStringListModel *m_modeModelTx{nullptr};
   QStringListModel *m_modeModelRx{nullptr};
-  QMap<QString, QModelIndex> m_indexes;
   QVector<HeaderData> m_header;
   QVector<QString> m_userGroups;
   QMap<QString, QString> m_modeMap;
+  QMap<QString, QString> m_internalPinMap;
+  QMap<QString, int> m_modes;
+  InternalPins m_internalPinsData;  // <PinName, <ModeId, InternalPins>>
 };
 
 }  // namespace FOEDAG
