@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QWidget>
@@ -107,6 +108,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   // Add Output Box
   CreateOutputFields();
   containerLayout->addWidget(&outputBox);
+  containerLayout->addStretch();
   // Update the module name if one was passed (this occurs during a
   // re-configure)
   if (!moduleName.isEmpty()) {
@@ -115,7 +117,6 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Add Dialog Buttons
   AddDialogControls(topLayout);
-  topLayout->addStretch();
 
   // Update output path now that meta data has been loaded
   updateOutputPath();
@@ -143,32 +144,77 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
 
     // Build up a parameter string based off the current UI fields
     QString params = "";
-    for (QObject* obj : settingsObjs) {
-      // Add a space before each param except the first
-      if (!params.isEmpty()) {
-        params += " ";
-      }
 
-      // convert tclArg property from "name value" to "name=value"
-      params += obj->property("tclArg").toString().replace(" ", "=");
+    bool invalidVals = false;
+    for (QObject* obj : settingsObjs) {
+      // Collect parameters of fields that haven't been disabled by dipendencies
+      QWidget* widget = qobject_cast<QWidget*>(obj);
+      if (widget && widget->isEnabled()) {
+        // Typically widgetFactory widgets can have their value introspected
+        // with ->property("tclArg") however the widget factory stores those
+        // values on change and some fields like comboboxes don't register a
+        // change if the first value is set as the requested value since nothing
+        // changes in that scenario. As a result we'll manually build the arg
+        // string to ensure all values of interest are captured
+
+        // Convert value to string based off widget type
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(widget);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widget);
+        QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
+        QAbstractSpinBox* spinBox = qobject_cast<QAbstractSpinBox*>(widget);
+        QString val{};
+        // note: qobject_cast returns null on failed conversion so the above
+        // casts are basically a runtime type check
+        if (lineEdit) {
+          val = lineEdit->text();
+        } else if (checkBox) {
+          val = checkBox->isChecked() ? "1" : "0";
+        } else if (comboBox) {
+          val = comboBox->currentText();
+        } else if (spinBox) {
+          val = spinBox->text();
+        }
+
+        // convert spaces in value to WidgetFactory space tag so the arg list
+        // doesn't break
+        val.replace(" ", WF_SPACE);
+
+        // build arg string in the form of -P<paramName>=<value>
+        QString arg = QString(" -P%1=%2")
+                          .arg(obj->property("customId").toString())
+                          .arg(val);
+        params += arg;
+
+        // check if any values are invalid
+        invalidVals |= obj->property("invalid").toBool();
+      }
     }
 
-    std::filesystem::path baseDir(m_baseDirDefault.toStdString());
-    std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
-    QString outFileStr =
-        QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+    // Alert the user if one or more of the field validators is invalid
+    if (invalidVals) {
+      QMessageBox::warning(
+          this, tr("Invalid Parameter Value"),
+          tr("Current parameters are invalid. IP Generation will be skipped."),
+          QMessageBox::Ok);
+    } else {
+      // If all enabled fields are valid, configure and generate IP
+      std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+      std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
+      QString outFileStr =
+          QString::fromStdString(FileUtils::GetFullPath(outFile).string());
 
-    // Build up a cmd string to generate the IP
-    QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
-                  moduleEdit.text() + " -version " +
-                  QString::fromStdString(m_meta.version) + " " + params +
-                  " -out_file " + outFileStr;
-    cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
+      // Build up a cmd string to generate the IP
+      QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
+                    moduleEdit.text() + " -version " +
+                    QString::fromStdString(m_meta.version) + " " + params +
+                    " -out_file " + outFileStr;
+      cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
 
-    GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
+      GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
 
-    AddIpToProject(cmd);
-    emit ipInstancesUpdated();
+      AddIpToProject(cmd);
+      emit ipInstancesUpdated();
+    }
   });
 }
 
@@ -230,46 +276,71 @@ void IpConfigWidget::CreateParamFields() {
       updateMetaLabel(m_meta);
 
       // Build widget factory json for each parameter
-      for (auto param : def->Parameters()) {
-        json childJson;
-        // Add P to the arg as the configure_ip format is -P{ARG_NAME}
-        childJson["arg"] = "P" + param->Name();
+      const auto& parameters = def->Parameters();
+      for (auto paramVal : def->Parameters()) {
+        if (paramVal->GetType() == Value::Type::ParamIpVal) {
+          IPParameter* param = static_cast<IPParameter*>(paramVal);
+          json childJson;
+          // Add P to the arg for configure_ip format: -P{ARG_NAME}
+          childJson["arg"] = "P" + param->Name();
+          // use the param name as a customId for dependency checking
+          childJson["customId"] = param->Name();
+          childJson["label"] = param->GetTitle();
+          childJson["tooltip"] = param->GetDescription();
+          childJson["bool_dependencies"] = param->GetDependencies();
+          std::string defaultValue = param->GetSValue();
 
-        childJson["label"] =
-            QString::fromStdString(param->Name()).toStdString();
-        std::string defaultValue;
+          // Determine what type of widget we need for this parameter
+          if (param->GetParamType() == IPParameter::ParamType::Bool) {
+            // Use Checkboxes for Bools
+            childJson["widgetType"] = "checkbox";
+          } else if (param->GetOptions().size()) {
+            // Use Comboboxes if "options" field exists
+            childJson["widgetType"] = "combobox";
+            childJson["options"] = param->GetOptions();
+            childJson["addUnset"] = false;
+          } else if (param->GetRange().size() > 1) {
+            // Use QLineedit w/ a validator if "range" field exists
+            auto range = param->GetRange();
+            if (range.size() == 2) {
+              auto paramType = param->GetParamType();
+              childJson["widgetType"] = "input";
+              childJson["validatorMin"] = range[0];
+              childJson["validatorMax"] = range[1];
 
-        // Currently all fields are input/linedit
-        childJson["widgetType"] = "input";
+              // Add range info to parameter title
+              std::string rangeStr = " <span style=\"color:grey;\">[" +
+                                     range[0] + ", " + range[1] + "]</span>";
+              childJson["label"] = param->GetTitle() + rangeStr;
 
-        switch (param->GetType()) {
-          case Value::Type::ParamInt:
-            defaultValue = std::to_string(param->GetValue());
-            // set validator so this field only accepts integer values
-            childJson["validator"] = "int";
-            // Note: Do not set "default" as the value will be passed in
-            // tclArgList and passing default as well a tclArg will result in
-            // the value not registering as a diff when set and the tclArg
-            // property won't be set in widgetFactory
-            break;
-          case Value::Type::ParamString:
-            defaultValue = param->GetSValue();
-            break;
-          case Value::Type::ConstInt:
-            // set validator so this field only accepts integer values
-            childJson["validator"] = "int";
-            defaultValue = std::to_string(param->GetValue());
-            break;
-          default:
-            defaultValue = std::to_string(param->GetValue());
-            break;
+              if (paramType == IPParameter::ParamType::Int) {
+                childJson["validator"] = "int";
+              } else if (paramType == IPParameter::ParamType::Float) {
+                childJson["validator"] =
+                    "double";  // Qt only provides a double validator
+              } else {
+                // TODO @skyler-rs nov2022 add error msg when logging is avail
+                // Range option only supports float and int types
+              }
+            } else {
+              // TODO @skyler-rs nov2022 add error msg when logging is avail
+              // only 2 values expected, rest will be ignored
+            }
+          } else {
+            childJson["widgetType"] = "input";
+          }
+
+          parentJson[param->Name()] = childJson;
+
+          // replaces spaces in value so arg list doesn't break
+          QString valNoSpaces =
+              QString::fromStdString(defaultValue).replace(" ", WF_SPACE);
+
+          // Create a list of tcl defaults that will be passed to createWidget
+          tclArgList << QString("-P%1 %2")
+                            .arg(QString::fromStdString(param->Name()))
+                            .arg(valNoSpaces);
         }
-        parentJson[param->Name()] = childJson;
-
-        // Create a list of tcl defaults that will be passed to createWidget
-        tclArgList << QString("-P%1 %2")
-                          .arg(QString::fromStdString(param->Name()))
-                          .arg(QString::fromStdString(defaultValue));
       }
     }
   }
@@ -282,6 +353,21 @@ void IpConfigWidget::CreateParamFields() {
   // Create and add the child widget to our parent container
   auto form = createWidgetFormLayout(parentJson, tclArgList);
   paramsBox.setLayout(form);
+
+  // createWidgetFormLayout sequentially creates widgets from parentJson, which
+  // means that after first creation, a dependency might have been created and
+  // set before a dependent widget existed possibly leaving that dependent
+  // widget in an incorrect state (ex: a dependent widget might be enabled even
+  // tho the widget it depends on was false at initialization by created after)
+  // checkDepenencies manually updates the fields to capture the correct state
+  // after form creation
+  checkDependencies();
+
+  // After the fields are set to valid init states, we can then use
+  // handleCheckBoxChanged to update any runtime dependency changes
+  QObject::connect(WidgetFactoryDependencyNotifier::Instance(),
+                   &WidgetFactoryDependencyNotifier::checkboxChanged, this,
+                   &IpConfigWidget::handleCheckBoxChanged);
 }
 
 void IpConfigWidget::CreateOutputFields() {
@@ -365,4 +451,52 @@ void IpConfigWidget::updateOutputPath() {
 
   // Disable the generate button if the module name is empty
   generateBtn.setEnabled(!moduleEdit.text().isEmpty());
+}
+
+void IpConfigWidget::handleCheckBoxChanged(const QString& customId,
+                                           QCheckBox* checkbox) {
+  QList<QObject*> paramObjects =
+      FOEDAG::getTargetObjectsFromLayout(paramsBox.layout());
+  // Step through all fields
+  for (auto obj : paramObjects) {
+    // If this field depends on the checkbox that just toggled
+    if (obj->property("bool_dependency").toString() == customId) {
+      QWidget* widget = qobject_cast<QWidget*>(obj);
+      if (widget) {
+        // Update the dependent widget's enabled state
+        widget->setEnabled(checkbox->isChecked());
+      }
+    }
+  }
+}
+
+void IpConfigWidget::checkDependencies() {
+  QList<QObject*> paramObjects =
+      FOEDAG::getTargetObjectsFromLayout(paramsBox.layout());
+  // Step through all fields
+  for (auto updateWidget : paramObjects) {
+    // Check if this field depends on another field
+    auto targetId = updateWidget->property("bool_dependency").toString();
+    // don't bother searching if this field doesn't have a dependency
+    if (!targetId.isEmpty()) {
+      // Loop through the fields again to see if any of them are the target
+      // field
+      for (auto widget : paramObjects) {
+        auto customId = widget->property("customId").toString();
+        if (customId == targetId) {
+          // Update the enable state of the dependent field if we found the
+          // dependency match, currenlty we only support boolean dependencies so
+          // we assume the field we depend on is a QCheckBox
+          QWidget* dependentWidget = qobject_cast<QWidget*>(updateWidget);
+          QCheckBox* checkbox = qobject_cast<QCheckBox*>(widget);
+          if (dependentWidget && checkbox) {
+            dependentWidget->setEnabled(checkbox->isChecked());
+          }
+          // only depending on one widget currently so we can bail this loop on
+          // first successful result
+          break;
+        }
+      }
+    }
+  }
 }

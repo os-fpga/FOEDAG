@@ -123,14 +123,16 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           for (auto param : def->Parameters()) {
             std::string defaultValue;
             switch (param->GetType()) {
+              case Value::Type::ParamIpVal:
+                defaultValue = param->GetSValue();
               case Value::Type::ParamInt:
-                defaultValue = std::to_string(param->GetValue());
+                defaultValue = param->GetSValue();
                 break;
               case Value::Type::ParamString:
                 defaultValue = param->GetSValue();
                 break;
               case Value::Type::ConstInt:
-                defaultValue = std::to_string(param->GetValue());
+                defaultValue = param->GetSValue();
                 break;
             }
             ip_def += "{" + param->Name() + " " + defaultValue + "} ";
@@ -171,7 +173,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::string mod_name;
     std::string out_file;
     std::string version;
-    std::vector<Parameter> parameters;
+    std::vector<SParameter> parameters;
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       if (i == 1) {
@@ -196,7 +198,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           value = arg.substr(loc + 1);
         }
         if (!def.empty()) {
-          Parameter param(def, std::strtoul(value.c_str(), nullptr, 10));
+          SParameter param(def, value);
           parameters.push_back(param);
         }
       }
@@ -285,6 +287,11 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
             case Value::Type::ConstInt: {
               break;
             }
+            case Value::Type::ParamIpVal: {
+              IPParameter* param = (IPParameter*)val;
+              legalParams.insert(param->Name());
+              break;
+            }
           }
         }
         break;
@@ -298,7 +305,7 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
     }
   }
 
-  for (const Parameter& param : instance->Parameters()) {
+  for (const SParameter& param : instance->Parameters()) {
     if (legalParams.find(param.Name()) == legalParams.end()) {
       GetCompiler()->ErrorMessage("Unknown parameter: " + param.Name());
       status = false;
@@ -420,14 +427,17 @@ bool IPGenerator::Generate() {
         for (auto param : inst->Parameters()) {
           std::string value;
           switch (param.GetType()) {
+            case Value::Type::ParamIpVal:
+              value = param.GetSValue();
+              break;
             case Value::Type::ParamString:
               value = param.GetSValue();
               break;
             case Value::Type::ParamInt:
-              value = std::to_string(param.GetValue());
+              value = param.GetSValue();
               break;
             case Value::Type::ConstInt:
-              value = std::to_string(param.GetValue());
+              value = param.GetSValue();
           }
           jsonF << "   \"" << param.Name() << "\": " << value << ","
                 << std::endl;
