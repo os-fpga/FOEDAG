@@ -2592,7 +2592,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   std::filesystem::path yosys_executable_path = m_yosysExecutablePath;
 #if(AURORA_USE_TABBYCAD == 1)
   if(use_tabbycad_for_synthesis) {
-    yosys_executable_path = GetSession()->Context()->BinaryPath().parent_path() /
+    yosys_executable_path = GetSession()->Context()->BinaryPath() /
                             ".." /
                             "tabby" /
                             "bin" /
