@@ -29,7 +29,7 @@ namespace FOEDAG {
 
 class ITaskReport;
 
-/* Manager for task reports. It has to be implemented per comlilation
+/* Manager for task reports. It has to be implemented per compilation
  * task, as reports are task-specific. It knows how many reports are
  * available per task and can create reports.
  */
