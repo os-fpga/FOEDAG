@@ -132,7 +132,7 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP> "
          << std::endl;
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
@@ -502,7 +502,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-          "default))>");
+          "default), -C, -CPP)>");
       return TCL_ERROR;
     }
     for (int i = 1; i < argc; i++) {
