@@ -235,12 +235,15 @@ void MainWindow::openExampleProject() {
       }
     }
 
-    // QT doesn't have a convenience function for recursively copying a folder
-    // so we'll use std::filesystem instead
-    std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
-    std::filesystem::path destPath = std::filesystem::path(dest.toStdString());
-    std::filesystem::copy(srcPath, destPath,
-                          std::filesystem::copy_options::recursive);
+    if (src != dest) {
+      // QT doesn't have a convenience function for recursively copying a folder
+      // so we'll use std::filesystem instead
+      std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
+      std::filesystem::path destPath =
+          std::filesystem::path(dest.toStdString());
+      std::filesystem::copy(srcPath, destPath,
+                            std::filesystem::copy_options::recursive);
+    }
 
     // open the newly copied example project
     openProject(dest + QDir::separator() + file, false, false);

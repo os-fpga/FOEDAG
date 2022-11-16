@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ITaskReportManager.h"
 
+class QString;
+class QTextStream;
+
 namespace FOEDAG {
 
 /* Synthesis-specific report manager. It triggers 'synthesis.rpt' log file
@@ -38,11 +41,17 @@ namespace FOEDAG {
    Maximum level
  */
 class SynthesisReportManager final : public ITaskReportManager {
- public:
-  virtual std::vector<std::string> getAvailableReportIds() const override;
-  virtual std::unique_ptr<ITaskReport> createReport(
+  using LinesData = std::vector<std::vector<std::string>>;
+
+  std::vector<std::string> getAvailableReportIds() const override;
+  std::unique_ptr<ITaskReport> createReport(
       const std::string &reportId) override;
-  virtual std::map<size_t, std::string> getMessages() override;
+  std::map<size_t, std::string> getMessages() override;
+
+  // Retrieves maximum and average levels out of given line
+  LinesData getLevels(const QString &line) const;
+  // Parses input stream and gets all statistics with their values
+  LinesData getStatistics(QTextStream &in) const;
 };
 
 }  // namespace FOEDAG

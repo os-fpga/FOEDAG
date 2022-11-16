@@ -40,7 +40,7 @@ class TableReport : public ITaskReport {
 
   LineValues m_columnNames;
   std::vector<LineValues> m_linesData;
-  const std::string &m_name;
+  std::string m_name;
 };
 
 }  // namespace FOEDAG

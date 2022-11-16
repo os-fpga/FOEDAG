@@ -117,7 +117,12 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
     return;
   }
 
-  Editor *tabItem = (Editor *)m_tab_editor->widget(index);
+  Editor *tabItem = qobject_cast<Editor *>(m_tab_editor->widget(index));
+  if (!tabItem) {
+    m_tab_editor->removeTab(index);
+    return;
+  }
+
   QString strName = m_tab_editor->tabText(index);
   if (tabItem->isModified()) {
     int ret = QMessageBox::question(

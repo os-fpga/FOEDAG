@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <qnamespace.h>
+
 #include <memory>
 #include <unordered_map>
 

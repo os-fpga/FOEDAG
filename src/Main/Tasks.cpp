@@ -44,25 +44,32 @@ namespace {
 void openReportView(const ITaskReport& report) {
   auto reportsView = new QTableWidget();
 
-  for (auto i = 0; i < report.getColumns().size(); ++i)
-    reportsView->insertColumn(i);
-
-  auto rowIndex = 0;
+  // Fill columns
+  auto columns = report.getColumns();
+  reportsView->setColumnCount(columns.size());
   auto colIndex = 0;
+  for (auto& col : columns) {
+    auto columnItem = new QTableWidgetItem(QString::fromStdString(col));
+    reportsView->setHorizontalHeaderItem(colIndex, columnItem);
+    ++colIndex;
+  }
+
+  // Fill table
+  auto rowIndex = 0;
   for (auto& lineData : report.getData()) {
+    reportsView->insertRow(rowIndex);
+    auto colIndex = 0;
     for (auto& lineValue : lineData) {
       auto item = new QTableWidgetItem(QString::fromStdString(lineValue));
-      item->setTextAlignment(Qt::AlignCenter);
+      item->setTextAlignment(Qt::AlignLeft);
       reportsView->setItem(rowIndex, colIndex, item);
       ++colIndex;
     }
     ++rowIndex;
   }
 
-  reportsView->verticalHeader()->setVisible(false);
-  reportsView->horizontalHeader()->setVisible(false);
+  // Initialize the view itself
   reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  reportsView->setShowGrid(false);
   reportsView->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
 
