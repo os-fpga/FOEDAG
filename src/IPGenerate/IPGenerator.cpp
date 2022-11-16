@@ -125,6 +125,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             switch (param->GetType()) {
               case Value::Type::ParamIpVal:
                 defaultValue = param->GetSValue();
+                break;
               case Value::Type::ParamInt:
                 defaultValue = param->GetSValue();
                 break;
