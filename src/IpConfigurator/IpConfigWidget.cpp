@@ -276,7 +276,6 @@ void IpConfigWidget::CreateParamFields() {
       updateMetaLabel(m_meta);
 
       // Build widget factory json for each parameter
-      const auto& parameters = def->Parameters();
       for (auto paramVal : def->Parameters()) {
         if (paramVal->GetType() == Value::Type::ParamIpVal) {
           IPParameter* param = static_cast<IPParameter*>(paramVal);
