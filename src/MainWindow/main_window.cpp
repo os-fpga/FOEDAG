@@ -854,6 +854,10 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(m_taskManager, &TaskManager::started, this,
           [this]() { m_progressWidget->show(); });
+  connect(m_taskManager, &TaskManager::taskReportCreated, this,
+          [this](auto taskName) {
+            statusBar()->showMessage(tr("%1 generated").arg(taskName));
+          });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);

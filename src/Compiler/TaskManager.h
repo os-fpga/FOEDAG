@@ -107,6 +107,8 @@ class TaskManager : public QObject {
    */
   void progress(int progress, int max, const QString &msg = {});
 
+  void taskReportCreated(QString reportName);
+
  private slots:
   void runNext();
 

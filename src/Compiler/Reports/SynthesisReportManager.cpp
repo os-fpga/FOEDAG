@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 
 namespace {
+static constexpr const char *REPORT_NAME{"Synthesis report"};
 static constexpr const char *STAT_STR{"Printing statistics"};
 static constexpr const char *DE_STR{"DE:"};
 static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
@@ -39,7 +40,7 @@ static constexpr const char *AVG_LVL_STR{"Average logic level"};
 namespace FOEDAG {
 
 std::vector<std::string> SynthesisReportManager::getAvailableReportIds() const {
-  return {"Synthesis report"};
+  return {std::string(REPORT_NAME)};
 }
 
 SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
@@ -125,6 +126,8 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
   auto result = LinesData{};
   std::merge(levels.begin(), levels.end(), stats.begin(), stats.end(),
              std::back_inserter(result));
+
+  emit reportCreated(QString(REPORT_NAME));
 
   auto columnNames = std::vector<std::string>{"Statistics", "Value"};
   return std::make_unique<TableReport>(std::move(columnNames),

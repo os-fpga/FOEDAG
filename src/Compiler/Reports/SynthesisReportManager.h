@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QObject>
+
 #include "ITaskReportManager.h"
 
 class QString;
@@ -40,7 +42,9 @@ namespace FOEDAG {
    Average level
    Maximum level
  */
-class SynthesisReportManager final : public ITaskReportManager {
+class SynthesisReportManager final : public QObject, public ITaskReportManager {
+  Q_OBJECT
+
   using LinesData = std::vector<std::vector<std::string>>;
 
   std::vector<std::string> getAvailableReportIds() const override;
@@ -52,6 +56,9 @@ class SynthesisReportManager final : public ITaskReportManager {
   LinesData getLevels(const QString &line) const;
   // Parses input stream and gets all statistics with their values
   LinesData getStatistics(QTextStream &in) const;
+
+ signals:
+  void reportCreated(QString reportName);
 };
 
 }  // namespace FOEDAG

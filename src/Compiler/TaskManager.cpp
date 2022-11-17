@@ -131,8 +131,11 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[SIMULATE_PNR]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 
+  auto synthesisReportManager = std::make_shared<SynthesisReportManager>();
+  connect(synthesisReportManager.get(), &SynthesisReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
-      SYNTHESIS, std::make_shared<SynthesisReportManager>());
+      SYNTHESIS, std::move(synthesisReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
