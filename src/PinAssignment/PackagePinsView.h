@@ -52,12 +52,16 @@ class PackagePinsView : public PinAssignmentBaseView {
   void copyData(QTreeWidgetItem *from, QTreeWidgetItem *to);
   void resetItem(QTreeWidgetItem *item);
   void removeItem(QTreeWidgetItem *parent, QTreeWidgetItem *child);
+  QString GetPort(const QModelIndex &index) const;
 
  private slots:
   void modeChanged(const QString &pin, const QString &mode);
   void internalPinChanged(const QString &port, const QString &intPin);
   void portAssignmentChanged(const QString &port, const QString &pin, int row);
   QTreeWidgetItem *CreateNewLine(QTreeWidgetItem *parent);
+
+ private:
+  const int MAX_ROWS{};
 };
 
 }  // namespace FOEDAG
