@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHeaderView>
@@ -772,7 +773,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     // QString objName = getStr(widgetJsonObj, "id");
 
     // Get widget type and create respective widget if it's supported
-    if (type == "input" || type == "lineedit") {
+    if (type == "input" || type == "lineedit" || type == "filepath") {
       // QLineEdit - "input" or "lineedit"
       QString sysDefaultVal =
           QString::fromStdString(getDefault<std::string>(widgetJsonObj));
@@ -854,7 +855,57 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
         DBG_PRINT_VAL_SET(ptr, userVal);
       }
 
-      targetObject = createdWidget;
+      if (type == "filepath") {
+        // Create a container widget so we can add a file browse btn
+        QWidget* container = new QWidget();
+        container->setObjectName(objName + "_container");
+        // Create H layout with our original lineedit
+        QHBoxLayout* layout = new QHBoxLayout();
+        layout->setContentsMargins(0, 0, 0, 0);
+        container->setLayout(layout);
+        layout->addWidget(createdWidget);
+
+        // Add a file browse button
+        QToolButton* btn = new QToolButton();
+        btn->setText("...");
+        layout->addWidget(btn);
+
+        // Launch a file dialog on click
+        QObject::connect(btn, &QToolButton::pressed, [container, ptr]() {
+          QFileDialog* dlg =
+              new QFileDialog(container, "Select Path", ptr->text());
+          dlg->setFileMode(QFileDialog::AnyFile);
+
+          // We don't know if this field expects a file or directory and QT
+          // doesn't provide an option for both so this will switch the dialog
+          // type on the fly when a folder or file is selected
+          QObject::connect(dlg, &QFileDialog::currentChanged,
+                           [dlg](const QString& str) {
+                             QFileInfo info(str);
+                             if (info.isFile()) {
+                               dlg->setFileMode(QFileDialog::ExistingFile);
+                             } else if (info.isDir()) {
+                               dlg->setFileMode(QFileDialog::Directory);
+                             }
+                           });
+
+          // Update lineedit
+          if (dlg->exec()) {
+            QStringList fileNames = dlg->selectedFiles();
+            if (fileNames.count()) {
+              ptr->setText(fileNames[0]);
+            }
+          }
+        });
+
+        // filepath is a non-standard case, copy another type if looking for
+        // an example to use
+        targetObject = createdWidget;
+        createdWidget = container;
+      } else {
+        targetObject = createdWidget;
+      }
+
     } else if (type == "dropdown" || type == "combobox") {
       // QComboBox - "dropdown" or "combobox"
       QString sysDefaultVal =
@@ -1175,8 +1226,6 @@ QWidget* FOEDAG::createContainerWidget(QWidget* widget,
   // Add widget to a container and add a QLabel if label text was passed
   if (widget) {
     retVal->setObjectName(widget->objectName() + "_container");
-    // SMA this label might need a size policy to keep it from splitting the
-    // layout size
     if (!label.isEmpty()) {
       HLayout->addWidget(new QLabel(label));
     }

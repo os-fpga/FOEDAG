@@ -293,6 +293,9 @@ void IpConfigWidget::CreateParamFields() {
           if (param->GetParamType() == IPParameter::ParamType::Bool) {
             // Use Checkboxes for Bools
             childJson["widgetType"] = "checkbox";
+          } else if (param->GetParamType() ==
+                     IPParameter::ParamType::FilePath) {
+            childJson["widgetType"] = "filepath";
           } else if (param->GetOptions().size()) {
             // Use Comboboxes if "options" field exists
             childJson["widgetType"] = "combobox";
