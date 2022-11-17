@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QComboBox>
 
+#include "PinsBaseModel.h"
+
 namespace FOEDAG {
 
 PinAssignmentBaseView::PinAssignmentBaseView(PinsBaseModel *model,
@@ -55,6 +57,22 @@ QModelIndexList PinAssignmentBaseView::indexFromText(
   auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, text, -1,
                                   Qt::MatchExactly | Qt::MatchRecursive);
   return indexList;
+}
+
+void PinAssignmentBaseView::updateInternalPinSelection(const QString &pin,
+                                                       QComboBox *combo) {
+  auto current = combo->currentText();
+
+  auto mode = m_model->packagePinModel()->getMode(pin);
+  auto model = new QStringListModel{combo};
+  QStringList list{{""}};
+  list.append(
+      m_model->packagePinModel()->GetInternalPinsList(pin, mode, current));
+  model->setStringList(list);
+  combo->blockSignals(true);
+  combo->setModel(model);
+  combo->setCurrentIndex(combo->findData(current, Qt::DisplayRole));
+  combo->blockSignals(false);
 }
 
 }  // namespace FOEDAG

@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PackagePinsModel.h"
 
+#include "PinsBaseModel.h"
+
 namespace FOEDAG {
 
 PackagePinsModel::PackagePinsModel(QObject *parent)
@@ -65,10 +67,28 @@ void PackagePinsModel::insertMode(int id, const QString &mode) {
 
 InternalPins &PackagePinsModel::internalPinsRef() { return m_internalPinsData; }
 
-QStringList PackagePinsModel::GetInternalPinsList(const QString &pin,
-                                                  const QString &mode) const {
+QStringList PackagePinsModel::GetInternalPinsList(
+    const QString &pin, const QString &mode, const QString &current) const {
   int modeId = m_modes.value(mode);
-  return m_internalPinsData.value(pin).value(modeId);
+  auto v = m_internalPinsData.value(pin).value(modeId);
+  if (m_baseModel) {
+    const auto ports = m_baseModel->getPort(pin);
+    for (const auto &p : ports) {
+      if (m_internalPinMap.value(p) != current)
+        v.removeAll(m_internalPinMap.value(p));
+    }
+  }
+  return v;
+}
+
+int PackagePinsModel::internalPinMax() const {
+  int max{0};
+  for (const auto &modes : m_internalPinsData) {
+    for (const auto &intPins : modes) {
+      max = std::max(max, intPins.count());
+    }
+  }
+  return max;
 }
 
 void PackagePinsModel::append(const PackagePinGroup &g) { m_pinData.append(g); }
@@ -113,5 +133,7 @@ const QVector<QString> &PackagePinsModel::userGroups() const {
 void PackagePinsModel::appendUserGroup(const QString &userGroup) {
   m_userGroups.append(userGroup);
 }
+
+void PackagePinsModel::setBaseModel(PinsBaseModel *m) { m_baseModel = m; }
 
 }  // namespace FOEDAG

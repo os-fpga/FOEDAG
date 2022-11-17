@@ -96,9 +96,16 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   if (item) {
     auto combo =
         qobject_cast<BufferedComboBox *>(itemWidget(item, PackagePinCol));
+    auto internalPinCombo =
+        qobject_cast<QComboBox *>(itemWidget(item, InternalPinsCol));
     if (combo) {
       auto pin = combo->currentText();
       auto prevPin = combo->previousText();
+
+      if (!pin.isEmpty())
+        m_intPins[combo->currentText()].insert(internalPinCombo);
+      if (!prevPin.isEmpty()) m_intPins[prevPin].remove(internalPinCombo);
+
       auto port = item->text(PortName);
       int index = m_model->getIndex(pin);
       m_blockUpdate = true;
@@ -167,6 +174,11 @@ void PortsView::internalPinSelectionHasChanged(const QModelIndex &index) {
     if (comboIntPin) {
       m_model->packagePinModel()->updateInternalPin(item->text(PortName),
                                                     comboIntPin->currentText());
+      const auto combos{m_intPins[getPinSelection(index)]};
+      for (auto c : combos) {
+        if (comboIntPin != c)
+          updateInternalPinSelection(getPinSelection(index), c);
+      }
       emit selectionHasChanged();
     }
   }
