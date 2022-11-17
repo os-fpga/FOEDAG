@@ -53,13 +53,7 @@ QModelIndexList PinAssignmentBaseView::match(const QString &text) const {
 QModelIndexList PinAssignmentBaseView::indexFromText(
     QTreeWidgetItem *i, const QString &text) const {
   auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, text, -1,
-                                  Qt::MatchExactly);
-
-  int children = i->childCount();
-  for (int u = 0; u < children; u++) {
-    auto c = i->child(u);
-    indexList += indexFromText(c, text);
-  }
+                                  Qt::MatchExactly | Qt::MatchRecursive);
   return indexList;
 }
 
