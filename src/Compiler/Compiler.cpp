@@ -187,7 +187,14 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
   (*out) << "   bitstream ?clean?" << std::endl;
-  (*out) << "   tcl_exit" << std::endl;
+  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
+            "testbench"
+         << std::endl;
+  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
+            "post-synthesis simulation, pnr: post-pnr simulation"
+         << std::endl;
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+         << std::endl;
   (*out) << "-------------------------" << std::endl;
 }
 
@@ -366,6 +373,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  } else {
+    m_simulator->RegisterCommands(m_interp);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
@@ -816,27 +825,41 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "rtl") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::RTL, sim_tool);
-        } else if (arg == "gate") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Gate, sim_tool);
-        } else if (arg == "pnr") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::PNR, sim_tool);
-        } else if (arg == "bitstream") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Bitstream, sim_tool);
-        } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-          return TCL_ERROR;
+      if ((argc != 2) && (argc != 3)) {
+        compiler->ErrorMessage(
+            "Wrong number of arguments: simulate <type> ?<simulator>?: ");
+        return TCL_ERROR;
+      }
+      std::string simul = argv[1];
+      if (argc == 3) {
+        std::string simulator = argv[2];
+        if (simulator == "verilator") {
+          sim_tool = Simulator::SimulatorType::Verilator;
+        } else if (simulator == "icarus") {
+          sim_tool = Simulator::SimulatorType::Icarus;
+        } else if (simulator == "vcs") {
+          sim_tool = Simulator::SimulatorType::VCS;
+        } else if (simulator == "questa") {
+          sim_tool = Simulator::SimulatorType::Questa;
+        } else if (simulator == "xcelium") {
+          sim_tool = Simulator::SimulatorType::Xcelium;
         }
-        if (status == false) {
-          return TCL_ERROR;
-        }
+      }
+      if (simul == "rtl") {
+        status = compiler->GetSimulator()->Simulate(
+            Simulator::SimulationType::RTL, sim_tool);
+      } else if (simul == "gate") {
+        status = compiler->GetSimulator()->Simulate(
+            Simulator::SimulationType::Gate, sim_tool);
+      } else if (simul == "pnr") {
+        status = compiler->GetSimulator()->Simulate(
+            Simulator::SimulationType::PNR, sim_tool);
+      } else if (simul == "bitstream") {
+        status = compiler->GetSimulator()->Simulate(
+            Simulator::SimulationType::Bitstream, sim_tool);
+      } else {
+        compiler->ErrorMessage("Unknown simulation type: " + simul);
+        return TCL_ERROR;
       }
       return (status) ? TCL_OK : TCL_ERROR;
     };
@@ -1086,36 +1109,57 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "rtl") {
-          WorkerThread* wthread = new WorkerThread(
-              "simulate_rtl_th", Action::SimulateRTL, compiler);
-          status = wthread->start();
-          if (!status) return TCL_ERROR;
-        } else if (arg == "gate") {
-          WorkerThread* wthread = new WorkerThread(
-              "simulate_rtl_th", Action::SimulateGate, compiler);
-          status = wthread->start();
-          if (!status) return TCL_ERROR;
-        } else if (arg == "pnr") {
-          WorkerThread* wthread = new WorkerThread(
-              "simulate_rtl_th", Action::SimulatePNR, compiler);
-          status = wthread->start();
-          if (!status) return TCL_ERROR;
-        } else if (arg == "bitstream") {
-          WorkerThread* wthread = new WorkerThread(
-              "simulate_rtl_th", Action::SimulateBitstream, compiler);
-          status = wthread->start();
-          if (!status) return TCL_ERROR;
-        } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-          return TCL_ERROR;
-        }
-        if (status == false) {
-          return TCL_ERROR;
-        }
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      if ((argc != 2) && (argc != 3)) {
+        compiler->ErrorMessage(
+            "Wrong number of arguments: simulate <type> ?<simulator>?: ");
+        return TCL_ERROR;
       }
+      std::string simul = argv[1];
+      if (argc == 3) {
+        std::string simulator = argv[2];
+        if (simulator == "verilator") {
+          sim_tool = Simulator::SimulatorType::Verilator;
+        } else if (simulator == "icarus") {
+          sim_tool = Simulator::SimulatorType::Icarus;
+        } else if (simulator == "vcs") {
+          sim_tool = Simulator::SimulatorType::VCS;
+        } else if (simulator == "questa") {
+          sim_tool = Simulator::SimulatorType::Questa;
+        } else if (simulator == "xcelium") {
+          sim_tool = Simulator::SimulatorType::Xcelium;
+        }
+        compiler->GetSimulator()->SetSimulatorType(sim_tool);
+      }
+      std::string arg = argv[1];
+      if (arg == "rtl") {
+        WorkerThread* wthread =
+            new WorkerThread("simulate_rtl_th", Action::SimulateRTL, compiler);
+        status = wthread->start();
+        if (!status) return TCL_ERROR;
+      } else if (arg == "gate") {
+        WorkerThread* wthread =
+            new WorkerThread("simulate_rtl_th", Action::SimulateGate, compiler);
+        status = wthread->start();
+        if (!status) return TCL_ERROR;
+      } else if (arg == "pnr") {
+        WorkerThread* wthread =
+            new WorkerThread("simulate_rtl_th", Action::SimulatePNR, compiler);
+        status = wthread->start();
+        if (!status) return TCL_ERROR;
+      } else if (arg == "bitstream") {
+        WorkerThread* wthread = new WorkerThread(
+            "simulate_rtl_th", Action::SimulateBitstream, compiler);
+        status = wthread->start();
+        if (!status) return TCL_ERROR;
+      } else {
+        compiler->ErrorMessage("Unknown option: " + arg);
+        return TCL_ERROR;
+      }
+      if (status == false) {
+        return TCL_ERROR;
+      }
+
       return (status) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("simulate", simulate, this, 0);
