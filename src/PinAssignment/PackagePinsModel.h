@@ -63,7 +63,7 @@ struct HeaderData {
 };
 
 using InternalPins = QMap<QString, QMap<int, QStringList>>;
-
+class PinsBaseModel;
 class PackagePinsModel : public QObject {
   Q_OBJECT
  public:
@@ -75,8 +75,9 @@ class PackagePinsModel : public QObject {
   void updateInternalPin(const QString &port, const QString &intPin);
   void insertMode(int id, const QString &mode);
   InternalPins &internalPinsRef();
-  QStringList GetInternalPinsList(const QString &pin,
-                                  const QString &mode) const;
+  QStringList GetInternalPinsList(const QString &pin, const QString &mode,
+                                  const QString &current = QString{}) const;
+  int internalPinMax() const;
 
   void append(const PackagePinGroup &g);
   const QVector<PackagePinGroup> &pinData() const;
@@ -95,6 +96,8 @@ class PackagePinsModel : public QObject {
   const QVector<QString> &userGroups() const;
   void appendUserGroup(const QString &userGroup);
 
+  void setBaseModel(PinsBaseModel *m);
+
  signals:
   void modeHasChanged(const QString &pin, const QString &mode);
   void internalPinHasChanged(const QString &pin, const QString &intPin);
@@ -110,6 +113,7 @@ class PackagePinsModel : public QObject {
   QMap<QString, QString> m_internalPinMap;
   QMap<QString, int> m_modes;
   InternalPins m_internalPinsData;  // <PinName, <ModeId, InternalPins>>
+  PinsBaseModel *m_baseModel;
 };
 
 }  // namespace FOEDAG
