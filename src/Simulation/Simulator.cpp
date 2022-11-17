@@ -62,8 +62,19 @@ void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
   m_gateSimulationModels.push_back(path);
 }
 
-bool Simulator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+bool Simulator::RegisterCommands(TclInterpreter* interp) {
   bool ok = true;
+  auto set_top_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    Simulator* simulator = (Simulator*)clientData;
+    if (argc == 2) {
+      simulator->SetSimulationTop(argv[1]);
+      return TCL_OK;
+    }
+    return TCL_ERROR;
+  };
+  interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
+
   return ok;
 }
 
@@ -202,7 +213,8 @@ std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
 std::string Simulator::SimulatorOptions(SimulatorType type) {
   switch (type) {
     case SimulatorType::Verilator:
-      return "-cc -Wall";
+      return "-cc --assert --trace -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL "
+             "-Wno-TIMESCALEMOD";
     case SimulatorType::Icarus:
       return "";
     case SimulatorType::Questa:
@@ -227,6 +239,22 @@ std::string Simulator::MacroDirective(SimulatorType type) {
       return "-D";
     case SimulatorType::Xcelium:
       return "-D";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::TopModuleCmd(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "--top-module ";
+    case SimulatorType::Icarus:
+      return "Invalid";
+    case SimulatorType::Questa:
+      return "Invalid";
+    case SimulatorType::VCS:
+      return "Invalid";
+    case SimulatorType::Xcelium:
+      return "Invalid";
   }
   return "Invalid";
 }
@@ -285,7 +313,9 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
 
 std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
-
+  if (!m_simulationTop.empty()) {
+    fileList += TopModuleCmd(type) + m_simulationTop + " ";
+  }
   for (auto path : ProjManager()->includePathList()) {
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
@@ -454,6 +484,28 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   Message("##################################################");
   Message("Post-PnR simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
+
+  std::string fileList = SimulationFileList(type);
+
+  std::string netlistFile =
+      ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
+
+  fileList += " " + netlistFile;
+  for (auto path : m_gateSimulationModels) {
+    fileList += " -v " + path.string();
+  }
+
+  bool status = SimulationJob(type, fileList);
+
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation failed!\n");
+    return false;
+  }
+
+  Message("Gate simulation for design: " + ProjManager()->projectName() +
+          " had ended");
+
   return true;
 }
 bool Simulator::SimulateBitstream(SimulatorType type) {
