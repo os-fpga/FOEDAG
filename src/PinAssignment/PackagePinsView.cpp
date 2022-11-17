@@ -134,9 +134,11 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
   }
   indexes = match(pin);
   if (row != 0) {
-    while ((indexes.count() - 1) <= row) {
-      CreateNewLine(itemFromIndex(indexes.first()));
-      indexes = match(pin);
+    if (!indexes.isEmpty()) {
+      while ((indexes.count() - 1) <= row) {
+        CreateNewLine(itemFromIndex(indexes.first()));
+        indexes = match(pin);
+      }
     }
   }
 
