@@ -35,6 +35,7 @@ class ITaskReport;
  */
 class ITaskReportManager {
  public:
+  virtual ~ITaskReportManager() = default;
   // Returns all available reports per compilation task
   virtual std::vector<std::string> getAvailableReportIds() const = 0;
   // Creates the report. This call will most likely result in log file parsing

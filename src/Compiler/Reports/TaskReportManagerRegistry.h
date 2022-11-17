@@ -31,16 +31,16 @@ namespace FOEDAG {
 
 class TaskReportManagerRegistry final {
  public:
-  using ReportManager = std::unique_ptr<ITaskReportManager>;
+  using ReportManagerPtr = std::shared_ptr<ITaskReportManager>;
 
   // Register given manager under the task type. Retuns false if manager has
   // been registered before
-  bool registerReportManager(uint type, ReportManager manager);
+  bool registerReportManager(uint type, ReportManagerPtr manager);
   // Returns report manager the task type.
-  ITaskReportManager* getReportManager(uint type) const;
+  ReportManagerPtr getReportManager(uint type) const;
 
  private:
-  std::unordered_map<uint, ReportManager> m_managers;
+  std::unordered_map<uint, ReportManagerPtr> m_managers;
 };
 
 }  // namespace FOEDAG

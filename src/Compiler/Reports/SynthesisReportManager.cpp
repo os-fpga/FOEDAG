@@ -85,6 +85,9 @@ SynthesisReportManager::LinesData SynthesisReportManager::getLevels(
   auto res = LinesData{};
 
   auto lineData = line.split(" ");
+  // #TODO: Replace it with RegExp. We expect 21 strings to be in DE: line.
+  // Otherwise under 10 and 14 we may get totally different numbers.
+  if (lineData.size() != 21) return res;
   res.push_back({MAX_LVL_STR, lineData[10].toStdString()});
   res.push_back({AVG_LVL_STR, lineData[14].toStdString()});
 
@@ -111,12 +114,11 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
   QString line;
   while (in.readLineInto(&line)) {
     auto dataLine = line.simplified();
-    if (dataLine.contains(QString(STAT_STR))) {
+    if (dataLine.isEmpty()) continue;
+    if (dataLine.contains(QString(STAT_STR)))
       stats = getStatistics(in);
-    }
-    if (dataLine.startsWith(QString(DE_STR))) {
+    else if (dataLine.startsWith(QString(DE_STR)))
       levels = getLevels(dataLine);
-    }
   }
   logFile.close();
 

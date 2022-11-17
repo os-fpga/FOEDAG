@@ -29,7 +29,11 @@ class TableReport : public ITaskReport {
  public:
   TableReport(LineValues &&columnNames, std::vector<LineValues> &&linesData,
               const std::string &name);
-  virtual ~TableReport() = default;
+
+  TableReport(const TableReport &) = default;
+  TableReport &operator=(const TableReport &) = default;
+  TableReport(TableReport &&) = default;
+  TableReport &operator=(TableReport &&) = default;
 
  private:
   const LineValues &getColumns() const override;

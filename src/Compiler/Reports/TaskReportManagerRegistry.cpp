@@ -23,15 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-bool TaskReportManagerRegistry::registerReportManager(uint type,
-                                                      ReportManager manager) {
+bool TaskReportManagerRegistry::registerReportManager(
+    uint type, ReportManagerPtr manager) {
   return m_managers.emplace(type, std::move(manager)).second;
 }
 
-ITaskReportManager *TaskReportManagerRegistry::getReportManager(
-    uint type) const {
+TaskReportManagerRegistry::ReportManagerPtr
+TaskReportManagerRegistry::getReportManager(uint type) const {
   auto findIt = m_managers.find(type);
-  if (findIt != m_managers.cend()) return findIt->second.get();
+  if (findIt != m_managers.cend()) return findIt->second;
 
   return nullptr;
 }

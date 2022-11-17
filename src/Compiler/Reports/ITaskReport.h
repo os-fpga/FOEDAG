@@ -32,6 +32,8 @@ namespace FOEDAG {
  */
 class ITaskReport {
  public:
+  virtual ~ITaskReport() = default;
+
   using LineValues = std::vector<std::string>;
   // Returns report column names
   virtual const LineValues &getColumns() const = 0;

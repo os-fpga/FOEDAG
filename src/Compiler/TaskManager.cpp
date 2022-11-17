@@ -132,7 +132,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 
   m_reportManagerRegistry.registerReportManager(
-      SYNTHESIS, std::make_unique<SynthesisReportManager>());
+      SYNTHESIS, std::make_shared<SynthesisReportManager>());
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -255,7 +255,7 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
   }
 }
 
-TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() {
+const TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() const {
   return m_reportManagerRegistry;
 }
 

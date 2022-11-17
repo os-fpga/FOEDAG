@@ -87,7 +87,7 @@ class TaskManager : public QObject {
 
   void setTaskCount(int count);
 
-  TaskReportManagerRegistry &getReportManagerRegistry();
+  const TaskReportManagerRegistry &getReportManagerRegistry() const;
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
