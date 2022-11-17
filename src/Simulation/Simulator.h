@@ -43,6 +43,7 @@ class Simulator {
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
             TclInterpreterHandler* tclInterpreterHandler = nullptr);
+  void SetSimulationTop(const std::string& top) { m_simulationTop = top; }
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetErrStream(std::ostream* err) { m_err = err; };
@@ -54,7 +55,7 @@ class Simulator {
   bool Simulate(SimulationType action, SimulatorType type);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool RegisterCommands(TclInterpreter* interp);
   bool Clear();
   void start();
   void finish();
@@ -81,6 +82,7 @@ class Simulator {
   virtual std::string LibraryFileDirective(SimulatorType type);
   virtual std::string LibraryExtDirective(SimulatorType type);
   virtual std::string MacroDirective(SimulatorType type);
+  virtual std::string TopModuleCmd(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
   virtual std::string SimulationFileList(SimulatorType type);
@@ -102,6 +104,7 @@ class Simulator {
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
+  std::string m_simulationTop;
 };
 
 }  // namespace FOEDAG
