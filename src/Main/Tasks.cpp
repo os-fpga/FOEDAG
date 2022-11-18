@@ -61,7 +61,8 @@ void openReportView(const ITaskReport& report) {
     auto colIndex = 0;
     for (auto& lineValue : lineData) {
       auto item = new QTableWidgetItem(QString::fromStdString(lineValue));
-      item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft : Qt::AlignCenter);
+      item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
+                                           : Qt::AlignCenter);
       reportsView->setItem(rowIndex, colIndex, item);
       ++colIndex;
     }

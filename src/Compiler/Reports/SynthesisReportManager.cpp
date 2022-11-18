@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SynthesisReportManager.h"
 
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
 
 #include "CompilerDefines.h"
@@ -31,8 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 static constexpr const char *REPORT_NAME{"Synthesis report"};
-static constexpr const char *STAT_STR{"Printing statistics"};
-static constexpr const char *DE_STR{"DE:"};
 static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
 }  // namespace
@@ -44,16 +43,18 @@ std::vector<std::string> SynthesisReportManager::getAvailableReportIds() const {
 }
 
 SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
-    QTextStream &in) const {
+    const QString &statsStr) const {
   auto res = LinesData{};
 
   auto line = QString{};        // Unmodified line from the log file
   auto dataLine = QString{};    // Simplified line
   auto parentItem = QString{};  // Parent item for lines starting with tab
 
-  in.readLineInto(&line);  // skip empty line
-  in.readLineInto(&line);  // skip top level module
-  in.readLineInto(&line);  // skip empty line
+  auto statTable =
+      QRegExp("Number.*");  // Drop the beginning and start with stats
+  if (statTable.indexIn(statsStr) == -1) return res;
+
+  QTextStream in(statTable.cap().toLatin1());
 
   while (in.readLineInto(&line)) {
     if (line.startsWith("     ") && parentItem.isEmpty())
@@ -81,18 +82,17 @@ SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
   return res;
 }
 
-SynthesisReportManager::LinesData SynthesisReportManager::getLevels(
-    const QString &line) const {
-  auto res = LinesData{};
+void SynthesisReportManager::fillLevels(const QString &line,
+                                        LinesData &stats) const {
+  const QRegularExpression findLvls{
+      "^DE:.*Max Lvl =\\s*(([0-9]*[.])?[0-9]+)\\s*Avg Lvl "
+      "=\\s*(([0-9]*[.])?[0-9]+)"};
 
-  auto lineData = line.split(" ");
-  // #TODO: Replace it with RegExp. We expect 21 strings to be in DE: line.
-  // Otherwise under 10 and 14 we may get totally different numbers.
-  if (lineData.size() != 21) return res;
-  res.push_back({MAX_LVL_STR, lineData[10].toStdString()});
-  res.push_back({AVG_LVL_STR, lineData[14].toStdString()});
-
-  return res;
+  auto match = findLvls.match(line);
+  if (match.hasMatch()) {
+    stats.push_back({MAX_LVL_STR, match.captured(1).toStdString()});
+    stats.push_back({AVG_LVL_STR, match.captured(3).toStdString()});
+  }
 }
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
@@ -109,29 +109,25 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   // To save the last report statistics
   auto stats = LinesData{};
-  auto levels = LinesData{};
 
-  QTextStream in(&logFile);
-  QString line;
-  while (in.readLineInto(&line)) {
-    auto dataLine = line.simplified();
-    if (dataLine.isEmpty()) continue;
-    if (dataLine.contains(QString(STAT_STR)))
-      stats = getStatistics(in);
-    else if (dataLine.startsWith(QString(DE_STR)))
-      levels = getLevels(dataLine);
-  }
+  auto fileStr = QTextStream(&logFile).readAll();
   logFile.close();
 
-  auto result = LinesData{};
-  std::merge(levels.begin(), levels.end(), stats.begin(), stats.end(),
-             std::back_inserter(result));
+  auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
+
+  if (findStats.lastIndexIn(fileStr) != -1)
+    stats = getStatistics(findStats.cap());
+
+  auto findLvls = QRegExp{"DE:([^\n]+)"};
+  if (findLvls.lastIndexIn(fileStr) != -1) {
+    fillLevels(findLvls.cap(), stats);
+  }
 
   emit reportCreated(QString(REPORT_NAME));
 
   auto columnNames = std::vector<std::string>{"Statistics", "Value"};
-  return std::make_unique<TableReport>(std::move(columnNames),
-                                       std::move(result), "Synthesis report");
+  return std::make_unique<TableReport>(std::move(columnNames), std::move(stats),
+                                       "Synthesis report");
 }
 
 std::map<size_t, std::string> SynthesisReportManager::getMessages() {

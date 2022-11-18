@@ -25,7 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ITaskReportManager.h"
 
 class QString;
-class QTextStream;
 
 namespace FOEDAG {
 
@@ -52,10 +51,10 @@ class SynthesisReportManager final : public QObject, public ITaskReportManager {
       const std::string &reportId) override;
   std::map<size_t, std::string> getMessages() override;
 
-  // Retrieves maximum and average levels out of given line
-  LinesData getLevels(const QString &line) const;
+  // Retrieves maximum and average levels out of given line and fills into stats
+  void fillLevels(const QString &line, LinesData &stats) const;
   // Parses input stream and gets all statistics with their values
-  LinesData getStatistics(QTextStream &in) const;
+  LinesData getStatistics(const QString &statsStr) const;
 
  signals:
   void reportCreated(QString reportName);
