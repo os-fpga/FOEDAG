@@ -150,8 +150,12 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     if (python3Path.empty()) {
       m_compiler->ErrorMessage(
           "IP Catalog, unable to find python interpreter in local "
-          "environment.\n");
-      return false;
+          "environment, trying to use system copy 'python3'. Some IP Catalog "
+          "features might not work with this "
+          "interpreter.\n");
+
+      // don't specify a path and hope the system finds something in its path
+      pythonPath = "python3";
     } else {
       pythonPath = python3Path;
       m_compiler->ErrorMessage(
