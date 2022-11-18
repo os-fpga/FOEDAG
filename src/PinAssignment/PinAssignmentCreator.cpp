@@ -46,6 +46,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
+  packagePinModel->setBaseModel(m_baseModel);
 
   PortsLoader *portsLoader{FindPortsLoader(data.target)};
   portsLoader->load(searchPortsFile(data.projectPath));
