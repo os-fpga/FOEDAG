@@ -811,6 +811,7 @@ bool CompilerOpenFPGA::Analyze() {
   if (m_useVerific) {
     // Verific parser
     std::string fileList;
+    fileList += "-set-warning VERI-1063\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
@@ -966,6 +967,8 @@ bool CompilerOpenFPGA::Analyze() {
   ofs.close();
   std::string command;
   int status = 0;
+  std::filesystem::path analyse_path =
+      std::filesystem::path(ProjManager()->projectPath()) / "analyze.log";
   if (m_useVerific) {
     if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
       ErrorMessage("Cannot find executable: " +
@@ -974,9 +977,22 @@ bool CompilerOpenFPGA::Analyze() {
     }
     command = m_analyzeExecutablePath.string() + " -f " + script_path;
     (*m_out) << "Analyze command: " << command << std::endl;
-    status = ExecuteAndMonitorSystemCommand(command);
+    status = ExecuteAndMonitorSystemCommand(command, analyse_path.string());
   }
-  // TODO: read back the Json file produced
+  (*m_out) << std::flush;
+  std::ifstream raptor_log(analyse_path.string());
+  if (raptor_log.good()) {
+    std::stringstream buffer;
+    buffer << raptor_log.rdbuf();
+    const std::string& buf = buffer.str();
+    std::cout << buf << std::endl;
+    if (buf.find("VERI-1063") != std::string::npos) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " has an incomplete hierarchy, unknown module(s) error(s).");
+      status = true;
+    }
+    raptor_log.close();
+  }
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " analysis failed");
     return false;
