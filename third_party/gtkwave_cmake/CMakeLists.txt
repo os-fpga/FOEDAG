@@ -33,7 +33,7 @@ else ()
     set(build_dir ${root_dir}/build)
 endif()
 
-if(MSVC)
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(gtkwave_tar "gtkwave-3.3.100-bin-win32.zip")
 else()
     set(gtkwave_tar "gtkwaveTCL.tar.gz")
