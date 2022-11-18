@@ -34,15 +34,12 @@ else ()
 endif()
 
 if(MSVC)
-    set(skip 1)
-    # sourcefource download takes 5+ minutes to dl while github source takes seconds
-    # disabling windows target for now as it's prohibitively slow
-    #set(download_path "https://yer.dl.sourceforge.net/project/gtkwave/gtkwave-3.3.100-bin-win32/gtkwave-3.3.100-bin-win32.zip")
+    set(gtkwave_tar "gtkwave-3.3.100-bin-win32.zip")
 else()
-    set(gtkwave_tar "gtkwave_linux_centos7.tar.gz")
-    set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
+    set(gtkwave_tar "gtkwaveTCL.tar.gz")
 endif()
 
+set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
 set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/${gtkwave_tar})
 set(install_path ${build_dir}/bin)
 set(gtkwave_path ${install_path}/gtkwave)
