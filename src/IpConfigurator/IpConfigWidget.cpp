@@ -352,9 +352,16 @@ void IpConfigWidget::CreateParamFields() {
     tclArgList = m_instanceValueArgs;
   }
 
-  // Create and add the child widget to our parent container
-  auto form = createWidgetFormLayout(parentJson, tclArgList);
-  paramsBox.setLayout(form);
+  if (parentJson.empty()) {
+    // Add a note if no parameters were available
+    QVBoxLayout* layout = new QVBoxLayout();
+    layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
+    paramsBox.setLayout(layout);
+  } else {
+    // Create and add the child widget to our parent container
+    auto form = createWidgetFormLayout(parentJson, tclArgList);
+    paramsBox.setLayout(form);
+  }
 
   // createWidgetFormLayout sequentially creates widgets from parentJson, which
   // means that after first creation, a dependency might have been created and
