@@ -101,6 +101,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  private: /* Menu bar builders */
   void updateViewMenu();
+  void updateTaskTable();
   void createMenus();
   void createToolBars();
   void createActions();

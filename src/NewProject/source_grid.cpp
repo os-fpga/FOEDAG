@@ -41,7 +41,25 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "NETLIST files (*.eblif *.blif *.v *.sv *.svp);;"
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
     "*.vh *.h *.svh *.vhp *.svhp *.sv )");
+
+static const auto DESIGN_SOURCES_FILTER_POS_MIXED = QObject::tr(
+    "Design Source Files (*.vhd *.vhdl *.v *.vf *.verilog "
+    "*.vh *.h *.svh *.vhp *.svhp *.sv *.svp);;"
+    "VHDL Files (*.vhd *.vhdl *.vhf *.vhdp);;"
+    "VERILOG Files (*.v *.verilog);;"
+    "SystemVerilog Files(*.sv *.svp);;"
+    "VERILOG Header Files(*.vh *.h *.vhp);;"
+    "SystemVerilog Header Files (*.svh *.svhp);;"
+    "NETLIST files (*.v *.sv *.svp);;"
+    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
+    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
+
+static const auto DESIGN_SOURCES_FILTER_POS = QObject::tr(
+    "Design Source Files (*.edf *.edif *.bmm *.mif *.mem *.elf);;"
+    "NETLIST files (*.eblif *.blif)");
 }  // namespace
+
+const QStringList sourceGrid::uniqueExtentions{{"edif", "blif"}};
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
@@ -118,7 +136,15 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   vbox->setContentsMargins(0, 0, 0, 0);
   vbox->setSpacing(1);
   setLayout(vbox);
+  m_projectManager = new ProjectManager{this};
 }
+
+void sourceGrid::setProjectType(int projectType) {
+  m_projectType = projectType;
+}
+
+int sourceGrid::projectType() const { return m_projectType; }
+
 void sourceGrid::setGridType(GridType type) {
   m_type = type;
 
@@ -168,8 +194,17 @@ bool sourceGrid::isPinFileAdded() const {
   return false;
 }
 
+bool sourceGrid::isNetlistFileAdded() const {
+  for (const auto &fileData : m_lisFileData) {
+    for (const auto &ext : uniqueExtentions)
+      if (fileData.m_fileType.compare(ext, Qt::CaseInsensitive) == 0)
+        return true;
+  }
+  return false;
+}
+
 void sourceGrid::AddFiles() {
-  QString fileformat{DESIGN_SOURCES_FILTER};
+  QString fileformat{Filter(CurrentProjectType())};
   if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
   // this option will catch lower and upper cases extentions
   auto option{QFileDialog::DontUseNativeDialog};
@@ -179,6 +214,7 @@ void sourceGrid::AddFiles() {
     const QFileInfo info{str};
     if (!CheckPinFileExists(info.suffix())) return;
   }
+  if (!CheckNetlistFileExists(fileNames)) return;
 
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
@@ -200,15 +236,21 @@ void sourceGrid::AddDirectories() {
 
   if (folder.isEmpty())  // The dialog was cancelled
     return;
-  auto it = QDirIterator(folder, GetAllDesignSourceExtentions(), QDir::NoFilter,
-                         QDirIterator::Subdirectories);
+
+  auto it =
+      QDirIterator(folder, GetAllDesignSourceExtentions(CurrentProjectType()),
+                   QDir::NoFilter, QDirIterator::Subdirectories);
   auto files =
       std::vector<std::pair<QString, QString>>{};  // File names with directory
                                                    // full paths
+  QStringList checkUnique;
   while (it.hasNext()) {
     it.next();
     files.emplace_back(it.fileName(), it.filePath());
+    checkUnique.append(it.filePath());
   }
+
+  if (!CheckNetlistFileExists(checkUnique)) return;
 
   for (auto &[fileName, filePath] : files) {
     const QFileInfo info{filePath};
@@ -435,6 +477,38 @@ bool sourceGrid::CheckPinFileExists(const QString &suffix) {
   return true;
 }
 
+bool sourceGrid::CheckNetlistFileExists(const QStringList &files) {
+  const bool good{true};
+  const bool fail{false};
+  if (CurrentProjectType() == RTL) return good;
+
+  int netlistCount{0};
+  for (const QString &file : files) {
+    const auto suffix = QFileInfo{file}.suffix();
+    for (const auto &ext : uniqueExtentions)
+      if (suffix.compare(ext, Qt::CaseInsensitive) == 0) netlistCount++;
+  }
+
+  if ((netlistCount != 0 && isNetlistFileAdded()) || netlistCount > 1) {
+    QMessageBox::critical(this, "Netlist file",
+                          "Only one netlist file supported");
+    return fail;
+  }
+  return good;
+}
+
+QString sourceGrid::Filter(int projectType) const {
+  switch (projectType) {
+    case RTL:
+      return DESIGN_SOURCES_FILTER;
+    case PostSynthPure:
+      return DESIGN_SOURCES_FILTER_POS;
+    case PostSynthWithHDL:
+      return DESIGN_SOURCES_FILTER_POS_MIXED;
+  }
+  return DESIGN_SOURCES_FILTER;
+}
+
 void sourceGrid::onItemChanged(QStandardItem *item) {
   auto itemIndex = m_model->indexFromItem(item);
 
@@ -462,9 +536,9 @@ void sourceGrid::languageHasChanged() {
   if (row != -1) m_lisFileData[row].m_language = combo->currentData().toInt();
 }
 
-QStringList sourceGrid::GetAllDesignSourceExtentions() const {
+QStringList sourceGrid::GetAllDesignSourceExtentions(int projectType) const {
   QSet<QString> filters;
-  auto filterLine = DESIGN_SOURCES_FILTER.split(";;");
+  auto filterLine = Filter(projectType).split(";;");
   for (auto &f : filterLine) {
     f.remove(0, f.indexOf("(") + 1);
     f = f.mid(0, f.indexOf(")"));
@@ -483,6 +557,12 @@ void sourceGrid::initLanguageCombo(int row, const QVariant &data) {
   m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL_NUM), combo);
   connect(combo, SIGNAL(currentIndexChanged(int)), this,
           SLOT(languageHasChanged()));
+}
+
+int sourceGrid::CurrentProjectType() const {
+  if (m_projectType != NO_PROJECT_TYPE) return m_projectType;
+  if (m_projectManager) return m_projectManager->projectType();
+  return RTL;
 }
 
 QDebug operator<<(QDebug debug, const FOEDAG::filedata &a) {

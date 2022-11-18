@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "ProjectManager/project_manager.h"
+
 namespace Ui {
 class projectTypeForm;
 }
@@ -16,7 +18,9 @@ class projectTypeForm : public QWidget {
   explicit projectTypeForm(QWidget *parent = nullptr);
   ~projectTypeForm();
 
-  QString getProjectType();
+  ProjectType projectType() const;
+  QString projectTypeStr() const;
+  static QString projectTypeStr(ProjectType type);
 
  signals:
   void skipSources(bool skip);

@@ -48,7 +48,16 @@ bool TaskModel::hasChildren(const QModelIndex &parent) const {
 }
 
 Qt::ItemFlags TaskModel::flags(const QModelIndex &index) const {
-  return QAbstractItemModel::flags(index);
+  auto taskId = ToTaskId(index);
+  auto task = m_taskManager ? m_taskManager->task(taskId) : nullptr;
+  auto flags = QAbstractItemModel::flags(index);
+  if (task) {
+    if (task->isEnable())
+      flags |= Qt::ItemIsEnabled;
+    else
+      flags &= ~Qt::ItemIsEnabled;
+  }
+  return flags;
 }
 
 uint TaskModel::ToTaskId(const QModelIndex &index) const {

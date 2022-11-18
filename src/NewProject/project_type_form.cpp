@@ -14,27 +14,50 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_labelRTL->setText(
       tr("- Generate IP.\n"
          "- Run Analysis, Synthesis, P&R timing & generate bitstream."));
-  ui->m_labelPost->setText(
-      tr("- Add design netlist.\n"
-         "- P&R, timing & generate bitstream.\n"
-         "- Run analysis (optional), Synthesis (optional), timing and "
-         "generate bitstream."));
 
   ui->m_radioBtnRTL->setChecked(true);
 
-  QObject::connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
-                   &projectTypeForm::skipSources);
+  connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
+          &projectTypeForm::skipSources);
 
-  ui->m_radioBtnPost->hide();
-  ui->m_labelPost->hide();
+  ui->radioBtnPOSMixed->setEnabled(false);
+  ui->radioBtnPOSPure->setEnabled(false);
+  ui->radioBtnPOSMixed->setChecked(true);
+
+  connect(ui->m_radioBtnPost, &QAbstractButton::toggled, this,
+          [this](bool clicked) {
+            ui->radioBtnPOSMixed->setEnabled(clicked);
+            ui->radioBtnPOSPure->setEnabled(clicked);
+          });
 }
 
 projectTypeForm::~projectTypeForm() { delete ui; }
-QString projectTypeForm::getProjectType() {
+
+ProjectType projectTypeForm::projectType() const {
   if (ui->m_radioBtnRTL->isChecked()) {
-    return "RTL";
+    return RTL;
   } else if (ui->m_radioBtnPost->isChecked()) {
-    return "Post-synthesis";
+    if (ui->radioBtnPOSMixed->isChecked()) {
+      return PostSynthWithHDL;
+    } else if (ui->radioBtnPOSPure->isChecked()) {
+      return PostSynthPure;
+    }
   }
-  return "RTL";
+  return RTL;
+}
+
+QString projectTypeForm::projectTypeStr() const {
+  return projectTypeStr(projectType());
+}
+
+QString projectTypeForm::projectTypeStr(ProjectType type) {
+  switch (type) {
+    case RTL:
+      return "RTL";
+    case PostSynthWithHDL:
+      return "Post-synthesis with HDL";
+    case PostSynthPure:
+      return "Post-synthesis";
+  }
+  return QString{};
 }

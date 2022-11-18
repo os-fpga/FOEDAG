@@ -106,7 +106,7 @@ struct ProjectOptions {
   };
   QString projectName;
   QString projectPath;
-  QString projectType;
+  int projectType;
   FileData sourceFileData;
   FileData constrFileData;
   QStringList device;
@@ -124,6 +124,12 @@ struct Suffixes {
   const std::vector<QString> suffixes;
   Suffixes(const std::vector<QString> &s) : suffixes(s) {}
   bool TestSuffix(const QString &s) const;
+};
+
+enum ProjectType {
+  RTL = 0,
+  PostSynthWithHDL = 1,
+  PostSynthPure = 2,
 };
 
 class ProjectManager : public QObject {
@@ -165,8 +171,8 @@ class ProjectManager : public QObject {
   std::string projectPath() const;
   bool HasDesign() const;
 
-  int setProjectType(const QString &strType);
-  QString projectType() const;
+  int setProjectType(int strType);
+  ProjectType projectType() const;
 
   ErrorInfo addFiles(const QString &commands, const QString &libs,
                      const QString &fileNames, int lang, const QString &grName,

@@ -177,16 +177,16 @@ TaskStatus TaskManager::status() const {
 void TaskManager::startAll() {
   if (!m_runStack.isEmpty()) return;
   reset();
-  m_runStack.append(m_tasks[IP_GENERATE]);
-  m_runStack.append(m_tasks[ANALYSIS]);
-  m_runStack.append(m_tasks[SYNTHESIS]);
-  m_runStack.append(m_tasks[PACKING]);
-  m_runStack.append(m_tasks[GLOBAL_PLACEMENT]);
-  m_runStack.append(m_tasks[PLACEMENT]);
-  m_runStack.append(m_tasks[ROUTING]);
-  m_runStack.append(m_tasks[TIMING_SIGN_OFF]);
-  m_runStack.append(m_tasks[POWER]);
-  m_runStack.append(m_tasks[BITSTREAM]);
+  appendTask(m_tasks[IP_GENERATE]);
+  appendTask(m_tasks[ANALYSIS]);
+  appendTask(m_tasks[SYNTHESIS]);
+  appendTask(m_tasks[PACKING]);
+  appendTask(m_tasks[GLOBAL_PLACEMENT]);
+  appendTask(m_tasks[PLACEMENT]);
+  appendTask(m_tasks[ROUTING]);
+  appendTask(m_tasks[TIMING_SIGN_OFF]);
+  appendTask(m_tasks[POWER]);
+  appendTask(m_tasks[BITSTREAM]);
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();
@@ -195,8 +195,8 @@ void TaskManager::startAll() {
 
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
-  if (!t->isValid()) return;
-  m_runStack.append(t);
+  if (!t->isValid() || !t->isEnable()) return;
+  appendTask(t);
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();
@@ -228,12 +228,14 @@ void TaskManager::runNext() {
       m_runStack.clear();
     }
   }
-  QString status{"Complete"};
-  if (t->status() == TaskStatus::Fail) {
-    status = "Failed";
+  if (t) {
+    QString status{"Complete"};
+    if (t->status() == TaskStatus::Fail) {
+      status = "Failed";
+    }
+    emit progress(++counter, m_taskCount,
+                  QString("%1 %2").arg(t->title(), status));
   }
-  emit progress(++counter, m_taskCount,
-                QString("%1 %2").arg(t->title()).arg(status));
 
   if (m_runStack.isEmpty()) {
     emit done();
@@ -273,6 +275,10 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
 
 const TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() const {
   return m_reportManagerRegistry;
+}
+
+void TaskManager::appendTask(Task *t) {
+  if (t->isEnable()) m_runStack.append(t);
 }
 
 }  // namespace FOEDAG

@@ -116,6 +116,7 @@ class TaskManager : public QObject {
   void run();
   void reset();
   void cleanDownStreamStatus(Task *t);
+  void appendTask(Task *t);
 
  private:
   QMap<uint, Task *> m_tasks;

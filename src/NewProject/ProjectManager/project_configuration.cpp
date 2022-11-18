@@ -7,7 +7,7 @@ using namespace FOEDAG;
 ProjectConfiguration::ProjectConfiguration(QObject *parent)
     : ProjectOption(parent) {
   initProjectID();
-  m_projectType = "";
+  m_projectType = 0;  // RTL
   m_activeSimSet = "";
 }
 
@@ -15,9 +15,9 @@ QString ProjectConfiguration::id() const { return m_id; }
 
 void ProjectConfiguration::setId(const QString &id) { m_id = id; }
 
-QString ProjectConfiguration::projectType() const { return m_projectType; }
+int ProjectConfiguration::projectType() const { return m_projectType; }
 
-void ProjectConfiguration::setProjectType(const QString &projectType) {
+void ProjectConfiguration::setProjectType(int projectType) {
   m_projectType = projectType;
 }
 

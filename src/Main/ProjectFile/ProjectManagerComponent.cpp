@@ -71,7 +71,7 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
 
   stream.writeStartElement(PROJECT_OPTION);
   stream.writeAttribute(PROJECT_NAME, PROJECT_CONFIG_TYPE);
-  stream.writeAttribute(PROJECT_VAL, tmpProCfg->projectType());
+  stream.writeAttribute(PROJECT_VAL, QString::number(tmpProCfg->projectType()));
   stream.writeEndElement();
 
   QMap<QString, QString> tmpOption = tmpProCfg->getMapOption();
@@ -223,8 +223,9 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                   reader.attributes().value(PROJECT_VAL).toString());
             } else if (PROJECT_CONFIG_TYPE ==
                        reader.attributes().value(PROJECT_NAME).toString()) {
-              tmpProCfg->setProjectType(
-                  reader.attributes().value(PROJECT_VAL).toString());
+              bool ok{true};
+              auto type = reader.attributes().value(PROJECT_VAL).toInt(&ok);
+              tmpProCfg->setProjectType(ok ? type : RTL);
             } else {
               tmpProCfg->setOption(
                   reader.attributes().value(PROJECT_NAME).toString(),
