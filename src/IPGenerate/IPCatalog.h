@@ -33,7 +33,7 @@ namespace FOEDAG {
 
 class Value {
  public:
-  enum class Type { ConstInt, ParamInt, ParamString };
+  enum class Type { ConstInt, ParamInt, ParamString, ParamIpVal };
   Value() {}
   virtual ~Value() {}
   virtual uint32_t GetValue() const = 0;
@@ -175,6 +175,58 @@ class Interface : public Connector {
   std::vector<Connector*> m_connections;
 };
 
+class IPParameter : public Value {
+ public:
+  enum class ParamType { Int, Float, Bool, String, FilePath };
+  IPParameter(const std::string& name, const std::string& display_name,
+              const std::string& default_val, ParamType param_type)
+      : m_name(name),
+        m_title(display_name),
+        m_default(default_val),
+        m_paramType(param_type) {}
+  ~IPParameter() {}
+  const std::string GetSValue() const {
+    return (m_useDefault) ? m_default : m_value;
+  }
+  void SetValue(const std::string& value) {
+    m_value = value;
+    m_useDefault = false;
+  }
+  void SetDependencies(const std::vector<std::string>& vals) {
+    m_dependencies = vals;
+  }
+  const std::vector<std::string>& GetDependencies() const {
+    return m_dependencies;
+  }
+  void SetDescription(const std::string& desc) { m_description = desc; }
+  const std::string& GetDescription() { return m_description; }
+  void SetOptions(const std::vector<std::string>& vals) { m_options = vals; }
+  const std::vector<std::string>& GetOptions() const { return m_options; }
+  void SetRange(const std::vector<std::string>& vals) { m_range = vals; }
+  const std::vector<std::string>& GetRange() const { return m_range; }
+
+  const std::string& Name() const { return m_name; }
+  const std::string& GetTitle() const { return m_title; }
+  Type GetType() const { return Type::ParamIpVal; }
+  ParamType GetParamType() const { return m_paramType; }
+
+ private:
+  // This type supports multiple types other than uint32_t and therefore uses
+  // strings at all times, this getter is made private to make it less accesible
+  uint32_t GetValue() const { return (-1); }
+
+  std::string m_name{};
+  std::string m_title{};
+  std::string m_description{};
+  std::string m_default{};
+  bool m_useDefault = true;
+  std::string m_value{};
+  ParamType m_paramType;
+  std::vector<std::string> m_dependencies{};
+  std::vector<std::string> m_options{};
+  std::vector<std::string> m_range{};
+};
+
 class IPDefinition {
  public:
   enum class IPType { LiteXGenerator, Other };
@@ -209,7 +261,7 @@ class IPDefinition {
 class IPInstance {
  public:
   IPInstance(const std::string& ipname, const std::string& version,
-             IPDefinition* definition, std::vector<Parameter>& parameters,
+             IPDefinition* definition, std::vector<SParameter>& parameters,
              const std::string& moduleName,
              const std::filesystem::path& outputFile)
       : m_ipname(ipname),
@@ -222,7 +274,7 @@ class IPInstance {
   const std::string& IPName() { return m_ipname; }
   const std::string& Version() { return m_version; }
   const IPDefinition* Definition() { return m_definition; }
-  const std::vector<Parameter>& Parameters() { return m_parameters; }
+  const std::vector<SParameter>& Parameters() { return m_parameters; }
   const std::string& ModuleName() { return m_moduleName; }
   const std::filesystem::path OutputFile() { return m_outputFile; }
 
@@ -230,7 +282,7 @@ class IPInstance {
   std::string m_ipname;
   std::string m_version;
   IPDefinition* m_definition;
-  std::vector<Parameter> m_parameters;
+  std::vector<SParameter> m_parameters;
   std::string m_moduleName;
   std::filesystem::path m_outputFile;
 };
