@@ -200,6 +200,8 @@ class Compiler {
   NetlistType GetNetlistType() { return m_netlistType; }
 
   void virtual CustomSimulatorSetup();
+  void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
+  const std::string& GetWavefromFile() { return m_waveformFile; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -294,6 +296,8 @@ class Compiler {
   std::map<std::string, std::string> m_environmentVariableMap;
 
   NetlistType m_netlistType = NetlistType::Blif;
+
+  std::string m_waveformFile;
 };
 
 }  // namespace FOEDAG

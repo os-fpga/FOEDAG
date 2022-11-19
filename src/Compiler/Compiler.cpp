@@ -193,7 +193,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+            "xcelium"
          << std::endl;
   (*out) << "-------------------------" << std::endl;
 }
@@ -825,41 +826,53 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      if ((argc != 2) && (argc != 3)) {
+      if (argc < 2) {
         compiler->ErrorMessage(
-            "Wrong number of arguments: simulate <type> ?<simulator>?: ");
+            "Wrong number of arguments: simulate <type> ?<simulator>? "
+            "?<waveform_file>?");
         return TCL_ERROR;
       }
-      std::string simul = argv[1];
-      if (argc == 3) {
-        std::string simulator = argv[2];
-        if (simulator == "verilator") {
+      std::string sim_type;
+      std::string wave_file;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "verilator") {
           sim_tool = Simulator::SimulatorType::Verilator;
-        } else if (simulator == "icarus") {
+        } else if (arg == "icarus") {
           sim_tool = Simulator::SimulatorType::Icarus;
-        } else if (simulator == "vcs") {
+        } else if (arg == "ghdl") {
+          sim_tool = Simulator::SimulatorType::GHDL;
+        } else if (arg == "vcs") {
           sim_tool = Simulator::SimulatorType::VCS;
-        } else if (simulator == "questa") {
+        } else if (arg == "questa") {
           sim_tool = Simulator::SimulatorType::Questa;
-        } else if (simulator == "xcelium") {
+        } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream") {
+          sim_type = arg;
+        } else {
+          wave_file = arg;
         }
       }
-      if (simul == "rtl") {
-        status = compiler->GetSimulator()->Simulate(
-            Simulator::SimulationType::RTL, sim_tool);
-      } else if (simul == "gate") {
-        status = compiler->GetSimulator()->Simulate(
-            Simulator::SimulationType::Gate, sim_tool);
-      } else if (simul == "pnr") {
-        status = compiler->GetSimulator()->Simulate(
-            Simulator::SimulationType::PNR, sim_tool);
-      } else if (simul == "bitstream") {
-        status = compiler->GetSimulator()->Simulate(
-            Simulator::SimulationType::Bitstream, sim_tool);
-      } else {
-        compiler->ErrorMessage("Unknown simulation type: " + simul);
+      compiler->SetWaveformFile(wave_file);
+      if (sim_type.empty()) {
+        compiler->ErrorMessage("Unknown simulation type: " + sim_type);
         return TCL_ERROR;
+      } else {
+        if (sim_type == "rtl") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::RTL, sim_tool, wave_file);
+        } else if (sim_type == "gate") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Gate, sim_tool, wave_file);
+        } else if (sim_type == "pnr") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::PNR, sim_tool, wave_file);
+        } else if (sim_type == "bitstream") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Bitstream, sim_tool, wave_file);
+        }
       }
       return (status) ? TCL_OK : TCL_ERROR;
     };
@@ -1109,57 +1122,64 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      if ((argc != 2) && (argc != 3)) {
+      if (argc < 2) {
         compiler->ErrorMessage(
-            "Wrong number of arguments: simulate <type> ?<simulator>?: ");
+            "Wrong number of arguments: simulate <type> ?<simulator>? "
+            "?<waveform_file>?");
         return TCL_ERROR;
       }
-      std::string simul = argv[1];
-      if (argc == 3) {
-        std::string simulator = argv[2];
-        if (simulator == "verilator") {
+      std::string sim_type;
+      std::string wave_file;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "verilator") {
           sim_tool = Simulator::SimulatorType::Verilator;
-        } else if (simulator == "icarus") {
+        } else if (arg == "icarus") {
           sim_tool = Simulator::SimulatorType::Icarus;
-        } else if (simulator == "vcs") {
+        } else if (arg == "ghdl") {
+          sim_tool = Simulator::SimulatorType::GHDL;
+        } else if (arg == "vcs") {
           sim_tool = Simulator::SimulatorType::VCS;
-        } else if (simulator == "questa") {
+        } else if (arg == "questa") {
           sim_tool = Simulator::SimulatorType::Questa;
-        } else if (simulator == "xcelium") {
+        } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream") {
+          sim_type = arg;
+        } else {
+          wave_file = arg;
         }
-        compiler->GetSimulator()->SetSimulatorType(sim_tool);
       }
-      std::string arg = argv[1];
-      if (arg == "rtl") {
-        WorkerThread* wthread =
-            new WorkerThread("simulate_rtl_th", Action::SimulateRTL, compiler);
-        status = wthread->start();
-        if (!status) return TCL_ERROR;
-      } else if (arg == "gate") {
-        WorkerThread* wthread =
-            new WorkerThread("simulate_rtl_th", Action::SimulateGate, compiler);
-        status = wthread->start();
-        if (!status) return TCL_ERROR;
-      } else if (arg == "pnr") {
-        WorkerThread* wthread =
-            new WorkerThread("simulate_rtl_th", Action::SimulatePNR, compiler);
-        status = wthread->start();
-        if (!status) return TCL_ERROR;
-      } else if (arg == "bitstream") {
-        WorkerThread* wthread = new WorkerThread(
-            "simulate_rtl_th", Action::SimulateBitstream, compiler);
-        status = wthread->start();
-        if (!status) return TCL_ERROR;
+      compiler->SetWaveformFile(wave_file);
+      compiler->GetSimulator()->SetSimulatorType(sim_tool);
+      if (sim_type.empty()) {
+        compiler->ErrorMessage("Unknown simulation type: " + sim_type);
+        return TCL_ERROR;
       } else {
-        compiler->ErrorMessage("Unknown option: " + arg);
-        return TCL_ERROR;
+        if (sim_type == "rtl") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateRTL, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (sim_type == "gate") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateGate, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (sim_type == "pnr") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulatePNR, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (sim_type == "bitstream") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateBitstream, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        }
       }
-      if (status == false) {
-        return TCL_ERROR;
-      }
-
       return (status) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("simulate", simulate, this, 0);
@@ -1643,16 +1663,20 @@ bool Compiler::RunCompileTask(Action action) {
       return RunBatch();
     case Action::SimulateRTL:
       return GetSimulator()->Simulate(Simulator::SimulationType::RTL,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulateGate:
       return GetSimulator()->Simulate(Simulator::SimulationType::Gate,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulatePNR:
       return GetSimulator()->Simulate(Simulator::SimulationType::PNR,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulateBitstream:
       return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     default:
       break;
   }

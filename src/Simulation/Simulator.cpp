@@ -85,7 +85,9 @@ void Simulator::ErrorMessage(const std::string& message) {
   m_compiler->ErrorMessage(message);
 }
 
-bool Simulator::Simulate(SimulationType action, SimulatorType type) {
+bool Simulator::Simulate(SimulationType action, SimulatorType type,
+                         const std::string& wave_file) {
+  m_waveFile = wave_file;
   switch (action) {
     case SimulationType::RTL: {
       return SimulateRTL(type);
@@ -123,6 +125,8 @@ std::string Simulator::SimulatorName(SimulatorType type) {
       return "verilator";
     case SimulatorType::Icarus:
       return "icarus";
+    case SimulatorType::GHDL:
+      return "ghdl";
     case SimulatorType::Questa:
       return "questa";
     case SimulatorType::VCS:
@@ -138,6 +142,8 @@ std::string Simulator::IncludeDirective(SimulatorType type) {
     case SimulatorType::Verilator:
       return "-I";
     case SimulatorType::Icarus:
+      return "-I";
+    case SimulatorType::GHDL:
       return "-I";
     case SimulatorType::Questa:
       return "-I";
@@ -155,6 +161,8 @@ std::string Simulator::LibraryPathDirective(SimulatorType type) {
       return "-y ";
     case SimulatorType::Icarus:
       return "-y ";
+    case SimulatorType::GHDL:
+      return "-y ";
     case SimulatorType::Questa:
       return "-y ";
     case SimulatorType::VCS:
@@ -171,6 +179,8 @@ std::string Simulator::LibraryFileDirective(SimulatorType type) {
       return "-v ";
     case SimulatorType::Icarus:
       return "-v ";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "-v ";
     case SimulatorType::VCS:
@@ -187,6 +197,8 @@ std::string Simulator::LibraryExtDirective(SimulatorType type) {
       return "+libext+";
     case SimulatorType::Icarus:
       return "+libext+";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "+libext+";
     case SimulatorType::VCS:
@@ -213,9 +225,12 @@ std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
 std::string Simulator::SimulatorOptions(SimulatorType type) {
   switch (type) {
     case SimulatorType::Verilator:
-      return "-cc --assert --trace -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL "
+      return "-cc --assert --trace --trace-fst -Wall -Wno-DECLFILENAME "
+             "-Wno-UNUSEDSIGNAL "
              "-Wno-TIMESCALEMOD";
     case SimulatorType::Icarus:
+      return "";
+    case SimulatorType::GHDL:
       return "";
     case SimulatorType::Questa:
       return "";
@@ -233,6 +248,8 @@ std::string Simulator::MacroDirective(SimulatorType type) {
       return "-D";
     case SimulatorType::Icarus:
       return "-D";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "-D";
     case SimulatorType::VCS:
@@ -248,13 +265,15 @@ std::string Simulator::TopModuleCmd(SimulatorType type) {
     case SimulatorType::Verilator:
       return "--top-module ";
     case SimulatorType::Icarus:
-      return "Invalid";
+      return "Todo";
+    case SimulatorType::GHDL:
+      return "Todo";
     case SimulatorType::Questa:
-      return "Invalid";
+      return "Todo";
     case SimulatorType::VCS:
-      return "Invalid";
+      return "Todo";
     case SimulatorType::Xcelium:
-      return "Invalid";
+      return "Todo";
   }
   return "Invalid";
 }
@@ -285,10 +304,17 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         default:
           return "--invalid-lang-for-verilator";
       }
+      break;
     case SimulatorType::Icarus:
+      break;
+    case SimulatorType::GHDL:
+      break;
     case SimulatorType::Questa:
+      break;
     case SimulatorType::VCS:
+      break;
     case SimulatorType::Xcelium:
+      break;
     default:
       return "Invalid";
   }
@@ -300,13 +326,15 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
     case SimulatorType::Verilator:
       return "obj_dir/Vsyn_tb";
     case SimulatorType::Icarus:
-      return "Invalid";
+      return "Todo";
+    case SimulatorType::GHDL:
+      return "Todo";
     case SimulatorType::Questa:
-      return "Invalid";
+      return "Todo";
     case SimulatorType::VCS:
       return "simv";
     case SimulatorType::Xcelium:
-      return "Invalid";
+      return "Todo";
   }
   return "Invalid";
 }
@@ -350,7 +378,6 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
 int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   if (type == SimulatorType::Verilator) {
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
-    std::cout << "VERILATOR_HOME=" << verilator_home << std::endl;
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
 
@@ -379,6 +406,7 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
 
   // Actual simulation
   command = SimulatorRunCommand(type);
+  if (!m_waveFile.empty()) command += " " + m_waveFile;
   status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   return status;
 }
@@ -503,7 +531,7 @@ bool Simulator::SimulatePNR(SimulatorType type) {
     return false;
   }
 
-  Message("Gate simulation for design: " + ProjManager()->projectName() +
+  Message("Post-PnR simulation for design: " + ProjManager()->projectName() +
           " had ended");
 
   return true;
