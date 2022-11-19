@@ -40,6 +40,7 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 
 #define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
 #define DlgBtnBoxName "SettingsDialogButtonBox"
+#define WF_SPACE "_TclArgSpace_"
 
 namespace FOEDAG {
 void initTclArgFns();
@@ -70,7 +71,7 @@ QWidget* createContainerWidget(QWidget* widget,
                                const QString& label = QString());
 QComboBox* createComboBox(
     const QString& objectName, const QStringList& options,
-    const QString& selectedValue = "",
+    const QString& selectedValue = "", bool addUnset = true,
     std::function<void(QComboBox*, const QString&)> onChange = nullptr);
 QLineEdit* createLineEdit(
     const QString& objectName, const QString& text = "",
@@ -92,6 +93,16 @@ QCheckBox* createCheckBox(
     const QString& objectName, const QString& text, Qt::CheckState checked,
     std::function<void(QCheckBox*, const int&)> onChange = nullptr);
 QList<QObject*> getTargetObjectsFromLayout(QLayout* layout);
+
+class WidgetFactoryDependencyNotifier : public QObject {
+  Q_OBJECT
+
+ public:
+  static WidgetFactoryDependencyNotifier* Instance();
+
+ signals:
+  void checkboxChanged(const QString& customId, QCheckBox* widget);
+};
 
 }  // namespace FOEDAG
 

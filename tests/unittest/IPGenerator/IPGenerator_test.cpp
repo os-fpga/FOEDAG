@@ -55,8 +55,8 @@ TEST(IPGenerate, IpInstanceDupes) {
   EXPECT_EQ(ipGen->IPInstances().size(), 0)
       << "Ensure the IPInstances is empty so far";
 
-  std::vector<Parameter> params;
-  std::vector<Parameter> params2;
+  std::vector<SParameter> params;
+  std::vector<SParameter> params2;
 
   // Add an ip instance
   IPInstance* instance = new IPInstance("duplicateName", "version_num", def,

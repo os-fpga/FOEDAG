@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHeaderView>
@@ -41,6 +42,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 using nlohmann::json_pointer;
+
+// This provides a way to listen for value changes in a form created by
+// widgetFactory. Note: Only checkbox changes are reported currently
+Q_GLOBAL_STATIC(WidgetFactoryDependencyNotifier, factoryNotifier)
+WidgetFactoryDependencyNotifier* WidgetFactoryDependencyNotifier::Instance() {
+  return factoryNotifier();
+}
 
 static tclArgFnMap TclArgFnLookup;
 
@@ -148,14 +156,13 @@ T getDefault(const json& jsonObj) {
   return val;
 }
 
-const QString TclArgSpaceTag = "_TclArgSpace_";
 QString convertSpaces(const QString& str) {
   QString temp = str;
-  return temp.replace(" ", TclArgSpaceTag);
+  return temp.replace(" ", WF_SPACE);
 }
 QString restoreSpaces(const QString& str) {
   QString temp = str;
-  return temp.replace(TclArgSpaceTag, " ");
+  return temp.replace(WF_SPACE, " ");
 }
 
 // Set Value overloads for diff widgets
@@ -686,6 +693,13 @@ QFormLayout* FOEDAG::createWidgetFormLayout(
 
     if (subWidget != nullptr) {
       form->addRow(label, subWidget);
+
+      // If a tooltip was passed, set it for the widget and its label
+      QString tooltip = getStr(widgetJson, "tooltip");
+      if (!tooltip.isEmpty()) {
+        subWidget->setToolTip(tooltip);
+        form->labelForField(subWidget)->setToolTip(tooltip);
+      }
     }
   }
   return form;
@@ -759,7 +773,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
     // QString objName = getStr(widgetJsonObj, "id");
 
     // Get widget type and create respective widget if it's supported
-    if (type == "input" || type == "lineedit") {
+    if (type == "input" || type == "lineedit" || type == "filepath") {
       // QLineEdit - "input" or "lineedit"
       QString sysDefaultVal =
           QString::fromStdString(getDefault<std::string>(widgetJsonObj));
@@ -786,13 +800,48 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       // Apply a validator if one was requested
       QString validator = getStr(widgetJsonObj, "validator", "").toLower();
+      // if min/max are given, then the validator will set it's range as well
+      const QString UNSET = "_unset_";
+      QString minVal = getStr(widgetJsonObj, "validatorMin", UNSET);
+      QString maxVal = getStr(widgetJsonObj, "validatorMax", UNSET);
+
       if (validator == "int") {
-        ptr->setValidator(new QIntValidator(ptr));
+        auto val = new QIntValidator(ptr);
+        if (minVal != UNSET) {
+          val->setBottom(minVal.toInt());
+        }
+        if (maxVal != UNSET) {
+          val->setTop(maxVal.toInt());
+        }
+        ptr->setValidator(val);
       } else if (validator == "double") {
-        ptr->setValidator(new QDoubleValidator(ptr));
+        auto val = new QDoubleValidator(ptr);
+        if (minVal != UNSET) {
+          val->setBottom(minVal.toFloat());
+        }
+        if (maxVal != UNSET) {
+          val->setTop(maxVal.toFloat());
+        }
+        ptr->setValidator(val);
       } else if (validator == "regex") {
         ptr->setValidator(new QRegExpValidator(ptr));
       }
+
+      // Update field look based off validator results
+      QObject::connect(ptr, &QLineEdit::textChanged, [ptr]() {
+        QPalette palette;
+        // assume property is valid until we find otherwise
+        ptr->setProperty("invalid", {});
+        // Change text to red if the input is invalid
+        if (ptr->hasAcceptableInput()) {
+          palette.setColor(QPalette::Text, Qt::black);
+        } else {
+          palette.setColor(QPalette::Text, Qt::red);
+          // Mark field as invalid for downstream logic
+          ptr->setProperty("invalid", true);
+        }
+        ptr->setPalette(palette);
+      });
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
@@ -806,7 +855,57 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
         DBG_PRINT_VAL_SET(ptr, userVal);
       }
 
-      targetObject = createdWidget;
+      if (type == "filepath") {
+        // Create a container widget so we can add a file browse btn
+        QWidget* container = new QWidget();
+        container->setObjectName(objName + "_container");
+        // Create H layout with our original lineedit
+        QHBoxLayout* layout = new QHBoxLayout();
+        layout->setContentsMargins(0, 0, 0, 0);
+        container->setLayout(layout);
+        layout->addWidget(createdWidget);
+
+        // Add a file browse button
+        QToolButton* btn = new QToolButton();
+        btn->setText("...");
+        layout->addWidget(btn);
+
+        // Launch a file dialog on click
+        QObject::connect(btn, &QToolButton::pressed, [container, ptr]() {
+          QFileDialog* dlg =
+              new QFileDialog(container, "Select Path", ptr->text());
+          dlg->setFileMode(QFileDialog::AnyFile);
+
+          // We don't know if this field expects a file or directory and QT
+          // doesn't provide an option for both so this will switch the dialog
+          // type on the fly when a folder or file is selected
+          QObject::connect(dlg, &QFileDialog::currentChanged,
+                           [dlg](const QString& str) {
+                             QFileInfo info(str);
+                             if (info.isFile()) {
+                               dlg->setFileMode(QFileDialog::ExistingFile);
+                             } else if (info.isDir()) {
+                               dlg->setFileMode(QFileDialog::Directory);
+                             }
+                           });
+
+          // Update lineedit
+          if (dlg->exec()) {
+            QStringList fileNames = dlg->selectedFiles();
+            if (fileNames.count()) {
+              ptr->setText(fileNames[0]);
+            }
+          }
+        });
+
+        // filepath is a non-standard case, copy another type if looking for
+        // an example to use
+        targetObject = createdWidget;
+        createdWidget = container;
+      } else {
+        targetObject = createdWidget;
+      }
+
     } else if (type == "dropdown" || type == "combobox") {
       // QComboBox - "dropdown" or "combobox"
       QString sysDefaultVal =
@@ -835,9 +934,12 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             }
           };
 
+      // Determine if this combobox should add <unset> option
+      bool addUnset = widgetJsonObj.value("addUnset", true);
+
       // Create Widget
-      auto ptr =
-          createComboBox(objName, comboOptions, sysDefaultVal, handleChange);
+      auto ptr = createComboBox(objName, comboOptions, sysDefaultVal, addUnset,
+                                handleChange);
       createdWidget = ptr;
 
       if (tclArgPassed) {
@@ -1006,9 +1108,15 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       // QCheckBox - "checkbox"
       auto stringToCheckState = [](const QString& stateStr) -> Qt::CheckState {
         Qt::CheckState state = Qt::Unchecked;
-        if (stateStr.toLower() == "checked") {
+        QString checkStateStr = stateStr.toLower();
+        QStringList checkedStrs = {"1", "true", "checked"};
+        QStringList uncheckedStrs = {"0", "false", "unchecked"};
+
+        if (checkedStrs.contains(checkStateStr.toLower())) {
           state = Qt::Checked;
-        } else if (stateStr.toLower() == "partiallychecked") {
+        } else if (uncheckedStrs.contains(checkStateStr.toLower())) {
+          state = Qt::Unchecked;
+        } else if (checkStateStr.toLower() == "partiallychecked") {
           state = Qt::PartiallyChecked;
         }
         return state;
@@ -1036,16 +1144,23 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               WIDGET_DBG_PRINT("checkbox handleChange - Storing Tcl Arg:  -" +
                                arg.toStdString() + "\n");
             }
+            emit WidgetFactoryDependencyNotifier::Instance()->checkboxChanged(
+                ptr->property("customId").toString(), ptr);
           };
 
       // Create Widget
       auto ptr = createCheckBox(objName, text, state, handleChange);
       createdWidget = ptr;
 
-      // For boolean values like checkbox, the presence of an arg
-      // means the value is checked
       if (tclArgPassed) {
-        setVal(ptr, Qt::Checked);
+        // usually just the boolean arg is passed w/o true/false, but
+        // depending on the source, you might get a value as well
+        // so we assume checked unless a value of 0 or false is seen
+        if (argVal == "0" || argVal.toLower() == "false") {
+          setVal(ptr, Qt::Unchecked);
+        } else {
+          setVal(ptr, Qt::Checked);
+        }
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
@@ -1054,6 +1169,10 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       }
 
       targetObject = createdWidget;
+    } else {
+      // TODO @skyler-rs nov2022 add error to logging
+      // std::cout << "Type: " << type.toStdString() << " not recognized"
+      //           << std::endl;
     }
 
     if (createdWidget) {
@@ -1067,6 +1186,24 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       retVal->setProperty("targetObject", QVariant::fromValue(targetObject));
       // Store the ID so we know what value to update in the settings
       retVal->setProperty("settingsId", objName);
+
+      if (targetObject) {
+        // Allow caller to set a customId for their own uses after widget
+        // creation
+        QString id = getStr(widgetJsonObj, "customId", "_NO_CUSTOM_ID_SET_");
+        targetObject->setProperty("customId", id);
+
+        // Store dependency info in the widget properties for introspection
+        // by other features
+        auto deps = JsonArrayToQStringList(
+            widgetJsonObj.value("bool_dependencies", json::array()));
+        if (deps.count()) {
+          // dependencies returns a list for future functionality, but for now
+          // we are only checking the first bool as additional logic and design
+          // choices are required to support multiple dependency fields
+          targetObject->setProperty("bool_dependency", deps[0]);
+        }
+      }
     }
   }
 
@@ -1089,8 +1226,6 @@ QWidget* FOEDAG::createContainerWidget(QWidget* widget,
   // Add widget to a container and add a QLabel if label text was passed
   if (widget) {
     retVal->setObjectName(widget->objectName() + "_container");
-    // SMA this label might need a size policy to keep it from splitting the
-    // layout size
     if (!label.isEmpty()) {
       HLayout->addWidget(new QLabel(label));
     }
@@ -1102,13 +1237,15 @@ QWidget* FOEDAG::createContainerWidget(QWidget* widget,
 
 QComboBox* FOEDAG::createComboBox(
     const QString& objectName, const QStringList& options,
-    const QString& selectedValue,
+    const QString& selectedValue, bool addUnset,
     std::function<void(QComboBox*, const QString&)> onChange) {
   QComboBox* widget = new QComboBox();
   widget->setObjectName(objectName);
   widget->insertItems(0, options);
-  widget->addItem("<unset>");
-  widget->setCurrentText("<unset>");
+  if (addUnset) {
+    widget->addItem("<unset>");
+    widget->setCurrentText("<unset>");
+  }
   widget->setCurrentText(selectedValue);
 
   if (onChange != nullptr) {
@@ -1248,13 +1385,15 @@ QCheckBox* FOEDAG::createCheckBox(
 // that can be used in dynamically generated UIs
 QList<QObject*> FOEDAG::getTargetObjectsFromLayout(QLayout* layout) {
   QList<QObject*> settingsObjs;
-  for (int i = 0; i < layout->count(); i++) {
-    QWidget* settingsWidget = layout->itemAt(i)->widget();
-    if (settingsWidget) {
-      QObject* targetObject =
-          qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
-      if (targetObject) {
-        settingsObjs << targetObject;
+  if (layout) {
+    for (int i = 0; i < layout->count(); i++) {
+      QWidget* settingsWidget = layout->itemAt(i)->widget();
+      if (settingsWidget) {
+        QObject* targetObject =
+            qvariant_cast<QObject*>(settingsWidget->property("targetObject"));
+        if (targetObject) {
+          settingsObjs << targetObject;
+        }
       }
     }
   }

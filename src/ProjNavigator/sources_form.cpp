@@ -433,7 +433,7 @@ void SourcesForm::SlotReConfigureIp() {
       // -P<param_name> <value>
       args.append(QString("-P%1 %2")
                       .arg(QString::fromStdString(param.Name()))
-                      .arg(QString::number(param.GetValue())));
+                      .arg(QString::fromStdString(param.GetSValue())));
     }
   }
 
