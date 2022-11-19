@@ -36,8 +36,9 @@ class Compiler;
 
 class Simulator {
  public:
-  enum class SimulatorType { Verilator, Icarus, VCS, Questa, Xcelium };
+  enum class SimulatorType { Verilator, Icarus, GHDL, VCS, Questa, Xcelium };
   enum class SimulationType { RTL, Gate, PNR, Bitstream };
+  enum class WaveformType { VCD, FST };
 
   // Most common use case, create the compiler in your main
   Simulator() = default;
@@ -52,7 +53,8 @@ class Simulator {
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() const { return m_session; }
   virtual ~Simulator() {}
-  bool Simulate(SimulationType action, SimulatorType type);
+  bool Simulate(SimulationType action, SimulatorType type,
+                const std::string& wave_file);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   bool RegisterCommands(TclInterpreter* interp);
@@ -66,6 +68,10 @@ class Simulator {
   virtual void ErrorMessage(const std::string& message);
   void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
   SimulatorType GetSimulatorType() { return m_simulatorTool; }
+
+  void SetWaveformType(WaveformType type) { m_waveType = type; }
+  WaveformType GetWaveformType() { return m_waveType; }
+
   void SetSimulatorPath(SimulatorType type, const std::string path);
   void AddGateSimulationModel(const std::filesystem::path& path);
 
@@ -105,6 +111,8 @@ class Simulator {
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
   std::string m_simulationTop;
+  std::string m_waveFile;
+  WaveformType m_waveType;
 };
 
 }  // namespace FOEDAG
