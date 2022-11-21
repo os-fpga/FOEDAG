@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Simulation/Simulator.h"
 #include "Tcl/TclInterpreter.h"
 
+class QProcess;
+
 namespace FOEDAG {
 
 class TaskManager;
@@ -203,6 +205,10 @@ class Compiler {
   void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
   const std::string& GetWavefromFile() { return m_waveformFile; }
 
+  QProcess* GetGTKWaveProcess();
+  void GTKWave_send_cmd(const std::string& gtkWaveCmd,
+                        bool raiseGtkWindow = true);
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -242,6 +248,8 @@ class Compiler {
   enum AddFilesType { Design, Simulation };
   int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
                 const char* argv[], AddFilesType filesType);
+
+  void installGTKWaveHelpers();
 
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
@@ -298,6 +306,9 @@ class Compiler {
   NetlistType m_netlistType = NetlistType::Blif;
 
   std::string m_waveformFile;
+
+  // GTKWave
+  QProcess* m_gtkwave_process = nullptr;
 };
 
 }  // namespace FOEDAG

@@ -1461,31 +1461,236 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("open_project", open_project, this, nullptr);
   interp->registerCmd("run_project", run_project, this, nullptr);
 
-  auto gtkwave = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
-    QStringList args{};
-    if (argc > 1) {
-      QString file = QString::fromStdString(argv[1]);
-      if (file.count() > 0 && file[0] == "~") {
-        // QProcess doesn't substitue ~/ paths so we'll manually turn ~ paths
-        // into absolute paths
-        file = QDir::homePath() + file.mid(1);
+  auto wave_cmd = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      // Convert args to a single string
+      QStringList args{};
+      for (int i = 1; i < argc; i++) {
+        args.append(argv[i]);
       }
-      args << file;
+      QString cmd = args.join(" ") + "\n";
+
+      // Send cmd to GTKWave
+      compiler->GTKWave_send_cmd(cmd.toStdString());
     }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_cmd", wave_cmd, this, nullptr);
 
-    auto binPath = GlobalSession->Context()->BinaryPath();
-    auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
+  auto wave_open = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      QString file{};
+      // check if a file was requested
+      if (argc > 1) {
+        file = QString::fromStdString(argv[1]);
+        if (file.count() > 0 && file[0] == "~") {
+          // ~/ doesn't get substitued so we'll manually turn ~ paths into
+          // absolute paths
+          file = QDir::homePath() + file.mid(1);
+        }
+      }
 
-    QProcess* process = new QProcess();
-    QString cmd = QString::fromStdString(exePath.string());
-    process->start(cmd, args);
+      // if a file was passed, set the loadFile command
+      QString cmd{};
+      if (!file.isEmpty()) {
+        cmd = "gtkwave::loadFile " + file;
+      }
+
+      // Send cmd to GTKWave
+      compiler->GTKWave_send_cmd(cmd.toStdString());
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_open", wave_open, this, nullptr);
+
+  auto wave_time = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      if (argc != 2) {
+        Tcl_AppendResult(
+            interp,
+            qPrintable("Expected Syntax: wave_time <timeString>\ntimeString "
+                       "can specify its time units. Ex: 1ps, 1000ns, 1s"),
+            nullptr);
+        return TCL_ERROR;
+      }
+
+      QString cmd =
+          "gtkwave::setWindowStartTime " + QString::fromStdString(argv[1]);
+
+      // Send cmd to GTKWave
+      compiler->GTKWave_send_cmd(cmd.toStdString());
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_time", wave_time, this, nullptr);
+
+  auto wave_show = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      if (argc != 2) {
+        Tcl_AppendResult(interp,
+                         qPrintable("Expected Syntax: wave_show <signalName>"),
+                         nullptr);
+        return TCL_ERROR;
+      }
+      std::string cmd = "foedag::show_signal " + std::string(argv[1]);
+      compiler->GTKWave_send_cmd(cmd);
+    }
 
     return TCL_OK;
   };
-  interp->registerCmd("gtkwave", gtkwave, this, nullptr);
+  interp->registerCmd("wave_show", wave_show, this, nullptr);
+
+  auto wave_refresh = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      compiler->GTKWave_send_cmd("gtkwave::reloadFile");
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_refresh", wave_refresh, this, nullptr);
 
   return true;
+}
+
+// This will send a given command to the gtkwave wish interface over stdin
+void Compiler::GTKWave_send_cmd(const std::string& gtkWaveCmd,
+                                bool raiseGtkWindow /* true */) {
+  QProcess* process = GetGTKWaveProcess();
+
+  QString cmd = QString::fromStdString(gtkWaveCmd);
+  if (process && process->isWritable()) {
+    if (!cmd.endsWith('\n')) {
+      // Add a newline to end of command if one is missing
+      // (GTKWave will hang if you don't send a newline with your command)
+      cmd += "\n";
+    }
+
+    if (raiseGtkWindow) {
+      // Add a window raise command before the command to try to bring gtkwave
+      // to focus
+      cmd = "gtkwave::presentWindow\n" + cmd;
+    }
+
+    // Send command to GTKWave's stdin
+    process->write(qPrintable(cmd));
+    process->waitForBytesWritten();
+  }
+}
+
+// This will return a pointer to the current gtkwave process, if no process is
+// running, one will be started
+QProcess* Compiler::GetGTKWaveProcess() {
+  if (!m_gtkwave_process) {
+    m_gtkwave_process = new QProcess();
+
+    // Get a path to our local gtkwave binary
+    auto binPath = GlobalSession->Context()->BinaryPath();
+    auto exePath = binPath / "gtkwave" / "bin";
+    QString wd = QString::fromStdString(exePath.string());
+    // Need to be in the gtkwave bin dir to resolve some dependency issues
+    m_gtkwave_process->setWorkingDirectory(wd);
+
+    // Enable process control via tcl interface over std in with --wish
+    QString wishArg = "--wish";
+    QStringList args{wishArg};
+
+    // Start GTKWave Process
+    // invoking ./gtkwave to ensure we load the local copy
+    m_gtkwave_process->start("./gtkwave", args);
+    if (m_gtkwave_process->waitForStarted()) {
+      // Clear pointer on process close
+      QObject::connect(
+          m_gtkwave_process,
+          // static_cast required due to overload of signal params
+          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(
+              &QProcess::finished),
+          [this](int exitCode, QProcess::ExitStatus exitStauts) {
+            m_gtkwave_process = nullptr;
+          });
+
+      // Listen to stdout
+      QObject::connect(
+          m_gtkwave_process, &QProcess::readyReadStandardOutput, [this]() {
+            // If we want to listen for return values from gtkwave
+            // getters, this is where we should check the value.
+
+            // Possible way of returning getter results:
+            // `wave_cmd puts \[gtkwave::getWaveWidth\]`
+            // also see installGTKWaveHelpers() for fine control
+
+            // Read stdout data
+            QByteArray data = m_gtkwave_process->readAllStandardOutput();
+            QString trimmed = data.trimmed();
+            // std::cout << "stdout: " << trimmed.toStdString() << std::endl;
+
+            // Listen for the wish interface being opened
+            if (trimmed.startsWith("Interpreter id is")) {
+              // Install extra tcl helpers
+              installGTKWaveHelpers();
+            }
+          });
+
+      // Listen to stderr
+      QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardError,
+                       [this]() {
+                         // TODO @skyler-rs nov2022 This should be logged once
+                         // we have a logging system
+
+                         // QByteArray data =
+                         // m_gtkwave_process->readAllStandardError(); std::cout
+                         // << "error: " << data.toStdString() << std::endl;
+                       });
+    }
+  }
+
+  return m_gtkwave_process;
+}
+
+// This will install helper functions that build upon existing gtkwave::
+// commands to provide the functionality we need
+void Compiler::installGTKWaveHelpers() {
+  std::string cmds = R"(
+    namespace eval foedag {}
+
+    proc foedag::unselect_all {} {
+      set signals [gtkwave::getDisplayedSignals]
+      gtkwave::unhighlightSignalsFromList $signals
+    }
+
+    proc foedag::add_signal_once {signal} {
+      # This will check the existing signals for a dupe before adding the signal
+      set signals [gtkwave::getDisplayedSignals]
+      if { [lsearch $signals $signal] < 0 } {
+        # signal doesn't exist, add it
+        gtkwave::addSignalsFromList $signal
+      }
+    }
+
+    proc foedag::show_signal { signal } {
+      # This is a helper function to add and highlight a signal.
+      # It will only add the signal if it doesn't exist so duplicates are avoided
+      # It will unhighlight all signals before selecting the given signal
+      foedag::add_signal_once $signal
+
+      # unhighlight all signals
+      foedag::unselect_all
+
+      # highglight signal
+      gtkwave::highlightSignalsFromList $signal
+    }
+
+  )";
+
+  GTKWave_send_cmd(cmds);
 }
 
 bool Compiler::Compile(Action action) {
