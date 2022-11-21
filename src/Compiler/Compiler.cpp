@@ -1641,7 +1641,7 @@ QProcess* Compiler::GetGTKWaveProcess() {
 
       // Listen to stderr
       QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardError,
-                       [this]() {
+                       []() {
                          // TODO @skyler-rs nov2022 This should be logged once
                          // we have a logging system
 
