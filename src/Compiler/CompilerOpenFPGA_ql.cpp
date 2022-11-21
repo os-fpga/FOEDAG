@@ -2457,7 +2457,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   }
   // if we want to use Tabby CAD, use 'synth_qlf' for the pass_name:
   if(use_tabbycad_for_synthesis) {
-    yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_qlf"));
+    yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
   }
   else {
     // if we want to use the open source YosysHQ yosys + plugins, use 'synth_quicklogic' for the pass_name:
