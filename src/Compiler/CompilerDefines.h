@@ -92,6 +92,8 @@ static constexpr uint ParentDataRole = Qt::UserRole + 4;
 static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 static constexpr uint TaskId = Qt::UserRole + 6;
 
+static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};
+
 /*!
  * \brief prepareCompilerView
  * Create app parts of the compiler task view.

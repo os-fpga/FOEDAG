@@ -235,12 +235,15 @@ void MainWindow::openExampleProject() {
       }
     }
 
-    // QT doesn't have a convenience function for recursively copying a folder
-    // so we'll use std::filesystem instead
-    std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
-    std::filesystem::path destPath = std::filesystem::path(dest.toStdString());
-    std::filesystem::copy(srcPath, destPath,
-                          std::filesystem::copy_options::recursive);
+    if (src != dest) {
+      // QT doesn't have a convenience function for recursively copying a folder
+      // so we'll use std::filesystem instead
+      std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
+      std::filesystem::path destPath =
+          std::filesystem::path(dest.toStdString());
+      std::filesystem::copy(srcPath, destPath,
+                            std::filesystem::copy_options::recursive);
+    }
 
     // open the newly copied example project
     openProject(dest + QDir::separator() + file, false, false);
@@ -851,6 +854,10 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(m_taskManager, &TaskManager::started, this,
           [this]() { m_progressWidget->show(); });
+  connect(m_taskManager, &TaskManager::taskReportCreated, this,
+          [this](auto taskName) {
+            statusBar()->showMessage(tr("%1 generated").arg(taskName));
+          });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);

@@ -18,29 +18,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef TASKS_H
-#define TASKS_H
+#include <qnamespace.h>
 
-#include <QDialog>
+#include <memory>
+#include <unordered_map>
+
+#include "ITaskReportManager.h"
 
 namespace FOEDAG {
 
-class ITaskReportManager;
+class TaskReportManagerRegistry final {
+ public:
+  using ReportManagerPtr = std::shared_ptr<ITaskReportManager>;
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
+  // Register given manager under the task type. Retuns false if manager has
+  // been registered before
+  bool registerReportManager(uint type, ReportManagerPtr manager);
+  // Returns report manager the task type.
+  ReportManagerPtr getReportManager(uint type) const;
 
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
+ private:
+  std::unordered_map<uint, ReportManagerPtr> m_managers;
+};
 
 }  // namespace FOEDAG
-
-#endif

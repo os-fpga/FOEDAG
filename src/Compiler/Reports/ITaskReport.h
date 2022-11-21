@@ -18,29 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#ifndef TASKS_H
-#define TASKS_H
-
-#include <QDialog>
+#include <string>
+#include <vector>
 
 namespace FOEDAG {
 
-class ITaskReportManager;
+/* Given interface represents a report for the compilation task.
+ * It returns row and column data as strings. For simplicity, only
+ * standard table data is supported, no parent items. It can be
+ * extended if needed.
+ */
+class ITaskReport {
+ public:
+  virtual ~ITaskReport() = default;
 
-QDialog* createTaskDialog(const QString& taskName);
-void handleTaskDialogRequested(const QString& category);
-void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
-
-// Setters/Getters for tclArgs
-void TclArgs_setSynthesisOptions(const std::string& argsStr);
-std::string TclArgs_getSynthesisOptions();
-void TclArgs_setExampleArgs(const std::string& argsStr);
-std::string TclArgs_getExampleArgs();
-void TclArgs_setPlacementOptions(const std::string& argsStr);
-std::string TclArgs_getPlacementOptions();
-
+  using LineValues = std::vector<std::string>;
+  // Returns report column names
+  virtual const LineValues &getColumns() const = 0;
+  // Returns report data - rows of values
+  virtual const std::vector<LineValues> &getData() const = 0;
+  // Returns report name
+  virtual const std::string &getName() const = 0;
+};
 }  // namespace FOEDAG
-
-#endif

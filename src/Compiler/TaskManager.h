@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <optional>
 
+#include "Reports/TaskReportManagerRegistry.h"
 #include "Task.h"
 
 namespace FOEDAG {
@@ -86,6 +87,7 @@ class TaskManager : public QObject {
 
   void setTaskCount(int count);
 
+  const TaskReportManagerRegistry &getReportManagerRegistry() const;
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
@@ -105,6 +107,8 @@ class TaskManager : public QObject {
    */
   void progress(int progress, int max, const QString &msg = {});
 
+  void taskReportCreated(QString reportName);
+
  private slots:
   void runNext();
 
@@ -117,6 +121,7 @@ class TaskManager : public QObject {
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
   QVector<Task *> m_taskQueue;
+  TaskReportManagerRegistry m_reportManagerRegistry;
   int m_taskCount{0};
   int counter{0};
 };

@@ -1306,7 +1306,7 @@ bool CompilerOpenFPGA::Synthesize() {
              << std::endl;
 
     copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
-            "synthesis.rpt");
+            SYNTHESIS_LOG);
     return true;
   }
 }

@@ -175,12 +175,18 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
   QString viewLogStr = "View " + title + " Logs";
   QAction *viewLog = new QAction(viewLogStr, this);
   logFilePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
-  if (!QFile(logFilePath).exists()) {
-    viewLog->setEnabled(false);
-  }
+  auto logExists = QFile::exists(logFilePath);
+  viewLog->setEnabled(logExists);
   connect(viewLog, &QAction::triggered, this,
           [this, logFilePath]() { emit ViewFileRequested(logFilePath); });
   menu->addAction(viewLog);
+
+  auto viewReportStr = "View " + title + " Reports";
+  auto *viewReport = new QAction(viewReportStr, this);
+  viewReport->setEnabled(logExists);
+  connect(viewReport, &QAction::triggered, this,
+          [this, task]() { emit ViewReportRequested(task); });
+  menu->addAction(viewReport);
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,
