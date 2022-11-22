@@ -332,6 +332,29 @@ IPInstance* IPGenerator::GetIPInstance(const std::string& moduleName) {
   return retVal;
 }
 
+FOEDAG::Value* IPGenerator::GetCatalogParam(IPInstance* instance,
+                                            const std::string& paramName) {
+  // Searches a given instance's definition parameters which contain additional
+  // meta data stored during catalog generation
+  FOEDAG::Value* retVal{};
+
+  // Search based off parameter name
+  auto isMatch = [paramName](FOEDAG::Value* param) {
+    return param->Name() == paramName;
+  };
+  if (instance && instance->Definition()) {
+    auto params = instance->Definition()->Parameters();
+    auto it = std::find_if(params.begin(), params.end(), isMatch);
+
+    // return result
+    if (it != params.end()) {
+      retVal = *it;
+    }
+  }
+
+  return retVal;
+}
+
 void IPGenerator::RemoveIPInstance(IPInstance* instance) {
   auto it = std::find(m_instances.begin(), m_instances.end(), instance);
   if (it != m_instances.end()) {
@@ -427,18 +450,30 @@ bool IPGenerator::Generate() {
         jsonF << "{" << std::endl;
         for (auto param : inst->Parameters()) {
           std::string value;
-          switch (param.GetType()) {
-            case Value::Type::ParamIpVal:
-              value = param.GetSValue();
-              break;
-            case Value::Type::ParamString:
-              value = param.GetSValue();
-              break;
-            case Value::Type::ParamInt:
-              value = param.GetSValue();
-              break;
-            case Value::Type::ConstInt:
-              value = param.GetSValue();
+          // configure ip loses type info so we'll use the ip catalog's
+          // definition for parameter type info
+          auto catalogParam = GetCatalogParam(inst, param.Name());
+          if (catalogParam) {
+            switch (catalogParam->GetType()) {
+              case Value::Type::ParamIpVal: {
+                value = param.GetSValue();
+                auto type = ((IPParameter*)catalogParam)->GetParamType();
+                if (type == IPParameter::ParamType::FilePath ||
+                    type == IPParameter::ParamType::String) {
+                  value = "\"" + value + "\"";
+                }
+                break;
+              }
+              case Value::Type::ParamString:
+                value = param.GetSValue();
+                value = "\"" + value + "\"";
+                break;
+              case Value::Type::ParamInt:
+                value = param.GetSValue();
+                break;
+              case Value::Type::ConstInt:
+                value = param.GetSValue();
+            }
           }
           jsonF << "   \"" << param.Name() << "\": " << value << ","
                 << std::endl;
