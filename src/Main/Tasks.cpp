@@ -264,6 +264,6 @@ void FOEDAG::handleViewReportRequested(ITaskReportManager& reportManager) {
     reports.push_back(reportManager.createReport(reportId));
 
   for (auto& report : reports) {
-    openReportView(*report);
+    if (report) openReportView(*report);
   }
 }
