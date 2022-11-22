@@ -80,7 +80,7 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
   emit reportCreated(QString(REPORT_NAME));
 
   return std::make_unique<TableReport>(
-      std::move(columnNames), std::move(resourcesData), "Placement report");
+      std::move(columnNames), std::move(resourcesData), REPORT_NAME);
 }
 
 std::map<size_t, std::string> PlacementReportManager::getMessages() {
