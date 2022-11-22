@@ -1490,7 +1490,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         if (file.size() > 0 && file[0] == '~') {
           // ~/ doesn't get substitued so we'll manually turn ~ paths into
           // absolute paths
-          auto separator = std::filesystem::path::preferred_separator;
+          std::string separator(1, std::filesystem::path::preferred_separator);
           auto pos = file.find_first_of(separator, 0);
           if (pos != std::string::npos) {
             // this covers an uncommon scenario where a user provides a homepath
