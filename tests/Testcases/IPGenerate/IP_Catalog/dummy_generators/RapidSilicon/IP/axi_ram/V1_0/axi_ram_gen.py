@@ -54,7 +54,7 @@ obj = {
             "parameter": "file_path",
             "title": "FILE_PATH",
             "default": "./",
-            "type": "str",
+            "type": "filepath",
             "description": "File Path for memory initialization file"
         }
     ],
