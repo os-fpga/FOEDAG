@@ -1466,14 +1466,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     if (compiler) {
       // Convert args to a single string
-      QStringList args{};
+      std::vector<std::string> args{};
       for (int i = 1; i < argc; i++) {
-        args.append(argv[i]);
+        args.push_back(argv[i]);
       }
-      QString cmd = args.join(" ") + "\n";
+      std::string cmd = StringUtils::join(args, " ") + "\n";
 
       // Send cmd to GTKWave
-      compiler->GTKWaveSendCmd(cmd.toStdString());
+      compiler->GTKWaveSendCmd(cmd);
     }
     return TCL_OK;
   };
