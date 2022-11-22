@@ -21,13 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PlacementReportManager.h"
 
-#include "CompilerDefines.h"
-#include "NewProject/ProjectManager/project.h"
-#include "Utils/FileUtils.h"
-
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+
+#include "CompilerDefines.h"
+#include "NewProject/ProjectManager/project.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr const char *REPORT_NAME{"Report Resource Utilization"};
@@ -79,8 +79,8 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
-  return std::make_unique<TableReport>(
-      std::move(columnNames), std::move(resourcesData), REPORT_NAME);
+  return std::make_unique<TableReport>(std::move(columnNames),
+                                       std::move(resourcesData), REPORT_NAME);
 }
 
 std::map<size_t, std::string> PlacementReportManager::getMessages() {
