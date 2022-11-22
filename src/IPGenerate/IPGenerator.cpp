@@ -450,8 +450,10 @@ bool IPGenerator::Generate() {
         jsonF << "{" << std::endl;
         for (auto param : inst->Parameters()) {
           std::string value;
-          // configure ip loses type info so we'll use the ip catalog's
-          // definition for parameter type info
+          // The configure_ip command loses type info because we go from full
+          // json meta data provided by the ip_catalog generators to a single
+          // -Pname=val argument in a tcl command line. As such, we'll use the
+          // ip catalog's definition for parameter type info
           auto catalogParam = GetCatalogParam(inst, param.Name());
           if (catalogParam) {
             switch (catalogParam->GetType()) {
