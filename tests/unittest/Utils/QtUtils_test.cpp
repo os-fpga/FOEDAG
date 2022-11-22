@@ -35,3 +35,14 @@ TEST(QtUtils, SplitStringSkipEmpty) {
   auto expect = QStringList{{"test", "test"}};
   EXPECT_EQ(QtUtils::StringSplit(test, ' '), expect);
 }
+
+TEST(QtUtils, IsEqual) {
+  const QString test{"test"};
+  EXPECT_EQ(QtUtils::IsEqual(test, "test"), true);
+  EXPECT_EQ(QtUtils::IsEqual(test, "TEST"), true);
+  EXPECT_EQ(QtUtils::IsEqual(test, "TesT"), true);
+  EXPECT_EQ(QtUtils::IsEqual(test, "tESt"), true);
+  EXPECT_EQ(QtUtils::IsEqual(test, "tes"), false);
+  EXPECT_EQ(QtUtils::IsEqual(test, "t"), false);
+  EXPECT_EQ(QtUtils::IsEqual(test, "any"), false);
+}
