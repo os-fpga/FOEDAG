@@ -30,10 +30,11 @@ class Compiler;
 class TaskManager;
 
 namespace Design {
+
+// The ID's of enum values are important since they are saved to project file.
+// Please append new values at the end
 enum Language {
-  C,
-  CPP,
-  BLIF,
+  BLIF = 0,
   EBLIF,
   VHDL_1987,
   VHDL_1993,
@@ -46,8 +47,10 @@ enum Language {
   SYSTEMVERILOG_2009,
   SYSTEMVERILOG_2012,
   SYSTEMVERILOG_2017,
+  C,
+  CPP,
 };
-}
+}  // namespace Design
 
 Design::Language FromFileType(const QString &type);
 
