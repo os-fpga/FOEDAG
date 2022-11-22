@@ -1473,7 +1473,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       QString cmd = args.join(" ") + "\n";
 
       // Send cmd to GTKWave
-      compiler->GTKWave_send_cmd(cmd.toStdString());
+      compiler->GTKWaveSendCmd(cmd.toStdString());
     }
     return TCL_OK;
   };
@@ -1483,25 +1483,33 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (compiler) {
-      QString file{};
+      std::string file{};
       // check if a file was requested
       if (argc > 1) {
-        file = QString::fromStdString(argv[1]);
-        if (file.count() > 0 && file[0] == "~") {
+        file = argv[1];
+        if (file.size() > 0 && file[0] == '~') {
           // ~/ doesn't get substitued so we'll manually turn ~ paths into
           // absolute paths
-          file = QDir::homePath() + file.mid(1);
+          auto separator = std::filesystem::path::preferred_separator;
+          auto pos = file.find_first_of(separator, 0);
+          if (pos != std::string::npos) {
+            // this covers an uncommon scenario where a user provides a homepath
+            // like ~user/file.txt as well as the standard ~/
+            file.erase(0, pos);
+          }
+          // Manally add separator now that we've stripped the home/~ portions
+          file = QDir::homePath().toStdString() + separator + file;
         }
       }
 
       // if a file was passed, set the loadFile command
-      QString cmd{};
-      if (!file.isEmpty()) {
+      std::string cmd{};
+      if (!file.empty()) {
         cmd = "gtkwave::loadFile " + file;
       }
 
       // Send cmd to GTKWave
-      compiler->GTKWave_send_cmd(cmd.toStdString());
+      compiler->GTKWaveSendCmd(cmd);
     }
     return TCL_OK;
   };
@@ -1520,11 +1528,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
 
-      QString cmd =
-          "gtkwave::setWindowStartTime " + QString::fromStdString(argv[1]);
+      std::string cmd = std::string("gtkwave::setWindowStartTime ") + argv[1];
 
       // Send cmd to GTKWave
-      compiler->GTKWave_send_cmd(cmd.toStdString());
+      compiler->GTKWaveSendCmd(cmd);
     }
     return TCL_OK;
   };
@@ -1541,7 +1548,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
       std::string cmd = "foedag::show_signal " + std::string(argv[1]);
-      compiler->GTKWave_send_cmd(cmd);
+      compiler->GTKWaveSendCmd(cmd);
     }
 
     return TCL_OK;
@@ -1552,7 +1559,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (compiler) {
-      compiler->GTKWave_send_cmd("gtkwave::reloadFile");
+      compiler->GTKWaveSendCmd("gtkwave::reloadFile");
     }
     return TCL_OK;
   };
@@ -1562,13 +1569,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 }
 
 // This will send a given command to the gtkwave wish interface over stdin
-void Compiler::GTKWave_send_cmd(const std::string& gtkWaveCmd,
-                                bool raiseGtkWindow /* true */) {
+void Compiler::GTKWaveSendCmd(const std::string& gtkWaveCmd,
+                              bool raiseGtkWindow /* true */) {
   QProcess* process = GetGTKWaveProcess();
 
-  QString cmd = QString::fromStdString(gtkWaveCmd);
+  std::string cmd = gtkWaveCmd;
   if (process && process->isWritable()) {
-    if (!cmd.endsWith('\n')) {
+    if (cmd.back() != '\n') {
       // Add a newline to end of command if one is missing
       // (GTKWave will hang if you don't send a newline with your command)
       cmd += "\n";
@@ -1581,7 +1588,7 @@ void Compiler::GTKWave_send_cmd(const std::string& gtkWaveCmd,
     }
 
     // Send command to GTKWave's stdin
-    process->write(qPrintable(cmd));
+    process->write(cmd.c_str());
     process->waitForBytesWritten();
   }
 }
@@ -1614,7 +1621,10 @@ QProcess* Compiler::GetGTKWaveProcess() {
           static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(
               &QProcess::finished),
           [this](int exitCode, QProcess::ExitStatus exitStauts) {
-            m_gtkwave_process = nullptr;
+            if (m_gtkwave_process) {
+              m_gtkwave_process->deleteLater();
+              m_gtkwave_process = nullptr;
+            }
           });
 
       // Listen to stdout
@@ -1690,7 +1700,7 @@ void Compiler::installGTKWaveHelpers() {
 
   )";
 
-  GTKWave_send_cmd(cmds);
+  GTKWaveSendCmd(cmds);
 }
 
 bool Compiler::Compile(Action action) {

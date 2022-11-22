@@ -206,8 +206,8 @@ class Compiler {
   const std::string& GetWavefromFile() { return m_waveformFile; }
 
   QProcess* GetGTKWaveProcess();
-  void GTKWave_send_cmd(const std::string& gtkWaveCmd,
-                        bool raiseGtkWindow = true);
+  void GTKWaveSendCmd(const std::string& gtkWaveCmd,
+                      bool raiseGtkWindow = true);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
