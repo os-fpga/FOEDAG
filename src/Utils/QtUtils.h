@@ -28,6 +28,9 @@ class QtUtils {
  public:
   // no empty parts
   static QStringList StringSplit(const QString &str, const QChar &sep);
+
+  // return true if str is equal to s with Qt::CaseInsensitive
+  static bool IsEqual(const QString &str, const QString &s);
 };
 
 }  // namespace FOEDAG
