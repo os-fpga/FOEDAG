@@ -15,6 +15,7 @@ class summaryForm : public QWidget {
  public:
   explicit summaryForm(QWidget *parent = nullptr);
   ~summaryForm();
+  void setProjectSettings(bool on);
 
   void setProjectName(const QString &proName, const QString &proType);
   void setSourceCount(const int &srcCount, const int constrCount);
@@ -22,6 +23,7 @@ class summaryForm : public QWidget {
 
  private:
   Ui::summaryForm *ui;
+  bool m_projectSettings{false};
 };
 }  // namespace FOEDAG
 #endif  // SUMMARYFORM_H

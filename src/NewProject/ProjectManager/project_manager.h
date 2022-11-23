@@ -166,6 +166,7 @@ class ProjectManager : public QObject {
   bool HasDesign() const;
 
   int setProjectType(const QString &strType);
+  QString projectType() const;
 
   ErrorInfo addFiles(const QString &commands, const QString &libs,
                      const QString &fileNames, int lang, const QString &grName,
