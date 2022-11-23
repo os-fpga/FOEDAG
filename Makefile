@@ -170,6 +170,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt1.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt2.tcl
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_invoke.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl

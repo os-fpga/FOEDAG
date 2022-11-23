@@ -1479,6 +1479,24 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("wave_cmd", wave_cmd, this, nullptr);
 
+  auto wave_get_return = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      auto wave = compiler->GetGTKWaveProcess();
+      QString result{};
+      // ReturnVal gets set in the readyReadStandardOutput handler set in
+      // GetGTKWaveProcess()
+      auto retVal = wave->property("ReturnVal");
+      if (retVal.isValid()) {
+        result = retVal.toString();
+      }
+      Tcl_AppendResult(interp, qPrintable(result), nullptr);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_get_return", wave_get_return, this, nullptr);
+
   auto wave_open = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -1640,12 +1658,19 @@ QProcess* Compiler::GetGTKWaveProcess() {
             // Read stdout data
             QByteArray data = m_gtkwave_process->readAllStandardOutput();
             QString trimmed = data.trimmed();
-            // std::cout << "stdout: " << trimmed.toStdString() << std::endl;
 
             // Listen for the wish interface being opened
             if (trimmed.startsWith("Interpreter id is")) {
               // Install extra tcl helpers
               installGTKWaveHelpers();
+            }
+
+            // If the user had gtkwave print _RETURN_, capture and store the
+            // rest of the output, this can be retrieved with wave_get_return
+            QString retStr = "_RETURN_";
+            if (trimmed.startsWith(retStr)) {
+              trimmed.remove(0, retStr.size());
+              m_gtkwave_process->setProperty("ReturnVal", trimmed);
             }
           });
 
