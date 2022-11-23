@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <string>
-#include <vector>
+#include <QStringList>
+#include <QVector>
 
 namespace FOEDAG {
 
@@ -34,12 +34,13 @@ class ITaskReport {
  public:
   virtual ~ITaskReport() = default;
 
-  using LineValues = std::vector<std::string>;
+  using LineValues = QStringList;
+  using TableData = QVector<LineValues>;
   // Returns report column names
   virtual const LineValues &getColumns() const = 0;
   // Returns report data - rows of values
-  virtual const std::vector<LineValues> &getData() const = 0;
+  virtual const TableData &getData() const = 0;
   // Returns report name
-  virtual const std::string &getName() const = 0;
+  virtual const QString &getName() const = 0;
 };
 }  // namespace FOEDAG

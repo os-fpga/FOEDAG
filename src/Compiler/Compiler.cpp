@@ -2078,7 +2078,7 @@ bool Compiler::Placement() {
            << std::endl;
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, "placement.rpt");
+  CreateDummyLog(m_projManager, PLACEMENT_LOG);
   return true;
 }
 

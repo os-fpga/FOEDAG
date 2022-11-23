@@ -96,6 +96,8 @@ static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 static constexpr uint TaskId = Qt::UserRole + 6;
 
 static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};
+static constexpr const char *PLACEMENT_LOG{"placement.rpt"};
+static constexpr const char *PLACEMENT_TIMING_LOG{"post_place_timing.rpt"};
 
 /*!
  * \brief prepareCompilerView
