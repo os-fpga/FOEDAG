@@ -51,7 +51,7 @@ class newProjectDialog : public QDialog {
   void SetPageActive(FormIndex index);
 
  private slots:
-
+  void updateSummaryPage();
   void on_buttonBox_accepted();
   void on_buttonBox_rejected();
   void on_next();
@@ -79,6 +79,7 @@ class newProjectDialog : public QDialog {
   void ResetToProjectSettings();
   std::pair<bool, QString> ValuesValid() const;
   QList<QString> FindCompileUnitConflicts() const;
+  void updateSummary(const QString& projectName, const QString& projectType);
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

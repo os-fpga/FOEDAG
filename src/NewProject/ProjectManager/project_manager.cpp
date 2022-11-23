@@ -310,6 +310,11 @@ int ProjectManager::setProjectType(const QString& strType) {
   return ret;
 }
 
+QString ProjectManager::projectType() const {
+  ProjectConfiguration* projectConfig = Project::Instance()->projectConfig();
+  return projectConfig ? projectConfig->projectType() : QString{};
+}
+
 ProjectManager::ErrorInfo ProjectManager::addFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {

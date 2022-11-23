@@ -66,6 +66,8 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 
   ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Finish");
   ui->m_tabWidget->tabBar()->setStyle(new CustomTabStyle);
+  connect(ui->m_tabWidget, &QTabWidget::currentChanged, this,
+          &newProjectDialog::updateSummaryPage);
   Reset();
 
   m_projectManager = new ProjectManager(this);
@@ -111,6 +113,15 @@ void newProjectDialog::SetPageActive(FormIndex index) {
   }
 }
 
+void newProjectDialog::updateSummaryPage() {
+  if (m_mode == Mode::NewProject) return;
+  auto currentPage = ui->m_tabWidget->currentWidget();
+  if (currentPage == m_sumForm) {
+    updateSummary(m_projectManager->getProjectName(),
+                  m_projectManager->projectType());
+  }
+}
+
 void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_LOCATION == m_index) {
     BackBtn->setEnabled(false);
@@ -121,11 +132,8 @@ void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_SUMMARYF == m_index) {
     NextBtn->setEnabled(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-    m_sumForm->setProjectName(m_locationForm->getProjectName(),
-                              m_proTypeForm->getProjectType());
-    m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
-    m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
-                              m_addConstrsForm->getFileData().count());
+    updateSummary(m_locationForm->getProjectName(),
+                  m_proTypeForm->getProjectType());
   } else {
     NextBtn->setEnabled(true);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -190,6 +198,10 @@ void newProjectDialog::ResetToProjectSettings() {
   index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
                                      tr("Select Target Device"));
   m_tabIndexes.insert(INDEX_DEVICEPL, index);
+  m_sumForm = new summaryForm(this);
+  m_sumForm->setProjectSettings(true);
+  index = ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
+  m_tabIndexes.insert(INDEX_SUMMARYF, index);
 
   for (auto &settings : m_settings) settings->updateUi(m_projectManager);
 
@@ -250,6 +262,14 @@ QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
   }
 
   return conflictKeys;
+}
+
+void newProjectDialog::updateSummary(const QString &projectName,
+                                     const QString &projectType) {
+  m_sumForm->setProjectName(projectName, projectType);
+  m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
+  m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
+                            m_addConstrsForm->getFileData().count());
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
