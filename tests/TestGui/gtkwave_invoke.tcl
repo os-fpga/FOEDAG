@@ -18,15 +18,18 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 gui_start
-# invoke gtkwave and send it a command asking it to get the wave width and print it w/ _RETURN_ in front
+
+# open gtkwave and give it time to load
+# GitHub CI was failing without this
 wave_open
 after 1000
+
+# Send gtkwave a command to get the wave width and print it w/ _RETURN_ in front
 set test [wave_cmd set w \[gtkwave::getWaveWidth\]\nputs \"_RETURN_\$w\"]
+# delay a moment before requesting return value
+after 1000
 # retrieve returned results from the gtkwave process
-after 1000
 set result [wave_get_return]
-puts $result
-after 1000
 # close gtkwave via the menu
 wave_cmd gtkwave::/File/Quit
 
