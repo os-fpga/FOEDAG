@@ -112,7 +112,7 @@ class Simulator {
   std::vector<std::filesystem::path> m_gateSimulationModels;
   std::string m_simulationTop;
   std::string m_waveFile;
-  WaveformType m_waveType;
+  WaveformType m_waveType = WaveformType::FST;
 };
 
 }  // namespace FOEDAG
