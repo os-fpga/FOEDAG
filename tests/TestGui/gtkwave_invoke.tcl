@@ -30,6 +30,7 @@ set test [wave_cmd set w \[gtkwave::getWaveWidth\]\nputs \"_RETURN_\$w\"]
 after 1000
 # retrieve returned results from the gtkwave process
 set result [wave_get_return]
+after 1000
 # close gtkwave via the menu
 wave_cmd gtkwave::/File/Quit
 
