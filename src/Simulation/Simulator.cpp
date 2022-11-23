@@ -88,6 +88,11 @@ void Simulator::ErrorMessage(const std::string& message) {
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
   m_waveFile = wave_file;
+  if (m_waveFile.find(".vcd") != std::string::npos) {
+    m_waveType = WaveformType::VCD;
+  } else if (m_waveFile.find(".fst") != std::string::npos) {
+    m_waveType = WaveformType::FST;
+  }
   switch (action) {
     case SimulationType::RTL: {
       return SimulateRTL(type);
@@ -224,10 +229,22 @@ std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
 
 std::string Simulator::SimulatorOptions(SimulatorType type) {
   switch (type) {
-    case SimulatorType::Verilator:
-      return "-cc --assert --trace --trace-fst -Wall -Wno-DECLFILENAME "
-             "-Wno-UNUSEDSIGNAL "
-             "-Wno-TIMESCALEMOD";
+    case SimulatorType::Verilator: {
+      std::string options =
+          "-cc --assert -Wall -Wno-DECLFILENAME "
+          "-Wno-UNUSEDSIGNAL "
+          "-Wno-TIMESCALEMOD ";
+      switch (m_waveType) {
+        case WaveformType::VCD:
+          options += "--trace ";
+          break;
+        case WaveformType::FST:
+          options += "--trace-fst ";
+          break;
+      }
+      return options;
+      break;
+    }
     case SimulatorType::Icarus:
       return "";
     case SimulatorType::GHDL:
