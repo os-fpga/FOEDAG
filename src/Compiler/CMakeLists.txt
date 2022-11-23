@@ -77,7 +77,7 @@ set (SRC_H_INSTALL_LIST
   Log.h
   Reports/ITaskReport.h
   Reports/ITaskReportManager.h
-  Reports/PlacementReportManager.cpp
+  Reports/PlacementReportManager.h
   Reports/TableReport.h
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
