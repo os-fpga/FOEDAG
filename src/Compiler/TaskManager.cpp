@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 
+#include "Reports/PlacementReportManager.h"
 #include "Reports/SynthesisReportManager.h"
 
 namespace FOEDAG {
@@ -136,6 +137,12 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       SYNTHESIS, std::move(synthesisReportManager));
+
+  auto placementReportManager = std::make_shared<PlacementReportManager>();
+  connect(placementReportManager.get(), &PlacementReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(
+      PLACEMENT, std::move(placementReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

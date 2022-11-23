@@ -63,7 +63,7 @@ SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
     dataLine = line.simplified();
     if (dataLine.isEmpty()) break;
 
-    auto reportLine = std::vector<std::string>{};
+    auto reportLine = QStringList{};
     auto lineStrs = dataLine.contains(":") ? dataLine.split(":")
                                            : dataLine.split(QChar::Space);
 
@@ -73,7 +73,7 @@ SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
       // added there.
       if (!i && !parentItem.isEmpty())
         lineStr = QString("%1:%2").arg(parentItem).arg(lineStr);
-      reportLine.push_back(lineStr.toStdString());
+      reportLine << lineStr;
     }
 
     res.push_back(std::move(reportLine));
@@ -90,22 +90,20 @@ void SynthesisReportManager::fillLevels(const QString &line,
 
   auto match = findLvls.match(line);
   if (match.hasMatch()) {
-    stats.push_back({MAX_LVL_STR, match.captured(1).toStdString()});
-    stats.push_back({AVG_LVL_STR, match.captured(3).toStdString()});
+    stats.push_back({MAX_LVL_STR, match.captured(1)});
+    stats.push_back({AVG_LVL_STR, match.captured(3)});
   }
 }
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
     const std::string &reportId) {
-  auto logPath =
-      std::filesystem::path(Project::Instance()->projectPath().toStdString()) /
-      std::string(SYNTHESIS_LOG);
+  auto logPath = QString("%1/%2").arg(Project::Instance()->projectPath(),
+                                      QString(SYNTHESIS_LOG));
 
-  if (!FileUtils::FileExists(logPath)) return nullptr;
-
-  auto pathString = QString::fromStdString(logPath.string());
-  auto logFile = QFile(pathString);
-  if (!logFile.open(QIODevice::ReadOnly | QIODevice::Text)) return nullptr;
+  auto logFile = QFile(logPath);
+  if (!logFile.open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
+                    QIODevice::Text))
+    return nullptr;
 
   // To save the last report statistics
   auto stats = LinesData{};
@@ -125,7 +123,7 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
-  auto columnNames = std::vector<std::string>{"Statistics", "Value"};
+  auto columnNames = QStringList{"Statistics", "Value"};
   return std::make_unique<TableReport>(std::move(columnNames), std::move(stats),
                                        "Synthesis report");
 }

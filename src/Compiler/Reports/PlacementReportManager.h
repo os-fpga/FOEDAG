@@ -21,42 +21,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
-#include <QStringList>
-#include <QVector>
 
 #include "ITaskReportManager.h"
+#include "TableReport.h"
 
-class QString;
+class QTextStream;
 
 namespace FOEDAG {
 
-/* Synthesis-specific report manager. It triggers 'synthesis.rpt' log file
- * parsing and creates a report, containing following data:
- * Number of wires
-   Number of wire bits
-   Number of public wires
-   Number of public wire bits
-   Number of memories
-   Number of memory bits
-   Number of processes
-   Number of cells
-   Average level
-   Maximum level
+/* Placement-specific report manager. It triggers 'placement.rpt' log file
+ * parsing and creates two reports:
+ * - Report Resource Utilization, shown as table in application editor area;
+ * - Report Static Timing, placed into post_place_timing.rpt file.
  */
-class SynthesisReportManager final : public QObject, public ITaskReportManager {
+class PlacementReportManager final : public QObject, public ITaskReportManager {
   Q_OBJECT
-
-  using LinesData = QVector<QStringList>;
 
   std::vector<std::string> getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(
       const std::string &reportId) override;
   std::map<size_t, std::string> getMessages() override;
+  // Creates a file in given projectPath and fills it with timingData
+  void createTimingReport(const QString &projectPath,
+                          const QStringList &timingData);
 
-  // Retrieves maximum and average levels out of given line and fills into stats
-  void fillLevels(const QString &line, LinesData &stats) const;
-  // Parses input stream and gets all statistics with their values
-  LinesData getStatistics(const QString &statsStr) const;
+  // Parses in stream line by line till empty one occurs and creates table data
+  ITaskReport::TableData parseResources(QTextStream &in,
+                                        const QStringList &columns) const;
 
  signals:
   void reportCreated(QString reportName);

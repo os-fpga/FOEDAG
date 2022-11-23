@@ -58,9 +58,10 @@ set (SRC_CPP_LIST
   TaskManager.cpp
   CompilerDefines.cpp
   Log.cpp
+  Reports/PlacementReportManager.cpp
+  Reports/TableReport.cpp
   Reports/TaskReportManagerRegistry.cpp
   Reports/SynthesisReportManager.cpp
-  Reports/TableReport.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -76,9 +77,10 @@ set (SRC_H_INSTALL_LIST
   Log.h
   Reports/ITaskReport.h
   Reports/ITaskReportManager.h
+  Reports/PlacementReportManager.h
+  Reports/TableReport.h
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
-  Reports/TableReport.h
 )
 
 set (SRC_H_LIST
