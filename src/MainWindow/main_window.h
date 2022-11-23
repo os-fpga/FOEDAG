@@ -84,6 +84,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onShowStopMessage(bool showStopCompilationMsg);
   void onShowLicenses();
   void stopCompilation();
+  void fileModified(const QString& file);
+  void refreshPinPlanner();
 
  public slots:
   void updateSourceTree();
@@ -116,7 +118,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void loadFile(const QString& file);
   QDockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
-                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea,
+                          bool refreshButton = false);
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
@@ -136,6 +139,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void replaceIpConfigDockWidget(QWidget* widget);
   bool confirmCloseProject();
   bool confirmExitProgram();
+  void setVisibleRefreshButtons(bool visible);
+  void pinPlannerSaved();
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
@@ -204,6 +209,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QSettings m_settings;
   bool m_progressVisible{false};
   bool m_askStopCompilation{true};
+  bool m_blockRefereshEn{false};
 };
 
 }  // namespace FOEDAG

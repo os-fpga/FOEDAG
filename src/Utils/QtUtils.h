@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QStringList>
+#include <QTimer>
 
 namespace FOEDAG {
 
@@ -31,6 +32,11 @@ class QtUtils {
 
   // return true if str is equal to s with Qt::CaseInsensitive
   static bool IsEqual(const QString &str, const QString &s);
+
+  template <class Functor>
+  static void AppendToEventQueue(Functor functor) {
+    QTimer::singleShot(1, functor);
+  }
 };
 
 }  // namespace FOEDAG

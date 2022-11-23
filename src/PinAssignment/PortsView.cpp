@@ -81,6 +81,12 @@ void PortsView::SetPin(const QString &port, const QString &pin) {
   }
 }
 
+void PortsView::cleanTable() {
+  for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
+    it.key()->setCurrentIndex(0);
+  }
+}
+
 void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   // update here Mode selection
   auto item = itemFromIndex(index);

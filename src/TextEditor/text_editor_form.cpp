@@ -82,6 +82,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   FOEDAG::Editor *editor = new FOEDAG::Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
           SLOT(SlotUpdateTabTitle(bool)));
+  connect(editor, &Editor::EditorModificationChanged, this, [=](bool m) {
+    // file saved
+    if (m == false) emit FileChanged(strFileName);
+  });
   connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
           SLOT(SlotShowSearchDialog(QString)));
 
