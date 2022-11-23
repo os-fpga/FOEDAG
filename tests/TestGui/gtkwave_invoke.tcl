@@ -19,11 +19,11 @@
 
 gui_start
 # invoke gtkwave and send it a command asking it to get the wave width and print it w/ _RETURN_ in front
-puts [glob *build/bin/gtkwave]
 set test [wave_cmd set w \[gtkwave::getWaveWidth\]\nputs \"_RETURN_\$w\"]
-puts $test
 # retrieve returned results from the gtkwave process
+after 1000
 set result [wave_get_return]
+puts $result
 after 1000
 # close gtkwave via the menu
 wave_cmd gtkwave::/File/Quit
