@@ -42,12 +42,12 @@ class PlacementReportManager final : public QObject, public ITaskReportManager {
       const std::string &reportId) override;
   std::map<size_t, std::string> getMessages() override;
   // Creates a file in given projectPath and fills it with timingData
-  void createTimingReport(const std::string &projectPath,
+  void createTimingReport(const QString &projectPath,
                           const QStringList &timingData);
 
   // Parses in stream line by line till empty one occurs and creates table data
-  std::vector<ITaskReport::LineValues> parseResources(
-      QTextStream &in, const std::vector<std::string> &columns) const;
+  ITaskReport::TableData parseResources(QTextStream &in,
+                                        const QStringList &columns) const;
 
  signals:
   void reportCreated(QString reportName);

@@ -23,19 +23,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-TableReport::TableReport(LineValues &&columnNames,
-                         std::vector<LineValues> &&linesData,
-                         const std::string &name)
+TableReport::TableReport(LineValues &&columnNames, TableData &&linesData,
+                         const QString &name)
     : m_columnNames{columnNames}, m_linesData{linesData}, m_name{name} {}
 
 const ITaskReport::LineValues &TableReport::getColumns() const {
   return m_columnNames;
 }
 
-const std::vector<ITaskReport::LineValues> &TableReport::getData() const {
+const ITaskReport::TableData &TableReport::getData() const {
   return m_linesData;
 }
 
-const std::string &TableReport::getName() const { return m_name; }
+const QString &TableReport::getName() const { return m_name; }
 
 }  // namespace FOEDAG

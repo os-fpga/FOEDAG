@@ -49,7 +49,7 @@ void openReportView(const ITaskReport& report) {
   reportsView->setColumnCount(columns.size());
   auto colIndex = 0;
   for (auto& col : columns) {
-    auto columnItem = new QTableWidgetItem(QString::fromStdString(col));
+    auto columnItem = new QTableWidgetItem(col);
     reportsView->setHorizontalHeaderItem(colIndex, columnItem);
     ++colIndex;
   }
@@ -60,7 +60,7 @@ void openReportView(const ITaskReport& report) {
     reportsView->insertRow(rowIndex);
     auto colIndex = 0;
     for (auto& lineValue : lineData) {
-      auto item = new QTableWidgetItem(QString::fromStdString(lineValue));
+      auto item = new QTableWidgetItem(lineValue);
       item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
                                            : Qt::AlignCenter);
       reportsView->setItem(rowIndex, colIndex, item);
@@ -74,8 +74,8 @@ void openReportView(const ITaskReport& report) {
   reportsView->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
 
-  TextEditorForm::Instance()->GetTabWidget()->addTab(
-      reportsView, QString::fromStdString(report.getName()));
+  TextEditorForm::Instance()->GetTabWidget()->addTab(reportsView,
+                                                     report.getName());
 }
 }  // namespace
 

@@ -27,8 +27,8 @@ namespace FOEDAG {
 // Default report implementation, representing table-like data.
 class TableReport : public ITaskReport {
  public:
-  TableReport(LineValues &&columnNames, std::vector<LineValues> &&linesData,
-              const std::string &name);
+  TableReport(LineValues &&columnNames, TableData &&linesData,
+              const QString &name);
 
   TableReport(const TableReport &) = default;
   TableReport &operator=(const TableReport &) = default;
@@ -38,13 +38,13 @@ class TableReport : public ITaskReport {
  private:
   const LineValues &getColumns() const override;
   // Returns report data - rows of values
-  const std::vector<LineValues> &getData() const override;
+  const TableData &getData() const override;
   // Returns report name
-  const std::string &getName() const override;
+  const QString &getName() const override;
 
   LineValues m_columnNames;
-  std::vector<LineValues> m_linesData;
-  std::string m_name;
+  TableData m_linesData;
+  QString m_name;
 };
 
 }  // namespace FOEDAG

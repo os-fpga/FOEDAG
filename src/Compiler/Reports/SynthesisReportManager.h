@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <QStringList>
+#include <QVector>
 
 #include "ITaskReportManager.h"
 
@@ -44,7 +46,7 @@ namespace FOEDAG {
 class SynthesisReportManager final : public QObject, public ITaskReportManager {
   Q_OBJECT
 
-  using LinesData = std::vector<std::vector<std::string>>;
+  using LinesData = QVector<QStringList>;
 
   std::vector<std::string> getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(
