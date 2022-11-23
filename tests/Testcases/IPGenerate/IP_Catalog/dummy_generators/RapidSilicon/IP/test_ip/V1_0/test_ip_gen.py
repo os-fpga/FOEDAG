@@ -117,7 +117,19 @@ obj = {
             "default" : "this field has spaces",
             "type" : "string",
             "description" : "this field has spaces"
+        },
+        {
+            "parameter": "str_ex",
+            "title": "String field",
+            "options": [
+                1,
+                1024
+            ],
+            "type": "string",
+            "default": "1",
+            "description": "string test"
         }
+
         
     ],
     "build_dir": "build",
