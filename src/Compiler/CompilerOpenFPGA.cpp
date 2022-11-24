@@ -1752,7 +1752,7 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+  copyLog(ProjManager(), "vpr_stdout.log", "placement.rpt");
   return true;
 }
 
@@ -2044,7 +2044,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --skip_sync_clustering_and_routing_results on --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -2057,6 +2057,8 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
+
+pb_pin_fixup
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
