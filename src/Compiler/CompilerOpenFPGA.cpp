@@ -1752,7 +1752,7 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "placement.rpt");
+  copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
   return true;
 }
 
