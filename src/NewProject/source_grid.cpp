@@ -141,6 +141,7 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
 
 void sourceGrid::setProjectType(int projectType) {
   m_projectType = projectType;
+  m_btnCreateFile->setVisible(projectType != PostSynthPure);
 }
 
 int sourceGrid::projectType() const { return m_projectType; }
@@ -450,21 +451,43 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
   return false;
 }
 
-QComboBox *sourceGrid::CreateLanguageCombo() {
+QComboBox *sourceGrid::CreateLanguageCombo(int projectType) {
   auto combo = new QComboBox;
-  combo->addItem("BLIF", Design::Language::BLIF);
-  combo->addItem("EBLIF", Design::Language::EBLIF);
-  combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
-  combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
-  combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
-  combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
-  combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
-  combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
-  combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
-  combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
-  combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
-  combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
-  combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+  switch (projectType) {
+    case PostSynthPure:
+      combo->addItem("BLIF", Design::Language::BLIF);
+      combo->addItem("EBLIF", Design::Language::EBLIF);
+      combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
+      break;
+    case PostSynthWithHDL:
+      combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
+      combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
+      combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
+      combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
+      combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
+      combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
+      combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
+      combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
+      combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
+      combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
+      combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+      break;
+    default:
+      combo->addItem("BLIF", Design::Language::BLIF);
+      combo->addItem("EBLIF", Design::Language::EBLIF);
+      combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
+      combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
+      combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
+      combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
+      combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
+      combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
+      combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
+      combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
+      combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
+      combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
+      combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+      break;
+  }
   return combo;
 }
 
@@ -552,7 +575,7 @@ QStringList sourceGrid::GetAllDesignSourceExtentions(int projectType) const {
 }
 
 void sourceGrid::initLanguageCombo(int row, const QVariant &data) {
-  auto combo = CreateLanguageCombo();
+  auto combo = CreateLanguageCombo(projectType());
   combo->setCurrentIndex(combo->findData(data));
   m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL_NUM), combo);
   connect(combo, SIGNAL(currentIndexChanged(int)), this,

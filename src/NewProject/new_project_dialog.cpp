@@ -214,6 +214,7 @@ void newProjectDialog::ResetToProjectSettings() {
   BackBtn->setVisible(false);
   NextBtn->setVisible(false);
   m_addSrcForm->SetBasePath(m_projectManager->getProjectPath());
+  m_addSrcForm->setProjectType(m_projectManager->projectType());
 }
 
 // This will check the project wizard for potential conflicts

@@ -86,7 +86,7 @@ class sourceGrid : public QWidget {
 
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
-  static QComboBox *CreateLanguageCombo();
+  static QComboBox *CreateLanguageCombo(int projectType);
   bool CheckPinFileExists(const QString &suffix);
   bool CheckNetlistFileExists(const QStringList &files);
   bool isPinFileAdded() const;
