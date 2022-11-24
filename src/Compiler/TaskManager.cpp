@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 
 #include "Reports/PlacementReportManager.h"
+#include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
 
 namespace FOEDAG {
@@ -133,16 +134,21 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>();
-  connect(synthesisReportManager.get(), &SynthesisReportManager::reportCreated,
+  connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       SYNTHESIS, std::move(synthesisReportManager));
 
   auto placementReportManager = std::make_shared<PlacementReportManager>();
-  connect(placementReportManager.get(), &PlacementReportManager::reportCreated,
+  connect(placementReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PLACEMENT, std::move(placementReportManager));
+  auto routingReportManager = std::make_shared<RoutingReportManager>();
+  connect(routingReportManager.get(), &AbstractReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(
+      ROUTING, std::move(routingReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

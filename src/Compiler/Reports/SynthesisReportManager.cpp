@@ -21,14 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SynthesisReportManager.h"
 
+#include "CompilerDefines.h"
+#include "TableReport.h"
+
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
-
-#include "CompilerDefines.h"
-#include "NewProject/ProjectManager/project.h"
-#include "TableReport.h"
-#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr const char *REPORT_NAME{"Synthesis report"};
@@ -42,9 +40,9 @@ std::vector<std::string> SynthesisReportManager::getAvailableReportIds() const {
   return {std::string(REPORT_NAME)};
 }
 
-SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
+ITaskReport::TableData SynthesisReportManager::getStatistics(
     const QString &statsStr) const {
-  auto res = LinesData{};
+  auto res = ITaskReport::TableData{};
 
   auto line = QString{};        // Unmodified line from the log file
   auto dataLine = QString{};    // Simplified line
@@ -72,7 +70,7 @@ SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
       // The first string represents statistic name. Parent item should only be
       // added there.
       if (!i && !parentItem.isEmpty())
-        lineStr = QString("%1:%2").arg(parentItem).arg(lineStr);
+        lineStr = QString("%1:%2").arg(parentItem, lineStr);
       reportLine << lineStr;
     }
 
@@ -83,7 +81,7 @@ SynthesisReportManager::LinesData SynthesisReportManager::getStatistics(
 }
 
 void SynthesisReportManager::fillLevels(const QString &line,
-                                        LinesData &stats) const {
+                                        ITaskReport::TableData &stats) const {
   const QRegularExpression findLvls{
       "^DE:.*Max Lvl =\\s*(([0-9]*[.])?[0-9]+)\\s*Avg Lvl "
       "=\\s*(([0-9]*[.])?[0-9]+)"};
@@ -97,19 +95,14 @@ void SynthesisReportManager::fillLevels(const QString &line,
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
     const std::string &reportId) {
-  auto logPath = QString("%1/%2").arg(Project::Instance()->projectPath(),
-                                      QString(SYNTHESIS_LOG));
-
-  auto logFile = QFile(logPath);
-  if (!logFile.open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
-                    QIODevice::Text))
-    return nullptr;
+  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
+  if (!logFile) return nullptr;
 
   // To save the last report statistics
-  auto stats = LinesData{};
+  auto stats = ITaskReport::TableData{};
 
-  auto fileStr = QTextStream(&logFile).readAll();
-  logFile.close();
+  auto fileStr = QTextStream(logFile.get()).readAll();
+  logFile->close();
 
   auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
 

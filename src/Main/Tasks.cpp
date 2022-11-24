@@ -74,8 +74,9 @@ void openReportView(const ITaskReport& report) {
   reportsView->horizontalHeader()->resizeSections(
       QHeaderView::ResizeToContents);
 
-  TextEditorForm::Instance()->GetTabWidget()->addTab(reportsView,
-                                                     report.getName());
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  tabWidget->addTab(reportsView, report.getName());
+  tabWidget->setCurrentWidget(reportsView);
 }
 }  // namespace
 

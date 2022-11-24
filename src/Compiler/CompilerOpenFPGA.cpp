@@ -1861,7 +1861,7 @@ bool CompilerOpenFPGA::Route() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is routed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "routing.rpt");
+  copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
   return true;
 }
 
