@@ -30,7 +30,6 @@ namespace FOEDAG {
  * - Report Static Timing, placed into post_place_timing.rpt file.
  */
 class PlacementReportManager final : public AbstractReportManager {
-
   std::vector<std::string> getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(
       const std::string &reportId) override;

@@ -38,7 +38,6 @@ namespace FOEDAG {
    Maximum level
  */
 class SynthesisReportManager final : public AbstractReportManager {
-
   std::vector<std::string> getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(
       const std::string &reportId) override;

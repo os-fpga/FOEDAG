@@ -21,12 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SynthesisReportManager.h"
 
-#include "CompilerDefines.h"
-#include "TableReport.h"
-
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+
+#include "CompilerDefines.h"
+#include "TableReport.h"
 
 namespace {
 static constexpr const char *REPORT_NAME{"Synthesis report"};

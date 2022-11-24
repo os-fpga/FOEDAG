@@ -44,7 +44,6 @@ std::vector<std::string> PlacementReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const std::string &reportId) {
-
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return nullptr;
 
