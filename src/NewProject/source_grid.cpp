@@ -54,12 +54,12 @@ static const auto DESIGN_SOURCES_FILTER_POS_MIXED = QObject::tr(
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
     "*.vh *.h *.svh *.vhp *.svhp *.sv )");
 
-static const auto DESIGN_SOURCES_FILTER_POS = QObject::tr(
-    "Design Source Files (*.edf *.edif *.bmm *.mif *.mem *.elf);;"
-    "NETLIST files (*.eblif *.blif)");
+static const auto DESIGN_SOURCES_FILTER_POS =
+    QObject::tr("NETLIST files (*.eblif *.blif *.edif *.verilog)");
 }  // namespace
 
-const QStringList sourceGrid::uniqueExtentions{{"edif", "blif"}};
+const QStringList sourceGrid::uniqueExtentions{
+    {"edif", "blif", "eblif", "verilog"}};
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
@@ -209,7 +209,7 @@ void sourceGrid::AddFiles() {
   if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
   // this option will catch lower and upper cases extentions
   auto option{QFileDialog::DontUseNativeDialog};
-  QStringList fileNames = QFileDialog::getOpenFileNames(
+  const QStringList fileNames = QFileDialog::getOpenFileNames(
       this, tr("Select File"), "", fileformat, nullptr, option);
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
@@ -217,6 +217,9 @@ void sourceGrid::AddFiles() {
   }
   if (!CheckNetlistFileExists(fileNames)) return;
 
+  auto defaultLang = CurrentProjectType() == PostSynthPure
+                         ? Design::VERILOG_NETLIST
+                         : Design::VERILOG_2001;
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
     filedata fdata;
@@ -224,7 +227,7 @@ void sourceGrid::AddFiles() {
     fdata.m_fileType = info.suffix();
     fdata.m_fileName = info.fileName();
     fdata.m_filePath = info.path();
-    fdata.m_language = FromFileType(info.suffix());
+    fdata.m_language = FromFileType(info.suffix(), defaultLang);
     AddTableItem(fdata);
   }
 }
@@ -253,6 +256,9 @@ void sourceGrid::AddDirectories() {
 
   if (!CheckNetlistFileExists(checkUnique)) return;
 
+  auto defaultLang = CurrentProjectType() == PostSynthPure
+                         ? Design::VERILOG_NETLIST
+                         : Design::VERILOG_2001;
   for (auto &[fileName, filePath] : files) {
     const QFileInfo info{filePath};
     filedata fdata;
@@ -260,7 +266,7 @@ void sourceGrid::AddDirectories() {
     fdata.m_fileType = info.suffix();
     fdata.m_fileName = fileName;
     fdata.m_filePath = info.path();
-    fdata.m_language = FromFileType(info.suffix());
+    fdata.m_language = FromFileType(info.suffix(), defaultLang);
     AddTableItem(fdata);
   }
 }
