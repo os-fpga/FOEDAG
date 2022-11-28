@@ -284,6 +284,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
+  simulationMenu->setEnabled(!design.isEmpty());
 }
 
 void MainWindow::startStopButtonsState() {
@@ -506,6 +507,12 @@ void MainWindow::createMenus() {
   fileMenu->addAction(exitAction);
 
   projectMenu = menuBar()->addMenu("Project");
+  simulationMenu = menuBar()->addMenu("Simulation");
+  simulationMenu->addAction(simRtlAction);
+  simulationMenu->addAction(simGateAction);
+  simulationMenu->addAction(simPnrAction);
+  simulationMenu->addAction(simBitstreamAction);
+  simulationMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -666,6 +673,23 @@ void MainWindow::createActions() {
   stopCompileMessageAction->setChecked(m_askStopCompilation);
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
+
+  simRtlAction = new QAction(tr("Simulate RTL"), this);
+  connect(simRtlAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
+  });
+  simPnrAction = new QAction(tr("Simulate PNR"), this);
+  connect(simPnrAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
+  });
+  simGateAction = new QAction(tr("Simulate Gate"), this);
+  connect(simGateAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
+  });
+  simBitstreamAction = new QAction(tr("Simulate Bitstream"), this);
+  connect(simBitstreamAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate bitstream"));
+  });
 }
 
 void MainWindow::gui_start(bool showWP) {
