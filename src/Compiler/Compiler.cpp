@@ -2103,7 +2103,7 @@ bool Compiler::Route() {
            << std::endl;
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, "routing.rpt");
+  CreateDummyLog(m_projManager, ROUTING_LOG);
   return true;
 }
 

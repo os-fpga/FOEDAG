@@ -27,19 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CompilerDefines.h"
 #include "NewProject/ProjectManager/project.h"
-#include "Utils/FileUtils.h"
+#include "TableReport.h"
 
 namespace {
 static constexpr const char *REPORT_NAME{"Report Resource Utilization"};
-static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
-
-static constexpr const char *BLOCKS_COL{"Blocks"};
-static constexpr const char *NETLIST_COL{"Netlist"};
-static constexpr const char *ARCHITECTURE_COL{"Architecture"};
 
 static const QRegExp FIND_TIMINGS{
     "Placement estimated (critical|setup).*[0-9].*"};
-static const QRegExp FIND_RESOURCES{"Resource usage.*"};
 }  // namespace
 
 namespace FOEDAG {
@@ -50,30 +44,25 @@ std::vector<std::string> PlacementReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const std::string &reportId) {
-  auto projectPath = Project::Instance()->projectPath();
-  auto logFilePath = QString("%1/%2").arg(projectPath, QString(PLACEMENT_LOG));
+  auto logFile = createLogFile(QString(PLACEMENT_LOG));
+  if (!logFile) return nullptr;
 
-  auto logFile = QFile(logFilePath);
-  if (!logFile.open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
-                    QIODevice::Text))
-    return nullptr;
-
-  auto columnNames = QStringList{BLOCKS_COL, NETLIST_COL, ARCHITECTURE_COL};
+  auto columnNames = QStringList{};
 
   auto timings = QStringList{};
   auto resourcesData = ITaskReport::TableData{};
 
-  auto in = QTextStream(&logFile);
+  auto in = QTextStream(logFile.get());
   QString line;
   while (in.readLineInto(&line)) {
     if (FIND_TIMINGS.indexIn(line) != -1)
       timings << line + "\n";
     else if (FIND_RESOURCES.indexIn(line) != -1)
-      resourcesData = parseResources(in, columnNames);
+      resourcesData = parseResourceUsage(in, columnNames);
   }
-  logFile.close();
+  logFile->close();
 
-  createTimingReport(projectPath, timings);
+  createTimingReport(timings);
 
   emit reportCreated(QString(REPORT_NAME));
 
@@ -85,8 +74,8 @@ std::map<size_t, std::string> PlacementReportManager::getMessages() {
   return {};
 }
 
-void PlacementReportManager::createTimingReport(const QString &projectPath,
-                                                const QStringList &timingData) {
+void PlacementReportManager::createTimingReport(const QStringList &timingData) {
+  auto projectPath = Project::Instance()->projectPath();
   auto logFilePath =
       QString("%1/%2").arg(projectPath, QString(PLACEMENT_TIMING_LOG));
 
@@ -99,60 +88,6 @@ void PlacementReportManager::createTimingReport(const QString &projectPath,
   for (auto &line : timingData) out << line;
 
   timingLogFile.close();
-}
-
-ITaskReport::TableData PlacementReportManager::parseResources(
-    QTextStream &in, const QStringList &columns) const {
-  int childSum{0};     // Total number, assumulated within a single parent
-  int columnIndex{0};  // Index of a column we fill the value for
-
-  auto result = ITaskReport::TableData{};
-
-  // Lambda setting given value for a certain row. Modifies existing row, if
-  // any, or adds a new one.
-  auto setValue = [&](const QString &row, const QString &value) {
-    auto findIt = std::find_if(
-        result.begin(), result.end(),
-        [&row](const auto &lineValues) { return lineValues[0] == row; });
-    if (findIt == result.end()) {
-      auto lineValues = ITaskReport::LineValues{row, {}, {}};
-      lineValues[columnIndex] = value;
-      result.push_back(std::move(lineValues));
-    } else {
-      // The resource has been added before - just update the corresponding
-      // column
-      (*findIt)[columnIndex] = value;
-    }
-  };
-
-  QString lineStr, columnName, resourceName;
-
-  while (in.readLineInto(&lineStr)) {
-    auto line = lineStr.simplified();
-    if (line.isEmpty()) break;
-
-    auto lineStrs = line.split(QString(RESOURCES_SPLIT));
-    // Column values are expected in a following format: Value RESOURCES_SPLIT
-    // ResourceName
-    if (lineStrs.size() == 2) {
-      columnIndex = columns.indexOf(columnName);
-      resourceName = lineStrs[1];
-
-      setValue(resourceName, lineStrs[0]);
-      bool ok;
-      childSum += lineStrs[0].toInt(&ok);
-    } else {
-      auto resourceNameSplit = resourceName.split("_");
-      // in case resource name is of 'parent_resource' format, get parent name
-      // and set accumulated number to it
-      if (resourceNameSplit.size() > 1)
-        setValue(resourceNameSplit.first(), QString::number(childSum));
-      columnName = line;
-      childSum = 0;  // New parent - reset the SUM
-    }
-  }
-
-  return result;
 }
 
 }  // namespace FOEDAG

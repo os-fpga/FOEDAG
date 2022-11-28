@@ -20,22 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QObject>
+
 #include "AbstractReportManager.h"
+
+class QString;
+class QTextStream;
 
 namespace FOEDAG {
 
-/* Placement-specific report manager. It triggers 'placement.rpt' log file
- * parsing and creates two reports:
- * - Report Resource Utilization, shown as table in application editor area;
- * - Report Static Timing, placed into post_place_timing.rpt file.
+/*
  */
-class PlacementReportManager final : public AbstractReportManager {
+class RoutingReportManager final : public AbstractReportManager {
   std::vector<std::string> getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(
       const std::string &reportId) override;
   std::map<size_t, std::string> getMessages() override;
-  // Creates a file in given projectPath and fills it with timingData
-  void createTimingReport(const QStringList &timingData);
+
+  std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
+  std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);
 };
 
 }  // namespace FOEDAG
