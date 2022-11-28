@@ -148,35 +148,16 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QRadioButton" name="radioBtnPOSMixed">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+          <widget class="QLabel" name="m_labelPOS">
            <property name="text">
-            <string>User can add the HDL files and verilog netlist files</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;- Only one of .edif, .edf, .blif, .eblif, .v file allowed&lt;/p&gt;&lt;p&gt;- Run P&amp;amp;R timing &amp;amp; generate bitstream.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
-           <attribute name="buttonGroup">
-            <string notr="true">buttonGroup</string>
-           </attribute>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioBtnPOSPure">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+           <property name="textFormat">
+            <enum>Qt::AutoText</enum>
            </property>
-           <property name="text">
-            <string>User can only add one .edif or .edf or .blif file</string>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
-           <attribute name="buttonGroup">
-            <string notr="true">buttonGroup</string>
-           </attribute>
           </widget>
          </item>
         </layout>
@@ -209,7 +190,4 @@
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

@@ -42,24 +42,12 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
     "*.vh *.h *.svh *.vhp *.svhp *.sv )");
 
-static const auto DESIGN_SOURCES_FILTER_POS_MIXED = QObject::tr(
-    "Design Source Files (*.vhd *.vhdl *.v *.vf *.verilog "
-    "*.vh *.h *.svh *.vhp *.svhp *.sv *.svp);;"
-    "VHDL Files (*.vhd *.vhdl *.vhf *.vhdp);;"
-    "VERILOG Files (*.v *.verilog);;"
-    "SystemVerilog Files(*.sv *.svp);;"
-    "VERILOG Header Files(*.vh *.h *.vhp);;"
-    "SystemVerilog Header Files (*.svh *.svhp);;"
-    "NETLIST files (*.v *.sv *.svp);;"
-    "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
-    "*.vh *.h *.svh *.vhp *.svhp *.sv )");
-
 static const auto DESIGN_SOURCES_FILTER_POS =
-    QObject::tr("NETLIST files (*.eblif *.blif *.edif *.verilog)");
+    QObject::tr("NETLIST files (*.eblif *.blif *.edif *.edf *.v)");
 }  // namespace
 
 const QStringList sourceGrid::uniqueExtentions{
-    {"edif", "blif", "eblif", "verilog"}};
+    {"eblif", "blif", "edif", "edf", "v"}};
 
 sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
   m_lisFileData.clear();
@@ -141,7 +129,7 @@ sourceGrid::sourceGrid(QWidget *parent) : QWidget(parent) {
 
 void sourceGrid::setProjectType(int projectType) {
   m_projectType = projectType;
-  m_btnCreateFile->setVisible(projectType != PostSynthPure);
+  m_btnCreateFile->setVisible(projectType != PostSynth);
 }
 
 int sourceGrid::projectType() const { return m_projectType; }
@@ -217,9 +205,8 @@ void sourceGrid::AddFiles() {
   }
   if (!CheckNetlistFileExists(fileNames)) return;
 
-  auto defaultLang = CurrentProjectType() == PostSynthPure
-                         ? Design::VERILOG_NETLIST
-                         : Design::VERILOG_2001;
+  auto defaultLang = CurrentProjectType() == PostSynth ? Design::VERILOG_NETLIST
+                                                       : Design::VERILOG_2001;
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
     filedata fdata;
@@ -256,9 +243,8 @@ void sourceGrid::AddDirectories() {
 
   if (!CheckNetlistFileExists(checkUnique)) return;
 
-  auto defaultLang = CurrentProjectType() == PostSynthPure
-                         ? Design::VERILOG_NETLIST
-                         : Design::VERILOG_2001;
+  auto defaultLang = CurrentProjectType() == PostSynth ? Design::VERILOG_NETLIST
+                                                       : Design::VERILOG_2001;
   for (auto &[fileName, filePath] : files) {
     const QFileInfo info{filePath};
     filedata fdata;
@@ -460,23 +446,10 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
 QComboBox *sourceGrid::CreateLanguageCombo(int projectType) {
   auto combo = new QComboBox;
   switch (projectType) {
-    case PostSynthPure:
+    case PostSynth:
       combo->addItem("BLIF", Design::Language::BLIF);
       combo->addItem("EBLIF", Design::Language::EBLIF);
       combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
-      break;
-    case PostSynthWithHDL:
-      combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
-      combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
-      combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
-      combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
-      combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
-      combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
-      combo->addItem("VERILOG NETLIST", Design::Language::VERILOG_NETLIST);
-      combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
-      combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
-      combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
-      combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
       break;
     default:
       combo->addItem("BLIF", Design::Language::BLIF);
@@ -519,8 +492,9 @@ bool sourceGrid::CheckNetlistFileExists(const QStringList &files) {
   }
 
   if ((netlistCount != 0 && isNetlistFileAdded()) || netlistCount > 1) {
-    QMessageBox::critical(this, "Netlist file",
-                          "Only one netlist file supported");
+    QMessageBox::critical(
+        this, "Netlist file",
+        "Only one of .edif, .edf, .blif, .eblif, .v file allowed.");
     return fail;
   }
   return good;
@@ -530,10 +504,8 @@ QString sourceGrid::Filter(int projectType) const {
   switch (projectType) {
     case RTL:
       return DESIGN_SOURCES_FILTER;
-    case PostSynthPure:
+    case PostSynth:
       return DESIGN_SOURCES_FILTER_POS;
-    case PostSynthWithHDL:
-      return DESIGN_SOURCES_FILTER_POS_MIXED;
   }
   return DESIGN_SOURCES_FILTER;
 }

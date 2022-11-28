@@ -128,8 +128,7 @@ struct Suffixes {
 
 enum ProjectType {
   RTL = 0,
-  PostSynthWithHDL = 1,
-  PostSynthPure = 2,
+  PostSynth = 1,
 };
 
 class ProjectManager : public QObject {

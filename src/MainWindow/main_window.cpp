@@ -1168,10 +1168,10 @@ void MainWindow::updateViewMenu() {
 }
 
 void MainWindow::updateTaskTable() {
-  const bool isPostSynthPure{m_projectManager->projectType() == PostSynthPure};
+  const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
   m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
   m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
-  m_taskManager->task(ANALYSIS_CLEAN)->setEnable(!isPostSynthPure);
+  m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
 }
 
 void MainWindow::slotTabChanged(int index) {
