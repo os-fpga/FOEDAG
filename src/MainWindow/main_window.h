@@ -118,8 +118,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void loadFile(const QString& file);
   QDockWidget* PrepareTab(const QString& name, const QString& objName,
                           QWidget* widget, QDockWidget* tabToAdd,
-                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea,
-                          bool refreshButton = false);
+                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+
+  void addPinPlannerRefreshButton(QDockWidget* dock);
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);

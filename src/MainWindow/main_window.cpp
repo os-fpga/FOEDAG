@@ -298,32 +298,33 @@ void MainWindow::startStopButtonsState() {
 
 QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
                                     QWidget* widget, QDockWidget* tabToAdd,
-                                    Qt::DockWidgetArea area,
-                                    bool refreshButton) {
+                                    Qt::DockWidgetArea area) {
   QDockWidget* dock = new QDockWidget(name, this);
   dock->setObjectName(objName);
   dock->setWidget(widget);
-  if (refreshButton) {
-    auto btn = new QPushButton;
-    connect(btn, &QPushButton::clicked, this, &MainWindow::refreshPinPlanner);
-    btn->setSizePolicy(QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
-    btn->setText("Refresh");
-    QWidget* w = new QWidget;
-    auto layout = new QHBoxLayout;
-    layout->addWidget(new QLabel{name});
-    layout->addWidget(btn);
-    layout->addSpacerItem(new QSpacerItem{10, 10, QSizePolicy::Expanding,
-                                          QSizePolicy::Expanding});
-    layout->setContentsMargins(9, 9, 9, 0);
-    w->setLayout(layout);
-    dock->setTitleBarWidget(w);
-    btn->hide();
-  }
   addDockWidget(area, dock);
   if (tabToAdd != nullptr) {
     tabifyDockWidget(tabToAdd, dock);
   }
   return dock;
+}
+
+void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
+  auto btn = new QPushButton{dock};
+  btn->setObjectName("refreshButton");
+  connect(btn, &QPushButton::clicked, this, &MainWindow::refreshPinPlanner);
+  btn->setSizePolicy(QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
+  btn->setText("Refresh");
+  QWidget* w = new QWidget;
+  auto layout = new QHBoxLayout;
+  layout->addWidget(new QLabel{dock->windowTitle()});
+  layout->addWidget(btn);
+  layout->addSpacerItem(
+      new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
+  layout->setContentsMargins(9, 9, 9, 0);
+  w->setLayout(layout);
+  dock->setTitleBarWidget(w);
+  btn->hide();
 }
 
 void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
@@ -1053,12 +1054,13 @@ void MainWindow::pinAssignmentActionTriggered() {
     connect(creator, &PinAssignmentCreator::changed, this,
             &MainWindow::pinAssignmentChanged);
 
-    auto portsDockWidget =
-        PrepareTab(tr("IO Ports"), "portswidget", creator->GetPortsWidget(),
-                   m_dockConsole, Qt::BottomDockWidgetArea, true);
-    auto packagePinDockWidget = PrepareTab(
-        tr("Package Pins"), "packagepinwidget", creator->GetPackagePinsWidget(),
-        portsDockWidget, Qt::BottomDockWidgetArea, true);
+    auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
+                                      creator->GetPortsWidget(), m_dockConsole);
+    addPinPlannerRefreshButton(portsDockWidget);
+    auto packagePinDockWidget =
+        PrepareTab(tr("Package Pins"), "packagepinwidget",
+                   creator->GetPackagePinsWidget(), portsDockWidget);
+    addPinPlannerRefreshButton(packagePinDockWidget);
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
     if (saveAction->isEnabled()) {
@@ -1306,7 +1308,7 @@ bool MainWindow::confirmExitProgram() {
 
 void MainWindow::setVisibleRefreshButtons(bool visible) {
   for (auto dock : m_pinAssignmentDocks) {
-    auto button = dock->findChild<QPushButton*>();
+    auto button = dock->findChild<QPushButton*>("refreshButton");
     if (button) button->setVisible(visible);
   }
 }
