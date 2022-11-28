@@ -1740,7 +1740,7 @@ void Compiler::writeHelp(
   for (auto [cmd, desc] : cmdDescPairs) {
     // Create padding to try to line up description text at descColumn
     int postPadCount = descColumn - prePad.length() - cmd.length();
-    std::string postPad = std::string(std::max(0, postPadCount), ' ');
+    std::string postPad = std::string((std::max)(0, postPadCount), ' ');
 
     // Print help entry line with padding
     (*out) << prePad << cmd << postPad << ": " << desc << std::endl;
