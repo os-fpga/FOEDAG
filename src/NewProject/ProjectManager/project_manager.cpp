@@ -58,6 +58,9 @@ void ProjectManager::UpdateProject(const ProjectOptions& opt) {
   deleteFileSet(DEFAULT_FOLDER_CONSTRS);
   setConstrFileSet(DEFAULT_FOLDER_CONSTRS);
 
+  deleteFileSet(DEFAULT_FOLDER_SIM);
+  setSimulationFileSet(DEFAULT_FOLDER_SIM);
+
   UpdateProjectInternal(opt, false);
 }
 
@@ -1030,7 +1033,7 @@ QStringList ProjectManager::getSimulationFileSets() const {
 }
 
 QString ProjectManager::getSimulationActiveFileSet() const {
-  QString strActive = "";
+  QString strActive{};
 
   ProjectConfiguration* tmpProCfg = Project::Instance()->projectConfig();
   if (tmpProCfg) {
@@ -1372,15 +1375,8 @@ QString ProjectManager::getRunType(const QString& strRunName) const {
 }
 
 int ProjectManager::deleteFileSet(const QString& strSetName) {
-  int ret = 0;
-  ProjectFileSet* proFileSet =
-      Project::Instance()->getProjectFileset(strSetName);
-  if (proFileSet && PROJECT_FILE_TYPE_SS == proFileSet->getSetType() &&
-      strSetName == getSimulationActiveFileSet()) {
-    return -1;
-  }
   Project::Instance()->deleteProjectFileset(strSetName);
-  return ret;
+  return 0;
 }
 
 int ProjectManager::deleteRun(const QString& strRunName) {
@@ -1867,6 +1863,20 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
 
   if (!strDefaultCts.isEmpty() && setTargetConstr) {
     setTargetConstrs(strDefaultCts);
+  }
+
+  // simulation
+  setCurrentFileSet(DEFAULT_FOLDER_SIM);
+  const auto simData = opt.simFileData.fileData;
+  for (const filedata& fdata : simData) {
+    if (LocalToProject == fdata.m_filePath) {
+      addSimulationFiles({}, {}, fdata.m_fileName, fdata.m_language, QString{},
+                         false, true);
+    } else {
+      addSimulationFiles({}, {}, fdata.m_filePath + "/" + fdata.m_fileName,
+                         fdata.m_language, QString{},
+                         opt.simFileData.isCopySource, false);
+    }
   }
 
   setCurrentRun(DEFAULT_FOLDER_SYNTH);

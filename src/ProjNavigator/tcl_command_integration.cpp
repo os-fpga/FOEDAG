@@ -303,6 +303,7 @@ void TclCommandIntegration::createNewDesign(const QString &projName) {
                      RTL,
                      {{}, false},
                      {{}, false},
+                     {{}, false},
                      {},
                      true /*rewrite*/,
                      DEFAULT_FOLDER_SOURCE,

@@ -7,6 +7,7 @@
 
 #include "ProjectManager/project_manager.h"
 #include "add_constraints_form.h"
+#include "add_sim_form.h"
 #include "add_source_form.h"
 #include "device_planner_form.h"
 #include "location_form.h"
@@ -23,6 +24,7 @@ enum FormIndex {
   INDEX_LOCATION = 0,
   INDEX_PROJTYPE,
   INDEX_ADDSOURC,
+  INDEX_ADDSIM,
   INDEX_ADDCONST,
   INDEX_DEVICEPL,
   INDEX_SUMMARYF
@@ -65,6 +67,7 @@ class newProjectDialog : public QDialog {
   locationForm* m_locationForm;
   projectTypeForm* m_proTypeForm;
   addSourceForm* m_addSrcForm;
+  addSimForm* m_addSimForm;
   addConstraintsForm* m_addConstrsForm;
   devicePlannerForm* m_devicePlanForm;
   summaryForm* m_sumForm;

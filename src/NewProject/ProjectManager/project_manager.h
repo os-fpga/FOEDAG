@@ -109,6 +109,7 @@ struct ProjectOptions {
   int projectType;
   FileData sourceFileData;
   FileData constrFileData;
+  FileData simFileData;
   QStringList device;
   bool rewriteProject;
   QString currentFileSet;
