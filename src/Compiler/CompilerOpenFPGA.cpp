@@ -763,51 +763,8 @@ bool CompilerOpenFPGA::DesignChanged(
   return result;
 }
 
-bool CompilerOpenFPGA::Analyze() {
-  auto printTopModules = [](const std::filesystem::path& filePath,
-                            std::ostream* out) {
-    // Check for "topModule" in a given json filePath
-    // Assumed json format is [ { "topModule" : "some_value"} ]
-    if (out) {
-      if (FileUtils::FileExists(filePath)) {
-        std::ifstream file(filePath);
-        json data = json::parse(file);
-        if (data.is_array()) {
-          std::vector<std::string> topModules;
-          std::transform(data.begin(), data.end(),
-                         std::back_inserter(topModules),
-                         [](json val) -> std::string {
-                           return val.value("topModule", "");
-                         });
-
-          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
-                 << std::endl;
-        }
-      }
-    }
-  };
-
-  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
-    Message("Cleaning analysis results for " + ProjManager()->projectName());
-    m_state = State::IPGenerated;
-    AnalyzeOpt(DesignAnalysisOpt::None);
-    // Remove generated json files
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
-    return true;
-  }
-  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
-  if (!HasTargetDevice()) return false;
-
-  PERF_LOG("Analysis has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
-
-  // TODO: Awaiting interface from analyzer exec.
+std::string CompilerOpenFPGA::InitAnalyzeScript() {
   std::string analysisScript;
-
   if (m_useVerific) {
     // Verific parser
     std::string fileList;
@@ -878,7 +835,7 @@ bool CompilerOpenFPGA::Analyze() {
         case Design::Language::EBLIF:
           lang = "BLIF";
           ErrorMessage("Unsupported file format:" + lang);
-          return false;
+          return "";
       }
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
@@ -948,6 +905,58 @@ bool CompilerOpenFPGA::Analyze() {
        analysisScript = fileList;
        */
   }
+  return analysisScript;
+}
+
+std::string CompilerOpenFPGA::FinishAnalyzeScript(const std::string& script) {
+  std::string result = script;
+  return result;
+}
+
+bool CompilerOpenFPGA::Analyze() {
+  auto printTopModules = [](const std::filesystem::path& filePath,
+                            std::ostream* out) {
+    // Check for "topModule" in a given json filePath
+    // Assumed json format is [ { "topModule" : "some_value"} ]
+    if (out) {
+      if (FileUtils::FileExists(filePath)) {
+        std::ifstream file(filePath);
+        json data = json::parse(file);
+        if (data.is_array()) {
+          std::vector<std::string> topModules;
+          std::transform(data.begin(), data.end(),
+                         std::back_inserter(topModules),
+                         [](json val) -> std::string {
+                           return val.value("topModule", "");
+                         });
+
+          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
+                 << std::endl;
+        }
+      }
+    }
+  };
+
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + ProjManager()->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    // Remove generated json files
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    return true;
+  }
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Analysis has started");
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+
+  std::string analysisScript = InitAnalyzeScript();
+  analysisScript = FinishAnalyzeScript(analysisScript);
 
   std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
   script_path =
