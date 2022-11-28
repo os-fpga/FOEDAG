@@ -117,8 +117,9 @@ void newProjectDialog::updateSummaryPage() {
   if (m_mode == Mode::NewProject) return;
   auto currentPage = ui->m_tabWidget->currentWidget();
   if (currentPage == m_sumForm) {
-    updateSummary(m_projectManager->getProjectName(),
-                  m_projectManager->projectType());
+    updateSummary(
+        m_projectManager->getProjectName(),
+        projectTypeForm::projectTypeStr(m_projectManager->projectType()));
   }
 }
 
@@ -133,7 +134,7 @@ void newProjectDialog::UpdateDialogView(Mode mode) {
     NextBtn->setEnabled(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
     updateSummary(m_locationForm->getProjectName(),
-                  m_proTypeForm->getProjectType());
+                  m_proTypeForm->projectTypeStr());
   } else {
     NextBtn->setEnabled(true);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -213,6 +214,7 @@ void newProjectDialog::ResetToProjectSettings() {
   BackBtn->setVisible(false);
   NextBtn->setVisible(false);
   m_addSrcForm->SetBasePath(m_projectManager->getProjectPath());
+  m_addSrcForm->setProjectType(m_projectManager->projectType());
 }
 
 // This will check the project wizard for potential conflicts
@@ -282,7 +284,7 @@ void newProjectDialog::on_buttonBox_accepted() {
   ProjectOptions opt{
       m_locationForm->getProjectName(),
       m_locationForm->getProjectPath(),
-      m_proTypeForm->getProjectType(),
+      m_proTypeForm->projectType(),
       {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
       {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
       m_devicePlanForm->getSelectedDevice(),
@@ -334,6 +336,19 @@ void newProjectDialog::on_next() {
       return;
     }
     m_addSrcForm->SetBasePath(m_locationForm->getProjectPath());
+  } else if (INDEX_PROJTYPE == m_index) {
+    auto projectType = m_addSrcForm->projectType();
+    int filesCount = m_addSrcForm->getFileData().count();
+    if (projectType != NO_PROJECT_TYPE &&
+        projectType != m_proTypeForm->projectType() && filesCount != 0) {
+      auto answer =
+          QMessageBox::question(this, "Project type changed",
+                                "Project type has changed. Design source files "
+                                "will be removed. Do you want to continue?");
+      if (answer == QMessageBox::No) return;
+      m_addSrcForm->clear();
+    }
+    m_addSrcForm->setProjectType(m_proTypeForm->projectType());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
     m_index += 3;  // omit design and constraint files

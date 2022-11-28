@@ -121,13 +121,14 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
   return TaskManager::invalid_id;
 }
 
-FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type) {
+FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
+                                              Design::Language defaultValue) {
   if (QtUtils::IsEqual(type, "v")) return Design::Language::VERILOG_2001;
   if (QtUtils::IsEqual(type, "sv")) return Design::Language::SYSTEMVERILOG_2017;
   if (QtUtils::IsEqual(type, "vhd")) return Design::Language::VHDL_2008;
   if (QtUtils::IsEqual(type, "blif")) return Design::Language::BLIF;
   if (QtUtils::IsEqual(type, "eblif")) return Design::Language::EBLIF;
-  return Design::Language::VERILOG_2001;  // default
+  return defaultValue;  // default
 }
 
 int FOEDAG::read_sdc(const QString &file) {

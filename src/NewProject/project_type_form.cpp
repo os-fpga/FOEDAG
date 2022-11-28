@@ -12,29 +12,39 @@ projectTypeForm::projectTypeForm(QWidget *parent)
   ui->m_radioBtnRTL->setText(tr("RTL Project"));
   ui->m_radioBtnPost->setText(tr("Post-synthesis Project"));
   ui->m_labelRTL->setText(
-      tr("- Generate IP.\n"
-         "- Run Analysis, Synthesis, P&R timing & generate bitstream."));
-  ui->m_labelPost->setText(
-      tr("- Add design netlist.\n"
-         "- P&R, timing & generate bitstream.\n"
-         "- Run analysis (optional), Synthesis (optional), timing and "
-         "generate bitstream."));
+      tr("- Generate IP\n"
+         "- Run Analysis, Synthesis, P&R timing & generate bitstream"));
+  ui->m_labelPOS->setText(
+      tr("- Only one of .edif, .edf, .blif, .eblif, .v file allowed\n"
+         "- Run P&R timing & generate bitstream"));
 
   ui->m_radioBtnRTL->setChecked(true);
 
-  QObject::connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
-                   &projectTypeForm::skipSources);
-
-  ui->m_radioBtnPost->hide();
-  ui->m_labelPost->hide();
+  connect(ui->m_skipSourcesCheckbox, &QAbstractButton::clicked, this,
+          &projectTypeForm::skipSources);
 }
 
 projectTypeForm::~projectTypeForm() { delete ui; }
-QString projectTypeForm::getProjectType() {
+
+ProjectType projectTypeForm::projectType() const {
   if (ui->m_radioBtnRTL->isChecked()) {
-    return "RTL";
+    return RTL;
   } else if (ui->m_radioBtnPost->isChecked()) {
-    return "Post-synthesis";
+    return PostSynth;
   }
-  return "RTL";
+  return RTL;
+}
+
+QString projectTypeForm::projectTypeStr() const {
+  return projectTypeStr(projectType());
+}
+
+QString projectTypeForm::projectTypeStr(ProjectType type) {
+  switch (type) {
+    case RTL:
+      return "RTL";
+    case PostSynth:
+      return "Post-synthesis";
+  }
+  return QString{};
 }

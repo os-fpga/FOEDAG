@@ -437,6 +437,7 @@ void MainWindow::loadFile(const QString& file) {
     m_projectFileLoader->Load(file);
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+    updateTaskTable();
   }
 }
 
@@ -902,6 +903,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
+  updateTaskTable();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -1163,6 +1165,13 @@ void MainWindow::updateViewMenu() {
       viewMenu->addAction(dockWidget->toggleViewAction());
     }
   }
+}
+
+void MainWindow::updateTaskTable() {
+  const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
+  m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
+  m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
+  m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
 }
 
 void MainWindow::slotTabChanged(int index) {

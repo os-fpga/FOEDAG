@@ -89,6 +89,9 @@ class Task : public QObject {
    */
   void setValid(bool newValid);
 
+  bool isEnable() const;
+  void setEnable(bool newEnable);
+
  signals:
   /*!
    * \brief statusChanged. Emits whenever status has changed.
@@ -113,6 +116,7 @@ class Task : public QObject {
   Task *m_parent{nullptr};
   bool m_valid{false};
   QString m_logFilePath{};
+  bool m_enable{true};
 };
 
 }  // namespace FOEDAG

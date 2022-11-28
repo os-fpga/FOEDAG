@@ -44,3 +44,8 @@ TEST(CompilerDefines, FromFileType) {
   // default
   EXPECT_EQ(FromFileType("anything"), Language::VERILOG_2001);
 }
+
+TEST(CompilerDefines, FromFileTypeDefault) {
+  auto type = FromFileType("anything", Language::CPP);
+  EXPECT_EQ(type, Language::CPP);
+}
