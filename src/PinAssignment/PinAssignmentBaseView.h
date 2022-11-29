@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QSet>
 #include <QTreeWidget>
 
 class QComboBox;
@@ -41,11 +42,13 @@ class PinAssignmentBaseView : public QTreeWidget {
   void removeDuplications(const QString &text, QComboBox *current);
   QModelIndexList match(const QString &text) const;
   QModelIndexList indexFromText(QTreeWidgetItem *i, const QString &text) const;
+  void updateInternalPinSelection(const QString &pin, QComboBox *combo);
 
  protected:
   PinsBaseModel *m_model{nullptr};
   QMap<QComboBox *, QModelIndex> m_allCombo;
   bool m_blockUpdate{false};
+  QMap<QString, QSet<QComboBox *>> m_intPins;
 };
 
 }  // namespace FOEDAG

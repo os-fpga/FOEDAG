@@ -300,7 +300,7 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 void TclCommandIntegration::createNewDesign(const QString &projName) {
   ProjectOptions opt{projName,
                      QString("%1/%2").arg(QDir::currentPath(), projName),
-                     "RTL",
+                     RTL,
                      {{}, false},
                      {{}, false},
                      {},

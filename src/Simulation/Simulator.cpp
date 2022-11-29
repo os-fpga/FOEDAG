@@ -47,6 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Simulator.h"
 #include "Utils/FileUtils.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 
@@ -62,8 +63,19 @@ void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
   m_gateSimulationModels.push_back(path);
 }
 
-bool Simulator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+bool Simulator::RegisterCommands(TclInterpreter* interp) {
   bool ok = true;
+  auto set_top_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    Simulator* simulator = (Simulator*)clientData;
+    if (argc == 2) {
+      simulator->SetSimulationTop(argv[1]);
+      return TCL_OK;
+    }
+    return TCL_ERROR;
+  };
+  interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
+
   return ok;
 }
 
@@ -74,7 +86,14 @@ void Simulator::ErrorMessage(const std::string& message) {
   m_compiler->ErrorMessage(message);
 }
 
-bool Simulator::Simulate(SimulationType action, SimulatorType type) {
+bool Simulator::Simulate(SimulationType action, SimulatorType type,
+                         const std::string& wave_file) {
+  m_waveFile = wave_file;
+  if (m_waveFile.find(".vcd") != std::string::npos) {
+    m_waveType = WaveformType::VCD;
+  } else if (m_waveFile.find(".fst") != std::string::npos) {
+    m_waveType = WaveformType::FST;
+  }
   switch (action) {
     case SimulationType::RTL: {
       return SimulateRTL(type);
@@ -112,6 +131,8 @@ std::string Simulator::SimulatorName(SimulatorType type) {
       return "verilator";
     case SimulatorType::Icarus:
       return "icarus";
+    case SimulatorType::GHDL:
+      return "ghdl";
     case SimulatorType::Questa:
       return "questa";
     case SimulatorType::VCS:
@@ -128,6 +149,8 @@ std::string Simulator::IncludeDirective(SimulatorType type) {
       return "-I";
     case SimulatorType::Icarus:
       return "-I";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "-I";
     case SimulatorType::VCS:
@@ -144,6 +167,8 @@ std::string Simulator::LibraryPathDirective(SimulatorType type) {
       return "-y ";
     case SimulatorType::Icarus:
       return "-y ";
+    case SimulatorType::GHDL:
+      return "-P";
     case SimulatorType::Questa:
       return "-y ";
     case SimulatorType::VCS:
@@ -160,6 +185,8 @@ std::string Simulator::LibraryFileDirective(SimulatorType type) {
       return "-v ";
     case SimulatorType::Icarus:
       return "-v ";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "-v ";
     case SimulatorType::VCS:
@@ -176,6 +203,8 @@ std::string Simulator::LibraryExtDirective(SimulatorType type) {
       return "+libext+";
     case SimulatorType::Icarus:
       return "+libext+";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "+libext+";
     case SimulatorType::VCS:
@@ -199,12 +228,28 @@ std::filesystem::path Simulator::SimulatorExecPath(SimulatorType type) {
   return "";
 }
 
-std::string Simulator::SimulatorOptions(SimulatorType type) {
+std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
   switch (type) {
-    case SimulatorType::Verilator:
-      return "-cc -Wall";
+    case SimulatorType::Verilator: {
+      std::string options =
+          "-cc --assert -Wall -Wno-DECLFILENAME "
+          "-Wno-UNUSEDSIGNAL "
+          "-Wno-TIMESCALEMOD ";
+      switch (m_waveType) {
+        case WaveformType::VCD:
+          options += "--trace ";
+          break;
+        case WaveformType::FST:
+          options += "--trace-fst ";
+          break;
+      }
+      return options;
+      break;
+    }
     case SimulatorType::Icarus:
       return "";
+    case SimulatorType::GHDL:
+      return "-a -fsynopsys";
     case SimulatorType::Questa:
       return "";
     case SimulatorType::VCS:
@@ -221,12 +266,32 @@ std::string Simulator::MacroDirective(SimulatorType type) {
       return "-D";
     case SimulatorType::Icarus:
       return "-D";
+    case SimulatorType::GHDL:
+      return "Invalid";
     case SimulatorType::Questa:
       return "-D";
     case SimulatorType::VCS:
       return "-D";
     case SimulatorType::Xcelium:
       return "-D";
+  }
+  return "Invalid";
+}
+
+std::string Simulator::TopModuleCmd(SimulatorType type) {
+  switch (type) {
+    case SimulatorType::Verilator:
+      return "--top-module ";
+    case SimulatorType::Icarus:
+      return "Todo";
+    case SimulatorType::GHDL:
+      return " ";
+    case SimulatorType::Questa:
+      return "Todo";
+    case SimulatorType::VCS:
+      return "Todo";
+    case SimulatorType::Xcelium:
+      return "Todo";
   }
   return "Invalid";
 }
@@ -250,13 +315,56 @@ std::string Simulator::LanguageDirective(SimulatorType type,
           return "+1800-2017ext+.v +1800-2017ext+.sv";
         case Design::Language::VERILOG_NETLIST:
           return "";
+        case Design::Language::C:
+          return "";
+        case Design::Language::CPP:
+          return "";
         default:
           return "--invalid-lang-for-verilator";
       }
+      break;
     case SimulatorType::Icarus:
+      break;
+    case SimulatorType::GHDL:
+      switch (lang) {
+        case Design::Language::VERILOG_1995:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::VERILOG_2001:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::SYSTEMVERILOG_2005:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::SYSTEMVERILOG_2009:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::SYSTEMVERILOG_2012:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::SYSTEMVERILOG_2017:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::VERILOG_NETLIST:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::C:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::CPP:
+          return "--invalid-lang-for-ghdl";
+        case Design::Language::VHDL_1987:
+          return "--std=87";
+        case Design::Language::VHDL_1993:
+          return "--std=93c";
+        case Design::Language::VHDL_2000:
+          return "--std=00";
+        case Design::Language::VHDL_2008:
+          return "--std=08";
+        case Design::Language::VHDL_2019:
+          return "--std=19";
+        default:
+          return "--invalid-lang-for-ghdl";
+      }
+      break;
     case SimulatorType::Questa:
+      break;
     case SimulatorType::VCS:
+      break;
     case SimulatorType::Xcelium:
+      break;
     default:
       return "Invalid";
   }
@@ -264,23 +372,46 @@ std::string Simulator::LanguageDirective(SimulatorType type,
 }
 
 std::string Simulator::SimulatorRunCommand(SimulatorType type) {
+  std::string execPath =
+      (SimulatorExecPath(type) / SimulatorName(type)).string();
   switch (type) {
-    case SimulatorType::Verilator:
-      return "obj_dir/Vsyn_tb";
+    case SimulatorType::Verilator: {
+      std::string command = "obj_dir/Vsyn_tb";
+      if (!m_waveFile.empty()) command += " " + m_waveFile;
+      return command;
+    }
     case SimulatorType::Icarus:
-      return "Invalid";
+      return "Todo";
+    case SimulatorType::GHDL: {
+      std::string command = execPath + " -r -fsynopsys";
+      if (!m_simulationTop.empty()) {
+        command += TopModuleCmd(type) + m_simulationTop;
+      }
+      if (!m_waveFile.empty()) {
+        command += " ";
+        command += (m_waveType == WaveformType::VCD) ? "--vcd=" : "--fst=";
+        command += m_waveFile;
+      }
+      command += " --stop-time=1000ns";
+      return command;
+    }
     case SimulatorType::Questa:
-      return "Invalid";
+      return "Todo";
     case SimulatorType::VCS:
       return "simv";
     case SimulatorType::Xcelium:
-      return "Invalid";
+      return "Todo";
   }
   return "Invalid";
 }
 
 std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
+  if (type != SimulatorType::GHDL) {
+    if (!m_simulationTop.empty()) {
+      fileList += TopModuleCmd(type) + m_simulationTop + " ";
+    }
+  }
 
   for (auto path : ProjManager()->includePathList()) {
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
@@ -298,11 +429,16 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
     fileList += MacroDirective(type) + macro_value.first + "=" +
                 macro_value.second + " ";
   }
-
+  bool langDirective = false;
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
-    fileList +=
-        LanguageDirective(type, (Design::Language)(lang_file.first.language)) +
-        " ";
+    if (langDirective == false) {
+      std::string directive =
+          LanguageDirective(type, (Design::Language)(lang_file.first.language));
+      if (!directive.empty()) {
+        langDirective = true;
+        fileList += directive + " ";
+      }
+    }
     if (type == SimulatorType::Verilator) {
       if (lang_file.second.find(".c") != std::string::npos) {
         fileList += "--exe ";
@@ -316,7 +452,6 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
 int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   if (type == SimulatorType::Verilator) {
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
-    std::cout << "VERILATOR_HOME=" << verilator_home << std::endl;
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
 
@@ -324,7 +459,7 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
   std::string command =
-      execPath + " " + SimulatorOptions(type) + " " + fileList;
+      execPath + " " + SimulatorCompilationOptions(type) + " " + fileList;
 
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -332,15 +467,34 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
                  " simulation compilation failed!\n");
     return status;
   }
-  // Extra Simulator Model compilation step
-  if (type == SimulatorType::Verilator) {
-    std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
-    status = m_compiler->ExecuteAndMonitorSystemCommand(command);
-    if (status) {
-      ErrorMessage("Design " + ProjManager()->projectName() +
-                   " simulation compilation failed!\n");
-      return status;
+
+  // Extra Simulator Model compilation step (Elaboration or C++ compilation)
+  switch (type) {
+    case SimulatorType::Verilator: {
+      std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+      if (status) {
+        ErrorMessage("Design " + ProjManager()->projectName() +
+                     " simulation compilation failed!\n");
+        return status;
+      }
+      break;
     }
+    case SimulatorType::GHDL: {
+      std::string command = execPath + " -e -fsynopsys";
+      if (!m_simulationTop.empty()) {
+        command += TopModuleCmd(type) + m_simulationTop;
+      }
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+      if (status) {
+        ErrorMessage("Design " + ProjManager()->projectName() +
+                     " simulation compilation failed!\n");
+        return status;
+      }
+      break;
+    }
+    default:
+      break;
   }
 
   // Actual simulation
@@ -355,13 +509,25 @@ bool Simulator::SimulateRTL(SimulatorType type) {
   if (!m_compiler->HasTargetDevice()) return false;
 
   std::string fileList = SimulationFileList(type);
-
+  bool langDirective = false;
+  if (type == SimulatorType::GHDL) {
+    if (fileList.find("--std=") != std::string::npos) {
+      langDirective = true;
+    }
+  }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    fileList +=
-        LanguageDirective(type, (Design::Language)(lang_file.first.language)) +
-        " ";
+    if (langDirective == false) {
+      std::string directive =
+          LanguageDirective(type, (Design::Language)(lang_file.first.language));
+      if (!directive.empty()) {
+        langDirective = true;
+        fileList += directive + " ";
+      }
+    }
     fileList += lang_file.second + " ";
   }
+
+  fileList = StringUtils::rtrim(fileList);
 
   PERF_LOG("RTL Simulation has started");
   Message("##################################################");
@@ -450,6 +616,28 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   Message("##################################################");
   Message("Post-PnR simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
+
+  std::string fileList = SimulationFileList(type);
+
+  std::string netlistFile =
+      ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
+
+  fileList += " " + netlistFile;
+  for (auto path : m_gateSimulationModels) {
+    fileList += " -v " + path.string();
+  }
+
+  bool status = SimulationJob(type, fileList);
+
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " simulation failed!\n");
+    return false;
+  }
+
+  Message("Post-PnR simulation for design: " + ProjManager()->projectName() +
+          " had ended");
+
   return true;
 }
 bool Simulator::SimulateBitstream(SimulatorType type) {

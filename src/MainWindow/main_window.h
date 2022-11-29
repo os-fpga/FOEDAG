@@ -101,6 +101,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  private: /* Menu bar builders */
   void updateViewMenu();
+  void updateTaskTable();
   void createMenus();
   void createToolBars();
   void createActions();
@@ -154,6 +155,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QMenu* recentMenu = nullptr;
   QMenu* preferencesMenu = nullptr;
   QMenu* projectMenu = nullptr;
+  QMenu* simulationMenu = nullptr;
   QAction* newAction = nullptr;
   QAction* newProjectAction = nullptr;
   QAction* openProjectAction = nullptr;
@@ -172,6 +174,10 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* saveAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
   QAction* stopCompileMessageAction = nullptr;
+  QAction* simRtlAction = nullptr;
+  QAction* simGateAction = nullptr;
+  QAction* simPnrAction = nullptr;
+  QAction* simBitstreamAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

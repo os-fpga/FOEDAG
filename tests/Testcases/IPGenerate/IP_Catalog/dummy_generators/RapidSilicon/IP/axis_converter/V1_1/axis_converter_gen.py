@@ -7,15 +7,29 @@ import json
 # on the fly so this file is a temporary solution
 
 obj = {
-    "core_in_width": 128,
-    "core_out_width": 64,
-    "core_user_width": 0,
-    "core_reverse": False,
-    "build": False,
-    "build_dir": "build",
-    "build_name": "axis_converter_128b_to_64b",
-    "json": None,
-    "json_template": True
+	"parameters": [
+        {
+            "parameter": "core_in_width",
+            "default": "128"
+	    },
+        {
+            "parameter": "core_out_width",
+            "default": "64"
+        },
+        {
+            "parameter": "core_user_width",
+            "default": "0"
+	    },
+        {
+            "parameter": "core_reverse",
+            "default": "False"
+	    }
+    ],
+	"build": "False",
+	"build_dir": "build",
+	"build_name": "axis_converter_128b_to_64b",
+	"json": "None",
+	"json_template": "True"
 }
 
 print( json.dumps(obj) )

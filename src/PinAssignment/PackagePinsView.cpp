@@ -38,7 +38,8 @@ constexpr int ModeCol{3};
 constexpr int InternalPinCol{4};
 
 PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
-    : PinAssignmentBaseView(model, parent) {
+    : PinAssignmentBaseView(model, parent),
+      MAX_ROWS{m_model->packagePinModel()->internalPinMax()} {
   header()->resizeSections(QHeaderView::ResizeToContents);
   setColumnCount(model->packagePinModel()->header().count());
   for (auto &h : model->packagePinModel()->header()) {
@@ -76,8 +77,11 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
 
       const auto &[widget, button] =
           prepareButtonWithLabel(pinItem->text(0), QIcon{":/images/add.png"});
-      connect(button, &QToolButton::clicked, this,
-              [=]() { CreateNewLine(pinItem); });
+      connect(button, &QToolButton::clicked, this, [=]() {
+        CreateNewLine(pinItem);
+        auto btn = itemWidget(pinItem, NameCol)->findChild<QToolButton *>();
+        if (btn) btn->setDisabled(pinItem->childCount() >= MAX_ROWS);
+      });
       setItemWidget(pinItem, NameCol, widget);
     }
     expandItem(bank);
@@ -134,9 +138,11 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
   }
   indexes = match(pin);
   if (row != 0) {
-    while ((indexes.count() - 1) <= row) {
-      CreateNewLine(itemFromIndex(indexes.first()));
-      indexes = match(pin);
+    if (!indexes.isEmpty()) {
+      while ((indexes.count() - 1) <= row) {
+        CreateNewLine(itemFromIndex(indexes.first()));
+        indexes = match(pin);
+      }
     }
   }
 
@@ -191,12 +197,13 @@ void PackagePinsView::internalPinSelectionHasChanged(const QModelIndex &index) {
   if (item) {
     auto combo = qobject_cast<QComboBox *>(itemWidget(item, InternalPinCol));
     if (combo) {
-      auto portIndex = model()->index(index.row(), PortsCol, index.parent());
-      QComboBox *portCombo{qobject_cast<QComboBox *>(
-          itemWidget(itemFromIndex(portIndex), PortsCol))};
-      if (portCombo)
-        m_model->packagePinModel()->updateInternalPin(portCombo->currentText(),
-                                                      combo->currentText());
+      m_model->packagePinModel()->updateInternalPin(GetPort(index),
+                                                    combo->currentText());
+      const auto combos{m_intPins[item->text(NameCol)]};
+      for (auto c : combos) {
+        if (combo != c)
+          updateInternalPinSelection(itemFromIndex(index)->text(PinName), c);
+      }
       emit selectionHasChanged();
     }
   }
@@ -308,6 +315,7 @@ void PackagePinsView::initLine(QTreeWidgetItem *item) {
             internalPinSelectionHasChanged(indexFromItem(item, ModeCol));
           });
   setItemWidget(item, InternalPinCol, internalPinCombo);
+  m_intPins[item->text(NameCol)].insert(internalPinCombo);
 }
 
 void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
@@ -320,7 +328,10 @@ void PackagePinsView::copyData(QTreeWidgetItem *from, QTreeWidgetItem *to) {
   fromCombo = qobject_cast<QComboBox *>(itemWidget(from, ModeCol));
   if (fromCombo) modeIndex = fromCombo->currentIndex();
   fromCombo = qobject_cast<QComboBox *>(itemWidget(from, InternalPinCol));
-  if (fromCombo) intPin = fromCombo->currentIndex();
+  if (fromCombo) {
+    intPin = fromCombo->currentIndex();
+    m_intPins[from->text(NameCol)].remove(fromCombo);
+  }
 
   for (auto column : {PortsCol, ModeCol, InternalPinCol})
     removeItemWidget(from, column);
@@ -353,8 +364,21 @@ void PackagePinsView::removeItem(QTreeWidgetItem *parent,
       m_model->remove(combo->currentText(), child->text(NameCol),
                       parent->indexOfChild(child));
     }
+    auto intCombo =
+        qobject_cast<QComboBox *>(itemWidget(child, InternalPinCol));
+    if (intCombo) m_intPins[child->text(NameCol)].remove(intCombo);
   }
   parent->removeChild(child);
+
+  auto btn = itemWidget(parent, NameCol)->findChild<QToolButton *>();
+  if (btn) btn->setDisabled(parent->childCount() >= MAX_ROWS);
+}
+
+QString PackagePinsView::GetPort(const QModelIndex &index) const {
+  auto portIndex = model()->index(index.row(), PortsCol, index.parent());
+  QComboBox *portCombo{qobject_cast<QComboBox *>(
+      itemWidget(itemFromIndex(portIndex), PortsCol))};
+  return (portCombo) ? portCombo->currentText() : QString{};
 }
 
 void PackagePinsView::modeChanged(const QString &pin, const QString &mode) {

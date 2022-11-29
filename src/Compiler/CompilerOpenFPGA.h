@@ -129,6 +129,8 @@ class CompilerOpenFPGA : public Compiler {
                              const std::filesystem::path& outputFile);
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
+  virtual std::string InitAnalyzeScript();
+  virtual std::string FinishAnalyzeScript(const std::string& script);
   virtual std::string InitOpenFPGAScript();
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);

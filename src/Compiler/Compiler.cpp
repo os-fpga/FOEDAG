@@ -132,7 +132,7 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP> "
          << std::endl;
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
@@ -187,7 +187,16 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
   (*out) << "   bitstream ?clean?" << std::endl;
-  (*out) << "   tcl_exit" << std::endl;
+  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
+            "testbench"
+         << std::endl;
+  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
+            "post-synthesis simulation, pnr: post-pnr simulation"
+         << std::endl;
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+            "xcelium"
+         << std::endl;
+  writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
 
@@ -366,6 +375,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  } else {
+    m_simulator->RegisterCommands(m_interp);
   }
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
@@ -502,7 +513,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           "<type (-VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008 (.vhd "
           "default), -V_1995, "
           "-V_2001 (.v default), -SV_2005, -SV_2009, -SV_2012, -SV_2017 (.sv "
-          "default))>");
+          "default), -C, -CPP)>");
       return TCL_ERROR;
     }
     for (int i = 1; i < argc; i++) {
@@ -816,26 +827,52 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      if (argc < 2) {
+        compiler->ErrorMessage(
+            "Wrong number of arguments: simulate <type> ?<simulator>? "
+            "?<waveform_file>?");
+        return TCL_ERROR;
+      }
+      std::string sim_type;
+      std::string wave_file;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "rtl") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::RTL, sim_tool);
-        } else if (arg == "gate") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Gate, sim_tool);
-        } else if (arg == "pnr") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::PNR, sim_tool);
-        } else if (arg == "bitstream") {
-          status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Bitstream, sim_tool);
+        if (arg == "verilator") {
+          sim_tool = Simulator::SimulatorType::Verilator;
+        } else if (arg == "icarus") {
+          sim_tool = Simulator::SimulatorType::Icarus;
+        } else if (arg == "ghdl") {
+          sim_tool = Simulator::SimulatorType::GHDL;
+        } else if (arg == "vcs") {
+          sim_tool = Simulator::SimulatorType::VCS;
+        } else if (arg == "questa") {
+          sim_tool = Simulator::SimulatorType::Questa;
+        } else if (arg == "xcelium") {
+          sim_tool = Simulator::SimulatorType::Xcelium;
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream") {
+          sim_type = arg;
         } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-          return TCL_ERROR;
+          wave_file = arg;
         }
-        if (status == false) {
-          return TCL_ERROR;
+      }
+      compiler->SetWaveformFile(wave_file);
+      if (sim_type.empty()) {
+        compiler->ErrorMessage("Unknown simulation type: " + sim_type);
+        return TCL_ERROR;
+      } else {
+        if (sim_type == "rtl") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::RTL, sim_tool, wave_file);
+        } else if (sim_type == "gate") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Gate, sim_tool, wave_file);
+        } else if (sim_type == "pnr") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::PNR, sim_tool, wave_file);
+        } else if (sim_type == "bitstream") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::Bitstream, sim_tool, wave_file);
         }
       }
       return (status) ? TCL_OK : TCL_ERROR;
@@ -1086,34 +1123,62 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
+      if (argc < 2) {
+        compiler->ErrorMessage(
+            "Wrong number of arguments: simulate <type> ?<simulator>? "
+            "?<waveform_file>?");
+        return TCL_ERROR;
+      }
+      std::string sim_type;
+      std::string wave_file;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "rtl") {
+        if (arg == "verilator") {
+          sim_tool = Simulator::SimulatorType::Verilator;
+        } else if (arg == "icarus") {
+          sim_tool = Simulator::SimulatorType::Icarus;
+        } else if (arg == "ghdl") {
+          sim_tool = Simulator::SimulatorType::GHDL;
+        } else if (arg == "vcs") {
+          sim_tool = Simulator::SimulatorType::VCS;
+        } else if (arg == "questa") {
+          sim_tool = Simulator::SimulatorType::Questa;
+        } else if (arg == "xcelium") {
+          sim_tool = Simulator::SimulatorType::Xcelium;
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream") {
+          sim_type = arg;
+        } else {
+          wave_file = arg;
+        }
+      }
+      compiler->SetWaveformFile(wave_file);
+      compiler->GetSimulator()->SetSimulatorType(sim_tool);
+      if (sim_type.empty()) {
+        compiler->ErrorMessage("Unknown simulation type: " + sim_type);
+        return TCL_ERROR;
+      } else {
+        if (sim_type == "rtl") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulateRTL, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (arg == "gate") {
+        } else if (sim_type == "gate") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulateGate, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (arg == "pnr") {
+        } else if (sim_type == "pnr") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulatePNR, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (arg == "bitstream") {
+        } else if (sim_type == "bitstream") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulateBitstream, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-          return TCL_ERROR;
-        }
-        if (status == false) {
-          return TCL_ERROR;
         }
       }
       return (status) ? TCL_OK : TCL_ERROR;
@@ -1397,31 +1462,310 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("open_project", open_project, this, nullptr);
   interp->registerCmd("run_project", run_project, this, nullptr);
 
-  auto gtkwave = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
-    QStringList args{};
-    if (argc > 1) {
-      QString file = QString::fromStdString(argv[1]);
-      if (file.count() > 0 && file[0] == "~") {
-        // QProcess doesn't substitue ~/ paths so we'll manually turn ~ paths
-        // into absolute paths
-        file = QDir::homePath() + file.mid(1);
+  auto wave_cmd = [](void* clientData, Tcl_Interp* interp, int argc,
+                     const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      // Convert args to a single string
+      std::vector<std::string> args{};
+      for (int i = 1; i < argc; i++) {
+        args.push_back(argv[i]);
       }
-      args << file;
+      std::string cmd = StringUtils::join(args, " ") + "\n";
+
+      // Send cmd to GTKWave
+      compiler->GTKWaveSendCmd(cmd);
     }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_cmd", wave_cmd, this, nullptr);
 
-    auto binPath = GlobalSession->Context()->BinaryPath();
-    auto exePath = binPath / "gtkwave" / "bin" / "gtkwave";
+  auto wave_get_return = [](void* clientData, Tcl_Interp* interp, int argc,
+                            const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      auto wave = compiler->GetGTKWaveProcess();
+      QString result{};
+      // ReturnVal gets set in the readyReadStandardOutput handler set in
+      // GetGTKWaveProcess()
+      auto retVal = wave->property("ReturnVal");
+      if (retVal.isValid()) {
+        result = retVal.toString();
+      }
+      Tcl_AppendResult(interp, qPrintable(result), nullptr);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_get_return", wave_get_return, this, nullptr);
 
-    QProcess* process = new QProcess();
-    QString cmd = QString::fromStdString(exePath.string());
-    process->start(cmd, args);
+  auto wave_open = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      std::string file{};
+      // check if a file was requested
+      if (argc > 1) {
+        file = argv[1];
+        if (file.size() > 0 && file[0] == '~') {
+          // ~/ doesn't get substitued so we'll manually turn ~ paths into
+          // absolute paths
+          std::string separator(1, std::filesystem::path::preferred_separator);
+          auto pos = file.find_first_of(separator, 0);
+          if (pos != std::string::npos) {
+            // this covers an uncommon scenario where a user provides a homepath
+            // like ~user/file.txt as well as the standard ~/
+            file.erase(0, pos);
+          }
+          // Manally add separator now that we've stripped the home/~ portions
+          file = QDir::homePath().toStdString() + separator + file;
+        }
+      }
+
+      // if a file was passed, set the loadFile command
+      std::string cmd{};
+      if (!file.empty()) {
+        cmd = "gtkwave::loadFile " + file;
+      }
+
+      // Send cmd to GTKWave
+      compiler->GTKWaveSendCmd(cmd);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_open", wave_open, this, nullptr);
+
+  auto wave_time = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      if (argc != 2) {
+        Tcl_AppendResult(
+            interp,
+            qPrintable("Expected Syntax: wave_time <timeString>\ntimeString "
+                       "can specify its time units. Ex: 1ps, 1000ns, 1s"),
+            nullptr);
+        return TCL_ERROR;
+      }
+
+      std::string cmd = std::string("gtkwave::setWindowStartTime ") + argv[1];
+
+      // Send cmd to GTKWave
+      compiler->GTKWaveSendCmd(cmd);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_time", wave_time, this, nullptr);
+
+  auto wave_show = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      if (argc != 2) {
+        Tcl_AppendResult(interp,
+                         qPrintable("Expected Syntax: wave_show <signalName>"),
+                         nullptr);
+        return TCL_ERROR;
+      }
+      std::string cmd = "foedag::show_signal " + std::string(argv[1]);
+      compiler->GTKWaveSendCmd(cmd);
+    }
 
     return TCL_OK;
   };
-  interp->registerCmd("gtkwave", gtkwave, this, nullptr);
+  interp->registerCmd("wave_show", wave_show, this, nullptr);
+
+  auto wave_refresh = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler) {
+      compiler->GTKWaveSendCmd("gtkwave::reloadFile");
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("wave_refresh", wave_refresh, this, nullptr);
 
   return true;
+}
+
+// This will send a given command to the gtkwave wish interface over stdin
+void Compiler::GTKWaveSendCmd(const std::string& gtkWaveCmd,
+                              bool raiseGtkWindow /* true */) {
+  QProcess* process = GetGTKWaveProcess();
+
+  std::string cmd = gtkWaveCmd;
+  if (process && process->isWritable()) {
+    if (cmd.back() != '\n') {
+      // Add a newline to end of command if one is missing
+      // (GTKWave will hang if you don't send a newline with your command)
+      cmd += "\n";
+    }
+
+    if (raiseGtkWindow) {
+      // Add a window raise command before the command to try to bring gtkwave
+      // to focus
+      cmd = "gtkwave::presentWindow\n" + cmd;
+    }
+
+    // Send command to GTKWave's stdin
+    process->write(cmd.c_str());
+    process->waitForBytesWritten();
+  }
+}
+
+// This will return a pointer to the current gtkwave process, if no process is
+// running, one will be started
+QProcess* Compiler::GetGTKWaveProcess() {
+  if (!m_gtkwave_process) {
+    m_gtkwave_process = new QProcess();
+
+    // Get a path to our local gtkwave binary
+    auto binPath = GlobalSession->Context()->BinaryPath();
+    auto exePath = binPath / "gtkwave" / "bin";
+    QString wd = QString::fromStdString(exePath.string());
+    // Need to be in the gtkwave bin dir to resolve some dependency issues
+    m_gtkwave_process->setWorkingDirectory(wd);
+
+    // Enable process control via tcl interface over std in with --wish
+    QString wishArg = "--wish";
+    QStringList args{wishArg};
+
+    // Start GTKWave Process
+    // invoking ./gtkwave to ensure we load the local copy
+    m_gtkwave_process->start("./gtkwave", args);
+    if (m_gtkwave_process->waitForStarted()) {
+      // Clear pointer on process close
+      QObject::connect(
+          m_gtkwave_process,
+          // static_cast required due to overload of signal params
+          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(
+              &QProcess::finished),
+          [this](int exitCode, QProcess::ExitStatus exitStauts) {
+            if (m_gtkwave_process) {
+              m_gtkwave_process->deleteLater();
+              m_gtkwave_process = nullptr;
+            }
+          });
+
+      // Listen to stdout
+      QObject::connect(
+          m_gtkwave_process, &QProcess::readyReadStandardOutput, [this]() {
+            // If we want to listen for return values from gtkwave
+            // getters, this is where we should check the value.
+
+            // Possible way of returning getter results:
+            // `wave_cmd puts \[gtkwave::getWaveWidth\]`
+            // also see installGTKWaveHelpers() for fine control
+
+            // Read stdout data
+            QByteArray data = m_gtkwave_process->readAllStandardOutput();
+            QString trimmed = data.trimmed();
+
+            // Listen for the wish interface being opened
+            if (trimmed.startsWith("Interpreter id is")) {
+              // Install extra tcl helpers
+              installGTKWaveHelpers();
+            }
+
+            // If the user had gtkwave print _RETURN_, capture and store the
+            // rest of the output, this can be retrieved with wave_get_return
+            QString retStr = "_RETURN_";
+            if (trimmed.startsWith(retStr)) {
+              trimmed.remove(0, retStr.size());
+              m_gtkwave_process->setProperty("ReturnVal", trimmed);
+            }
+          });
+
+      // Listen to stderr
+      QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardError,
+                       []() {
+                         // TODO @skyler-rs nov2022 This should be logged once
+                         // we have a logging system
+
+                         // QByteArray data =
+                         // m_gtkwave_process->readAllStandardError(); std::cout
+                         // << "error: " << data.toStdString() << std::endl;
+                       });
+    }
+  }
+
+  return m_gtkwave_process;
+}
+
+// This will install helper functions that build upon existing gtkwave::
+// commands to provide the functionality we need
+void Compiler::installGTKWaveHelpers() {
+  std::string cmds = R"(
+    namespace eval foedag {}
+
+    proc foedag::unselect_all {} {
+      set signals [gtkwave::getDisplayedSignals]
+      gtkwave::unhighlightSignalsFromList $signals
+    }
+
+    proc foedag::add_signal_once {signal} {
+      # This will check the existing signals for a dupe before adding the signal
+      set signals [gtkwave::getDisplayedSignals]
+      if { [lsearch $signals $signal] < 0 } {
+        # signal doesn't exist, add it
+        gtkwave::addSignalsFromList $signal
+      }
+    }
+
+    proc foedag::show_signal { signal } {
+      # This is a helper function to add and highlight a signal.
+      # It will only add the signal if it doesn't exist so duplicates are avoided
+      # It will unhighlight all signals before selecting the given signal
+      foedag::add_signal_once $signal
+
+      # unhighlight all signals
+      foedag::unselect_all
+
+      # highglight signal
+      gtkwave::highlightSignalsFromList $signal
+    }
+
+  )";
+
+  GTKWaveSendCmd(cmds);
+}
+
+// Helper function to print help entries in a uniform fashion
+void Compiler::writeHelp(
+    std::ostream* out,
+    const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
+    int frontSpacePadCount, int descColumn) {
+  // Create front padding
+  std::string prePad = std::string(frontSpacePadCount, ' ');
+
+  for (auto [cmd, desc] : cmdDescPairs) {
+    // Create padding to try to line up description text at descColumn
+    int postPadCount = descColumn - prePad.length() - cmd.length();
+    std::string postPad = std::string((std::max)(0, postPadCount), ' ');
+
+    // Print help entry line with padding
+    (*out) << prePad << cmd << postPad << ": " << desc << std::endl;
+  }
+}
+
+void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
+                             int descColumn) {
+  std::vector<std::pair<std::string, std::string>> helpEntries = {
+      {"wave_*",
+       "All wave commands will launch a GTKWave process if one hasn't been "
+       "launched already. Subsequent commands will be sent to the launched "
+       "process."},
+      {"wave_cmd ...",
+       "Sends given tcl commands to GTKWave process. See GTKWave docs for "
+       "gtkwave:: commands."},
+      {"wave_open <filename>", "Load given file in current GTKWave process."},
+      {"wave_refresh", "Reloads the current active wave file"},
+      {"wave_show <signal>",
+       "Add the given signal to the GTKWave window and highlight it."},
+      {"wave_time <time>",
+       "Set the current GTKWave view port start time to <time>. Times units "
+       "can be specified, without a space. Ex: wave_time 100ps."}};
+
+  writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
 
 bool Compiler::Compile(Action action) {
@@ -1513,7 +1857,7 @@ bool Compiler::Synthesize() {
   (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "synthesis.rpt");
+  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
   return true;
 }
 
@@ -1599,16 +1943,20 @@ bool Compiler::RunCompileTask(Action action) {
       return RunBatch();
     case Action::SimulateRTL:
       return GetSimulator()->Simulate(Simulator::SimulationType::RTL,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulateGate:
       return GetSimulator()->Simulate(Simulator::SimulationType::Gate,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulatePNR:
       return GetSimulator()->Simulate(Simulator::SimulationType::PNR,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     case Action::SimulateBitstream:
       return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
-                                      GetSimulator()->GetSimulatorType());
+                                      GetSimulator()->GetSimulatorType(),
+                                      m_waveformFile);
     default:
       break;
   }
@@ -1770,7 +2118,7 @@ bool Compiler::Placement() {
            << std::endl;
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, "placement.rpt");
+  CreateDummyLog(m_projManager, PLACEMENT_LOG);
   return true;
 }
 
@@ -1795,7 +2143,7 @@ bool Compiler::Route() {
            << std::endl;
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, "routing.rpt");
+  CreateDummyLog(m_projManager, ROUTING_LOG);
   return true;
 }
 
@@ -2060,6 +2408,9 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     } else if (type == "-VHDL_2008") {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
+    } else if (type == "-VHDL_2019") {
+      language = Design::Language::VHDL_2019;
+      actualType = "VHDL_2019";
     } else if (type == "-V_1995") {
       language = Design::Language::VERILOG_1995;
       actualType = "VERILOG_1995";

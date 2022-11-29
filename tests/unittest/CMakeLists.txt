@@ -39,6 +39,7 @@ set (CPP_LIST
     Utils/QtUtils_test.cpp
     PinAssignment/TestLoader.cpp
     PinAssignment/TestPortsLoader.cpp
+    Compiler/CompilerDefines_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h

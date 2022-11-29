@@ -87,3 +87,11 @@ MSYS2 env with the MinGW64 g++ compiler can be used to build FOEDAG.
   8. Close the **MSYS2 MSYS** Shell
 
 * Now, use **MSYS2 MinGW x64** Shell (from Start Menu) to open the right shell and start building.
+* | If the system has MSVC compiler setup with Qt5 installed, it is likely that :code:`Qt5_DIR` env variable is set.  
+  | If so, the MSYS2 build will pick up the MSVC Qt5 install, and linking will fail due to the difference in name mangling.  
+  | In this case, ensure that :code:`Qt5_DIR` is set to the MinGW64 Qt5 packages before building.  
+  
+  .. code-block::
+
+      export Qt5_DIR=/mingw64/lib/cmake/Qt5
+

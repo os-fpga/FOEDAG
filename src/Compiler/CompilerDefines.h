@@ -30,10 +30,11 @@ class Compiler;
 class TaskManager;
 
 namespace Design {
+
+// The ID's of enum values are important since they are saved to project file.
+// Please append new values at the end
 enum Language {
-  C,
-  CPP,
-  BLIF,
+  BLIF = 0,
   EBLIF,
   VHDL_1987,
   VHDL_1993,
@@ -46,10 +47,15 @@ enum Language {
   SYSTEMVERILOG_2009,
   SYSTEMVERILOG_2012,
   SYSTEMVERILOG_2017,
+  C,
+  CPP,
+  VHDL_2019,
+  EDIF
 };
-}
+}  // namespace Design
 
-Design::Language FromFileType(const QString &type);
+Design::Language FromFileType(
+    const QString &type, Design::Language defaultValue = Design::VERILOG_2001);
 
 // ID of the tasks shouln't be changed since they save to file
 static constexpr uint IP_GENERATE{0};
@@ -91,6 +97,11 @@ static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
 static constexpr uint ParentDataRole = Qt::UserRole + 4;
 static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 static constexpr uint TaskId = Qt::UserRole + 6;
+
+static constexpr const char *ROUTING_LOG{"routing.rpt"};
+static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};
+static constexpr const char *PLACEMENT_LOG{"placement.rpt"};
+static constexpr const char *PLACEMENT_TIMING_LOG{"post_place_timing.rpt"};
 
 /*!
  * \brief prepareCompilerView

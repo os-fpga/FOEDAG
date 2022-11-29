@@ -36,13 +36,15 @@ class Compiler;
 
 class Simulator {
  public:
-  enum class SimulatorType { Verilator, Icarus, VCS, Questa, Xcelium };
+  enum class SimulatorType { Verilator, Icarus, GHDL, VCS, Questa, Xcelium };
   enum class SimulationType { RTL, Gate, PNR, Bitstream };
+  enum class WaveformType { VCD, FST };
 
   // Most common use case, create the compiler in your main
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
             TclInterpreterHandler* tclInterpreterHandler = nullptr);
+  void SetSimulationTop(const std::string& top) { m_simulationTop = top; }
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetErrStream(std::ostream* err) { m_err = err; };
@@ -51,10 +53,11 @@ class Simulator {
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() const { return m_session; }
   virtual ~Simulator() {}
-  bool Simulate(SimulationType action, SimulatorType type);
+  bool Simulate(SimulationType action, SimulatorType type,
+                const std::string& wave_file);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
-  bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  bool RegisterCommands(TclInterpreter* interp);
   bool Clear();
   void start();
   void finish();
@@ -65,6 +68,10 @@ class Simulator {
   virtual void ErrorMessage(const std::string& message);
   void SetSimulatorType(SimulatorType type) { m_simulatorTool = type; }
   SimulatorType GetSimulatorType() { return m_simulatorTool; }
+
+  void SetWaveformType(WaveformType type) { m_waveType = type; }
+  WaveformType GetWaveformType() { return m_waveType; }
+
   void SetSimulatorPath(SimulatorType type, const std::string path);
   void AddGateSimulationModel(const std::filesystem::path& path);
 
@@ -81,12 +88,13 @@ class Simulator {
   virtual std::string LibraryFileDirective(SimulatorType type);
   virtual std::string LibraryExtDirective(SimulatorType type);
   virtual std::string MacroDirective(SimulatorType type);
+  virtual std::string TopModuleCmd(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
   virtual std::string SimulationFileList(SimulatorType type);
   virtual int SimulationJob(SimulatorType type, const std::string& file_list);
   virtual std::string SimulatorRunCommand(SimulatorType type);
-  virtual std::string SimulatorOptions(SimulatorType type);
+  virtual std::string SimulatorCompilationOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   /* Propected members */
@@ -102,6 +110,9 @@ class Simulator {
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
+  std::string m_simulationTop;
+  std::string m_waveFile;
+  WaveformType m_waveType = WaveformType::FST;
 };
 
 }  // namespace FOEDAG

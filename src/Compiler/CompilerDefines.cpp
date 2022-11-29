@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TaskManager.h"
 #include "TaskModel.h"
 #include "TaskTableView.h"
+#include "Utils/QtUtils.h"
 
 extern FOEDAG::Session *GlobalSession;
 
@@ -43,6 +44,13 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
                    FOEDAG::handleTaskDialogRequested);
   QObject::connect(view, &TaskTableView::ViewFileRequested,
                    FOEDAG::handleViewFileRequested);
+  QObject::connect(
+      view, &TaskTableView::ViewReportRequested, [tManager](Task *task) {
+        auto &reportManagerRegistry = tManager->getReportManagerRegistry();
+        auto reportManager =
+            reportManagerRegistry.getReportManager(tManager->taskId(task));
+        if (reportManager) FOEDAG::handleViewReportRequested(*reportManager);
+      });
 
   view->setModel(model);
 
@@ -113,11 +121,14 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
   return TaskManager::invalid_id;
 }
 
-FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type) {
-  if (type == "v") return Design::Language::VERILOG_2001;
-  if (type == "sv") return Design::Language::SYSTEMVERILOG_2017;
-  if (type == "vhd") return Design::Language::VHDL_2008;
-  return Design::Language::VERILOG_2001;  // default
+FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
+                                              Design::Language defaultValue) {
+  if (QtUtils::IsEqual(type, "v")) return Design::Language::VERILOG_2001;
+  if (QtUtils::IsEqual(type, "sv")) return Design::Language::SYSTEMVERILOG_2017;
+  if (QtUtils::IsEqual(type, "vhd")) return Design::Language::VHDL_2008;
+  if (QtUtils::IsEqual(type, "blif")) return Design::Language::BLIF;
+  if (QtUtils::IsEqual(type, "eblif")) return Design::Language::EBLIF;
+  return defaultValue;  // default
 }
 
 int FOEDAG::read_sdc(const QString &file) {

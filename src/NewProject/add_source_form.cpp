@@ -36,6 +36,14 @@ addSourceForm::addSourceForm(QWidget *parent)
 
 addSourceForm::~addSourceForm() { delete ui; }
 
+void addSourceForm::setProjectType(int projectType) {
+  m_widgetGrid->setProjectType(projectType);
+}
+
+int addSourceForm::projectType() const { return m_widgetGrid->projectType(); }
+
+void addSourceForm::clear() { m_widgetGrid->ClearTable(); }
+
 void addSourceForm::SetBasePath(const QString &p) { m_basePath = p; }
 
 QList<filedata> addSourceForm::getFileData() {

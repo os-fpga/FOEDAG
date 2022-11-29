@@ -21,10 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
+#include <QHeaderView>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+
+#include "Compiler/Reports/ITaskReport.h"
+#include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
 #include "Settings.h"
 #include "TextEditor/text_editor.h"
 #include "WidgetFactory.h"
+
 using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
@@ -32,6 +39,46 @@ using namespace FOEDAG;
 #define PLACE_ARG "pin_assign_method"
 
 #define TASKS_DEBUG false
+
+namespace {
+void openReportView(const ITaskReport& report) {
+  auto reportsView = new QTableWidget();
+
+  // Fill columns
+  auto columns = report.getColumns();
+  reportsView->setColumnCount(columns.size());
+  auto colIndex = 0;
+  for (auto& col : columns) {
+    auto columnItem = new QTableWidgetItem(col);
+    reportsView->setHorizontalHeaderItem(colIndex, columnItem);
+    ++colIndex;
+  }
+
+  // Fill table
+  auto rowIndex = 0;
+  for (auto& lineData : report.getData()) {
+    reportsView->insertRow(rowIndex);
+    auto colIndex = 0;
+    for (auto& lineValue : lineData) {
+      auto item = new QTableWidgetItem(lineValue);
+      item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
+                                           : Qt::AlignCenter);
+      reportsView->setItem(rowIndex, colIndex, item);
+      ++colIndex;
+    }
+    ++rowIndex;
+  }
+
+  // Initialize the view itself
+  reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  reportsView->horizontalHeader()->resizeSections(
+      QHeaderView::ResizeToContents);
+
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  tabWidget->addTab(reportsView, report.getName());
+  tabWidget->setCurrentWidget(reportsView);
+}
+}  // namespace
 
 auto TASKS_DBG_PRINT = [](std::string printStr) {
   if (TASKS_DEBUG) {
@@ -206,4 +253,18 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   QString path = filePath;
   path.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
   TextEditorForm::Instance()->OpenFile(path);
+}
+
+void FOEDAG::handleViewReportRequested(ITaskReportManager& reportManager) {
+  auto reports = std::vector<std::unique_ptr<ITaskReport>>{};
+  auto availableReports = reportManager.getAvailableReportIds();
+  if (availableReports.empty()) return;
+
+  reports.reserve(availableReports.size());
+  for (auto& reportId : availableReports)
+    reports.push_back(reportManager.createReport(reportId));
+
+  for (auto& report : reports) {
+    if (report) openReportView(*report);
+  }
 }

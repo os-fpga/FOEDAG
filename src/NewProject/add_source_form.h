@@ -18,6 +18,9 @@ class addSourceForm : public QWidget, public SettingsGuiInterface {
  public:
   explicit addSourceForm(QWidget *parent = nullptr);
   ~addSourceForm();
+  void setProjectType(int projectType);
+  int projectType() const;
+  void clear();
 
   void SetBasePath(const QString &p);
 

@@ -235,12 +235,15 @@ void MainWindow::openExampleProject() {
       }
     }
 
-    // QT doesn't have a convenience function for recursively copying a folder
-    // so we'll use std::filesystem instead
-    std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
-    std::filesystem::path destPath = std::filesystem::path(dest.toStdString());
-    std::filesystem::copy(srcPath, destPath,
-                          std::filesystem::copy_options::recursive);
+    if (src != dest) {
+      // QT doesn't have a convenience function for recursively copying a folder
+      // so we'll use std::filesystem instead
+      std::filesystem::path srcPath = std::filesystem::path(src.toStdString());
+      std::filesystem::path destPath =
+          std::filesystem::path(dest.toStdString());
+      std::filesystem::copy(srcPath, destPath,
+                            std::filesystem::copy_options::recursive);
+    }
 
     // open the newly copied example project
     openProject(dest + QDir::separator() + file, false, false);
@@ -281,6 +284,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
+  simulationMenu->setEnabled(!design.isEmpty());
 }
 
 void MainWindow::startStopButtonsState() {
@@ -433,6 +437,7 @@ void MainWindow::loadFile(const QString& file) {
     m_projectFileLoader->Load(file);
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+    updateTaskTable();
   }
 }
 
@@ -503,6 +508,12 @@ void MainWindow::createMenus() {
   fileMenu->addAction(exitAction);
 
   projectMenu = menuBar()->addMenu("Project");
+  simulationMenu = menuBar()->addMenu("Simulation");
+  simulationMenu->addAction(simRtlAction);
+  simulationMenu->addAction(simGateAction);
+  simulationMenu->addAction(simPnrAction);
+  simulationMenu->addAction(simBitstreamAction);
+  simulationMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -663,6 +674,23 @@ void MainWindow::createActions() {
   stopCompileMessageAction->setChecked(m_askStopCompilation);
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
+
+  simRtlAction = new QAction(tr("Simulate RTL"), this);
+  connect(simRtlAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
+  });
+  simPnrAction = new QAction(tr("Simulate PNR"), this);
+  connect(simPnrAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
+  });
+  simGateAction = new QAction(tr("Simulate Gate"), this);
+  connect(simGateAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
+  });
+  simBitstreamAction = new QAction(tr("Simulate Bitstream"), this);
+  connect(simBitstreamAction, &QAction::triggered, this, [this]() {
+    GlobalSession->CmdStack()->push_and_exec(new Command("simulate bitstream"));
+  });
 }
 
 void MainWindow::gui_start(bool showWP) {
@@ -851,6 +879,10 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(m_taskManager, &TaskManager::started, this,
           [this]() { m_progressWidget->show(); });
+  connect(m_taskManager, &TaskManager::taskReportCreated, this,
+          [this](auto taskName) {
+            statusBar()->showMessage(tr("%1 generated").arg(taskName));
+          });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
@@ -871,6 +903,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runForm->InitRunsForm();
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
+  updateTaskTable();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -1132,6 +1165,13 @@ void MainWindow::updateViewMenu() {
       viewMenu->addAction(dockWidget->toggleViewAction());
     }
   }
+}
+
+void MainWindow::updateTaskTable() {
+  const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
+  m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
+  m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
+  m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
 }
 
 void MainWindow::slotTabChanged(int index) {

@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Simulation/Simulator.h"
 #include "Tcl/TclInterpreter.h"
 
+class QProcess;
+
 namespace FOEDAG {
 
 class TaskManager;
@@ -200,6 +202,12 @@ class Compiler {
   NetlistType GetNetlistType() { return m_netlistType; }
 
   void virtual CustomSimulatorSetup();
+  void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
+  const std::string& GetWavefromFile() { return m_waveformFile; }
+
+  QProcess* GetGTKWaveProcess();
+  void GTKWaveSendCmd(const std::string& gtkWaveCmd,
+                      bool raiseGtkWindow = true);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -240,6 +248,13 @@ class Compiler {
   enum AddFilesType { Design, Simulation };
   int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
                 const char* argv[], AddFilesType filesType);
+
+  void installGTKWaveHelpers();
+  void writeHelp(
+      std::ostream* out,
+      const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
+      int frontSpacePadCount, int descColumn);
+  void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
 
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
@@ -294,6 +309,11 @@ class Compiler {
   std::map<std::string, std::string> m_environmentVariableMap;
 
   NetlistType m_netlistType = NetlistType::Blif;
+
+  std::string m_waveformFile;
+
+  // GTKWave
+  QProcess* m_gtkwave_process = nullptr;
 };
 
 }  // namespace FOEDAG

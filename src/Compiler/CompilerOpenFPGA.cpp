@@ -143,7 +143,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
             "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
+            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP> "
          << std::endl;
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
@@ -216,6 +216,14 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
+  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
+            "testbench"
+         << std::endl;
+  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
+            "post-synthesis simulation, pnr: post-pnr simulation"
+         << std::endl;
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+         << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -755,54 +763,12 @@ bool CompilerOpenFPGA::DesignChanged(
   return result;
 }
 
-bool CompilerOpenFPGA::Analyze() {
-  auto printTopModules = [](const std::filesystem::path& filePath,
-                            std::ostream* out) {
-    // Check for "topModule" in a given json filePath
-    // Assumed json format is [ { "topModule" : "some_value"} ]
-    if (out) {
-      if (FileUtils::FileExists(filePath)) {
-        std::ifstream file(filePath);
-        json data = json::parse(file);
-        if (data.is_array()) {
-          std::vector<std::string> topModules;
-          std::transform(data.begin(), data.end(),
-                         std::back_inserter(topModules),
-                         [](json val) -> std::string {
-                           return val.value("topModule", "");
-                         });
-
-          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
-                 << std::endl;
-        }
-      }
-    }
-  };
-
-  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
-    Message("Cleaning analysis results for " + ProjManager()->projectName());
-    m_state = State::IPGenerated;
-    AnalyzeOpt(DesignAnalysisOpt::None);
-    // Remove generated json files
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
-    return true;
-  }
-  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
-  if (!HasTargetDevice()) return false;
-
-  PERF_LOG("Analysis has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
-
-  // TODO: Awaiting interface from analyzer exec.
+std::string CompilerOpenFPGA::InitAnalyzeScript() {
   std::string analysisScript;
-
   if (m_useVerific) {
     // Verific parser
     std::string fileList;
+    fileList += "-set-warning VERI-1063\n";
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
@@ -844,6 +810,9 @@ bool CompilerOpenFPGA::Analyze() {
         case Design::Language::VHDL_2008:
           lang = "-vhdl2008";
           break;
+        case Design::Language::VHDL_2019:
+          lang = "-vhdl2019";
+          break;
         case Design::Language::VERILOG_1995:
           lang = "-vlog95";
           break;
@@ -869,7 +838,7 @@ bool CompilerOpenFPGA::Analyze() {
         case Design::Language::EBLIF:
           lang = "BLIF";
           ErrorMessage("Unsupported file format:" + lang);
-          return false;
+          return "";
       }
       if (filesIndex < commandsLibs.size()) {
         const auto& filesCommandsLibs = commandsLibs[filesIndex];
@@ -939,6 +908,58 @@ bool CompilerOpenFPGA::Analyze() {
        analysisScript = fileList;
        */
   }
+  return analysisScript;
+}
+
+std::string CompilerOpenFPGA::FinishAnalyzeScript(const std::string& script) {
+  std::string result = script;
+  return result;
+}
+
+bool CompilerOpenFPGA::Analyze() {
+  auto printTopModules = [](const std::filesystem::path& filePath,
+                            std::ostream* out) {
+    // Check for "topModule" in a given json filePath
+    // Assumed json format is [ { "topModule" : "some_value"} ]
+    if (out) {
+      if (FileUtils::FileExists(filePath)) {
+        std::ifstream file(filePath);
+        json data = json::parse(file);
+        if (data.is_array()) {
+          std::vector<std::string> topModules;
+          std::transform(data.begin(), data.end(),
+                         std::back_inserter(topModules),
+                         [](json val) -> std::string {
+                           return val.value("topModule", "");
+                         });
+
+          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
+                 << std::endl;
+        }
+      }
+    }
+  };
+
+  if (AnalyzeOpt() == DesignAnalysisOpt::Clean) {
+    Message("Cleaning analysis results for " + ProjManager()->projectName());
+    m_state = State::IPGenerated;
+    AnalyzeOpt(DesignAnalysisOpt::None);
+    // Remove generated json files
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    return true;
+  }
+  if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
+  if (!HasTargetDevice()) return false;
+
+  PERF_LOG("Analysis has started");
+  (*m_out) << "##################################################" << std::endl;
+  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
+           << std::endl;
+  (*m_out) << "##################################################" << std::endl;
+
+  std::string analysisScript = InitAnalyzeScript();
+  analysisScript = FinishAnalyzeScript(analysisScript);
 
   std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
   script_path =
@@ -958,6 +979,8 @@ bool CompilerOpenFPGA::Analyze() {
   ofs.close();
   std::string command;
   int status = 0;
+  std::filesystem::path analyse_path =
+      std::filesystem::path(ProjManager()->projectPath()) / "analyze.log";
   if (m_useVerific) {
     if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
       ErrorMessage("Cannot find executable: " +
@@ -966,9 +989,22 @@ bool CompilerOpenFPGA::Analyze() {
     }
     command = m_analyzeExecutablePath.string() + " -f " + script_path;
     (*m_out) << "Analyze command: " << command << std::endl;
-    status = ExecuteAndMonitorSystemCommand(command);
+    status = ExecuteAndMonitorSystemCommand(command, analyse_path.string());
   }
-  // TODO: read back the Json file produced
+  (*m_out) << std::flush;
+  std::ifstream raptor_log(analyse_path.string());
+  if (raptor_log.good()) {
+    std::stringstream buffer;
+    buffer << raptor_log.rdbuf();
+    const std::string& buf = buffer.str();
+    std::cout << buf << std::endl;
+    if (buf.find("VERI-1063") != std::string::npos) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " has an incomplete hierarchy, unknown module(s) error(s).");
+      status = true;
+    }
+    raptor_log.close();
+  }
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " analysis failed");
     return false;
@@ -1096,6 +1132,9 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_2008:
           lang = "-vhdl2008";
           break;
+        case Design::Language::VHDL_2019:
+          lang = "-vhdl2019";
+          break;
         case Design::Language::VERILOG_1995:
           lang = "-vlog95";
           break;
@@ -1188,6 +1227,7 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
         case Design::Language::VHDL_2008:
+        case Design::Language::VHDL_2019:
           ErrorMessage("Unsupported language (Yosys default parser)");
           break;
         case Design::Language::VERILOG_1995:
@@ -1282,7 +1322,7 @@ bool CompilerOpenFPGA::Synthesize() {
              << std::endl;
 
     copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
-            "synthesis.rpt");
+            SYNTHESIS_LOG);
     return true;
   }
 }
@@ -1728,7 +1768,7 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "placement.rpt");
+  copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
   return true;
 }
 
@@ -1837,7 +1877,7 @@ bool CompilerOpenFPGA::Route() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is routed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "routing.rpt");
+  copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
   return true;
 }
 
@@ -2020,7 +2060,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
 }
 
 const std::string basicOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --skip_sync_clustering_and_routing_results on --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -2033,6 +2073,8 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
+
+pb_pin_fixup
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup

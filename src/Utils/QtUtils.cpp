@@ -30,4 +30,8 @@ QStringList QtUtils::StringSplit(const QString &str, const QChar &sep) {
 #endif
 }
 
+bool QtUtils::IsEqual(const QString &str, const QString &s) {
+  return str.compare(s, Qt::CaseInsensitive) == 0;
+}
+
 }  // namespace FOEDAG
