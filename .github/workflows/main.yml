@@ -532,7 +532,7 @@ jobs:
       run: |
         sudo apt-get update -qq
         sudo apt -qq -y install clang-tidy-12 \
-                                g++-9 tclsh  default-jre cmake \
+                                g++-11 tclsh  default-jre cmake \
                                 uuid-dev build-essential xorg \
                                 qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb
 
