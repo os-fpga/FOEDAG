@@ -94,7 +94,7 @@ class Simulator {
   virtual std::string SimulationFileList(SimulatorType type);
   virtual int SimulationJob(SimulatorType type, const std::string& file_list);
   virtual std::string SimulatorRunCommand(SimulatorType type);
-  virtual std::string SimulatorOptions(SimulatorType type);
+  virtual std::string SimulatorCompilationOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
   /* Propected members */
