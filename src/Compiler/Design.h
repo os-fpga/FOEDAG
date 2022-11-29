@@ -44,6 +44,7 @@ class Design {
     VHDL_1993,
     VHDL_2000,
     VHDL_2008,
+    VHDL_2019,
     VERILOG_1995,
     VERILOG_2001,
     VERILOG_NETLIST,
@@ -51,6 +52,7 @@ class Design {
     SYSTEMVERILOG_2009,
     SYSTEMVERILOG_2012,
     SYSTEMVERILOG_2017,
+    EDIF
   };
   Design(const std::string& designName) : m_designName(designName) {}
   ~Design();
