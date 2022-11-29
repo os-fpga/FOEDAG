@@ -31,6 +31,7 @@ class PortsView : public PinAssignmentBaseView {
  public:
   PortsView(PinsBaseModel *model, QWidget *parent = nullptr);
   void SetPin(const QString &port, const QString &pin);
+  void cleanTable();
 
  signals:
   void selectionHasChanged();

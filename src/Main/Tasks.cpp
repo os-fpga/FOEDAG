@@ -28,8 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
-#include "Settings.h"
-#include "TextEditor/text_editor.h"
+#include "TextEditor/text_editor_form.h"
 #include "WidgetFactory.h"
 
 using namespace FOEDAG;

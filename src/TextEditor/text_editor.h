@@ -4,8 +4,6 @@
 #include <QObject>
 #include <QWidget>
 
-#include "text_editor_form.h"
-
 namespace FOEDAG {
 class Session;
 
@@ -22,6 +20,7 @@ class TextEditor : public QWidget {
 
  signals:
   void CurrentFileChanged(QString);
+  void FileChanged(const QString &);
 
  public slots:
   void SlotOpenFile(const QString &strFileName);
