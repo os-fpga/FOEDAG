@@ -8,12 +8,12 @@
 #include "TableReport.h"
 
 namespace {
-static const QRegExp FIND_CIRTUIT_STAT{"Circuit Statistics:.*"};
+static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 
 static constexpr const char *BLOCK_TYPE_COL{"Block type"};
 static constexpr const char *NOF_BLOCKS_COL{"Number of blocks"};
 
-static constexpr const char *CIRCUIT_REPORT_NAME{"Cirtuit Statistics Report"};
+static constexpr const char *CIRCUIT_REPORT_NAME{"Circuit Statistics Report"};
 static constexpr const char *RESOURCE_REPORT_NAME{
     "Post routing - Report Resource Utilization "};
 }  // namespace
@@ -92,7 +92,7 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createCircuitReport(
         circuitData.push_back(lineData);
       }
 
-    } else if (FIND_CIRTUIT_STAT.indexIn(line) != -1) {
+    } else if (FIND_CIRCUIT_STAT.indexIn(line) != -1) {
       statsFound = true;
     }
   }
