@@ -52,8 +52,8 @@ jobs:
 
     - name: Configure shell
       run: |
-        echo 'CC=gcc-9' >> $GITHUB_ENV
-        echo 'CXX=g++-9' >> $GITHUB_ENV
+        echo 'CC=gcc-11' >> $GITHUB_ENV
+        echo 'CXX=g++-11' >> $GITHUB_ENV
         echo 'PATH=/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
         echo "$PREFIX" >> $GITHUB_PATH
@@ -184,15 +184,15 @@ jobs:
     - name: Show shell configuration
       run: |
         env
-        source /opt/rh/devtoolset-9/enable
+        source /opt/rh/devtoolset-11/enable
         which gcc 
         which g++ 
 
     - name: Configure shell
       run: |
-        source /opt/rh/devtoolset-9/enable
-        echo 'CC=/opt/rh/devtoolset-9/root/usr/bin/gcc' >> $GITHUB_ENV
-        echo 'CXX=/opt/rh/devtoolset-9/root/usr/bin/g++' >> $GITHUB_ENV
+        source /opt/rh/devtoolset-11/enable
+        echo 'CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
+        echo 'CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
         echo 'PATH=/usr/local/Qt-5.15.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
         echo "$PREFIX" >> $GITHUB_PATH
