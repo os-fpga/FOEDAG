@@ -84,6 +84,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onShowStopMessage(bool showStopCompilationMsg);
   void onShowLicenses();
   void stopCompilation();
+  void showReportsTab();
 
  public slots:
   void updateSourceTree();
@@ -201,6 +202,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   std::vector<QDockWidget*> m_pinAssignmentDocks;
   QDockWidget* m_ipConfigDockWidget{nullptr};
   QDockWidget* m_availableIpsgDockWidget{nullptr};
+  QDockWidget* m_reportsDockWidget{nullptr};
   QSettings m_settings;
   bool m_progressVisible{false};
   bool m_askStopCompilation{true};

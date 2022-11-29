@@ -15,29 +15,29 @@ static constexpr const char *NOF_BLOCKS_COL{"Number of blocks"};
 
 static constexpr const char *CIRCUIT_REPORT_NAME{"Cirtuit Statistics Report"};
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Report Resource Utilization"};
+    "Post routing - Report Resource Utilization "};
 }  // namespace
 
 namespace FOEDAG {
 
-std::vector<std::string> RoutingReportManager::getAvailableReportIds() const {
-  return {CIRCUIT_REPORT_NAME, RESOURCE_REPORT_NAME};
+QStringList RoutingReportManager::getAvailableReportIds() const {
+  return {QString(CIRCUIT_REPORT_NAME), QString(RESOURCE_REPORT_NAME)};
 }
 
-std::map<size_t, std::string> RoutingReportManager::getMessages() { return {}; }
+QMap<size_t, QString> RoutingReportManager::getMessages() { return {}; }
 
 std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
-    const std::string &reportId) {
+    const QString &reportId) {
   auto logFile = createLogFile(QString(ROUTING_LOG));
   if (!logFile) return nullptr;
 
-  auto report = reportId == RESOURCE_REPORT_NAME
+  auto report = reportId == QString(RESOURCE_REPORT_NAME)
                     ? createResourceReport(*logFile)
                     : createCircuitReport(*logFile);
 
   logFile->close();
 
-  emit reportCreated(QString::fromStdString(reportId));
+  emit reportCreated(reportId);
 
   return report;
 }
