@@ -250,6 +250,11 @@ class Compiler {
                 const char* argv[], AddFilesType filesType);
 
   void installGTKWaveHelpers();
+  void writeHelp(
+      std::ostream* out,
+      const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
+      int frontSpacePadCount, int descColumn);
+  void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
 
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
