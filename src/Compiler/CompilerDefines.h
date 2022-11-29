@@ -49,6 +49,8 @@ enum Language {
   SYSTEMVERILOG_2017,
   C,
   CPP,
+  VHDL_2019,
+  EDIF
 };
 }  // namespace Design
 

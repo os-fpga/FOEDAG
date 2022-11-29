@@ -2368,6 +2368,9 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     } else if (type == "-VHDL_2008") {
       language = Design::Language::VHDL_2008;
       actualType = "VHDL_2008";
+    } else if (type == "-VHDL_2019") {
+      language = Design::Language::VHDL_2019;
+      actualType = "VHDL_2019";
     } else if (type == "-V_1995") {
       language = Design::Language::VERILOG_1995;
       actualType = "VERILOG_1995";

@@ -810,6 +810,9 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
         case Design::Language::VHDL_2008:
           lang = "-vhdl2008";
           break;
+        case Design::Language::VHDL_2019:
+          lang = "-vhdl2019";
+          break;
         case Design::Language::VERILOG_1995:
           lang = "-vlog95";
           break;
@@ -1129,6 +1132,9 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_2008:
           lang = "-vhdl2008";
           break;
+        case Design::Language::VHDL_2019:
+          lang = "-vhdl2019";
+          break;
         case Design::Language::VERILOG_1995:
           lang = "-vlog95";
           break;
@@ -1221,6 +1227,7 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_1993:
         case Design::Language::VHDL_2000:
         case Design::Language::VHDL_2008:
+        case Design::Language::VHDL_2019:
           ErrorMessage("Unsupported language (Yosys default parser)");
           break;
         case Design::Language::VERILOG_1995:
