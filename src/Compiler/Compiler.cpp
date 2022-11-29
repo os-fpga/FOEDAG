@@ -196,6 +196,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
+  writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
 
@@ -1726,6 +1727,45 @@ void Compiler::installGTKWaveHelpers() {
   )";
 
   GTKWaveSendCmd(cmds);
+}
+
+// Helper function to print help entries in a uniform fashion
+void Compiler::writeHelp(
+    std::ostream* out,
+    const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
+    int frontSpacePadCount, int descColumn) {
+  // Create front padding
+  std::string prePad = std::string(frontSpacePadCount, ' ');
+
+  for (auto [cmd, desc] : cmdDescPairs) {
+    // Create padding to try to line up description text at descColumn
+    int postPadCount = descColumn - prePad.length() - cmd.length();
+    std::string postPad = std::string((std::max)(0, postPadCount), ' ');
+
+    // Print help entry line with padding
+    (*out) << prePad << cmd << postPad << ": " << desc << std::endl;
+  }
+}
+
+void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
+                             int descColumn) {
+  std::vector<std::pair<std::string, std::string>> helpEntries = {
+      {"wave_*",
+       "All wave commands will launch a GTKWave process if one hasn't been "
+       "launched already. Subsequent commands will be sent to the launched "
+       "process."},
+      {"wave_cmd ...",
+       "Sends given tcl commands to GTKWave process. See GTKWave docs for "
+       "gtkwave:: commands."},
+      {"wave_open <filename>", "Load given file in current GTKWave process."},
+      {"wave_refresh", "Reloads the current active wave file"},
+      {"wave_show <signal>",
+       "Add the given signal to the GTKWave window and highlight it."},
+      {"wave_time <time>",
+       "Set the current GTKWave view port start time to <time>. Times units "
+       "can be specified, without a space. Ex: wave_time 100ps."}};
+
+  writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
 
 bool Compiler::Compile(Action action) {
