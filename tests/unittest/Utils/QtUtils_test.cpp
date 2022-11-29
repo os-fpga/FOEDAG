@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Utils/QtUtils.h"
 
+#include <QEventLoop>
+
 #include "gtest/gtest.h"
 
 using namespace FOEDAG;
@@ -45,4 +47,18 @@ TEST(QtUtils, IsEqual) {
   EXPECT_EQ(QtUtils::IsEqual(test, "tes"), false);
   EXPECT_EQ(QtUtils::IsEqual(test, "t"), false);
   EXPECT_EQ(QtUtils::IsEqual(test, "any"), false);
+}
+
+TEST(QtUtils, AppendToEventQueue) {
+  std::vector<int> testData;
+  QEventLoop eventLoop;  // event loop to handle events from AppendToEventQueue
+  QtUtils::AppendToEventQueue([&]() { testData.push_back(1); });
+  QtUtils::AppendToEventQueue([&]() {
+    testData.push_back(2);
+    eventLoop.exit(0);
+  });
+  testData.push_back(3);
+  eventLoop.exec();
+  std::vector<int> expected{3, 1, 2};
+  EXPECT_EQ(testData, expected);
 }

@@ -35,6 +35,7 @@ struct PinAssignmentData {
   QString target{};
   QStringList commands{};
   QString projectPath{};
+  QString pinFile;
 };
 
 class PinAssignmentCreator : public QObject {
@@ -46,6 +47,13 @@ class PinAssignmentCreator : public QObject {
   QWidget *GetPortsWidget();
   QString generateSdc() const;
   PinsBaseModel *baseModel() const;
+  const PinAssignmentData &data() const;
+
+  /*!
+   * \brief refresh
+   * Reload all data from *.pin file
+   */
+  void refresh();
 
   /*!
    * \brief searchPortsFile
@@ -77,6 +85,7 @@ class PinAssignmentCreator : public QObject {
   PinsBaseModel *m_baseModel{nullptr};
   static QMap<QString, PackagePinsLoader *> m_loader;
   static QMap<QString, PortsLoader *> m_portsLoader;
+  PinAssignmentData m_data;
 };
 
 }  // namespace FOEDAG

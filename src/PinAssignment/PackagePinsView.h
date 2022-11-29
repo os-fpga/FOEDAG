@@ -34,6 +34,7 @@ class PackagePinsView : public PinAssignmentBaseView {
   void SetMode(const QString &pin, const QString &mode);
   void SetInternalPin(const QString &port, const QString &intPin);
   void SetPort(const QString &pin, const QString &port, int row);
+  void cleanTable();
 
  signals:
   void selectionHasChanged();
@@ -62,6 +63,7 @@ class PackagePinsView : public PinAssignmentBaseView {
 
  private:
   const int MAX_ROWS{};
+  QVector<QTreeWidgetItem *> m_pinItems;
 };
 
 }  // namespace FOEDAG
