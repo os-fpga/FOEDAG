@@ -1010,7 +1010,6 @@ bool CompilerOpenFPGA::Analyze() {
     std::stringstream buffer;
     buffer << raptor_log.rdbuf();
     const std::string& buf = buffer.str();
-    std::cout << buf << std::endl;
     if (buf.find("VERI-1063") != std::string::npos) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " has an incomplete hierarchy, unknown module(s) error(s).");
