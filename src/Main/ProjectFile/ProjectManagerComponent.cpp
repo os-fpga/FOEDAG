@@ -316,6 +316,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             strSetSrcDir = "";
             listFiles.clear();
             mapOption.clear();
+            langList.clear();
           }
         }
       }

@@ -18,7 +18,7 @@ class summaryForm : public QWidget {
   void setProjectSettings(bool on);
 
   void setProjectName(const QString &proName, const QString &proType);
-  void setSourceCount(const int &srcCount, const int constrCount);
+  void setSourceCount(const int &srcCount, const int constrCount, int simCount);
   void setDeviceInfo(const QStringList &listDevItem);
 
  private:

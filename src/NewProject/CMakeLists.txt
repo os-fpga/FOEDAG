@@ -39,7 +39,9 @@ set (SRC_CPP_LIST
   ProjectManager/project_manager.cpp
   ProjectManager/compiler_configuration.cpp
   ProjectManager/ip_configuration.cpp
-  newprojectmodel.cpp)
+  newprojectmodel.cpp
+  add_sim_form.cpp
+)
 
 set (SRC_H_LIST
   new_project_dialog.h
@@ -62,7 +64,9 @@ set (SRC_H_LIST
   ProjectManager/compiler_configuration.h
   ProjectManager/ip_configuration.h
   newprojectmodel.h
-  SettingsGuiInterface.h)
+  SettingsGuiInterface.h
+  add_sim_form.h
+)
 
 set (SRC_UI_LIST
   new_project_dialog.ui
@@ -72,7 +76,9 @@ set (SRC_UI_LIST
   add_constraints_form.ui
   device_planner_form.ui
   summary_form.ui
-  create_file_dialog.ui)
+  create_file_dialog.ui
+  add_sim_form.ui
+)
 
 add_library(newproject STATIC
   ${SRC_CPP_LIST}
@@ -100,6 +106,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_constraints_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/source_grid.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_source_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_sim_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/device_planner_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/location_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/project_type_form.h
