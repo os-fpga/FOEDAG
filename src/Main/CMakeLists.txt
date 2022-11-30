@@ -59,6 +59,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/AboutWidget.cpp
   ../Main/licenseviewer.cpp
   ../MainWindow/mainwindowmodel.cpp
+  ../MainWindow/ReportsTreeWidget.cpp
   ../MainWindow/WelcomePageWidget.cpp
   ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
@@ -85,6 +86,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/AboutWidget.h
   ../Main/licenseviewer.h
   ../MainWindow/mainwindowmodel.h
+  ../MainWindow/ReportsTreeWidget.h
   ../MainWindow/TopLevelInterface.h
   ../MainWindow/WelcomePageWidget.h
   CompilerNotifier.h

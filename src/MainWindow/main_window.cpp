@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
+#include "ReportsTreeWidget.h"
 #include "TextEditor/text_editor.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
@@ -378,6 +379,26 @@ void MainWindow::stopCompilation() {
   if (stop) {
     m_compiler->Stop();
     m_progressBar->hide();
+  }
+}
+
+void MainWindow::showReportsTab() {
+  auto newReportsWidget = new ReportsTreeWidget(*m_taskManager);
+  // If dock widget has already been created
+  if (m_reportsDockWidget) {
+    // remove old config widget
+    auto oldWidget = m_reportsDockWidget->widget();
+    if (oldWidget) {
+      delete oldWidget;
+    }
+    // set new config widget
+    m_reportsDockWidget->setWidget(newReportsWidget);
+    m_reportsDockWidget->show();
+  } else {
+    // Create and place new dockwidget
+    m_reportsDockWidget =
+        PrepareTab(tr("Reports"), "reportsTreeWidget", newReportsWidget,
+                   m_dockConsole, Qt::BottomDockWidgetArea);
   }
 }
 
@@ -922,6 +943,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
+    showReportsTab();
   });
 
   connect(m_taskManager, &TaskManager::started, this,

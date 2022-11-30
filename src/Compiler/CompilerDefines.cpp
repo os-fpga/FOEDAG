@@ -45,11 +45,13 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   QObject::connect(view, &TaskTableView::ViewFileRequested,
                    FOEDAG::handleViewFileRequested);
   QObject::connect(
-      view, &TaskTableView::ViewReportRequested, [tManager](Task *task) {
+      view, &TaskTableView::ViewReportRequested,
+      [tManager](Task *task, const QString &reportId) {
         auto &reportManagerRegistry = tManager->getReportManagerRegistry();
         auto reportManager =
             reportManagerRegistry.getReportManager(tManager->taskId(task));
-        if (reportManager) FOEDAG::handleViewReportRequested(*reportManager);
+        if (reportManager)
+          FOEDAG::handleViewReportRequested(reportId, *reportManager);
       });
 
   view->setModel(model);

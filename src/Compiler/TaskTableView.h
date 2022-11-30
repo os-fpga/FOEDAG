@@ -57,7 +57,7 @@ class TaskTableView : public QTableView {
  signals:
   void TaskDialogRequested(const QString &category);
   void ViewFileRequested(const QString &filePath);
-  void ViewReportRequested(Task *task);
+  void ViewReportRequested(Task *task, const QString &reportId);
 
  private:
   QRect expandArea(const QModelIndex &index) const;
