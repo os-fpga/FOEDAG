@@ -20,10 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <map>
+#include <QMap>
+#include <QStringList>
 #include <memory>
-#include <string>
-#include <vector>
 
 namespace FOEDAG {
 
@@ -37,13 +36,13 @@ class ITaskReportManager {
  public:
   virtual ~ITaskReportManager() = default;
   // Returns all available reports per compilation task
-  virtual std::vector<std::string> getAvailableReportIds() const = 0;
+  virtual QStringList getAvailableReportIds() const = 0;
   // Creates the report. This call will most likely result in log file parsing
   // and potentially caching, so it's not const.
   virtual std::unique_ptr<ITaskReport> createReport(
-      const std::string &reportId) = 0;
+      const QString &reportId) = 0;
   // Returns retrieved from a log file messages per line number.
-  virtual std::map<size_t, std::string> getMessages() = 0;
+  virtual QMap<size_t, QString> getMessages() = 0;
 };
 
 }  // namespace FOEDAG

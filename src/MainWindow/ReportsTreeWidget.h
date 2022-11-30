@@ -20,22 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "AbstractReportManager.h"
+#include <QWidget>
+
+class QTreeWidgetItem;
 
 namespace FOEDAG {
+class TaskManager;
 
-/* Placement-specific report manager. It triggers 'placement.rpt' log file
- * parsing and creates two reports:
- * - Report Resource Utilization, shown as table in application editor area;
- * - Report Static Timing, placed into post_place_timing.rpt file.
+/* This class shows reports in a tree view. At shown project task
+ * as a parent and all available report ids as its children.
+ * Double clicking on leaf node (report id) opens it in application
+ * editor. In case the report has been shown already, corresponding
+ * tab just gets activated.
  */
-class PlacementReportManager final : public AbstractReportManager {
-  QStringList getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  QMap<size_t, QString> getMessages() override;
+class ReportsTreeWidget final : public QWidget {
+  Q_OBJECT
+ public:
+  ReportsTreeWidget(const TaskManager &taskManager);
 
-  // Creates a file in given projectPath and fills it with timingData
-  void createTimingReport(const QStringList &timingData);
+ private slots:
+  // Reacts on double click on one of tree items.
+  void onReportRequested(const QTreeWidgetItem *item, int col);
+
+ private:
+  const TaskManager &m_taskManager;
 };
 
 }  // namespace FOEDAG

@@ -32,10 +32,9 @@ namespace FOEDAG {
 /*
  */
 class RoutingReportManager final : public AbstractReportManager {
-  std::vector<std::string> getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(
-      const std::string &reportId) override;
-  std::map<size_t, std::string> getMessages() override;
+  QStringList getAvailableReportIds() const override;
+  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
+  QMap<size_t, QString> getMessages() override;
 
   std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
   std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);

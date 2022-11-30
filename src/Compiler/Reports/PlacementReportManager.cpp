@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TableReport.h"
 
 namespace {
-static constexpr const char *REPORT_NAME{"Report Resource Utilization"};
+static constexpr const char *REPORT_NAME{
+    "Post placement - Report Resource Utilization"};
 
 static const QRegExp FIND_TIMINGS{
     "Placement estimated (critical|setup).*[0-9].*"};
@@ -38,12 +39,12 @@ static const QRegExp FIND_TIMINGS{
 
 namespace FOEDAG {
 
-std::vector<std::string> PlacementReportManager::getAvailableReportIds() const {
-  return {std::string(REPORT_NAME)};
+QStringList PlacementReportManager::getAvailableReportIds() const {
+  return {QString(REPORT_NAME)};
 }
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
-    const std::string &reportId) {
+    const QString &reportId) {
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return nullptr;
 
@@ -70,9 +71,7 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
                                        std::move(resourcesData), REPORT_NAME);
 }
 
-std::map<size_t, std::string> PlacementReportManager::getMessages() {
-  return {};
-}
+QMap<size_t, QString> PlacementReportManager::getMessages() { return {}; }
 
 void PlacementReportManager::createTimingReport(const QStringList &timingData) {
   auto projectPath = Project::Instance()->projectPath();

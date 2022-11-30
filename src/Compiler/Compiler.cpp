@@ -1647,8 +1647,77 @@ QProcess* Compiler::GetGTKWaveProcess() {
     QString wishArg = "--wish";
     QStringList args{wishArg};
 
-    // Start GTKWave Process
-    // invoking ./gtkwave to ensure we load the local copy
+    auto cleanMessage = [](const QString& msg) {
+      // GTKWave seems to prefix every error message with its version along with
+      // way too many empty lines so we'll clear both of those out
+      QStringList validLines{};
+      for (auto line : msg.split('\n')) {
+        if (line.isEmpty() || line.startsWith("GTKWave Analyzer v")) {
+          // ignore pointless lines
+          continue;
+        } else if (line.startsWith("WM Destroy")) {
+          // Make the WM Destory message more user friendly
+          validLines << "window has been closed";
+          continue;
+        }
+
+        validLines << line;
+      }
+
+      return validLines.join('\n');
+    };
+
+    auto handleStdout = [this, cleanMessage]() {
+      // If we want to listen for return values from gtkwave
+      // getters, this is where we should check the value.
+
+      // Possible way of returning getter results:
+      // `wave_cmd puts \[gtkwave::getWaveWidth\]`
+      // also see installGTKWaveHelpers() for fine control
+
+      // Read stdout data
+      QByteArray data = m_gtkwave_process->readAllStandardOutput();
+      QString trimmed = data.trimmed();
+
+      // Listen for the wish interface being opened
+      if (trimmed.startsWith("Interpreter id is")) {
+        // Install extra tcl helpers
+        installGTKWaveHelpers();
+      }
+
+      // If the user had gtkwave print _RETURN_, capture and
+      // store the rest of the output, this can be retrieved
+      // with wave_get_return
+      QString retStr = "_RETURN_";
+      if (trimmed.startsWith(retStr)) {
+        trimmed.remove(0, retStr.size());
+        m_gtkwave_process->setProperty("ReturnVal", trimmed);
+      }
+
+      // Print message
+      QString msg = cleanMessage(trimmed);
+      if (!msg.isEmpty()) {
+        Message("GTKWave - " + msg.toStdString());
+        finish();  // this is required to update the console to show a new
+                   // prompt for the user
+      }
+    };
+
+    auto handleStderr = [this, cleanMessage]() {
+      // Read stderr data
+      QByteArray data = m_gtkwave_process->readAllStandardError();
+
+      // Print message
+      QString msg = cleanMessage(data.trimmed());
+      if (!msg.isEmpty()) {
+        ErrorMessage("GTKWave - " + msg.toStdString());
+        finish();  // this is required to update the console to show a new
+                   // prompt for the user
+      }
+    };
+
+    // Start GTKWave Process.
+    // Invoking ./gtkwave to ensure we load the local copy
     m_gtkwave_process->start("./gtkwave", args);
     if (m_gtkwave_process->waitForStarted()) {
       // Clear pointer on process close
@@ -1665,47 +1734,14 @@ QProcess* Compiler::GetGTKWaveProcess() {
           });
 
       // Listen to stdout
-      QObject::connect(
-          m_gtkwave_process, &QProcess::readyReadStandardOutput, [this]() {
-            // If we want to listen for return values from gtkwave
-            // getters, this is where we should check the value.
-
-            // Possible way of returning getter results:
-            // `wave_cmd puts \[gtkwave::getWaveWidth\]`
-            // also see installGTKWaveHelpers() for fine control
-
-            // Read stdout data
-            QByteArray data = m_gtkwave_process->readAllStandardOutput();
-            QString trimmed = data.trimmed();
-
-            // Listen for the wish interface being opened
-            if (trimmed.startsWith("Interpreter id is")) {
-              // Install extra tcl helpers
-              installGTKWaveHelpers();
-            }
-
-            // If the user had gtkwave print _RETURN_, capture and store the
-            // rest of the output, this can be retrieved with wave_get_return
-            QString retStr = "_RETURN_";
-            if (trimmed.startsWith(retStr)) {
-              trimmed.remove(0, retStr.size());
-              m_gtkwave_process->setProperty("ReturnVal", trimmed);
-            }
-          });
+      QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardOutput,
+                       handleStdout);
 
       // Listen to stderr
       QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardError,
-                       []() {
-                         // TODO @skyler-rs nov2022 This should be logged once
-                         // we have a logging system
-
-                         // QByteArray data =
-                         // m_gtkwave_process->readAllStandardError(); std::cout
-                         // << "error: " << data.toStdString() << std::endl;
-                       });
+                       handleStderr);
     }
   }
-
   return m_gtkwave_process;
 }
 
@@ -1780,7 +1816,8 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
       {"wave_show <signal>",
        "Add the given signal to the GTKWave window and highlight it."},
       {"wave_time <time>",
-       "Set the current GTKWave view port start time to <time>. Times units "
+       "Set the current GTKWave view port start time to <time>. Times "
+       "units "
        "can be specified, without a space. Ex: wave_time 100ps."}};
 
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
