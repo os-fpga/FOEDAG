@@ -105,8 +105,10 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name"
+  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
+            "with <name> name"
          << std::endl;
+  (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
@@ -432,11 +434,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
-    if (argc == 2) {
+    std::string type{"rtl"};
+    if (argc >= 2) {
       name = argv[1];
     }
+    if (argc > 3) {
+      const std::string t = argv[2];
+      if (t == "-type") type = argv[3];
+    }
     compiler->GetOutput().clear();
-    bool ok = compiler->CreateDesign(name);
+    bool ok = compiler->CreateDesign(name, type);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
     if (!FileUtils::FileExists(name)) {
@@ -499,6 +506,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
     }
+    if (compiler->ProjManager()->projectType() != RTL) {
+      compiler->ErrorMessage(
+          "Post synthesis flow. Please use read_netlist or change design "
+          "type.");
+      return TCL_ERROR;
+    }
     return compiler->add_files(compiler, interp, argc, argv, Design);
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
@@ -541,6 +554,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     if (argc < 2) {
       compiler->ErrorMessage("Incorrect syntax for read_netlist <file>");
+      return TCL_ERROR;
+    }
+    if (compiler->ProjManager()->projectType() != PostSynth) {
+      compiler->ErrorMessage(
+          "RTL Design flow. Please use add_design_file or change design type.");
       return TCL_ERROR;
     }
 
@@ -2259,7 +2277,7 @@ bool Compiler::HasIPDefinitions() {
   return result;
 }
 
-bool Compiler::CreateDesign(const std::string& name) {
+bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
@@ -2267,10 +2285,14 @@ bool Compiler::CreateDesign(const std::string& name) {
     }
 
     std::ostringstream out;
-    bool ok = m_tclCmdIntegration->TclCreateProject(name.c_str(), out);
+    bool ok = m_tclCmdIntegration->TclCreateProject(
+        QString::fromStdString(name), QString::fromStdString(type), out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
-    Message(std::string("Created design: ") + name + std::string("\n"));
+    std::string message{"Created design: " + name};
+    if (!type.empty()) message += ". Project type: " + type;
+    message += "\n";
+    Message(message);
   }
   return true;
 }
