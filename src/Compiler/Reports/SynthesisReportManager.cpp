@@ -36,8 +36,8 @@ static constexpr const char *AVG_LVL_STR{"Average logic level"};
 
 namespace FOEDAG {
 
-std::vector<std::string> SynthesisReportManager::getAvailableReportIds() const {
-  return {std::string(REPORT_NAME)};
+QStringList SynthesisReportManager::getAvailableReportIds() const {
+  return {QString(REPORT_NAME)};
 }
 
 ITaskReport::TableData SynthesisReportManager::getStatistics(
@@ -94,7 +94,7 @@ void SynthesisReportManager::fillLevels(const QString &line,
 }
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
-    const std::string &reportId) {
+    const QString &reportId) {
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return nullptr;
 
@@ -121,8 +121,6 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
                                        "Synthesis report");
 }
 
-std::map<size_t, std::string> SynthesisReportManager::getMessages() {
-  return {};
-}
+QMap<size_t, QString> SynthesisReportManager::getMessages() { return {}; }
 
 }  // namespace FOEDAG
