@@ -487,6 +487,7 @@ bool MainWindow::saveConstraintFile() {
     rewrite = (answer == QMessageBox::YesRole);
     if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
+  pinAssignment->setPinFile(constraint);
   file.open(openFlags);
   QString sdc{pinAssignment->generateSdc()};
   if (rewrite)

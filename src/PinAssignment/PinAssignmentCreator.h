@@ -48,6 +48,7 @@ class PinAssignmentCreator : public QObject {
   QString generateSdc() const;
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;
+  void setPinFile(const QString &file);
 
   /*!
    * \brief refresh
