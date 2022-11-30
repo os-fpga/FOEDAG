@@ -76,8 +76,8 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
 
-  auto set_simulation_options = [](void* clientData, Tcl_Interp* interp,
-                                   int argc, const char* argv[]) -> int {
+  auto simulation_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
     if (argc > 3) {
       std::string options;
@@ -126,8 +126,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
     }
     return TCL_ERROR;
   };
-  interp->registerCmd("set_simulation_options", set_simulation_options, this,
-                      0);
+  interp->registerCmd("simulation_options", simulation_options, this, 0);
   return ok;
 }
 
