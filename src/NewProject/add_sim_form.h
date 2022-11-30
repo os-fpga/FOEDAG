@@ -20,29 +20,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QMap>
-#include <QStringList>
-#include <memory>
+#include <QWidget>
+
+#include "SettingsGuiInterface.h"
+#include "source_grid.h"
+
+namespace Ui {
+class addSimForm;
+}
 
 namespace FOEDAG {
 
-class ITaskReport;
+class addSimForm : public QWidget, public SettingsGuiInterface {
+  Q_OBJECT
 
-/* Manager for task reports. It has to be implemented per compilation
- * task, as reports are task-specific. It knows how many reports are
- * available per task and can create reports.
- */
-class ITaskReportManager {
  public:
-  virtual ~ITaskReportManager() = default;
-  // Returns all available reports per compilation task
-  virtual QStringList getAvailableReportIds() const = 0;
-  // Creates the report. This call will most likely result in log file parsing
-  // and potentially caching, so it's not const.
-  virtual std::unique_ptr<ITaskReport> createReport(
-      const QString &reportId) = 0;
-  // Returns retrieved from a log file messages per line number.
-  virtual QMap<size_t, QString> getMessages() = 0;
+  explicit addSimForm(QWidget *parent = nullptr);
+  ~addSimForm();
+  QList<filedata> getFileData() const;
+  bool IsCopySource() const;
+  void updateUi(ProjectManager *pm) override;
+  void SetTitle(const QString &title);
+
+ private:
+  Ui::addSimForm *ui;
+  sourceGrid *m_widgetGrid;
 };
 
 }  // namespace FOEDAG

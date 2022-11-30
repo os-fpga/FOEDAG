@@ -35,7 +35,7 @@ createFileDialog::~createFileDialog() { delete ui; }
 
 void createFileDialog::initialDialog(int type) {
   m_type = type;
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     setWindowTitle(tr("Create Source File"));
     ui->m_labelDetailed->setText(
         tr("Create a new source file and add it to your project."));
@@ -43,7 +43,7 @@ void createFileDialog::initialDialog(int type) {
     ui->m_comboxFileType->clear();
     ui->m_comboxFileType->addItem(tr("Verilog"));
     ui->m_comboxFileType->addItem(tr("SystemVerilog"));
-    ui->m_comboxFileType->addItem(tr("VHDL"));
+    if (GT_SIM != m_type) ui->m_comboxFileType->addItem(tr("VHDL"));
   } else if (GT_CONSTRAINTS == m_type) {
     setWindowTitle(tr("Create Constraints File"));
     ui->m_labelDetailed->setText(
@@ -56,14 +56,14 @@ void createFileDialog::initialDialog(int type) {
 }
 
 void createFileDialog::on_m_pushBtnOK_clicked() {
-  if ("" == ui->m_lineEditFileName->text()) {
+  if (ui->m_lineEditFileName->text().isEmpty()) {
     QMessageBox::information(this, tr("Information"),
                              tr("Please specify a file name"), QMessageBox::Ok);
     return;
   }
   filedata fdata;
   fdata.m_isFolder = false;
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:
         fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");

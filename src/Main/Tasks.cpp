@@ -254,16 +254,10 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   TextEditorForm::Instance()->OpenFile(path);
 }
 
-void FOEDAG::handleViewReportRequested(ITaskReportManager& reportManager) {
-  auto reports = std::vector<std::unique_ptr<ITaskReport>>{};
-  auto availableReports = reportManager.getAvailableReportIds();
-  if (availableReports.empty()) return;
+void FOEDAG::handleViewReportRequested(const QString& reportId,
+                                       ITaskReportManager& reportManager) {
+  auto report = reportManager.createReport(reportId);
+  if (!report) return;
 
-  reports.reserve(availableReports.size());
-  for (auto& reportId : availableReports)
-    reports.push_back(reportManager.createReport(reportId));
-
-  for (auto& report : reports) {
-    if (report) openReportView(*report);
-  }
+  openReportView(*report);
 }

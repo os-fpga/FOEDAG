@@ -45,11 +45,13 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   QObject::connect(view, &TaskTableView::ViewFileRequested,
                    FOEDAG::handleViewFileRequested);
   QObject::connect(
-      view, &TaskTableView::ViewReportRequested, [tManager](Task *task) {
+      view, &TaskTableView::ViewReportRequested,
+      [tManager](Task *task, const QString &reportId) {
         auto &reportManagerRegistry = tManager->getReportManagerRegistry();
         auto reportManager =
             reportManagerRegistry.getReportManager(tManager->taskId(task));
-        if (reportManager) FOEDAG::handleViewReportRequested(*reportManager);
+        if (reportManager)
+          FOEDAG::handleViewReportRequested(reportId, *reportManager);
       });
 
   view->setModel(model);
@@ -128,6 +130,9 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
   if (QtUtils::IsEqual(type, "vhd")) return Design::Language::VHDL_2008;
   if (QtUtils::IsEqual(type, "blif")) return Design::Language::BLIF;
   if (QtUtils::IsEqual(type, "eblif")) return Design::Language::EBLIF;
+  if (QtUtils::IsEqual(type, "c") || QtUtils::IsEqual(type, "cc"))
+    return Design::Language::C;
+  if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
   return defaultValue;  // default
 }
 

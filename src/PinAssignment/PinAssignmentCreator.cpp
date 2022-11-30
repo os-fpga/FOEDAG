@@ -192,6 +192,10 @@ PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }
 
 const PinAssignmentData &PinAssignmentCreator::data() const { return m_data; }
 
+void PinAssignmentCreator::setPinFile(const QString &file) {
+  m_data.pinFile = file;
+}
+
 void PinAssignmentCreator::refresh() {
   const QSignalBlocker signalBlocker{this};
   auto portView = m_portsView->findChild<PortsView *>();

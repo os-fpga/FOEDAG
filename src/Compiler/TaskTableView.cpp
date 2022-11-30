@@ -181,12 +181,20 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
           [this, logFilePath]() { emit ViewFileRequested(logFilePath); });
   menu->addAction(viewLog);
 
-  auto viewReportStr = "View " + title + " Reports";
-  auto *viewReport = new QAction(viewReportStr, this);
-  viewReport->setEnabled(logExists);
-  connect(viewReport, &QAction::triggered, this,
-          [this, task]() { emit ViewReportRequested(task); });
-  menu->addAction(viewReport);
+  auto taskId = m_taskManager->taskId(task);
+  auto reportManager =
+      m_taskManager->getReportManagerRegistry().getReportManager(taskId);
+  if (reportManager) {
+    for (auto &reportId : reportManager->getAvailableReportIds()) {
+      auto viewReportStr = "View " + reportId;
+      auto *viewReport = new QAction(viewReportStr, this);
+      viewReport->setEnabled(logExists);
+      connect(viewReport, &QAction::triggered, this, [this, task, reportId]() {
+        emit ViewReportRequested(task, reportId);
+      });
+      menu->addAction(viewReport);
+    }
+  }
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,

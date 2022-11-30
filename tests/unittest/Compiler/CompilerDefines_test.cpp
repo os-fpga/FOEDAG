@@ -41,6 +41,13 @@ TEST(CompilerDefines, FromFileType) {
   EXPECT_EQ(FromFileType("EBLIF"), Language::EBLIF);
   EXPECT_EQ(FromFileType("EbLIf"), Language::EBLIF);
 
+  EXPECT_EQ(FromFileType("C"), Language::C);
+  EXPECT_EQ(FromFileType("c"), Language::C);
+  EXPECT_EQ(FromFileType("cC"), Language::C);
+  EXPECT_EQ(FromFileType("cPP"), Language::CPP);
+  EXPECT_EQ(FromFileType("cpp"), Language::CPP);
+  EXPECT_EQ(FromFileType("CPP"), Language::CPP);
+
   // default
   EXPECT_EQ(FromFileType("anything"), Language::VERILOG_2001);
 }

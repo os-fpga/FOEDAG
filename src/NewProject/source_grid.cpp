@@ -42,6 +42,9 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
     "*.vh *.h *.svh *.vhp *.svhp *.sv )");
 
+static const auto SIM_SOURCES_FILTER =
+    QObject::tr("Simulation Source Files (*.c *.cc *.cpp *.v *.sv)");
+
 static const auto DESIGN_SOURCES_FILTER_POS =
     QObject::tr("NETLIST files (*.eblif *.blif *.edif *.edf *.v)");
 }  // namespace
@@ -140,7 +143,7 @@ void sourceGrid::setGridType(GridType type) {
   auto columnIndex{0};
   m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(INDEX_COL));
   m_model->setHorizontalHeaderItem(columnIndex++, new QStandardItem(NAME_COL));
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || m_type == GT_SIM) {
     m_model->setHorizontalHeaderItem(columnIndex++,
                                      new QStandardItem(LIBRARY_COL));
     m_model->setHorizontalHeaderItem(columnIndex++,
@@ -156,6 +159,11 @@ void sourceGrid::setGridType(GridType type) {
     m_btnAddDri->setVisible(false);
   } else {
     m_btnAddDri->setVisible(true);
+  }
+
+  if (GT_SIM == m_type) {
+    m_tableViewSrc->hideColumn(LIBRARY_COL_NUM);
+    m_tableViewSrc->hideColumn(COMPILE_UNIT_COL_NUM);
   }
 }
 
@@ -193,7 +201,7 @@ bool sourceGrid::isNetlistFileAdded() const {
 }
 
 void sourceGrid::AddFiles() {
-  QString fileformat{Filter(CurrentProjectType())};
+  QString fileformat{Filter(CurrentProjectType(), m_type)};
   if (GT_CONSTRAINTS == m_type) fileformat = CONSTR_FILTER;
   // this option will catch lower and upper cases extentions
   auto option{QFileDialog::DontUseNativeDialog};
@@ -361,7 +369,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
   item->setEditable(false);
   items.append(item);
 
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     item = new QStandardItem(fdata.m_workLibrary);
     item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     item->setEditable(true);
@@ -387,7 +395,7 @@ void sourceGrid::AddTableItem(filedata fdata) {
   m_model->insertRow(rows, items);
   TableViewSelectionChanged();
   m_lisFileData.append(fdata);
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     initLanguageCombo(rows, fdata.m_language);
   }
   m_tableViewSrc->resizeColumnToContents(LANG_COL_NUM);
@@ -406,7 +414,7 @@ void sourceGrid::MoveTableRow(int from, int to) {
   }
 
   QVariant fromData{};
-  if (m_type == GT_SOURCE) {
+  if (m_type == GT_SOURCE || m_type == GT_SIM) {
     auto indexFrom = model->index(from, LANG_COL_NUM);
     auto comboFrom =
         qobject_cast<QComboBox *>(m_tableViewSrc->indexWidget(indexFrom));
@@ -431,7 +439,7 @@ void sourceGrid::MoveTableRow(int from, int to) {
   else
     qWarning("m_lisFileData: wrong indexes!");
 
-  if (m_type == GT_SOURCE) initLanguageCombo(to, fromData);
+  if (m_type == GT_SOURCE || m_type == GT_SIM) initLanguageCombo(to, fromData);
 }
 
 bool sourceGrid::IsFileDataExit(filedata fdata) {
@@ -443,8 +451,19 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
   return false;
 }
 
-QComboBox *sourceGrid::CreateLanguageCombo(int projectType) {
+QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
   auto combo = new QComboBox;
+  if (GT_SIM) {
+    combo->addItem("C", Design::Language::C);
+    combo->addItem("CPP", Design::Language::CPP);
+    combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
+    combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
+    combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
+    combo->addItem("SV 2009", Design::Language::SYSTEMVERILOG_2009);
+    combo->addItem("SV 2012", Design::Language::SYSTEMVERILOG_2012);
+    combo->addItem("SV 2017", Design::Language::SYSTEMVERILOG_2017);
+    return combo;
+  }
   switch (projectType) {
     case PostSynth:
       combo->addItem("BLIF", Design::Language::BLIF);
@@ -500,7 +519,8 @@ bool sourceGrid::CheckNetlistFileExists(const QStringList &files) {
   return good;
 }
 
-QString sourceGrid::Filter(int projectType) const {
+QString sourceGrid::Filter(int projectType, GridType gType) const {
+  if (gType == GT_SIM) return SIM_SOURCES_FILTER;
   switch (projectType) {
     case RTL:
       return DESIGN_SOURCES_FILTER;
@@ -539,7 +559,7 @@ void sourceGrid::languageHasChanged() {
 
 QStringList sourceGrid::GetAllDesignSourceExtentions(int projectType) const {
   QSet<QString> filters;
-  auto filterLine = Filter(projectType).split(";;");
+  auto filterLine = Filter(projectType, m_type).split(";;");
   for (auto &f : filterLine) {
     f.remove(0, f.indexOf("(") + 1);
     f = f.mid(0, f.indexOf(")"));
@@ -553,7 +573,7 @@ QStringList sourceGrid::GetAllDesignSourceExtentions(int projectType) const {
 }
 
 void sourceGrid::initLanguageCombo(int row, const QVariant &data) {
-  auto combo = CreateLanguageCombo(projectType());
+  auto combo = CreateLanguageCombo(projectType(), m_type);
   combo->setCurrentIndex(combo->findData(data));
   m_tableViewSrc->setIndexWidget(m_model->index(row, LANG_COL_NUM), combo);
   connect(combo, SIGNAL(currentIndexChanged(int)), this,

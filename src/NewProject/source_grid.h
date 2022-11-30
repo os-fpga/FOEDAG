@@ -86,12 +86,12 @@ class sourceGrid : public QWidget {
 
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
-  static QComboBox *CreateLanguageCombo(int projectType);
+  static QComboBox *CreateLanguageCombo(int projectType, GridType gType);
   bool CheckPinFileExists(const QString &suffix);
   bool CheckNetlistFileExists(const QStringList &files);
   bool isPinFileAdded() const;
   bool isNetlistFileAdded() const;
-  QString Filter(int projectType) const;
+  QString Filter(int projectType, GridType gType) const;
 };
 }  // namespace FOEDAG
 
