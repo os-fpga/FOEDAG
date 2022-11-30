@@ -222,8 +222,20 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+            "xcelium"
          << std::endl;
+  (*out) << "   set_top_testbench <module> : Sets the top-level testbench "
+            "module/entity"
+         << std::endl;
+  (*out) << "   set_simulation_options <simulator> <phase> <options>"
+         << std::endl;
+  (*out) << "                                Sets the simulator specific "
+            "options for the speicifed phase"
+         << std::endl;
+  (*out)
+      << "                      <phase> : compilation, elaboration, simulation"
+      << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
