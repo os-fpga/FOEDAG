@@ -400,6 +400,7 @@ void MainWindow::showReportsTab() {
         PrepareTab(tr("Reports"), "reportsTreeWidget", newReportsWidget,
                    m_dockConsole, Qt::BottomDockWidgetArea);
   }
+}
 
 void MainWindow::fileModified(const QString& file) {
   if (m_blockRefereshEn) return;

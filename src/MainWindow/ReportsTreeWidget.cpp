@@ -5,7 +5,7 @@
 
 #include "Compiler/TaskManager.h"
 #include "Main/Tasks.h"
-#include "TextEditor/text_editor.h"
+#include "TextEditor/text_editor_form.h"
 
 namespace FOEDAG {
 
@@ -20,7 +20,7 @@ ReportsTreeWidget::ReportsTreeWidget(const TaskManager &taskManager)
 
   const auto reportManagers = m_taskManager.getReportManagerRegistry();
   treeWidget->setColumnCount(1);
-  treeWidget->setHeaderLabel(tr("Reports"));
+  treeWidget->setHeaderLabel(tr("Task Reports"));
 
   auto rowIndex = 0;
   for (auto task : m_taskManager.tasks()) {
