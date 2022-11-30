@@ -81,6 +81,7 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaPinmapCSVFile(const std::filesystem::path& path) {
     m_OpenFpgaPinMapCSV = path;
   }
+  void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
@@ -170,6 +171,8 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
+  std::string m_pb_pin_fixup;
+
   virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
