@@ -58,6 +58,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
     for (auto &p : pins) {
       uint col = PortsCol + 1;
       QTreeWidgetItem *pinItem = new QTreeWidgetItem(bank);
+      m_pinItems.append(pinItem);
       insertData(p.data, PinName, NameCol, pinItem);
       insertData(p.data, RefClock, col++, pinItem);
       insertData(p.data, Bank, col++, pinItem);
@@ -151,6 +152,18 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
     auto combo = qobject_cast<BufferedComboBox *>(
         itemWidget(itemFromIndex(index), PortsCol));
     if (combo) combo->setCurrentIndex(combo->findData(port, Qt::DisplayRole));
+  }
+}
+
+void PackagePinsView::cleanTable() {
+  for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
+    it.key()->setCurrentIndex(0);
+  }
+  for (const auto &item : m_pinItems) {
+    while (item->childCount() != 0) {
+      auto child = item->child(0);
+      removeItem(item, child);
+    }
   }
 }
 
