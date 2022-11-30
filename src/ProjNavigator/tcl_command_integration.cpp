@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/sources_form.h"
+#include "Utils/QtUtils.h"
 
 namespace FOEDAG {
 
@@ -275,21 +276,38 @@ bool TclCommandIntegration::TclCreateProject(int argc, const char *argv[],
     return false;
   }
   const QString projName{argv[1]};
-  return TclCreateProject(projName, out);
+  QString type{};
+  if ((argc > 3) && QtUtils::IsEqual(QString{argv[3]}, "-type"))
+    type = QString{argv[3]};
+  return TclCreateProject(projName, type, out);
 }
 
 bool TclCommandIntegration::TclCreateProject(const QString &name,
+                                             const QString &type,
                                              std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
   }
+
+  int projectType{RTL};
+  if (!type.isEmpty()) {
+    if (QtUtils::IsEqual(type, "rtl")) {
+      projectType = RTL;
+    } else if (QtUtils::IsEqual(type, "gate-level")) {
+      projectType = PostSynth;
+    } else {
+      out << "Wrong project type. Values are rtl, gate-level";
+      return false;
+    }
+  }
+
   QDir dir(name);
   if (dir.exists()) {
     out << "Project \"" << name.toStdString() << "\" was rewritten.";
   }
 
-  createNewDesign(name);
+  createNewDesign(name, projectType);
   return true;
 }
 
@@ -297,10 +315,11 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
 
-void TclCommandIntegration::createNewDesign(const QString &projName) {
+void TclCommandIntegration::createNewDesign(const QString &projName,
+                                            int projectType) {
   ProjectOptions opt{projName,
                      QString("%1/%2").arg(QDir::currentPath(), projName),
-                     RTL,
+                     projectType,
                      {{}, false},
                      {{}, false},
                      {},

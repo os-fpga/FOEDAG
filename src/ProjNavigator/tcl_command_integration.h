@@ -47,15 +47,16 @@ class TclCommandIntegration : public QObject {
   bool TclSetActive(int argc, const char *argv[], std::ostream &out);
   bool TclSetAsTarget(int argc, const char *argv[], std::ostream &out);
   bool TclCreateProject(int argc, const char *argv[], std::ostream &out);
-  bool TclCreateProject(const QString &name, std::ostream &out);
+  bool TclCreateProject(const QString &name, const QString &type,
+                        std::ostream &out);
 
   ProjectManager *GetProjectManager();
 
  signals:
   void newDesign(const QString &);
 
- private slots:
-  void createNewDesign(const QString &design);
+ private:
+  void createNewDesign(const QString &design, int projectType = 0);
 
  private:
   bool validate() const;
