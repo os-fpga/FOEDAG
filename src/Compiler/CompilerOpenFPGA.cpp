@@ -91,8 +91,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name"
+  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
+            "with <name> name"
          << std::endl;
+  (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
@@ -222,8 +224,20 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+            "xcelium"
          << std::endl;
+  (*out) << "   set_top_testbench <module> : Sets the top-level testbench "
+            "module/entity"
+         << std::endl;
+  (*out) << "   set_simulation_options <simulator> <phase> <options>"
+         << std::endl;
+  (*out) << "                                Sets the simulator specific "
+            "options for the speicifed phase"
+         << std::endl;
+  (*out)
+      << "                      <phase> : compilation, elaboration, simulation"
+      << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 

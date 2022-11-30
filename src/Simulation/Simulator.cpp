@@ -76,6 +76,58 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
 
+  auto set_simulation_options = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    Simulator* simulator = (Simulator*)clientData;
+    if (argc > 3) {
+      std::string options;
+      for (int i = 3; i < argc; i++) {
+        options += std::string(argv[i]) + " ";
+      }
+      std::string phase;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      for (int i = 1; i < 3; i++) {
+        std::string arg = argv[i];
+        if (arg == "verilator") {
+          sim_tool = Simulator::SimulatorType::Verilator;
+        } else if (arg == "icarus") {
+          sim_tool = Simulator::SimulatorType::Icarus;
+        } else if (arg == "ghdl") {
+          sim_tool = Simulator::SimulatorType::GHDL;
+        } else if (arg == "vcs") {
+          sim_tool = Simulator::SimulatorType::VCS;
+        } else if (arg == "questa") {
+          sim_tool = Simulator::SimulatorType::Questa;
+        } else if (arg == "xcelium") {
+          sim_tool = Simulator::SimulatorType::Xcelium;
+        } else if (arg == "compilation") {
+          phase = "compilation";
+        } else if (arg == "comp") {
+          phase = "compilation";
+        } else if (arg == "elaboration") {
+          phase = "elaboration";
+        } else if (arg == "elab") {
+          phase = "elaboration";
+        } else if (arg == "simul") {
+          phase = "simulation";
+        } else if (arg == "simulation") {
+          phase = "simulation";
+        }
+      }
+      options = StringUtils::rtrim(options);
+      if (phase == "compilation") {
+        simulator->SetSimulatorCompileOption(sim_tool, options);
+      } else if (phase == "elaboration") {
+        simulator->SetSimulatorElaborationOption(sim_tool, options);
+      } else if (phase == "simulation") {
+        simulator->SetSimulatorRuntimeOption(sim_tool, options);
+      }
+      return TCL_OK;
+    }
+    return TCL_ERROR;
+  };
+  interp->registerCmd("set_simulation_options", set_simulation_options, this,
+                      0);
   return ok;
 }
 
@@ -84,6 +136,25 @@ void Simulator::Message(const std::string& message) {
 }
 void Simulator::ErrorMessage(const std::string& message) {
   m_compiler->ErrorMessage(message);
+}
+
+std::string Simulator::GetSimulatorCompileOption(SimulatorType type) {
+  std::map<SimulatorType, std::string>::iterator itr =
+      m_simulatorCompileOptionMap.find(type);
+  if (itr != m_simulatorCompileOptionMap.end()) return (*itr).second;
+  return "";
+}
+std::string Simulator::GetSimulatorElaborationOption(SimulatorType type) {
+  std::map<SimulatorType, std::string>::iterator itr =
+      m_simulatorElaborationOptionMap.find(type);
+  if (itr != m_simulatorElaborationOptionMap.end()) return (*itr).second;
+  return "";
+}
+std::string Simulator::GetSimulatorRuntimeOption(SimulatorType type) {
+  std::map<SimulatorType, std::string>::iterator itr =
+      m_simulatorRuntimeOptionMap.find(type);
+  if (itr != m_simulatorRuntimeOptionMap.end()) return (*itr).second;
+  return "";
 }
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
@@ -376,7 +447,9 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
       (SimulatorExecPath(type) / SimulatorName(type)).string();
   switch (type) {
     case SimulatorType::Verilator: {
-      std::string command = "obj_dir/Vsyn_tb";
+      std::string command = "obj_dir/V" + m_simulationTop;
+      if (!GetSimulatorRuntimeOption(type).empty())
+        command += " " + GetSimulatorRuntimeOption(type);
       if (!m_waveFile.empty()) command += " " + m_waveFile;
       return command;
     }
@@ -387,12 +460,13 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
       if (!m_simulationTop.empty()) {
         command += TopModuleCmd(type) + m_simulationTop;
       }
+      if (!GetSimulatorRuntimeOption(type).empty())
+        command += " " + GetSimulatorRuntimeOption(type);
       if (!m_waveFile.empty()) {
         command += " ";
         command += (m_waveType == WaveformType::VCD) ? "--vcd=" : "--fst=";
         command += m_waveFile;
       }
-      command += " --stop-time=1000ns";
       return command;
     }
     case SimulatorType::Questa:
@@ -458,9 +532,10 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   // Simulator Model compilation step
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
-  std::string command =
-      execPath + " " + SimulatorCompilationOptions(type) + " " + fileList;
-
+  std::string command = execPath + " " + SimulatorCompilationOptions(type);
+  if (!GetSimulatorCompileOption(type).empty())
+    command += " " + GetSimulatorCompileOption(type);
+  command += " " + fileList;
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -471,7 +546,10 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   // Extra Simulator Model compilation step (Elaboration or C++ compilation)
   switch (type) {
     case SimulatorType::Verilator: {
-      std::string command = "make -j -C obj_dir/ -f Vsyn_tb.mk Vsyn_tb";
+      std::string command = "make -j -C obj_dir/ -f V" + m_simulationTop +
+                            ".mk V" + m_simulationTop;
+      if (!GetSimulatorElaborationOption(type).empty())
+        command += " " + GetSimulatorElaborationOption(type);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
@@ -482,6 +560,8 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
     }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -e -fsynopsys";
+      if (!GetSimulatorElaborationOption(type).empty())
+        command += " " + GetSimulatorElaborationOption(type);
       if (!m_simulationTop.empty()) {
         command += TopModuleCmd(type) + m_simulationTop;
       }
