@@ -2088,7 +2088,7 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
 
-pb_pin_fixup
+${PB_PIN_FIXUP}
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
@@ -2213,6 +2213,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
+  result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
@@ -2403,6 +2404,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
+              } else if (file_type == "pb_pin_fixup") {
+                PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
                 OpenFpgaPinmapCSVFile(fullPath);
               } else if (file_type == "plugin_lib") {
