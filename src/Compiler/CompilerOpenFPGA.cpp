@@ -91,8 +91,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name"
+  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
+            "with <name> name"
          << std::endl;
+  (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
