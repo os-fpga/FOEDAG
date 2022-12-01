@@ -65,6 +65,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR", TaskType::Button});
   m_tasks.insert(SIMULATE_BITSTREAM,
                  new Task{"Simulate Bitstream", TaskType::Button});
+  m_tasks.insert(SIMULATE, new Task{"Simulate", TaskType::None});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
@@ -83,6 +84,10 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_RTL]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_PNR]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_GATE]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_BITSTREAM]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
@@ -128,10 +133,6 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
-  m_taskQueue.append(m_tasks[SIMULATE_RTL]);
-  m_taskQueue.append(m_tasks[SIMULATE_GATE]);
-  m_taskQueue.append(m_tasks[SIMULATE_PNR]);
-  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>();
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
