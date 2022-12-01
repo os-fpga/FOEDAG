@@ -1596,7 +1596,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (compiler) {
-      compiler->GTKWaveSendCmd("gtkwave::reloadFile");
+      compiler->GTKWaveSendCmd("gtkwave::reLoadFile");
     }
     return TCL_OK;
   };
@@ -1703,14 +1703,25 @@ QProcess* Compiler::GetGTKWaveProcess() {
       }
     };
 
-    auto handleStderr = [this, cleanMessage]() {
+    QRegularExpression fileLoadedRegex =
+        QRegularExpression("\\[\\d*\\] start time.\\n\\[\\d*\\] end time.");
+    auto handleStderr = [this, cleanMessage, fileLoadedRegex]() {
       // Read stderr data
       QByteArray data = m_gtkwave_process->readAllStandardError();
 
       // Print message
       QString msg = cleanMessage(data.trimmed());
       if (!msg.isEmpty()) {
-        ErrorMessage("GTKWave - " + msg.toStdString());
+        // GTKWave uses stderr for some normal messages like the wave times when
+        // loading a file so we have to convert those to normal status messages
+        auto match = fileLoadedRegex.match(msg);
+        if (match.hasMatch()) {
+          // Print as normal status message instead
+          Message("GTKWave - " + msg.toStdString());
+        } else {
+          ErrorMessage("GTKWave - " + msg.toStdString());
+        }
+
         finish();  // this is required to update the console to show a new
                    // prompt for the user
       }
