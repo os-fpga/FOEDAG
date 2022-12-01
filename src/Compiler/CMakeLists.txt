@@ -85,6 +85,7 @@ set (SRC_H_INSTALL_LIST
   Reports/TableReport.h
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
+  TaskGlobal.h
 )
 
 set (SRC_H_LIST
