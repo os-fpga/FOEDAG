@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "NewProject/ProjectManager/project.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "TaskGlobal.h"
 #include "TaskManager.h"
 
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
@@ -61,7 +62,7 @@ void TaskTableView::mousePressEvent(QMouseEvent *event) {
   if (idx.column() == TitleCol) {
     bool expandAreaClicked = expandArea(idx).contains(event->pos());
     if (expandAreaClicked) {
-      model()->setData(idx, expandAreaClicked, ExpandAreaRole);
+      model()->setData(idx, ExpandAreaAction::Invert, ExpandAreaRole);
     }
   }
 
@@ -113,16 +114,20 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
   if (index.column() == TitleCol) {
     auto task = m_taskManager->task(model()->data(index, TaskId).toUInt());
     if (!task) return;
-    if (task->type() != TaskType::Action && task->type() != TaskType::Clean)
+    if (task->type() == TaskType::Button || task->type() == TaskType::Settings)
       return;
 
     if (task->isEnable()) {
       QMenu *menu = new QMenu(this);
-      QAction *start = new QAction("Run", this);
-      connect(start, &QAction::triggered, this,
-              [this, index]() { userActionHandle(index); });
-      menu->addAction(start);
-      addTaskLogAction(menu, task);
+      if (task->type() != TaskType::None) {
+        QAction *start = new QAction("Run", this);
+        connect(start, &QAction::triggered, this,
+                [this, index]() { userActionHandle(index); });
+        menu->addAction(start);
+        addTaskLogAction(menu, task);
+        menu->addSeparator();
+      }
+      addExpandCollapse(menu);
       menu->popup(viewport()->mapToGlobal(pos));
     }
   }
@@ -199,6 +204,22 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
       menu->addAction(viewReport);
     }
   }
+}
+
+void TaskTableView::addExpandCollapse(QMenu *menu) {
+  auto areaAction = [this](ExpandAreaAction action) {
+    for (int row{0}; row < model()->rowCount(); row++)
+      model()->setData(model()->index(row, TitleCol),
+                       QVariant::fromValue(action), ExpandAreaRole);
+  };
+  QAction *expandAll = new QAction{"Expand All", this};
+  connect(expandAll, &QAction::triggered, this,
+          [areaAction]() { areaAction(ExpandAreaAction::Expand); });
+  menu->addAction(expandAll);
+  QAction *collapse = new QAction{"Collapse All", this};
+  connect(collapse, &QAction::triggered, this,
+          [areaAction]() { areaAction(ExpandAreaAction::Collapse); });
+  menu->addAction(collapse);
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,
