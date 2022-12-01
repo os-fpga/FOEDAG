@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QStyledItemDelegate>
 #include <QTableView>
 
+#include "CompilerDefines.h"
+
 class QMovie;
 
 namespace FOEDAG {
@@ -60,7 +62,6 @@ class TaskTableView : public QTableView {
  private:
   QRect expandArea(const QModelIndex &index) const;
   void addTaskLogAction(QMenu *menu, Task *task);
-  void addExpandCollapse(QMenu *menu);
 
  private:
   /*!
