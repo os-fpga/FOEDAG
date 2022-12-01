@@ -24,7 +24,7 @@
 ##############################################################################
 
 # these must be one line for --replay to work
-proc assertStrCount {str expected} { set fp [open "foedag.log" r]; set file_data [read $fp]; close $fp; set count [regexp -all "$str" $file_data]; if {$count != $expected} { puts "FAILED - Expected $expected instaces of \"$str\", got $count\n"; exit 1} }
+proc assertStrCount {str expected} { set fp [open "foedag.log" r]; set file_data [read $fp]; close $fp; set count [regexp -all "$str" $file_data]; if {$count != $expected} { puts "FAILED - Expected $expected instances of \"$str\", got $count\n"; exit 1} }
 proc assertInvokeCount {count} { assertStrCount "GTKWave - Interpreter" $count }
 proc assertExitCount {count} { assertStrCount "GTKWave - Exiting" $count }
 proc assertStr { str expected } { if { $str != $expected} { puts "FAILED - Expected $expected, got $str\n"; exit 1}}
@@ -83,11 +83,19 @@ assertStrCount "start time." 0
 # Open a vcd file
 wave_open tests/TestGui/test.vcd
 
+# test.vcd can take a moment to load so we'll delay a bit
+after 1500 set ready 1
+vwait ready
+
 # Ensure the file loaded by checking for start time. in status message
 assertStrCount "start time." 1
 
 # Reload file
 wave_refresh
+
+# test.vcd can take a moment to load so we'll delay a bit
+after 1500 set ready2 1
+vwait ready2
 
 # Ensure the file loaded by checking for start time. in status message
 assertStrCount "start time." 2
