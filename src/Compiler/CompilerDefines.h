@@ -90,6 +90,7 @@ static constexpr uint SIMULATE_RTL{28};
 static constexpr uint SIMULATE_GATE{29};
 static constexpr uint SIMULATE_PNR{30};
 static constexpr uint SIMULATE_BITSTREAM{31};
+static constexpr uint SIMULATE{32};
 
 static constexpr uint UserActionRole = Qt::UserRole + 1;
 static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
