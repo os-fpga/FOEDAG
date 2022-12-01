@@ -1,7 +1,7 @@
 #### Ubuntu 18.04
 
 ```
-   sudo apt-get install qt5-default g++-11 \
+   sudo apt-get install qt5-default g++-9 \
       libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
@@ -18,7 +18,7 @@
 #### Ubuntu 20.04
 
 ```
-   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-11 \
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
       libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
@@ -35,7 +35,7 @@
 #### Ubuntu 21.04
 
 ```
-   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-11 \
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
       libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
@@ -52,7 +52,7 @@
 #### Ubuntu 21.10
 
 ```
-   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-11 \
+   sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools g++-9 \
       libkf5qqc2desktopstyle-dev \
       tclsh \
       cmake \
