@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 
+#include "Compiler/CompilerDefines.h"
 #include "Reports/PlacementReportManager.h"
 #include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
@@ -29,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 TaskManager::TaskManager(QObject *parent) : QObject{parent} {
+  qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
+
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
   m_tasks.insert(ANALYSIS, new Task{"Analysis"});
   m_tasks.insert(ANALYSIS_CLEAN, new Task{"Clean", TaskType::Clean});
@@ -65,6 +68,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR", TaskType::Button});
   m_tasks.insert(SIMULATE_BITSTREAM,
                  new Task{"Simulate Bitstream", TaskType::Button});
+  m_tasks.insert(SIMULATE, new Task{"Simulate", TaskType::None});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
@@ -83,6 +87,10 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_RTL]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_PNR]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_GATE]);
+  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_BITSTREAM]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
@@ -105,9 +113,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
 
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+    connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
     connect((*task), &Task::statusChanged, this,
             &TaskManager::taskStateChanged);
-    connect((*task), &Task::finished, this, &TaskManager::runNext);
   }
   m_taskQueue.append(m_tasks[IP_GENERATE]);
   m_taskQueue.append(m_tasks[ANALYSIS]);
@@ -128,10 +136,6 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
-  m_taskQueue.append(m_tasks[SIMULATE_RTL]);
-  m_taskQueue.append(m_tasks[SIMULATE_GATE]);
-  m_taskQueue.append(m_tasks[SIMULATE_PNR]);
-  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>();
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
@@ -218,23 +222,31 @@ void TaskManager::bindTaskCommand(uint id, const std::function<void()> &cmd) {
 
 void TaskManager::setTaskCount(int count) { m_taskCount = count; }
 
-void TaskManager::runNext() {
+void TaskManager::runNext(TaskStatus status) {
   Task *t = qobject_cast<Task *>(sender());
-  if (t) {
-    if (t->status() == TaskStatus::Success) {
-      m_runStack.removeAll(t);
-      if (!m_runStack.isEmpty()) run();
-    } else if (t->status() == TaskStatus::Fail) {
-      m_runStack.clear();
-    }
+  if (!t) return;
+
+  const bool finished =
+      (status == TaskStatus::Success || status == TaskStatus::Fail);
+  if (!finished) {
+    if (status == TaskStatus::InProgress && counter == 0 && m_taskCount != 0)
+      emit progress(counter, m_taskCount,
+                    QString("%1 Running").arg(t->title()));
+    return;
   }
-  if (t) {
-    QString status{"Complete"};
-    if (t->status() == TaskStatus::Fail) {
-      status = "Failed";
-    }
-    emit progress(++counter, m_taskCount,
-                  QString("%1 %2").arg(t->title(), status));
+
+  QString statusStr{"Complete"};
+  if (status == TaskStatus::Fail) {
+    statusStr = "Failed";
+  }
+  emit progress(++counter, m_taskCount,
+                QString("%1 %2").arg(t->title(), statusStr));
+
+  if (status == TaskStatus::Success) {
+    m_runStack.removeAll(t);
+    if (!m_runStack.isEmpty()) run();
+  } else if (status == TaskStatus::Fail) {
+    m_runStack.clear();
   }
 
   if (m_runStack.isEmpty()) {
@@ -243,14 +255,11 @@ void TaskManager::runNext() {
 }
 
 void TaskManager::run() {
-  auto task = m_runStack.first();
-  if (m_taskCount) {
-    const int max = m_taskCount;
-    emit progress(max - m_runStack.count(), max,
-                  QString("%1 Running").arg(task->title()));
+  if (!m_runStack.isEmpty()) {
+    auto task = m_runStack.first();
+    cleanDownStreamStatus(task);
+    m_runStack.first()->trigger();
   }
-  cleanDownStreamStatus(task);
-  m_runStack.first()->trigger();
 }
 
 void TaskManager::reset() {

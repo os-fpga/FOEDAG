@@ -112,7 +112,11 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
   QModelIndex index = indexAt(pos);
   if (index.column() == TitleCol) {
     auto task = m_taskManager->task(model()->data(index, TaskId).toUInt());
-    if (task && task->type() != TaskType::Settings && task->isEnable()) {
+    if (!task) return;
+    if (task->type() != TaskType::Action && task->type() != TaskType::Clean)
+      return;
+
+    if (task->isEnable()) {
       QMenu *menu = new QMenu(this);
       QAction *start = new QAction("Run", this);
       connect(start, &QAction::triggered, this,

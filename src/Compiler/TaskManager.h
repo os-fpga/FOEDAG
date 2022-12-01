@@ -110,7 +110,7 @@ class TaskManager : public QObject {
   void taskReportCreated(QString reportName);
 
  private slots:
-  void runNext();
+  void runNext(FOEDAG::TaskStatus status);
 
  private:
   void run();

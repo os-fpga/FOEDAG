@@ -90,7 +90,8 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
   } else if (role == Qt::DecorationRole) {
-    if (task->type() != TaskType::Action) return QVariant();
+    if (task->type() != TaskType::Action && task->type() != TaskType::None)
+      return QVariant();
     if (index.column() == STATUS_COL) {
       switch (task->status()) {
         case TaskStatus::Success:
@@ -165,6 +166,11 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   if (!newTaskManager) return;
   m_taskManager = newTaskManager;
   int row{0};
+  m_taskOrder.push_back({row++, SIMULATE});
+  m_taskOrder.push_back({row++, SIMULATE_RTL});
+  m_taskOrder.push_back({row++, SIMULATE_GATE});
+  m_taskOrder.push_back({row++, SIMULATE_PNR});
+  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
   m_taskOrder.push_back({row++, IP_GENERATE});
   m_taskOrder.push_back({row++, ANALYSIS});
   m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
@@ -193,10 +199,6 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
   m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
-  m_taskOrder.push_back({row++, SIMULATE_RTL});
-  m_taskOrder.push_back({row++, SIMULATE_GATE});
-  m_taskOrder.push_back({row++, SIMULATE_PNR});
-  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 
