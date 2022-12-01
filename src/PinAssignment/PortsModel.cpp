@@ -48,11 +48,20 @@ void PortsModel::initListModel() {
 }
 
 IOPort PortsModel::GetPort(const QString &portName) const {
+  auto findPort =
+      [&portName](const QVector<IOPort> &ports) -> std::pair<bool, IOPort> {
+    for (const auto &p : ports) {
+      if (p.name == portName) return std::make_pair(true, p);
+    }
+    return std::make_pair(false, IOPort{});
+  };
   for (const auto &group : m_ioPorts) {
-    auto iter = std::find_if(
-        group.ports.begin(), group.ports.end(),
-        [&portName](const IOPort &p) { return p.name == portName; });
-    if (iter != group.ports.end()) return (*iter);
+    const auto &[find, ioPort] = findPort(group.ports);
+    if (find) return ioPort;
+    for (const auto &subPort : group.ports) {
+      const auto &[find, ioPort] = findPort(subPort.ports);
+      if (find) return ioPort;
+    }
   }
   return IOPort{};
 }
