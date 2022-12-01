@@ -1539,10 +1539,20 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
 
+      // GTKWave sets its current directory to its bin dir for dependency
+      // loading. As such, relative user paths might not work when passed from
+      // the ui which invokes from its own bin dir so we'll convert to fullpath
+      auto path = FileUtils::GetFullPath(std::filesystem::path(file));
+
       // if a file was passed, set the loadFile command
       std::string cmd{};
       if (!file.empty()) {
-        cmd = "gtkwave::loadFile " + file;
+        if (FileUtils::FileExists(path)) {
+          cmd = "gtkwave::loadFile " + path.string();
+        } else {
+          Tcl_AppendResult(interp, "Error: File doesn't exist", nullptr);
+          return TCL_ERROR;
+        }
       }
 
       // Send cmd to GTKWave
