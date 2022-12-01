@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <QIcon>
 
+#include "CompilerDefines.h"
 #include "TaskGlobal.h"
 #include "TaskManager.h"
 
