@@ -20,11 +20,16 @@ static constexpr const char *RESOURCE_REPORT_NAME{
 
 namespace FOEDAG {
 
+RoutingReportManager::RoutingReportManager(const TaskManager &taskManager)
+    : AbstractReportManager(taskManager) {}
+
 QStringList RoutingReportManager::getAvailableReportIds() const {
   return {QString(CIRCUIT_REPORT_NAME), QString(RESOURCE_REPORT_NAME)};
 }
 
-QMap<size_t, QString> RoutingReportManager::getMessages() { return {}; }
+const ITaskReportManager::Messages &RoutingReportManager::getMessages() {
+  return m_messages;
+}
 
 std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     const QString &reportId) {
@@ -56,8 +61,8 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createResourceReport(
       break;
     }
   }
-  return std::make_unique<TableReport>(
-      std::move(columnNames), std::move(resourcesData), RESOURCE_REPORT_NAME);
+  return std::make_unique<TableReport>(columnNames, resourcesData,
+                                       RESOURCE_REPORT_NAME);
 }
 
 std::unique_ptr<ITaskReport> RoutingReportManager::createCircuitReport(

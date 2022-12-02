@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
+#include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project.h"
 
 namespace {
@@ -13,6 +14,12 @@ static constexpr const char *BLOCKS_COL{"Blocks"};
 namespace FOEDAG {
 
 const QRegExp AbstractReportManager::FIND_RESOURCES{"Resource usage.*"};
+
+AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
+  // Log files should be re-parsed after starting new compilation
+  connect(&taskManager, &TaskManager::started,
+          [this]() { setFileParsed(false); });
+}
 
 ITaskReport::TableData AbstractReportManager::parseResourceUsage(
     QTextStream &in, QStringList &columns) const {
@@ -84,5 +91,11 @@ std::unique_ptr<QFile> AbstractReportManager::createLogFile(
 
   return logFile;
 }
+
+void AbstractReportManager::setFileParsed(bool parsed) {
+  m_fileParsed = parsed;
+}
+
+bool AbstractReportManager::isFileParsed() const { return m_fileParsed; }
 
 }  // namespace FOEDAG

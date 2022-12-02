@@ -30,12 +30,18 @@ namespace FOEDAG {
  * - Report Static Timing, placed into post_place_timing.rpt file.
  */
 class PlacementReportManager final : public AbstractReportManager {
+ public:
+  PlacementReportManager(const TaskManager &taskManager);
+
+ private:
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  QMap<size_t, QString> getMessages() override;
+  const Messages &getMessages() override;
 
   // Creates a file in given projectPath and fills it with timingData
   void createTimingReport(const QStringList &timingData);
+
+  Messages m_messages;
 };
 
 }  // namespace FOEDAG

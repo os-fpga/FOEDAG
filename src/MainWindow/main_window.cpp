@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/licenseviewer.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/WelcomePageWidget.h"
+#include "MessagesTabWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -379,6 +380,25 @@ void MainWindow::stopCompilation() {
   if (stop) {
     m_compiler->Stop();
     m_progressBar->hide();
+  }
+}
+
+void MainWindow::showMessagesTab() {
+  auto newWidget = new MessagesTabWidget(*m_taskManager);
+
+  if (m_messagesDockWidget) {
+    auto oldWidget = m_messagesDockWidget->widget();
+    if (oldWidget) {
+      delete oldWidget;
+    }
+    // set new messages widget
+    m_messagesDockWidget->setWidget(newWidget);
+    m_messagesDockWidget->show();
+  } else {
+    // Create and place new dockwidget
+    m_messagesDockWidget =
+        PrepareTab(tr("Messages"), "messagesWidget", newWidget, m_dockConsole,
+                   Qt::BottomDockWidgetArea);
   }
 }
 
@@ -944,6 +964,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
+    showMessagesTab();
     showReportsTab();
   });
 

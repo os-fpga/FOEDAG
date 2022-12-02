@@ -1,5 +1,7 @@
 #include "editor.h"
 
+#include <QScrollBar>
+
 using namespace FOEDAG;
 
 #define ERROR_MARKER 4
@@ -68,6 +70,14 @@ void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
 
 void Editor::markLine(int line) {
   m_scintilla->markerAdd(line - 1, ERROR_MARKER);
+}
+
+void Editor::selectLines(int lineFrom, int lineTo) {
+m_scintilla->setSelection(lineFrom, 0, lineTo, m_scintilla->lineLength(lineTo));
+// VISIBLE_STRICT policy makes sure line is in the middle of the screen.
+// VISIBLE_SLOP, on the other hand, just makess sure line is visible
+m_scintilla->SendScintilla(QsciScintilla::SCI_SETVISIBLEPOLICY, QsciScintilla::VISIBLE_STRICT);
+m_scintilla->ensureLineVisible(lineFrom);
 }
 
 void Editor::clearMarkers() { m_scintilla->markerDeleteAll(ERROR_MARKER); }
