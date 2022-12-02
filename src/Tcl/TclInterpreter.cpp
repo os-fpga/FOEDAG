@@ -77,13 +77,29 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
     set content [read $fid]
     close $fid
     set errorInfo ""
+    set delay 500
 
     catch {
         
         # Schedule commands
         set lines [split $content "\n"]
-        set time 500
+        set time $delay
         foreach line $lines {
+            # This allows a test to change the delay between commands.
+            # Note: it must be a comment (have # in front), ex usage below:
+            # SetDelay 1000
+            if {[regexp -nocase {^# *setdelay *(\d+)} $line whole newDelay]} {
+              set delay $newDelay
+              set time [expr $time + $delay]
+              continue
+            }
+            # This allows a test to wait a specific time on the next command.
+            # Note: it must be a comment (have # in front), ex usage below:
+            # wait 1000
+            if {[regexp -nocase {^# *wait *(\d+)} $line whole wait]} {
+              set time [expr $time + $wait]
+              continue
+            }
             if {[regexp {^#} $line]} {
                 continue
             }
@@ -93,12 +109,12 @@ std::string TclInterpreter::evalGuiTestFile(const std::string &filename) {
             after $time $line 
             
             
-            set time [expr $time + 500]
+            set time [expr $time + $delay]
         }
     }
     
     # Schedule GUI exit
-    set time [expr $time + 500]
+    set time [expr $time + $delay]
     after $time "puts \"GUI EXIT\" ; flush stdout; set CONT 0"
     
     # Enter loop

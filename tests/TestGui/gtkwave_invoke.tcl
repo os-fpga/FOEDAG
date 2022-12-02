@@ -28,9 +28,12 @@ proc assertStrCount {str expected} { set fp [open "foedag.log" r]; set file_data
 proc assertInvokeCount {count} { assertStrCount "GTKWave - Interpreter" $count }
 proc assertExitCount {count} { assertStrCount "GTKWave - Exiting" $count }
 proc assertStr { str expected } { if { $str != $expected} { puts "FAILED - Expected $expected, got $str\n"; exit 1}}
-proc checkForWaveOpen {} { set fp [open "foedag.log" r]; set file_data [read $fp]; close $fp; set count [regexp -all "start time." $file_data]; return $count; }
 
 gui_start
+
+# Increase delay time so CI doesn't fail
+# Note: SetDelay (commented out) gets handled inside TclInterpreter::evalGuiTestFile()
+# SetDelay 1000
 
 # Ensure gtkwave hasn't been opened
 assertInvokeCount 0
@@ -83,9 +86,9 @@ assertStrCount "start time." 0
 # Open a vcd file
 wave_open tests/TestGui/test.vcd
 
-# test.vcd can take a moment to load so we'll delay a bit
-after 1500 set ready 1
-vwait ready
+# add extra delay for vcd load
+# Note: wait (commented out) gets handled inside TclInterpreter::evalGuiTestFile()
+# wait 2000
 
 # Ensure the file loaded by checking for start time. in status message
 assertStrCount "start time." 1
@@ -93,9 +96,8 @@ assertStrCount "start time." 1
 # Reload file
 wave_refresh
 
-# test.vcd can take a moment to load so we'll delay a bit
-after 1500 set ready2 1
-vwait ready2
+# add extra delay for vcd reload
+# wait 2000
 
 # Ensure the file loaded by checking for start time. in status message
 assertStrCount "start time." 2
