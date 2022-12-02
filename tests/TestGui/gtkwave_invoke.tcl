@@ -33,7 +33,7 @@ gui_start
 
 # Increase delay time so CI doesn't fail
 # Note: SetDelay (commented out) gets handled inside TclInterpreter::evalGuiTestFile()
-# SetDelay 1000
+# SetDelay 1500
 
 # Ensure gtkwave hasn't been opened
 assertInvokeCount 0
