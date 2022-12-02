@@ -91,8 +91,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name"
+  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
+            "with <name> name"
          << std::endl;
+  (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
@@ -222,8 +224,19 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, xcelium"
+  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+            "xcelium"
          << std::endl;
+  (*out) << "   set_top_testbench <module> : Sets the top-level testbench "
+            "module/entity"
+         << std::endl;
+  (*out) << "   simulation_options <simulator> <phase> <options>" << std::endl;
+  (*out) << "                                Sets the simulator specific "
+            "options for the speicifed phase"
+         << std::endl;
+  (*out)
+      << "                      <phase> : compilation, elaboration, simulation"
+      << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -997,7 +1010,6 @@ bool CompilerOpenFPGA::Analyze() {
     std::stringstream buffer;
     buffer << raptor_log.rdbuf();
     const std::string& buf = buffer.str();
-    std::cout << buf << std::endl;
     if (buf.find("VERI-1063") != std::string::npos) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " has an incomplete hierarchy, unknown module(s) error(s).");
@@ -2074,7 +2086,7 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
 
-pb_pin_fixup
+${PB_PIN_FIXUP}
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
@@ -2199,6 +2211,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
+  result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
@@ -2389,6 +2402,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
+              } else if (file_type == "pb_pin_fixup") {
+                PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
                 OpenFpgaPinmapCSVFile(fullPath);
               } else if (file_type == "plugin_lib") {

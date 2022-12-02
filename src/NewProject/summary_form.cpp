@@ -30,7 +30,8 @@ void summaryForm::setProjectName(const QString &proName,
   ui->m_labelName->setText(text.arg(proType, proName));
 }
 
-void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
+void summaryForm::setSourceCount(const int &srcCount, const int constrCount,
+                                 int simCount) {
   if (0 == srcCount) {
     ui->m_labelSourcesPic->setStyleSheet(
         QString("image: url(:/img/warn.png);"));
@@ -46,6 +47,21 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount) {
         m_projectSettings
             ? QString(tr("%1 source files.")).arg(srcCount)
             : QString(tr("%1 source files will be added.")).arg(srcCount));
+  }
+
+  if (0 == simCount) {
+    ui->m_labelSimPic->setStyleSheet(QString("image: url(:/img/warn.png);"));
+    ui->m_labelSim->setText(m_projectSettings
+                                ? tr("No simulation files or directories.")
+                                : tr("No simulation files or directories will "
+                                     "be added. Use Add Sources to "
+                                     "add them later."));
+  } else {
+    ui->m_labelSimPic->setStyleSheet(QString("image: url(:/img/info.png);"));
+    ui->m_labelSim->setText(
+        m_projectSettings
+            ? QString(tr("%1 simulation files.")).arg(simCount)
+            : QString(tr("%1 simulation files will be added.")).arg(simCount));
   }
 
   if (0 == constrCount) {

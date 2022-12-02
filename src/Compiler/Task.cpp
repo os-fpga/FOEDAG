@@ -45,9 +45,7 @@ TaskStatus Task::status() const { return m_status; }
 void Task::setStatus(TaskStatus newStatus) {
   if (m_status != newStatus) {
     m_status = newStatus;
-    emit statusChanged();
-    if (m_status == TaskStatus::Success || m_status == TaskStatus::Fail)
-      emit finished();
+    emit statusChanged(m_status);
   }
 }
 

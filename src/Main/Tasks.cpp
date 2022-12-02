@@ -28,8 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
-#include "Settings.h"
-#include "TextEditor/text_editor.h"
+#include "TextEditor/text_editor_form.h"
 #include "WidgetFactory.h"
 
 using namespace FOEDAG;
@@ -255,16 +254,10 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   TextEditorForm::Instance()->OpenFile(path);
 }
 
-void FOEDAG::handleViewReportRequested(ITaskReportManager& reportManager) {
-  auto reports = std::vector<std::unique_ptr<ITaskReport>>{};
-  auto availableReports = reportManager.getAvailableReportIds();
-  if (availableReports.empty()) return;
+void FOEDAG::handleViewReportRequested(const QString& reportId,
+                                       ITaskReportManager& reportManager) {
+  auto report = reportManager.createReport(reportId);
+  if (!report) return;
 
-  reports.reserve(availableReports.size());
-  for (auto& reportId : availableReports)
-    reports.push_back(reportManager.createReport(reportId));
-
-  for (auto& report : reports) {
-    if (report) openReportView(*report);
-  }
+  openReportView(*report);
 }

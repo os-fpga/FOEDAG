@@ -1,6 +1,7 @@
 #include "text_editor.h"
 
 #include "MainWindow/Session.h"
+#include "text_editor_form.h"
 
 using namespace FOEDAG;
 
@@ -61,6 +62,8 @@ TextEditor::TextEditor(QWidget* parent) : QWidget(parent) {
   TextEditorForm::Instance()->InitForm();
   connect(TextEditorForm::Instance(), SIGNAL(CurrentFileChanged(QString)), this,
           SLOT(SlotCurrentFileChanged(QString)));
+  connect(TextEditorForm::Instance(), &TextEditorForm::FileChanged, this,
+          &TextEditor::FileChanged);
 }
 
 void TextEditor::ShowTextEditor() { TextEditorForm::Instance()->show(); }

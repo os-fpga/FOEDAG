@@ -161,6 +161,10 @@ void newProjectDialog::ResetToNewProject() {
   m_addSrcForm->SetTitle("Add Design Files");
   ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                              tr("Add Design Files"));
+  m_addSimForm = new addSimForm(this);
+  m_addSimForm->SetTitle("Add Simulation Files");
+  ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+                             tr("Add Simulation Files"));
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
   ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
@@ -188,6 +192,12 @@ void newProjectDialog::ResetToProjectSettings() {
   auto index = ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                                           tr("Design Files"));
   m_tabIndexes.insert(INDEX_ADDSOURC, index);
+  m_addSimForm = new addSimForm(this);
+  m_addSimForm->SetTitle("Simulation Files");
+  m_settings.append(m_addSimForm);
+  index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+                                     tr("Simulation Files"));
+  m_tabIndexes.insert(INDEX_ADDSIM, index);
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Design Constraints");
   m_settings.append(m_addConstrsForm);
@@ -271,7 +281,8 @@ void newProjectDialog::updateSummary(const QString &projectName,
   m_sumForm->setProjectName(projectName, projectType);
   m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
   m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
-                            m_addConstrsForm->getFileData().count());
+                            m_addConstrsForm->getFileData().count(),
+                            m_addSimForm->getFileData().count());
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
@@ -287,6 +298,7 @@ void newProjectDialog::on_buttonBox_accepted() {
       m_proTypeForm->projectType(),
       {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
       {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
+      {m_addSimForm->getFileData(), m_addSimForm->IsCopySource()},
       m_devicePlanForm->getSelectedDevice(),
       false /*rewrite*/,
       DEFAULT_FOLDER_SOURCE,
@@ -351,7 +363,7 @@ void newProjectDialog::on_next() {
     m_addSrcForm->setProjectType(m_proTypeForm->projectType());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
-    m_index += 3;  // omit design and constraint files
+    m_index = INDEX_DEVICEPL;  // omit design and constraint files
   else
     m_index++;
   UpdateDialogView();
@@ -359,7 +371,7 @@ void newProjectDialog::on_next() {
 
 void newProjectDialog::on_back() {
   if (m_skipSources && m_index == INDEX_DEVICEPL)
-    m_index -= 3;  // omit design and constraint files
+    m_index = INDEX_PROJTYPE;  // omit design and constraint files
   else
     m_index--;
   UpdateDialogView();

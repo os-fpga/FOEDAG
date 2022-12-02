@@ -39,7 +39,7 @@ QMap<QString, PortsLoader *> PinAssignmentCreator::m_portsLoader{};
 
 PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
                                            QObject *parent)
-    : QObject(parent) {
+    : QObject(parent), m_data(data) {
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
   const QString fileName = searchCsvFile(data.target, data.context);
@@ -189,5 +189,24 @@ void PinAssignmentCreator::RegisterPortsLoader(const QString &device,
 }
 
 PinsBaseModel *PinAssignmentCreator::baseModel() const { return m_baseModel; }
+
+const PinAssignmentData &PinAssignmentCreator::data() const { return m_data; }
+
+void PinAssignmentCreator::setPinFile(const QString &file) {
+  m_data.pinFile = file;
+}
+
+void PinAssignmentCreator::refresh() {
+  const QSignalBlocker signalBlocker{this};
+  auto portView = m_portsView->findChild<PortsView *>();
+  if (portView) portView->cleanTable();
+  auto ppView = m_packagePinsView->findChild<PackagePinsView *>();
+  if (ppView) ppView->cleanTable();
+  QFile file{m_data.pinFile};
+  if (file.open(QFile::ReadOnly)) {
+    m_data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
+  }
+  if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
+}
 
 }  // namespace FOEDAG

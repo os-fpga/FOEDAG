@@ -19,10 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <qnamespace.h>
 
 #include <QWidget>
-#include <QtGlobal>
 
 namespace FOEDAG {
 
@@ -90,13 +88,7 @@ static constexpr uint SIMULATE_RTL{28};
 static constexpr uint SIMULATE_GATE{29};
 static constexpr uint SIMULATE_PNR{30};
 static constexpr uint SIMULATE_BITSTREAM{31};
-
-static constexpr uint UserActionRole = Qt::UserRole + 1;
-static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
-static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
-static constexpr uint ParentDataRole = Qt::UserRole + 4;
-static constexpr uint TaskTypeRole = Qt::UserRole + 5;
-static constexpr uint TaskId = Qt::UserRole + 6;
+static constexpr uint SIMULATE{32};
 
 static constexpr const char *ROUTING_LOG{"routing.rpt"};
 static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};

@@ -18,26 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include <QObject>
+#include "PinAssignment/PortsModel.h"
 
-#include "AbstractReportManager.h"
+#include "PinAssignment/PortsLoader.h"
+#include "gtest/gtest.h"
 
-class QString;
-class QTextStream;
+using namespace FOEDAG;
 
-namespace FOEDAG {
+TEST(PortsModel, GetPort) {
+  PortsModel model;
+  PortsLoader loader{&model};
+  loader.load(":/PinAssignment/ports_test.json");
 
-/*
- */
-class RoutingReportManager final : public AbstractReportManager {
-  QStringList getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  QMap<size_t, QString> getMessages() override;
+  std::vector<IOPort> ports;
+  for (uint i{0}; i < 4; i++)
+    ports.push_back(model.GetPort(QString{"out1[%1]"}.arg(QString::number(i))));
 
-  std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
-  std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);
-};
-
-}  // namespace FOEDAG
+  for (uint i = 0; i < ports.size(); i++) {
+    auto p = ports.at(i);
+    EXPECT_EQ(p.name, QString("out1[%1]").arg(QString::number(i)));
+    EXPECT_EQ(p.dir, "Output");
+    EXPECT_EQ(p.packagePin, "");
+    EXPECT_EQ(p.type, "REG");
+  }
+}

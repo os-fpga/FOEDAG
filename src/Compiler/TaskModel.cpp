@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QIcon>
 
 #include "CompilerDefines.h"
+#include "TaskGlobal.h"
 #include "TaskManager.h"
 
 namespace FOEDAG {
@@ -90,7 +91,8 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
   } else if (role == Qt::DecorationRole) {
-    if (task->type() != TaskType::Action) return QVariant();
+    if (task->type() != TaskType::Action && task->type() != TaskType::None)
+      return QVariant();
     if (index.column() == STATUS_COL) {
       switch (task->status()) {
         case TaskStatus::Success:
@@ -165,6 +167,11 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   if (!newTaskManager) return;
   m_taskManager = newTaskManager;
   int row{0};
+  m_taskOrder.push_back({row++, SIMULATE});
+  m_taskOrder.push_back({row++, SIMULATE_RTL});
+  m_taskOrder.push_back({row++, SIMULATE_GATE});
+  m_taskOrder.push_back({row++, SIMULATE_PNR});
+  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
   m_taskOrder.push_back({row++, IP_GENERATE});
   m_taskOrder.push_back({row++, ANALYSIS});
   m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
@@ -193,10 +200,6 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
   m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
-  m_taskOrder.push_back({row++, SIMULATE_RTL});
-  m_taskOrder.push_back({row++, SIMULATE_GATE});
-  m_taskOrder.push_back({row++, SIMULATE_PNR});
-  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 
@@ -206,10 +209,18 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     m_taskManager->startTask(ToTaskId(index));
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
-    if (!m_expanded.contains(index)) {
-      m_expanded.insert(index, true);
-    } else {
-      m_expanded[index] = !m_expanded[index];
+    ExpandAreaAction act = value.value<ExpandAreaAction>();
+    switch (act) {
+      case ExpandAreaAction::Invert:
+        m_expanded[index] =
+            m_expanded.contains(index) ? !m_expanded[index] : true;
+        break;
+      case ExpandAreaAction::Expand:
+        m_expanded[index] = false;
+        break;
+      case ExpandAreaAction::Collapse:
+        m_expanded[index] = true;
+        break;
     }
     auto task = m_taskManager->task(ToTaskId(index));
     emit dataChanged(

@@ -23,8 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <QVector>
 
-#include "Compiler/CompilerDefines.h"
-
 namespace FOEDAG {
 
 enum class TaskStatus {
@@ -96,16 +94,11 @@ class Task : public QObject {
   /*!
    * \brief statusChanged. Emits whenever status has changed.
    */
-  void statusChanged();
+  void statusChanged(FOEDAG::TaskStatus);
   /*!
    * \brief taskTriggered. Emits when user trigger the task.
    */
   void taskTriggered();
-  /*!
-   * \brief finished. Emits when status of the task set to Success or Fail,
-   * which means task done.
-   */
-  void finished();
 
  private:
   QString m_title;
@@ -120,3 +113,5 @@ class Task : public QObject {
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_METATYPE(FOEDAG::TaskStatus)

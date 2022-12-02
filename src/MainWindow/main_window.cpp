@@ -52,8 +52,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
+#include "ReportsTreeWidget.h"
 #include "TextEditor/text_editor.h"
+#include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
+#include "Utils/QtUtils.h"
 #include "foedag_version.h"
 
 using namespace FOEDAG;
@@ -307,6 +310,24 @@ QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
   return dock;
 }
 
+void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
+  auto btn = new QPushButton{dock};
+  btn->setObjectName("refreshButton");
+  connect(btn, &QPushButton::clicked, this, &MainWindow::refreshPinPlanner);
+  btn->setSizePolicy(QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
+  btn->setText("Refresh");
+  QWidget* w = new QWidget;
+  auto layout = new QHBoxLayout;
+  layout->addWidget(new QLabel{dock->windowTitle()});
+  layout->addWidget(btn);
+  layout->addSpacerItem(
+      new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
+  layout->setContentsMargins(9, 9, 9, 0);
+  w->setLayout(layout);
+  dock->setTitleBarWidget(w);
+  btn->hide();
+}
+
 void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
   for (const auto& dock : dockWidgets) {
     if (dock) {
@@ -361,6 +382,50 @@ void MainWindow::stopCompilation() {
   }
 }
 
+void MainWindow::showReportsTab() {
+  auto newReportsWidget = new ReportsTreeWidget(*m_taskManager);
+  // If dock widget has already been created
+  if (m_reportsDockWidget) {
+    // remove old config widget
+    auto oldWidget = m_reportsDockWidget->widget();
+    if (oldWidget) {
+      delete oldWidget;
+    }
+    // set new config widget
+    m_reportsDockWidget->setWidget(newReportsWidget);
+    m_reportsDockWidget->show();
+  } else {
+    // Create and place new dockwidget
+    m_reportsDockWidget =
+        PrepareTab(tr("Reports"), "reportsTreeWidget", newReportsWidget,
+                   m_dockConsole, Qt::BottomDockWidgetArea);
+  }
+}
+
+void MainWindow::fileModified(const QString& file) {
+  if (m_blockRefereshEn) return;
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (!pinAssignment) return;
+
+  if (file == pinAssignment->data().pinFile) {
+    setVisibleRefreshButtons(true);
+  }
+}
+
+void MainWindow::refreshPinPlanner() {
+  auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (!pinAssignment) return;
+
+  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+    auto answer = QMessageBox::question(
+        this, "Pin planner",
+        "Some changes are not saved. Do you want to continue?");
+    if (answer == QMessageBox::No) return;
+  }
+  pinAssignment->refresh();
+  pinPlannerSaved();
+}
+
 void MainWindow::saveToRecentSettings(const QString& project) {
   if (project.isEmpty()) return;
 
@@ -391,6 +456,7 @@ void MainWindow::saveToRecentSettings(const QString& project) {
 
 bool MainWindow::saveConstraintFile() {
   auto pinAssignment = findChild<PinAssignmentCreator*>();
+  if (!pinAssignment) return false;
   auto constrFile = m_projectManager->getConstrPinFile();
   if (constrFile.empty()) {
     newProjdialog->Reset(Mode::ProjectSettings);
@@ -421,6 +487,7 @@ bool MainWindow::saveConstraintFile() {
     rewrite = (answer == QMessageBox::YesRole);
     if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
   }
+  pinAssignment->setPinFile(constraint);
   file.open(openFlags);
   QString sdc{pinAssignment->generateSdc()};
   if (rewrite)
@@ -792,6 +859,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           SLOT(SlotOpenFile(QString)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
+  connect(textEditor, &TextEditor::FileChanged, this,
+          &MainWindow::fileModified);
 
   connect(TextEditorForm::Instance()->GetTabWidget(),
           SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
@@ -875,6 +944,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
+    showReportsTab();
   });
 
   connect(m_taskManager, &TaskManager::started, this,
@@ -965,14 +1035,17 @@ void MainWindow::updatePRViewButton(int state) {
 }
 
 void MainWindow::saveActionTriggered() {
+  // This blocking need because of Refresh button blinks. Button become visible
+  // after file save and then we hide it.
+  m_blockRefereshEn = true;
+  // here file update will cause generating a signal from file watcher. After
+  // this signal we will show refresh button on pin planner. So this signal
+  // should be blocked.
   if (saveConstraintFile()) {
-    saveAction->setEnabled(false);
-    for (auto& dock : m_pinAssignmentDocks) {
-      if (dock->windowTitle().endsWith("*")) {
-        dock->setWindowTitle(
-            dock->windowTitle().mid(0, dock->windowTitle().size() - 1));
-      }
-    }
+    QtUtils::AppendToEventQueue([this]() { m_blockRefereshEn = false; });
+    pinPlannerSaved();
+  } else {
+    m_blockRefereshEn = false;
   }
 }
 
@@ -994,9 +1067,10 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.context = GlobalSession->Context();
     data.projectPath = m_projectManager->getProjectPath();
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
-    QFile file{QString::fromStdString(m_projectManager->getConstrPinFile())};
+    data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
+    QFile file{data.pinFile};
     if (file.open(QFile::ReadOnly)) {
-      data.commands = QString{file.readAll()}.split('\n');
+      data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     }
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};
@@ -1005,9 +1079,11 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     auto portsDockWidget = PrepareTab(tr("IO Ports"), "portswidget",
                                       creator->GetPortsWidget(), m_dockConsole);
+    addPinPlannerRefreshButton(portsDockWidget);
     auto packagePinDockWidget =
         PrepareTab(tr("Package Pins"), "packagepinwidget",
                    creator->GetPackagePinsWidget(), portsDockWidget);
+    addPinPlannerRefreshButton(packagePinDockWidget);
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
     if (saveAction->isEnabled()) {
@@ -1251,6 +1327,24 @@ bool MainWindow::confirmExitProgram() {
               this, "Exit Program?",
               tr("Are you sure you want to exit the program?\n"),
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
+}
+
+void MainWindow::setVisibleRefreshButtons(bool visible) {
+  for (auto dock : m_pinAssignmentDocks) {
+    auto button = dock->findChild<QPushButton*>("refreshButton");
+    if (button) button->setVisible(visible);
+  }
+}
+
+void MainWindow::pinPlannerSaved() {
+  saveAction->setEnabled(false);
+  for (auto& dock : m_pinAssignmentDocks) {
+    if (dock->windowTitle().endsWith("*")) {
+      dock->setWindowTitle(
+          dock->windowTitle().mid(0, dock->windowTitle().size() - 1));
+    }
+  }
+  QtUtils::AppendToEventQueue([this]() { setVisibleRefreshButtons(false); });
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

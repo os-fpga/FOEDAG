@@ -20,22 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "AbstractReportManager.h"
+#include <qnamespace.h>
+
+#include <QMetaType>
 
 namespace FOEDAG {
 
-/* Placement-specific report manager. It triggers 'placement.rpt' log file
- * parsing and creates two reports:
- * - Report Resource Utilization, shown as table in application editor area;
- * - Report Static Timing, placed into post_place_timing.rpt file.
- */
-class PlacementReportManager final : public AbstractReportManager {
-  QStringList getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  QMap<size_t, QString> getMessages() override;
+static constexpr uint UserActionRole = Qt::UserRole + 1;
+static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
+static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
+static constexpr uint ParentDataRole = Qt::UserRole + 4;
+static constexpr uint TaskTypeRole = Qt::UserRole + 5;
+static constexpr uint TaskId = Qt::UserRole + 6;
 
-  // Creates a file in given projectPath and fills it with timingData
-  void createTimingReport(const QStringList &timingData);
+enum ExpandAreaAction {
+  Invert,
+  Expand,
+  Collapse,
 };
 
 }  // namespace FOEDAG
+
+Q_DECLARE_METATYPE(FOEDAG::ExpandAreaAction)

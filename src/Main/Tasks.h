@@ -31,7 +31,8 @@ class ITaskReportManager;
 QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
 void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(ITaskReportManager& reportManager);
+void handleViewReportRequested(const QString& reportId,
+                               ITaskReportManager& reportManager);
 
 // Setters/Getters for tclArgs
 void TclArgs_setSynthesisOptions(const std::string& argsStr);

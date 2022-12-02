@@ -38,10 +38,9 @@ namespace FOEDAG {
    Maximum level
  */
 class SynthesisReportManager final : public AbstractReportManager {
-  std::vector<std::string> getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(
-      const std::string &reportId) override;
-  std::map<size_t, std::string> getMessages() override;
+  QStringList getAvailableReportIds() const override;
+  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
+  QMap<size_t, QString> getMessages() override;
 
   // Retrieves maximum and average levels out of given line and fills into stats
   void fillLevels(const QString &line, ITaskReport::TableData &stats) const;

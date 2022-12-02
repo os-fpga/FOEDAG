@@ -75,6 +75,23 @@ class Simulator {
   void SetSimulatorPath(SimulatorType type, const std::string path);
   void AddGateSimulationModel(const std::filesystem::path& path);
 
+  void SetSimulatorCompileOption(SimulatorType type,
+                                 const std::string& options) {
+    m_simulatorCompileOptionMap.emplace(type, options);
+  }
+  void SetSimulatorElaborationOption(SimulatorType type,
+                                     const std::string& options) {
+    m_simulatorElaborationOptionMap.emplace(type, options);
+  }
+  void SetSimulatorRuntimeOption(SimulatorType type,
+                                 const std::string& options) {
+    m_simulatorRuntimeOptionMap.emplace(type, options);
+  }
+
+  std::string GetSimulatorCompileOption(SimulatorType type);
+  std::string GetSimulatorElaborationOption(SimulatorType type);
+  std::string GetSimulatorRuntimeOption(SimulatorType type);
+
  protected:
   virtual bool SimulateRTL(SimulatorType type);
   virtual bool SimulateGate(SimulatorType type);
@@ -109,6 +126,9 @@ class Simulator {
   SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
+  std::map<SimulatorType, std::string> m_simulatorCompileOptionMap;
+  std::map<SimulatorType, std::string> m_simulatorElaborationOptionMap;
+  std::map<SimulatorType, std::string> m_simulatorRuntimeOptionMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
   std::string m_simulationTop;
   std::string m_waveFile;

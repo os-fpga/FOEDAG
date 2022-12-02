@@ -105,8 +105,10 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name>       : Creates a design with <name> name"
+  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
+            "with <name> name"
          << std::endl;
+  (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
          << std::endl;
@@ -432,11 +434,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                           const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
-    if (argc == 2) {
+    std::string type{"rtl"};
+    if (argc >= 2) {
       name = argv[1];
     }
+    if (argc > 3) {
+      const std::string t = argv[2];
+      if (t == "-type") type = argv[3];
+    }
     compiler->GetOutput().clear();
-    bool ok = compiler->CreateDesign(name);
+    bool ok = compiler->CreateDesign(name, type);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
     if (!FileUtils::FileExists(name)) {
@@ -499,6 +506,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
     }
+    if (compiler->ProjManager()->projectType() != RTL) {
+      compiler->ErrorMessage(
+          "Post synthesis flow. Please use read_netlist or change design "
+          "type.");
+      return TCL_ERROR;
+    }
     return compiler->add_files(compiler, interp, argc, argv, Design);
   };
   interp->registerCmd("add_design_file", add_design_file, this, nullptr);
@@ -541,6 +554,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     if (argc < 2) {
       compiler->ErrorMessage("Incorrect syntax for read_netlist <file>");
+      return TCL_ERROR;
+    }
+    if (compiler->ProjManager()->projectType() != PostSynth) {
+      compiler->ErrorMessage(
+          "RTL Design flow. Please use add_design_file or change design type.");
       return TCL_ERROR;
     }
 
@@ -1521,10 +1539,20 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
 
+      // GTKWave sets its current directory to its bin dir for dependency
+      // loading. As such, relative user paths might not work when passed from
+      // the ui which invokes from its own bin dir so we'll convert to fullpath
+      auto path = FileUtils::GetFullPath(std::filesystem::path(file));
+
       // if a file was passed, set the loadFile command
       std::string cmd{};
       if (!file.empty()) {
-        cmd = "gtkwave::loadFile " + file;
+        if (FileUtils::FileExists(path)) {
+          cmd = "gtkwave::loadFile " + path.string();
+        } else {
+          Tcl_AppendResult(interp, "Error: File doesn't exist", nullptr);
+          return TCL_ERROR;
+        }
       }
 
       // Send cmd to GTKWave
@@ -1578,7 +1606,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     if (compiler) {
-      compiler->GTKWaveSendCmd("gtkwave::reloadFile");
+      compiler->GTKWaveSendCmd("gtkwave::reLoadFile");
     }
     return TCL_OK;
   };
@@ -1629,8 +1657,88 @@ QProcess* Compiler::GetGTKWaveProcess() {
     QString wishArg = "--wish";
     QStringList args{wishArg};
 
-    // Start GTKWave Process
-    // invoking ./gtkwave to ensure we load the local copy
+    auto cleanMessage = [](const QString& msg) {
+      // GTKWave seems to prefix every error message with its version along with
+      // way too many empty lines so we'll clear both of those out
+      QStringList validLines{};
+      for (auto line : msg.split('\n')) {
+        if (line.isEmpty() || line.startsWith("GTKWave Analyzer v")) {
+          // ignore pointless lines
+          continue;
+        } else if (line.startsWith("WM Destroy")) {
+          // Make the WM Destory message more user friendly
+          validLines << "window has been closed";
+          continue;
+        }
+
+        validLines << line;
+      }
+
+      return validLines.join('\n');
+    };
+
+    auto handleStdout = [this, cleanMessage]() {
+      // If we want to listen for return values from gtkwave
+      // getters, this is where we should check the value.
+
+      // Possible way of returning getter results:
+      // `wave_cmd puts \[gtkwave::getWaveWidth\]`
+      // also see installGTKWaveHelpers() for fine control
+
+      // Read stdout data
+      QByteArray data = m_gtkwave_process->readAllStandardOutput();
+      QString trimmed = data.trimmed();
+
+      // Listen for the wish interface being opened
+      if (trimmed.startsWith("Interpreter id is")) {
+        // Install extra tcl helpers
+        installGTKWaveHelpers();
+      }
+
+      // If the user had gtkwave print _RETURN_, capture and
+      // store the rest of the output, this can be retrieved
+      // with wave_get_return
+      QString retStr = "_RETURN_";
+      if (trimmed.startsWith(retStr)) {
+        trimmed.remove(0, retStr.size());
+        m_gtkwave_process->setProperty("ReturnVal", trimmed);
+      }
+
+      // Print message
+      QString msg = cleanMessage(trimmed);
+      if (!msg.isEmpty()) {
+        Message("GTKWave - " + msg.toStdString());
+        finish();  // this is required to update the console to show a new
+                   // prompt for the user
+      }
+    };
+
+    QRegularExpression fileLoadedRegex =
+        QRegularExpression("\\[\\d*\\] start time.\\n\\[\\d*\\] end time.");
+    auto handleStderr = [this, cleanMessage, fileLoadedRegex]() {
+      // Read stderr data
+      QByteArray data = m_gtkwave_process->readAllStandardError();
+
+      // Print message
+      QString msg = cleanMessage(data.trimmed());
+      if (!msg.isEmpty()) {
+        // GTKWave uses stderr for some normal messages like the wave times when
+        // loading a file so we have to convert those to normal status messages
+        auto match = fileLoadedRegex.match(msg);
+        if (match.hasMatch()) {
+          // Print as normal status message instead
+          Message("GTKWave - " + msg.toStdString());
+        } else {
+          ErrorMessage("GTKWave - " + msg.toStdString());
+        }
+
+        finish();  // this is required to update the console to show a new
+                   // prompt for the user
+      }
+    };
+
+    // Start GTKWave Process.
+    // Invoking ./gtkwave to ensure we load the local copy
     m_gtkwave_process->start("./gtkwave", args);
     if (m_gtkwave_process->waitForStarted()) {
       // Clear pointer on process close
@@ -1647,47 +1755,14 @@ QProcess* Compiler::GetGTKWaveProcess() {
           });
 
       // Listen to stdout
-      QObject::connect(
-          m_gtkwave_process, &QProcess::readyReadStandardOutput, [this]() {
-            // If we want to listen for return values from gtkwave
-            // getters, this is where we should check the value.
-
-            // Possible way of returning getter results:
-            // `wave_cmd puts \[gtkwave::getWaveWidth\]`
-            // also see installGTKWaveHelpers() for fine control
-
-            // Read stdout data
-            QByteArray data = m_gtkwave_process->readAllStandardOutput();
-            QString trimmed = data.trimmed();
-
-            // Listen for the wish interface being opened
-            if (trimmed.startsWith("Interpreter id is")) {
-              // Install extra tcl helpers
-              installGTKWaveHelpers();
-            }
-
-            // If the user had gtkwave print _RETURN_, capture and store the
-            // rest of the output, this can be retrieved with wave_get_return
-            QString retStr = "_RETURN_";
-            if (trimmed.startsWith(retStr)) {
-              trimmed.remove(0, retStr.size());
-              m_gtkwave_process->setProperty("ReturnVal", trimmed);
-            }
-          });
+      QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardOutput,
+                       handleStdout);
 
       // Listen to stderr
       QObject::connect(m_gtkwave_process, &QProcess::readyReadStandardError,
-                       []() {
-                         // TODO @skyler-rs nov2022 This should be logged once
-                         // we have a logging system
-
-                         // QByteArray data =
-                         // m_gtkwave_process->readAllStandardError(); std::cout
-                         // << "error: " << data.toStdString() << std::endl;
-                       });
+                       handleStderr);
     }
   }
-
   return m_gtkwave_process;
 }
 
@@ -1762,7 +1837,8 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
       {"wave_show <signal>",
        "Add the given signal to the GTKWave window and highlight it."},
       {"wave_time <time>",
-       "Set the current GTKWave view port start time to <time>. Times units "
+       "Set the current GTKWave view port start time to <time>. Times "
+       "units "
        "can be specified, without a space. Ex: wave_time 100ps."}};
 
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
@@ -2222,7 +2298,7 @@ bool Compiler::HasIPDefinitions() {
   return result;
 }
 
-bool Compiler::CreateDesign(const std::string& name) {
+bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
@@ -2230,10 +2306,14 @@ bool Compiler::CreateDesign(const std::string& name) {
     }
 
     std::ostringstream out;
-    bool ok = m_tclCmdIntegration->TclCreateProject(name.c_str(), out);
+    bool ok = m_tclCmdIntegration->TclCreateProject(
+        QString::fromStdString(name), QString::fromStdString(type), out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
-    Message(std::string("Created design: ") + name + std::string("\n"));
+    std::string message{"Created design: " + name};
+    if (!type.empty()) message += ". Project type: " + type;
+    message += "\n";
+    Message(message);
   }
   return true;
 }

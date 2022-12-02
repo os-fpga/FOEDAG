@@ -229,7 +229,8 @@ class Compiler {
   virtual bool VerifyTargetDevice() const;
   bool HasTargetDevice();
 
-  bool CreateDesign(const std::string& name);
+  bool CreateDesign(const std::string& name,
+                    const std::string& type = std::string{});
   static void PrintVersion(std::ostream* out);
 
   /* Compiler class utilities */
