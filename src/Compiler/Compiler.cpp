@@ -1739,6 +1739,8 @@ QProcess* Compiler::GetGTKWaveProcess() {
 
     // Start GTKWave Process.
     // Invoking ./gtkwave to ensure we load the local copy
+    std::cout << "Launching ./gtkwave from " << wd.toStdString() << std::endl;
+    Message(wd.toStdString());
     m_gtkwave_process->start("./gtkwave", args);
     if (m_gtkwave_process->waitForStarted()) {
       // Clear pointer on process close
