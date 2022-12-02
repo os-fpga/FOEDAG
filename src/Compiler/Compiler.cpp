@@ -1647,8 +1647,8 @@ QProcess* Compiler::GetGTKWaveProcess() {
     m_gtkwave_process = new QProcess();
 
     // Get a path to our local gtkwave binary
-    auto binPath = GlobalSession->Context()->BinaryPath();
-    auto exePath = binPath / "gtkwave" / "bin";
+    auto sharePath = GlobalSession->Context()->DataPath();
+    auto exePath = sharePath / "gtkwave" / "bin";
     QString wd = QString::fromStdString(exePath.string());
     // Need to be in the gtkwave bin dir to resolve some dependency issues
     m_gtkwave_process->setWorkingDirectory(wd);

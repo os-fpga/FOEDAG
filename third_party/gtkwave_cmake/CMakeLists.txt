@@ -22,8 +22,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 project(GTKWave)
 
 if(RAPTOR)
+    set(proj_dir raptor)
     set(root_dir ${PROJECT_SOURCE_DIR}/../../../..)
 else()
+    set(proj_dir foedag)
     set(root_dir ${PROJECT_SOURCE_DIR}/../..)
 endif()
 
@@ -41,7 +43,7 @@ endif()
 
 set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
 set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/${gtkwave_tar})
-set(install_path ${build_dir}/bin)
+set(install_path ${build_dir}/share/${proj_dir})
 set(gtkwave_path ${install_path}/gtkwave)
 
 if(skip)
@@ -49,6 +51,7 @@ if(skip)
     message("GTKWave: Windows not currently supported")
 else()
     if(NOT EXISTS ${gtkwave_path})
+        file(MAKE_DIRECTORY ${install_path})
         message(STATUS "Downloading GTKWave from ${download_path}")
         file(DOWNLOAD ${download_path} ${temp_path} SHOW_PROGRESS)
         message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
@@ -58,3 +61,8 @@ else()
         )
     endif()
 endif()
+
+install(
+    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/${proj_dir}
+    USE_SOURCE_PERMISSIONS
+)
