@@ -3402,8 +3402,11 @@ bool CompilerOpenFPGA_ql::Placement() {
   }
 #endif // #if UPSTREAM_UNUSED
 
-  // generate pin contraints file, if required.
+  // generate pin contraints file or use pre-generated .place file, if required.
   // this string should contain the path of the PinConstraints file, if generated correctly.
+  // the "filepath_fpga_fix_pins_place_str" variable will be empty if:
+  // - there is no pre-generated .place file AND
+  // - there is no pcf file in the project.
   std::string filepath_fpga_fix_pins_place_str;
   if (!GeneratePinConstraints(filepath_fpga_fix_pins_place_str)) return false;
 
@@ -4470,11 +4473,20 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     ErrorMessage("No design specified");
     return false;
   }
-  // PinConstraints: if there is a PCF file available, we need to generate PinConstraints
+  
+  // PinConstraints (.place): if a pre-generated pin constraints file is available, prefer to use that, and
+  //   ignore any pcf file for the project, so pcf2place flow is not invoked.
+  // if there is a .place file path specified in "openfpga" > "general" > "place" > "default" : use this, else:
+  // if there is a .place file in the design directory with the name: <project_name>_fix_pins.place -> use this, else:
+  // use the pcf file and pcf2place flow as below:
+
+  // PinConstraints (.pcf): if there is a PCF file available, we need to generate PinConstraints (.place) file
   //  and use it in the VPR placement stage.
   // if there is a pcf file path specified in "openfpga" > "general" > "pcf" > "default" : use this, else:
   // if there is a pcf file in the design directory with the name <project_name>.pcf  : use this, else:
   // no pcf file is found, continue without PinConstraints.
+
+  // either way, if the .place file is available, set the path to it in the 'filepath_fpga_fix_pins_place_str' variable ref passed in.
 
   std::string settings_json_filename = m_projManager->projectName() + ".json";
   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
@@ -4482,6 +4494,37 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
 
   json settings_obj = GetSession()->GetSettings()->getJson();
+
+  ///////////////////////////////////////////////////////////////// PLACE ++
+  std::filesystem::path filepath_place;
+  if ( (settings_obj.contains("openfpga")) &&
+       (settings_obj["openfpga"].contains("general")) &&
+       (settings_obj["openfpga"]["general"].contains("place")) &&
+       (!settings_obj["openfpga"]["general"]["place"]["default"].get<std::string>().empty()) ) {
+    filepath_place = settings_obj["openfpga"]["general"]["place"]["default"].get<std::string>();
+  }
+  else {
+    filepath_place = ProjManager()->projectName() + std::string("_fix_pins") + std::string(".place");
+  }
+  // we are currently in the 'design_directory' now...
+  if (FileUtils::FileExists(filepath_place)) {
+    if (!filepath_place.is_absolute()) {
+      // if it exists, make path relative to the working directory (used when openfpga is actually run)
+      filepath_place = std::filesystem::path(std::filesystem::path("..") / filepath_place);
+    }
+    // set the PinConstraints file path to be used by the caller.
+    filepath_fpga_fix_pins_place_str = filepath_place.string();
+
+    (*m_out) << "Design " << ProjManager()->projectName()
+             << " use available PinConstraints file: "
+             << filepath_fpga_fix_pins_place_str
+             << std::endl;
+
+    return true;
+  }
+  // else
+  // no place file found, so we continue with the PCF flow for PinConstraints below.
+  ///////////////////////////////////////////////////////////////// PLACE --
 
   ///////////////////////////////////////////////////////////////// PCF ++
   std::filesystem::path filepath_pcf;
