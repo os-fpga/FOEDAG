@@ -17,10 +17,10 @@ jobs:
       matrix:
         mode:
         - test
-        - regression
-        - coverage
-        - install
-        - valgrind
+        # - regression
+        # - coverage
+        # - install
+        # - valgrind
     env:
       MODE: ${{ matrix.mode }}
 
@@ -74,8 +74,8 @@ jobs:
     - name: Test
       if: matrix.mode == 'test'
       run: |
-        make debug test/unittest-d
-        make release test/batch
+        # make debug test/unittest-d
+        # make release test/batch
         make test/gui
 #        make test/openfpga
 
