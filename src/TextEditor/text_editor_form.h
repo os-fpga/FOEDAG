@@ -19,7 +19,8 @@ class TextEditorForm : public QWidget {
   void InitForm();
   int OpenFile(const QString &strFileName);
   int OpenFileWithLine(const QString &strFileName, int line);
-  int OpenFileWithSelection(const QString &strFileName, int lineFrom, int lineTo);
+  int OpenFileWithSelection(const QString &strFileName, int lineFrom,
+                            int lineTo);
   QTabWidget *GetTabWidget() { return m_tab_editor; }
 
  signals:

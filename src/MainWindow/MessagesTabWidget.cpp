@@ -53,7 +53,8 @@ void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {
   filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
   auto line = item->data(col, Qt::UserRole).toInt();
-  TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line, line);
+  TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line,
+                                                    line);
 }
 
 }  // namespace FOEDAG
