@@ -40,6 +40,7 @@ set (CPP_LIST
     PinAssignment/TestLoader.cpp
     PinAssignment/TestPortsLoader.cpp
     Compiler/CompilerDefines_test.cpp
+    PinAssignment/PortsModel_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
