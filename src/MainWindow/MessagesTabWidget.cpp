@@ -26,8 +26,11 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
     auto taskId = m_taskManager.taskId(task);
 
     if (auto reportManager = reports.getReportManager(taskId)) {
-      auto taskItem = new QTreeWidgetItem({task->title()});
-      taskItem->setData(0, Qt::UserRole, task->logFileReadPath());
+      auto filePath = task->logFileReadPath();
+      filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+      auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
+      auto taskItem = new QTreeWidgetItem({itemName});
+      taskItem->setData(0, Qt::UserRole, filePath);
 
       const auto &msgs = reportManager->getMessages();
       for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
@@ -50,7 +53,6 @@ void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {
   if (!parentItem) return;  // only leaf items represent log messages
 
   auto filePath = parentItem->data(0, Qt::UserRole).toString();
-  filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
   auto line = item->data(col, Qt::UserRole).toInt();
   TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line,

@@ -1,7 +1,5 @@
 #include "editor.h"
 
-#include <QScrollBar>
-
 using namespace FOEDAG;
 
 #define ERROR_MARKER 4

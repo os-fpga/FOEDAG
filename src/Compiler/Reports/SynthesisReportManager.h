@@ -57,7 +57,6 @@ class SynthesisReportManager final : public AbstractReportManager {
   void parseLogFile();
 
  private:
-  bool m_fileParsed{false};
   QSet<QString> m_keyMessages;
   ITaskReport::TableData m_stats;
   Messages m_messages;
