@@ -20,30 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QObject>
+#include <QWidget>
 
-#include "AbstractReportManager.h"
-
-class QString;
-class QTextStream;
+class QTreeWidgetItem;
 
 namespace FOEDAG {
+class TaskManager;
 
-/*
- */
-class RoutingReportManager final : public AbstractReportManager {
+class MessagesTabWidget final : public QWidget {
+  Q_OBJECT
  public:
-  RoutingReportManager(const TaskManager &taskManager);
+  MessagesTabWidget(const TaskManager &taskManager);
+
+ private slots:
+  // Reacts on double click on one of tree items.
+  void onMessageClicked(const QTreeWidgetItem *item, int col);
 
  private:
-  QStringList getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  const Messages &getMessages() override;
-
-  std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
-  std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);
-
-  Messages m_messages;
+  const TaskManager &m_taskManager;
 };
 
 }  // namespace FOEDAG
