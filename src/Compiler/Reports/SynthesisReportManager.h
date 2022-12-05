@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QSet>
+
 #include "AbstractReportManager.h"
 
 namespace FOEDAG {
@@ -38,14 +40,26 @@ namespace FOEDAG {
    Maximum level
  */
 class SynthesisReportManager final : public AbstractReportManager {
+ public:
+  SynthesisReportManager(const TaskManager &taskManager);
+
+ private:
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  QMap<size_t, QString> getMessages() override;
+  const Messages &getMessages() override;
 
   // Retrieves maximum and average levels out of given line and fills into stats
   void fillLevels(const QString &line, ITaskReport::TableData &stats) const;
   // Parses input stream and gets all statistics with their values
   ITaskReport::TableData getStatistics(const QString &statsStr) const;
+  // Go through the log file and fills internal data collections (stats,
+  // messages)
+  void parseLogFile();
+
+ private:
+  QSet<QString> m_keyMessages;
+  ITaskReport::TableData m_stats;
+  Messages m_messages;
 };
 
 }  // namespace FOEDAG

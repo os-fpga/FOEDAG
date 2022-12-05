@@ -39,6 +39,9 @@ static const QRegExp FIND_TIMINGS{
 
 namespace FOEDAG {
 
+PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
+    : AbstractReportManager(taskManager) {}
+
 QStringList PlacementReportManager::getAvailableReportIds() const {
   return {QString(REPORT_NAME)};
 }
@@ -67,11 +70,12 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
-  return std::make_unique<TableReport>(std::move(columnNames),
-                                       std::move(resourcesData), REPORT_NAME);
+  return std::make_unique<TableReport>(columnNames, resourcesData, REPORT_NAME);
 }
 
-QMap<size_t, QString> PlacementReportManager::getMessages() { return {}; }
+const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
+  return m_messages;
+}
 
 void PlacementReportManager::createTimingReport(const QStringList &timingData) {
   auto projectPath = Project::Instance()->projectPath();

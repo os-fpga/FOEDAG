@@ -35,6 +35,8 @@ class ITaskReport;
 class ITaskReportManager {
  public:
   virtual ~ITaskReportManager() = default;
+
+  using Messages = QMap<int, QString>;
   // Returns all available reports per compilation task
   virtual QStringList getAvailableReportIds() const = 0;
   // Creates the report. This call will most likely result in log file parsing
@@ -42,7 +44,7 @@ class ITaskReportManager {
   virtual std::unique_ptr<ITaskReport> createReport(
       const QString &reportId) = 0;
   // Returns retrieved from a log file messages per line number.
-  virtual QMap<size_t, QString> getMessages() = 0;
+  virtual const Messages &getMessages() = 0;
 };
 
 }  // namespace FOEDAG
