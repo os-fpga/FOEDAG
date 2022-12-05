@@ -99,7 +99,6 @@ bool getFullPath(const std::filesystem::path& path,
 
 // Try to find the full absolute path of the program currently running.
 static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
-    std::cout << "progname:" << progname << std::endl;
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__)
   const char PATH_DELIMITER = ';';
 #else
@@ -118,7 +117,6 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
 
   // Still not found, let's go through the $PATH and see what comes up first.
   const char* const path = std::getenv("PATH");
-  std::cout << "path:" << path << std::endl;
   if (path != nullptr) {
     std::stringstream search_path(path);
     std::string path_element;
@@ -126,7 +124,6 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
     while (std::getline(search_path, path_element, PATH_DELIMITER)) {
       const std::filesystem::path testpath =
           path_element / std::filesystem::path(progname);
-      std::cout << "testpath:" << testpath << std::endl;
       if (getFullPath(testpath, &program_path)) {
         return program_path;
       }
@@ -164,8 +161,6 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
         GetProgramNameAbsolutePath(m_cmdLine->Argv()[0]);
     std::filesystem::path exeDirPath = exePath.parent_path();
     m_context->BinaryPath(exeDirPath);
-    std::cout << exeDirPath << std::endl;
-    std::cout << m_context->BinaryPath() << std::endl;
     std::filesystem::path installDir = exeDirPath.parent_path();
     const std::string separator(1, std::filesystem::path::preferred_separator);
     std::error_code ec;
