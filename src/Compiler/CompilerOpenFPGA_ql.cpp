@@ -2455,7 +2455,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
       Message("Using open source YosysHQ yosys instead!");
     }
   }
-  // if we want to use Tabby CAD, use 'synth_qlf' for the pass_name:
+  // if we want to use Tabby CAD, use 'synth_quicklogic' for the pass_name: (This can change in the future)
   if(use_tabbycad_for_synthesis) {
     yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
   }
@@ -2596,7 +2596,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
                             ".." /
                             "tabby" /
                             "bin" /
-                            "yosys";
+                            "yosys_verific";
   }
 #endif // #if(AURORA_USE_TABBYCAD == 1)
 
