@@ -139,8 +139,10 @@ void PackagePinsView::SetPort(const QString &pin, const QString &port,
     }
   }
 
+  if (indexes.count() > 1) indexes.pop_front();  // skip first parent item
+
   if (!indexes.isEmpty()) {
-    auto index = indexes.at((row == 0) ? 0 : row + 1);
+    auto index = indexes.at(row);
     setComboData(index, PortsCol, port);
   }
 }
@@ -218,15 +220,26 @@ void PackagePinsView::insertData(const QStringList &data, int index, int column,
 void PackagePinsView::updateModeCombo(const QString &port,
                                       const QModelIndex &index) {
   auto modeIndex = model()->index(index.row(), ModeCol, index.parent());
+  auto pin = itemFromIndex(modeIndex)->text(NameCol);
   QComboBox *modeCombo{GetCombo(modeIndex, ModeCol)};
   if (modeCombo) {
+    modeCombo->setEnabled(!port.isEmpty());
     if (port.isEmpty()) {
+      const QSignalBlocker blocker{modeCombo};
       modeCombo->setCurrentIndex(0);
-      modeCombo->setEnabled(false);
+      // update model here
+      bool resetMode{true};
+      const auto indexes{match(pin)};
+      for (const auto &idx : indexes) {
+        if (auto combo = GetCombo(idx, PortsCol)) {
+          if (combo->currentIndex() != 0) resetMode = false;
+        }
+      }
+      if (resetMode) m_model->packagePinModel()->updateMode(pin, QString{});
+      // cleanup internal pin selection
+      updateInternalPinCombo(QString{}, index);
     } else {
-      modeCombo->setEnabled(true);
-      auto currentMode = m_model->packagePinModel()->getMode(
-          itemFromIndex(modeIndex)->text(NameCol));
+      auto currentMode = m_model->packagePinModel()->getMode(pin);
       auto ioPort = m_model->portsModel()->GetPort(port);
       const bool output = ioPort.dir == "Output";
       QAbstractItemModel *modeModel =
@@ -391,7 +404,11 @@ void PackagePinsView::internalPinChanged(const QString &port,
 void PackagePinsView::portAssignmentChanged(const QString &port,
                                             const QString &pin, int row) {
   if (m_blockUpdate) return;
-  SetPort(pin, port, row);
+  auto ports = m_model->getPort(pin);
+  if (ports.contains(port))
+    SetPort(pin, port, row);
+  else
+    SetPort(pin, QString{}, row);
 }
 
 QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
