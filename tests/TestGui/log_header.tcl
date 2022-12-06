@@ -1,4 +1,4 @@
-# gui_start
+gui_start
 
 create_design log_header
 
