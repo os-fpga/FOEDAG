@@ -183,7 +183,7 @@ test/gui_mac: run-cmake-debug
 
 test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/TestBatch/test_ip_generate.tcl
-	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl && exit 1 || (cat foedag.log)
+	./build/bin/foedag --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
 	./build/bin/foedag --batch --script tests/TestGui/compiler_flow.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_mt.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_compiler_stop.tcl

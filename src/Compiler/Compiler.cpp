@@ -79,7 +79,9 @@ auto CreateDummyLog =
   if (projManager) {
     std::filesystem::path projectPath(projManager->projectPath());
     outputPath = projectPath / outfileName;
-    std::filesystem::remove(outputPath);
+    if (FileUtils::FileExists(outputPath)) {
+      std::filesystem::remove(outputPath);
+    }
     std::ofstream ofs(outputPath);
     ofs << "Dummy log for " << outfileName << "\n";
     ofs.close();
@@ -2339,8 +2341,8 @@ void Compiler::AddHeaderToLog(const std::filesystem::path& logPath) {
     std::ifstream srcLog(logPath);
 
     // new file path w/ temp name
-    std::filesystem::path dest = logPath.string() + ".NEW";
-    std::ofstream destLog(dest);
+    std::filesystem::path tempPath = logPath.string() + ".NEW";
+    std::ofstream destLog(tempPath);
 
     PrintHeader(&destLog);
 
@@ -2348,8 +2350,10 @@ void Compiler::AddHeaderToLog(const std::filesystem::path& logPath) {
     destLog << srcLog.rdbuf();
 
     // Close new log and replace old
+    srcLog.close();
     destLog.close();
-    std::filesystem::rename(dest, logPath);
+    std::filesystem::remove(logPath);
+    std::filesystem::rename(tempPath, logPath);
   }
 }
 
