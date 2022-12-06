@@ -2432,6 +2432,10 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
 
+  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
+
+  yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
+
 #if(AURORA_USE_TABBYCAD == 1)
 // check if the env variable: YOSYSHQ_LICENSE is defined
   bool use_tabbycad_for_synthesis = false;
@@ -2448,44 +2452,6 @@ bool CompilerOpenFPGA_ql::Synthesize() {
       Message("Using open source YosysHQ yosys instead!");
     }
   }
-#endif // #if(AURORA_USE_TABBYCAD == 1)
-
-#if(AURORA_USE_TABBYCAD == 1)
-#ifdef _WIN32
-  if(use_tabbycad_for_synthesis) {
-    // yosys version in tabby cad supports plugin loading
-    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
-  }
-  else {
-    // older open source yosyshq version does not support plugin loading (need to update)
-    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string(""));
-  }
-#else // not WIN32
-  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
-#endif //#ifdef _WIN32
-#else // #if(AURORA_USE_TABBYCAD == 1)
-  // legacy code as is ------------------------------------
-#ifdef _WIN32
-  // plugins are not supported on WIN32, yosys is built with the plugin code directly instead.
-  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string(""));
-#else // #ifdef _WIN32
-  yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
-#endif // #ifdef _WIN32
-  // legacy code as is ------------------------------------
-#endif // #if(AURORA_USE_TABBYCAD == 1)
-
-
-#if(AURORA_USE_TABBYCAD == 1)
-  // if we want to use Tabby CAD, use 'synth_quicklogic' for the pass_name: (This can change in the future)
-  if(use_tabbycad_for_synthesis) {
-    yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
-  }
-  else {
-    // if we want to use the open source YosysHQ yosys + plugins, use 'synth_quicklogic' for the pass_name:
-    yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
-  }
-#else // #if(AURORA_USE_TABBYCAD == 1)
-  yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
 #endif // #if(AURORA_USE_TABBYCAD == 1)
 
   yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
