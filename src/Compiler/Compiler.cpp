@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewProject/ProjectManager/config.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
@@ -70,16 +71,21 @@ extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
-auto CreateDummyLog = [](ProjectManager* projManager,
-                         const std::string& outfileName) {
+auto CreateDummyLog =
+    [](ProjectManager* projManager,
+       const std::string& outfileName) -> std::filesystem::path {
+  std::filesystem::path outputPath{};
+
   if (projManager) {
     std::filesystem::path projectPath(projManager->projectPath());
-    std::filesystem::path outputPath = projectPath / outfileName;
+    outputPath = projectPath / outfileName;
     std::filesystem::remove(outputPath);
     std::ofstream ofs(outputPath);
     ofs << "Dummy log for " << outfileName << "\n";
     ofs.close();
   }
+
+  return outputPath;
 };
 
 void Compiler::Version(std::ostream* out) {
@@ -1886,7 +1892,7 @@ bool Compiler::Analyze() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1894,7 +1900,8 @@ bool Compiler::Analyze() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1933,7 +1940,8 @@ bool Compiler::Synthesize() {
   (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
-  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1965,7 +1973,8 @@ bool Compiler::GlobalPlacement() {
   (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "global_placement.rpt");
+  auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2144,7 +2153,8 @@ bool Compiler::IPGenerate() {
                  " IPs generation failed");
   }
 
-  CreateDummyLog(m_projManager, "ip_generate.rpt");
+  auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
+  AddHeaderToLog(logPath);
   return status;
 }
 
@@ -2169,7 +2179,8 @@ bool Compiler::Packing() {
            << std::endl;
   m_state = State::Packed;
 
-  CreateDummyLog(m_projManager, "packing.rpt");
+  auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2194,7 +2205,8 @@ bool Compiler::Placement() {
            << std::endl;
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2219,7 +2231,8 @@ bool Compiler::Route() {
            << std::endl;
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, ROUTING_LOG);
+  auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2234,7 +2247,8 @@ bool Compiler::TimingAnalysis() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "timing_analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2249,7 +2263,8 @@ bool Compiler::PowerAnalysis() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "power_analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2264,7 +2279,8 @@ bool Compiler::GenerateBitstream() {
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated" << std::endl;
 
-  CreateDummyLog(m_projManager, "bitstream.rpt");
+  auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2316,6 +2332,75 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
     Message(message);
   }
   return true;
+}
+
+void Compiler::AddHeaderToLog(const std::filesystem::path& logPath) {
+  if (FileUtils::FileExists(logPath)) {
+    std::ifstream srcLog(logPath);
+
+    // new file path w/ temp name
+    std::filesystem::path dest = logPath.string() + ".NEW";
+    std::ofstream destLog(dest);
+
+    PrintHeader(&destLog);
+
+    // Add original log contents
+    destLog << srcLog.rdbuf();
+
+    // Close new log and replace old
+    destLog.close();
+    std::filesystem::rename(dest, logPath);
+  }
+}
+
+std::string Compiler::GetLogHeader(std::string commentPrefix /* "" */,
+                                   bool withLogTime /*true*/) {
+  std::stringstream temp;
+  PrintHeader(&temp, withLogTime);
+
+  std::stringstream result;
+  if (commentPrefix == "") {
+    // If no prefix, just copy the result and return it
+    result << temp.str() << "\n";
+  } else {
+    // If a commentPrefix was provided, add it in front of every line
+    std::vector<std::string> lines{};
+    StringUtils::tokenize(temp.str(), "\n", lines);
+
+    for (auto line : lines) {
+      result << commentPrefix << line << std::endl;
+    }
+  }
+
+  return result.str();
+}
+
+void Compiler::PrintHeader(std::ostream* out, bool printTime /*true*/) {
+  // Add Copyright
+  PrintCopyright(out);
+
+  // Add version info
+  PrintVersion(out);
+
+  // Add Current Time in UTC/GMT
+  if (printTime) {
+    auto time =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    (*out) << "Log Time   : " << std::put_time(std::gmtime(&time), "%c %Z")
+           << "\n";
+  }
+}
+
+void Compiler::PrintCopyright(std::ostream* out) {
+  std::filesystem::path datapath = Config::Instance()->dataPath();
+  std::filesystem::path copyrightFile =
+      datapath / std::string("etc") / std::string("copyright.txt");
+
+  // Add contents from <projectRoot>/etc/copyright.txt
+  if (FileUtils::FileExists(copyrightFile)) {
+    std::ifstream file(copyrightFile);
+    (*out) << file.rdbuf() << "\n";
+  }
 }
 
 void Compiler::PrintVersion(std::ostream* out) {

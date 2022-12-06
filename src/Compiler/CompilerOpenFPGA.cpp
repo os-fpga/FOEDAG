@@ -52,19 +52,20 @@ using namespace FOEDAG;
 
 auto copyLog = [](FOEDAG::ProjectManager* projManager,
                   const std::string& srcFileName,
-                  const std::string& destFileName) -> bool {
-  bool result = false;
+                  const std::string& destFileName) -> std::filesystem::path {
+  std::filesystem::path dest{};
+
   if (projManager) {
     std::filesystem::path projectPath(projManager->projectPath());
     std::filesystem::path src = projectPath / srcFileName;
-    std::filesystem::path dest = projectPath / destFileName;
     if (FileUtils::FileExists(src)) {
+      dest = projectPath / destFileName;
       std::filesystem::remove(dest);
       std::filesystem::copy_file(src, dest);
-      result = true;
     }
   }
-  return result;
+
+  return dest;
 };
 
 void CompilerOpenFPGA::Version(std::ostream* out) {
@@ -1333,8 +1334,10 @@ bool CompilerOpenFPGA::Synthesize() {
     (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized"
              << std::endl;
 
-    copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
-            SYNTHESIS_LOG);
+    auto logPath =
+        copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+                SYNTHESIS_LOG);
+    AddHeaderToLog(logPath);
     return true;
   }
 }
@@ -1535,7 +1538,8 @@ bool CompilerOpenFPGA::Packing() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is packed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "packing.rpt");
+  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1780,7 +1784,8 @@ bool CompilerOpenFPGA::Placement() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1889,7 +1894,8 @@ bool CompilerOpenFPGA::Route() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is routed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2015,7 +2021,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is timing analysed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "timing_analysis.rpt");
+  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2067,7 +2074,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed"
            << std::endl;
 
-  copyLog(ProjManager(), "vpr_stdout.log", "power_analysis.rpt");
+  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
+  AddHeaderToLog(logPath);
   return true;
 }
 
