@@ -75,4 +75,20 @@ void PinAssignmentBaseView::updateInternalPinSelection(const QString &pin,
   combo->blockSignals(false);
 }
 
+void PinAssignmentBaseView::setComboData(const QModelIndex &index,
+                                         const QString &data) {
+  if (auto combo = GetCombo(index)) {
+    const auto index = combo->findData(data, Qt::DisplayRole);
+    if (index > -1) combo->setCurrentIndex(index);
+  }
+}
+
+void PinAssignmentBaseView::setComboData(const QModelIndex &index, int column,
+                                         const QString &data) {
+  if (auto combo = GetCombo(index, column)) {
+    const auto index = combo->findData(data, Qt::DisplayRole);
+    if (index > -1) combo->setCurrentIndex(index);
+  }
+}
+
 }  // namespace FOEDAG
