@@ -188,12 +188,14 @@ void PortsView::updateModeCombo(const QString &port, const QModelIndex &index) {
   auto modeIndex = model()->index(index.row(), ModeCol, index.parent());
   QComboBox *modeCombo{GetCombo(modeIndex, ModeCol)};
   if (modeCombo) {
+    modeCombo->setEnabled(!port.isEmpty());
     if (port.isEmpty()) {
+      const QSignalBlocker blocker{modeCombo};
       modeCombo->setCurrentIndex(0);
-      modeCombo->setEnabled(false);
+      // update model in PackagePinsView
+      // cleanup internal pin selection
+      updateIntPinCombo(QString{}, index);
     } else {
-      modeCombo->setEnabled(true);
-
       auto currentMode =
           m_model->packagePinModel()->getMode(getPinSelection(index));
 
@@ -273,7 +275,10 @@ void PortsView::intPinChanged(const QString &port, const QString &intPin) {
 void PortsView::portAssignmentChanged(const QString &port, const QString &pin,
                                       int /* unused */) {
   if (m_blockUpdate) return;
-  SetPin(port, pin);
+  if (m_model->exists(port, pin))
+    SetPin(port, pin);
+  else
+    SetPin(port, QString{});
 }
 
 }  // namespace FOEDAG
