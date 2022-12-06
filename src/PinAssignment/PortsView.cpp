@@ -75,9 +75,7 @@ void PortsView::SetPin(const QString &port, const QString &pin) {
   QModelIndexList indexes{match(port)};
   if (!indexes.isEmpty()) {
     auto index = indexes.first();
-    auto combo = qobject_cast<BufferedComboBox *>(
-        itemWidget(itemFromIndex(index), PackagePinCol));
-    if (combo) combo->setCurrentIndex(combo->findData(pin, Qt::DisplayRole));
+    setComboData(index, PackagePinCol, pin);
   }
 }
 
@@ -91,8 +89,7 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   // update here Mode selection
   auto item = itemFromIndex(index);
   auto combo =
-      item ? qobject_cast<BufferedComboBox *>(itemWidget(item, PackagePinCol))
-           : nullptr;
+      item ? GetCombo<BufferedComboBox *>(item, PackagePinCol) : nullptr;
   if (combo) {
     const QString port =
         combo->currentText().isEmpty() ? QString{} : item->text(PortName);
@@ -100,10 +97,8 @@ void PortsView::packagePinSelectionHasChanged(const QModelIndex &index) {
   }
 
   if (item) {
-    auto combo =
-        qobject_cast<BufferedComboBox *>(itemWidget(item, PackagePinCol));
-    auto internalPinCombo =
-        qobject_cast<QComboBox *>(itemWidget(item, InternalPinsCol));
+    auto combo = GetCombo<BufferedComboBox *>(item, PackagePinCol);
+    auto internalPinCombo = GetCombo(item, InternalPinsCol);
     if (combo) {
       auto pin = combo->currentText();
       auto prevPin = combo->previousText();
@@ -162,7 +157,7 @@ void PortsView::insertTableItem(QTreeWidgetItem *parent, const IOPort &port) {
 void PortsView::modeSelectionHasChanged(const QModelIndex &index) {
   auto item = itemFromIndex(index);
   if (item) {
-    auto comboMode = qobject_cast<QComboBox *>(itemWidget(item, ModeCol));
+    auto comboMode = GetCombo(item, ModeCol);
     if (comboMode) {
       m_model->packagePinModel()->updateMode(getPinSelection(index),
                                              comboMode->currentText());
@@ -175,8 +170,7 @@ void PortsView::modeSelectionHasChanged(const QModelIndex &index) {
 void PortsView::internalPinSelectionHasChanged(const QModelIndex &index) {
   auto item = itemFromIndex(index);
   if (item) {
-    auto comboIntPin =
-        qobject_cast<QComboBox *>(itemWidget(item, InternalPinsCol));
+    auto comboIntPin = GetCombo(item, InternalPinsCol);
     if (comboIntPin) {
       m_model->packagePinModel()->updateInternalPin(item->text(PortName),
                                                     comboIntPin->currentText());
@@ -192,8 +186,7 @@ void PortsView::internalPinSelectionHasChanged(const QModelIndex &index) {
 
 void PortsView::updateModeCombo(const QString &port, const QModelIndex &index) {
   auto modeIndex = model()->index(index.row(), ModeCol, index.parent());
-  QComboBox *modeCombo{
-      qobject_cast<QComboBox *>(itemWidget(itemFromIndex(modeIndex), ModeCol))};
+  QComboBox *modeCombo{GetCombo(modeIndex, ModeCol)};
   if (modeCombo) {
     if (port.isEmpty()) {
       modeCombo->setCurrentIndex(0);
@@ -214,8 +207,8 @@ void PortsView::updateModeCombo(const QString &port, const QModelIndex &index) {
         modeCombo->setModel(modeModel);
       }
       if (!currentMode.isEmpty()) {
-        modeCombo->setCurrentIndex(
-            modeCombo->findData(currentMode, Qt::DisplayRole));
+        const int idx = modeCombo->findData(currentMode, Qt::DisplayRole);
+        if (idx > -1) modeCombo->setCurrentIndex(idx);
         updateIntPinCombo(currentMode, index);
       }
       modeCombo->blockSignals(false);
@@ -227,8 +220,7 @@ void PortsView::updateIntPinCombo(const QString &mode,
                                   const QModelIndex &index) {
   auto intPinIndex =
       model()->index(index.row(), InternalPinsCol, index.parent());
-  QComboBox *intPinCombo{qobject_cast<QComboBox *>(
-      itemWidget(itemFromIndex(intPinIndex), InternalPinsCol))};
+  QComboBox *intPinCombo{GetCombo(intPinIndex, InternalPinsCol)};
   if (intPinCombo) {
     if (mode.isEmpty()) {
       intPinCombo->setCurrentIndex(0);
@@ -248,8 +240,7 @@ void PortsView::updateIntPinCombo(const QString &mode,
 
 QString PortsView::getPinSelection(const QModelIndex &index) const {
   auto pinIndex = model()->index(index.row(), PackagePinCol, index.parent());
-  QComboBox *pinCombo{qobject_cast<QComboBox *>(
-      itemWidget(itemFromIndex(pinIndex), PackagePinCol))};
+  QComboBox *pinCombo{GetCombo(pinIndex, PackagePinCol)};
   return pinCombo ? pinCombo->currentText() : QString{};
 }
 
@@ -262,12 +253,7 @@ void PortsView::modeChanged(const QString &pin, const QString &mode) {
     for (const auto &index : indexes) {
       QModelIndex modeIndex =
           model()->index(index.row(), ModeCol, index.parent());
-      auto modeCombo = qobject_cast<QComboBox *>(
-          itemWidget(itemFromIndex(modeIndex), ModeCol));
-      if (modeCombo) {
-        const int index = modeCombo->findData(mode, Qt::DisplayRole);
-        if (index != -1) modeCombo->setCurrentIndex(index);
-      }
+      setComboData(modeIndex, ModeCol, mode);
     }
   }
 }
@@ -280,12 +266,7 @@ void PortsView::intPinChanged(const QString &port, const QString &intPin) {
     auto index = indexes.first();
     QModelIndex modeIndex =
         model()->index(index.row(), InternalPinsCol, index.parent());
-    auto intPinCombo = qobject_cast<QComboBox *>(
-        itemWidget(itemFromIndex(modeIndex), InternalPinsCol));
-    if (intPinCombo) {
-      const int index = intPinCombo->findData(intPin, Qt::DisplayRole);
-      intPinCombo->setCurrentIndex(index);
-    }
+    setComboData(modeIndex, InternalPinsCol, intPin);
   }
 }
 
