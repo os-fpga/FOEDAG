@@ -67,10 +67,6 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
-extern const char* foedag_build_type;
-
 auto CreateDummyLog =
     [](ProjectManager* projManager,
        const std::string& outfileName) -> std::filesystem::path {
