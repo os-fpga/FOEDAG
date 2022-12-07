@@ -54,7 +54,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/Tasks.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
-#include "NewProject/ProjectManager/config.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
