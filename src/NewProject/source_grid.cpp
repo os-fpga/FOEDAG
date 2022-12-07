@@ -453,7 +453,7 @@ bool sourceGrid::IsFileDataExit(filedata fdata) {
 
 QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
   auto combo = new QComboBox;
-  if (GT_SIM) {
+  if (GT_SIM == gType) {
     combo->addItem("C", Design::Language::C);
     combo->addItem("CPP", Design::Language::CPP);
     combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
