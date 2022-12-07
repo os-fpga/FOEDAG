@@ -209,9 +209,6 @@ class Compiler {
   void GTKWaveSendCmd(const std::string& gtkWaveCmd,
                       bool raiseGtkWindow = true);
 
-  static std::string GetLogHeader(std::string commentPrefix = "",
-                                  bool withLogTime = true);
-
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
