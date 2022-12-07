@@ -995,7 +995,7 @@ bool CompilerOpenFPGA::Analyze() {
   std::string command;
   int status = 0;
   std::filesystem::path analyse_path =
-      std::filesystem::path(ProjManager()->projectPath()) / "analyze.log";
+      std::filesystem::path(ProjManager()->projectPath()) / ANALYSIS_LOG;
   if (m_useVerific) {
     if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
       ErrorMessage("Cannot find executable: " +
