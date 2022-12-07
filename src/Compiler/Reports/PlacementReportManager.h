@@ -41,7 +41,11 @@ class PlacementReportManager final : public AbstractReportManager {
   // Creates a file in given projectPath and fills it with timingData
   void createTimingReport(const QStringList &timingData);
 
-  Messages m_messages;
+  void parseLogFile();
+
+  QStringList m_reportColumns;
+  SectionKeys m_createDeviceKeys;
+  SectionKeys m_placementKeys;
 };
 
 }  // namespace FOEDAG

@@ -26,6 +26,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+struct TaskMessage {
+  enum class MessageSeverity {
+    INFO_MESSAGE,
+    ERROR_MESSAGE,
+    WARNING_MESSAGE,
+    NONE
+  };
+
+  int m_lineNr{0};
+  MessageSeverity m_severity;
+  QString m_message;
+  QMap<int, TaskMessage> m_childMessages;
+};
+
 class ITaskReport;
 
 /* Manager for task reports. It has to be implemented per compilation
@@ -36,7 +50,7 @@ class ITaskReportManager {
  public:
   virtual ~ITaskReportManager() = default;
 
-  using Messages = QMap<int, QString>;
+  using Messages = QMap<int, TaskMessage>;
   // Returns all available reports per compilation task
   virtual QStringList getAvailableReportIds() const = 0;
   // Creates the report. This call will most likely result in log file parsing

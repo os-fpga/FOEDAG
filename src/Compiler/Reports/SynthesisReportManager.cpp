@@ -137,7 +137,10 @@ void SynthesisReportManager::parseLogFile() {
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
     if (MESSAGES_REGEXP.indexIn(line) != -1)
-      m_messages.insert(lineNr, MESSAGES_REGEXP.cap().simplified());
+      m_messages.insert(lineNr, TaskMessage{lineNr,
+                                            TaskMessage::MessageSeverity::NONE,
+                                            MESSAGES_REGEXP.cap().simplified(),
+                                            {}});
     ++lineNr;
   }
   setFileParsed(true);

@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+#include <set>
 
 #include "CompilerDefines.h"
 #include "NewProject/ProjectManager/project.h"
@@ -35,12 +36,33 @@ static constexpr const char *REPORT_NAME{
 
 static const QRegExp FIND_TIMINGS{
     "Placement estimated (critical|setup).*[0-9].*"};
+
+// Messages regexps
+static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
+static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
+static const QRegExp TILEABLE_GRAPH_REGEXP{
+    "Build tileable routing resource graph"};
+static const QRegExp INIT_PLACEMENT_HISTOGRAM_REGEXP{
+    "Initial placement estimated setup slack histogram"};
+static const QRegExp PLACEMENT_HISTOGRAM_REGEXP{
+    "Placement estimated setup slack histogram"};
+static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
+
+static const QString CREATE_DEVICE_SECTION{"# Create Device"};
+static const QString PLACEMENT_SECTION{"# Placement"};
+
 }  // namespace
 
 namespace FOEDAG {
 
 PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
-    : AbstractReportManager(taskManager) {}
+    : AbstractReportManager(taskManager) {
+  m_createDeviceKeys = {AbstractReportManager::FIND_RESOURCES,
+                        DEVICE_UTIL_REGEXP, TILEABLE_GRAPH_REGEXP};
+
+  m_placementKeys = {INIT_PLACEMENT_HISTOGRAM_REGEXP,
+                     PLACEMENT_HISTOGRAM_REGEXP, PLACEMENT_RESOURCE_REGEXP};
+}
 
 QStringList PlacementReportManager::getAvailableReportIds() const {
   return {QString(REPORT_NAME)};
@@ -48,32 +70,15 @@ QStringList PlacementReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
-  auto logFile = createLogFile(QString(PLACEMENT_LOG));
-  if (!logFile) return nullptr;
-
-  auto columnNames = QStringList{};
-
-  auto timings = QStringList{};
-  auto resourcesData = ITaskReport::TableData{};
-
-  auto in = QTextStream(logFile.get());
-  QString line;
-  while (in.readLineInto(&line)) {
-    if (FIND_TIMINGS.indexIn(line) != -1)
-      timings << line + "\n";
-    else if (FIND_RESOURCES.indexIn(line) != -1)
-      resourcesData = parseResourceUsage(in, columnNames);
-  }
-  logFile->close();
-
-  createTimingReport(timings);
+  if (!isFileParsed()) parseLogFile();
 
   emit reportCreated(QString(REPORT_NAME));
 
-  return std::make_unique<TableReport>(columnNames, resourcesData, REPORT_NAME);
+  return std::make_unique<TableReport>(m_reportColumns, m_stats, REPORT_NAME);
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
+  if (!isFileParsed()) parseLogFile();
   return m_messages;
 }
 
@@ -91,6 +96,42 @@ void PlacementReportManager::createTimingReport(const QStringList &timingData) {
   for (auto &line : timingData) out << line;
 
   timingLogFile.close();
+}
+
+void PlacementReportManager::parseLogFile() {
+  auto logFile = createLogFile(QString(PLACEMENT_LOG));
+  if (!logFile) return;
+
+  auto timings = QStringList{};
+  m_stats.clear();
+  m_messages.clear();
+  m_reportColumns.clear();
+
+  auto in = QTextStream(logFile.get());
+  QString line;
+  auto lineNr = 0;
+  while (in.readLineInto(&line)) {
+    if (FIND_TIMINGS.indexIn(line) != -1)
+      timings << line + "\n";
+    else if (FIND_RESOURCES.indexIn(line) != -1)
+      m_stats = parseResourceUsage(in, m_reportColumns);
+    else if (LOAD_PACKING_REGEXP.exactMatch(line))
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    TaskMessage::MessageSeverity::INFO_MESSAGE,
+                                    line.remove('#').simplified(),
+                                    {}});
+    else if (line.startsWith(CREATE_DEVICE_SECTION))
+      lineNr = parseErrorWarningSection(in, lineNr, CREATE_DEVICE_SECTION,
+                                        m_createDeviceKeys);
+    else if (line.startsWith(PLACEMENT_SECTION))
+      lineNr = parseErrorWarningSection(in, lineNr, PLACEMENT_SECTION,
+                                        m_placementKeys);
+    ++lineNr;
+  }
+  logFile->close();
+
+  createTimingReport(timings);
 }
 
 }  // namespace FOEDAG

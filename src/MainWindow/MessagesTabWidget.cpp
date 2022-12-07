@@ -34,7 +34,8 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
 
       const auto &msgs = reportManager->getMessages();
       for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
-        auto msgItem = new QTreeWidgetItem({it.value()});
+        auto msgItem = createTaskMessageItem(it.value());
+
         // task id is needed to locate corresponding report manager in case of
         // report request
         msgItem->setData(0, Qt::UserRole, QVariant(it.key()));
@@ -46,6 +47,31 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
   treeWidget->expandAll();
   connect(treeWidget, &QTreeWidget::itemDoubleClicked, this,
           &MessagesTabWidget::onMessageClicked);
+}
+
+QTreeWidgetItem *MessagesTabWidget::createTaskMessageItem(
+    const TaskMessage &msg) const {
+  auto msgItem = new QTreeWidgetItem({msg.m_message});
+  msgItem->setData(0, Qt::UserRole, QVariant(msg.m_lineNr));
+
+  switch (msg.m_severity) {
+    case TaskMessage::MessageSeverity::INFO_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/img/info.png"));
+      break;
+    case TaskMessage::MessageSeverity::ERROR_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/images/error.png"));
+      break;
+    case TaskMessage::MessageSeverity::WARNING_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/img/warn.png"));
+      break;
+    default:
+      break;
+  }
+
+  for (const auto &childMsg : msg.m_childMessages)
+    msgItem->addChild(createTaskMessageItem(childMsg));
+
+  return msgItem;
 }
 
 void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {

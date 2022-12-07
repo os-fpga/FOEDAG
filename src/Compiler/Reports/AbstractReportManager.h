@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <QVector>
 
 #include "ITaskReport.h"
 #include "ITaskReportManager.h"
@@ -49,6 +50,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   // Creates and opens log file instance. returns nullptr if file doesn't exist.
   std::unique_ptr<QFile> createLogFile(const QString &fileName) const;
 
+  using SectionKeys = QVector<QRegExp>;
+  int parseErrorWarningSection(QTextStream &in, int lineNr,
+                               const QString &sectionLine, SectionKeys keys);
+
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
 
@@ -57,6 +62,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
  signals:
   void reportCreated(QString reportName);
+
+ protected:
+  ITaskReport::TableData m_stats;
+  Messages m_messages;
 
  private:
   bool m_fileParsed{false};

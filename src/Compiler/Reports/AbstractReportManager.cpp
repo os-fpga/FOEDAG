@@ -2,6 +2,7 @@
 
 #include <QFile>
 #include <QTextStream>
+#include <set>
 
 #include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project.h"
@@ -9,6 +10,9 @@
 namespace {
 static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
 static constexpr const char *BLOCKS_COL{"Blocks"};
+
+static const QRegExp WARNING_REGEXP("Warning [0-9].*:");
+static const QRegExp ERROR_REGEXP("Error [0-9].*:");
 }  // namespace
 
 namespace FOEDAG {
@@ -90,6 +94,62 @@ std::unique_ptr<QFile> AbstractReportManager::createLogFile(
     return nullptr;
 
   return logFile;
+}
+
+int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
+                                                    const QString &sectionLine,
+                                                    SectionKeys keys) {
+  auto sectionName = sectionLine;
+  sectionName = sectionName.remove('#').simplified();
+  auto sectionMsg =
+      TaskMessage{lineNr, TaskMessage::MessageSeverity::NONE, sectionName, {}};
+
+  QString line;
+  // Store line numbers in set to always know which one was first
+  std::set<int> wrnLines, errLines;
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    // We reached the end of section
+    if (line.startsWith(sectionLine)) break;
+
+    if (line.contains(WARNING_REGEXP))  // count warnings
+      wrnLines.insert(lineNr);
+    else if (line.contains(ERROR_REGEXP))  // count errors
+      errLines.insert(lineNr);
+    // check whether section has any 'interesting' lines
+    for (auto &keyRegExp : keys) {
+      if (keyRegExp.indexIn(line) != -1) {
+        auto tm = TaskMessage{lineNr,
+                              TaskMessage::MessageSeverity::INFO_MESSAGE,
+                              keyRegExp.cap(),
+                              {}};
+        sectionMsg.m_childMessages.insert(lineNr, std::move(tm));
+        // remove the key once found to save some performance
+        keys.removeAll(keyRegExp);
+        break;
+      }
+    }
+  }
+  // Link to the first warning/error line. Section beginning if nothing was
+  // found
+  auto warningLine = wrnLines.empty() ? sectionMsg.m_lineNr : *wrnLines.begin();
+  auto warningMsg = TaskMessage{
+      warningLine,
+      TaskMessage::MessageSeverity::WARNING_MESSAGE,
+      QString("%1 warnings found").arg(QString::number(wrnLines.size())),
+      {}};
+  sectionMsg.m_childMessages.insert(warningLine, std::move(warningMsg));
+
+  auto errorLine = errLines.empty() ? sectionMsg.m_lineNr : *errLines.begin();
+  auto errorMsg = TaskMessage{
+      errorLine,
+      TaskMessage::MessageSeverity::ERROR_MESSAGE,
+      QString("%1 errors found").arg(QString::number(errLines.size())),
+      {}};
+  sectionMsg.m_childMessages.insert(errorLine, std::move(errorMsg));
+
+  m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
+  return lineNr;
 }
 
 void AbstractReportManager::setFileParsed(bool parsed) {
