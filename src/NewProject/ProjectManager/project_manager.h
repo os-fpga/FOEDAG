@@ -344,6 +344,12 @@ class ProjectManager : public QObject {
       const std::vector<std::string> &newIpInstanceCmdList);
   void addIpInstanceCmd(const std::string &ipInstanceCmd);
 
+  using AddFileFunction =
+      std::function<void(const QString &, const QString &, const QString &, int,
+                         const QString &, bool, bool)>;
+  static void AddFiles(const ProjectOptions::FileData &fileData,
+                       const AddFileFunction &addFileFunction);
+
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,
