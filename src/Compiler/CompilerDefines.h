@@ -90,10 +90,17 @@ static constexpr uint SIMULATE_PNR{30};
 static constexpr uint SIMULATE_BITSTREAM{31};
 static constexpr uint SIMULATE{32};
 
-static constexpr const char *ROUTING_LOG{"routing.rpt"};
+static constexpr const char *IP_GENERATE_LOG{"ip_generate.rpt"};
+static constexpr const char *ANALYSIS_LOG{"analysis.rpt"};
 static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};
+static constexpr const char *PACKING_LOG{"packing.rpt"};
+static constexpr const char *GLOBAL_PLACEMENT_LOG{"global_placement.rpt"};
 static constexpr const char *PLACEMENT_LOG{"placement.rpt"};
 static constexpr const char *PLACEMENT_TIMING_LOG{"post_place_timing.rpt"};
+static constexpr const char *ROUTING_LOG{"routing.rpt"};
+static constexpr const char *TIMING_ANALYSIS_LOG{"timing_analysis.rpt"};
+static constexpr const char *POWER_ANALYSIS_LOG{"power_analysis.rpt"};
+static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
 
 /*!
  * \brief prepareCompilerView

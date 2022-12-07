@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
@@ -66,26 +67,29 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
-extern const char* foedag_build_type;
+auto CreateDummyLog =
+    [](ProjectManager* projManager,
+       const std::string& outfileName) -> std::filesystem::path {
+  std::filesystem::path outputPath{};
 
-auto CreateDummyLog = [](ProjectManager* projManager,
-                         const std::string& outfileName) {
   if (projManager) {
     std::filesystem::path projectPath(projManager->projectPath());
-    std::filesystem::path outputPath = projectPath / outfileName;
-    std::filesystem::remove(outputPath);
+    outputPath = projectPath / outfileName;
+    if (FileUtils::FileExists(outputPath)) {
+      std::filesystem::remove(outputPath);
+    }
     std::ofstream ofs(outputPath);
     ofs << "Dummy log for " << outfileName << "\n";
     ofs.close();
   }
+
+  return outputPath;
 };
 
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
-  PrintVersion(out);
+  LogUtils::PrintVersion(out);
 }
 
 void Compiler::Help(std::ostream* out) {
@@ -1886,7 +1890,7 @@ bool Compiler::Analyze() {
       it++;
     }
     (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
@@ -1894,7 +1898,8 @@ bool Compiler::Analyze() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1933,7 +1938,8 @@ bool Compiler::Synthesize() {
   (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
            << std::endl;
 
-  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1965,7 +1971,8 @@ bool Compiler::GlobalPlacement() {
   (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "global_placement.rpt");
+  auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2144,7 +2151,8 @@ bool Compiler::IPGenerate() {
                  " IPs generation failed");
   }
 
-  CreateDummyLog(m_projManager, "ip_generate.rpt");
+  auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return status;
 }
 
@@ -2169,7 +2177,8 @@ bool Compiler::Packing() {
            << std::endl;
   m_state = State::Packed;
 
-  CreateDummyLog(m_projManager, "packing.rpt");
+  auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2194,7 +2203,8 @@ bool Compiler::Placement() {
            << std::endl;
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2219,7 +2229,8 @@ bool Compiler::Route() {
            << std::endl;
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, ROUTING_LOG);
+  auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2234,7 +2245,8 @@ bool Compiler::TimingAnalysis() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "timing_analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2249,7 +2261,8 @@ bool Compiler::PowerAnalysis() {
   (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
            << std::endl;
 
-  CreateDummyLog(m_projManager, "power_analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2264,7 +2277,8 @@ bool Compiler::GenerateBitstream() {
   (*m_out) << "Design " << m_projManager->projectName()
            << " bitstream is generated" << std::endl;
 
-  CreateDummyLog(m_projManager, "bitstream.rpt");
+  auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2316,15 +2330,6 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
     Message(message);
   }
   return true;
-}
-
-void Compiler::PrintVersion(std::ostream* out) {
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version    : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built      : " << __DATE__ << "\n";
-  (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
 const std::string Compiler::GetNetlistPath() {
