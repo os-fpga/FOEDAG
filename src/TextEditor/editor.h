@@ -43,6 +43,7 @@ class Editor : public QWidget {
   void markLine(int line);
   void clearMarkers();
   void reload();
+  void selectLines(int lineFrom, int lineTo);
 
  signals:
   void EditorModificationChanged(bool m);

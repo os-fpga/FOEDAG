@@ -27,7 +27,7 @@ namespace FOEDAG {
 // Default report implementation, representing table-like data.
 class TableReport : public ITaskReport {
  public:
-  TableReport(LineValues &&columnNames, TableData &&linesData,
+  TableReport(const LineValues &columnNames, const TableData &linesData,
               const QString &name);
 
   TableReport(const TableReport &) = default;

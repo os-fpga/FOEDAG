@@ -137,18 +137,18 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
 
-  auto synthesisReportManager = std::make_shared<SynthesisReportManager>();
+  auto synthesisReportManager = std::make_shared<SynthesisReportManager>(*this);
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       SYNTHESIS, std::move(synthesisReportManager));
 
-  auto placementReportManager = std::make_shared<PlacementReportManager>();
+  auto placementReportManager = std::make_shared<PlacementReportManager>(*this);
   connect(placementReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PLACEMENT, std::move(placementReportManager));
-  auto routingReportManager = std::make_shared<RoutingReportManager>();
+  auto routingReportManager = std::make_shared<RoutingReportManager>(*this);
   connect(routingReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(

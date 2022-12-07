@@ -44,6 +44,21 @@ class PinAssignmentBaseView : public QTreeWidget {
   QModelIndexList indexFromText(QTreeWidgetItem *i, const QString &text) const;
   void updateInternalPinSelection(const QString &pin, QComboBox *combo);
 
+  template <class ComboPtr = QComboBox *>
+  ComboPtr GetCombo(const QModelIndex &index) const {
+    return qobject_cast<ComboPtr>(indexWidget(index));
+  }
+  template <class ComboPtr = QComboBox *>
+  ComboPtr GetCombo(const QModelIndex &index, int column) const {
+    return qobject_cast<ComboPtr>(itemWidget(itemFromIndex(index), column));
+  }
+  template <class Combo = QComboBox *>
+  Combo GetCombo(QTreeWidgetItem *item, int column) const {
+    return qobject_cast<Combo>(itemWidget(item, column));
+  }
+  void setComboData(const QModelIndex &index, const QString &data);
+  void setComboData(const QModelIndex &index, int column, const QString &data);
+
  protected:
   PinsBaseModel *m_model{nullptr};
   QMap<QComboBox *, QModelIndex> m_allCombo;

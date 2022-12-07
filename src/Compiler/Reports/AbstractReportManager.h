@@ -31,11 +31,16 @@ class QTextStream;
 
 namespace FOEDAG {
 
+class TaskManager;
+
 /* Abstract implementation holding common logic for report managers.
  *
  */
 class AbstractReportManager : public QObject, public ITaskReportManager {
   Q_OBJECT
+ public:
+  AbstractReportManager(const TaskManager &taskManager);
+
  protected:
   // Parses in stream line by line till empty one occurs and creates table data.
   ITaskReport::TableData parseResourceUsage(QTextStream &in,
@@ -47,8 +52,14 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
 
+  bool isFileParsed() const;
+  void setFileParsed(bool parsed);
+
  signals:
   void reportCreated(QString reportName);
+
+ private:
+  bool m_fileParsed{false};
 };
 
 }  // namespace FOEDAG

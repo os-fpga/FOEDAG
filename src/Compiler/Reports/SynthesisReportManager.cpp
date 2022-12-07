@@ -29,12 +29,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TableReport.h"
 
 namespace {
+// Report strings
 static constexpr const char *REPORT_NAME{"Synthesis report"};
 static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
+
+// Messages regexp
+static const QRegExp MESSAGES_REGEXP{
+    "VERIFIC-ERROR.*|VERIFIC-WARNING.*|Executing synth_rs pass.*|Executing "
+    "RS_DSP_MACC.*"};
 }  // namespace
 
 namespace FOEDAG {
+
+SynthesisReportManager::SynthesisReportManager(const TaskManager &taskManager)
+    : AbstractReportManager(taskManager) {}
 
 QStringList SynthesisReportManager::getAvailableReportIds() const {
   return {QString(REPORT_NAME)};
@@ -95,11 +104,20 @@ void SynthesisReportManager::fillLevels(const QString &line,
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
     const QString &reportId) {
-  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
-  if (!logFile) return nullptr;
+  if (!isFileParsed()) parseLogFile();
 
-  // To save the last report statistics
-  auto stats = ITaskReport::TableData{};
+  emit reportCreated(QString(REPORT_NAME));
+
+  return std::make_unique<TableReport>(QStringList{"Statistics", "Value"},
+                                       m_stats, "Synthesis report");
+}
+
+void SynthesisReportManager::parseLogFile() {
+  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
+  if (!logFile) return;
+
+  m_stats.clear();
+  m_messages.clear();
 
   auto fileStr = QTextStream(logFile.get()).readAll();
   logFile->close();
@@ -107,20 +125,28 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
   auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
 
   if (findStats.lastIndexIn(fileStr) != -1)
-    stats = getStatistics(findStats.cap());
+    m_stats = getStatistics(findStats.cap());
 
   auto findLvls = QRegExp{"DE:([^\n]+)"};
   if (findLvls.lastIndexIn(fileStr) != -1) {
-    fillLevels(findLvls.cap(), stats);
+    fillLevels(findLvls.cap(), m_stats);
   }
 
-  emit reportCreated(QString(REPORT_NAME));
-
-  auto columnNames = QStringList{"Statistics", "Value"};
-  return std::make_unique<TableReport>(std::move(columnNames), std::move(stats),
-                                       "Synthesis report");
+  auto line = QString{};
+  QTextStream in(fileStr.toLatin1());
+  auto lineNr = 0;
+  while (in.readLineInto(&line)) {
+    if (MESSAGES_REGEXP.indexIn(line) != -1)
+      m_messages.insert(lineNr, MESSAGES_REGEXP.cap().simplified());
+    ++lineNr;
+  }
+  setFileParsed(true);
 }
 
-QMap<size_t, QString> SynthesisReportManager::getMessages() { return {}; }
+const ITaskReportManager::Messages &SynthesisReportManager::getMessages() {
+  if (!isFileParsed()) parseLogFile();
+
+  return m_messages;
+}
 
 }  // namespace FOEDAG

@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/licenseviewer.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/WelcomePageWidget.h"
+#include "MessagesTabWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
@@ -382,24 +383,36 @@ void MainWindow::stopCompilation() {
   }
 }
 
+void MainWindow::showMessagesTab() {
+  auto newWidget = new MessagesTabWidget(*m_taskManager);
+
+  auto oldWidget = m_messagesDockWidget->widget();
+  if (oldWidget) {
+    delete oldWidget;
+  } else {
+    // Show messages tab for the first time compilation is finished
+    m_messagesDockWidget->toggleViewAction()->setChecked(true);
+  }
+  // set new messages widget
+  m_messagesDockWidget->setWidget(newWidget);
+  if (m_messagesDockWidget->toggleViewAction()->isChecked())
+    m_messagesDockWidget->show();
+}
+
 void MainWindow::showReportsTab() {
   auto newReportsWidget = new ReportsTreeWidget(*m_taskManager);
-  // If dock widget has already been created
-  if (m_reportsDockWidget) {
-    // remove old config widget
-    auto oldWidget = m_reportsDockWidget->widget();
-    if (oldWidget) {
-      delete oldWidget;
-    }
-    // set new config widget
-    m_reportsDockWidget->setWidget(newReportsWidget);
-    m_reportsDockWidget->show();
+  // remove old config widget
+  auto oldWidget = m_reportsDockWidget->widget();
+  if (oldWidget) {
+    delete oldWidget;
   } else {
-    // Create and place new dockwidget
-    m_reportsDockWidget =
-        PrepareTab(tr("Reports"), "reportsTreeWidget", newReportsWidget,
-                   m_dockConsole, Qt::BottomDockWidgetArea);
+    // Show reports tab for the first time compilation is finished
+    m_reportsDockWidget->toggleViewAction()->setChecked(true);
   }
+  // set new config widget
+  m_reportsDockWidget->setWidget(newReportsWidget);
+  if (m_reportsDockWidget->toggleViewAction()->isChecked())
+    m_reportsDockWidget->show();
 }
 
 void MainWindow::fileModified(const QString& file) {
@@ -915,6 +928,14 @@ void MainWindow::ReShowWindow(QString strProject) {
   // runDockWidget->setWidget(runForm);
   // tabifyDockWidget(consoleDocWidget, runDockWidget);
 
+  m_messagesDockWidget = PrepareTab(tr("Messages"), "messagesWidget", nullptr,
+                                    m_dockConsole, Qt::BottomDockWidgetArea);
+  m_messagesDockWidget->hide();
+
+  m_reportsDockWidget = PrepareTab(tr("Reports"), "reportsTreeWidget", nullptr,
+                                   m_dockConsole, Qt::BottomDockWidgetArea);
+  m_reportsDockWidget->hide();
+
   // compiler task view
   QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
   view->setObjectName("compilerTaskView");
@@ -944,6 +965,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
     m_compiler->finish();
+    showMessagesTab();
     showReportsTab();
   });
 
