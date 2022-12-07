@@ -43,6 +43,7 @@
 #include "Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/LogUtils.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
 
@@ -71,7 +72,7 @@ auto copyLog = [](FOEDAG::ProjectManager* projManager,
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
-  PrintVersion(out);
+  LogUtils::PrintVersion(out);
 }
 
 void CompilerOpenFPGA::Help(std::ostream* out) {
@@ -1337,7 +1338,7 @@ bool CompilerOpenFPGA::Synthesize() {
     auto logPath =
         copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
                 SYNTHESIS_LOG);
-    AddHeaderToLog(logPath);
+    LogUtils::AddHeaderToLog(logPath);
     return true;
   }
 }
@@ -1539,7 +1540,7 @@ bool CompilerOpenFPGA::Packing() {
            << std::endl;
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1785,7 +1786,7 @@ bool CompilerOpenFPGA::Placement() {
            << std::endl;
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1895,7 +1896,7 @@ bool CompilerOpenFPGA::Route() {
            << std::endl;
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2022,7 +2023,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
            << std::endl;
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2075,7 +2076,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
            << std::endl;
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 

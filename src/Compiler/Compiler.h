@@ -235,11 +235,6 @@ class Compiler {
   bool CreateDesign(const std::string& name,
                     const std::string& type = std::string{});
 
-  void AddHeaderToLog(const std::filesystem::path& logPath);
-  static void PrintHeader(std::ostream* out, bool printTime = true);
-  static void PrintCopyright(std::ostream* out);
-  static void PrintVersion(std::ostream* out);
-
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);

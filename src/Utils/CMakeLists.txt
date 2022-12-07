@@ -46,6 +46,7 @@ set (SRC_CPP_LIST
   StringUtils.cpp
   ProcessUtils.cpp
   QtUtils.cpp
+  LogUtils.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -54,6 +55,7 @@ set (SRC_H_INSTALL_LIST
   ProcessUtils.h
   sequential_map.h
   QtUtils.h
+  LogUtils.h
 )
 
 set (SRC_H_LIST

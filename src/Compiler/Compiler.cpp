@@ -59,6 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
@@ -93,7 +94,7 @@ auto CreateDummyLog =
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
-  PrintVersion(out);
+  LogUtils::PrintVersion(out);
 }
 
 void Compiler::Help(std::ostream* out) {
@@ -1903,7 +1904,7 @@ bool Compiler::Analyze() {
            << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1943,7 +1944,7 @@ bool Compiler::Synthesize() {
            << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1976,7 +1977,7 @@ bool Compiler::GlobalPlacement() {
            << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2156,7 +2157,7 @@ bool Compiler::IPGenerate() {
   }
 
   auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return status;
 }
 
@@ -2182,7 +2183,7 @@ bool Compiler::Packing() {
   m_state = State::Packed;
 
   auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2208,7 +2209,7 @@ bool Compiler::Placement() {
   m_state = State::Placed;
 
   auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2234,7 +2235,7 @@ bool Compiler::Route() {
   m_state = State::Routed;
 
   auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2250,7 +2251,7 @@ bool Compiler::TimingAnalysis() {
            << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2266,7 +2267,7 @@ bool Compiler::PowerAnalysis() {
            << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2282,7 +2283,7 @@ bool Compiler::GenerateBitstream() {
            << " bitstream is generated" << std::endl;
 
   auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
-  AddHeaderToLog(logPath);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2334,86 +2335,6 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
     Message(message);
   }
   return true;
-}
-
-void Compiler::AddHeaderToLog(const std::filesystem::path& logPath) {
-  if (FileUtils::FileExists(logPath)) {
-    std::ifstream srcLog(logPath);
-
-    // new file path w/ temp name
-    std::filesystem::path tempPath = logPath.string() + ".NEW";
-    std::ofstream destLog(tempPath);
-
-    PrintHeader(&destLog);
-
-    // Add original log contents
-    destLog << srcLog.rdbuf();
-
-    // Close new log and replace old
-    srcLog.close();
-    destLog.close();
-    std::filesystem::remove(logPath);
-    std::filesystem::rename(tempPath, logPath);
-  }
-}
-
-std::string Compiler::GetLogHeader(std::string commentPrefix /* "" */,
-                                   bool withLogTime /*true*/) {
-  std::stringstream temp;
-  PrintHeader(&temp, withLogTime);
-
-  std::stringstream result;
-  if (commentPrefix == "") {
-    // If no prefix, just copy the result and return it
-    result << temp.str() << "\n";
-  } else {
-    // If a commentPrefix was provided, add it in front of every line
-    std::vector<std::string> lines{};
-    StringUtils::tokenize(temp.str(), "\n", lines);
-
-    for (auto line : lines) {
-      result << commentPrefix << line << std::endl;
-    }
-  }
-
-  return result.str();
-}
-
-void Compiler::PrintHeader(std::ostream* out, bool printTime /*true*/) {
-  // Add Copyright
-  PrintCopyright(out);
-
-  // Add version info
-  PrintVersion(out);
-
-  // Add Current Time in UTC/GMT
-  if (printTime) {
-    auto time =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    (*out) << "Log Time   : " << std::put_time(std::gmtime(&time), "%c %Z")
-           << "\n";
-  }
-}
-
-void Compiler::PrintCopyright(std::ostream* out) {
-  std::filesystem::path datapath = Config::Instance()->dataPath();
-  std::filesystem::path copyrightFile =
-      datapath / std::string("etc") / std::string("copyright.txt");
-
-  // Add contents from <projectRoot>/etc/copyright.txt
-  if (FileUtils::FileExists(copyrightFile)) {
-    std::ifstream file(copyrightFile);
-    (*out) << file.rdbuf() << "\n";
-  }
-}
-
-void Compiler::PrintVersion(std::ostream* out) {
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version    : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built      : " << __DATE__ << "\n";
-  (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
 const std::string Compiler::GetNetlistPath() {

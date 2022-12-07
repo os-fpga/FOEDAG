@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <ctime>
 
-#include "Compiler/Compiler.h"
+#include "Utils/LogUtils.h"
 
 using namespace FOEDAG;
 
@@ -32,8 +32,8 @@ CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile,
                            bool mute)
     : m_interp(interp) {
   if (!mute) {
-    std::string textHeader = Compiler::GetLogHeader();
-    std::string tclHeader = Compiler::GetLogHeader("# ");
+    std::string textHeader = LogUtils::GetLogHeader();
+    std::string tclHeader = LogUtils::GetLogHeader("# ");
 
     m_logger = new Logger(logFile.empty() ? "cmd.tcl" : logFile + "_cmd.tcl");
     m_logger->open();
