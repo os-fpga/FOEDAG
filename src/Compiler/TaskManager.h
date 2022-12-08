@@ -51,7 +51,11 @@ class TaskManager : public QObject {
    * \return return id of the task \a t.
    */
   uint taskId(Task *t) const;
-
+  /*!
+   * \brief currentTask
+   * \return Task* to task with status InProgress.
+   */
+  Task *currentTask() const;
   /*!
    * \brief stopCurrentTask. Stop all tasks that are in progress.
    */

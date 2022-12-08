@@ -1,8 +1,7 @@
 gui_start
-
 create_design log_header
-
 analyze
+help
 
 set fp [open "log_header/analysis.rpt" r]
 set file_data [read $fp]
@@ -46,6 +45,14 @@ set file_data [read $fp]
 close $fp
 set found [regexp "^Copyright 20\\d\\d The Foedag team" $file_data]
 if { !$found } { puts "ERROR: foedag.log's header is commented which shouldn't have occured"; exit 1 }
+
+# Verify foedag.log has INFO: ANL: abbreviation in front of analyze messages
+set found [regexp "\nINFO: ANL: Design log_header is analyzed" $file_data]
+if { !$found } { puts "ERROR: foedag.log's Analyze messages don't have INFO: ANL: in front"; exit 1 }
+
+# Verify help message doesn't have an abbreviation in front of it
+set found [regexp "\n-----  FOEDAG HELP  -----" $file_data]
+if { !$found } { puts "ERROR: foedag.log's help message has an abbreviation before it or wasn't printed"; exit 1 }
 
 # passed
 exit

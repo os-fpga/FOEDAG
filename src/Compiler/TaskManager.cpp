@@ -131,6 +131,17 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
 
+  m_tasks[IP_GENERATE]->setAbbreviation("IPG");
+  m_tasks[ANALYSIS]->setAbbreviation("ANL");
+  m_tasks[SYNTHESIS]->setAbbreviation("SYN");
+  m_tasks[PACKING]->setAbbreviation("PAC");
+  m_tasks[GLOBAL_PLACEMENT]->setAbbreviation("GPL");
+  m_tasks[PLACEMENT]->setAbbreviation("PLC");
+  m_tasks[ROUTING]->setAbbreviation("RTE");
+  m_tasks[TIMING_SIGN_OFF]->setAbbreviation("TMN");
+  m_tasks[POWER]->setAbbreviation("PWR");
+  m_tasks[BITSTREAM]->setAbbreviation("BIT");
+
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
     connect((*task), &Task::statusChanged, this,
@@ -181,6 +192,15 @@ QList<Task *> TaskManager::tasks() const { return m_tasks.values(); }
 Task *TaskManager::task(uint id) const { return m_tasks.value(id, nullptr); }
 
 uint TaskManager::taskId(Task *t) const { return m_tasks.key(t, invalid_id); }
+
+Task *TaskManager::currentTask() const {
+  for (auto task : m_tasks) {
+    if (task->status() == TaskStatus::InProgress) {
+      return task;
+    }
+  }
+  return nullptr;
+}
 
 void TaskManager::stopCurrentTask() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
