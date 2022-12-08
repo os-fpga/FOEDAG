@@ -115,9 +115,7 @@ class Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   void start();
   void finish();
-  class ProjectManager* ProjManager() const {
-    return m_projManager;
-  }
+  class ProjectManager* ProjManager() const { return m_projManager; }
   std::string& getResult() { return m_result; }
 
   void setTaskManager(TaskManager* newTaskManager);
@@ -128,6 +126,7 @@ class Compiler {
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
+  std::string GetMessagePrefix();
   void SetUseVerific(bool on) { m_useVerific = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }

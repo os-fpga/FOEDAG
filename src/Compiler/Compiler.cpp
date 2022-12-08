@@ -233,26 +233,25 @@ Compiler::~Compiler() {
   delete m_simulator;
 }
 
-void Compiler::Message(const std::string& message) {
+std::string Compiler::GetMessagePrefix() {
   std::string prefix{};
 
   auto task = GetTaskManager()->currentTask();
-  if (task) {
+  // Leave prefix empty if no abbreviation was given
+  if (task && task->abbreviation() != "") {
     prefix = task->abbreviation().toStdString() + ": ";
   }
 
-  if (m_out) (*m_out) << prefix << message << std::endl;
+  return prefix;
+}
+
+void Compiler::Message(const std::string& message) {
+  if (m_out) (*m_out) << GetMessagePrefix() << message << std::endl;
 }
 
 void Compiler::ErrorMessage(const std::string& message) {
-  std::string prefix{};
-
-  auto task = GetTaskManager()->currentTask();
-  if (task) {
-    prefix = task->abbreviation().toStdString() + ": ";
-  }
-
-  if (m_err) (*m_err) << "ERROR: " << prefix << message << std::endl;
+  if (m_err)
+    (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
