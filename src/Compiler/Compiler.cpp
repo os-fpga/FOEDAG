@@ -245,7 +245,14 @@ void Compiler::Message(const std::string& message) {
 }
 
 void Compiler::ErrorMessage(const std::string& message) {
-  if (m_err) (*m_err) << "ERROR: " << message << std::endl;
+  std::string prefix{};
+
+  auto task = GetTaskManager()->currentTask();
+  if (task) {
+    prefix = task->abbreviation().toStdString() + ": ";
+  }
+
+  if (m_err) (*m_err) << "ERROR: " << prefix << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
