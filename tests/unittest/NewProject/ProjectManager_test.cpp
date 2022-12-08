@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "gtest/gtest.h"
 using namespace FOEDAG;
@@ -85,4 +86,175 @@ TEST(ProjectManager, ParseMacroWithDefine) {
 
   EXPECT_EQ(list.at(1).first, "k");
   EXPECT_EQ(list.at(1).second, "30");
+}
+
+TEST(ProjectManager, AddFilesOneLibraryOneGroup) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  filedata data1{false,      "v",    "filename1", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  bool fileAdded{false};  // make sure addFilesFunction was call
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QString& fileNames, int lang, const QString& grName,
+                   bool isFileCopy, bool localToProject) {
+        fileAdded = true;
+        EXPECT_EQ(commands, "-work");
+        EXPECT_EQ(libs, "lib0");
+        EXPECT_EQ(fileNames, "filepath/filename0 filepath/filename1");
+        EXPECT_EQ(lang, Design::VERILOG_2001);
+        EXPECT_EQ(grName, "gr0");
+        EXPECT_EQ(isFileCopy, false);
+        EXPECT_EQ(localToProject, false);
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(fileAdded, true);
+}
+
+TEST(ProjectManager, AddFilesTwoLibrariesOneGroup) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  filedata data1{false,      "v",    "filename1", Design::VERILOG_2001,
+                 "filepath", "lib1", "gr0"};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  bool fileAdded{false};  // make sure addFilesFunction was call
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QString& fileNames, int lang, const QString& grName,
+                   bool isFileCopy, bool localToProject) {
+        fileAdded = true;
+        EXPECT_EQ(commands, "-work");
+        EXPECT_EQ(libs, "lib0 lib1");
+        EXPECT_EQ(fileNames, "filepath/filename0 filepath/filename1");
+        EXPECT_EQ(lang, Design::VERILOG_2001);
+        EXPECT_EQ(grName, "gr0");
+        EXPECT_EQ(isFileCopy, false);
+        EXPECT_EQ(localToProject, false);
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(fileAdded, true);
+}
+
+TEST(ProjectManager, AddFilesLanguageMismatch) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", "gr0"};
+  filedata data1{false,      "v",    "filename1", Design::VERILOG_1995,
+                 "filepath", "lib0", "gr0"};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  bool fileAdded{false};
+  auto addFilesFunction =
+      [&fileAdded](const QString& commands, const QString& libs,
+                   const QString& fileNames, int lang, const QString& grName,
+                   bool isFileCopy, bool localToProject) { fileAdded = true; };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(fileAdded, false);
+}
+
+TEST(ProjectManager, AddFilesOneLibraryTwoGroups) {
+  filedata data0{false,      "v", "filename0", Design::VERILOG_2001,
+                 "filepath", "",  "gr0"};
+  filedata data1{false,      "v",    "filename1", Design::VERILOG_1995,
+                 "filepath", "lib0", "gr1"};
+  ProjectOptions::FileData data{{data0, data1}, false};
+
+  uint counter{0};
+  auto addFilesFunction =
+      [&counter](const QString& commands, const QString& libs,
+                 const QString& fileNames, int lang, const QString& grName,
+                 bool isFileCopy, bool localToProject) {
+        if (counter == 0) {
+          EXPECT_EQ(commands, QString{});
+          EXPECT_EQ(libs, QString{});
+          EXPECT_EQ(fileNames, "filepath/filename0");
+          EXPECT_EQ(lang, Design::VERILOG_2001);
+          EXPECT_EQ(grName, "gr0");
+          EXPECT_EQ(isFileCopy, false);
+          EXPECT_EQ(localToProject, false);
+        } else {
+          EXPECT_EQ(commands, "-work");
+          EXPECT_EQ(libs, "lib0");
+          EXPECT_EQ(fileNames, "filepath/filename1");
+          EXPECT_EQ(lang, Design::VERILOG_1995);
+          EXPECT_EQ(grName, "gr1");
+          EXPECT_EQ(isFileCopy, false);
+          EXPECT_EQ(localToProject, false);
+        }
+        counter++;
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(counter, 2);
+}
+
+TEST(ProjectManager, AddFilesOneLibraryNoGroup) {
+  filedata data0{false,      "v",    "filename0", Design::VERILOG_2001,
+                 "filepath", "lib0", ""};
+  filedata data1{false,      "v",    "filename1", Design::VERILOG_2001,
+                 "filepath", "lib0", ""};
+  ProjectOptions::FileData data{{data0, data1}, true};
+
+  uint counter{0};
+  auto addFilesFunction =
+      [&counter](const QString& commands, const QString& libs,
+                 const QString& fileNames, int lang, const QString& grName,
+                 bool isFileCopy, bool localToProject) {
+        if (counter == 0) {
+          EXPECT_EQ(commands, "-work");
+          EXPECT_EQ(libs, "lib0");
+          EXPECT_EQ(fileNames, "filepath/filename0");
+          EXPECT_EQ(lang, Design::VERILOG_2001);
+          EXPECT_EQ(grName, QString{});
+          EXPECT_EQ(isFileCopy, true);
+          EXPECT_EQ(localToProject, false);
+        } else {
+          EXPECT_EQ(commands, "-work");
+          EXPECT_EQ(libs, "lib0");
+          EXPECT_EQ(fileNames, "filepath/filename1");
+          EXPECT_EQ(lang, Design::VERILOG_2001);
+          EXPECT_EQ(grName, QString{});
+          EXPECT_EQ(isFileCopy, true);
+          EXPECT_EQ(localToProject, false);
+        }
+        counter++;
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(counter, 2);
+}
+
+TEST(ProjectManager, AddFilesLocalToProject) {
+  filedata data0{false,          "v",    "filename0", Design::VERILOG_2001,
+                 LocalToProject, "lib0", ""};
+  filedata data1{false,          "v",    "filename1", Design::VERILOG_2001,
+                 LocalToProject, "lib0", ""};
+  ProjectOptions::FileData data{{data0, data1}, true};
+
+  uint counter{0};
+  auto addFilesFunction =
+      [&counter](const QString& commands, const QString& libs,
+                 const QString& fileNames, int lang, const QString& grName,
+                 bool isFileCopy, bool localToProject) {
+        if (counter == 0) {
+          EXPECT_EQ(commands, "-work");
+          EXPECT_EQ(libs, "lib0");
+          EXPECT_EQ(fileNames, "filename0");
+          EXPECT_EQ(lang, Design::VERILOG_2001);
+          EXPECT_EQ(grName, QString{});
+          EXPECT_EQ(isFileCopy, false);
+          EXPECT_EQ(localToProject, true);
+        } else {
+          EXPECT_EQ(commands, "-work");
+          EXPECT_EQ(libs, "lib0");
+          EXPECT_EQ(fileNames, "filename1");
+          EXPECT_EQ(lang, Design::VERILOG_2001);
+          EXPECT_EQ(grName, QString{});
+          EXPECT_EQ(isFileCopy, false);
+          EXPECT_EQ(localToProject, true);
+        }
+        counter++;
+      };
+  ProjectManager::AddFiles(data, addFilesFunction);
+  EXPECT_EQ(counter, 2);
 }
