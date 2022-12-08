@@ -75,9 +75,9 @@ CompilerOpenFPGA_ql::~CompilerOpenFPGA_ql() {
 }
 
 void CompilerOpenFPGA_ql::Help(std::ostream* out) {
-  (*out) << "----------------------------------" << std::endl;
-  (*out) << "-----  FOEDAG OpenFPGA HELP  -----" << std::endl;
-  (*out) << "----------------------------------" << std::endl;
+  (*out) << "------------------------------------" << std::endl;
+  (*out) << "-----  QuickLogic Aurora HELP  -----" << std::endl;
+  (*out) << "------------------------------------" << std::endl;
   (*out) << "Options:" << std::endl;
   (*out) << "   --help           : This help" << std::endl;
   (*out) << "   --version        : Version" << std::endl;

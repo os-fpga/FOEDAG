@@ -155,7 +155,7 @@ Foedag::Foedag(FOEDAG::CommandLine* cmdLine, MainWindowBuilder* mainWinBuilder,
       m_settings(settings),
       m_context(context) {
   if (context == nullptr)
-    m_context = new ToolContext("Foedag", "OpenFPGA", "foedag");
+    m_context = new ToolContext("Aurora", "QuickLogic", "aurora");
   if (m_context->BinaryPath().empty()) {
     std::filesystem::path exePath =
         GetProgramNameAbsolutePath(m_cmdLine->Argv()[0]);
