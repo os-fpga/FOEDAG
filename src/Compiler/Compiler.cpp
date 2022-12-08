@@ -2146,12 +2146,10 @@ bool Compiler::IPGenerate() {
     // No instances configured, no-op w/o error
     return true;
   }
-  (*m_out) << "IP generation for design: " << m_projManager->projectName()
-           << "..." << std::endl;
+  Message("IP generation for design: " + m_projManager->projectName() + "...");
   bool status = GetIPGenerator()->Generate();
   if (status) {
-    (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated" << std::endl;
+    Message("Design " + m_projManager->projectName() + " IPs are generated");
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +

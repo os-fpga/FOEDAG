@@ -695,14 +695,12 @@ bool CompilerOpenFPGA::IPGenerate() {
     return true;
   }
   PERF_LOG("IPGenerate has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "IP generation for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("IP generation for design: " + ProjManager()->projectName());
+  Message("##################################################");
   bool status = GetIPGenerator()->Generate();
   if (status) {
-    (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated" << std::endl;
+    Message("Design " + m_projManager->projectName() + " IPs are generated");
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +
@@ -932,8 +930,8 @@ std::string CompilerOpenFPGA::FinishAnalyzeScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::Analyze() {
-  auto printTopModules = [this](const std::filesystem::path& filePath,
-                                std::ostream* out) {
+  auto printTopModules = [](const std::filesystem::path& filePath,
+                            std::ostream* out) {
     // Check for "topModule" in a given json filePath
     // Assumed json format is [ { "topModule" : "some_value"} ]
     if (out) {
@@ -948,7 +946,8 @@ bool CompilerOpenFPGA::Analyze() {
                            return val.value("topModule", "");
                          });
 
-          Message("Top Modules: " + StringUtils::join(topModules, ", "));
+          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
+                 << std::endl;
         }
       }
     }
@@ -967,10 +966,9 @@ bool CompilerOpenFPGA::Analyze() {
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("Analysis has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Analysis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Analysis for design: " + ProjManager()->projectName());
+  Message("##################################################");
 
   std::string analysisScript = InitAnalyzeScript();
   analysisScript = FinishAnalyzeScript(analysisScript);
@@ -982,9 +980,11 @@ bool CompilerOpenFPGA::Analyze() {
   std::filesystem::path output_path =
       std::filesystem::path(ProjManager()->projectPath()) / "port_info.json";
   if (!DesignChanged(analysisScript, script_path, output_path)) {
-    (*m_out) << "Design didn't change: " << ProjManager()->projectName()
-             << ", skipping analysis." << std::endl;
-    printTopModules(output_path, m_out);
+    Message("Design didn't change: " + ProjManager()->projectName() +
+            ", skipping analysis.");
+    std::stringstream tempOut{};
+    printTopModules(output_path, &tempOut);
+    Message(tempOut.str());
     return true;
   }
   // Create Analyser command and execute
@@ -1002,10 +1002,10 @@ bool CompilerOpenFPGA::Analyze() {
       return false;
     }
     command = m_analyzeExecutablePath.string() + " -f " + script_path;
-    (*m_out) << "Analyze command: " << command << std::endl;
+    Message("Analyze command: " + command);
     status = ExecuteAndMonitorSystemCommand(command, analyse_path.string());
   }
-  (*m_out) << std::flush;
+  Message("");
   std::ifstream raptor_log(analyse_path.string());
   if (raptor_log.good()) {
     std::stringstream buffer;
@@ -1023,8 +1023,7 @@ bool CompilerOpenFPGA::Analyze() {
     return false;
   } else {
     m_state = State::Analyzed;
-    (*m_out) << "Design " << ProjManager()->projectName() << " is analyzed"
-             << std::endl;
+    Message("Design " + ProjManager()->projectName() + " is analyzed");
   }
 
   printTopModules(output_path, m_out);
@@ -1048,10 +1047,9 @@ bool CompilerOpenFPGA::Synthesize() {
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("Synthesize has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Synthesis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Synthesis for design: " + ProjManager()->projectName());
+  Message("##################################################");
   std::string yosysScript = InitSynthesisScript();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -1298,8 +1296,8 @@ bool CompilerOpenFPGA::Synthesize() {
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
-    (*m_out) << "Design didn't change: " << ProjManager()->projectName()
-             << ", skipping synthesis." << std::endl;
+    Message("Design didn't change: " + ProjManager()->projectName() +
+            ", skipping synthesis.");
     return true;
   }
   std::filesystem::remove(
@@ -1323,7 +1321,7 @@ bool CompilerOpenFPGA::Synthesize() {
       m_yosysExecutablePath.string() + " -s " +
       std::string(ProjManager()->projectName() + ".ys -l " +
                   ProjManager()->projectName() + "_synth.log");
-  (*m_out) << "Synthesis command: " << command << std::endl;
+  Message("Synthesis command: " + command);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -1331,8 +1329,7 @@ bool CompilerOpenFPGA::Synthesize() {
     return false;
   } else {
     m_state = State::Synthesized;
-    (*m_out) << "Design " << ProjManager()->projectName() << " is synthesized"
-             << std::endl;
+    Message("Design " + ProjManager()->projectName() + " is synthesized");
 
     auto logPath =
         copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
@@ -1360,7 +1357,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   for (auto keep : m_constraints->GetKeeps()) {
     keep = ReplaceAll(keep, "@", "[");
     keep = ReplaceAll(keep, "%", "]");
-    (*m_out) << "Keep name: " << keep << "\n";
+    Message("Keep name: " + keep);
     keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
@@ -1474,10 +1471,9 @@ bool CompilerOpenFPGA::Packing() {
     return false;
   }
   PERF_LOG("Packing has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Packing for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Packing for design: " + ProjManager()->projectName());
+  Message("##################################################");
   const std::string sdcOut =
       (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_openfpga.sdc"))
@@ -1489,7 +1485,7 @@ bool CompilerOpenFPGA::Packing() {
     // Temporary dirty filtering:
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
-    (*m_out) << "Constraint: " << constraint << "\n";
+    Message("Constraint: " + constraint);
     std::vector<std::string> tokens;
     StringUtils::tokenize(constraint, " ", tokens);
     constraint = "";
@@ -1524,8 +1520,7 @@ bool CompilerOpenFPGA::Packing() {
            std::string(ProjManager()->projectName() + "_post_synth.net"))
               .string())) {
     m_state = State::Packed;
-    (*m_out) << "Design " << ProjManager()->projectName() << " packing reused"
-             << std::endl;
+    Message("Design " + ProjManager()->projectName() + " packing reused");
     return true;
   }
 
@@ -1535,8 +1530,7 @@ bool CompilerOpenFPGA::Packing() {
     return false;
   }
   m_state = State::Packed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is packed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is packed");
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -1563,14 +1557,12 @@ bool CompilerOpenFPGA::GlobalPlacement() {
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("GlobalPlacement has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Global Placement for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Global Placement for design: " + ProjManager()->projectName());
+  Message("##################################################");
   // TODO:
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is globally placed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is globally placed");
   return true;
 }
 
@@ -1596,10 +1588,9 @@ bool CompilerOpenFPGA::Placement() {
   if (!HasTargetDevice()) return false;
 
   PERF_LOG("Placement has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Placement for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Placement for design: " + ProjManager()->projectName());
+  Message("##################################################");
   if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -1677,8 +1668,7 @@ bool CompilerOpenFPGA::Placement() {
            std::string(ProjManager()->projectName() + "_post_synth.place"))
               .string())) {
     m_state = State::Placed;
-    (*m_out) << "Design " << ProjManager()->projectName() << " placement reused"
-             << std::endl;
+    Message("Design " + ProjManager()->projectName() + " placement reused");
     return true;
   }
 
@@ -1781,8 +1771,7 @@ bool CompilerOpenFPGA::Placement() {
     return false;
   }
   m_state = State::Placed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is placed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is placed");
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -1857,10 +1846,9 @@ bool CompilerOpenFPGA::Route() {
   }
   if (!HasTargetDevice()) return false;
   PERF_LOG("Route has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Routing for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Routing for design: " + ProjManager()->projectName());
+  Message("##################################################");
   if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -1874,8 +1862,7 @@ bool CompilerOpenFPGA::Route() {
            std::string(ProjManager()->projectName() + "_post_synth.route"))
               .string())) {
     m_state = State::Routed;
-    (*m_out) << "Design " << ProjManager()->projectName() << " routing reused"
-             << std::endl;
+    Message("Design " + ProjManager()->projectName() + " routing reused");
     return true;
   }
 
@@ -1891,8 +1878,7 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
   m_state = State::Routed;
-  (*m_out) << "Design " << ProjManager()->projectName() << " is routed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is routed");
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -1918,10 +1904,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   PERF_LOG("TimingAnalysis has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Timing Analysis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Timing Analysis for design: " + ProjManager()->projectName());
+  Message("##################################################");
   if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
@@ -1946,8 +1931,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string(ProjManager()->projectName() + "_sta.cmd"))
               .string())) {
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " timing didn't change" << std::endl;
+    Message("Design " + ProjManager()->projectName() + " timing didn't change");
     return true;
   }
   int status = 0;
@@ -2018,8 +2002,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
 
-  (*m_out) << "Design " << ProjManager()->projectName() << " is timing analysed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is timing analysed");
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -2042,10 +2025,9 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
 
   PERF_LOG("PowerAnalysis has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Power Analysis for design: " << ProjManager()->projectName()
-           << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Power Analysis for design: " + ProjManager()->projectName());
+  Message("##################################################");
 
   if (FileUtils::IsUptoDate(
           (std::filesystem::path(ProjManager()->projectPath()) /
@@ -2054,8 +2036,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string(ProjManager()->projectName() + "_sta.cmd"))
               .string())) {
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " power didn't change" << std::endl;
+    Message("Design " + ProjManager()->projectName() + " power didn't change");
     return true;
   }
 
@@ -2071,8 +2052,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
 
-  (*m_out) << "Design " << ProjManager()->projectName() << " is power analysed"
-           << std::endl;
+  Message("Design " + ProjManager()->projectName() + " is power analysed");
 
   auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -2265,11 +2245,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     }
   }
   PERF_LOG("GenerateBitstream has started");
-  (*m_out) << "##################################################" << std::endl;
-  (*m_out) << "Bitstream generation for design \""
-           << ProjManager()->projectName() << "\" on device \""
-           << ProjManager()->getTargetDevice() << "\"" << std::endl;
-  (*m_out) << "##################################################" << std::endl;
+  Message("##################################################");
+  Message("Bitstream generation for design \"" + ProjManager()->projectName() +
+          "\" on device \"" + ProjManager()->getTargetDevice() + "\"");
+  Message("##################################################");
   if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
     ErrorMessage("Design needs to be in routed state");
     return false;
@@ -2282,8 +2261,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string("fabric_bitstream.bit"))
               .string())) {
-    (*m_out) << "Design " << ProjManager()->projectName()
-             << " bitstream didn't change" << std::endl;
+    Message("Design " + ProjManager()->projectName() +
+            " bitstream didn't change");
     m_state = State::BistreamGenerated;
     return true;
   }
@@ -2291,8 +2270,8 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
-      (*m_out) << "Device " << ProjManager()->getTargetDevice()
-               << " bitstream is not enabled, skipping" << std::endl;
+      Message("Device " + ProjManager()->getTargetDevice() +
+              " bitstream is not enabled, skipping");
       return true;
     }
 #endif
@@ -2340,8 +2319,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   }
   m_state = State::BistreamGenerated;
 
-  (*m_out) << "Design " << ProjManager()->projectName()
-           << " bitstream is generated" << std::endl;
+  Message("Design " + ProjManager()->projectName() + " bitstream is generated");
   return true;
 }
 
