@@ -1026,7 +1026,9 @@ bool CompilerOpenFPGA::Analyze() {
     Message("Design " + ProjManager()->projectName() + " is analyzed");
   }
 
-  printTopModules(output_path, m_out);
+  std::stringstream tempOut{};
+  printTopModules(output_path, &tempOut);
+  Message(tempOut.str());
   return true;
 }
 
