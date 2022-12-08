@@ -1884,7 +1884,7 @@ bool Compiler::Analyze() {
     AnalyzeOpt(DesignAnalysisOpt::None);
     return true;
   }
-  Message("Analyzing design2: " + m_projManager->projectName() + "...");
+  Message("Analyzing design: " + m_projManager->projectName() + "...");
 
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
