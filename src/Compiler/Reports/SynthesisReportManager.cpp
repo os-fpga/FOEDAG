@@ -35,9 +35,10 @@ static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
 
 // Messages regexp
-static const QRegExp MESSAGES_REGEXP{
-    "VERIFIC-ERROR.*|VERIFIC-WARNING.*|Executing synth_rs pass.*|Executing "
-    "RS_DSP_MACC.*"};
+static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
+static const QRegExp VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
+static const QRegExp VERIFIC_INFO_REGEXP{
+    "Executing synth_rs pass.*|Executing RS_DSP_MACC.*"};
 }  // namespace
 
 namespace FOEDAG {
@@ -136,11 +137,24 @@ void SynthesisReportManager::parseLogFile() {
   QTextStream in(fileStr.toLatin1());
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    if (MESSAGES_REGEXP.indexIn(line) != -1)
-      m_messages.insert(lineNr, TaskMessage{lineNr,
-                                            TaskMessage::MessageSeverity::NONE,
-                                            MESSAGES_REGEXP.cap().simplified(),
-                                            {}});
+    if (VERIFIC_INFO_REGEXP.indexIn(line) != -1)
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    TaskMessage::MessageSeverity::INFO_MESSAGE,
+                                    VERIFIC_INFO_REGEXP.cap().simplified(),
+                                    {}});
+    else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1)
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    TaskMessage::MessageSeverity::ERROR_MESSAGE,
+                                    VERIFIC_ERR_REGEXP.cap().simplified(),
+                                    {}});
+    else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1)
+      m_messages.insert(
+          lineNr, TaskMessage{lineNr,
+                              TaskMessage::MessageSeverity::WARNING_MESSAGE,
+                              VERIFIC_WARN_REGEXP.cap().simplified(),
+                              {}});
     ++lineNr;
   }
   setFileParsed(true);

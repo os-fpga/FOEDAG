@@ -38,7 +38,8 @@ class MessagesTabWidget final : public QWidget {
   void onMessageClicked(const QTreeWidgetItem *item, int col);
 
  private:
-  QTreeWidgetItem *createTaskMessageItem(const TaskMessage &msg) const;
+  QTreeWidgetItem *createTaskMessageItem(const TaskMessage &msg,
+                                         const QString &filePath) const;
   const TaskManager &m_taskManager;
 };
 
