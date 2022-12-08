@@ -160,11 +160,6 @@ void sourceGrid::setGridType(GridType type) {
   } else {
     m_btnAddDri->setVisible(true);
   }
-
-  if (GT_SIM == m_type) {
-    m_tableViewSrc->hideColumn(LIBRARY_COL_NUM);
-    m_tableViewSrc->hideColumn(COMPILE_UNIT_COL_NUM);
-  }
 }
 
 QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
