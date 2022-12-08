@@ -246,7 +246,7 @@ std::string Compiler::GetMessagePrefix() {
 }
 
 void Compiler::Message(const std::string& message) {
-  if (m_out) (*m_out) << GetMessagePrefix() << message << std::endl;
+  if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
 }
 
 void Compiler::ErrorMessage(const std::string& message) {

@@ -46,9 +46,9 @@ close $fp
 set found [regexp "^Copyright 20\\d\\d The Foedag team" $file_data]
 if { !$found } { puts "ERROR: foedag.log's header is commented which shouldn't have occured"; exit 1 }
 
-# Verify foedag.log has ANL: abbreviation in front of analyze messages
-set found [regexp "\nANL: Design log_header is analyzed" $file_data]
-if { !$found } { puts "ERROR: foedag.log's Analyze messages don't have ANL: in front"; exit 1 }
+# Verify foedag.log has INFO: ANL: abbreviation in front of analyze messages
+set found [regexp "\nINFO: ANL: Design log_header is analyzed" $file_data]
+if { !$found } { puts "ERROR: foedag.log's Analyze messages don't have INFO: ANL: in front"; exit 1 }
 
 # Verify help message doesn't have an abbreviation in front of it
 set found [regexp "\n-----  FOEDAG HELP  -----" $file_data]
