@@ -42,8 +42,8 @@ static const auto DESIGN_SOURCES_FILTER = QObject::tr(
     "HDL Files (*.vhd *.vhdl *.vhf *.vhdp *.v *.verilog"
     "*.vh *.h *.svh *.vhp *.svhp *.sv )");
 
-static const auto SIM_SOURCES_FILTER =
-    QObject::tr("Simulation Source Files (*.c *.cc *.cpp *.v *.sv)");
+static const auto SIM_SOURCES_FILTER = QObject::tr(
+    "Simulation Source Files (*.c *.cc *.cpp *.v *.sv *.vhd *.vhdl)");
 
 static const auto DESIGN_SOURCES_FILTER_POS =
     QObject::tr("NETLIST files (*.eblif *.blif *.edif *.edf *.v)");
@@ -159,11 +159,6 @@ void sourceGrid::setGridType(GridType type) {
     m_btnAddDri->setVisible(false);
   } else {
     m_btnAddDri->setVisible(true);
-  }
-
-  if (GT_SIM == m_type) {
-    m_tableViewSrc->hideColumn(LIBRARY_COL_NUM);
-    m_tableViewSrc->hideColumn(COMPILE_UNIT_COL_NUM);
   }
 }
 
@@ -456,6 +451,10 @@ QComboBox *sourceGrid::CreateLanguageCombo(int projectType, GridType gType) {
   if (GT_SIM == gType) {
     combo->addItem("C", Design::Language::C);
     combo->addItem("CPP", Design::Language::CPP);
+    combo->addItem("VHDL 1987", Design::Language::VHDL_1987);
+    combo->addItem("VHDL 1993", Design::Language::VHDL_1993);
+    combo->addItem("VHDL 2000", Design::Language::VHDL_2000);
+    combo->addItem("VHDL 2008", Design::Language::VHDL_2008);
     combo->addItem("VERILOG 1995", Design::Language::VERILOG_1995);
     combo->addItem("VERILOG 2001", Design::Language::VERILOG_2001);
     combo->addItem("SV 2005", Design::Language::SYSTEMVERILOG_2005);
