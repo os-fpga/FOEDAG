@@ -157,11 +157,11 @@ void newProjectDialog::ResetToNewProject() {
                              tr("Type of Project"));
   QObject::connect(m_proTypeForm, &projectTypeForm::skipSources, this,
                    [this](bool skip) { m_skipSources = skip; });
-  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Add Design Files");
   ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                              tr("Add Design Files"));
-  m_addSimForm = new addSimForm(this);
+  m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Add Simulation Files");
   ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
                              tr("Add Simulation Files"));
@@ -186,13 +186,13 @@ void newProjectDialog::ResetToProjectSettings() {
   setWindowTitle(tr("Project settings"));
   m_settings.clear();
 
-  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Design Files");
   m_settings.append(m_addSrcForm);
   auto index = ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                                           tr("Design Files"));
   m_tabIndexes.insert(INDEX_ADDSOURC, index);
-  m_addSimForm = new addSimForm(this);
+  m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Simulation Files");
   m_settings.append(m_addSimForm);
   index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
@@ -302,12 +302,14 @@ void newProjectDialog::on_buttonBox_accepted() {
       m_devicePlanForm->getSelectedDevice(),
       false /*rewrite*/,
       DEFAULT_FOLDER_SOURCE,
-      m_addSrcForm->TopModule(),
-      m_addSrcForm->LibraryForTopModule(),
-      m_addSrcForm->IncludePath(),
-      m_addSrcForm->LibraryPath(),
-      m_addSrcForm->LibraryExt(),
-      m_addSrcForm->Macros()};
+      ProjectOptions::Options{
+          m_addSrcForm->TopModule(), m_addSrcForm->LibraryForTopModule(),
+          m_addSrcForm->IncludePath(), m_addSrcForm->LibraryPath(),
+          m_addSrcForm->LibraryExt(), m_addSrcForm->Macros()},
+      ProjectOptions::Options{
+          m_addSimForm->TopModule(), m_addSimForm->LibraryForTopModule(),
+          m_addSimForm->IncludePath(), m_addSimForm->LibraryPath(),
+          m_addSimForm->LibraryExt(), m_addSimForm->Macros()}};
   Compiler *compiler = GlobalSession->GetCompiler();
   if (m_addConstrsForm->IsRandom())
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);

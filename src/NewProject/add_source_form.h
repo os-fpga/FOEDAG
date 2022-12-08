@@ -16,7 +16,7 @@ class addSourceForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
  public:
-  explicit addSourceForm(QWidget *parent = nullptr);
+  explicit addSourceForm(GridType gt, QWidget *parent = nullptr);
   ~addSourceForm();
   void setProjectType(int projectType);
   int projectType() const;
