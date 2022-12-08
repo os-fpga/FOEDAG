@@ -234,7 +234,14 @@ Compiler::~Compiler() {
 }
 
 void Compiler::Message(const std::string& message) {
-  if (m_out) (*m_out) << message << std::endl;
+  std::string prefix{};
+
+  auto task = GetTaskManager()->currentTask();
+  if (task) {
+    prefix = task->abbreviation().toStdString() + ": ";
+  }
+
+  if (m_out) (*m_out) << prefix << message << std::endl;
 }
 
 void Compiler::ErrorMessage(const std::string& message) {
@@ -1877,26 +1884,26 @@ bool Compiler::Analyze() {
     AnalyzeOpt(DesignAnalysisOpt::None);
     return true;
   }
-  (*m_out) << "Analyzing design: " << m_projManager->projectName() << "..."
-           << std::endl;
+  Message("Analyzing design2: " + m_projManager->projectName() + "...");
+
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << std::setw(2) << i << "%";
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
       std::string str =
           " File: " + (*it).path().filename().string() + " just for test";
-      (*m_out) << str;
+      outStr << str;
       it++;
     }
-    (*m_out) << std::endl;
+    Message(outStr.str());
     std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::Analyzed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
+  Message(("Design ") + m_projManager->projectName() + " is analyzed");
 
   auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -1911,32 +1918,31 @@ bool Compiler::Synthesize() {
     SynthOpt(SynthesisOpt::None);
     return true;
   }
-  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
-           << std::endl;
+  Message("Synthesizing design: " + m_projManager->projectName() + "...");
   for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
+    Message("Constraint: " + constraint);
   }
   for (auto keep : m_constraints->GetKeeps()) {
-    (*m_out) << "Keep name: " << keep << "\n";
+    Message("Keep name: " + keep);
   }
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << std::setw(2) << i << "%";
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
       std::string str =
           " File: " + (*it).path().filename().string() + " just for test";
-      (*m_out) << str;
+      outStr << str;
       it++;
     }
-    (*m_out) << std::endl;
+    Message(outStr.str());
     std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
-           << std::endl;
+  Message("Design " + m_projManager->projectName() + " is synthesized");
 
   auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -1959,17 +1965,18 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
-           << "..." << std::endl;
+  Message("Global Placement for design:" + m_projManager->projectName() +
+          "...");
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << i << "%" << std::endl;
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
+    Message(outStr.str());
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
-           << std::endl;
+  Message("Design " + m_projManager->projectName() + " globally placed");
 
   auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -2170,11 +2177,8 @@ bool Compiler::Packing() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
-           << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is packed"
-           << std::endl;
+  Message("Packing for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
   auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
@@ -2196,11 +2200,8 @@ bool Compiler::Placement() {
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
-  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
-           << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is placed"
-           << std::endl;
+  Message("Placement for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
   auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
@@ -2222,11 +2223,9 @@ bool Compiler::Route() {
         std::string(ProjManager()->projectName() + "_post_synth.route"));
     return true;
   }
-  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
-           << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed"
-           << std::endl;
+  Message("Routing for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
   auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
@@ -2239,12 +2238,9 @@ bool Compiler::TimingAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
-           << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
-
+  Message("Timing analysis for design: " + m_projManager->projectName() +
+          "...");
+  Message("Design " + m_projManager->projectName() + " is analyzed");
   auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
   return true;
@@ -2255,11 +2251,8 @@ bool Compiler::PowerAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
-           << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
+  Message("Power analysis for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is analyzed");
 
   auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
   LogUtils::AddHeaderToLog(logPath);
@@ -2271,11 +2264,9 @@ bool Compiler::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Bitstream generation for design: "
-           << m_projManager->projectName() << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName()
-           << " bitstream is generated" << std::endl;
+  Message("Bitstream generation for design: " + m_projManager->projectName() +
+          "...");
+  Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
   auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
   LogUtils::AddHeaderToLog(logPath);

@@ -932,8 +932,8 @@ std::string CompilerOpenFPGA::FinishAnalyzeScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::Analyze() {
-  auto printTopModules = [](const std::filesystem::path& filePath,
-                            std::ostream* out) {
+  auto printTopModules = [this](const std::filesystem::path& filePath,
+                                std::ostream* out) {
     // Check for "topModule" in a given json filePath
     // Assumed json format is [ { "topModule" : "some_value"} ]
     if (out) {
@@ -948,8 +948,7 @@ bool CompilerOpenFPGA::Analyze() {
                            return val.value("topModule", "");
                          });
 
-          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
-                 << std::endl;
+          Message("Top Modules: " + StringUtils::join(topModules, ", "));
         }
       }
     }
