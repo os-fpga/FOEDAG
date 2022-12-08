@@ -69,8 +69,9 @@ class TaskManager : public QObject {
 
   /*!
    * \brief startAll. Starts chain of all tasks. They will run one by one.
+   * @param simulation - add simulation tasks
    */
-  void startAll();
+  void startAll(bool simulation = false);
 
   /*!
    * \brief startTask. Start task \a t.

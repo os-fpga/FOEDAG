@@ -292,8 +292,10 @@ void MainWindow::newDesignCreated(const QString& design) {
 }
 
 void MainWindow::startStopButtonsState() {
-  startAction->setEnabled(m_taskManager->status() != TaskStatus::InProgress &&
-                          !m_console->isRunning());
+  const bool startEn{m_taskManager->status() != TaskStatus::InProgress &&
+                     !m_console->isRunning()};
+  startAction->setEnabled(startEn);
+  startSimAction->setEnabled(startEn);
   // Enable Stop action when there is something to stop
   stopAction->setEnabled(isRunning());
 }
@@ -350,7 +352,7 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   ReShowWindow(project);
   loadFile(project);
   emit projectOpened();
-  if (run) startProject();
+  if (run) startProject(false);
 }
 
 bool MainWindow::isRunning() const {
@@ -601,6 +603,7 @@ void MainWindow::createMenus() {
 
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
+  processMenu->addAction(startSimAction);
   processMenu->addAction(stopAction);
 
   helpMenu = menuBar()->addMenu("&Help");
@@ -628,6 +631,7 @@ void MainWindow::createToolBars() {
 
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
+  debugToolBar->addAction(startSimAction);
   debugToolBar->addAction(stopAction);
 }
 
@@ -697,11 +701,18 @@ void MainWindow::createActions() {
   startAction->setIcon(QIcon(":/images/play.png"));
   startAction->setStatusTip(tr("Start compilation tasks"));
 
+  startSimAction = new QAction(tr("Start with Simulation"), this);
+  startSimAction->setIcon(QIcon(":/images/playSim.png"));
+  startSimAction->setStatusTip(tr("Start compilation tasks with simulation"));
+
   stopAction = new QAction(tr("Stop"), this);
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setStatusTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
-  connect(startAction, &QAction::triggered, this, &MainWindow::startProject);
+  connect(startAction, &QAction::triggered, this,
+          [this]() { startProject(false); });
+  connect(startSimAction, &QAction::triggered, this,
+          [this]() { startProject(true); });
   connect(stopAction, &QAction::triggered, this, &MainWindow::stopCompilation);
 
   aboutAction = new QAction(tr("About"), this);
@@ -1374,10 +1385,10 @@ void MainWindow::onShowWelcomePage(bool show) {
   saveWelcomePageConfig();
 }
 
-void MainWindow::startProject() {
+void MainWindow::startProject(bool simulation) {
   m_progressWidget->show();
   m_compiler->start();
-  m_taskManager->startAll();
+  m_taskManager->startAll(simulation);
 }
 
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
