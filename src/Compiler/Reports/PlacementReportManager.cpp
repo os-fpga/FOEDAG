@@ -114,13 +114,12 @@ void PlacementReportManager::parseLogFile() {
     if (FIND_TIMINGS.indexIn(line) != -1)
       timings << line + "\n";
     else if (FIND_RESOURCES.indexIn(line) != -1)
-      m_stats = parseResourceUsage(in, m_reportColumns);
+      m_stats = parseResourceUsage(in, m_reportColumns, lineNr);
     else if (LOAD_PACKING_REGEXP.exactMatch(line))
-      m_messages.insert(lineNr,
-                        TaskMessage{lineNr,
-                                    TaskMessage::MessageSeverity::INFO_MESSAGE,
-                                    line.remove('#').simplified(),
-                                    {}});
+      m_messages.insert(lineNr, TaskMessage{lineNr,
+                                            MessageSeverity::INFO_MESSAGE,
+                                            line.remove('#').simplified(),
+                                            {}});
     else if (line.startsWith(CREATE_DEVICE_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, CREATE_DEVICE_SECTION,
                                         m_createDeviceKeys);

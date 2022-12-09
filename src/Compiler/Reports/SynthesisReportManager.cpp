@@ -140,21 +140,21 @@ void SynthesisReportManager::parseLogFile() {
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1)
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
-                                    TaskMessage::MessageSeverity::INFO_MESSAGE,
+                                    MessageSeverity::INFO_MESSAGE,
                                     VERIFIC_INFO_REGEXP.cap().simplified(),
                                     {}});
     else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1)
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
-                                    TaskMessage::MessageSeverity::ERROR_MESSAGE,
+                                    MessageSeverity::ERROR_MESSAGE,
                                     VERIFIC_ERR_REGEXP.cap().simplified(),
                                     {}});
     else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1)
-      m_messages.insert(
-          lineNr, TaskMessage{lineNr,
-                              TaskMessage::MessageSeverity::WARNING_MESSAGE,
-                              VERIFIC_WARN_REGEXP.cap().simplified(),
-                              {}});
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    MessageSeverity::WARNING_MESSAGE,
+                                    VERIFIC_WARN_REGEXP.cap().simplified(),
+                                    {}});
     ++lineNr;
   }
   setFileParsed(true);

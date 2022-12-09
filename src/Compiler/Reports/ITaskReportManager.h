@@ -26,14 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-struct TaskMessage {
-  enum class MessageSeverity {
-    INFO_MESSAGE,
-    ERROR_MESSAGE,
-    WARNING_MESSAGE,
-    NONE
-  };
+enum class MessageSeverity {
+  INFO_MESSAGE,
+  ERROR_MESSAGE,
+  WARNING_MESSAGE,
+  NONE
+};
 
+struct TaskMessage {
   int m_lineNr{0};
   MessageSeverity m_severity;
   QString m_message;

@@ -56,13 +56,13 @@ QTreeWidgetItem *MessagesTabWidget::createTaskMessageItem(
   msgItem->setData(0, FilePathRole, filePath);
 
   switch (msg.m_severity) {
-    case TaskMessage::MessageSeverity::INFO_MESSAGE:
+    case MessageSeverity::INFO_MESSAGE:
       msgItem->setIcon(0, QIcon(":/img/info.png"));
       break;
-    case TaskMessage::MessageSeverity::ERROR_MESSAGE:
+    case MessageSeverity::ERROR_MESSAGE:
       msgItem->setIcon(0, QIcon(":/images/error.png"));
       break;
-    case TaskMessage::MessageSeverity::WARNING_MESSAGE:
+    case MessageSeverity::WARNING_MESSAGE:
       msgItem->setIcon(0, QIcon(":/img/warn.png"));
       break;
     default:

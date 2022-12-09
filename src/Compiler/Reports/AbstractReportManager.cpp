@@ -26,7 +26,7 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
 }
 
 ITaskReport::TableData AbstractReportManager::parseResourceUsage(
-    QTextStream &in, QStringList &columns) const {
+    QTextStream &in, QStringList &columns, int &lineNr) const {
   columns.clear();
   columns << QString(BLOCKS_COL);
 
@@ -55,6 +55,7 @@ ITaskReport::TableData AbstractReportManager::parseResourceUsage(
   QString lineStr, columnName, resourceName;
 
   while (in.readLineInto(&lineStr)) {
+    ++lineNr;
     auto line = lineStr.simplified();
     if (line.isEmpty()) break;
 
@@ -101,8 +102,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
                                                     SectionKeys keys) {
   auto sectionName = sectionLine;
   sectionName = sectionName.remove('#').simplified();
-  auto sectionMsg =
-      TaskMessage{lineNr, TaskMessage::MessageSeverity::NONE, sectionName, {}};
+  auto sectionMsg = TaskMessage{lineNr, MessageSeverity::NONE, sectionName, {}};
 
   QString line;
   // Store line numbers in set to always know which one was first
@@ -119,10 +119,8 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
     // check whether section has any 'interesting' lines
     for (auto &keyRegExp : keys) {
       if (keyRegExp.indexIn(line) != -1) {
-        auto tm = TaskMessage{lineNr,
-                              TaskMessage::MessageSeverity::INFO_MESSAGE,
-                              keyRegExp.cap(),
-                              {}};
+        auto tm = TaskMessage{
+            lineNr, MessageSeverity::INFO_MESSAGE, keyRegExp.cap(), {}};
         sectionMsg.m_childMessages.insert(lineNr, std::move(tm));
         // remove the key once found to save some performance
         keys.removeAll(keyRegExp);
@@ -135,7 +133,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
   auto warningLine = wrnLines.empty() ? sectionMsg.m_lineNr : *wrnLines.begin();
   auto warningMsg = TaskMessage{
       warningLine,
-      TaskMessage::MessageSeverity::WARNING_MESSAGE,
+      MessageSeverity::WARNING_MESSAGE,
       QString("%1 warnings found").arg(QString::number(wrnLines.size())),
       {}};
   sectionMsg.m_childMessages.insert(warningLine, std::move(warningMsg));
@@ -143,7 +141,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
   auto errorLine = errLines.empty() ? sectionMsg.m_lineNr : *errLines.begin();
   auto errorMsg = TaskMessage{
       errorLine,
-      TaskMessage::MessageSeverity::ERROR_MESSAGE,
+      MessageSeverity::ERROR_MESSAGE,
       QString("%1 errors found").arg(QString::number(errLines.size())),
       {}};
   sectionMsg.m_childMessages.insert(errorLine, std::move(errorMsg));

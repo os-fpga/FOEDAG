@@ -45,7 +45,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
  protected:
   // Parses in stream line by line till empty one occurs and creates table data.
   ITaskReport::TableData parseResourceUsage(QTextStream &in,
-                                            QStringList &columns) const;
+                                            QStringList &columns,
+                                            int &lineNr) const;
 
   // Creates and opens log file instance. returns nullptr if file doesn't exist.
   std::unique_ptr<QFile> createLogFile(const QString &fileName) const;
