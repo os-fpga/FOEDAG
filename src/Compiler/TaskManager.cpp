@@ -223,19 +223,23 @@ TaskStatus TaskManager::status() const {
   return TaskStatus::None;
 }
 
-void TaskManager::startAll() {
+void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
   reset();
   appendTask(m_tasks[IP_GENERATE]);
   appendTask(m_tasks[ANALYSIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_RTL]);
   appendTask(m_tasks[SYNTHESIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_GATE]);
   appendTask(m_tasks[PACKING]);
   appendTask(m_tasks[GLOBAL_PLACEMENT]);
   appendTask(m_tasks[PLACEMENT]);
   appendTask(m_tasks[ROUTING]);
+  if (simulation) appendTask(m_tasks[SIMULATE_PNR]);
   appendTask(m_tasks[TIMING_SIGN_OFF]);
   appendTask(m_tasks[POWER]);
   appendTask(m_tasks[BITSTREAM]);
+  if (simulation) appendTask(m_tasks[SIMULATE_BITSTREAM]);
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();

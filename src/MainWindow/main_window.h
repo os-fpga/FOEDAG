@@ -80,7 +80,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void handleProjectOpened();
   void onShowWelcomePage(bool show);
   void onRunProjectRequested(const QString& project);
-  void startProject();
+  void startProject(bool simulation);
   void onShowStopMessage(bool showStopCompilationMsg);
   void onShowLicenses();
   void stopCompilation();
@@ -172,6 +172,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* exitAction = nullptr;
   QAction* openFile = nullptr;
   QAction* startAction = nullptr;
+  QAction* startSimAction = nullptr;
   QAction* stopAction = nullptr;
   QAction* aboutAction = nullptr;
   QAction* documentationAction = nullptr;
