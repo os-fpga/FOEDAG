@@ -130,6 +130,17 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   return ok;
 }
 
+bool Simulator::Clean(SimulationType action) {
+  Message("Cleaning simulation results for " + ProjManager()->projectName());
+  auto waveFile = m_waveFiles.find(action);
+  if ((waveFile != m_waveFiles.end()) &&
+      FileUtils::FileExists(waveFile->second))
+    std::filesystem::remove(
+        std::filesystem::path(ProjManager()->projectPath()) / waveFile->second);
+  SimulationOption(SimulationOpt::None);
+  return true;
+}
+
 void Simulator::Message(const std::string& message) {
   m_compiler->Message(message);
 }
@@ -156,8 +167,18 @@ std::string Simulator::GetSimulatorRuntimeOption(SimulatorType type) {
   return "";
 }
 
+void Simulator::SimulationOption(SimulationOpt option) {
+  m_simulationOpt = option;
+}
+
+Simulator::SimulationOpt Simulator::SimulationOption() const {
+  return m_simulationOpt;
+}
+
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
+  if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
+  m_waveFiles[action] = wave_file;
   m_waveFile = wave_file;
   if (m_waveFile.find(".vcd") != std::string::npos) {
     m_waveType = WaveformType::VCD;
