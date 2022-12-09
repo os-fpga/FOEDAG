@@ -68,6 +68,9 @@ class Task : public QObject {
   QString logFileReadPath() const;
   void setLogFileReadPath(QString key);
 
+  QString abbreviation() const;
+  void setAbbreviation(QString key);
+
   /*!
    * \brief trigger
    * Emits \a taskTriggered() signal to notify that some commend can be run.
@@ -102,6 +105,7 @@ class Task : public QObject {
 
  private:
   QString m_title;
+  QString m_abbreviation;
   QString m_settings_key;
   TaskStatus m_status{TaskStatus::None};
   TaskType m_type{TaskType::Action};

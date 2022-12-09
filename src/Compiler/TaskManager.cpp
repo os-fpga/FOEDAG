@@ -63,12 +63,22 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
-  m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL", TaskType::Button});
-  m_tasks.insert(SIMULATE_GATE, new Task{"Simulate Gate", TaskType::Button});
-  m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR", TaskType::Button});
-  m_tasks.insert(SIMULATE_BITSTREAM,
-                 new Task{"Simulate Bitstream", TaskType::Button});
-  m_tasks.insert(SIMULATE, new Task{"Simulate", TaskType::None});
+  m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL"});
+  m_tasks.insert(SIMULATE_RTL_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_RTL_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_GATE, new Task{"Simulate Gate"});
+  m_tasks.insert(SIMULATE_GATE_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_GATE_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR"});
+  m_tasks.insert(SIMULATE_PNR_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_PNR_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_BITSTREAM, new Task{"Simulate Bitstream"});
+  m_tasks.insert(SIMULATE_BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_BITSTREAM_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
@@ -87,14 +97,23 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_RTL]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_PNR]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_GATE]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_BITSTREAM]);
+  m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_CLEAN]);
+  m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_SETTINGS]);
+  m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_CLEAN]);
+  m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_SETTINGS]);
+  m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_CLEAN]);
+  m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_SETTINGS]);
+  m_tasks[SIMULATE_BITSTREAM]->appendSubTask(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
+  m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
+      m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
+  m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey("Simulate RTL");
+  m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey("Simulate Gate");
+  m_tasks[SIMULATE_PNR_SETTINGS]->setSettingsKey("Simulate PNR");
+  m_tasks[SIMULATE_BITSTREAM_SETTINGS]->setSettingsKey("Simulate Bitstream");
 
   // These point to log files that can be opened via r-click in the task view
   // By default, sub-tasks open their parent log file, but you can set
@@ -111,6 +130,17 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[TIMING_SIGN_OFF]->setLogFileReadPath("$OSRCDIR/timing_analysis.rpt");
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
+
+  m_tasks[IP_GENERATE]->setAbbreviation("IPG");
+  m_tasks[ANALYSIS]->setAbbreviation("ANL");
+  m_tasks[SYNTHESIS]->setAbbreviation("SYN");
+  m_tasks[PACKING]->setAbbreviation("PAC");
+  m_tasks[GLOBAL_PLACEMENT]->setAbbreviation("GPL");
+  m_tasks[PLACEMENT]->setAbbreviation("PLC");
+  m_tasks[ROUTING]->setAbbreviation("RTE");
+  m_tasks[TIMING_SIGN_OFF]->setAbbreviation("TMN");
+  m_tasks[POWER]->setAbbreviation("PWR");
+  m_tasks[BITSTREAM]->setAbbreviation("BIT");
 
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
@@ -162,6 +192,15 @@ QList<Task *> TaskManager::tasks() const { return m_tasks.values(); }
 Task *TaskManager::task(uint id) const { return m_tasks.value(id, nullptr); }
 
 uint TaskManager::taskId(Task *t) const { return m_tasks.key(t, invalid_id); }
+
+Task *TaskManager::currentTask() const {
+  for (auto task : m_tasks) {
+    if (task->status() == TaskStatus::InProgress) {
+      return task;
+    }
+  }
+  return nullptr;
+}
 
 void TaskManager::stopCurrentTask() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
