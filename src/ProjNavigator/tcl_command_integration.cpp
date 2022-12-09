@@ -311,6 +311,12 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
   return true;
 }
 
+bool TclCommandIntegration::TclCloseProject() {
+  Project::Instance()->InitProject();
+  emit closeDesign();
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }

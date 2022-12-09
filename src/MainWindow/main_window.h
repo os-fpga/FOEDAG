@@ -64,7 +64,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newProjectDlg();
   void openProjectDialog(const QString& dir = QString{});
   void openExampleProject();
-  void closeProject();
+  void closeProject(bool force = false);
   void openFileSlot();
   void newDesignCreated(const QString& design);
   void reloadSettings();

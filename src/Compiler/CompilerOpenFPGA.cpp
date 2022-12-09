@@ -96,6 +96,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
             "with <name> name"
          << std::endl;
+  (*out) << "   close_design     : Close current design" << std::endl;
   (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"

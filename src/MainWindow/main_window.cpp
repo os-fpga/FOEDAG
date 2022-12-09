@@ -261,9 +261,9 @@ void MainWindow::openProjectDialog(const QString& dir) {
   if (!fileName.isEmpty()) openProject(fileName, false, false);
 }
 
-void MainWindow::closeProject() {
-  if (m_projectManager && m_projectManager->HasDesign() &&
-      confirmCloseProject()) {
+void MainWindow::closeProject(bool force) {
+  if (m_projectManager && m_projectManager->HasDesign()) {
+    if (!force && !confirmCloseProject()) return;
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
@@ -838,8 +838,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   sourcesForm = new SourcesForm(this);
-  connect(sourcesForm, &SourcesForm::CloseProject, this,
-          &MainWindow::closeProject, Qt::QueuedConnection);
+  connect(
+      sourcesForm, &SourcesForm::CloseProject, this,
+      [this]() { closeProject(); }, Qt::QueuedConnection);
   connect(sourcesForm, &SourcesForm::OpenProjectSettings, this,
           &MainWindow::openProjectSettings);
   sourceDockWidget->setWidget(sourcesForm);
@@ -929,6 +930,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
           &MainWindow::newDesignCreated);
+  connect(tclCommandIntegration, &TclCommandIntegration::closeDesign, this,
+          [this]() { closeProject(true); });
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
