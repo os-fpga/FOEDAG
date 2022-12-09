@@ -143,6 +143,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->setAbbreviation("RTE");
   m_tasks[TIMING_SIGN_OFF]->setAbbreviation("TMN");
   m_tasks[POWER]->setAbbreviation("PWR");
+  m_tasks[BITSTREAM]->setAbbreviation("BIT");
   m_tasks[SIMULATE_RTL]->setAbbreviation("SRT");
   m_tasks[SIMULATE_GATE]->setAbbreviation("SGT");
   m_tasks[SIMULATE_PNR]->setAbbreviation("SPR");
