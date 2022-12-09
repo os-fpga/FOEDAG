@@ -117,8 +117,8 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
     if (task->type() == TaskType::Button || task->type() == TaskType::Settings)
       return;
 
+    QMenu *menu = new QMenu(this);
     if (task->isEnable()) {
-      QMenu *menu = new QMenu(this);
       if (task->type() != TaskType::None) {
         QAction *start = new QAction("Run", this);
         connect(start, &QAction::triggered, this,
@@ -127,9 +127,10 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
         addTaskLogAction(menu, task);
         menu->addSeparator();
       }
-      addExpandCollapse(menu);
-      menu->popup(viewport()->mapToGlobal(pos));
     }
+    addExpandCollapse(menu);
+    addEnableDisableTask(menu, task);
+    menu->popup(viewport()->mapToGlobal(pos));
   }
 }
 
@@ -220,6 +221,14 @@ void TaskTableView::addExpandCollapse(QMenu *menu) {
   connect(collapse, &QAction::triggered, this,
           [areaAction]() { areaAction(ExpandAreaAction::Collapse); });
   menu->addAction(collapse);
+}
+
+void TaskTableView::addEnableDisableTask(QMenu *menu, Task *task) {
+  QAction *enable = new QAction{"Enable/Disable task", this};
+  connect(enable, &QAction::triggered, this,
+          [task]() { task->setEnable(!task->isEnable()); });
+  menu->addSeparator();
+  menu->addAction(enable);
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,

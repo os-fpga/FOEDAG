@@ -112,6 +112,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
             "with <name> name"
          << std::endl;
+  (*out) << "   close_design     : Close current design" << std::endl;
   (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
@@ -474,6 +475,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_design", create_design, this, 0);
+
+  auto close_design = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler->m_tclCmdIntegration) {
+      compiler->m_tclCmdIntegration->TclCloseProject();
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("close_design", close_design, this, nullptr);
 
   auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {

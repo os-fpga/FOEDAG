@@ -193,6 +193,7 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
 	./build/bin/foedag --batch --script tests/Testcases/project_file/test.tcl
+	./build/bin/foedag --batch --script tests/Testcases/oneff_close/oneff.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_ip_configure_load.tcl
 	
 lib-only: run-cmake-release

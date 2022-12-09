@@ -131,6 +131,9 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
 
+  // If a task has its abbreviation set the calls to Message() will be appended
+  // with the set abbreviation when that task is the current task.
+  // Current task is determine by which task has a status of InProgress
   m_tasks[IP_GENERATE]->setAbbreviation("IPG");
   m_tasks[ANALYSIS]->setAbbreviation("ANL");
   m_tasks[SYNTHESIS]->setAbbreviation("SYN");
@@ -140,7 +143,10 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ROUTING]->setAbbreviation("RTE");
   m_tasks[TIMING_SIGN_OFF]->setAbbreviation("TMN");
   m_tasks[POWER]->setAbbreviation("PWR");
-  m_tasks[BITSTREAM]->setAbbreviation("BIT");
+  m_tasks[SIMULATE_RTL]->setAbbreviation("SRT");
+  m_tasks[SIMULATE_GATE]->setAbbreviation("SGT");
+  m_tasks[SIMULATE_PNR]->setAbbreviation("SPR");
+  m_tasks[SIMULATE_BITSTREAM]->setAbbreviation("SBS");
 
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
@@ -225,19 +231,23 @@ TaskStatus TaskManager::status() const {
   return TaskStatus::None;
 }
 
-void TaskManager::startAll() {
+void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
   reset();
   appendTask(m_tasks[IP_GENERATE]);
   appendTask(m_tasks[ANALYSIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_RTL]);
   appendTask(m_tasks[SYNTHESIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_GATE]);
   appendTask(m_tasks[PACKING]);
   appendTask(m_tasks[GLOBAL_PLACEMENT]);
   appendTask(m_tasks[PLACEMENT]);
   appendTask(m_tasks[ROUTING]);
+  if (simulation) appendTask(m_tasks[SIMULATE_PNR]);
   appendTask(m_tasks[TIMING_SIGN_OFF]);
   appendTask(m_tasks[POWER]);
   appendTask(m_tasks[BITSTREAM]);
+  if (simulation) appendTask(m_tasks[SIMULATE_BITSTREAM]);
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();
