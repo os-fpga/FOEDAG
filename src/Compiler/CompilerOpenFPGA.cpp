@@ -220,8 +220,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
-  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
-            "testbench"
+  (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
+            "and testbench"
          << std::endl;
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"

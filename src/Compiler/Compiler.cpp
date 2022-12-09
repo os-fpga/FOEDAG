@@ -193,8 +193,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
   (*out) << "   bitstream ?clean?" << std::endl;
-  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
-            "testbench"
+  (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
+            "and testbench"
          << std::endl;
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
@@ -870,6 +870,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       std::string sim_type;
       std::string wave_file;
+      bool clean{false};
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "verilator") {
@@ -887,11 +888,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
                    arg == "bitstream") {
           sim_type = arg;
+        } else if (arg == "clean") {
+          clean = true;
         } else {
           wave_file = arg;
         }
       }
       compiler->SetWaveformFile(wave_file);
+      if (clean)
+        compiler->GetSimulator()->SimulationOption(
+            Simulator::SimulationOpt::Clean);
       if (sim_type.empty()) {
         compiler->ErrorMessage("Unknown simulation type: " + sim_type);
         return TCL_ERROR;
@@ -1166,6 +1172,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       std::string sim_type;
       std::string wave_file;
+      bool clean{false};
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -1184,12 +1191,17 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
                    arg == "bitstream") {
           sim_type = arg;
+        } else if (arg == "clean") {
+          clean = true;
         } else {
           wave_file = arg;
         }
       }
       compiler->SetWaveformFile(wave_file);
       compiler->GetSimulator()->SetSimulatorType(sim_tool);
+      if (clean)
+        compiler->GetSimulator()->SimulationOption(
+            Simulator::SimulationOpt::Clean);
       if (sim_type.empty()) {
         compiler->ErrorMessage("Unknown simulation type: " + sim_type);
         return TCL_ERROR;
@@ -2125,15 +2137,31 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(SIMULATE_RTL, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
     });
+    m_taskManager->bindTaskCommand(SIMULATE_RTL_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate rtl clean"));
+    });
     m_taskManager->bindTaskCommand(SIMULATE_GATE, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_GATE_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate gate clean"));
     });
     m_taskManager->bindTaskCommand(SIMULATE_PNR, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
     });
+    m_taskManager->bindTaskCommand(SIMULATE_PNR_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate pnr clean"));
+    });
     m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(
           new Command("simulate bitstream"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate bitstream clean"));
     });
   }
 }

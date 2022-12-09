@@ -150,8 +150,12 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[IP_GENERATE]);
   m_taskQueue.append(m_tasks[ANALYSIS]);
   m_taskQueue.append(m_tasks[ANALYSIS_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_RTL]);
+  m_taskQueue.append(m_tasks[SIMULATE_RTL_CLEAN]);
   m_taskQueue.append(m_tasks[SYNTHESIS]);
   m_taskQueue.append(m_tasks[SYNTHESIS_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_GATE]);
+  m_taskQueue.append(m_tasks[SIMULATE_GATE_CLEAN]);
   m_taskQueue.append(m_tasks[PACKING]);
   m_taskQueue.append(m_tasks[PACKING_CLEAN]);
   m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT]);
@@ -160,12 +164,16 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[PLACEMENT_CLEAN]);
   m_taskQueue.append(m_tasks[ROUTING]);
   m_taskQueue.append(m_tasks[ROUTING_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_PNR]);
+  m_taskQueue.append(m_tasks[SIMULATE_PNR_CLEAN]);
   m_taskQueue.append(m_tasks[TIMING_SIGN_OFF]);
   m_taskQueue.append(m_tasks[TIMING_SIGN_OFF_CLEAN]);
   m_taskQueue.append(m_tasks[POWER]);
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
+  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>(*this);
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
@@ -313,6 +321,11 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
       // In case clean action, clean parent is required.
       if (((*it)->type() == TaskType::Clean) && (it != m_taskQueue.begin()))
         it--;
+      if ((*it)->title().startsWith("Simulate")) {
+        // in case simulation task, we don't need to clean all downstream tasks
+        (*it)->setStatus(TaskStatus::None);
+        break;
+      }
       for (; it != m_taskQueue.end(); ++it) {
         (*it)->setStatus(TaskStatus::None);
       }

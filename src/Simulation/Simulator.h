@@ -39,6 +39,7 @@ class Simulator {
   enum class SimulatorType { Verilator, Icarus, GHDL, VCS, Questa, Xcelium };
   enum class SimulationType { RTL, Gate, PNR, Bitstream };
   enum class WaveformType { VCD, FST };
+  enum class SimulationOpt { None, Clean };
 
   // Most common use case, create the compiler in your main
   Simulator() = default;
@@ -58,9 +59,7 @@ class Simulator {
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   bool RegisterCommands(TclInterpreter* interp);
-  bool Clear();
-  void start();
-  void finish();
+  bool Clean(SimulationType action);
 
   std::string& getResult() { return m_result; }
 
@@ -91,6 +90,9 @@ class Simulator {
   std::string GetSimulatorCompileOption(SimulatorType type);
   std::string GetSimulatorElaborationOption(SimulatorType type);
   std::string GetSimulatorRuntimeOption(SimulatorType type);
+
+  void SimulationOption(SimulationOpt option);
+  SimulationOpt SimulationOption() const;
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -133,6 +135,8 @@ class Simulator {
   std::string m_simulationTop;
   std::string m_waveFile;
   WaveformType m_waveType = WaveformType::FST;
+  SimulationOpt m_simulationOpt{SimulationOpt::None};
+  std::map<SimulationType, std::string> m_waveFiles;
 };
 
 }  // namespace FOEDAG
