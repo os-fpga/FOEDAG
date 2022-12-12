@@ -55,7 +55,7 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
                                            RESOURCE_REPORT_NAME);
   else
-    return std::make_unique<TableReport>(m_circuitColumns, m_stats,
+    return std::make_unique<TableReport>(m_circuitColumns, m_circuitData,
                                          CIRCUIT_REPORT_NAME);
 
   emit reportCreated(reportId);
@@ -108,9 +108,9 @@ void RoutingReportManager::parseLogFile() {
   QString line;
   while (in.readLineInto(&line)) {
     if (FIND_RESOURCES.indexIn(line) != -1)
-      m_resourceData = parseResourceUsage(in, m_resourceColumns, lineNr);
+      parseResourceUsage(in, lineNr);
     else if (FIND_CIRCUIT_STAT.indexIn(line) != -1)
-      m_stats = parseCircuitStats(in, lineNr);
+      m_circuitData = parseCircuitStats(in, lineNr);
     else if (line.startsWith(LOAD_PLACEMENT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_PLACEMENT_SECTION, {});
     else if (line.startsWith(COMPUT_ROUTER_SECTION))
@@ -132,13 +132,12 @@ void RoutingReportManager::parseLogFile() {
   }
 
   logFile->close();
+  setFileParsed(true);
 }
 
 void RoutingReportManager::reset() {
-  m_resourceColumns.clear();
-  m_resourceData.clear();
   m_messages.clear();
-  m_stats.clear();
+  m_circuitData.clear();
 }
 
 }  // namespace FOEDAG

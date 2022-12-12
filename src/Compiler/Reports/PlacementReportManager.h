@@ -43,7 +43,6 @@ class PlacementReportManager final : public AbstractReportManager {
 
   void parseLogFile();
 
-  QStringList m_reportColumns;
   SectionKeys m_createDeviceKeys;
   SectionKeys m_placementKeys;
 };

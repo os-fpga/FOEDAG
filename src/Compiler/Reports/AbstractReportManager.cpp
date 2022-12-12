@@ -25,26 +25,25 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
           [this]() { setFileParsed(false); });
 }
 
-ITaskReport::TableData AbstractReportManager::parseResourceUsage(
-    QTextStream &in, QStringList &columns, int &lineNr) const {
-  columns.clear();
-  columns << QString(BLOCKS_COL);
+void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
+  m_resourceData.clear();
+  m_resourceColumns.clear();
+
+  m_resourceColumns << QString(BLOCKS_COL);
 
   int childSum{0};     // Total number, assumulated within a single parent
   int columnIndex{0};  // Index of a column we fill the value for
-
-  auto result = ITaskReport::TableData{};
 
   // Lambda setting given value for a certain row. Modifies existing row, if
   // any, or adds a new one.
   auto setValue = [&](const QString &row, const QString &value) {
     auto findIt = std::find_if(
-        result.begin(), result.end(),
+        m_resourceData.begin(), m_resourceData.end(),
         [&row](const auto &lineValues) { return lineValues[0] == row; });
-    if (findIt == result.end()) {
+    if (findIt == m_resourceData.end()) {
       auto lineValues = ITaskReport::LineValues{row, {}, {}};
       lineValues[columnIndex] = value;
-      result.push_back(std::move(lineValues));
+      m_resourceData.push_back(std::move(lineValues));
     } else {
       // The resource has been added before - just update the corresponding
       // column
@@ -63,7 +62,7 @@ ITaskReport::TableData AbstractReportManager::parseResourceUsage(
     // Column values are expected in a following format: Value RESOURCES_SPLIT
     // ResourceName
     if (lineStrs.size() == 2) {
-      columnIndex = columns.indexOf(columnName);
+      columnIndex = m_resourceColumns.indexOf(columnName);
       resourceName = lineStrs[1];
 
       setValue(resourceName, lineStrs[0]);
@@ -76,12 +75,11 @@ ITaskReport::TableData AbstractReportManager::parseResourceUsage(
         setValue(resourceNameSplit.first(), QString::number(childSum));
       columnName = line;
       // We can't use set because columns order has to be kept.
-      if (!columns.contains(columnName)) columns << columnName;
+      if (!m_resourceColumns.contains(columnName))
+        m_resourceColumns << columnName;
       childSum = 0;  // New parent - reset the SUM
     }
   }
-
-  return result;
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(
@@ -106,16 +104,18 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
   QString line;
   // Store line numbers in set to always know which one was first
-  std::set<int> wrnLines, errLines;
+  std::map<int, QString> warnings, errors;
   while (in.readLineInto(&line)) {
     ++lineNr;
     // We reached the end of section
     if (line.startsWith(sectionLine)) break;
 
     if (line.contains(WARNING_REGEXP))  // count warnings
-      wrnLines.insert(lineNr);
+      warnings.emplace(lineNr, line.simplified());
     else if (line.contains(ERROR_REGEXP))  // count errors
-      errLines.insert(lineNr);
+      errors.emplace(lineNr, line.simplified());
+    else if (FIND_RESOURCES.indexIn(line) != -1)
+      parseResourceUsage(in, lineNr);
     // check whether section has any 'interesting' lines
     for (auto &keyRegExp : keys) {
       if (keyRegExp.indexIn(line) != -1) {
@@ -128,26 +128,41 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
       }
     }
   }
-  // Link to the first warning/error line. Section beginning if nothing was
-  // found
-  auto warningLine = wrnLines.empty() ? sectionMsg.m_lineNr : *wrnLines.begin();
-  auto warningMsg = TaskMessage{
-      warningLine,
-      MessageSeverity::WARNING_MESSAGE,
-      QString("%1 warnings found").arg(QString::number(wrnLines.size())),
-      {}};
-  sectionMsg.m_childMessages.insert(warningLine, std::move(warningMsg));
+  // Link to the first warning/error line.
+  if (!warnings.empty()) {
+    auto wrnItem =
+        createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+    sectionMsg.m_childMessages.insert(wrnItem.m_lineNr, wrnItem);
+  }
 
-  auto errorLine = errLines.empty() ? sectionMsg.m_lineNr : *errLines.begin();
-  auto errorMsg = TaskMessage{
-      errorLine,
-      MessageSeverity::ERROR_MESSAGE,
-      QString("%1 errors found").arg(QString::number(errLines.size())),
-      {}};
-  sectionMsg.m_childMessages.insert(errorLine, std::move(errorMsg));
+  // Link to the first warning/error line.
+  if (!errors.empty()) {
+    auto errorsItem =
+        createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+    sectionMsg.m_childMessages.insert(errorsItem.m_lineNr, errorsItem);
+  }
 
   m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
   return lineNr;
+}
+
+TaskMessage AbstractReportManager::createWarningErrorItem(
+    MessageSeverity severity, const MessagesLines &msgs) const {
+  auto itemName = severity == MessageSeverity::ERROR_MESSAGE
+                      ? QString("Errors")
+                      : QString("Warnings");
+  auto itemLine = msgs.begin()->first;
+
+  auto itemMsg =
+      QString("%1 %2 found").arg(QString::number(msgs.size()), itemName);
+  auto item = TaskMessage{itemLine, severity, itemMsg, {}};
+  for (auto &msg : msgs) {
+    auto msgItem =
+        TaskMessage{msg.first, MessageSeverity::NONE, msg.second, {}};
+    item.m_childMessages.insert(msg.first, std::move(msgItem));
+  }
+
+  return item;
 }
 
 void AbstractReportManager::setFileParsed(bool parsed) {

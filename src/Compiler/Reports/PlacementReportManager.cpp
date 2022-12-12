@@ -74,7 +74,8 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
-  return std::make_unique<TableReport>(m_reportColumns, m_stats, REPORT_NAME);
+  return std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
+                                       REPORT_NAME);
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
@@ -103,9 +104,7 @@ void PlacementReportManager::parseLogFile() {
   if (!logFile) return;
 
   auto timings = QStringList{};
-  m_stats.clear();
   m_messages.clear();
-  m_reportColumns.clear();
 
   auto in = QTextStream(logFile.get());
   QString line;
@@ -114,7 +113,7 @@ void PlacementReportManager::parseLogFile() {
     if (FIND_TIMINGS.indexIn(line) != -1)
       timings << line + "\n";
     else if (FIND_RESOURCES.indexIn(line) != -1)
-      m_stats = parseResourceUsage(in, m_reportColumns, lineNr);
+      parseResourceUsage(in, lineNr);
     else if (LOAD_PACKING_REGEXP.exactMatch(line))
       m_messages.insert(lineNr, TaskMessage{lineNr,
                                             MessageSeverity::INFO_MESSAGE,
@@ -131,6 +130,7 @@ void PlacementReportManager::parseLogFile() {
   logFile->close();
 
   createTimingReport(timings);
+  setFileParsed(true);
 }
 
 }  // namespace FOEDAG

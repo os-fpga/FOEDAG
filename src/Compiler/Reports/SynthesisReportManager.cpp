@@ -110,14 +110,14 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
   emit reportCreated(QString(REPORT_NAME));
 
   return std::make_unique<TableReport>(QStringList{"Statistics", "Value"},
-                                       m_stats, "Synthesis report");
+                                       m_resourceData, "Synthesis report");
 }
 
 void SynthesisReportManager::parseLogFile() {
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return;
 
-  m_stats.clear();
+  m_resourceData.clear();
   m_messages.clear();
 
   auto fileStr = QTextStream(logFile.get()).readAll();
@@ -126,16 +126,17 @@ void SynthesisReportManager::parseLogFile() {
   auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
 
   if (findStats.lastIndexIn(fileStr) != -1)
-    m_stats = getStatistics(findStats.cap());
+    m_resourceData = getStatistics(findStats.cap());
 
   auto findLvls = QRegExp{"DE:([^\n]+)"};
   if (findLvls.lastIndexIn(fileStr) != -1) {
-    fillLevels(findLvls.cap(), m_stats);
+    fillLevels(findLvls.cap(), m_resourceData);
   }
 
   auto line = QString{};
   QTextStream in(fileStr.toLatin1());
   auto lineNr = 0;
+  AbstractReportManager::MessagesLines warnings, errors;
   while (in.readLineInto(&line)) {
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1)
       m_messages.insert(lineNr,
@@ -144,18 +145,20 @@ void SynthesisReportManager::parseLogFile() {
                                     VERIFIC_INFO_REGEXP.cap().simplified(),
                                     {}});
     else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1)
-      m_messages.insert(lineNr,
-                        TaskMessage{lineNr,
-                                    MessageSeverity::ERROR_MESSAGE,
-                                    VERIFIC_ERR_REGEXP.cap().simplified(),
-                                    {}});
+      errors.emplace(lineNr, VERIFIC_ERR_REGEXP.cap().simplified());
     else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1)
-      m_messages.insert(lineNr,
-                        TaskMessage{lineNr,
-                                    MessageSeverity::WARNING_MESSAGE,
-                                    VERIFIC_WARN_REGEXP.cap().simplified(),
-                                    {}});
+      warnings.emplace(lineNr, VERIFIC_WARN_REGEXP.cap().simplified());
     ++lineNr;
+  }
+  if (!warnings.empty()) {
+    auto warningsItem =
+        createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+    m_messages.insert(warningsItem.m_lineNr, warningsItem);
+  }
+  if (!errors.empty()) {
+    auto errorsItem =
+        createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+    m_messages.insert(errorsItem.m_lineNr, errorsItem);
   }
   setFileParsed(true);
 }

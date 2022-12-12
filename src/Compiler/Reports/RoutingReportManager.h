@@ -46,8 +46,7 @@ class RoutingReportManager final : public AbstractReportManager {
 
   void reset();
 
-  ITaskReport::TableData m_resourceData;
-  QStringList m_resourceColumns;
+  ITaskReport::TableData m_circuitData;
   QStringList m_circuitColumns;
   SectionKeys m_routingKeys;
 };
