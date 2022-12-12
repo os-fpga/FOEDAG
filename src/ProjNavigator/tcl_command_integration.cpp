@@ -312,8 +312,11 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
 }
 
 bool TclCommandIntegration::TclCloseProject() {
-  Project::Instance()->InitProject();
-  emit closeDesign();
+  if (m_form) {  // GUI mode
+    emit closeDesign();
+  } else {  // batch mode
+    Project::Instance()->InitProject();
+  }
   return true;
 }
 
