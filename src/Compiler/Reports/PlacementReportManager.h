@@ -38,9 +38,6 @@ class PlacementReportManager final : public AbstractReportManager {
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   const Messages &getMessages() override;
 
-  // Creates a file in given projectPath and fills it with timingData
-  void createTimingReport(const QStringList &timingData);
-
   void parseLogFile();
 
   SectionKeys m_createDeviceKeys;

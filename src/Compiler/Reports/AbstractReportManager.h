@@ -56,9 +56,13 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
                                const QString &sectionLine, SectionKeys keys);
 
   using MessagesLines = std::map<int, QString>;
-  // Creates parent item for either warnings or messages.
+  // Creates parent item for either warnings or messages. Clears msgs
+  // afterwards.
   TaskMessage createWarningErrorItem(MessageSeverity severity,
-                                     const MessagesLines &msgs) const;
+                                     MessagesLines &msgs) const;
+
+  // Fills the values from given 'timingData' to m_timingData.
+  void fillTimingData(const QStringList &timingData);
 
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
@@ -72,6 +76,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
  protected:
   QStringList m_resourceColumns;
   ITaskReport::TableData m_resourceData;
+
+  ITaskReport::TableData m_timingData;
+  QStringList m_timingColumns;
+
   Messages m_messages;
 
  private:

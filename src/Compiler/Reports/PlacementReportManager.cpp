@@ -31,11 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TableReport.h"
 
 namespace {
-static constexpr const char *REPORT_NAME{
+static constexpr const char *RESOURCE_REPORT_NAME{
     "Post placement - Report Resource Utilization"};
-
-static const QRegExp FIND_TIMINGS{
-    "Placement estimated (critical|setup).*[0-9].*"};
+static constexpr const char *TIMING_REPORT_NAME{
+    "Post placement - Report Static Timing"};
 
 // Messages regexps
 static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
@@ -50,7 +49,6 @@ static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
 
 static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString PLACEMENT_SECTION{"# Placement"};
-
 }  // namespace
 
 namespace FOEDAG {
@@ -65,38 +63,30 @@ PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
 }
 
 QStringList PlacementReportManager::getAvailableReportIds() const {
-  return {QString(REPORT_NAME)};
+  return {QString(RESOURCE_REPORT_NAME), QString(TIMING_REPORT_NAME)};
 }
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();
 
-  emit reportCreated(QString(REPORT_NAME));
+  auto report = std::unique_ptr<ITaskReport>{};
 
-  return std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
-                                       REPORT_NAME);
+  if (reportId == QString(RESOURCE_REPORT_NAME))
+    report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
+                                           RESOURCE_REPORT_NAME);
+  else
+    report = std::make_unique<TableReport>(m_timingColumns, m_timingData,
+                                           TIMING_REPORT_NAME);
+
+  emit reportCreated(reportId);
+
+  return report;
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
   if (!isFileParsed()) parseLogFile();
   return m_messages;
-}
-
-void PlacementReportManager::createTimingReport(const QStringList &timingData) {
-  auto projectPath = Project::Instance()->projectPath();
-  auto logFilePath =
-      QString("%1/%2").arg(projectPath, QString(PLACEMENT_TIMING_LOG));
-
-  auto timingLogFile = QFile(logFilePath);
-
-  if (!timingLogFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
-  timingLogFile.resize(0);  // clear all previous contents
-
-  QTextStream out(&timingLogFile);
-  for (auto &line : timingData) out << line;
-
-  timingLogFile.close();
 }
 
 void PlacementReportManager::parseLogFile() {
@@ -110,9 +100,7 @@ void PlacementReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    if (FIND_TIMINGS.indexIn(line) != -1)
-      timings << line + "\n";
-    else if (FIND_RESOURCES.indexIn(line) != -1)
+    if (FIND_RESOURCES.indexIn(line) != -1)
       parseResourceUsage(in, lineNr);
     else if (LOAD_PACKING_REGEXP.exactMatch(line))
       m_messages.insert(lineNr, TaskMessage{lineNr,
@@ -129,7 +117,6 @@ void PlacementReportManager::parseLogFile() {
   }
   logFile->close();
 
-  createTimingReport(timings);
   setFileParsed(true);
 }
 

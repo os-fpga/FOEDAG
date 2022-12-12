@@ -137,29 +137,48 @@ void SynthesisReportManager::parseLogFile() {
   QTextStream in(fileStr.toLatin1());
   auto lineNr = 0;
   AbstractReportManager::MessagesLines warnings, errors;
+  auto fillErrorsWarnings = [&warnings, &errors, this]() {
+    if (!warnings.empty()) {
+      auto warningsItem =
+          createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+      m_messages.insert(warningsItem.m_lineNr, warningsItem);
+    }
+    if (!errors.empty()) {
+      auto errorsItem =
+          createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+      m_messages.insert(errorsItem.m_lineNr, errorsItem);
+    }
+  };
+
   while (in.readLineInto(&line)) {
-    if (VERIFIC_INFO_REGEXP.indexIn(line) != -1)
+    if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
                                     MessageSeverity::INFO_MESSAGE,
                                     VERIFIC_INFO_REGEXP.cap().simplified(),
                                     {}});
-    else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1)
+      fillErrorsWarnings();
+    } else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1) {
       errors.emplace(lineNr, VERIFIC_ERR_REGEXP.cap().simplified());
-    else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1)
+      if (!warnings.empty()) {
+        auto warningsItem =
+            createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+        m_messages.insert(warningsItem.m_lineNr, warningsItem);
+      }
+    } else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1) {
       warnings.emplace(lineNr, VERIFIC_WARN_REGEXP.cap().simplified());
+
+      if (!errors.empty()) {
+        auto errorsItem =
+            createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+        m_messages.insert(errorsItem.m_lineNr, errorsItem);
+      }
+    }
     ++lineNr;
   }
-  if (!warnings.empty()) {
-    auto warningsItem =
-        createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
-    m_messages.insert(warningsItem.m_lineNr, warningsItem);
-  }
-  if (!errors.empty()) {
-    auto errorsItem =
-        createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
-    m_messages.insert(errorsItem.m_lineNr, errorsItem);
-  }
+
+  fillErrorsWarnings();
+
   setFileParsed(true);
 }
 

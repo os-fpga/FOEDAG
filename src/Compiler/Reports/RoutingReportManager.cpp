@@ -55,8 +55,8 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
                                            RESOURCE_REPORT_NAME);
   else
-    return std::make_unique<TableReport>(m_circuitColumns, m_circuitData,
-                                         CIRCUIT_REPORT_NAME);
+    report = std::make_unique<TableReport>(m_circuitColumns, m_circuitData,
+                                           CIRCUIT_REPORT_NAME);
 
   emit reportCreated(reportId);
 
