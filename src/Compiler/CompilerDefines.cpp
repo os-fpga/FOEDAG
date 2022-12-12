@@ -66,7 +66,7 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   return view;
 }
 
-uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
+uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
     case Compiler::Action::Analyze:
       if (compiler->AnalyzeOpt() == Compiler::DesignAnalysisOpt::Clean)
@@ -112,12 +112,24 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
     case Compiler::Action::Batch:
       return TaskManager::invalid_id;
     case Compiler::Action::SimulateRTL:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_RTL_CLEAN;
       return SIMULATE_RTL;
     case Compiler::Action::SimulateGate:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_GATE_CLEAN;
       return SIMULATE_GATE;
     case Compiler::Action::SimulatePNR:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_PNR_CLEAN;
       return SIMULATE_PNR;
     case Compiler::Action::SimulateBitstream:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_BITSTREAM_CLEAN;
       return SIMULATE_BITSTREAM;
   }
   return TaskManager::invalid_id;

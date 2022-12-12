@@ -119,7 +119,7 @@ static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
 QWidget *prepareCompilerView(Compiler *compiler,
                              TaskManager **taskManager = nullptr);
 
-uint toTaskId(int action, const Compiler *const compiler);
+uint toTaskId(int action, Compiler *const compiler);
 
 /*!
  * \brief read_sdc

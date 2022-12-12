@@ -61,6 +61,7 @@ class TaskTableView : public QTableView {
   QRect expandArea(const QModelIndex &index) const;
   void addTaskLogAction(QMenu *menu, Task *task);
   void addExpandCollapse(QMenu *menu);
+  void addEnableDisableTask(QMenu *menu, Task *task);
 
  private:
   /*!

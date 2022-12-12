@@ -96,6 +96,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
             "with <name> name"
          << std::endl;
+  (*out) << "   close_design     : Close current design" << std::endl;
   (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
@@ -220,8 +221,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
-  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
-            "testbench"
+  (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
+            "and testbench"
          << std::endl;
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
