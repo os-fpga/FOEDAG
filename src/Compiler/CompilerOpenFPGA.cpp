@@ -214,7 +214,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
             "format"
          << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
-  (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
+  // (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
   (*out) << "   route ?clean?              : Router" << std::endl;
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"

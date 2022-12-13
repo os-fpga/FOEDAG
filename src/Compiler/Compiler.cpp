@@ -188,7 +188,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
-  (*out) << "   global_placement ?clean?" << std::endl;
+  // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
@@ -985,21 +985,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("packing", packing, this, 0);
 
-    auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
-      Compiler* compiler = (Compiler*)clientData;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "clean") {
-          compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
-        } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-        }
-      }
-      return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
-    };
-    interp->registerCmd("global_placement", globalplacement, this, 0);
-    interp->registerCmd("globp", globalplacement, this, 0);
+    // auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
+    //                           const char* argv[]) -> int {
+    //   Compiler* compiler = (Compiler*)clientData;
+    //   for (int i = 1; i < argc; i++) {
+    //     std::string arg = argv[i];
+    //     if (arg == "clean") {
+    //       compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
+    //     } else {
+    //       compiler->ErrorMessage("Unknown option: " + arg);
+    //     }
+    //   }
+    //   return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
+    // };
+    // interp->registerCmd("global_placement", globalplacement, this, 0);
+    // interp->registerCmd("globp", globalplacement, this, 0);
 
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -1310,23 +1310,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("packing", packing, this, 0);
 
-    auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
-      Compiler* compiler = (Compiler*)clientData;
-      for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "clean") {
-          compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
-        } else {
-          compiler->ErrorMessage("Unknown option: " + arg);
-        }
-      }
-      WorkerThread* wthread =
-          new WorkerThread("glob_th", Action::Global, compiler);
-      return wthread->start() ? TCL_OK : TCL_ERROR;
-    };
-    interp->registerCmd("global_placement", globalplacement, this, 0);
-    interp->registerCmd("globp", globalplacement, this, 0);
+    // auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
+    //                           const char* argv[]) -> int {
+    //   Compiler* compiler = (Compiler*)clientData;
+    //   for (int i = 1; i < argc; i++) {
+    //     std::string arg = argv[i];
+    //     if (arg == "clean") {
+    //       compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
+    //     } else {
+    //       compiler->ErrorMessage("Unknown option: " + arg);
+    //     }
+    //   }
+    //   WorkerThread* wthread =
+    //       new WorkerThread("glob_th", Action::Global, compiler);
+    //   return wthread->start() ? TCL_OK : TCL_ERROR;
+    // };
+    // interp->registerCmd("global_placement", globalplacement, this, 0);
+    // interp->registerCmd("globp", globalplacement, this, 0);
 
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -2046,8 +2046,8 @@ bool Compiler::RunCompileTask(Action action) {
       return Synthesize();
     case Action::Pack:
       return Packing();
-    case Action::Global:
-      return GlobalPlacement();
+    // case Action::Global:
+    //   return GlobalPlacement();
     case Action::Detailed:
       return Placement();
     case Action::Routing:
@@ -2106,12 +2106,12 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
     });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
-    });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
-    });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
+    // });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
+    // });
     m_taskManager->bindTaskCommand(PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place"));
     });

@@ -18,12 +18,12 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 synthesize
-after 3000 {puts "STOP"; flush stdout ; stop} 
+after 3000 {puts "STOP"; flush stdout ; stop}
 after 5000 {synthesize}
 after 16000 {packing}
-after 17000 {global_placement}
+# after 17000 {global_placement}
 after 28000 {set CONT 0}
-set CONT 1 
+set CONT 1
 while {$CONT} {
   set a 0
   after 100 set a 1

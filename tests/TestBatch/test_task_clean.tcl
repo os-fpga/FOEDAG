@@ -25,8 +25,8 @@ synthesize clean
 synthesize
 packing clean
 packing
-global_placement clean
-global_placement
+# global_placement clean
+# global_placement
 place clean
 place
 route clean
