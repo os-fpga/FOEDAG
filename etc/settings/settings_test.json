@@ -220,27 +220,55 @@
             }
         },
         "Simulate RTL": {
+                "input": {
+                "label": "Waveform file:",
+                "widgetType": "input",
+                "default": "",
+                "arg": "rtl_filepath"
+            },
             "_META_": {
-                "hidden": true,
-                "isSetting": true
+                "hidden": false,
+                "isSetting": true,
+                "tclArgKey": "Tasks_Simulate"
             }
         },
         "Simulate Gate": {
+                "input": {
+                "label": "Waveform file:",
+                "widgetType": "input",
+                "default": "",
+                "arg": "gate_filepath"
+            },
             "_META_": {
-                "hidden": true,
-                "isSetting": true
+                "hidden": false,
+                "isSetting": true,
+                "tclArgKey": "Tasks_Simulate"
             }
         },
         "Simulate PNR": {
+                "input": {
+                "label": "Waveform file:",
+                "widgetType": "input",
+                "default": "",
+                "arg": "pnr_filepath"
+            },
             "_META_": {
-                "hidden": true,
-                "isSetting": true
+                "hidden": false,
+                "isSetting": true,
+                "tclArgKey": "Tasks_Simulate"
             }
         },
         "Simulate Bitstream": {
+                "input": {
+                "label": "Waveform file:",
+                "widgetType": "input",
+                "default": "",
+                "arg": "bitstream_filepath"
+            },
             "_META_": {
-                "hidden": true,
-                "isSetting": true
+                "hidden": false,
+                "isSetting": true,
+                "tclArgKey": "Tasks_Simulate"
             }
         }
     }

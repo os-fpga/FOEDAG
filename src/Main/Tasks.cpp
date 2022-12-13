@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
+#include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
 using namespace FOEDAG;
@@ -260,4 +261,50 @@ void FOEDAG::handleViewReportRequested(const QString& reportId,
   if (!report) return;
 
   openReportView(*report);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return;
+
+  std::vector<std::string> argsList;
+  StringUtils::tokenize(argsStr, " ", argsList, true);
+
+  if (argsList.size() < 2) return;
+
+  auto simulationType{argsList.at(0)};
+  auto waveFile{argsList.at(1)};
+
+  if (simulationType.compare("-rtl_filepath") == 0)
+    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::RTL,
+                                       waveFile);
+  if (simulationType.compare("-gate_filepath") == 0)
+    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Gate,
+                                       waveFile);
+  if (simulationType.compare("-pnr_filepath") == 0)
+    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR,
+                                       waveFile);
+  if (simulationType.compare("-bitstream_filepath") == 0)
+    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream,
+                                       waveFile);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions() {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return std::string{};
+
+  std::vector<std::string> argsList;
+  argsList.push_back("-rtl_filepath");
+  argsList.push_back(
+      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::RTL));
+  argsList.push_back("-gate_filepath");
+  argsList.push_back(
+      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Gate));
+  argsList.push_back("-pnr_filepath");
+  argsList.push_back(
+      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR));
+  argsList.push_back("-bitstream_filepath");
+  argsList.push_back(
+      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream));
+  return StringUtils::join(argsList, " ");
 }

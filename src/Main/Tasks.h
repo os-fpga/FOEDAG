@@ -42,6 +42,9 @@ std::string TclArgs_getExampleArgs();
 void TclArgs_setPlacementOptions(const std::string& argsStr);
 std::string TclArgs_getPlacementOptions();
 
+void TclArgs_setSimulateOptions(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions();
+
 }  // namespace FOEDAG
 
 #endif
