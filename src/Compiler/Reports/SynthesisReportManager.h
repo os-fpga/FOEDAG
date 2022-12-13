@@ -55,11 +55,6 @@ class SynthesisReportManager final : public AbstractReportManager {
   // Go through the log file and fills internal data collections (stats,
   // messages)
   void parseLogFile();
-
- private:
-  QSet<QString> m_keyMessages;
-  ITaskReport::TableData m_stats;
-  Messages m_messages;
 };
 
 }  // namespace FOEDAG

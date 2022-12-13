@@ -40,10 +40,15 @@ class RoutingReportManager final : public AbstractReportManager {
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   const Messages &getMessages() override;
 
-  std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
-  std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);
+  ITaskReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
 
-  Messages m_messages;
+  void parseLogFile();
+
+  void reset();
+
+  ITaskReport::TableData m_circuitData;
+  QStringList m_circuitColumns;
+  SectionKeys m_routingKeys;
 };
 
 }  // namespace FOEDAG
