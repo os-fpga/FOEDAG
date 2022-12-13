@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QRadioButton>
+#include <QTextEdit>
 
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
@@ -41,6 +42,7 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 #define SETTINGS_WIDGET_SUFFIX "SettingsWidget"
 #define DlgBtnBoxName "SettingsDialogButtonBox"
 #define WF_SPACE "_TclArgSpace_"
+#define WF_NEWLINE "_TclArgNewLine_"
 
 namespace FOEDAG {
 void initTclArgFns();
@@ -76,6 +78,9 @@ QComboBox* createComboBox(
 QLineEdit* createLineEdit(
     const QString& objectName, const QString& text = "",
     std::function<void(QLineEdit*, const QString&)> onChange = nullptr);
+QTextEdit* createTextEdit(
+    const QString& objectName, const QString& text = "",
+    std::function<void(QTextEdit*, const QString&)> onChange = nullptr);
 QDoubleSpinBox* createDoubleSpinBox(
     const QString& objectName, double minVal, double maxVal, double stepVal,
     double defaultVal,
