@@ -223,7 +223,7 @@
                 "input": {
                 "label": "Waveform file:",
                 "widgetType": "input",
-                "default": "",
+                "default": "sim_rtl.fst",
                 "arg": "rtl_filepath"
             },
             "_META_": {
@@ -236,7 +236,7 @@
                 "input": {
                 "label": "Waveform file:",
                 "widgetType": "input",
-                "default": "",
+                "default": "sim_gate.fst",
                 "arg": "gate_filepath"
             },
             "_META_": {
@@ -249,7 +249,7 @@
                 "input": {
                 "label": "Waveform file:",
                 "widgetType": "input",
-                "default": "",
+                "default": "sim_pnr.fst",
                 "arg": "pnr_filepath"
             },
             "_META_": {
@@ -262,7 +262,7 @@
                 "input": {
                 "label": "Waveform file:",
                 "widgetType": "input",
-                "default": "",
+                "default": "sim_bitstream.fst",
                 "arg": "bitstream_filepath"
             },
             "_META_": {
