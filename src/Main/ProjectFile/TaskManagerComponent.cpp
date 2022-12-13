@@ -63,9 +63,11 @@ void TaskManagerComponent::Load(QXmlStreamReader *reader) {
               TaskStatus status = static_cast<TaskStatus>(
                   reader->attributes().value(TASK_STATUS).toInt());
               auto task = m_taskManager->task(id);
-              task->blockSignals(true);
-              task->setStatus(status);
-              task->blockSignals(false);
+              if (task) {
+                task->blockSignals(true);
+                task->setStatus(status);
+                task->blockSignals(false);
+              }
             }
           }
         }

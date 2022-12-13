@@ -69,7 +69,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
                               const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
     if (argc == 2) {
-      simulator->SetSimulationTop(argv[1]);
+      simulator->ProjManager()->setTopModuleSim(QString::fromLatin1(argv[1]));
       return TCL_OK;
     }
     return TCL_ERROR;
@@ -465,9 +465,10 @@ std::string Simulator::LanguageDirective(SimulatorType type,
 std::string Simulator::SimulatorRunCommand(SimulatorType type) {
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
+  auto simulationTop{ProjManager()->SimulationTopModule()};
   switch (type) {
     case SimulatorType::Verilator: {
-      std::string command = "obj_dir/V" + m_simulationTop;
+      std::string command = "obj_dir/V" + simulationTop;
       if (!GetSimulatorRuntimeOption(type).empty())
         command += " " + GetSimulatorRuntimeOption(type);
       if (!m_waveFile.empty()) command += " " + m_waveFile;
@@ -477,8 +478,8 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
       return "Todo";
     case SimulatorType::GHDL: {
       std::string command = execPath + " -r -fsynopsys";
-      if (!m_simulationTop.empty()) {
-        command += TopModuleCmd(type) + m_simulationTop;
+      if (!simulationTop.empty()) {
+        command += TopModuleCmd(type) + simulationTop;
       }
       if (!GetSimulatorRuntimeOption(type).empty())
         command += " " + GetSimulatorRuntimeOption(type);
@@ -502,8 +503,9 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
 std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
   if (type != SimulatorType::GHDL) {
-    if (!m_simulationTop.empty()) {
-      fileList += TopModuleCmd(type) + m_simulationTop + " ";
+    auto simulationTop{ProjManager()->SimulationTopModule()};
+    if (!simulationTop.empty()) {
+      fileList += TopModuleCmd(type) + simulationTop + " ";
     }
   }
 
@@ -564,10 +566,11 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   }
 
   // Extra Simulator Model compilation step (Elaboration or C++ compilation)
+  auto simulationTop{ProjManager()->SimulationTopModule()};
   switch (type) {
     case SimulatorType::Verilator: {
-      std::string command = "make -j -C obj_dir/ -f V" + m_simulationTop +
-                            ".mk V" + m_simulationTop;
+      std::string command =
+          "make -j -C obj_dir/ -f V" + simulationTop + ".mk V" + simulationTop;
       if (!GetSimulatorElaborationOption(type).empty())
         command += " " + GetSimulatorElaborationOption(type);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command);
@@ -582,8 +585,8 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
       std::string command = execPath + " -e -fsynopsys";
       if (!GetSimulatorElaborationOption(type).empty())
         command += " " + GetSimulatorElaborationOption(type);
-      if (!m_simulationTop.empty()) {
-        command += TopModuleCmd(type) + m_simulationTop;
+      if (!simulationTop.empty()) {
+        command += TopModuleCmd(type) + simulationTop;
       }
       status = m_compiler->ExecuteAndMonitorSystemCommand(command);
       if (status) {

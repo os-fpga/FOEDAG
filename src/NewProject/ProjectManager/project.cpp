@@ -14,6 +14,7 @@ void Project::InitProject() {
   m_projectConfig->moveToThread(thread());
   m_projectConfig->setParent(this);
   m_compilerConfig.reset(new CompilerConfiguration);
+  m_simulationConfig.reset(new CompilerConfiguration);
   m_ipConfig.reset(new IpConfiguration);
   qDeleteAll(m_mapProjectRun);
   m_mapProjectRun.clear();
@@ -38,6 +39,10 @@ ProjectConfiguration *Project::projectConfig() const { return m_projectConfig; }
 
 CompilerConfiguration *Project::compilerConfig() const {
   return m_compilerConfig.get();
+}
+
+CompilerConfiguration *Project::simulationConfig() const {
+  return m_simulationConfig.get();
 }
 
 IpConfiguration *Project::ipConfig() {
