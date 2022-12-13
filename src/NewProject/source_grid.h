@@ -38,6 +38,7 @@ class sourceGrid : public QWidget {
   int projectType() const;
 
   void setGridType(GridType type);
+  GridType gridType() const;
   QList<filedata> getTableViewData();
 
   void currentFileSet(const QString &fileSet);
