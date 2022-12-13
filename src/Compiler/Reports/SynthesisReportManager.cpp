@@ -35,9 +35,10 @@ static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
 
 // Messages regexp
-static const QRegExp MESSAGES_REGEXP{
-    "VERIFIC-ERROR.*|VERIFIC-WARNING.*|Executing synth_rs pass.*|Executing "
-    "RS_DSP_MACC.*"};
+static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
+static const QRegExp VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
+static const QRegExp VERIFIC_INFO_REGEXP{
+    "Executing synth_rs pass.*|Executing RS_DSP_MACC.*"};
 }  // namespace
 
 namespace FOEDAG {
@@ -109,14 +110,14 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
   emit reportCreated(QString(REPORT_NAME));
 
   return std::make_unique<TableReport>(QStringList{"Statistics", "Value"},
-                                       m_stats, "Synthesis report");
+                                       m_resourceData, "Synthesis report");
 }
 
 void SynthesisReportManager::parseLogFile() {
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return;
 
-  m_stats.clear();
+  m_resourceData.clear();
   m_messages.clear();
 
   auto fileStr = QTextStream(logFile.get()).readAll();
@@ -125,21 +126,59 @@ void SynthesisReportManager::parseLogFile() {
   auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
 
   if (findStats.lastIndexIn(fileStr) != -1)
-    m_stats = getStatistics(findStats.cap());
+    m_resourceData = getStatistics(findStats.cap());
 
   auto findLvls = QRegExp{"DE:([^\n]+)"};
   if (findLvls.lastIndexIn(fileStr) != -1) {
-    fillLevels(findLvls.cap(), m_stats);
+    fillLevels(findLvls.cap(), m_resourceData);
   }
 
   auto line = QString{};
   QTextStream in(fileStr.toLatin1());
   auto lineNr = 0;
+  AbstractReportManager::MessagesLines warnings, errors;
+  auto fillErrorsWarnings = [&warnings, &errors, this]() {
+    if (!warnings.empty()) {
+      auto warningsItem =
+          createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+      m_messages.insert(warningsItem.m_lineNr, warningsItem);
+    }
+    if (!errors.empty()) {
+      auto errorsItem =
+          createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+      m_messages.insert(errorsItem.m_lineNr, errorsItem);
+    }
+  };
+
   while (in.readLineInto(&line)) {
-    if (MESSAGES_REGEXP.indexIn(line) != -1)
-      m_messages.insert(lineNr, MESSAGES_REGEXP.cap().simplified());
+    if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    MessageSeverity::INFO_MESSAGE,
+                                    VERIFIC_INFO_REGEXP.cap().simplified(),
+                                    {}});
+      fillErrorsWarnings();
+    } else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1) {
+      errors.emplace(lineNr, VERIFIC_ERR_REGEXP.cap().simplified());
+      if (!warnings.empty()) {
+        auto warningsItem =
+            createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
+        m_messages.insert(warningsItem.m_lineNr, warningsItem);
+      }
+    } else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1) {
+      warnings.emplace(lineNr, VERIFIC_WARN_REGEXP.cap().simplified());
+
+      if (!errors.empty()) {
+        auto errorsItem =
+            createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
+        m_messages.insert(errorsItem.m_lineNr, errorsItem);
+      }
+    }
     ++lineNr;
   }
+
+  fillErrorsWarnings();
+
   setFileParsed(true);
 }
 
