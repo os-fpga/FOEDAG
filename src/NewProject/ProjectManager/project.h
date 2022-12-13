@@ -28,6 +28,7 @@ class Project : public QObject {
 
   ProjectConfiguration *projectConfig() const;
   CompilerConfiguration *compilerConfig() const;
+  CompilerConfiguration *simulationConfig() const;
   IpConfiguration *ipConfig();
 
   ProjectFileSet *getProjectFileset(const QString &strName) const;
@@ -52,6 +53,7 @@ class Project : public QObject {
 
   ProjectConfiguration *m_projectConfig;
   std::unique_ptr<CompilerConfiguration> m_compilerConfig;
+  std::unique_ptr<CompilerConfiguration> m_simulationConfig;
   std::unique_ptr<IpConfiguration> m_ipConfig;
   QMap<QString, ProjectFileSet *> m_mapProjectFileset;
   QMap<QString, ProjectRun *> m_mapProjectRun;

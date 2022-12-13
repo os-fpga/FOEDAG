@@ -67,7 +67,7 @@ class newProjectDialog : public QDialog {
   locationForm* m_locationForm;
   projectTypeForm* m_proTypeForm;
   addSourceForm* m_addSrcForm;
-  addSimForm* m_addSimForm;
+  addSourceForm* m_addSimForm;
   addConstraintsForm* m_addConstrsForm;
   devicePlannerForm* m_devicePlanForm;
   summaryForm* m_sumForm;
