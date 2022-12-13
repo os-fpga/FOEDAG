@@ -2174,6 +2174,19 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
       GlobalSession->CmdStack()->push_and_exec(
           new Command("simulate bitstream clean"));
     });
+    m_taskManager->task(SIMULATE_RTL)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::RTL)});
+    m_taskManager->task(SIMULATE_PNR)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::PNR)});
+    m_taskManager->task(SIMULATE_GATE)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::Gate)});
+    m_taskManager->task(SIMULATE_BITSTREAM)
+        ->setCustomData(
+            {CustomDataType::Sim,
+             QVariant::fromValue(Simulator::SimulationType::Bitstream)});
   }
 }
 

@@ -28,9 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Simulation/Simulator.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
 #include "TaskTableView.h"
+#include "Utils/FileUtils.h"
 #include "Utils/QtUtils.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -53,6 +55,17 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
         if (reportManager)
           FOEDAG::handleViewReportRequested(reportId, *reportManager);
       });
+
+  QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
+    auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+    std::filesystem::path file =
+        std::filesystem::path(compiler->ProjManager()->projectPath()) /
+        compiler->GetSimulator()->WaveFile(simType);
+    if (FileUtils::FileExists(file)) {
+      std::string cmd = "wave_open " + file.string();
+      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+    }
+  });
 
   view->setModel(model);
 

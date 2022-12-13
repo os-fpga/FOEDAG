@@ -124,6 +124,12 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
         connect(start, &QAction::triggered, this,
                 [this, index]() { userActionHandle(index); });
         menu->addAction(start);
+        if (TaskManager::isSimulation(task)) {
+          QAction *view = new QAction("View waveform", this);
+          connect(view, &QAction::triggered, this,
+                  [this, task]() { emit ViewWaveform(task); });
+          menu->addAction(view);
+        }
         addTaskLogAction(menu, task);
         menu->addSeparator();
       }
