@@ -133,10 +133,11 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
 bool Simulator::Clean(SimulationType action) {
   Message("Cleaning simulation results for " + ProjManager()->projectName());
   auto waveFile = m_waveFiles.find(action);
-  if ((waveFile != m_waveFiles.end()) &&
-      FileUtils::FileExists(waveFile->second))
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) / waveFile->second);
+  if (waveFile != m_waveFiles.end()) {
+    auto filePath =
+        std::filesystem::path(ProjManager()->projectPath()) / waveFile->second;
+    if (FileUtils::FileExists(filePath)) std::filesystem::remove(filePath);
+  }
   SimulationOption(SimulationOpt::None);
   return true;
 }
@@ -175,11 +176,23 @@ Simulator::SimulationOpt Simulator::SimulationOption() const {
   return m_simulationOpt;
 }
 
+void Simulator::WaveFile(SimulationType type, const std::string& file) {
+  if (!file.empty()) m_waveFiles[type] = file;
+}
+
+std::string Simulator::WaveFile(SimulationType type) const {
+  if (m_waveFiles.count(type) != 0) return m_waveFiles.at(type);
+  return std::string{};
+}
+
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
-  m_waveFiles[action] = wave_file;
+  WaveFile(action, wave_file);
   m_waveFile = wave_file;
+  if (wave_file.empty()) {
+    m_waveFile = WaveFile(action);
+  }
   if (m_waveFile.find(".vcd") != std::string::npos) {
     m_waveType = WaveformType::VCD;
   } else if (m_waveFile.find(".fst") != std::string::npos) {
