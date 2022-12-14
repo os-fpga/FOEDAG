@@ -174,6 +174,14 @@ QString restoreNewLines(const QString& str) {
   QString temp = str;
   return temp.replace(WF_NEWLINE, "\n");
 }
+QString convertDashes(const QString& str) {
+  QString temp = str;
+  return temp.replace("-", WF_DASH);
+}
+QString restoreDashes(const QString& str) {
+  QString temp = str;
+  return temp.replace(WF_DASH, "-");
+}
 
 // Set Value overloads for diff widgets
 void setVal(QLineEdit* ptr, const QString& userVal) {
@@ -803,7 +811,9 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
             if (arg != "") {
-              QString argStr = "-" + arg + " " + convertSpaces(userVal);
+              userVal = convertSpaces(userVal);
+              userVal = convertDashes(userVal);
+              QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
           };
@@ -859,7 +869,9 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
-        setVal(ptr, restoreSpaces(argVal));
+        argVal = restoreSpaces(argVal);
+        argVal = restoreDashes(argVal);
+        setVal(ptr, argVal);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
@@ -938,6 +950,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             if (arg != "") {
               userVal = convertSpaces(userVal);
               userVal = convertNewLines(userVal);
+              userVal = convertDashes(userVal);
               QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
@@ -951,6 +964,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
         // convert any spaces to a replaceable tag so the arg is 1 token
         QString tempStr = restoreSpaces(argVal);
         tempStr = restoreNewLines(tempStr);
+        tempStr = restoreDashes(tempStr);
         setVal(ptr, tempStr);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
