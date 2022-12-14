@@ -196,12 +196,22 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "----------------------------------" << std::endl;
 }
 
+// internal fallback yosys template script, if default template script is not found!
 const std::string qlYosysScript = R"( 
 
+# yosys (internal) template script for Aurora
+
+# refer:
+# 1. https://yosyshq.readthedocs.io/projects/yosys/en/latest/cmd_ref.html#command-line-reference
+# 2. https://github.com/chipsalliance/yosys-f4pga-plugins/blob/main/ql-qlf-plugin/synth_quicklogic.cc (help() function describes the commands)
+
+# load the ql-qlf plugin (don't change this):
 ${PLUGIN_LOAD}
 
+# read design files:
 ${READ_DESIGN_FILES}
 
+# synthesize:
 ${QL_SYNTH_PASS_NAME} -top ${TOP_MODULE} -family ${FAMILY} -blif ${OUTPUT_BLIF} ${YOSYS_OPTIONS}
 
 )";
@@ -2612,7 +2622,44 @@ std::string CompilerOpenFPGA_ql::InitSynthesisScript() {
 #if UPSTREAM_UNUSED
     m_yosysScript = basicYosysScript;
 #endif // #if UPSTREAM_UNUSED
-    m_yosysScript = qlYosysScript;
+
+    bool use_external_template_yosys = false;
+    std::string aurora_template_script_yosys;
+
+    // check if we have the default aurora template script available:
+    // at 'scripts/aurora_template_script.ys', if so, we use that.
+    std::filesystem::path aurora_template_script_yosys_path =
+        GetSession()->Context()->DataPath() /
+        std::filesystem::path("..") /
+        std::filesystem::path("scripts") /
+        std::filesystem::path("aurora_template_script.ys");
+
+    if(FileUtils::FileExists(aurora_template_script_yosys_path)) {
+        
+      // get it into a ifstream
+      std::ifstream stream(aurora_template_script_yosys_path.string());
+        
+      if (stream.good()) {
+        aurora_template_script_yosys = 
+          std::string((std::istreambuf_iterator<char>(stream)),
+                       std::istreambuf_iterator<char>());
+          stream.close();
+          use_external_template_yosys = true;
+          
+        }
+    }
+
+    if(use_external_template_yosys) {
+      Message("Using External Yosys Template Script: " +
+                                std::string(aurora_template_script_yosys_path.string()));
+      m_yosysScript = aurora_template_script_yosys;
+    }
+    else {
+      Message("Cannot load Yosys Template Script: " +
+                                std::string(aurora_template_script_yosys_path.string()));
+      Message("Using Internal Yosys Template Script.");
+      m_yosysScript = qlYosysScript;
+    }
   }
   return m_yosysScript;
 }
@@ -3974,6 +4021,14 @@ exit
 )";
 
 const std::string qlOpenFPGABitstreamScript = R"(
+# openfpga (internal) template script for Aurora
+
+# refer:
+# 1. https://openfpga.readthedocs.io/en/latest/manual/openfpga_shell/openfpga_script/
+# 2. https://openfpga.readthedocs.io/en/latest/manual/openfpga_shell/openfpga_commands/
+
+# we need to run the vpr analysis command before openfpga process can start.
+# don't edit this:
 ${VPR_ANALYSIS_COMMAND}
 
 # Read OpenFPGA architecture definition
@@ -3986,44 +4041,53 @@ read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
 ${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}
 
 # Annotate the OpenFPGA architecture to VPR data base
-# to debug use --verbose options
-link_openfpga_arch --sort_gsb_chan_node_in_edges 
+# to debug add '--verbose'
+# to specify activity file, add '--activity_file ${ACTIVITY_FILE}'
+link_openfpga_arch --sort_gsb_chan_node_in_edges
 
 # Apply fix-up to clustering nets based on routing results
-pb_pin_fixup --verbose
+# to debug add '--verbose'
+pb_pin_fixup
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
 
 # Build the module graph
-#  - Enabled compression on routing architecture modules
-#  - Enable pin duplication on grid modules
-build_fabric --compress_routing --duplicate_grid_pin 
+# - Enabled compression on routing architecture modules with '--compress_routing'
+# - Enable pin duplication on grid modules with '--duplicate_grid_pin'
+# - Create only frame views of the module graph to make it run faster with '--frame_view'
+build_fabric --compress_routing --duplicate_grid_pin --frame_view
 
 # Dump GSB data
 # Necessary for creation of rr graph for SymbiFlow
-write_gsb_to_xml --file gsb 
+write_gsb_to_xml --file gsb
 
 # Repack the netlist to physical pbs
 # This must be done before bitstream generator and testbench generation
 # Strongly recommend it is done after all the fix-up have been applied
-#repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
+# to use repack design contraints, add '--design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}'
 repack
 
-# Build bitstream database
-#build_architecture_bitstream --write_file fabric_independent_bitstream.xml
-build_architecture_bitstream
+# Build bitstream database and save to file
+build_architecture_bitstream --write_file fabric_independent_bitstream.xml
 
 # Build fabric bitstream
 build_fabric_bitstream
 
 # Write fabric bitstream
-write_fabric_bitstream --format plain_text --keep_dont_care_bits --file fabric_bitstream.bit
+write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+
+# Write fabric bitstream xml format
+write_fabric_bitstream --format xml --file fabric_bitstream.xml
 
 # Write io mapping 
 write_io_mapping -f PinMapping.xml
 
 ${OPENFPGA_WRITE_FABRIC_IO_INFO_COMMAND}
+
+# Write the SDC files for PnR backend
+#write_pnr_sdc --time_unit ns --flatten_names --file ./SDC
+#write_pnr_sdc --time_unit ns --flatten_names --hierarchical --file ./SDC_leaf
 
 # Finish and exit OpenFPGA
 exit
@@ -4041,7 +4105,43 @@ std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
 #if UPSTREAM_UNUSED
     m_openFPGAScript = basicOpenFPGABitstreamScript;
 #endif // #if UPSTREAM_UNUSED
-    m_openFPGAScript = qlOpenFPGABitstreamScript;
+
+    bool use_external_template_openfpga = false;
+    std::string aurora_template_script_openfpga;
+
+    // check if we have the default aurora template script available:
+    // at 'scripts/aurora_template_script.openfpga', if so, we use that.
+    std::filesystem::path aurora_template_script_openfpga_path =
+        GetSession()->Context()->DataPath() /
+        std::filesystem::path("..") /
+        std::filesystem::path("scripts") /
+        std::filesystem::path("aurora_template_script.openfpga");
+
+    if(FileUtils::FileExists(aurora_template_script_openfpga_path)) {
+        
+      // get it into a ifstream
+      std::ifstream stream(aurora_template_script_openfpga_path.string());
+        
+      if (stream.good()) {
+        aurora_template_script_openfpga = 
+          std::string((std::istreambuf_iterator<char>(stream)),
+                       std::istreambuf_iterator<char>());
+          stream.close();
+          use_external_template_openfpga = true;
+        }
+    }
+
+    if(use_external_template_openfpga) {
+      Message("Using External OpenFPGA Template Script: " +
+                                std::string(aurora_template_script_openfpga_path.string()));
+      m_openFPGAScript = aurora_template_script_openfpga;
+    }
+    else {
+      Message("Cannot load OpenFPGA Template Script: " +
+                                std::string(aurora_template_script_openfpga_path.string()));
+      Message("Using Internal OpenFPGA Template Script.");
+      m_openFPGAScript = qlOpenFPGABitstreamScript;
+    }
   }
   return m_openFPGAScript;
 }
