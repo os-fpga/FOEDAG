@@ -164,10 +164,22 @@ QString restoreSpaces(const QString& str) {
   QString temp = str;
   return temp.replace(WF_SPACE, " ");
 }
+QString convertNewLines(const QString& str) {
+  QString temp = str;
+  return temp.replace("\n", WF_NEWLINE);
+}
+QString restoreNewLines(const QString& str) {
+  QString temp = str;
+  return temp.replace(WF_NEWLINE, "\n");
+}
 
 // Set Value overloads for diff widgets
 void setVal(QLineEdit* ptr, const QString& userVal) {
   ptr->setText(userVal);
+  DBG_PRINT_VAL_SET(ptr, userVal);
+}
+void setVal(QTextEdit* ptr, const QString& userVal) {
+  ptr->setPlainText(userVal);
   DBG_PRINT_VAL_SET(ptr, userVal);
 }
 void setVal(QComboBox* ptr, const QString& userVal) {
@@ -905,7 +917,49 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       } else {
         targetObject = createdWidget;
       }
+    } else if (type == "textedit" || type == "textbox") {
+      // QTextEdit
+      QString sysDefaultVal =
+          QString::fromStdString(getDefault<std::string>(widgetJsonObj));
 
+      // Callback to handle value changes
+      std::function<void(QTextEdit*, const QString&)> handleChange =
+          [arg](QTextEdit* ptr, const QString& val) {
+            QString userVal = ptr->toPlainText();
+
+            json changeJson;
+            changeJson["userValue"] = userVal.toStdString();
+            storeJsonPatch(ptr, changeJson);
+
+            ptr->setProperty("tclArg", {});  // clear previous vals
+            // store a tcl arg/value string if an arg was provided
+            if (arg != "") {
+              userVal = convertSpaces(userVal);
+              userVal = convertNewLines(userVal);
+              QString argStr = "-" + arg + " " + userVal;
+              storeTclArg(ptr, argStr);
+            }
+          };
+
+      // Create our widget
+      auto ptr = createTextEdit(objName, sysDefaultVal, handleChange);
+      createdWidget = ptr;
+
+      if (tclArgPassed) {
+        // convert any spaces to a replaceable tag so the arg is 1 token
+        QString tempStr = restoreSpaces(argVal);
+        tempStr = restoreNewLines(tempStr);
+        setVal(ptr, tempStr);
+      } else if (widgetJsonObj.contains("userValue")) {
+        // Load and set user value
+        QString userVal = QString::fromStdString(
+            widgetJsonObj["userValue"].get<std::string>());
+        setVal(ptr, userVal);
+
+        DBG_PRINT_VAL_SET(ptr, userVal);
+      }
+
+      targetObject = createdWidget;
     } else if (type == "dropdown" || type == "combobox") {
       // QComboBox - "dropdown" or "combobox"
       QString sysDefaultVal =
@@ -1199,8 +1253,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             widgetJsonObj.value("bool_dependencies", json::array()));
         if (deps.count()) {
           // dependencies returns a list for future functionality, but for now
-          // we are only checking the first bool as additional logic and design
-          // choices are required to support multiple dependency fields
+          // we are only checking the first bool as additional logic and
+          // design choices are required to support multiple dependency fields
           targetObject->setProperty("bool_dependency", deps[0]);
         }
       }
@@ -1276,6 +1330,25 @@ QLineEdit* FOEDAG::createLineEdit(
           onChange(widget, newText);
         };
     QObject::connect(widget, &QLineEdit::textChanged, changeCb);
+  }
+
+  return widget;
+}
+
+QTextEdit* FOEDAG::createTextEdit(
+    const QString& objectName, const QString& text,
+    std::function<void(QTextEdit*, const QString&)> onChange) {
+  QTextEdit* widget = new QTextEdit();
+  widget->setObjectName(objectName);
+  widget->setPlainText(text);
+
+  if (onChange != nullptr) {
+    // onChange needs the widget so we capture that in a closure we
+    // can then pass to the normal qt handler
+    std::function<void()> changeCb = [onChange, widget]() {
+      onChange(widget, widget->toPlainText());
+    };
+    QObject::connect(widget, &QTextEdit::textChanged, changeCb);
   }
 
   return widget;
