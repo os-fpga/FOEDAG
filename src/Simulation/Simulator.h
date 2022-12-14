@@ -55,7 +55,6 @@ class Simulator {
   virtual ~Simulator() {}
   bool Simulate(SimulationType action, SimulatorType type,
                 const std::string& wave_file);
-  void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   bool RegisterCommands(TclInterpreter* interp);
   bool Clean(SimulationType action);
@@ -92,6 +91,9 @@ class Simulator {
 
   void SimulationOption(SimulationOpt option);
   SimulationOpt SimulationOption() const;
+
+  void WaveFile(SimulationType type, const std::string& file);
+  std::string WaveFile(SimulationType type) const;
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
