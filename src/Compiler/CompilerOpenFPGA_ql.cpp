@@ -2539,6 +2539,19 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -edif " + std::string(m_projManager->projectName() + ".edif");
   }
 
+  if( (settings_yosys_general_obj.contains("bram_types")) && 
+      (settings_yosys_general_obj["bram_types"]["default"].get<std::string>() == "checked") ) {
+
+    yosys_options += " -bram_types";
+  }
+
+  if( (settings_yosys_general_obj.contains("use_dsp_cfg_params")) && 
+      (settings_yosys_general_obj["use_dsp_cfg_params"]["default"].get<std::string>() == "checked") ) {
+
+    yosys_options += " -use_dsp_cfg_params";
+  }
+
+
   yosysScript = ReplaceAll(yosysScript, "${YOSYS_OPTIONS}", yosys_options);
 
   yosysScript =
