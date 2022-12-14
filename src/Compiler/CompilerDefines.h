@@ -105,6 +105,7 @@ static constexpr const char *GLOBAL_PLACEMENT_LOG{"global_placement.rpt"};
 static constexpr const char *PLACEMENT_LOG{"placement.rpt"};
 static constexpr const char *PLACEMENT_TIMING_LOG{"post_place_timing.rpt"};
 static constexpr const char *ROUTING_LOG{"routing.rpt"};
+static constexpr const char *ROUTING_TIMING_LOG{"post_rout_timing.rpt"};
 static constexpr const char *TIMING_ANALYSIS_LOG{"timing_analysis.rpt"};
 static constexpr const char *POWER_ANALYSIS_LOG{"power_analysis.rpt"};
 static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
