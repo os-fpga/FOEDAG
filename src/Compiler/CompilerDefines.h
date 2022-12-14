@@ -60,8 +60,8 @@ static constexpr uint IP_GENERATE{0};
 static constexpr uint SYNTHESIS{1};
 static constexpr uint SYNTHESIS_CLEAN{2};
 static constexpr uint SYNTHESIS_SETTINGS{3};
-static constexpr uint SYNTHESIS_WRITE_NETLIST{4};
-static constexpr uint SYNTHESIS_TIMING_REPORT{5};
+// static constexpr uint SYNTHESIS_WRITE_NETLIST{4}; // ID deprecated by RG-230
+// static constexpr uint SYNTHESIS_TIMING_REPORT{5}; // ID deprecated by RG-230
 static constexpr uint PACKING{6};
 static constexpr uint PACKING_CLEAN{7};
 static constexpr uint GLOBAL_PLACEMENT{8};
@@ -69,12 +69,12 @@ static constexpr uint GLOBAL_PLACEMENT_CLEAN{9};
 static constexpr uint PLACEMENT{10};
 static constexpr uint PLACEMENT_CLEAN{11};
 static constexpr uint PLACEMENT_SETTINGS{12};
-static constexpr uint PLACEMENT_WRITE_NETLIST{13};
-static constexpr uint PLACEMENT_TIMING_REPORT{14};
+// static constexpr uint PLACEMENT_WRITE_NETLIST{13}; // ID deprecated by RG-230
+// static constexpr uint PLACEMENT_TIMING_REPORT{14}; // ID deprecated by RG-230
 static constexpr uint ROUTING{15};
 static constexpr uint ROUTING_CLEAN{16};
 static constexpr uint ROUTING_SETTINGS{17};
-static constexpr uint ROUTING_WRITE_NETLIST{18};
+// static constexpr uint ROUTING_WRITE_NETLIST{18}; // ID deprecated by RG-230
 static constexpr uint TIMING_SIGN_OFF{19};
 static constexpr uint POWER{20};
 static constexpr uint BITSTREAM{21};
