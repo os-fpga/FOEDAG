@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QObject>
+#include <QVariant>
 #include <QVector>
 
 namespace FOEDAG {
@@ -38,6 +39,16 @@ enum class TaskType {
   Settings,
   Button,
   Clean,
+};
+
+enum class CustomDataType {
+  None,
+  Sim,
+};
+
+struct CustomData {
+  CustomDataType type{CustomDataType::None};
+  QVariant data;
 };
 
 /*!
@@ -70,6 +81,9 @@ class Task : public QObject {
 
   QString abbreviation() const;
   void setAbbreviation(QString key);
+
+  void setCustomData(const CustomData &data);
+  const CustomData &cusomData() const;
 
   /*!
    * \brief trigger
@@ -114,6 +128,7 @@ class Task : public QObject {
   bool m_valid{false};
   QString m_logFilePath{};
   bool m_enable{true};
+  CustomData m_customData{};
 };
 
 }  // namespace FOEDAG

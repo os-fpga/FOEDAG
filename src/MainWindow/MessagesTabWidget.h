@@ -26,6 +26,7 @@ class QTreeWidgetItem;
 
 namespace FOEDAG {
 class TaskManager;
+struct TaskMessage;
 
 class MessagesTabWidget final : public QWidget {
   Q_OBJECT
@@ -37,6 +38,8 @@ class MessagesTabWidget final : public QWidget {
   void onMessageClicked(const QTreeWidgetItem *item, int col);
 
  private:
+  QTreeWidgetItem *createTaskMessageItem(const TaskMessage &msg,
+                                         const QString &filePath) const;
   const TaskManager &m_taskManager;
 };
 

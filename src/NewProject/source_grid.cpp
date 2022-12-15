@@ -162,6 +162,8 @@ void sourceGrid::setGridType(GridType type) {
   }
 }
 
+GridType sourceGrid::gridType() const { return m_type; }
+
 QList<filedata> sourceGrid::getTableViewData() { return m_lisFileData; }
 
 void sourceGrid::currentFileSet(const QString &fileSet) {

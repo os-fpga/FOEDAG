@@ -39,11 +39,18 @@ class RoutingReportManager final : public AbstractReportManager {
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   const Messages &getMessages() override;
+  QString getTimingLogFileName() const override;
+  bool isStatisticalTimingLine(const QString &line) override;
 
-  std::unique_ptr<ITaskReport> createResourceReport(QFile &logFile);
-  std::unique_ptr<ITaskReport> createCircuitReport(QFile &logFile);
+  ITaskReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
 
-  Messages m_messages;
+  void parseLogFile();
+
+  void reset();
+
+  ITaskReport::TableData m_circuitData;
+  QStringList m_circuitColumns;
+  SectionKeys m_routingKeys;
 };
 
 }  // namespace FOEDAG

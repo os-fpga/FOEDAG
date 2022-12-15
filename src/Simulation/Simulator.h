@@ -45,7 +45,6 @@ class Simulator {
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
             TclInterpreterHandler* tclInterpreterHandler = nullptr);
-  void SetSimulationTop(const std::string& top) { m_simulationTop = top; }
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetErrStream(std::ostream* err) { m_err = err; };
@@ -56,7 +55,6 @@ class Simulator {
   virtual ~Simulator() {}
   bool Simulate(SimulationType action, SimulatorType type,
                 const std::string& wave_file);
-  void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   bool RegisterCommands(TclInterpreter* interp);
   bool Clean(SimulationType action);
@@ -93,6 +91,9 @@ class Simulator {
 
   void SimulationOption(SimulationOpt option);
   SimulationOpt SimulationOption() const;
+
+  void WaveFile(SimulationType type, const std::string& file);
+  std::string WaveFile(SimulationType type) const;
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -132,7 +133,6 @@ class Simulator {
   std::map<SimulatorType, std::string> m_simulatorElaborationOptionMap;
   std::map<SimulatorType, std::string> m_simulatorRuntimeOptionMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
-  std::string m_simulationTop;
   std::string m_waveFile;
   WaveformType m_waveType = WaveformType::FST;
   SimulationOpt m_simulationOpt{SimulationOpt::None};
@@ -140,5 +140,8 @@ class Simulator {
 };
 
 }  // namespace FOEDAG
+
+// declare metatype for QVariant usage
+Q_DECLARE_METATYPE(FOEDAG::Simulator::SimulationType)
 
 #endif

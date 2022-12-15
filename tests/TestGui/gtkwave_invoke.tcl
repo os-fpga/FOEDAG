@@ -21,7 +21,7 @@ proc delay { time } { set delayDone 0; after $time set delayDone 1; vwait delayD
 
 # open gtkwave and give it time to load
 wave_open
-delay 1000
+delay 3000
 
 # close gtkwave via the menu
 wave_cmd gtkwave::/File/Quit

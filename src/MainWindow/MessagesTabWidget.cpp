@@ -7,6 +7,11 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TextEditor/text_editor_form.h"
 
+namespace {
+static constexpr auto FilePathRole = Qt::UserRole + 1;
+static constexpr auto LineNumberRole = Qt::UserRole + 2;
+}  // namespace
+
 namespace FOEDAG {
 
 MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
@@ -30,14 +35,10 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
       auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
       auto taskItem = new QTreeWidgetItem({itemName});
-      taskItem->setData(0, Qt::UserRole, filePath);
 
       const auto &msgs = reportManager->getMessages();
       for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
-        auto msgItem = new QTreeWidgetItem({it.value()});
-        // task id is needed to locate corresponding report manager in case of
-        // report request
-        msgItem->setData(0, Qt::UserRole, QVariant(it.key()));
+        auto msgItem = createTaskMessageItem(it.value(), filePath);
         taskItem->addChild(msgItem);
       }
       treeWidget->addTopLevelItem(taskItem);
@@ -48,13 +49,38 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
           &MessagesTabWidget::onMessageClicked);
 }
 
+QTreeWidgetItem *MessagesTabWidget::createTaskMessageItem(
+    const TaskMessage &msg, const QString &filePath) const {
+  auto msgItem = new QTreeWidgetItem({msg.m_message});
+  msgItem->setData(0, LineNumberRole, QVariant(msg.m_lineNr));
+  msgItem->setData(0, FilePathRole, filePath);
+
+  switch (msg.m_severity) {
+    case MessageSeverity::INFO_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/img/info.png"));
+      break;
+    case MessageSeverity::ERROR_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/images/error.png"));
+      break;
+    case MessageSeverity::WARNING_MESSAGE:
+      msgItem->setIcon(0, QIcon(":/img/warn.png"));
+      break;
+    default:
+      break;
+  }
+
+  for (const auto &childMsg : msg.m_childMessages)
+    msgItem->addChild(createTaskMessageItem(childMsg, filePath));
+
+  return msgItem;
+}
+
 void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {
-  auto parentItem = item->parent();
-  if (!parentItem) return;  // only leaf items represent log messages
+  if (!item->parent()) return;  // top level items are tasks
 
-  auto filePath = parentItem->data(0, Qt::UserRole).toString();
+  auto filePath = item->data(0, FilePathRole).toString();
 
-  auto line = item->data(col, Qt::UserRole).toInt();
+  auto line = item->data(col, LineNumberRole).toInt();
   TextEditorForm::Instance()->OpenFileWithSelection(QString(filePath), line,
                                                     line);
 }
