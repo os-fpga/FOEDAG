@@ -95,10 +95,11 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(
     const QString &fileName) const {
-  auto projectPath = Project::Instance()->projectPath();
-  auto logFilePath = QString("%1/%2").arg(projectPath, fileName);
+  auto projectPath = Project::Instance()->projectPath().toStdString();
+  auto logFilePath =
+      (std::filesystem::path(projectPath) / fileName.toStdString()).string();
 
-  auto logFile = std::make_unique<QFile>(logFilePath);
+  auto logFile = std::make_unique<QFile>(QString::fromStdString(logFilePath));
   if (!logFile->open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
                      QIODevice::Text))
     return nullptr;
