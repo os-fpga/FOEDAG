@@ -44,6 +44,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   AbstractReportManager(const TaskManager &taskManager);
 
  protected:
+  // Getter for timing report file name
+  virtual QString getTimingLogFileName() const = 0;
+  // Returns true if given line holds statistical timing info.
+  virtual bool isStatisticalTimingLine(const QString &line);
   // Parses in stream line by line till empty one occurs and creates table data.
   // Fills parsed data into 'm_resourceColumns' and 'm_resourceData'
   void parseResourceUsage(QTextStream &in, int &lineNr);
@@ -63,6 +67,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   // Fills the values from given 'timingData' to m_timingData.
   void fillTimingData(const QStringList &timingData);
+  void createTimingDataFile(const QStringList &timingData);
 
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;

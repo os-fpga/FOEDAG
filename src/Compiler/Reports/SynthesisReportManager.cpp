@@ -188,4 +188,9 @@ const ITaskReportManager::Messages &SynthesisReportManager::getMessages() {
   return m_messages;
 }
 
+QString SynthesisReportManager::getTimingLogFileName() const {
+  // Current synthesis log implementation doesn't contain timing info
+  return {};
+}
+
 }  // namespace FOEDAG
