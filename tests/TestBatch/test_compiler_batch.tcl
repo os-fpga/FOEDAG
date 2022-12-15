@@ -21,17 +21,17 @@ batch {
   pin_loc_assign_method random
   synth
   packing
-  # globp
+  globp
 
   pin_loc_assign_method in_define_order
   synth
   packing
-  # globp
+  globp
 
 }
 
 after 22000 {set CONT 0}
-set CONT 1
+set CONT 1 
 while {$CONT} {
   set a 0
   after 100 set a 1
