@@ -22,7 +22,7 @@ batch {
   synth
   packing
   globp
-  
+
   pin_loc_assign_method in_define_order
   synth
   packing

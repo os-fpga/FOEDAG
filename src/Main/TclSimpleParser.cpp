@@ -37,8 +37,8 @@ std::pair<bool, std::string> TclSimpleParser::parse(
   if (content.contains("analyze")) counter++;
   if (content.contains("synth") || content.contains("synthesize")) counter++;
   if (content.contains("packing")) counter++;
-  if (content.contains("globp") || content.contains("global_placement"))
-    counter++;
+  // if (content.contains("globp") || content.contains("global_placement"))
+  //   counter++;
   if (content.contains("place")) counter++;
   if (content.contains("route")) counter++;
   if (content.contains("sta")) counter++;

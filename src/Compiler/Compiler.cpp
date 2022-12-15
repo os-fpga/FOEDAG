@@ -188,7 +188,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
-  (*out) << "   global_placement ?clean?" << std::endl;
+  // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
@@ -988,6 +988,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in Jan'23 release");
+      return TCL_OK;
+
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
@@ -1313,6 +1317,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in Jan'23 release");
+      return TCL_OK;
+
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
@@ -2046,8 +2054,8 @@ bool Compiler::RunCompileTask(Action action) {
       return Synthesize();
     case Action::Pack:
       return Packing();
-    case Action::Global:
-      return GlobalPlacement();
+    // case Action::Global:
+    //   return GlobalPlacement();
     case Action::Detailed:
       return Placement();
     case Action::Routing:
@@ -2106,12 +2114,12 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
     });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
-    });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
-    });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
+    // });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
+    // });
     m_taskManager->bindTaskCommand(PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place"));
     });
