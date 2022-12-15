@@ -63,6 +63,10 @@ void Task::setAbbreviation(QString abbreviation) {
   m_abbreviation = abbreviation;
 }
 
+void Task::setCustomData(const CustomData &data) { m_customData = data; }
+
+const CustomData &Task::cusomData() const { return m_customData; }
+
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();
 }

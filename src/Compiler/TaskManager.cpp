@@ -322,7 +322,7 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
       // In case clean action, clean parent is required.
       if (((*it)->type() == TaskType::Clean) && (it != m_taskQueue.begin()))
         it--;
-      if ((*it)->title().startsWith("Simulate")) {
+      if (isSimulation(*it)) {
         // in case simulation task, we don't need to clean all downstream tasks
         (*it)->setStatus(TaskStatus::None);
         break;
@@ -337,6 +337,10 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
 
 const TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() const {
   return m_reportManagerRegistry;
+}
+
+bool TaskManager::isSimulation(const Task *const task) {
+  return task->cusomData().type == CustomDataType::Sim;
 }
 
 void TaskManager::appendTask(Task *t) {

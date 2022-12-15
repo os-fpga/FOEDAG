@@ -56,6 +56,7 @@ class TaskTableView : public QTableView {
   void TaskDialogRequested(const QString &category);
   void ViewFileRequested(const QString &filePath);
   void ViewReportRequested(Task *task, const QString &reportId);
+  void ViewWaveform(FOEDAG::Task *task);
 
  private:
   QRect expandArea(const QModelIndex &index) const;
