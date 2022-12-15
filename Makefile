@@ -170,7 +170,7 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt1.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt2.tcl
-	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_invoke.tcl
+#	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_invoke.tcl # Disable for now. Test is noisy in current CI.
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/log_header.tcl
 
