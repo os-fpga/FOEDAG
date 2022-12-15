@@ -985,21 +985,25 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("packing", packing, this, 0);
 
-    // auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
-    //                           const char* argv[]) -> int {
-    //   Compiler* compiler = (Compiler*)clientData;
-    //   for (int i = 1; i < argc; i++) {
-    //     std::string arg = argv[i];
-    //     if (arg == "clean") {
-    //       compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
-    //     } else {
-    //       compiler->ErrorMessage("Unknown option: " + arg);
-    //     }
-    //   }
-    //   return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
-    // };
-    // interp->registerCmd("global_placement", globalplacement, this, 0);
-    // interp->registerCmd("globp", globalplacement, this, 0);
+    auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in this release");
+      return TCL_OK;
+
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+        }
+      }
+      return compiler->Compile(Action::Global) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("global_placement", globalplacement, this, 0);
+    interp->registerCmd("globp", globalplacement, this, 0);
 
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -1310,23 +1314,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("packing", packing, this, 0);
 
-    // auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
-    //                           const char* argv[]) -> int {
-    //   Compiler* compiler = (Compiler*)clientData;
-    //   for (int i = 1; i < argc; i++) {
-    //     std::string arg = argv[i];
-    //     if (arg == "clean") {
-    //       compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
-    //     } else {
-    //       compiler->ErrorMessage("Unknown option: " + arg);
-    //     }
-    //   }
-    //   WorkerThread* wthread =
-    //       new WorkerThread("glob_th", Action::Global, compiler);
-    //   return wthread->start() ? TCL_OK : TCL_ERROR;
-    // };
-    // interp->registerCmd("global_placement", globalplacement, this, 0);
-    // interp->registerCmd("globp", globalplacement, this, 0);
+    auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+      Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in this release");
+      return TCL_OK;
+
+      for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "clean") {
+          compiler->GlobPlacementOpt(Compiler::GlobalPlacementOpt::Clean);
+        } else {
+          compiler->ErrorMessage("Unknown option: " + arg);
+        }
+      }
+      WorkerThread* wthread =
+          new WorkerThread("glob_th", Action::Global, compiler);
+      return wthread->start() ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("global_placement", globalplacement, this, 0);
+    interp->registerCmd("globp", globalplacement, this, 0);
 
     auto placement = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {

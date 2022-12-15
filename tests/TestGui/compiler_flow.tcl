@@ -22,7 +22,7 @@ set_top_module toto
 ipgenerate
 synth
 packing
-# globp
+globp
 place
 route
 sta
