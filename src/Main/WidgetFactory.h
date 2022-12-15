@@ -43,6 +43,7 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 #define DlgBtnBoxName "SettingsDialogButtonBox"
 #define WF_SPACE "_TclArgSpace_"
 #define WF_NEWLINE "_TclArgNewLine_"
+#define WF_DASH "_TclArgDash_"
 
 namespace FOEDAG {
 void initTclArgFns();
