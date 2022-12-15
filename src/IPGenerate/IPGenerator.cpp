@@ -570,11 +570,11 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   ProjectManager* projManager = nullptr;
   if (m_compiler && (projManager = m_compiler->ProjManager())) {
-    std::string ipPath = GetBuildDir(instance);
+    std::filesystem::path ipPath = GetBuildDir(instance);
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
-    dir = std::filesystem::path(ipPath) / ip_config_file;
+    dir = ipPath / ip_config_file;
   }
 
   return dir;
