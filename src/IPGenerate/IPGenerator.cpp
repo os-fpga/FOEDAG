@@ -446,6 +446,9 @@ bool IPGenerator::Generate() {
           previousbuffer << previous.rdbuf();
         }
 
+        // Create directory path if it doesn't exist otherwise the following
+        // ofstream command will fail
+        FileUtils::MkDirs(jsonFile.parent_path());
         std::ofstream jsonF(jsonFile);
         jsonF << "{" << std::endl;
         for (auto param : inst->Parameters()) {
@@ -519,7 +522,8 @@ bool IPGenerator::Generate() {
         }
 
         std::string command = pythonPath.string() + " " + executable.string() +
-                              " --build --json " + jsonFile.string();
+                              " --build --json " +
+                              FileUtils::GetFullPath(jsonFile).string();
         std::ostringstream help;
 
         if (newbuffer.str() == previousbuffer.str()) {
@@ -566,11 +570,11 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   ProjectManager* projManager = nullptr;
   if (m_compiler && (projManager = m_compiler->ProjManager())) {
-    std::string projectPath = projManager->projectPath();
+    std::string ipPath = GetBuildDir(instance);
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
-    dir = std::filesystem::path(projectPath) / ip_config_file;
+    dir = std::filesystem::path(ipPath) / ip_config_file;
   }
 
   return dir;
