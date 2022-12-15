@@ -96,6 +96,7 @@ static constexpr uint SIMULATE_PNR_SETTINGS{36};
 static constexpr uint SIMULATE_BITSTREAM{37};
 static constexpr uint SIMULATE_BITSTREAM_CLEAN{38};
 static constexpr uint SIMULATE_BITSTREAM_SETTINGS{39};
+static constexpr uint TIMING_SIGN_OFF_SETTINGS{40};
 
 static constexpr const char *IP_GENERATE_LOG{"ip_generate.rpt"};
 static constexpr const char *ANALYSIS_LOG{"analysis.rpt"};

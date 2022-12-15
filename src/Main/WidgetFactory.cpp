@@ -70,6 +70,9 @@ void FOEDAG::initTclArgFns() {
                                    FOEDAG::TclArgs_getPlacementOptions});
   addTclArgFns("Tasks_Simulate", {FOEDAG::TclArgs_setSimulateOptions,
                                   FOEDAG::TclArgs_getSimulateOptions});
+  addTclArgFns("Tasks_TimingAnalysis",
+               {FOEDAG::TclArgs_setTimingAnalysisOptions,
+                FOEDAG::TclArgs_getTimingAnalysisOptions});
   addTclArgFns("TclExample", {FOEDAG::TclArgs_setExampleArgs,
                               FOEDAG::TclArgs_getExampleArgs});
 }
