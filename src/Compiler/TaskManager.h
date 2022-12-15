@@ -93,6 +93,9 @@ class TaskManager : public QObject {
   void setTaskCount(int count);
 
   const TaskReportManagerRegistry &getReportManagerRegistry() const;
+
+  static bool isSimulation(const Task *const task);
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.

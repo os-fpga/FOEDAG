@@ -141,4 +141,7 @@ class Simulator {
 
 }  // namespace FOEDAG
 
+// declare metatype for QVariant usage
+Q_DECLARE_METATYPE(FOEDAG::Simulator::SimulationType)
+
 #endif
