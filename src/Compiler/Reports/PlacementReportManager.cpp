@@ -37,6 +37,8 @@ static constexpr const char *TIMING_REPORT_NAME{
     "Post placement - Report Static Timing"};
 
 // Messages regexps
+static const QRegExp FIND_PLACEMENT_TIMINGS{
+    "Placement estimated (critical|setup).*[0-9].*"};
 static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
 static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
 static const QRegExp TILEABLE_GRAPH_REGEXP{
@@ -118,6 +120,14 @@ void PlacementReportManager::parseLogFile() {
   logFile->close();
 
   setFileParsed(true);
+}
+
+QString PlacementReportManager::getTimingLogFileName() const {
+  return QString{PLACEMENT_TIMING_LOG};
+}
+
+bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
+  return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
 }
 
 }  // namespace FOEDAG

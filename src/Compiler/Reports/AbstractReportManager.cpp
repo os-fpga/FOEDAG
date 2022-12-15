@@ -1,6 +1,7 @@
 #include "AbstractReportManager.h"
 
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
 #include <set>
 
@@ -14,11 +15,14 @@ static constexpr const char *BLOCKS_COL{"Blocks"};
 static const QRegExp WARNING_REGEXP("Warning [0-9].*:");
 static const QRegExp ERROR_REGEXP("Error [0-9].*:");
 
-static const QRegExp FIND_TIMINGS{
-    "Placement estimated (critical|setup).*[0-9].*"};
-
 static const QString STAT_TIMING_COL{"Statistics"};
 static const QString VAL_TIMING_COL{"Value"};
+
+static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
+                                       "FMax", "Setup WNS", "Setup TNS"};
+
+static const QRegularExpression FIND_STAT_TIMING{
+    "([-]?(([0-9]*[.])?[0-9]+) (ns|MHz))"};
 }  // namespace
 
 namespace FOEDAG {
@@ -91,10 +95,11 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(
     const QString &fileName) const {
-  auto projectPath = Project::Instance()->projectPath();
-  auto logFilePath = QString("%1/%2").arg(projectPath, fileName);
+  auto projectPath = Project::Instance()->projectPath().toStdString();
+  auto logFilePath =
+      (std::filesystem::path(projectPath) / fileName.toStdString()).string();
 
-  auto logFile = std::make_unique<QFile>(logFilePath);
+  auto logFile = std::make_unique<QFile>(QString::fromStdString(logFilePath));
   if (!logFile->open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
                      QIODevice::Text))
     return nullptr;
@@ -167,7 +172,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
       }
     } else if (FIND_RESOURCES.indexIn(line) != -1) {
       parseResourceUsage(in, lineNr);
-    } else if (FIND_TIMINGS.indexIn(line) != -1) {
+    } else if (isStatisticalTimingLine(line)) {
       timings << line + "\n";
     }
   }
@@ -207,6 +212,36 @@ TaskMessage AbstractReportManager::createWarningErrorItem(
 
 void AbstractReportManager::fillTimingData(const QStringList &timingData) {
   m_timingData.clear();
+
+  createTimingDataFile(timingData);
+
+  auto timingStr = timingData.join(' ');
+  auto matchIt = FIND_STAT_TIMING.globalMatch(timingStr);
+  if (FIND_STAT_TIMING.captureCount() != TIMING_FIELDS.size()) return;
+  auto valueIndex = 0;
+  while (matchIt.hasNext()) {
+    auto match = matchIt.next();
+    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
+  }
+}
+
+void AbstractReportManager::createTimingDataFile(
+    const QStringList &timingData) {
+  auto logFileName = getTimingLogFileName();
+  if (logFileName.isEmpty()) return;
+
+  auto projectPath = Project::Instance()->projectPath();
+  auto logFilePath = QString("%1/%2").arg(projectPath, logFileName);
+
+  auto timingLogFile = QFile(logFilePath);
+
+  if (!timingLogFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+  timingLogFile.resize(0);  // clear all previous contents
+
+  QTextStream out(&timingLogFile);
+  for (auto &line : timingData) out << line;
+
+  timingLogFile.close();
 }
 
 void AbstractReportManager::setFileParsed(bool parsed) {
@@ -214,5 +249,9 @@ void AbstractReportManager::setFileParsed(bool parsed) {
 }
 
 bool AbstractReportManager::isFileParsed() const { return m_fileParsed; }
+
+bool AbstractReportManager::isStatisticalTimingLine(const QString &line) {
+  return false;
+}
 
 }  // namespace FOEDAG
