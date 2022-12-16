@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/Constraints.h"
 #include "Compiler/TaskManager.h"
+#include "Compiler/TaskModel.h"
 #include "Console/DummyParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
@@ -951,9 +952,11 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_reportsDockWidget->hide();
 
   // compiler task view
-  QWidget* view = prepareCompilerView(m_compiler, &m_taskManager);
-  view->setObjectName("compilerTaskView");
-  view->setParent(this);
+  delete m_taskView;
+  m_taskView = prepareCompilerView(m_compiler, &m_taskManager);
+  m_taskView->setObjectName("compilerTaskView");
+  m_taskView->setParent(this);
+  m_taskModel = dynamic_cast<TaskModel*>(m_taskView->model());
 
   connect(
       m_taskManager, &TaskManager::progress, this,
@@ -997,7 +1000,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
                                          ComponentId::Compiler);
   QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
-  taskDockWidget->setWidget(view);
+  taskDockWidget->setWidget(m_taskView);
   addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
   connect(m_taskManager, &TaskManager::taskStateChanged, this,
@@ -1283,7 +1286,16 @@ void MainWindow::updateTaskTable() {
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
   m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
   m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
+  m_taskManager->task(SIMULATE_RTL)->setEnable(!isPostSynthPure);
   m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
+  if (m_taskView && m_taskModel) {
+    for (auto taskId : {IP_GENERATE, ANALYSIS, ANALYSIS_CLEAN, SIMULATE_RTL,
+                        SIMULATE_RTL_CLEAN, SIMULATE_RTL_SETTINGS, SYNTHESIS,
+                        SYNTHESIS_CLEAN, SYNTHESIS_SETTINGS}) {
+      int row = m_taskModel->ToRowIndex(taskId);
+      m_taskView->setRowHidden(row, isPostSynthPure);
+    }
+  }
 }
 
 void MainWindow::slotTabChanged(int index) {

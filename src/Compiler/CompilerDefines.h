@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QWidget>
+#include <QTableView>
 
 namespace FOEDAG {
 
@@ -117,8 +117,8 @@ static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
  * \param taskManager - output parameter to receive pointer to task manager.
  * \return widget with compiler task view
  */
-QWidget *prepareCompilerView(Compiler *compiler,
-                             TaskManager **taskManager = nullptr);
+QTableView *prepareCompilerView(Compiler *compiler,
+                                TaskManager **taskManager = nullptr);
 
 uint toTaskId(int action, Compiler *const compiler);
 
