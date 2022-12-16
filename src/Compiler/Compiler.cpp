@@ -1885,9 +1885,8 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
       {"wave_show <signal>",
        "Add the given signal to the GTKWave window and highlight it."},
       {"wave_time <time>",
-       "Set the current GTKWave view port start time to <time>. Times "
-       "units "
-       "can be specified, without a space. Ex: wave_time 100ps."}};
+       "Set the primary marker to <time>. Time units can be specified, without "
+       "a space. Ex: wave_time 100ps."}};
 
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
