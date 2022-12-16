@@ -1623,7 +1623,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
 
-      std::string cmd = std::string("gtkwave::setWindowStartTime ") + argv[1];
+      std::string cmd = std::string("gtkwave::setMarker ") + argv[1];
 
       // Send cmd to GTKWave
       compiler->GTKWaveSendCmd(cmd);
