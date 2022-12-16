@@ -20,31 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "IDataReport.h"
+#include <QString>
+
+#include "ITaskReport.h"
 
 namespace FOEDAG {
 
-// Default data report implementation, representing table-like data.
-class TableReport : public IDataReport {
+class IDataReport;
+
+/* Given interface represents task report. It may consist
+ * of multiple data reports and can be shown in multiple
+ * tables.
+ */
+class DefaultTaskReport : public ITaskReport {
  public:
-  TableReport(const LineValues &columnNames, const TableData &linesData,
-              const QString &name);
+  DefaultTaskReport(ITaskReport::DataReports &&dataReports,
+                    const QString &name);
 
-  TableReport(const TableReport &) = default;
-  TableReport &operator=(const TableReport &) = default;
-  TableReport(TableReport &&) = default;
-  TableReport &operator=(TableReport &&) = default;
-
- private:
-  const LineValues &getColumns() const override;
-  // Returns report data - rows of values
-  const TableData &getData() const override;
-  // Returns report name
+  const ITaskReport::DataReports &getDataReports() const override;
   const QString &getName() const override;
 
-  LineValues m_columnNames;
-  TableData m_linesData;
+ private:
+  ITaskReport::DataReports m_dataReports;
   QString m_name;
 };
-
 }  // namespace FOEDAG

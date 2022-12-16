@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 
 #include "CompilerDefines.h"
+#include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
 
@@ -72,18 +73,18 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();
 
-  auto report = std::unique_ptr<ITaskReport>{};
+  ITaskReport::DataReports dataReports;
 
   if (reportId == QString(RESOURCE_REPORT_NAME))
-    report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
-                                           RESOURCE_REPORT_NAME);
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_resourceColumns, m_resourceData, QString{}));
   else
-    report = std::make_unique<TableReport>(m_timingColumns, m_timingData,
-                                           TIMING_REPORT_NAME);
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_timingColumns, m_timingData, QString{}));
 
   emit reportCreated(reportId);
 
-  return report;
+  return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
