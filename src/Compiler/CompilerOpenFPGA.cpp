@@ -1718,8 +1718,15 @@ bool CompilerOpenFPGA::Placement() {
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
-    // TODO: accept both blif or verilog format
-    pincommand += " --blif " + netlistFile;
+    if (GetNetlistType() == NetlistType::Verilog) {
+      std::filesystem::path p(netlistFile);
+      p.replace_extension();
+      pincommand += " --port_info ";
+      pincommand += p.string() + "_ports.json";
+    } else {
+      pincommand += " --blif " + netlistFile;
+    }
+
     std::string pin_locFile = ProjManager()->projectName() + "_pin_loc.place";
     pincommand += " --output " + pin_locFile;
 
