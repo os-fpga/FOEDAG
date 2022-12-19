@@ -56,6 +56,7 @@ set (SRC_H_INSTALL_LIST
   sequential_map.h
   QtUtils.h
   LogUtils.h
+  ScopeGuard.hpp
 )
 
 set (SRC_H_LIST

@@ -44,6 +44,7 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
+#include "Utils/ScopeGuard.hpp"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
 
@@ -1034,6 +1035,15 @@ bool CompilerOpenFPGA::Analyze() {
 }
 
 bool CompilerOpenFPGA::Synthesize() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath =
+        copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+                SYNTHESIS_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
+
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
@@ -1333,11 +1343,6 @@ bool CompilerOpenFPGA::Synthesize() {
   } else {
     m_state = State::Synthesized;
     Message("Design " + ProjManager()->projectName() + " is synthesized");
-
-    auto logPath =
-        copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
-                SYNTHESIS_LOG);
-    LogUtils::AddHeaderToLog(logPath);
     return true;
   }
 }
@@ -1455,6 +1460,12 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
 }
 
 bool CompilerOpenFPGA::Packing() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
   if (PackOpt() == PackingOpt::Clean) {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
@@ -1534,9 +1545,6 @@ bool CompilerOpenFPGA::Packing() {
   }
   m_state = State::Packed;
   Message("Design " + ProjManager()->projectName() + " is packed");
-
-  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1570,6 +1578,12 @@ bool CompilerOpenFPGA::GlobalPlacement() {
 }
 
 bool CompilerOpenFPGA::Placement() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1782,9 +1796,6 @@ bool CompilerOpenFPGA::Placement() {
   }
   m_state = State::Placed;
   Message("Design " + ProjManager()->projectName() + " is placed");
-
-  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
-  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1837,6 +1848,12 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
 }
 
 bool CompilerOpenFPGA::Route() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1889,13 +1906,17 @@ bool CompilerOpenFPGA::Route() {
   }
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
-
-  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath =
+        copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -2013,13 +2034,17 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   Message("Design " + ProjManager()->projectName() + " is timing analysed");
-
-  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
+  SCOPE_EXIT {
+    // Using a Scope Guard so this will fire even if we exit mid function
+    // Rename log file and add header info
+    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
+    LogUtils::AddHeaderToLog(logPath);
+  };
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -2063,9 +2088,6 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   }
 
   Message("Design " + ProjManager()->projectName() + " is power analysed");
-
-  auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
