@@ -27,11 +27,11 @@ TableReport::TableReport(const LineValues &columnNames,
                          const TableData &linesData, const QString &name)
     : m_columnNames{columnNames}, m_linesData{linesData}, m_name{name} {}
 
-const ITaskReport::LineValues &TableReport::getColumns() const {
+const IDataReport::LineValues &TableReport::getColumns() const {
   return m_columnNames;
 }
 
-const ITaskReport::TableData &TableReport::getData() const {
+const IDataReport::TableData &TableReport::getData() const {
   return m_linesData;
 }
 
