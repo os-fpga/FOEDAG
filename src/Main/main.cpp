@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* mainWindowBuilder(FOEDAG::Session* session) {
   auto m = new FOEDAG::MainWindow{session};
   auto info = m->Info();
-  info.showLicense = true;
+  info.licenseFile = "LICENSE";
   m->Info(info);
   return m;
 }

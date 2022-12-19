@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 81)
+set(VERSION_PATCH 83)
 
 option(
   WITH_LIBCXX
@@ -507,7 +507,7 @@ install(
   DESTINATION cmake)
 
 install(
-  DIRECTORY etc DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/ DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
 
 install(
   DIRECTORY tests/Testcases/IPGenerate/IP_Catalog DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
@@ -543,6 +543,11 @@ add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
                   ${PROJECT_SOURCE_DIR}/etc
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+          ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/
