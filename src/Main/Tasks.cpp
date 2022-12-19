@@ -315,7 +315,7 @@ std::string FOEDAG::TclArgs_getTimingAnalysisOptions() {
   // Note: "tatum" is only used by widgetFactory. The compiler interface assumes
   // tatum any time Opensta isn't set
   std::string val = "tatum";
-  if (compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta) {
+  if (compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta) {
     val = "opensta";
   }
   std::string argStr = std::string("-") + TIMING_ANALYSIS_ARG + " " + val;
@@ -332,12 +332,12 @@ void FOEDAG::TclArgs_setTimingAnalysisOptions(const std::string& argsStr) {
       separateArg(TIMING_ANALYSIS_ARG, QString::fromStdString(argsStr));
 
   // Determine and set Timing Engine
-  auto engineVal = Compiler::STAOpt::None;
+  auto engineVal = Compiler::STAEngineOpt::Tatum;  // default to VPR/tatum
   QStringList tokens = engineArg.split(" ");
   if (tokens.size() > 1) {
     if (tokens[1] == "opensta") {
-      engineVal = Compiler::STAOpt::Opensta;
+      engineVal = Compiler::STAEngineOpt::Opensta;
     }
   }
-  compiler->TimingAnalysisOpt(engineVal);
+  compiler->TimingAnalysisEngineOpt(engineVal);
 };

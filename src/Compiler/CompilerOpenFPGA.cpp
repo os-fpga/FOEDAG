@@ -1940,7 +1940,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   int status = 0;
   std::string taCommand;
   // use OpenSTA to do the job
-  if (TimingAnalysisOpt() == STAOpt::Opensta) {
+  if (TimingAnalysisOpt() == STAOpt::Opensta ||
+      TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
