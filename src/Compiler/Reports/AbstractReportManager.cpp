@@ -52,7 +52,7 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
         m_resourceData.begin(), m_resourceData.end(),
         [&row](const auto &lineValues) { return lineValues[0] == row; });
     if (findIt == m_resourceData.end()) {
-      auto lineValues = ITaskReport::LineValues{row, {}, {}};
+      auto lineValues = IDataReport::LineValues{row, {}, {}};
       lineValues[columnIndex] = value;
       m_resourceData.push_back(std::move(lineValues));
     } else {

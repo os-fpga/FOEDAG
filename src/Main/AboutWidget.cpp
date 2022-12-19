@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QTextEdit>
 #include <QUrl>
 
 namespace FOEDAG {
@@ -51,8 +52,12 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
                 "href=\"%1%2\">%2</a></p>")
                 .arg(info.url, info.git_hash);
   }
-  if (info.showLicense) {
-    text += QString("<p>%1</p>").arg(License());
+  QTextEdit *license{nullptr};
+  if (!info.licenseFile.isEmpty()) {
+    license = new QTextEdit{this};
+    license->setTextInteractionFlags(license->textInteractionFlags() &
+                                     ~Qt::TextEditable);
+    license->setHtml(License(srcPath, info.licenseFile));
   }
   label->setText(text);
   label->setAlignment(Qt::AlignTop);
@@ -67,34 +72,29 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   closeBtnLayout->addStretch();
   closeBtnLayout->addWidget(close);
   layout()->addWidget(label);
+  if (license) layout()->addWidget(license);
   layout()->addItem(closeBtnLayout);
   setWindowTitle(QString("About %1").arg(info.name));
 
-  setFixedSize(sizeHint() + QSize(10, 10));
+  setMinimumWidth(400);
 }
 
-QString AboutWidget::License() {
-  const QString license = R"(
-<p>Copyright 2022 The Foedag team</p>
+QString AboutWidget::License(const std::filesystem::path &srcDir,
+                             const QString &file) {
+  std::filesystem::path sourceDir = srcDir / ETC_DIR / file.toStdString();
+  auto result = QString{};
+  auto descFile = QFile(QString::fromStdString(sourceDir.string()));
+  if (!descFile.open(QIODevice::ReadOnly)) return result;
 
-<p>GPL License</p>
+  result = descFile.readAll();
+  descFile.close();
 
-<p>Copyright (c) 2022 The Open-Source FPGA Foundation</p>
+  // convert plain text to html
+  QTextEdit textEdit;
+  textEdit.setPlainText(result.trimmed());
+  result = textEdit.toHtml();
 
-<p>This program is free software: you can redistribute it and/or modify<br>
-it under the terms of the GNU General Public License as published by<br>
-the Free Software Foundation, either version 3 of the License, or<br>
-(at your option) any later version.</p>
-
-<p>This program is distributed in the hope that it will be useful,<br>
-but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
-GNU General Public License for more details.</p>
-
-<p>You should have received a copy of the GNU General Public License<br>
-along with this program.  If not, see <a>http://www.gnu.org/licenses/</a>.</p>
-)";
-  return license;
+  return result.trimmed();
 }
 
 QString AboutWidget::getTagLine(const std::filesystem::path &srcDir) {
