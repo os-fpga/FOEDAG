@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTableWidget>
 #include <QTableWidgetItem>
 
+#include "Compiler/Reports/IDataReport.h"
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Foedag.h"
@@ -42,42 +43,61 @@ using namespace FOEDAG;
 #define TASKS_DEBUG false
 
 namespace {
+QLabel* createTitleLabel(const QString& text) {
+  auto titleLabel = new QLabel(text);
+  auto font = titleLabel->font();
+  font.setBold(true);
+  titleLabel->setFont(font);
+
+  return titleLabel;
+}
+
 void openReportView(const ITaskReport& report) {
-  auto reportsView = new QTableWidget();
+  auto reportsWidget = new QWidget;
+  auto reportLayout = new QVBoxLayout;
+  reportLayout->setContentsMargins(0, 0, 0, 0);
 
-  // Fill columns
-  auto columns = report.getColumns();
-  reportsView->setColumnCount(columns.size());
-  auto colIndex = 0;
-  for (auto& col : columns) {
-    auto columnItem = new QTableWidgetItem(col);
-    reportsView->setHorizontalHeaderItem(colIndex, columnItem);
-    ++colIndex;
-  }
+  for (auto& dataReport : report.getDataReports()) {
+    auto dataReportName = dataReport->getName();
+    if (!dataReportName.isEmpty())
+      reportLayout->addWidget(createTitleLabel(dataReportName));
 
-  // Fill table
-  auto rowIndex = 0;
-  for (auto& lineData : report.getData()) {
-    reportsView->insertRow(rowIndex);
+    auto reportsView = new QTableWidget();
+    // Fill columns
+    auto columns = dataReport->getColumns();
+    reportsView->setColumnCount(columns.size());
     auto colIndex = 0;
-    for (auto& lineValue : lineData) {
-      auto item = new QTableWidgetItem(lineValue);
-      item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
-                                           : Qt::AlignCenter);
-      reportsView->setItem(rowIndex, colIndex, item);
+    for (auto& col : columns) {
+      auto columnItem = new QTableWidgetItem(col);
+      reportsView->setHorizontalHeaderItem(colIndex, columnItem);
       ++colIndex;
     }
-    ++rowIndex;
-  }
 
-  // Initialize the view itself
-  reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  reportsView->horizontalHeader()->resizeSections(
-      QHeaderView::ResizeToContents);
+    // Fill table
+    auto rowIndex = 0;
+    for (auto& lineData : dataReport->getData()) {
+      reportsView->insertRow(rowIndex);
+      auto colIndex = 0;
+      for (auto& lineValue : lineData) {
+        auto item = new QTableWidgetItem(lineValue);
+        item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
+                                             : Qt::AlignCenter);
+        reportsView->setItem(rowIndex, colIndex, item);
+        ++colIndex;
+      }
+      ++rowIndex;
+    }
+    // Initialize the view itself
+    reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    reportsView->horizontalHeader()->resizeSections(
+        QHeaderView::ResizeToContents);
+    reportLayout->addWidget(reportsView);
+  }
+  reportsWidget->setLayout(reportLayout);
 
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-  tabWidget->addTab(reportsView, report.getName());
-  tabWidget->setCurrentWidget(reportsView);
+  tabWidget->addTab(reportsWidget, report.getName());
+  tabWidget->setCurrentWidget(reportsWidget);
 }
 }  // namespace
 

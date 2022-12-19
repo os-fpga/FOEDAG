@@ -4,6 +4,7 @@
 #include <QTextStream>
 
 #include "CompilerDefines.h"
+#include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
 
@@ -53,26 +54,25 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();
 
-  auto report = std::unique_ptr<ITaskReport>{};
+  ITaskReport::DataReports dataReports;
 
   if (reportId == QString(RESOURCE_REPORT_NAME))
-    report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
-                                           RESOURCE_REPORT_NAME);
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_resourceColumns, m_resourceData, RESOURCE_REPORT_NAME));
   else if (reportId == QString(CIRCUIT_REPORT_NAME))
-    report = std::make_unique<TableReport>(m_circuitColumns, m_circuitData,
-                                           CIRCUIT_REPORT_NAME);
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_circuitColumns, m_circuitData, CIRCUIT_REPORT_NAME));
   else
-    report = std::make_unique<TableReport>(m_timingColumns, m_timingData,
-                                           TIMING_REPORT_NAME);
-
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_timingColumns, m_timingData, QString{}));
   emit reportCreated(reportId);
 
-  return report;
+  return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
-ITaskReport::TableData RoutingReportManager::parseCircuitStats(QTextStream &in,
+IDataReport::TableData RoutingReportManager::parseCircuitStats(QTextStream &in,
                                                                int &lineNr) {
-  auto circuitData = ITaskReport::TableData{};
+  auto circuitData = IDataReport::TableData{};
 
   auto isTotalLine = [](QString &line) -> bool {
     return !line.startsWith(

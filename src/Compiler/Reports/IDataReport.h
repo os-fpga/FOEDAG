@@ -20,31 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "IDataReport.h"
+#include <QStringList>
+#include <QVector>
 
 namespace FOEDAG {
 
-// Default data report implementation, representing table-like data.
-class TableReport : public IDataReport {
+/* Given interface represents the data report, holding single type of data:
+ * Timing info, resource usage, cirtuit statistics etc.
+ * It returns row and column data as strings. For simplicity, only
+ * standard table data is supported, no parent items. It can be
+ * extended if needed.
+ */
+class IDataReport {
  public:
-  TableReport(const LineValues &columnNames, const TableData &linesData,
-              const QString &name);
+  virtual ~IDataReport() = default;
 
-  TableReport(const TableReport &) = default;
-  TableReport &operator=(const TableReport &) = default;
-  TableReport(TableReport &&) = default;
-  TableReport &operator=(TableReport &&) = default;
-
- private:
-  const LineValues &getColumns() const override;
+  using LineValues = QStringList;
+  using TableData = QVector<LineValues>;
+  // Returns report column names
+  virtual const LineValues &getColumns() const = 0;
   // Returns report data - rows of values
-  const TableData &getData() const override;
+  virtual const TableData &getData() const = 0;
   // Returns report name
-  const QString &getName() const override;
-
-  LineValues m_columnNames;
-  TableData m_linesData;
-  QString m_name;
+  virtual const QString &getName() const = 0;
 };
-
 }  // namespace FOEDAG
