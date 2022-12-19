@@ -39,12 +39,12 @@ class Simulator {
   enum class SimulatorType { Verilator, Icarus, GHDL, VCS, Questa, Xcelium };
   enum class SimulationType { RTL, Gate, PNR, Bitstream };
   enum class WaveformType { VCD, FST };
+  enum class SimulationOpt { None, Clean };
 
   // Most common use case, create the compiler in your main
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
             TclInterpreterHandler* tclInterpreterHandler = nullptr);
-  void SetSimulationTop(const std::string& top) { m_simulationTop = top; }
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetErrStream(std::ostream* err) { m_err = err; };
@@ -55,12 +55,9 @@ class Simulator {
   virtual ~Simulator() {}
   bool Simulate(SimulationType action, SimulatorType type,
                 const std::string& wave_file);
-  void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   bool RegisterCommands(TclInterpreter* interp);
-  bool Clear();
-  void start();
-  void finish();
+  bool Clean(SimulationType action);
 
   std::string& getResult() { return m_result; }
 
@@ -91,6 +88,12 @@ class Simulator {
   std::string GetSimulatorCompileOption(SimulatorType type);
   std::string GetSimulatorElaborationOption(SimulatorType type);
   std::string GetSimulatorRuntimeOption(SimulatorType type);
+
+  void SimulationOption(SimulationOpt option);
+  SimulationOpt SimulationOption() const;
+
+  void WaveFile(SimulationType type, const std::string& file);
+  std::string WaveFile(SimulationType type) const;
 
  protected:
   virtual bool SimulateRTL(SimulatorType type);
@@ -130,11 +133,15 @@ class Simulator {
   std::map<SimulatorType, std::string> m_simulatorElaborationOptionMap;
   std::map<SimulatorType, std::string> m_simulatorRuntimeOptionMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
-  std::string m_simulationTop;
   std::string m_waveFile;
   WaveformType m_waveType = WaveformType::FST;
+  SimulationOpt m_simulationOpt{SimulationOpt::None};
+  std::map<SimulationType, std::string> m_waveFiles;
 };
 
 }  // namespace FOEDAG
+
+// declare metatype for QVariant usage
+Q_DECLARE_METATYPE(FOEDAG::Simulator::SimulationType)
 
 #endif

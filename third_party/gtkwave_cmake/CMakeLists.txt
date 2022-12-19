@@ -40,21 +40,25 @@ else()
 endif()
 
 set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
-set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/${gtkwave_tar})
+set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/gtkwaveTCL.tar.gz)
 set(install_path ${build_dir}/bin)
 set(gtkwave_path ${install_path}/gtkwave)
 
-if(skip)
-    # remove this once sourceforge slow downloads are resolved
-    message("GTKWave: Windows not currently supported")
-else()
-    if(NOT EXISTS ${gtkwave_path})
-        message(STATUS "Downloading GTKWave from ${download_path}")
-        file(DOWNLOAD ${download_path} ${temp_path} SHOW_PROGRESS)
-        message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
-            WORKING_DIRECTORY ${install_path}
-        )
-    endif()
+if(NOT EXISTS ${temp_path})
+    message(STATUS "Downloading GTKWave from ${download_path}")
+    file(DOWNLOAD ${download_path} ${temp_path})
 endif()
+
+add_library(gtkwave)
+
+add_custom_command(
+  TARGET gtkwave POST_BUILD
+  COMMENT "Extracting ${gtkwave_tar} to ${install_path}"
+  COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
+        WORKING_DIRECTORY ${install_path}
+)
+
+install(
+    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
+    USE_SOURCE_PERMISSIONS
+)

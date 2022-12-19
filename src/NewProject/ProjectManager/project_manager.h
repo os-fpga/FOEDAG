@@ -104,6 +104,14 @@ struct ProjectOptions {
     QList<filedata> fileData;
     bool isCopySource;
   };
+  struct Options {
+    QString topModule;
+    QString topModuleLib;
+    QString includePathList;
+    QString libraryPathList;
+    QString libraryExtList;
+    QString macroList;
+  };
   QString projectName;
   QString projectPath;
   int projectType;
@@ -113,12 +121,8 @@ struct ProjectOptions {
   QStringList device;
   bool rewriteProject;
   QString currentFileSet;
-  QString topModule;
-  QString topModuleLib;
-  QString includePathList;
-  QString libraryPathList;
-  QString libraryExtList;
-  QString macroList;
+  Options designOptions;
+  Options simulationOptions;
 };
 
 struct Suffixes {
@@ -135,6 +139,9 @@ enum ProjectType {
 class ProjectManager : public QObject {
   Q_OBJECT
  public:
+  using Libraries = std::vector<
+      std::pair<std::vector<std::string>, std::vector<std::string>>>;
+  using CompilationUnits = std::vector<std::pair<CompilationUnit, std::string>>;
   enum ErrorCode : int {
     EC_Success = 0,
     EC_FileSetNotExist = -1,
@@ -207,6 +214,7 @@ class ProjectManager : public QObject {
 
   // Please set currentfileset before using this function
   int setTopModule(const QString &strModuleName);
+  ErrorCode setTopModuleSim(const QString &strModuleName);
   int setTopModuleLibrary(const QString &strModuleNameLib);
   // Please set currentfileset before using this function
   int setTargetConstrs(const QString &strFileName);
@@ -219,15 +227,13 @@ class ProjectManager : public QObject {
   QStringList getDesignFiles() const;
   // Compiler interface
   // design
-  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
-  DesignLibraries() const;
-  std::vector<std::pair<CompilationUnit, std::string>> DesignFiles() const;
+  Libraries DesignLibraries() const;
+  CompilationUnits DesignFiles() const;
   std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
   DesignFileList() const;
   // simulation
-  std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>
-  SimulationLibraries() const;
-  std::vector<std::pair<CompilationUnit, std::string>> SimulationFiles() const;
+  Libraries SimulationLibraries() const;
+  CompilationUnits SimulationFiles() const;
   std::vector<std::pair<CompilationUnit, std::vector<std::string>>>
   SimulationFileList() const;
   // --------------------
@@ -235,9 +241,16 @@ class ProjectManager : public QObject {
   QString getDesignTopModule() const;
   std::string DesignTopModule() const;
 
+  QString getSimulationTopModule() const;
+  std::string SimulationTopModule() const;
+
   QString getDesignTopModuleLib(const QString &strFileSet) const;
   QString getDesignTopModuleLib() const;
   std::string DesignTopModuleLib() const;
+
+  QString getSimulationTopModuleLib(const QString &strFileSet) const;
+  QString getSimulationTopModuleLib() const;
+  std::string SimulationTopModuleLib() const;
 
   int setConstrFileSet(const QString &strSetName);
   QStringList getConstrFileSets() const;
@@ -321,6 +334,30 @@ class ProjectManager : public QObject {
   const std::vector<std::pair<std::string, std::string>> &macroList() const;
   QString macros() const;
 
+  const std::vector<std::string> &simLibraryExtensionList() const;
+  QString simLibraryExtension() const;
+  void setSimLibraryExtensionList(
+      const std::vector<std::string> &newLibraryExtensionList);
+  void addSimLibraryExtension(const std::string &libraryExt);
+
+  void setSimMacroList(
+      const std::vector<std::pair<std::string, std::string>> &newMacroList);
+  void addSimMacro(const std::string &macroName, const std::string &macroValue);
+  const std::vector<std::pair<std::string, std::string>> &macroListSim() const;
+  QString macrosSim() const;
+
+  const std::vector<std::string> &includePathListSim() const;
+  QString includePathSim() const;
+  void setIncludePathListSim(
+      const std::vector<std::string> &newIncludePathList);
+  void addIncludePathSim(const std::string &includePath);
+
+  const std::vector<std::string> &libraryPathListSim() const;
+  QString libraryPathSim() const;
+  void setLibraryPathListSim(
+      const std::vector<std::string> &newLibraryPathList);
+  void addLibraryPathSim(const std::string &libraryPath);
+
   void setTargetDevice(const std::string &deviceName);
   std::string getTargetDevice();
   static std::vector<std::pair<std::string, std::string>> ParseMacro(
@@ -343,6 +380,12 @@ class ProjectManager : public QObject {
   void setIpInstanceCmdList(
       const std::vector<std::string> &newIpInstanceCmdList);
   void addIpInstanceCmd(const std::string &ipInstanceCmd);
+
+  using AddFileFunction =
+      std::function<void(const QString &, const QString &, const QString &, int,
+                         const QString &, bool, bool)>;
+  static void AddFiles(const ProjectOptions::FileData &fileData,
+                       const AddFileFunction &addFileFunction);
 
  private:
   // Please set currentfileset before using this function

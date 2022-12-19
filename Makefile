@@ -173,7 +173,9 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/Automated/new_project.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt1.tcl
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/tcl_init_file_load_pt2.tcl
+#	$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_invoke.tcl # Disable for now. Test is noisy in current CI.
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
+	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/log_header.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl
@@ -194,7 +196,9 @@ test/batch: run-cmake-release
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
 	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
+	./build/bin/foedag --batch --script tests/Testcases/IPGenerate/test_ipgenerate_cache.tcl
 	./build/bin/foedag --batch --script tests/Testcases/project_file/test.tcl
+	./build/bin/foedag --batch --script tests/Testcases/oneff_close/oneff.tcl
 	./build/bin/foedag --batch --script tests/TestBatch/test_ip_configure_load.tcl
 	
 lib-only: run-cmake-release
@@ -215,4 +219,5 @@ uninstall:
 	$(RM) -r $(PREFIX)/lib/foedag
 	$(RM) -r $(PREFIX)/include/foedag
 	$(RM) -r $(PREFIX)/share/foedag
+	$(RM) -r $(PREFIX)/bin/gtkwave
 

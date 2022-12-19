@@ -47,6 +47,7 @@ class SynthesisReportManager final : public AbstractReportManager {
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   const Messages &getMessages() override;
+  QString getTimingLogFileName() const override;
 
   // Retrieves maximum and average levels out of given line and fills into stats
   void fillLevels(const QString &line, ITaskReport::TableData &stats) const;
@@ -55,11 +56,6 @@ class SynthesisReportManager final : public AbstractReportManager {
   // Go through the log file and fills internal data collections (stats,
   // messages)
   void parseLogFile();
-
- private:
-  QSet<QString> m_keyMessages;
-  ITaskReport::TableData m_stats;
-  Messages m_messages;
 };
 
 }  // namespace FOEDAG

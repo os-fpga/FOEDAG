@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/tcl_command_integration.h"
 #include "TaskManager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
@@ -66,26 +67,29 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
-extern const char* foedag_version_number;
-extern const char* foedag_git_hash;
-extern const char* foedag_build_type;
+auto CreateDummyLog =
+    [](ProjectManager* projManager,
+       const std::string& outfileName) -> std::filesystem::path {
+  std::filesystem::path outputPath{};
 
-auto CreateDummyLog = [](ProjectManager* projManager,
-                         const std::string& outfileName) {
   if (projManager) {
     std::filesystem::path projectPath(projManager->projectPath());
-    std::filesystem::path outputPath = projectPath / outfileName;
-    std::filesystem::remove(outputPath);
+    outputPath = projectPath / outfileName;
+    if (FileUtils::FileExists(outputPath)) {
+      std::filesystem::remove(outputPath);
+    }
     std::ofstream ofs(outputPath);
     ofs << "Dummy log for " << outfileName << "\n";
     ofs.close();
   }
+
+  return outputPath;
 };
 
 void Compiler::Version(std::ostream* out) {
   (*out) << "Foedag FPGA Compiler"
          << "\n";
-  PrintVersion(out);
+  LogUtils::PrintVersion(out);
 }
 
 void Compiler::Help(std::ostream* out) {
@@ -108,6 +112,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
             "with <name> name"
          << std::endl;
+  (*out) << "   close_design     : Close current design" << std::endl;
   (*out) << "               <project type> : rtl, gate-level" << std::endl;
   (*out) << "   open_project <file>        : Opens a project in started "
             "upfront GUI"
@@ -183,14 +188,14 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
-  (*out) << "   global_placement ?clean?" << std::endl;
+  // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
   (*out) << "   bitstream ?clean?" << std::endl;
-  (*out) << "   simulate <level> ?<simulator>? : Simulates the design and "
-            "testbench"
+  (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
+            "and testbench"
          << std::endl;
   (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
             "post-synthesis simulation, pnr: post-pnr simulation"
@@ -229,12 +234,25 @@ Compiler::~Compiler() {
   delete m_simulator;
 }
 
+std::string Compiler::GetMessagePrefix() {
+  std::string prefix{};
+
+  auto task = GetTaskManager()->currentTask();
+  // Leave prefix empty if no abbreviation was given
+  if (task && task->abbreviation() != "") {
+    prefix = task->abbreviation().toStdString() + ": ";
+  }
+
+  return prefix;
+}
+
 void Compiler::Message(const std::string& message) {
-  if (m_out) (*m_out) << message << std::endl;
+  if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
 }
 
 void Compiler::ErrorMessage(const std::string& message) {
-  if (m_err) (*m_err) << "ERROR: " << message << std::endl;
+  if (m_err)
+    (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
@@ -457,6 +475,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return ok ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_design", create_design, this, 0);
+
+  auto close_design = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler->m_tclCmdIntegration) {
+      compiler->m_tclCmdIntegration->TclCloseProject();
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("close_design", close_design, this, nullptr);
 
   auto set_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
@@ -853,6 +881,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       std::string sim_type;
       std::string wave_file;
+      bool clean{false};
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "verilator") {
@@ -870,11 +899,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
                    arg == "bitstream") {
           sim_type = arg;
+        } else if (arg == "clean") {
+          clean = true;
         } else {
           wave_file = arg;
         }
       }
       compiler->SetWaveformFile(wave_file);
+      if (clean)
+        compiler->GetSimulator()->SimulationOption(
+            Simulator::SimulationOpt::Clean);
       if (sim_type.empty()) {
         compiler->ErrorMessage("Unknown simulation type: " + sim_type);
         return TCL_ERROR;
@@ -954,6 +988,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in Jan'23 release");
+      return TCL_OK;
+
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
@@ -1149,6 +1187,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       }
       std::string sim_type;
       std::string wave_file;
+      bool clean{false};
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
@@ -1167,12 +1206,17 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
                    arg == "bitstream") {
           sim_type = arg;
+        } else if (arg == "clean") {
+          clean = true;
         } else {
           wave_file = arg;
         }
       }
       compiler->SetWaveformFile(wave_file);
       compiler->GetSimulator()->SetSimulatorType(sim_tool);
+      if (clean)
+        compiler->GetSimulator()->SimulationOption(
+            Simulator::SimulationOpt::Clean);
       if (sim_type.empty()) {
         compiler->ErrorMessage("Unknown simulation type: " + sim_type);
         return TCL_ERROR;
@@ -1273,6 +1317,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     auto globalplacement = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
+      compiler->Message(
+          "Warning: global_placement is disabled in Jan'23 release");
+      return TCL_OK;
+
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "clean") {
@@ -1575,7 +1623,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
 
-      std::string cmd = std::string("gtkwave::setWindowStartTime ") + argv[1];
+      std::string cmd = std::string("gtkwave::setMarker ") + argv[1];
 
       // Send cmd to GTKWave
       compiler->GTKWaveSendCmd(cmd);
@@ -1837,9 +1885,8 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
       {"wave_show <signal>",
        "Add the given signal to the GTKWave window and highlight it."},
       {"wave_time <time>",
-       "Set the current GTKWave view port start time to <time>. Times "
-       "units "
-       "can be specified, without a space. Ex: wave_time 100ps."}};
+       "Set the primary marker to <time>. Time units can be specified, without "
+       "a space. Ex: wave_time 100ps."}};
 
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
@@ -1873,28 +1920,29 @@ bool Compiler::Analyze() {
     AnalyzeOpt(DesignAnalysisOpt::None);
     return true;
   }
-  (*m_out) << "Analyzing design: " << m_projManager->projectName() << "..."
-           << std::endl;
+  Message("Analyzing design: " + m_projManager->projectName() + "...");
+
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << std::setw(2) << i << "%";
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
       std::string str =
           " File: " + (*it).path().filename().string() + " just for test";
-      (*m_out) << str;
+      outStr << str;
       it++;
     }
-    (*m_out) << std::endl;
-    std::chrono::milliseconds dura(1000);
+    Message(outStr.str());
+    std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::Analyzed;
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
+  Message(("Design ") + m_projManager->projectName() + " is analyzed");
 
-  CreateDummyLog(m_projManager, "analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1906,34 +1954,34 @@ bool Compiler::Synthesize() {
     SynthOpt(SynthesisOpt::None);
     return true;
   }
-  (*m_out) << "Synthesizing design: " << m_projManager->projectName() << "..."
-           << std::endl;
+  Message("Synthesizing design: " + m_projManager->projectName() + "...");
   for (auto constraint : m_constraints->getConstraints()) {
-    (*m_out) << "Constraint: " << constraint << "\n";
+    Message("Constraint: " + constraint);
   }
   for (auto keep : m_constraints->GetKeeps()) {
-    (*m_out) << "Keep name: " << keep << "\n";
+    Message("Keep name: " + keep);
   }
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << std::setw(2) << i << "%";
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     if (it != std::filesystem::end(it)) {
       std::string str =
           " File: " + (*it).path().filename().string() + " just for test";
-      (*m_out) << str;
+      outStr << str;
       it++;
     }
-    (*m_out) << std::endl;
+    Message(outStr.str());
     std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
     if (m_stop) return false;
   }
   m_state = State::Synthesized;
-  (*m_out) << "Design " << m_projManager->projectName() << " is synthesized"
-           << std::endl;
+  Message("Design " + m_projManager->projectName() + " is synthesized");
 
-  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -1953,19 +2001,21 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  (*m_out) << "Global Placement for design: " << m_projManager->projectName()
-           << "..." << std::endl;
+  Message("Global Placement for design:" + m_projManager->projectName() +
+          "...");
   for (int i = 0; i < 100; i = i + 10) {
-    (*m_out) << i << "%" << std::endl;
+    std::stringstream outStr;
+    outStr << std::setw(2) << i << "%";
     std::chrono::milliseconds dura(100);
     std::this_thread::sleep_for(dura);
+    Message(outStr.str());
     if (m_stop) return false;
   }
   m_state = State::GloballyPlaced;
-  (*m_out) << "Design " << m_projManager->projectName() << " is globally placed"
-           << std::endl;
+  Message("Design " + m_projManager->projectName() + " globally placed");
 
-  CreateDummyLog(m_projManager, "global_placement.rpt");
+  auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2003,8 +2053,8 @@ bool Compiler::RunCompileTask(Action action) {
       return Synthesize();
     case Action::Pack:
       return Packing();
-    case Action::Global:
-      return GlobalPlacement();
+    // case Action::Global:
+    //   return GlobalPlacement();
     case Action::Detailed:
       return Placement();
     case Action::Routing:
@@ -2063,12 +2113,12 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(PACKING_CLEAN, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("packing clean"));
     });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
-    });
-    m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
-      GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
-    });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp"));
+    // });
+    // m_taskManager->bindTaskCommand(GLOBAL_PLACEMENT_CLEAN, []() {
+    //   GlobalSession->CmdStack()->push_and_exec(new Command("globp clean"));
+    // });
     m_taskManager->bindTaskCommand(PLACEMENT, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("place"));
     });
@@ -2105,16 +2155,45 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
     m_taskManager->bindTaskCommand(SIMULATE_RTL, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
     });
+    m_taskManager->bindTaskCommand(SIMULATE_RTL_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate rtl clean"));
+    });
     m_taskManager->bindTaskCommand(SIMULATE_GATE, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate gate"));
     });
+    m_taskManager->bindTaskCommand(SIMULATE_GATE_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate gate clean"));
+    });
     m_taskManager->bindTaskCommand(SIMULATE_PNR, []() {
       GlobalSession->CmdStack()->push_and_exec(new Command("simulate pnr"));
+    });
+    m_taskManager->bindTaskCommand(SIMULATE_PNR_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate pnr clean"));
     });
     m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM, []() {
       GlobalSession->CmdStack()->push_and_exec(
           new Command("simulate bitstream"));
     });
+    m_taskManager->bindTaskCommand(SIMULATE_BITSTREAM_CLEAN, []() {
+      GlobalSession->CmdStack()->push_and_exec(
+          new Command("simulate bitstream clean"));
+    });
+    m_taskManager->task(SIMULATE_RTL)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::RTL)});
+    m_taskManager->task(SIMULATE_PNR)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::PNR)});
+    m_taskManager->task(SIMULATE_GATE)
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(Simulator::SimulationType::Gate)});
+    m_taskManager->task(SIMULATE_BITSTREAM)
+        ->setCustomData(
+            {CustomDataType::Sim,
+             QVariant::fromValue(Simulator::SimulationType::Bitstream)});
   }
 }
 
@@ -2132,19 +2211,18 @@ bool Compiler::IPGenerate() {
     // No instances configured, no-op w/o error
     return true;
   }
-  (*m_out) << "IP generation for design: " << m_projManager->projectName()
-           << "..." << std::endl;
+  Message("IP generation for design: " + m_projManager->projectName() + "...");
   bool status = GetIPGenerator()->Generate();
   if (status) {
-    (*m_out) << "Design " << m_projManager->projectName()
-             << " IPs are generated" << std::endl;
+    Message("Design " + m_projManager->projectName() + " IPs are generated");
     m_state = State::IPGenerated;
   } else {
     ErrorMessage("Design " + m_projManager->projectName() +
                  " IPs generation failed");
   }
 
-  CreateDummyLog(m_projManager, "ip_generate.rpt");
+  auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return status;
 }
 
@@ -2162,14 +2240,12 @@ bool Compiler::Packing() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Packing for design: " << m_projManager->projectName() << "..."
-           << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is packed"
-           << std::endl;
+  Message("Packing for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
-  CreateDummyLog(m_projManager, "packing.rpt");
+  auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2187,14 +2263,12 @@ bool Compiler::Placement() {
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
-  (*m_out) << "Placement for design: " << m_projManager->projectName() << "..."
-           << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is placed"
-           << std::endl;
+  Message("Placement for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2212,14 +2286,13 @@ bool Compiler::Route() {
         std::string(ProjManager()->projectName() + "_post_synth.route"));
     return true;
   }
-  (*m_out) << "Routing for design: " << m_projManager->projectName() << "..."
-           << std::endl;
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is routed"
-           << std::endl;
+  Message("Routing for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, ROUTING_LOG);
+  auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2228,13 +2301,11 @@ bool Compiler::TimingAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
-           << "..." << std::endl;
-
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
-
-  CreateDummyLog(m_projManager, "timing_analysis.rpt");
+  Message("Timing analysis for design: " + m_projManager->projectName() +
+          "...");
+  Message("Design " + m_projManager->projectName() + " is analyzed");
+  auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2243,13 +2314,11 @@ bool Compiler::PowerAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Timing analysis for design: " << m_projManager->projectName()
-           << "..." << std::endl;
+  Message("Power analysis for design: " + m_projManager->projectName() + "...");
+  Message("Design " + m_projManager->projectName() + " is analyzed");
 
-  (*m_out) << "Design " << m_projManager->projectName() << " is analyzed"
-           << std::endl;
-
-  CreateDummyLog(m_projManager, "power_analysis.rpt");
+  auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2258,13 +2327,12 @@ bool Compiler::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  (*m_out) << "Bitstream generation for design: "
-           << m_projManager->projectName() << "..." << std::endl;
+  Message("Bitstream generation for design: " + m_projManager->projectName() +
+          "...");
+  Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
-  (*m_out) << "Design " << m_projManager->projectName()
-           << " bitstream is generated" << std::endl;
-
-  CreateDummyLog(m_projManager, "bitstream.rpt");
+  auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  LogUtils::AddHeaderToLog(logPath);
   return true;
 }
 
@@ -2316,15 +2384,6 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
     Message(message);
   }
   return true;
-}
-
-void Compiler::PrintVersion(std::ostream* out) {
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version    : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built      : " << __DATE__ << "\n";
-  (*out) << "Built type : " << foedag_build_type << "\n";
 }
 
 const std::string Compiler::GetNetlistPath() {

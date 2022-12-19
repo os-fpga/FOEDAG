@@ -39,23 +39,18 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(SYNTHESIS_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SYNTHESIS_SETTINGS,
                  new Task{"Edit settings...", TaskType::Settings});
-  m_tasks.insert(SYNTHESIS_WRITE_NETLIST, new Task{"Write netlist"});
-  m_tasks.insert(SYNTHESIS_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(PACKING, new Task{"Packing"});
   m_tasks.insert(PACKING_CLEAN, new Task{"Clean", TaskType::Clean});
-  m_tasks.insert(GLOBAL_PLACEMENT, new Task{"Global Placement"});
-  m_tasks.insert(GLOBAL_PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
+  // m_tasks.insert(GLOBAL_PLACEMENT, new Task{"Global Placement"});
+  // m_tasks.insert(GLOBAL_PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
   m_tasks.insert(PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACEMENT_SETTINGS,
                  new Task{"Edit settings...", TaskType::Settings});
-  m_tasks.insert(PLACEMENT_WRITE_NETLIST, new Task{"Write netlist"});
-  m_tasks.insert(PLACEMENT_TIMING_REPORT, new Task{"Timing report"});
   m_tasks.insert(ROUTING, new Task{"Routing"});
   m_tasks.insert(ROUTING_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(ROUTING_SETTINGS,
                  new Task{"Edit settings...", TaskType::Settings});
-  m_tasks.insert(ROUTING_WRITE_NETLIST, new Task{"Write netlist"});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(TIMING_SIGN_OFF_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(POWER, new Task{"Power"});
@@ -63,38 +58,52 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
-  m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL", TaskType::Button});
-  m_tasks.insert(SIMULATE_GATE, new Task{"Simulate Gate", TaskType::Button});
-  m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR", TaskType::Button});
-  m_tasks.insert(SIMULATE_BITSTREAM,
-                 new Task{"Simulate Bitstream", TaskType::Button});
-  m_tasks.insert(SIMULATE, new Task{"Simulate", TaskType::None});
+  m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL"});
+  m_tasks.insert(SIMULATE_RTL_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_RTL_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_GATE, new Task{"Simulate Gate"});
+  m_tasks.insert(SIMULATE_GATE_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_GATE_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_PNR, new Task{"Simulate PNR"});
+  m_tasks.insert(SIMULATE_PNR_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_PNR_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
+  m_tasks.insert(SIMULATE_BITSTREAM, new Task{"Simulate Bitstream"});
+  m_tasks.insert(SIMULATE_BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(SIMULATE_BITSTREAM_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
-  m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
+  // m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
   m_tasks[ANALYSIS]->appendSubTask(m_tasks[ANALYSIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
-  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_WRITE_NETLIST]);
-  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_TIMING_REPORT]);
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_CLEAN]);
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_SETTINGS]);
-  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_WRITE_NETLIST]);
-  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_TIMING_REPORT]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_CLEAN]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
-  m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_WRITE_NETLIST]);
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_RTL]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_PNR]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_GATE]);
-  m_tasks[SIMULATE]->appendSubTask(m_tasks[SIMULATE_BITSTREAM]);
+  m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_CLEAN]);
+  m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_SETTINGS]);
+  m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_CLEAN]);
+  m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_SETTINGS]);
+  m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_CLEAN]);
+  m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_SETTINGS]);
+  m_tasks[SIMULATE_BITSTREAM]->appendSubTask(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
+  m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
+      m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
 
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
+  m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey("Simulate RTL");
+  m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey("Simulate Gate");
+  m_tasks[SIMULATE_PNR_SETTINGS]->setSettingsKey("Simulate PNR");
+  m_tasks[SIMULATE_BITSTREAM_SETTINGS]->setSettingsKey("Simulate Bitstream");
 
   // These point to log files that can be opened via r-click in the task view
   // By default, sub-tasks open their parent log file, but you can set
@@ -104,13 +113,31 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[ANALYSIS]->setLogFileReadPath("$OSRCDIR/analysis.rpt");
   m_tasks[SYNTHESIS]->setLogFileReadPath("$OSRCDIR/synthesis.rpt");
   m_tasks[PACKING]->setLogFileReadPath("$OSRCDIR/packing.rpt");
-  m_tasks[GLOBAL_PLACEMENT]->setLogFileReadPath(
-      "$OSRCDIR/global_placement.rpt");
+  // m_tasks[GLOBAL_PLACEMENT]->setLogFileReadPath(
+  //     "$OSRCDIR/global_placement.rpt");
   m_tasks[PLACEMENT]->setLogFileReadPath("$OSRCDIR/placement.rpt");
   m_tasks[ROUTING]->setLogFileReadPath("$OSRCDIR/routing.rpt");
   m_tasks[TIMING_SIGN_OFF]->setLogFileReadPath("$OSRCDIR/timing_analysis.rpt");
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
+
+  // If a task has its abbreviation set the calls to Message() will be appended
+  // with the set abbreviation when that task is the current task.
+  // Current task is determine by which task has a status of InProgress
+  m_tasks[IP_GENERATE]->setAbbreviation("IPG");
+  m_tasks[ANALYSIS]->setAbbreviation("ANL");
+  m_tasks[SYNTHESIS]->setAbbreviation("SYN");
+  m_tasks[PACKING]->setAbbreviation("PAC");
+  // m_tasks[GLOBAL_PLACEMENT]->setAbbreviation("GPL");
+  m_tasks[PLACEMENT]->setAbbreviation("PLC");
+  m_tasks[ROUTING]->setAbbreviation("RTE");
+  m_tasks[TIMING_SIGN_OFF]->setAbbreviation("TMN");
+  m_tasks[POWER]->setAbbreviation("PWR");
+  m_tasks[BITSTREAM]->setAbbreviation("BIT");
+  m_tasks[SIMULATE_RTL]->setAbbreviation("SRT");
+  m_tasks[SIMULATE_GATE]->setAbbreviation("SGT");
+  m_tasks[SIMULATE_PNR]->setAbbreviation("SPR");
+  m_tasks[SIMULATE_BITSTREAM]->setAbbreviation("SBS");
 
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
@@ -120,22 +147,30 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_taskQueue.append(m_tasks[IP_GENERATE]);
   m_taskQueue.append(m_tasks[ANALYSIS]);
   m_taskQueue.append(m_tasks[ANALYSIS_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_RTL]);
+  m_taskQueue.append(m_tasks[SIMULATE_RTL_CLEAN]);
   m_taskQueue.append(m_tasks[SYNTHESIS]);
   m_taskQueue.append(m_tasks[SYNTHESIS_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_GATE]);
+  m_taskQueue.append(m_tasks[SIMULATE_GATE_CLEAN]);
   m_taskQueue.append(m_tasks[PACKING]);
   m_taskQueue.append(m_tasks[PACKING_CLEAN]);
-  m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT]);
-  m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
+  // m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT]);
+  // m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
   m_taskQueue.append(m_tasks[PLACEMENT]);
   m_taskQueue.append(m_tasks[PLACEMENT_CLEAN]);
   m_taskQueue.append(m_tasks[ROUTING]);
   m_taskQueue.append(m_tasks[ROUTING_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_PNR]);
+  m_taskQueue.append(m_tasks[SIMULATE_PNR_CLEAN]);
   m_taskQueue.append(m_tasks[TIMING_SIGN_OFF]);
   m_taskQueue.append(m_tasks[TIMING_SIGN_OFF_CLEAN]);
   m_taskQueue.append(m_tasks[POWER]);
   m_taskQueue.append(m_tasks[POWER_CLEAN]);
   m_taskQueue.append(m_tasks[BITSTREAM]);
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
+  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
+  m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>(*this);
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
@@ -163,6 +198,15 @@ Task *TaskManager::task(uint id) const { return m_tasks.value(id, nullptr); }
 
 uint TaskManager::taskId(Task *t) const { return m_tasks.key(t, invalid_id); }
 
+Task *TaskManager::currentTask() const {
+  for (auto task : m_tasks) {
+    if (task->status() == TaskStatus::InProgress) {
+      return task;
+    }
+  }
+  return nullptr;
+}
+
 void TaskManager::stopCurrentTask() {
   for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
     if ((*task)->status() == TaskStatus::InProgress)
@@ -178,19 +222,23 @@ TaskStatus TaskManager::status() const {
   return TaskStatus::None;
 }
 
-void TaskManager::startAll() {
+void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
   reset();
   appendTask(m_tasks[IP_GENERATE]);
   appendTask(m_tasks[ANALYSIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_RTL]);
   appendTask(m_tasks[SYNTHESIS]);
+  if (simulation) appendTask(m_tasks[SIMULATE_GATE]);
   appendTask(m_tasks[PACKING]);
-  appendTask(m_tasks[GLOBAL_PLACEMENT]);
+  // appendTask(m_tasks[GLOBAL_PLACEMENT]);
   appendTask(m_tasks[PLACEMENT]);
   appendTask(m_tasks[ROUTING]);
+  if (simulation) appendTask(m_tasks[SIMULATE_PNR]);
   appendTask(m_tasks[TIMING_SIGN_OFF]);
   appendTask(m_tasks[POWER]);
   appendTask(m_tasks[BITSTREAM]);
+  if (simulation) appendTask(m_tasks[SIMULATE_BITSTREAM]);
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();
@@ -274,6 +322,11 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
       // In case clean action, clean parent is required.
       if (((*it)->type() == TaskType::Clean) && (it != m_taskQueue.begin()))
         it--;
+      if (isSimulation(*it)) {
+        // in case simulation task, we don't need to clean all downstream tasks
+        (*it)->setStatus(TaskStatus::None);
+        break;
+      }
       for (; it != m_taskQueue.end(); ++it) {
         (*it)->setStatus(TaskStatus::None);
       }
@@ -284,6 +337,10 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
 
 const TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() const {
   return m_reportManagerRegistry;
+}
+
+bool TaskManager::isSimulation(const Task *const task) {
+  return task->cusomData().type == CustomDataType::Sim;
 }
 
 void TaskManager::appendTask(Task *t) {

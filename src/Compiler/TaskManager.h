@@ -51,7 +51,11 @@ class TaskManager : public QObject {
    * \return return id of the task \a t.
    */
   uint taskId(Task *t) const;
-
+  /*!
+   * \brief currentTask
+   * \return Task* to task with status InProgress.
+   */
+  Task *currentTask() const;
   /*!
    * \brief stopCurrentTask. Stop all tasks that are in progress.
    */
@@ -65,8 +69,9 @@ class TaskManager : public QObject {
 
   /*!
    * \brief startAll. Starts chain of all tasks. They will run one by one.
+   * @param simulation - add simulation tasks
    */
-  void startAll();
+  void startAll(bool simulation = false);
 
   /*!
    * \brief startTask. Start task \a t.
@@ -88,6 +93,9 @@ class TaskManager : public QObject {
   void setTaskCount(int count);
 
   const TaskReportManagerRegistry &getReportManagerRegistry() const;
+
+  static bool isSimulation(const Task *const task);
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.

@@ -311,6 +311,15 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
   return true;
 }
 
+bool TclCommandIntegration::TclCloseProject() {
+  if (m_form) {  // GUI mode
+    emit closeDesign();
+  } else {  // batch mode
+    Project::Instance()->InitProject();
+  }
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
@@ -326,8 +335,8 @@ void TclCommandIntegration::createNewDesign(const QString &projName,
                      {},
                      true /*rewrite*/,
                      DEFAULT_FOLDER_SOURCE,
-                     {},
-                     {}};
+                     ProjectOptions::Options{},
+                     ProjectOptions::Options{}};
   m_projManager->CreateProject(opt);
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};

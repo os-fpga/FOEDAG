@@ -8,5 +8,6 @@
         <file>images/error.png</file>
         <file>images/save.png</file>
         <file>images/minus.png</file>
+        <file>images/playSim.png</file>
     </qresource>
 </RCC>

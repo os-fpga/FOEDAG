@@ -28,9 +28,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "Simulation/Simulator.h"
 #include "TaskManager.h"
 #include "TaskModel.h"
 #include "TaskTableView.h"
+#include "Utils/FileUtils.h"
 #include "Utils/QtUtils.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -54,6 +56,17 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
           FOEDAG::handleViewReportRequested(reportId, *reportManager);
       });
 
+  QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
+    auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+    std::filesystem::path file =
+        std::filesystem::path(compiler->ProjManager()->projectPath()) /
+        compiler->GetSimulator()->WaveFile(simType);
+    if (FileUtils::FileExists(file)) {
+      std::string cmd = "wave_open " + file.string();
+      GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+    }
+  });
+
   view->setModel(model);
 
   view->resizeColumnsToContents();
@@ -66,7 +79,7 @@ QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
   return view;
 }
 
-uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
+uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
     case Compiler::Action::Analyze:
       if (compiler->AnalyzeOpt() == Compiler::DesignAnalysisOpt::Clean)
@@ -112,12 +125,24 @@ uint FOEDAG::toTaskId(int action, const Compiler *const compiler) {
     case Compiler::Action::Batch:
       return TaskManager::invalid_id;
     case Compiler::Action::SimulateRTL:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_RTL_CLEAN;
       return SIMULATE_RTL;
     case Compiler::Action::SimulateGate:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_GATE_CLEAN;
       return SIMULATE_GATE;
     case Compiler::Action::SimulatePNR:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_PNR_CLEAN;
       return SIMULATE_PNR;
     case Compiler::Action::SimulateBitstream:
+      if (compiler->GetSimulator()->SimulationOption() ==
+          Simulator::SimulationOpt::Clean)
+        return SIMULATE_BITSTREAM_CLEAN;
       return SIMULATE_BITSTREAM;
   }
   return TaskManager::invalid_id;

@@ -18,39 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
-#include <QObject>
-
-#include "AbstractReportManager.h"
-
-class QString;
-class QTextStream;
+#include <filesystem>
+#include <iostream>
+#include <string>
 
 namespace FOEDAG {
 
-/*
- */
-class RoutingReportManager final : public AbstractReportManager {
+class LogUtils final {
  public:
-  RoutingReportManager(const TaskManager &taskManager);
+  static std::string GetLogHeader(std::string commentPrefix = "",
+                                  bool withLogTime = true);
+  static void AddHeaderToLog(const std::filesystem::path& logPath);
+  static void PrintHeader(std::ostream* out, bool printTime = true);
+  static void PrintCopyright(std::ostream* out);
+  static void PrintVersion(std::ostream* out);
 
  private:
-  QStringList getAvailableReportIds() const override;
-  std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  const Messages &getMessages() override;
-  QString getTimingLogFileName() const override;
-  bool isStatisticalTimingLine(const QString &line) override;
-
-  ITaskReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
-
-  void parseLogFile();
-
-  void reset();
-
-  ITaskReport::TableData m_circuitData;
-  QStringList m_circuitColumns;
-  SectionKeys m_routingKeys;
+  LogUtils() = delete;
+  LogUtils(const LogUtils& orig) = delete;
+  ~LogUtils() = delete;
 };
 
-}  // namespace FOEDAG
+};  // namespace FOEDAG

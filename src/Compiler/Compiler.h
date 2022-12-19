@@ -128,6 +128,7 @@ class Compiler {
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message);
   virtual void ErrorMessage(const std::string& message);
+  std::string GetMessagePrefix();
   void SetUseVerific(bool on) { m_useVerific = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
@@ -231,7 +232,6 @@ class Compiler {
 
   bool CreateDesign(const std::string& name,
                     const std::string& type = std::string{});
-  static void PrintVersion(std::ostream* out);
 
   /* Compiler class utilities */
   bool RunBatch();

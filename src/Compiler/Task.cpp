@@ -58,6 +58,15 @@ void Task::setSettingsKey(QString key) { m_settings_key = key; }
 QString Task::logFileReadPath() const { return m_logFilePath; }
 void Task::setLogFileReadPath(QString path) { m_logFilePath = path; }
 
+QString Task::abbreviation() const { return m_abbreviation; }
+void Task::setAbbreviation(QString abbreviation) {
+  m_abbreviation = abbreviation;
+}
+
+void Task::setCustomData(const CustomData &data) { m_customData = data; }
+
+const CustomData &Task::cusomData() const { return m_customData; }
+
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();
 }

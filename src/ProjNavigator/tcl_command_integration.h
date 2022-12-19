@@ -49,11 +49,13 @@ class TclCommandIntegration : public QObject {
   bool TclCreateProject(int argc, const char *argv[], std::ostream &out);
   bool TclCreateProject(const QString &name, const QString &type,
                         std::ostream &out);
+  bool TclCloseProject();
 
   ProjectManager *GetProjectManager();
 
  signals:
   void newDesign(const QString &);
+  void closeDesign();
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);

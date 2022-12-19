@@ -24,73 +24,110 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+#include <set>
 
 #include "CompilerDefines.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
 
 namespace {
-static constexpr const char *REPORT_NAME{
+static constexpr const char *RESOURCE_REPORT_NAME{
     "Post placement - Report Resource Utilization"};
+static constexpr const char *TIMING_REPORT_NAME{
+    "Post placement - Report Static Timing"};
 
-static const QRegExp FIND_TIMINGS{
+// Messages regexps
+static const QRegExp FIND_PLACEMENT_TIMINGS{
     "Placement estimated (critical|setup).*[0-9].*"};
+static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
+static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
+static const QRegExp TILEABLE_GRAPH_REGEXP{
+    "Build tileable routing resource graph"};
+static const QRegExp INIT_PLACEMENT_HISTOGRAM_REGEXP{
+    "Initial placement estimated setup slack histogram"};
+static const QRegExp PLACEMENT_HISTOGRAM_REGEXP{
+    "Placement estimated setup slack histogram"};
+static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
+
+static const QString CREATE_DEVICE_SECTION{"# Create Device"};
+static const QString PLACEMENT_SECTION{"# Placement"};
 }  // namespace
 
 namespace FOEDAG {
 
 PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
-    : AbstractReportManager(taskManager) {}
+    : AbstractReportManager(taskManager) {
+  m_createDeviceKeys = {AbstractReportManager::FIND_RESOURCES,
+                        DEVICE_UTIL_REGEXP, TILEABLE_GRAPH_REGEXP};
+
+  m_placementKeys = {INIT_PLACEMENT_HISTOGRAM_REGEXP,
+                     PLACEMENT_HISTOGRAM_REGEXP, PLACEMENT_RESOURCE_REGEXP};
+}
 
 QStringList PlacementReportManager::getAvailableReportIds() const {
-  return {QString(REPORT_NAME)};
+  return {QString(RESOURCE_REPORT_NAME), QString(TIMING_REPORT_NAME)};
 }
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
-  auto logFile = createLogFile(QString(PLACEMENT_LOG));
-  if (!logFile) return nullptr;
+  if (!isFileParsed()) parseLogFile();
 
-  auto columnNames = QStringList{};
+  auto report = std::unique_ptr<ITaskReport>{};
 
-  auto timings = QStringList{};
-  auto resourcesData = ITaskReport::TableData{};
+  if (reportId == QString(RESOURCE_REPORT_NAME))
+    report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
+                                           RESOURCE_REPORT_NAME);
+  else
+    report = std::make_unique<TableReport>(m_timingColumns, m_timingData,
+                                           TIMING_REPORT_NAME);
 
-  auto in = QTextStream(logFile.get());
-  QString line;
-  while (in.readLineInto(&line)) {
-    if (FIND_TIMINGS.indexIn(line) != -1)
-      timings << line + "\n";
-    else if (FIND_RESOURCES.indexIn(line) != -1)
-      resourcesData = parseResourceUsage(in, columnNames);
-  }
-  logFile->close();
+  emit reportCreated(reportId);
 
-  createTimingReport(timings);
-
-  emit reportCreated(QString(REPORT_NAME));
-
-  return std::make_unique<TableReport>(columnNames, resourcesData, REPORT_NAME);
+  return report;
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
+  if (!isFileParsed()) parseLogFile();
   return m_messages;
 }
 
-void PlacementReportManager::createTimingReport(const QStringList &timingData) {
-  auto projectPath = Project::Instance()->projectPath();
-  auto logFilePath =
-      QString("%1/%2").arg(projectPath, QString(PLACEMENT_TIMING_LOG));
+void PlacementReportManager::parseLogFile() {
+  auto logFile = createLogFile(QString(PLACEMENT_LOG));
+  if (!logFile) return;
 
-  auto timingLogFile = QFile(logFilePath);
+  auto timings = QStringList{};
+  m_messages.clear();
 
-  if (!timingLogFile.open(QIODevice::WriteOnly | QIODevice::Text)) return;
-  timingLogFile.resize(0);  // clear all previous contents
+  auto in = QTextStream(logFile.get());
+  QString line;
+  auto lineNr = 0;
+  while (in.readLineInto(&line)) {
+    if (FIND_RESOURCES.indexIn(line) != -1)
+      parseResourceUsage(in, lineNr);
+    else if (LOAD_PACKING_REGEXP.exactMatch(line))
+      m_messages.insert(lineNr, TaskMessage{lineNr,
+                                            MessageSeverity::INFO_MESSAGE,
+                                            line.remove('#').simplified(),
+                                            {}});
+    else if (line.startsWith(CREATE_DEVICE_SECTION))
+      lineNr = parseErrorWarningSection(in, lineNr, CREATE_DEVICE_SECTION,
+                                        m_createDeviceKeys);
+    else if (line.startsWith(PLACEMENT_SECTION))
+      lineNr = parseErrorWarningSection(in, lineNr, PLACEMENT_SECTION,
+                                        m_placementKeys);
+    ++lineNr;
+  }
+  logFile->close();
 
-  QTextStream out(&timingLogFile);
-  for (auto &line : timingData) out << line;
+  setFileParsed(true);
+}
 
-  timingLogFile.close();
+QString PlacementReportManager::getTimingLogFileName() const {
+  return QString{PLACEMENT_TIMING_LOG};
+}
+
+bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
+  return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
 }
 
 }  // namespace FOEDAG

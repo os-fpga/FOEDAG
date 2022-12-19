@@ -74,7 +74,7 @@ int TaskModel::ToRowIndex(uint taskId) const {
 }
 
 int TaskModel::rowCount(const QModelIndex &parent) const {
-  return m_taskManager ? m_taskManager->tasks().count() : 0;
+  return m_taskOrder.size();
 }
 
 int TaskModel::columnCount(const QModelIndex &parent) const {
@@ -167,39 +167,41 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   if (!newTaskManager) return;
   m_taskManager = newTaskManager;
   int row{0};
-  m_taskOrder.push_back({row++, SIMULATE});
-  m_taskOrder.push_back({row++, SIMULATE_RTL});
-  m_taskOrder.push_back({row++, SIMULATE_GATE});
-  m_taskOrder.push_back({row++, SIMULATE_PNR});
-  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
   m_taskOrder.push_back({row++, IP_GENERATE});
   m_taskOrder.push_back({row++, ANALYSIS});
   m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_RTL});
+  m_taskOrder.push_back({row++, SIMULATE_RTL_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_RTL_SETTINGS});
   m_taskOrder.push_back({row++, SYNTHESIS});
   m_taskOrder.push_back({row++, SYNTHESIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});
-  m_taskOrder.push_back({row++, SYNTHESIS_WRITE_NETLIST});
-  m_taskOrder.push_back({row++, SYNTHESIS_TIMING_REPORT});
+  m_taskOrder.push_back({row++, SIMULATE_GATE});
+  m_taskOrder.push_back({row++, SIMULATE_GATE_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_GATE_SETTINGS});
   m_taskOrder.push_back({row++, PACKING});
   m_taskOrder.push_back({row++, PACKING_CLEAN});
-  m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
-  m_taskOrder.push_back({row++, GLOBAL_PLACEMENT_CLEAN});
+  // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
+  // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT_CLEAN});
   m_taskOrder.push_back({row++, PLACEMENT});
   m_taskOrder.push_back({row++, PLACEMENT_CLEAN});
   m_taskOrder.push_back({row++, PLACEMENT_SETTINGS});
-  m_taskOrder.push_back({row++, PLACEMENT_WRITE_NETLIST});
-  m_taskOrder.push_back({row++, PLACEMENT_TIMING_REPORT});
   m_taskOrder.push_back({row++, ROUTING});
   m_taskOrder.push_back({row++, ROUTING_CLEAN});
   m_taskOrder.push_back({row++, ROUTING_SETTINGS});
-  m_taskOrder.push_back({row++, ROUTING_WRITE_NETLIST});
   m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
+  m_taskOrder.push_back({row++, SIMULATE_PNR});
+  m_taskOrder.push_back({row++, SIMULATE_PNR_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_PNR_SETTINGS});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF_CLEAN});
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
   m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
+  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM_CLEAN});
+  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM_SETTINGS});
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 

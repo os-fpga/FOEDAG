@@ -35,7 +35,8 @@ class StringUtils final {
  public:
   // Splits the input string with respect to given separator.
   static void tokenize(std::string_view str, std::string_view separator,
-                       std::vector<std::string>& result);
+                       std::vector<std::string>& result,
+                       bool skipEmpty = false);
 
   // join strings with separator
   static std::string join(const std::vector<std::string>& strings,
