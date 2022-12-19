@@ -48,7 +48,7 @@ class Compiler {
   friend Simulator;
 
  public:
-  enum class NetlistType { Blif, Edif, Verilog };
+  enum class NetlistType { Blif, Edif, Verilog, VHDL };
   enum class Action {
     NoAction,
     IPGen,

@@ -209,10 +209,10 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
-  (*out) << "   pnr_netlist_lang <blif, edif, verilog> : Chooses vpr input "
-            "netlist "
-            "format"
-         << std::endl;
+  (*out)
+      << "   pnr_netlist_lang <blif, edif, verilog, vhdl> : Chooses vpr input "
+         "netlist format"
+      << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
   // (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
@@ -582,6 +582,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->SetNetlistType(NetlistType::Edif);
     } else if (arg == "blif") {
       compiler->SetNetlistType(NetlistType::Blif);
+    } else if (arg == "vhdl") {
+      compiler->SetNetlistType(NetlistType::VHDL);
     } else {
       compiler->ErrorMessage(
           "Invalid arg to netlist_type (verilog or blif), was: " + arg);
@@ -1280,6 +1282,9 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
+  yosysScript =
+      ReplaceAll(yosysScript, "${OUTPUT_VHDL}",
+                 std::string(ProjManager()->projectName() + "_post_synth.vhd"));
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
@@ -1288,6 +1293,10 @@ bool CompilerOpenFPGA::Synthesize() {
   std::string output_path;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
+      output_path = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case NetlistType::VHDL:
+      // Until we have a VHDL netlist reader in VPR
       output_path = ProjManager()->projectName() + "_post_synth.v";
       break;
     case NetlistType::Edif:
@@ -1380,6 +1389,10 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string netlistFile;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      break;
+    case NetlistType::VHDL:
+      // Until we have a VHDL netlist reader in VPR
       netlistFile = ProjManager()->projectName() + "_post_synth.v";
       break;
     case NetlistType::Edif:
@@ -1718,7 +1731,9 @@ bool CompilerOpenFPGA::Placement() {
                     std::string(ProjManager()->projectName() + "_openfpga.pcf");
     }
 
-    if (GetNetlistType() == NetlistType::Verilog) {
+    if (GetNetlistType() == NetlistType::Verilog ||
+        GetNetlistType() == NetlistType::VHDL ||
+        GetNetlistType() == NetlistType::Edif) {
       std::filesystem::path p(netlistFile);
       p.replace_extension();
       pincommand += " --port_info ";
@@ -2155,6 +2170,10 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
     case NetlistType::Verilog:
       netlistFile = ProjManager()->projectName() + "_post_synth.v";
       break;
+    case NetlistType::VHDL:
+      // Until we have a VHDL netlist reader in VPR
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      break;
     case NetlistType::Edif:
       netlistFile = ProjManager()->projectName() + "_post_synth.edif";
       break;
@@ -2185,6 +2204,10 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   std::string netlistFormat;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
+      netlistFormat = "verilog";
+      break;
+    case NetlistType::VHDL:
+      // Until we have a VHDL netlist reader in VPR
       netlistFormat = "verilog";
       break;
     case NetlistType::Edif:
