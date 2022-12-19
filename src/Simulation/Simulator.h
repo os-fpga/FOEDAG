@@ -70,6 +70,7 @@ class Simulator {
   WaveformType GetWaveformType() { return m_waveType; }
 
   void SetSimulatorPath(SimulatorType type, const std::string path);
+  void ResetGateSimulationModel();
   void AddGateSimulationModel(const std::filesystem::path& path);
 
   void SetSimulatorCompileOption(SimulatorType type,
@@ -137,6 +138,7 @@ class Simulator {
   WaveformType m_waveType = WaveformType::FST;
   SimulationOpt m_simulationOpt{SimulationOpt::None};
   std::map<SimulationType, std::string> m_waveFiles;
+  SimulationType m_simType = SimulationType::RTL;
 };
 
 }  // namespace FOEDAG
