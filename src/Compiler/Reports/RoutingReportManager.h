@@ -42,13 +42,13 @@ class RoutingReportManager final : public AbstractReportManager {
   QString getTimingLogFileName() const override;
   bool isStatisticalTimingLine(const QString &line) override;
 
-  ITaskReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
+  IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
 
   void parseLogFile();
 
   void reset();
 
-  ITaskReport::TableData m_circuitData;
+  IDataReport::TableData m_circuitData;
   QStringList m_circuitColumns;
   SectionKeys m_routingKeys;
 };

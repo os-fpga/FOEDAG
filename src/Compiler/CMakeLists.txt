@@ -59,6 +59,7 @@ set (SRC_CPP_LIST
   CompilerDefines.cpp
   Log.cpp
   Reports/AbstractReportManager.cpp
+  Reports/DefaultTaskReport.cpp
   Reports/RoutingReportManager.cpp
   Reports/PlacementReportManager.cpp
   Reports/TableReport.cpp
@@ -78,6 +79,8 @@ set (SRC_H_INSTALL_LIST
   CompilerDefines.h
   Log.h
   Reports/AbstractReportManager.h
+  Reports/DefaultTaskReport.h
+  Reports/IDataReport.h
   Reports/ITaskReport.h
   Reports/ITaskReportManager.h
   Reports/RoutingReportManager.h

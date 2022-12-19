@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QVector>
 #include <map>
 
-#include "ITaskReport.h"
+#include "IDataReport.h"
 #include "ITaskReportManager.h"
 
 class QFile;
@@ -80,9 +80,9 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
  protected:
   QStringList m_resourceColumns;
-  ITaskReport::TableData m_resourceData;
+  IDataReport::TableData m_resourceData;
 
-  ITaskReport::TableData m_timingData;
+  IDataReport::TableData m_timingData;
   QStringList m_timingColumns;
 
   Messages m_messages;

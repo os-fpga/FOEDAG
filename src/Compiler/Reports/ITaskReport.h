@@ -20,26 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QStringList>
-#include <QVector>
+#include <memory>
+#include <vector>
+
+class QString;
 
 namespace FOEDAG {
 
-/* Given interface represents a report for the compilation task.
- * It returns row and column data as strings. For simplicity, only
- * standard table data is supported, no parent items. It can be
- * extended if needed.
+class IDataReport;
+
+/* Given interface represents task report. It may consist
+ * of multiple data reports and can be shown in multiple
+ * tables.
  */
 class ITaskReport {
  public:
   virtual ~ITaskReport() = default;
 
-  using LineValues = QStringList;
-  using TableData = QVector<LineValues>;
-  // Returns report column names
-  virtual const LineValues &getColumns() const = 0;
-  // Returns report data - rows of values
-  virtual const TableData &getData() const = 0;
+  using DataReports = std::vector<std::unique_ptr<IDataReport>>;
+  virtual const DataReports &getDataReports() const = 0;
   // Returns report name
   virtual const QString &getName() const = 0;
 };
