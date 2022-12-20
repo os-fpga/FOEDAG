@@ -93,6 +93,7 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
+add_subdirectory(third_party/scope_guard)
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -366,6 +367,7 @@ target_link_libraries(foedag  PUBLIC
   nlohmann_json
   ipconfigurator
   pinassignment
+  scope_guard
 )
 #target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
