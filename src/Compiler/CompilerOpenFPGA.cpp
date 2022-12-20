@@ -44,9 +44,9 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
-#include "Utils/ScopeGuard.hpp"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
+#include "scope_guard/scope_guard.hpp"
 
 using json = nlohmann::ordered_json;
 
@@ -68,6 +68,13 @@ auto copyLog = [](FOEDAG::ProjectManager* projManager,
   }
 
   return dest;
+};
+
+auto copyLogWithHeaders = [](FOEDAG::ProjectManager* projManager,
+                             const std::string& srcFileName,
+                             const std::string& destFileName) {
+  auto logPath = copyLog(projManager, srcFileName, destFileName);
+  LogUtils::AddHeaderToLog(logPath);
 };
 
 void CompilerOpenFPGA::Version(std::ostream* out) {
@@ -1037,14 +1044,14 @@ bool CompilerOpenFPGA::Analyze() {
 }
 
 bool CompilerOpenFPGA::Synthesize() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath =
-        copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
-                SYNTHESIS_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(),
+                       ProjManager()->projectName() + "_synth.log",
+                       SYNTHESIS_LOG);
+  });
 
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
@@ -1473,12 +1480,13 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
 }
 
 bool CompilerOpenFPGA::Packing() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PACKING_LOG);
+  });
+
   if (PackOpt() == PackingOpt::Clean) {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
@@ -1591,12 +1599,13 @@ bool CompilerOpenFPGA::GlobalPlacement() {
 }
 
 bool CompilerOpenFPGA::Placement() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+  });
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1863,12 +1872,13 @@ bool CompilerOpenFPGA::ConvertSdcPinConstrainToPcf(
 }
 
 bool CompilerOpenFPGA::Route() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+  });
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -1925,13 +1935,13 @@ bool CompilerOpenFPGA::Route() {
 }
 
 bool CompilerOpenFPGA::TimingAnalysis() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath =
-        copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+  });
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
@@ -2053,12 +2063,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
 }
 
 bool CompilerOpenFPGA::PowerAnalysis() {
-  SCOPE_EXIT {
-    // Using a Scope Guard so this will fire even if we exit mid function
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
     // Rename log file and add header info
-    auto logPath = copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
-    LogUtils::AddHeaderToLog(logPath);
-  };
+    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
+  });
 
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
