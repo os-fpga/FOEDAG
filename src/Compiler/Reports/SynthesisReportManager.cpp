@@ -197,4 +197,7 @@ QString SynthesisReportManager::getTimingLogFileName() const {
   return {};
 }
 
+void SynthesisReportManager::splitTimingData(const QString &timingStr) {
+  // Current synthesis log implementation doesn't contain timing info
+}
 }  // namespace FOEDAG

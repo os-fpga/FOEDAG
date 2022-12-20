@@ -68,6 +68,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   // Fills the values from given 'timingData' to m_timingData.
   void fillTimingData(const QStringList &timingData);
   void createTimingDataFile(const QStringList &timingData);
+  // Timing data is task specific and can't be split on generic level
+  virtual void splitTimingData(const QString &timingStr) = 0;
 
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;

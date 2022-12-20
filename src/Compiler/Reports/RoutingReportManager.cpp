@@ -1,6 +1,7 @@
 #include "RoutingReportManager.h"
 
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
 
 #include "CompilerDefines.h"
@@ -13,7 +14,7 @@ static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
 static const QRegExp FIND_NET_CONNECTION{
     "Final Net Connection Criticality Histogram"};
-static const QRegExp FIND_ROUTING_TIMING{"Final (critical|setup).*[0-9].*"};
+static const QRegExp FIND_ROUTING_TIMING{"Final.*(Slack|MHz).*"};
 static const QRegExp ROUTING_SUMMARY{"Circuit successfully routed.*"};
 static const QRegExp TIMING_INFO{"Final hold Worst Negative Slack.*"};
 
@@ -29,6 +30,22 @@ static constexpr const char *TIMING_REPORT_NAME{
 static const QString LOAD_PLACEMENT_SECTION{"# Load Placement"};
 static const QString COMPUT_ROUTER_SECTION{"# Computing router lookahead map"};
 static const QString ROUTING_SECTION{"# Routing"};
+
+static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
+static const QRegularExpression SPLIT_HISTOGRAM{
+    "((([0-9]*[.])?[0-9]+)e?[+-]?%?)"};
+
+static const QRegularExpression SPLIT_STAT_TIMING{
+    "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+
+static const QStringList TIMING_FIELDS{"Hold WNS",
+                                       "Hold TNS",
+                                       "Critical path delay (least slack)",
+                                       "FMax",
+                                       "Setup WNS",
+                                       "Setup TNS",
+                                       "Intra-domain period",
+                                       "Fanout-weighted intra-domain period"};
 }  // namespace
 
 namespace FOEDAG {
@@ -125,6 +142,8 @@ void RoutingReportManager::parseLogFile() {
       lineNr = parseErrorWarningSection(in, lineNr, COMPUT_ROUTER_SECTION, {});
     else if (isStatisticalTimingLine(line))
       timings << line + "\n";
+    else if (FIND_HISTOGRAM.indexIn(line) != -1)
+      m_histogramData = parseHistogram(in, lineNr);
     else if (line.startsWith(ROUTING_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, ROUTING_SECTION, m_routingKeys);
@@ -146,6 +165,20 @@ void RoutingReportManager::parseLogFile() {
   setFileParsed(true);
 }
 
+IDataReport::TableData RoutingReportManager::parseHistogram(QTextStream &in,
+                                                            int &lineNr) {
+  IDataReport::TableData result;
+  QString line;
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.simplified().isEmpty()) break;
+    auto match = SPLIT_HISTOGRAM.globalMatch(line);
+    QStringList res;
+    while (match.hasNext()) res << match.next().captured();
+  }
+  return result;
+}
+
 QString RoutingReportManager::getTimingLogFileName() const {
   return QString(ROUTING_TIMING_LOG);
 }
@@ -157,6 +190,15 @@ void RoutingReportManager::reset() {
 
 bool RoutingReportManager::isStatisticalTimingLine(const QString &line) {
   return FIND_ROUTING_TIMING.indexIn(line) != -1;
+}
+
+void RoutingReportManager::splitTimingData(const QString &timingStr) {
+  auto matchIt = SPLIT_STAT_TIMING.globalMatch(timingStr);
+  auto valueIndex = 0;
+  while (matchIt.hasNext() && valueIndex < TIMING_FIELDS.size()) {
+    auto match = matchIt.next();
+    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
+  }
 }
 
 }  // namespace FOEDAG

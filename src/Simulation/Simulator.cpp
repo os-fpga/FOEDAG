@@ -341,7 +341,8 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       std::string options =
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
-          "-Wno-TIMESCALEMOD ";
+          "-Wno-TIMESCALEMOD "
+          "-Wno-WIDTH ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
