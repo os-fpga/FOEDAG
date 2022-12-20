@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 83)
+set(VERSION_PATCH 84)
 
 option(
   WITH_LIBCXX
@@ -541,7 +541,7 @@ add_custom_command(TARGET foedag-bin POST_BUILD
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc
+                  ${PROJECT_SOURCE_DIR}/etc/
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD

@@ -63,6 +63,8 @@ void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
   m_gateSimulationModels.push_back(path);
 }
 
+void Simulator::ResetGateSimulationModel() { m_gateSimulationModels.clear(); }
+
 bool Simulator::RegisterCommands(TclInterpreter* interp) {
   bool ok = true;
   auto set_top_testbench = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -187,6 +189,7 @@ std::string Simulator::WaveFile(SimulationType type) const {
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
+  m_simType = action;
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
   WaveFile(action, wave_file);
   m_waveFile = wave_file;
@@ -290,7 +293,7 @@ std::string Simulator::LibraryFileDirective(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-v ";
     case SimulatorType::GHDL:
-      return "Invalid";
+      return "";
     case SimulatorType::Questa:
       return "-v ";
     case SimulatorType::VCS:
@@ -338,7 +341,8 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       std::string options =
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
-          "-Wno-TIMESCALEMOD ";
+          "-Wno-TIMESCALEMOD "
+          "-Wno-WIDTH ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
@@ -450,10 +454,22 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::CPP:
           return "--invalid-lang-for-ghdl";
         case Design::Language::VHDL_1987:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=87";
         case Design::Language::VHDL_1993:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=93c";
         case Design::Language::VHDL_2000:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=00";
         case Design::Language::VHDL_2008:
           return "--std=08";
@@ -515,6 +531,7 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
 
 std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
+  m_compiler->CustomSimulatorSetup();
   if (type != SimulatorType::GHDL) {
     auto simulationTop{ProjManager()->SimulationTopModule()};
     if (!simulationTop.empty()) {
@@ -538,11 +555,12 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
     fileList += MacroDirective(type) + macro_value.first + "=" +
                 macro_value.second + " ";
   }
+
   bool langDirective = false;
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
     if (langDirective == false) {
-      std::string directive =
-          LanguageDirective(type, (Design::Language)(lang_file.first.language));
+      Design::Language language = (Design::Language)lang_file.first.language;
+      std::string directive = LanguageDirective(type, language);
       if (!directive.empty()) {
         langDirective = true;
         fileList += directive + " ";
@@ -679,6 +697,9 @@ bool Simulator::SimulateGate(SimulatorType type) {
     case Compiler::NetlistType::Verilog:
       netlistFile = ProjManager()->projectName() + "_post_synth.v";
       break;
+    case Compiler::NetlistType::VHDL:
+      netlistFile = ProjManager()->projectName() + "_post_synth.vhd";
+      break;
     case Compiler::NetlistType::Edif:
       netlistFile = ProjManager()->projectName() + "_post_synth.edif";
       break;
@@ -706,10 +727,11 @@ bool Simulator::SimulateGate(SimulatorType type) {
     }
   }
 
-  fileList += " " + netlistFile;
+  fileList += netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
-    fileList += " -v " + path.string();
+    fileList += LibraryFileDirective(type) + path.string() + " ";
   }
+  fileList = StringUtils::rtrim(fileList);
 
   bool status = SimulationJob(type, fileList);
 
@@ -738,10 +760,11 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   std::string netlistFile =
       ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
 
-  fileList += " " + netlistFile;
+  fileList += " " + netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
-    fileList += " -v " + path.string();
+    fileList += LibraryFileDirective(type) + path.string() + " ";
   }
+  fileList = StringUtils::rtrim(fileList);
 
   bool status = SimulationJob(type, fileList);
 
