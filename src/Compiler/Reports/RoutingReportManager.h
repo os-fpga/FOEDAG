@@ -41,14 +41,18 @@ class RoutingReportManager final : public AbstractReportManager {
   const Messages &getMessages() override;
   QString getTimingLogFileName() const override;
   bool isStatisticalTimingLine(const QString &line) override;
+  void splitTimingData(const QString &timingStr) override;
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
+  IDataReport::TableData parseHistogram(QTextStream &in, int &lineNr);
 
   void parseLogFile();
 
   void reset();
 
+  IDataReport::TableData m_histogramData;
   IDataReport::TableData m_circuitData;
+
   QStringList m_circuitColumns;
   SectionKeys m_routingKeys;
 };

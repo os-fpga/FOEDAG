@@ -17,12 +17,6 @@ static const QRegExp ERROR_REGEXP("Error [0-9].*:");
 
 static const QString STAT_TIMING_COL{"Statistics"};
 static const QString VAL_TIMING_COL{"Value"};
-
-static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
-                                       "FMax", "Setup WNS", "Setup TNS"};
-
-static const QRegularExpression FIND_STAT_TIMING{
-    "([-]?(([0-9]*[.])?[0-9]+) (ns|MHz))"};
 }  // namespace
 
 namespace FOEDAG {
@@ -215,14 +209,7 @@ void AbstractReportManager::fillTimingData(const QStringList &timingData) {
 
   createTimingDataFile(timingData);
 
-  auto timingStr = timingData.join(' ');
-  auto matchIt = FIND_STAT_TIMING.globalMatch(timingStr);
-  if (FIND_STAT_TIMING.captureCount() != TIMING_FIELDS.size()) return;
-  auto valueIndex = 0;
-  while (matchIt.hasNext()) {
-    auto match = matchIt.next();
-    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
-  }
+  splitTimingData(timingData.join(' '));
 }
 
 void AbstractReportManager::createTimingDataFile(
