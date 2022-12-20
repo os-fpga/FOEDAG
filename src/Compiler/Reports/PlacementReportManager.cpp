@@ -39,7 +39,7 @@ static constexpr const char *TIMING_REPORT_NAME{
 
 // Messages regexps
 static const QRegExp FIND_PLACEMENT_TIMINGS{
-    "Placement estimated (critical|setup).*[0-9].*"};
+    "Placement estimated.*(Slack|MHz).*"};
 static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
 static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
 static const QRegExp TILEABLE_GRAPH_REGEXP{
@@ -52,6 +52,16 @@ static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
 
 static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString PLACEMENT_SECTION{"# Placement"};
+
+static const QRegularExpression FIND_STAT_TIMING{
+    "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+
+static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
+                                       "FMax",
+                                       "Setup WNS",
+                                       "Setup TNS",
+                                       "Intra-domain period",
+                                       "Fanout-weighted intra-domain period"};
 }  // namespace
 
 namespace FOEDAG {
@@ -129,6 +139,15 @@ QString PlacementReportManager::getTimingLogFileName() const {
 
 bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
   return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
+}
+
+void PlacementReportManager::splitTimingData(const QString &timingStr) {
+  auto matchIt = FIND_STAT_TIMING.globalMatch(timingStr);
+  auto valueIndex = 0;
+  while (matchIt.hasNext() && valueIndex < TIMING_FIELDS.size()) {
+    auto match = matchIt.next();
+    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
+  }
 }
 
 }  // namespace FOEDAG
