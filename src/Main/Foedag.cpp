@@ -181,12 +181,12 @@ bool Foedag::initGui() {
   QApplication::setStyle(new FoedagStyle(app.style()));
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
+  Config::Instance()->dataPath(m_context->DataPath());
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
 
   loadTclInitFile(commands, m_context->ExecutableName());
 
-  Config::Instance()->dataPath(m_context->DataPath());
   QWidget* mainWin = nullptr;
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
@@ -366,6 +366,7 @@ bool Foedag::initBatch() {
   FOEDAG::TclInterpreter* interpreter =
       new FOEDAG::TclInterpreter(m_cmdLine->Argv()[0]);
   const bool mute{m_cmdLine->Mute() && !m_cmdLine->Script().empty()};
+  Config::Instance()->dataPath(m_context->DataPath());
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName(), mute);
   GlobalSession =
