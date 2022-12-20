@@ -135,7 +135,7 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
       }
     }
     addExpandCollapse(menu);
-    addEnableDisableTask(menu, task);
+    if (TaskManager::isSimulation(task)) addEnableDisableTask(menu, task);
     menu->popup(viewport()->mapToGlobal(pos));
   }
 }
@@ -258,6 +258,7 @@ void TaskTableView::TasksDelegate::paint(QPainter *painter,
   if (index.column() == StatusCol) {
     auto statusData = index.data(Qt::DecorationRole);
     auto label = qobject_cast<QLabel *>(m_view.indexWidget(index));
+    if (!label) return;
     // QTableView can't paint animations. Do it manually via QLabel.
     if (statusData.type() == QVariant::Bool) {
       label->setMovie(m_inProgressMovie);
