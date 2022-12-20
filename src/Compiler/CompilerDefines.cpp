@@ -37,8 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern FOEDAG::Session *GlobalSession;
 
-QWidget *FOEDAG::prepareCompilerView(Compiler *compiler,
-                                     TaskManager **taskManager) {
+QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
+                                        TaskManager **taskManager) {
   TaskManager *tManager = new TaskManager;
   TaskModel *model = new TaskModel{tManager};
   TaskTableView *view = new TaskTableView{tManager};
