@@ -395,9 +395,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
-  } else {
-    m_simulator->RegisterCommands(m_interp);
   }
+  m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
