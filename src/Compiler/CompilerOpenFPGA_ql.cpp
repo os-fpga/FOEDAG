@@ -4058,10 +4058,6 @@ ${READ_OPENFPGA_BITSTREAM_SETTING_COMMAND}
 # to specify activity file, add '--activity_file ${ACTIVITY_FILE}'
 link_openfpga_arch --sort_gsb_chan_node_in_edges
 
-# Apply fix-up to clustering nets based on routing results
-# to debug add '--verbose'
-pb_pin_fixup
-
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
 
