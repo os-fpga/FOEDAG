@@ -53,6 +53,8 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
                  new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(TIMING_SIGN_OFF, new Task{"Timing Analysis"});
   m_tasks.insert(TIMING_SIGN_OFF_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(TIMING_SIGN_OFF_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(POWER, new Task{"Power"});
   m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
@@ -87,6 +89,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
+  m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_SETTINGS]);
   m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_CLEAN]);
   m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_SETTINGS]);
   m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_CLEAN]);
@@ -100,6 +103,7 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
+  m_tasks[TIMING_SIGN_OFF_SETTINGS]->setSettingsKey("Timing Analysis");
   m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey("Simulate RTL");
   m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey("Simulate Gate");
   m_tasks[SIMULATE_PNR_SETTINGS]->setSettingsKey("Simulate PNR");
