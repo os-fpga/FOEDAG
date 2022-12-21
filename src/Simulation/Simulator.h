@@ -41,6 +41,8 @@ class Simulator {
   enum class WaveformType { VCD, FST };
   enum class SimulationOpt { None, Clean };
 
+  static SimulationType ToSimulationType(const std::string& str, bool& ok);
+
   // Most common use case, create the compiler in your main
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
@@ -73,22 +75,22 @@ class Simulator {
   void ResetGateSimulationModel();
   void AddGateSimulationModel(const std::filesystem::path& path);
 
-  void SetSimulatorCompileOption(SimulatorType type,
-                                 const std::string& options) {
-    m_simulatorCompileOptionMap.emplace(type, options);
-  }
-  void SetSimulatorElaborationOption(SimulatorType type,
-                                     const std::string& options) {
-    m_simulatorElaborationOptionMap.emplace(type, options);
-  }
-  void SetSimulatorRuntimeOption(SimulatorType type,
-                                 const std::string& options) {
-    m_simulatorRuntimeOptionMap.emplace(type, options);
-  }
+  void SetSimulatorCompileOption(const std::string& simulation,
+                                 SimulatorType type,
+                                 const std::string& options);
+  void SetSimulatorElaborationOption(const std::string& simulation,
+                                     SimulatorType type,
+                                     const std::string& options);
+  void SetSimulatorRuntimeOption(const std::string& simulation,
+                                 SimulatorType type,
+                                 const std::string& options);
 
-  std::string GetSimulatorCompileOption(SimulatorType type);
-  std::string GetSimulatorElaborationOption(SimulatorType type);
-  std::string GetSimulatorRuntimeOption(SimulatorType type);
+  std::string GetSimulatorCompileOption(SimulationType simulation,
+                                        SimulatorType type);
+  std::string GetSimulatorElaborationOption(SimulationType simulation,
+                                            SimulatorType type);
+  std::string GetSimulatorRuntimeOption(SimulationType simulation,
+                                        SimulatorType type);
 
   void SimulationOption(SimulationOpt option);
   SimulationOpt SimulationOption() const;
@@ -113,8 +115,10 @@ class Simulator {
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
   virtual std::string SimulationFileList(SimulatorType type);
-  virtual int SimulationJob(SimulatorType type, const std::string& file_list);
-  virtual std::string SimulatorRunCommand(SimulatorType type);
+  virtual int SimulationJob(SimulationType simulation, SimulatorType type,
+                            const std::string& file_list);
+  virtual std::string SimulatorRunCommand(SimulationType simulation,
+                                          SimulatorType type);
   virtual std::string SimulatorCompilationOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
@@ -130,9 +134,10 @@ class Simulator {
   SimulatorType m_simulatorTool = SimulatorType::Verilator;
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
-  std::map<SimulatorType, std::string> m_simulatorCompileOptionMap;
-  std::map<SimulatorType, std::string> m_simulatorElaborationOptionMap;
-  std::map<SimulatorType, std::string> m_simulatorRuntimeOptionMap;
+  using SimulationOptionMap = std::map<SimulatorType, std::string>;
+  std::map<SimulationType, SimulationOptionMap> m_simulatorCompileOptionMap;
+  std::map<SimulationType, SimulationOptionMap> m_simulatorElaborationOptionMap;
+  std::map<SimulationType, SimulationOptionMap> m_simulatorRuntimeOptionMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
   std::string m_waveFile;
   WaveformType m_waveType = WaveformType::FST;
