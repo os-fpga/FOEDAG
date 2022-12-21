@@ -85,12 +85,16 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
 
-  if (reportId == QString(RESOURCE_REPORT_NAME))
+  if (reportId == QString(RESOURCE_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
         m_resourceColumns, m_resourceData, QString{}));
-  else
+  } else {
     dataReports.push_back(std::make_unique<TableReport>(
         m_timingColumns, m_timingData, QString{}));
+    for (auto &hgrm : m_histograms)
+      dataReports.push_back(std::make_unique<TableReport>(
+          m_histogramColumns, hgrm.second, hgrm.first));
+  }
 
   emit reportCreated(reportId);
 
@@ -108,6 +112,7 @@ void PlacementReportManager::parseLogFile() {
 
   auto timings = QStringList{};
   m_messages.clear();
+  m_histograms.clear();
 
   auto in = QTextStream(logFile.get());
   QString line;
@@ -139,6 +144,10 @@ QString PlacementReportManager::getTimingLogFileName() const {
 
 bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
   return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
+}
+
+bool PlacementReportManager::isStatisticalTimingHistogram(const QString &line) {
+  return PLACEMENT_HISTOGRAM_REGEXP.indexIn(line) != -1;
 }
 
 void PlacementReportManager::splitTimingData(const QString &timingStr) {

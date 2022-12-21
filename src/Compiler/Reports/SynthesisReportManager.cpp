@@ -110,9 +110,13 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
+  IDataReport::ColumnValues cols;
+  cols.push_back(ReportColumn{"Statistics"});
+  cols.push_back(ReportColumn{"Value", Qt::AlignCenter});
+
   ITaskReport::DataReports dataReports;
-  dataReports.push_back(std::make_unique<TableReport>(
-      QStringList{"Statistics", "Value"}, m_resourceData, QString{}));
+  dataReports.push_back(
+      std::make_unique<TableReport>(cols, m_resourceData, QString{}));
   return std::make_unique<DefaultTaskReport>(std::move(dataReports),
                                              "Synthesis report");
 }

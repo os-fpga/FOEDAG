@@ -25,6 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+struct ReportColumn {
+  QString m_name;
+  int m_alignment = Qt::AlignLeft | Qt::AlignVCenter;
+
+  bool operator==(const ReportColumn &rhs) const {
+    return m_name == rhs.m_name;
+  }
+};
+
 /* Given interface represents the data report, holding single type of data:
  * Timing info, resource usage, cirtuit statistics etc.
  * It returns row and column data as strings. For simplicity, only
@@ -35,10 +44,11 @@ class IDataReport {
  public:
   virtual ~IDataReport() = default;
 
+  using ColumnValues = QVector<ReportColumn>;
   using LineValues = QStringList;
   using TableData = QVector<LineValues>;
   // Returns report column names
-  virtual const LineValues &getColumns() const = 0;
+  virtual const ColumnValues &getColumns() const = 0;
   // Returns report data - rows of values
   virtual const TableData &getData() const = 0;
   // Returns report name

@@ -39,6 +39,7 @@ class PlacementReportManager final : public AbstractReportManager {
   const Messages &getMessages() override;
   QString getTimingLogFileName() const override;
   bool isStatisticalTimingLine(const QString &line) override;
+  bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
 
   void parseLogFile();
