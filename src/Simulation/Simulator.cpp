@@ -138,7 +138,9 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
       std::string options;
       for (int i = 3; i < argc; i++) {
         std::string arg{argv[i]};
-        if (arg == "rtl" || arg == "pnr" || arg == "gate") {
+        // skip level if available
+        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+            arg == "bitstream") {
           continue;
         }
         options += arg + " ";
@@ -172,7 +174,8 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
           phase = "simulation";
         } else if (arg == "simulation") {
           phase = "simulation";
-        } else if (arg == "rtl" || arg == "pnr" || arg == "gate") {
+        } else if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+                   arg == "bitstream") {
           level = arg;
         }
       }
