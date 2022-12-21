@@ -93,6 +93,7 @@ class Compiler {
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
   enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
+  enum class STAEngineOpt { Tatum, Opensta };
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
@@ -165,6 +166,8 @@ class Compiler {
   void TimingAnalysisOpt(STAOpt opt) { m_staOpt = opt; }
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
+  STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
+  void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
 
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
@@ -286,6 +289,7 @@ class Compiler {
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
+  STAEngineOpt m_staEngineOpt = STAEngineOpt::Tatum;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
 
   // Compiler specific options

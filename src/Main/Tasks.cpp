@@ -37,6 +37,7 @@ using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
 #define SYNTH_ARG "_SynthOpt_"
+#define TIMING_ANALYSIS_ARG "_StaOpt_"
 #define PLACE_ARG "pin_assign_method"
 
 #define TASKS_DEBUG false
@@ -67,7 +68,7 @@ void openReportView(const ITaskReport& report) {
     reportsView->setColumnCount(columns.size());
     auto colIndex = 0;
     for (auto& col : columns) {
-      auto columnItem = new QTableWidgetItem(col);
+      auto columnItem = new QTableWidgetItem(col.m_name);
       reportsView->setHorizontalHeaderItem(colIndex, columnItem);
       ++colIndex;
     }
@@ -79,8 +80,7 @@ void openReportView(const ITaskReport& report) {
       auto colIndex = 0;
       for (auto& lineValue : lineData) {
         auto item = new QTableWidgetItem(lineValue);
-        item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
-                                             : Qt::AlignCenter);
+        item->setTextAlignment(columns[colIndex].m_alignment);
         reportsView->setItem(rowIndex, colIndex, item);
         ++colIndex;
       }
@@ -120,15 +120,9 @@ auto separateArg = [](const QString& argName,
       searchStr = "-" + searchStr;
     }
     // Find the arg and remove it from the otherArgs
-    auto argIdx = argString.indexOf("-" + QString(SYNTH_ARG));
+    auto argIdx = argString.indexOf(searchStr);
     if (argIdx != -1) {
       targetArg = argString.mid(argIdx, argString.indexOf("-", argIdx + 1));
-      otherArgs = otherArgs.replace(targetArg, "");
-    }
-    auto argPlaceIdx = argString.indexOf("-" + QString(PLACE_ARG));
-    if (argPlaceIdx != -1) {
-      targetArg =
-          argString.mid(argPlaceIdx, argString.indexOf("-", argPlaceIdx + 1));
       otherArgs = otherArgs.replace(targetArg, "");
     }
   }
@@ -187,8 +181,8 @@ auto pinStrToOpt = [](const QString& str) -> FOEDAG::Compiler::PinAssignOpt {
 
   return val;
 };
-// This will grab Placement related options from Compiler::PlaceOpt &
-// Compiler::PlaceMoreOpt, convert/combine them, and return them as an
+// This will grab Synthesis related options from Compiler::SynthOpt &
+// Compiler::SynthMoreOpt, convert/combine them, and return them as an
 // arg list QString
 std::string FOEDAG::TclArgs_getSynthesisOptions() {
   // Collect Synthesis Tcl Params
@@ -328,3 +322,41 @@ std::string FOEDAG::TclArgs_getSimulateOptions() {
       compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream));
   return StringUtils::join(argsList, " ");
 }
+
+// This will get Compiler::TimingAnalysisOpt and return an arg string for
+// widgetFactory values
+std::string FOEDAG::TclArgs_getTimingAnalysisOptions() {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return std::string{};
+
+  // Timing Analysis currently only has 1 option for timing engine, if it's not
+  // OpenSta then assume None/tatum.
+  // Note: "tatum" is only used by widgetFactory. The compiler interface assumes
+  // tatum any time Opensta isn't set
+  std::string val = "tatum";
+  if (compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta) {
+    val = "opensta";
+  }
+  std::string argStr = std::string("-") + TIMING_ANALYSIS_ARG + " " + val;
+  return argStr;
+};
+
+// This will take an arg list and set the TimingAnalysisOpt off it
+void FOEDAG::TclArgs_setTimingAnalysisOptions(const std::string& argsStr) {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return;
+
+  // TimingAnalysis currently only has 1 option so moreOpts won't be used
+  [[maybe_unused]] auto [engineArg, moreOpts] =
+      separateArg(TIMING_ANALYSIS_ARG, QString::fromStdString(argsStr));
+
+  // Determine and set Timing Engine
+  auto engineVal = Compiler::STAEngineOpt::Tatum;  // default to VPR/tatum
+  QStringList tokens = engineArg.split(" ");
+  if (tokens.size() > 1) {
+    if (tokens[1] == "opensta") {
+      engineVal = Compiler::STAEngineOpt::Opensta;
+    }
+  }
+  compiler->TimingAnalysisEngineOpt(engineVal);
+};
