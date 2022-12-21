@@ -27,7 +27,7 @@ namespace FOEDAG {
 // Default data report implementation, representing table-like data.
 class TableReport : public IDataReport {
  public:
-  TableReport(const LineValues &columnNames, const TableData &linesData,
+  TableReport(const ColumnValues &columns, const TableData &linesData,
               const QString &name);
 
   TableReport(const TableReport &) = default;
@@ -36,13 +36,13 @@ class TableReport : public IDataReport {
   TableReport &operator=(TableReport &&) = default;
 
  private:
-  const LineValues &getColumns() const override;
+  const ColumnValues &getColumns() const override;
   // Returns report data - rows of values
   const TableData &getData() const override;
   // Returns report name
   const QString &getName() const override;
 
-  LineValues m_columnNames;
+  ColumnValues m_columns;
   TableData m_linesData;
   QString m_name;
 };

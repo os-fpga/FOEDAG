@@ -68,7 +68,7 @@ void openReportView(const ITaskReport& report) {
     reportsView->setColumnCount(columns.size());
     auto colIndex = 0;
     for (auto& col : columns) {
-      auto columnItem = new QTableWidgetItem(col);
+      auto columnItem = new QTableWidgetItem(col.m_name);
       reportsView->setHorizontalHeaderItem(colIndex, columnItem);
       ++colIndex;
     }
@@ -80,8 +80,7 @@ void openReportView(const ITaskReport& report) {
       auto colIndex = 0;
       for (auto& lineValue : lineData) {
         auto item = new QTableWidgetItem(lineValue);
-        item->setTextAlignment(colIndex == 0 ? Qt::AlignLeft | Qt::AlignVCenter
-                                             : Qt::AlignCenter);
+        item->setTextAlignment(columns[colIndex].m_alignment);
         reportsView->setItem(rowIndex, colIndex, item);
         ++colIndex;
       }
