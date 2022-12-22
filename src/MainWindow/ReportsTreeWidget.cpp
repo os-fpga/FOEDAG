@@ -59,7 +59,8 @@ void ReportsTreeWidget::onReportRequested(const QTreeWidgetItem *item,
   auto reportsManager =
       m_taskManager.getReportManagerRegistry().getReportManager(taskId);
   if (!reportsManager) return;
-  FOEDAG::handleViewReportRequested(reportId, *reportsManager);
+  FOEDAG::handleViewReportRequested(m_taskManager.task(taskId), reportId,
+                                    *reportsManager);
 }
 
 }  // namespace FOEDAG

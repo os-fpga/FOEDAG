@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/IDataReport.h"
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
+#include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/StringUtils.h"
@@ -52,7 +53,7 @@ QLabel* createTitleLabel(const QString& text) {
   return titleLabel;
 }
 
-void openReportView(const ITaskReport& report) {
+void openReportView(const Task* task, const ITaskReport& report) {
   auto reportsWidget = new QWidget;
   auto reportLayout = new QVBoxLayout;
   reportLayout->setContentsMargins(0, 0, 0, 0);
@@ -97,6 +98,12 @@ void openReportView(const ITaskReport& report) {
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   tabWidget->addTab(reportsWidget, report.getName());
   tabWidget->setCurrentWidget(reportsWidget);
+
+  QObject::connect(task, &Task::statusChanged, [reportsWidget, tabWidget]() {
+    // Remove the report if underlying task status has changed
+    if (auto index = tabWidget->indexOf(reportsWidget); index != -1)
+      tabWidget->removeTab(index);
+  });
 }
 }  // namespace
 
@@ -269,12 +276,13 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   TextEditorForm::Instance()->OpenFile(path);
 }
 
-void FOEDAG::handleViewReportRequested(const QString& reportId,
+void FOEDAG::handleViewReportRequested(const Task* task,
+                                       const QString& reportId,
                                        ITaskReportManager& reportManager) {
   auto report = reportManager.createReport(reportId);
   if (!report) return;
 
-  openReportView(*report);
+  openReportView(task, *report);
 }
 
 void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {

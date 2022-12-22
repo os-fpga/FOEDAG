@@ -27,11 +27,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 class ITaskReportManager;
+class Task;
 
 QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
 void handleViewFileRequested(const QString& filePath);
-void handleViewReportRequested(const QString& reportId,
+void handleViewReportRequested(const Task* task, const QString& reportId,
                                ITaskReportManager& reportManager);
 
 // Setters/Getters for tclArgs
