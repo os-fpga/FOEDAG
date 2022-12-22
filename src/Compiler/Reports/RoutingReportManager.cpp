@@ -72,10 +72,10 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
 
   if (reportId == QString(RESOURCE_REPORT_NAME))
     dataReports.push_back(std::make_unique<TableReport>(
-        m_resourceColumns, m_resourceData, RESOURCE_REPORT_NAME));
+        m_resourceColumns, m_resourceData, QString{}));
   else if (reportId == QString(CIRCUIT_REPORT_NAME))
     dataReports.push_back(std::make_unique<TableReport>(
-        m_circuitColumns, m_circuitData, CIRCUIT_REPORT_NAME));
+        m_circuitColumns, m_circuitData, QString{}));
   else {
     dataReports.push_back(std::make_unique<TableReport>(
         m_timingColumns, m_timingData, "Statistical timing:"));
@@ -122,10 +122,10 @@ IDataReport::TableData RoutingReportManager::parseCircuitStats(QTextStream &in,
 }
 
 void RoutingReportManager::parseLogFile() {
+  reset();
+
   auto logFile = createLogFile(QString(ROUTING_LOG));
   if (!logFile) return;
-
-  reset();
 
   QTextStream in(logFile.get());
 
@@ -174,6 +174,8 @@ void RoutingReportManager::reset() {
   m_messages.clear();
   m_circuitData.clear();
   m_histograms.clear();
+  m_resourceData.clear();
+  m_timingData.clear();
 }
 
 bool RoutingReportManager::isStatisticalTimingHistogram(const QString &line) {

@@ -63,6 +63,12 @@ void openReportView(const Task* task, const ITaskReport& report) {
     if (!dataReportName.isEmpty())
       reportLayout->addWidget(createTitleLabel(dataReportName));
 
+    if (dataReport->isEmpty()) {
+      reportLayout->addWidget(
+          new QLabel("No statistics data found to generate report."), 0,
+          Qt::AlignTop);
+      continue;
+    }
     auto reportsView = new QTableWidget();
     // Fill columns
     auto columns = dataReport->getColumns();

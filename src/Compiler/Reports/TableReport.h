@@ -37,10 +37,9 @@ class TableReport : public IDataReport {
 
  private:
   const ColumnValues &getColumns() const override;
-  // Returns report data - rows of values
   const TableData &getData() const override;
-  // Returns report name
   const QString &getName() const override;
+  bool isEmpty() const override;
 
   ColumnValues m_columns;
   TableData m_linesData;
