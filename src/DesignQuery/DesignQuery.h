@@ -35,8 +35,7 @@ class Compiler;
 
 class DesignQuery {
  public:
-  DesignQuery(Compiler* compiler)
-      : m_compiler(compiler) {}
+  DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
