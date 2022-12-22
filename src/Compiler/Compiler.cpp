@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
+#include "scope_guard/scope_guard.hpp"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -1890,6 +1891,16 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
 
+// Search the project directory for files ending in .rpt and add our header if
+// the file doesn't have it already
+void Compiler::AddHeadersToLogs() {
+  auto projManager = ProjManager();
+  if (projManager) {
+    std::filesystem::path projectPath(projManager->projectPath());
+    LogUtils::AddHeadersToLogs(projectPath);
+  }
+}
+
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
   m_stop = false;
@@ -1940,8 +1951,7 @@ bool Compiler::Analyze() {
   m_state = State::Analyzed;
   Message(("Design ") + m_projManager->projectName() + " is analyzed");
 
-  auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, ANALYSIS_LOG);
   return true;
 }
 
@@ -1979,8 +1989,7 @@ bool Compiler::Synthesize() {
   m_state = State::Synthesized;
   Message("Design " + m_projManager->projectName() + " is synthesized");
 
-  auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
   return true;
 }
 
@@ -2013,8 +2022,7 @@ bool Compiler::GlobalPlacement() {
   m_state = State::GloballyPlaced;
   Message("Design " + m_projManager->projectName() + " globally placed");
 
-  auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
   return true;
 }
 
@@ -2043,6 +2051,9 @@ void Compiler::finish() {
 }
 
 bool Compiler::RunCompileTask(Action action) {
+  // Use Scope Guard to add headers to new logs whenever this function exits
+  auto guard = sg::make_scope_guard([this] { AddHeadersToLogs(); });
+
   switch (action) {
     case Action::IPGen:
       return IPGenerate();
@@ -2220,8 +2231,7 @@ bool Compiler::IPGenerate() {
                  " IPs generation failed");
   }
 
-  auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, IP_GENERATE_LOG);
   return status;
 }
 
@@ -2243,8 +2253,7 @@ bool Compiler::Packing() {
   Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
-  auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, PACKING_LOG);
   return true;
 }
 
@@ -2266,8 +2275,7 @@ bool Compiler::Placement() {
   Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
-  auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, PLACEMENT_LOG);
   return true;
 }
 
@@ -2290,8 +2298,7 @@ bool Compiler::Route() {
   Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
-  auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, ROUTING_LOG);
   return true;
 }
 
@@ -2303,8 +2310,7 @@ bool Compiler::TimingAnalysis() {
   Message("Timing analysis for design: " + m_projManager->projectName() +
           "...");
   Message("Design " + m_projManager->projectName() + " is analyzed");
-  auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
   return true;
 }
 
@@ -2316,8 +2322,7 @@ bool Compiler::PowerAnalysis() {
   Message("Power analysis for design: " + m_projManager->projectName() + "...");
   Message("Design " + m_projManager->projectName() + " is analyzed");
 
-  auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
   return true;
 }
 
@@ -2330,8 +2335,7 @@ bool Compiler::GenerateBitstream() {
           "...");
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
-  auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, BITSTREAM_LOG);
   return true;
 }
 

@@ -259,7 +259,7 @@ class Compiler {
       const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
-
+  void AddHeadersToLogs();
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
