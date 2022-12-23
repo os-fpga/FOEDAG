@@ -51,6 +51,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
+Simulator::SimulationType Simulator::ToSimulationType(const std::string& str,
+                                                      bool& ok) {
+  ok = true;
+  if (str == "rtl") return SimulationType::RTL;
+  if (str == "pnr") return SimulationType::PNR;
+  if (str == "gate") return SimulationType::Gate;
+  if (str == "bitstream") return SimulationType::Bitstream;
+  ok = false;
+  return SimulationType::RTL;
+}
+
 Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
                      std::ostream* out,
                      TclInterpreterHandler* tclInterpreterHandler)
@@ -62,6 +73,50 @@ Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
 void Simulator::AddGateSimulationModel(const std::filesystem::path& path) {
   m_gateSimulationModels.push_back(path);
 }
+
+void Simulator::SetSimulatorCompileOption(const std::string& simulation,
+                                          SimulatorType type,
+                                          const std::string& options) {
+  bool ok{false};
+  auto level = ToSimulationType(simulation, ok);
+  if (ok) {
+    m_simulatorCompileOptionMap[level].emplace(type, options);
+  } else {
+    for (auto level : {SimulationType::RTL, SimulationType::PNR,
+                       SimulationType::Gate, SimulationType::Bitstream})
+      m_simulatorCompileOptionMap[level].emplace(type, options);
+  }
+}
+
+void Simulator::SetSimulatorElaborationOption(const std::string& simulation,
+                                              SimulatorType type,
+                                              const std::string& options) {
+  bool ok{false};
+  auto level = ToSimulationType(simulation, ok);
+  if (ok) {
+    m_simulatorElaborationOptionMap[level].emplace(type, options);
+  } else {
+    for (auto level : {SimulationType::RTL, SimulationType::PNR,
+                       SimulationType::Gate, SimulationType::Bitstream})
+      m_simulatorElaborationOptionMap[level].emplace(type, options);
+  }
+}
+
+void Simulator::SetSimulatorRuntimeOption(const std::string& simulation,
+                                          SimulatorType type,
+                                          const std::string& options) {
+  bool ok{false};
+  auto level = ToSimulationType(simulation, ok);
+  if (ok) {
+    m_simulatorRuntimeOptionMap[level].emplace(type, options);
+  } else {
+    for (auto level : {SimulationType::RTL, SimulationType::PNR,
+                       SimulationType::Gate, SimulationType::Bitstream})
+      m_simulatorRuntimeOptionMap[level].emplace(type, options);
+  }
+}
+
+void Simulator::ResetGateSimulationModel() { m_gateSimulationModels.clear(); }
 
 bool Simulator::RegisterCommands(TclInterpreter* interp) {
   bool ok = true;
@@ -82,11 +137,18 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
     if (argc > 3) {
       std::string options;
       for (int i = 3; i < argc; i++) {
-        options += std::string(argv[i]) + " ";
+        std::string arg{argv[i]};
+        // skip level if available
+        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+            arg == "bitstream") {
+          continue;
+        }
+        options += arg + " ";
       }
       std::string phase;
+      std::string level;
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      for (int i = 1; i < 3; i++) {
+      for (int i = 1; i < 4; i++) {
         std::string arg = argv[i];
         if (arg == "verilator") {
           sim_tool = Simulator::SimulatorType::Verilator;
@@ -112,15 +174,18 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
           phase = "simulation";
         } else if (arg == "simulation") {
           phase = "simulation";
+        } else if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+                   arg == "bitstream") {
+          level = arg;
         }
       }
       options = StringUtils::rtrim(options);
       if (phase == "compilation") {
-        simulator->SetSimulatorCompileOption(sim_tool, options);
+        simulator->SetSimulatorCompileOption(level, sim_tool, options);
       } else if (phase == "elaboration") {
-        simulator->SetSimulatorElaborationOption(sim_tool, options);
+        simulator->SetSimulatorElaborationOption(level, sim_tool, options);
       } else if (phase == "simulation") {
-        simulator->SetSimulatorRuntimeOption(sim_tool, options);
+        simulator->SetSimulatorRuntimeOption(level, sim_tool, options);
       }
       return TCL_OK;
     }
@@ -149,23 +214,34 @@ void Simulator::ErrorMessage(const std::string& message) {
   m_compiler->ErrorMessage(message);
 }
 
-std::string Simulator::GetSimulatorCompileOption(SimulatorType type) {
-  std::map<SimulatorType, std::string>::iterator itr =
-      m_simulatorCompileOptionMap.find(type);
-  if (itr != m_simulatorCompileOptionMap.end()) return (*itr).second;
-  return "";
+std::string Simulator::GetSimulatorCompileOption(SimulationType simulation,
+                                                 SimulatorType type) {
+  if (m_simulatorCompileOptionMap.count(simulation) != 0) {
+    auto itr = m_simulatorCompileOptionMap[simulation].find(type);
+    if (itr != m_simulatorCompileOptionMap[simulation].end())
+      return (*itr).second;
+  }
+  return std::string{};
 }
-std::string Simulator::GetSimulatorElaborationOption(SimulatorType type) {
-  std::map<SimulatorType, std::string>::iterator itr =
-      m_simulatorElaborationOptionMap.find(type);
-  if (itr != m_simulatorElaborationOptionMap.end()) return (*itr).second;
-  return "";
+
+std::string Simulator::GetSimulatorElaborationOption(SimulationType simulation,
+                                                     SimulatorType type) {
+  if (m_simulatorElaborationOptionMap.count(simulation) != 0) {
+    auto itr = m_simulatorElaborationOptionMap[simulation].find(type);
+    if (itr != m_simulatorElaborationOptionMap[simulation].end())
+      return (*itr).second;
+  }
+  return std::string{};
 }
-std::string Simulator::GetSimulatorRuntimeOption(SimulatorType type) {
-  std::map<SimulatorType, std::string>::iterator itr =
-      m_simulatorRuntimeOptionMap.find(type);
-  if (itr != m_simulatorRuntimeOptionMap.end()) return (*itr).second;
-  return "";
+
+std::string Simulator::GetSimulatorRuntimeOption(SimulationType simulation,
+                                                 SimulatorType type) {
+  if (m_simulatorRuntimeOptionMap.count(simulation) != 0) {
+    auto itr = m_simulatorRuntimeOptionMap[simulation].find(type);
+    if (itr != m_simulatorRuntimeOptionMap[simulation].end())
+      return (*itr).second;
+  }
+  return std::string{};
 }
 
 void Simulator::SimulationOption(SimulationOpt option) {
@@ -187,6 +263,7 @@ std::string Simulator::WaveFile(SimulationType type) const {
 
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
+  m_simType = action;
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
   WaveFile(action, wave_file);
   m_waveFile = wave_file;
@@ -290,7 +367,7 @@ std::string Simulator::LibraryFileDirective(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-v ";
     case SimulatorType::GHDL:
-      return "Invalid";
+      return "";
     case SimulatorType::Questa:
       return "-v ";
     case SimulatorType::VCS:
@@ -338,7 +415,8 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       std::string options =
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
-          "-Wno-TIMESCALEMOD ";
+          "-Wno-TIMESCALEMOD "
+          "-Wno-WIDTH ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";
@@ -450,10 +528,22 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::CPP:
           return "--invalid-lang-for-ghdl";
         case Design::Language::VHDL_1987:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=87";
         case Design::Language::VHDL_1993:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=93c";
         case Design::Language::VHDL_2000:
+          if (m_simType == SimulationType::Gate ||
+              m_simType == SimulationType::PNR) {
+            return "--std=08";
+          }
           return "--std=00";
         case Design::Language::VHDL_2008:
           return "--std=08";
@@ -475,15 +565,16 @@ std::string Simulator::LanguageDirective(SimulatorType type,
   return "Invalid";
 }
 
-std::string Simulator::SimulatorRunCommand(SimulatorType type) {
+std::string Simulator::SimulatorRunCommand(SimulationType simulation,
+                                           SimulatorType type) {
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
   auto simulationTop{ProjManager()->SimulationTopModule()};
   switch (type) {
     case SimulatorType::Verilator: {
       std::string command = "obj_dir/V" + simulationTop;
-      if (!GetSimulatorRuntimeOption(type).empty())
-        command += " " + GetSimulatorRuntimeOption(type);
+      if (!GetSimulatorRuntimeOption(simulation, type).empty())
+        command += " " + GetSimulatorRuntimeOption(simulation, type);
       if (!m_waveFile.empty()) command += " " + m_waveFile;
       return command;
     }
@@ -494,8 +585,8 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
-      if (!GetSimulatorRuntimeOption(type).empty())
-        command += " " + GetSimulatorRuntimeOption(type);
+      if (!GetSimulatorRuntimeOption(simulation, type).empty())
+        command += " " + GetSimulatorRuntimeOption(simulation, type);
       if (!m_waveFile.empty()) {
         command += " ";
         command += (m_waveType == WaveformType::VCD) ? "--vcd=" : "--fst=";
@@ -515,6 +606,7 @@ std::string Simulator::SimulatorRunCommand(SimulatorType type) {
 
 std::string Simulator::SimulationFileList(SimulatorType type) {
   std::string fileList;
+  m_compiler->CustomSimulatorSetup();
   if (type != SimulatorType::GHDL) {
     auto simulationTop{ProjManager()->SimulationTopModule()};
     if (!simulationTop.empty()) {
@@ -538,11 +630,12 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
     fileList += MacroDirective(type) + macro_value.first + "=" +
                 macro_value.second + " ";
   }
+
   bool langDirective = false;
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
     if (langDirective == false) {
-      std::string directive =
-          LanguageDirective(type, (Design::Language)(lang_file.first.language));
+      Design::Language language = (Design::Language)lang_file.first.language;
+      std::string directive = LanguageDirective(type, language);
       if (!directive.empty()) {
         langDirective = true;
         fileList += directive + " ";
@@ -558,7 +651,8 @@ std::string Simulator::SimulationFileList(SimulatorType type) {
   return fileList;
 }
 
-int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
+int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
+                             const std::string& fileList) {
   if (type == SimulatorType::Verilator) {
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
@@ -568,8 +662,8 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
   std::string command = execPath + " " + SimulatorCompilationOptions(type);
-  if (!GetSimulatorCompileOption(type).empty())
-    command += " " + GetSimulatorCompileOption(type);
+  if (!GetSimulatorCompileOption(simulation, type).empty())
+    command += " " + GetSimulatorCompileOption(simulation, type);
   command += " " + fileList;
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   if (status) {
@@ -584,8 +678,8 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
     case SimulatorType::Verilator: {
       std::string command =
           "make -j -C obj_dir/ -f V" + simulationTop + ".mk V" + simulationTop;
-      if (!GetSimulatorElaborationOption(type).empty())
-        command += " " + GetSimulatorElaborationOption(type);
+      if (!GetSimulatorElaborationOption(simulation, type).empty())
+        command += " " + GetSimulatorElaborationOption(simulation, type);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
@@ -596,8 +690,8 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
     }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -e -fsynopsys";
-      if (!GetSimulatorElaborationOption(type).empty())
-        command += " " + GetSimulatorElaborationOption(type);
+      if (!GetSimulatorElaborationOption(simulation, type).empty())
+        command += " " + GetSimulatorElaborationOption(simulation, type);
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
@@ -614,7 +708,7 @@ int Simulator::SimulationJob(SimulatorType type, const std::string& fileList) {
   }
 
   // Actual simulation
-  command = SimulatorRunCommand(type);
+  command = SimulatorRunCommand(simulation, type);
   status = m_compiler->ExecuteAndMonitorSystemCommand(command);
   return status;
 }
@@ -650,7 +744,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
   Message("RTL simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  bool status = SimulationJob(type, fileList);
+  bool status = SimulationJob(SimulationType::RTL, type, fileList);
 
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -679,6 +773,9 @@ bool Simulator::SimulateGate(SimulatorType type) {
     case Compiler::NetlistType::Verilog:
       netlistFile = ProjManager()->projectName() + "_post_synth.v";
       break;
+    case Compiler::NetlistType::VHDL:
+      netlistFile = ProjManager()->projectName() + "_post_synth.vhd";
+      break;
     case Compiler::NetlistType::Edif:
       netlistFile = ProjManager()->projectName() + "_post_synth.edif";
       break;
@@ -706,12 +803,13 @@ bool Simulator::SimulateGate(SimulatorType type) {
     }
   }
 
-  fileList += " " + netlistFile;
+  fileList += netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
-    fileList += " -v " + path.string();
+    fileList += LibraryFileDirective(type) + path.string() + " ";
   }
+  fileList = StringUtils::rtrim(fileList);
 
-  bool status = SimulationJob(type, fileList);
+  bool status = SimulationJob(SimulationType::Gate, type, fileList);
 
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -738,12 +836,13 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   std::string netlistFile =
       ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
 
-  fileList += " " + netlistFile;
+  fileList += " " + netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
-    fileList += " -v " + path.string();
+    fileList += LibraryFileDirective(type) + path.string() + " ";
   }
+  fileList = StringUtils::rtrim(fileList);
 
-  bool status = SimulationJob(type, fileList);
+  bool status = SimulationJob(SimulationType::PNR, type, fileList);
 
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +

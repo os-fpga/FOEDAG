@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QWidget>
+#include <QTableView>
 
 namespace FOEDAG {
 
@@ -96,6 +96,7 @@ static constexpr uint SIMULATE_PNR_SETTINGS{36};
 static constexpr uint SIMULATE_BITSTREAM{37};
 static constexpr uint SIMULATE_BITSTREAM_CLEAN{38};
 static constexpr uint SIMULATE_BITSTREAM_SETTINGS{39};
+static constexpr uint TIMING_SIGN_OFF_SETTINGS{40};
 
 static constexpr const char *IP_GENERATE_LOG{"ip_generate.rpt"};
 static constexpr const char *ANALYSIS_LOG{"analysis.rpt"};
@@ -117,8 +118,8 @@ static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
  * \param taskManager - output parameter to receive pointer to task manager.
  * \return widget with compiler task view
  */
-QWidget *prepareCompilerView(Compiler *compiler,
-                             TaskManager **taskManager = nullptr);
+QTableView *prepareCompilerView(Compiler *compiler,
+                                TaskManager **taskManager = nullptr);
 
 uint toTaskId(int action, Compiler *const compiler);
 

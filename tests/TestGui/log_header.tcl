@@ -7,7 +7,7 @@ set fp [open "log_header/analysis.rpt" r]
 set file_data [read $fp]
 close $fp
 
-# Verify Copyrighty is printed
+# Verify Copyright is printed
 set found [regexp "Copyright 20\\d\\d The Foedag team" $file_data]
 # one line for --replay
 if { !$found } { puts "ERROR: analysis.rpt is missing copyright info"; exit 1 }

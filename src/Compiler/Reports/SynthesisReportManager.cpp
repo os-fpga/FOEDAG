@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTextStream>
 
 #include "CompilerDefines.h"
+#include "DefaultTaskReport.h"
 #include "TableReport.h"
 
 namespace {
@@ -50,9 +51,9 @@ QStringList SynthesisReportManager::getAvailableReportIds() const {
   return {QString(REPORT_NAME)};
 }
 
-ITaskReport::TableData SynthesisReportManager::getStatistics(
+IDataReport::TableData SynthesisReportManager::getStatistics(
     const QString &statsStr) const {
-  auto res = ITaskReport::TableData{};
+  auto res = IDataReport::TableData{};
 
   auto line = QString{};        // Unmodified line from the log file
   auto dataLine = QString{};    // Simplified line
@@ -91,7 +92,7 @@ ITaskReport::TableData SynthesisReportManager::getStatistics(
 }
 
 void SynthesisReportManager::fillLevels(const QString &line,
-                                        ITaskReport::TableData &stats) const {
+                                        IDataReport::TableData &stats) const {
   const QRegularExpression findLvls{
       "^DE:.*Max Lvl =\\s*(([0-9]*[.])?[0-9]+)\\s*Avg Lvl "
       "=\\s*(([0-9]*[.])?[0-9]+)"};
@@ -109,8 +110,15 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   emit reportCreated(QString(REPORT_NAME));
 
-  return std::make_unique<TableReport>(QStringList{"Statistics", "Value"},
-                                       m_resourceData, "Synthesis report");
+  IDataReport::ColumnValues cols;
+  cols.push_back(ReportColumn{"Statistics"});
+  cols.push_back(ReportColumn{"Value", Qt::AlignCenter});
+
+  ITaskReport::DataReports dataReports;
+  dataReports.push_back(
+      std::make_unique<TableReport>(cols, m_resourceData, QString{}));
+  return std::make_unique<DefaultTaskReport>(std::move(dataReports),
+                                             "Synthesis report");
 }
 
 void SynthesisReportManager::parseLogFile() {
@@ -193,4 +201,7 @@ QString SynthesisReportManager::getTimingLogFileName() const {
   return {};
 }
 
+void SynthesisReportManager::splitTimingData(const QString &timingStr) {
+  // Current synthesis log implementation doesn't contain timing info
+}
 }  // namespace FOEDAG

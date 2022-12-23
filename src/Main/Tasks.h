@@ -45,6 +45,9 @@ std::string TclArgs_getPlacementOptions();
 void TclArgs_setSimulateOptions(const std::string& argsStr);
 std::string TclArgs_getSimulateOptions();
 
+void TclArgs_setTimingAnalysisOptions(const std::string& argsStr);
+std::string TclArgs_getTimingAnalysisOptions();
+
 }  // namespace FOEDAG
 
 #endif

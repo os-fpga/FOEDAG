@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 82)
+set(VERSION_PATCH 87)
 
 option(
   WITH_LIBCXX
@@ -93,6 +93,7 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
+add_subdirectory(third_party/scope_guard)
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -366,6 +367,7 @@ target_link_libraries(foedag  PUBLIC
   nlohmann_json
   ipconfigurator
   pinassignment
+  scope_guard
 )
 #target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
@@ -507,7 +509,7 @@ install(
   DESTINATION cmake)
 
 install(
-  DIRECTORY etc DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/ DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
 
 install(
   DIRECTORY tests/Testcases/IPGenerate/IP_Catalog DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
@@ -541,8 +543,13 @@ add_custom_command(TARGET foedag-bin POST_BUILD
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc
+                  ${PROJECT_SOURCE_DIR}/etc/
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+          ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/

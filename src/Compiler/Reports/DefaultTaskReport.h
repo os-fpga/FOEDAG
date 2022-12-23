@@ -20,10 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <memory>
-#include <vector>
+#include <QString>
 
-class QString;
+#include "ITaskReport.h"
 
 namespace FOEDAG {
 
@@ -33,13 +32,16 @@ class IDataReport;
  * of multiple data reports and can be shown in multiple
  * tables.
  */
-class ITaskReport {
+class DefaultTaskReport : public ITaskReport {
  public:
-  virtual ~ITaskReport() = default;
+  DefaultTaskReport(ITaskReport::DataReports &&dataReports,
+                    const QString &name);
 
-  using DataReports = std::vector<std::unique_ptr<IDataReport>>;
-  virtual const DataReports &getDataReports() const = 0;
-  // Returns report name
-  virtual const QString &getName() const = 0;
+  const ITaskReport::DataReports &getDataReports() const override;
+  const QString &getName() const override;
+
+ private:
+  ITaskReport::DataReports m_dataReports;
+  QString m_name;
 };
 }  // namespace FOEDAG

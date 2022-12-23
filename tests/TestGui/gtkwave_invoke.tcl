@@ -17,20 +17,48 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Helper Delay function
 proc delay { time } { set delayDone 0; after $time set delayDone 1; vwait delayDone; }
+# Helper function load and return the contents of foedag.log
+proc getLog {} {
+    # Read log contents
+    set fp [open "foedag.log" r]
+    set file_data [read $fp]
+    close $fp
 
-# open gtkwave and give it time to load
+    return $file_data
+}
+# This will search foedag.log for a given regex up to 5 times on each failure,
+# it waits for 3 seconds before trying again
+# NOTE: Don't print a message about searching for your regex or the that print
+# might find a false positive the next time the log is searched.
+proc findInLog { regex } {
+    set found 0
+    set tries 0
+    # retry up to 5 times
+    while { !$found && $tries < 5 } {
+        # Check if we found our regex
+        set found [regexp $regex [getLog]]
+        if { !$found } {
+            delay 3000
+            incr tries 1
+        }
+    }
+    return $found
+}
+
+# open gtkwave
 wave_open
-delay 3000
 
 # close gtkwave via the menu
 wave_cmd gtkwave::/File/Quit
-delay 1000
 
-# check log for an invoke line
-set fp [open "foedag.log" r]
-set file_data [read $fp]
-close $fp
-
-set found [regexp "GTKWave - Interpreter id is" $file_data]
-if { $found } { puts "Successfully launched gtkwave process"; exit 0 } else { puts "FAILED to launch gtkwave process"; exit 1 }
+# Check the log for GTKWave start up message
+set found [findInLog "GTKWave - Interpreter id is"]
+if { $found } {
+    puts "Successfully launched gtkwave process";
+    exit 0
+} else {
+    puts "FAILED to launch gtkwave process";
+    exit 1
+}

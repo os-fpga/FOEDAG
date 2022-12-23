@@ -15,14 +15,8 @@ static constexpr const char *BLOCKS_COL{"Blocks"};
 static const QRegExp WARNING_REGEXP("Warning [0-9].*:");
 static const QRegExp ERROR_REGEXP("Error [0-9].*:");
 
-static const QString STAT_TIMING_COL{"Statistics"};
-static const QString VAL_TIMING_COL{"Value"};
-
-static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
-                                       "FMax", "Setup WNS", "Setup TNS"};
-
-static const QRegularExpression FIND_STAT_TIMING{
-    "([-]?(([0-9]*[.])?[0-9]+) (ns|MHz))"};
+static const QRegularExpression SPLIT_HISTOGRAM{
+    "((([0-9]*[.])?[0-9]+)e?[+-]?%?)+|\\*.*"};
 }  // namespace
 
 namespace FOEDAG {
@@ -33,14 +27,19 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
   // Log files should be re-parsed after starting new compilation
   connect(&taskManager, &TaskManager::started,
           [this]() { setFileParsed(false); });
-  m_timingColumns = QStringList{STAT_TIMING_COL, VAL_TIMING_COL};
+  m_timingColumns = {ReportColumn{"Statistics"},
+                     ReportColumn{"Value", Qt::AlignCenter}};
+  m_histogramColumns = {ReportColumn{"From"}, ReportColumn{"To"},
+                        ReportColumn{"Value", Qt::AlignCenter},
+                        ReportColumn{"%", Qt::AlignCenter},
+                        ReportColumn{"Histogram"}};
 }
 
 void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
   m_resourceData.clear();
   m_resourceColumns.clear();
 
-  m_resourceColumns << QString(BLOCKS_COL);
+  m_resourceColumns.push_back(ReportColumn{QString(BLOCKS_COL)});
 
   int childSum{0};     // Total number, assumulated within a single parent
   int columnIndex{0};  // Index of a column we fill the value for
@@ -52,7 +51,7 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
         m_resourceData.begin(), m_resourceData.end(),
         [&row](const auto &lineValues) { return lineValues[0] == row; });
     if (findIt == m_resourceData.end()) {
-      auto lineValues = ITaskReport::LineValues{row, {}, {}};
+      auto lineValues = IDataReport::LineValues{row, {}, {}};
       lineValues[columnIndex] = value;
       m_resourceData.push_back(std::move(lineValues));
     } else {
@@ -62,8 +61,8 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
     }
   };
 
-  QString lineStr, columnName, resourceName;
-
+  QString lineStr, resourceName;
+  auto currentColumn = ReportColumn{{}, Qt::AlignCenter};
   while (in.readLineInto(&lineStr)) {
     ++lineNr;
     auto line = lineStr.simplified();
@@ -73,7 +72,7 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
     // Column values are expected in a following format: Value RESOURCES_SPLIT
     // ResourceName
     if (lineStrs.size() == 2) {
-      columnIndex = m_resourceColumns.indexOf(columnName);
+      columnIndex = m_resourceColumns.indexOf(currentColumn);
       resourceName = lineStrs[1];
 
       setValue(resourceName, lineStrs[0]);
@@ -84,10 +83,10 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
       // and set accumulated number to it
       if (resourceNameSplit.size() > 1)
         setValue(resourceNameSplit.first(), QString::number(childSum));
-      columnName = line;
+      currentColumn.m_name = line;
       // We can't use set because columns order has to be kept.
-      if (!m_resourceColumns.contains(columnName))
-        m_resourceColumns << columnName;
+      if (!m_resourceColumns.contains(currentColumn))
+        m_resourceColumns << currentColumn;
       childSum = 0;  // New parent - reset the SUM
     }
   }
@@ -174,6 +173,8 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
       parseResourceUsage(in, lineNr);
     } else if (isStatisticalTimingLine(line)) {
       timings << line + "\n";
+    } else if (isStatisticalTimingHistogram(line)) {
+      m_histograms.push_back(qMakePair(line, parseHistogram(in, lineNr)));
     }
   }
 
@@ -215,14 +216,7 @@ void AbstractReportManager::fillTimingData(const QStringList &timingData) {
 
   createTimingDataFile(timingData);
 
-  auto timingStr = timingData.join(' ');
-  auto matchIt = FIND_STAT_TIMING.globalMatch(timingStr);
-  if (FIND_STAT_TIMING.captureCount() != TIMING_FIELDS.size()) return;
-  auto valueIndex = 0;
-  while (matchIt.hasNext()) {
-    auto match = matchIt.next();
-    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
-  }
+  splitTimingData(timingData.join(' '));
 }
 
 void AbstractReportManager::createTimingDataFile(
@@ -244,6 +238,21 @@ void AbstractReportManager::createTimingDataFile(
   timingLogFile.close();
 }
 
+IDataReport::TableData AbstractReportManager::parseHistogram(QTextStream &in,
+                                                             int &lineNr) {
+  IDataReport::TableData result;
+  QString line;
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.simplified().isEmpty()) break;
+    auto match = SPLIT_HISTOGRAM.globalMatch(line);
+    QStringList tableLine;
+    while (match.hasNext()) tableLine << match.next().captured();
+    result.push_back(std::move(tableLine));
+  }
+  return result;
+}
+
 void AbstractReportManager::setFileParsed(bool parsed) {
   m_fileParsed = parsed;
 }
@@ -251,6 +260,10 @@ void AbstractReportManager::setFileParsed(bool parsed) {
 bool AbstractReportManager::isFileParsed() const { return m_fileParsed; }
 
 bool AbstractReportManager::isStatisticalTimingLine(const QString &line) {
+  return false;
+}
+
+bool AbstractReportManager::isStatisticalTimingHistogram(const QString &line) {
   return false;
 }
 

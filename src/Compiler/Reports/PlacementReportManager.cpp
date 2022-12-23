@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 
 #include "CompilerDefines.h"
+#include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
 
@@ -38,7 +39,7 @@ static constexpr const char *TIMING_REPORT_NAME{
 
 // Messages regexps
 static const QRegExp FIND_PLACEMENT_TIMINGS{
-    "Placement estimated (critical|setup).*[0-9].*"};
+    "Placement estimated.*(Slack|MHz).*"};
 static const QRegExp LOAD_PACKING_REGEXP{"# Load packing"};
 static const QRegExp DEVICE_UTIL_REGEXP{"Device Utilization.*"};
 static const QRegExp TILEABLE_GRAPH_REGEXP{
@@ -51,6 +52,16 @@ static const QRegExp PLACEMENT_RESOURCE_REGEXP{"Placement resource usage"};
 
 static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString PLACEMENT_SECTION{"# Placement"};
+
+static const QRegularExpression FIND_STAT_TIMING{
+    "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+
+static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
+                                       "FMax",
+                                       "Setup WNS",
+                                       "Setup TNS",
+                                       "Intra-domain period",
+                                       "Fanout-weighted intra-domain period"};
 }  // namespace
 
 namespace FOEDAG {
@@ -72,18 +83,22 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();
 
-  auto report = std::unique_ptr<ITaskReport>{};
+  ITaskReport::DataReports dataReports;
 
-  if (reportId == QString(RESOURCE_REPORT_NAME))
-    report = std::make_unique<TableReport>(m_resourceColumns, m_resourceData,
-                                           RESOURCE_REPORT_NAME);
-  else
-    report = std::make_unique<TableReport>(m_timingColumns, m_timingData,
-                                           TIMING_REPORT_NAME);
+  if (reportId == QString(RESOURCE_REPORT_NAME)) {
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_resourceColumns, m_resourceData, QString{}));
+  } else {
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_timingColumns, m_timingData, QString{}));
+    for (auto &hgrm : m_histograms)
+      dataReports.push_back(std::make_unique<TableReport>(
+          m_histogramColumns, hgrm.second, hgrm.first));
+  }
 
   emit reportCreated(reportId);
 
-  return report;
+  return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
 const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
@@ -97,6 +112,7 @@ void PlacementReportManager::parseLogFile() {
 
   auto timings = QStringList{};
   m_messages.clear();
+  m_histograms.clear();
 
   auto in = QTextStream(logFile.get());
   QString line;
@@ -128,6 +144,19 @@ QString PlacementReportManager::getTimingLogFileName() const {
 
 bool PlacementReportManager::isStatisticalTimingLine(const QString &line) {
   return FIND_PLACEMENT_TIMINGS.indexIn(line) != -1;
+}
+
+bool PlacementReportManager::isStatisticalTimingHistogram(const QString &line) {
+  return PLACEMENT_HISTOGRAM_REGEXP.indexIn(line) != -1;
+}
+
+void PlacementReportManager::splitTimingData(const QString &timingStr) {
+  auto matchIt = FIND_STAT_TIMING.globalMatch(timingStr);
+  auto valueIndex = 0;
+  while (matchIt.hasNext() && valueIndex < TIMING_FIELDS.size()) {
+    auto match = matchIt.next();
+    m_timingData.push_back({TIMING_FIELDS[valueIndex++], match.captured()});
+  }
 }
 
 }  // namespace FOEDAG

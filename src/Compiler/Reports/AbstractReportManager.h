@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QVector>
 #include <map>
 
-#include "ITaskReport.h"
+#include "IDataReport.h"
 #include "ITaskReportManager.h"
 
 class QFile;
@@ -48,6 +48,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   virtual QString getTimingLogFileName() const = 0;
   // Returns true if given line holds statistical timing info.
   virtual bool isStatisticalTimingLine(const QString &line);
+  // Returns true if given line holds is a header of statistical histogram.
+  virtual bool isStatisticalTimingHistogram(const QString &line);
   // Parses in stream line by line till empty one occurs and creates table data.
   // Fills parsed data into 'm_resourceColumns' and 'm_resourceData'
   void parseResourceUsage(QTextStream &in, int &lineNr);
@@ -67,7 +69,13 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   // Fills the values from given 'timingData' to m_timingData.
   void fillTimingData(const QStringList &timingData);
+  // Create the file with 'timingData' content.
   void createTimingDataFile(const QStringList &timingData);
+  // Splits histogram lines into table data till reaching empty line.
+  IDataReport::TableData parseHistogram(QTextStream &in, int &lineNr);
+
+  // Timing data is task specific and can't be split on generic level
+  virtual void splitTimingData(const QString &timingStr) = 0;
 
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
@@ -79,11 +87,14 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   void reportCreated(QString reportName);
 
  protected:
-  QStringList m_resourceColumns;
-  ITaskReport::TableData m_resourceData;
+  IDataReport::ColumnValues m_resourceColumns;
+  IDataReport::TableData m_resourceData;
 
-  ITaskReport::TableData m_timingData;
-  QStringList m_timingColumns;
+  IDataReport::TableData m_timingData;
+  IDataReport::ColumnValues m_timingColumns;
+
+  IDataReport::ColumnValues m_histogramColumns;
+  QVector<QPair<QString, IDataReport::TableData>> m_histograms;
 
   Messages m_messages;
 
