@@ -403,7 +403,7 @@ void MainWindow::showMessagesTab() {
 }
 
 void MainWindow::showReportsTab() {
-  auto newReportsWidget = new ReportsTreeWidget(*m_taskManager);
+  auto newReportsWidget = new ReportsTreeWidget(m_compiler, *m_taskManager);
   // remove old config widget
   auto oldWidget = m_reportsDockWidget->widget();
   if (oldWidget) {

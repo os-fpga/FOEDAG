@@ -20,7 +20,7 @@ static const QRegExp TIMING_INFO{"Final hold Worst Negative Slack.*"};
 
 static constexpr const char *CIRCUIT_REPORT_NAME{"Circuit Statistics Report"};
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Post routing - Report Resource Utilization "};
+    "Post routing - Report Resource Utilization"};
 static constexpr const char *TIMING_REPORT_NAME{
     "Post routing - Report Static Timing"};
 

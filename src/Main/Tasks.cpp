@@ -53,7 +53,8 @@ QLabel* createTitleLabel(const QString& text) {
   return titleLabel;
 }
 
-void openReportView(const Task* task, const ITaskReport& report) {
+void openReportView(Compiler* compiler, const Task* task,
+                    const ITaskReport& report) {
   auto reportsWidget = new QWidget;
   auto reportLayout = new QVBoxLayout;
   reportLayout->setContentsMargins(0, 0, 0, 0);
@@ -101,15 +102,20 @@ void openReportView(const Task* task, const ITaskReport& report) {
   }
   reportsWidget->setLayout(reportLayout);
 
+  auto reportName = report.getName();
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   tabWidget->addTab(reportsWidget, report.getName());
   tabWidget->setCurrentWidget(reportsWidget);
 
-  QObject::connect(task, &Task::statusChanged, [reportsWidget, tabWidget]() {
-    // Remove the report if underlying task status has changed
-    if (auto index = tabWidget->indexOf(reportsWidget); index != -1)
-      tabWidget->removeTab(index);
-  });
+  QObject::connect(
+      task, &Task::statusChanged, [compiler, reportsWidget, reportName]() {
+        auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+        // Remove the report if underlying task status has changed
+        if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
+          tabWidget->removeTab(index);
+          compiler->Message(reportName.toStdString() + " report closed.");
+        }
+      });
 }
 }  // namespace
 
@@ -282,13 +288,13 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   TextEditorForm::Instance()->OpenFile(path);
 }
 
-void FOEDAG::handleViewReportRequested(const Task* task,
+void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
                                        const QString& reportId,
                                        ITaskReportManager& reportManager) {
   auto report = reportManager.createReport(reportId);
   if (!report) return;
 
-  openReportView(task, *report);
+  openReportView(compiler, task, *report);
 }
 
 void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {

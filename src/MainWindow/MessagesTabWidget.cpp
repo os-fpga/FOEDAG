@@ -36,7 +36,7 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
       if (!FileUtils::FileExists(filePath.toStdString()))
-        filePath = tr("Log file not found");
+        filePath = tr("log file not found");
       auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
       auto taskItem = new QTreeWidgetItem({itemName});
 
