@@ -66,7 +66,7 @@ void openReportView(Compiler* compiler, const Task* task,
 
     if (dataReport->isEmpty()) {
       reportLayout->addWidget(
-          new QLabel("No statistics data found to generate report."), 0,
+          new QLabel("No statistics data found to generate report."), 1,
           Qt::AlignTop);
       continue;
     }
