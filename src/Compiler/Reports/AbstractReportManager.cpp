@@ -36,7 +36,6 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
 }
 
 void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
-  m_resourceData.clear();
   m_resourceColumns.clear();
 
   m_resourceColumns.push_back(ReportColumn{QString(BLOCKS_COL)});

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class QTreeWidgetItem;
 
 namespace FOEDAG {
+class Compiler;
 class TaskManager;
 
 /* This class shows reports in a tree view. At shown project task
@@ -36,13 +37,14 @@ class TaskManager;
 class ReportsTreeWidget final : public QWidget {
   Q_OBJECT
  public:
-  ReportsTreeWidget(const TaskManager &taskManager);
+  ReportsTreeWidget(Compiler *compiler, const TaskManager &taskManager);
 
  private slots:
   // Reacts on double click on one of tree items.
   void onReportRequested(const QTreeWidgetItem *item, int col);
 
  private:
+  Compiler *m_compiler;
   const TaskManager &m_taskManager;
 };
 

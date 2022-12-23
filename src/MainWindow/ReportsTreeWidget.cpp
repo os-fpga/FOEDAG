@@ -9,8 +9,9 @@
 
 namespace FOEDAG {
 
-ReportsTreeWidget::ReportsTreeWidget(const TaskManager &taskManager)
-    : m_taskManager{taskManager} {
+ReportsTreeWidget::ReportsTreeWidget(Compiler *compiler,
+                                     const TaskManager &taskManager)
+    : m_taskManager{taskManager}, m_compiler{compiler} {
   auto layout = new QGridLayout();
   auto treeWidget = new QTreeWidget();
 
@@ -59,7 +60,8 @@ void ReportsTreeWidget::onReportRequested(const QTreeWidgetItem *item,
   auto reportsManager =
       m_taskManager.getReportManagerRegistry().getReportManager(taskId);
   if (!reportsManager) return;
-  FOEDAG::handleViewReportRequested(reportId, *reportsManager);
+  FOEDAG::handleViewReportRequested(m_compiler, m_taskManager.task(taskId),
+                                    reportId, *reportsManager);
 }
 
 }  // namespace FOEDAG

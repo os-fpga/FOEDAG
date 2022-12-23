@@ -48,12 +48,13 @@ QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
                    FOEDAG::handleViewFileRequested);
   QObject::connect(
       view, &TaskTableView::ViewReportRequested,
-      [tManager](Task *task, const QString &reportId) {
+      [tManager, compiler](Task *task, const QString &reportId) {
         auto &reportManagerRegistry = tManager->getReportManagerRegistry();
         auto reportManager =
             reportManagerRegistry.getReportManager(tManager->taskId(task));
         if (reportManager)
-          FOEDAG::handleViewReportRequested(reportId, *reportManager);
+          FOEDAG::handleViewReportRequested(compiler, task, reportId,
+                                            *reportManager);
       });
 
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
