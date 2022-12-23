@@ -290,7 +290,7 @@
             "_META_": {
                 "hidden": false,
                 "isSetting": true,
-                "tclArgKey": "Tasks_Simulate"
+                "tclArgKey": "Tasks_Simulate_rtl"
             }
         },
         "Simulate Gate": {
@@ -343,7 +343,7 @@
             "_META_": {
                 "hidden": false,
                 "isSetting": true,
-                "tclArgKey": "Tasks_Simulate"
+                "tclArgKey": "Tasks_Simulate_gate"
             }
         },
         "Simulate PNR": {
@@ -396,7 +396,7 @@
             "_META_": {
                 "hidden": false,
                 "isSetting": true,
-                "tclArgKey": "Tasks_Simulate"
+                "tclArgKey": "Tasks_Simulate_pnr"
             }
         },
         "Simulate Bitstream": {
@@ -449,7 +449,7 @@
             "_META_": {
                 "hidden": false,
                 "isSetting": true,
-                "tclArgKey": "Tasks_Simulate"
+                "tclArgKey": "Tasks_Simulate_bitstream"
             }
         }
     }

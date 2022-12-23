@@ -300,7 +300,9 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
   openReportView(compiler, task, *report);
 }
 
-void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
+void TclArgs_setSimulateOptions(const std::string& simTypeStr,
+                                Simulator::SimulationType simType,
+                                const std::string& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return;
 
@@ -322,33 +324,21 @@ void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
       }
     } else
       i++;
-    if (arg.compare("-rtl_filepath") == 0)
-      simulator->WaveFile(Simulator::SimulationType::RTL, value);
-    if (arg.compare("-gate_filepath") == 0)
-      simulator->WaveFile(Simulator::SimulationType::Gate, value);
-    if (arg.compare("-pnr_filepath") == 0)
-      simulator->WaveFile(Simulator::SimulationType::PNR, value);
-    if (arg.compare("-bitstream_filepath") == 0)
-      simulator->WaveFile(Simulator::SimulationType::Bitstream, value);
-    std::pair<bool, Simulator::SimulationType> simType{
+
+    if (arg.compare("-" + simTypeStr + "_filepath") == 0)
+      simulator->WaveFile(simType, value);
+
+    std::pair<bool, Simulator::SimulationType> simTypeTmp{
         false, Simulator::SimulationType::RTL};
-    if (arg.compare("-rtl_sim_type") == 0) {
-      simType = {true, Simulator::SimulationType::RTL};
+    if (arg.compare("-" + simTypeStr + "_sim_type") == 0) {
+      simTypeTmp = {true, simType};
     }
-    if (arg.compare("-gate_sim_type") == 0) {
-      simType = {true, Simulator::SimulationType::Gate};
-    }
-    if (arg.compare("-pnr_sim_type") == 0) {
-      simType = {true, Simulator::SimulationType::PNR};
-    }
-    if (arg.compare("-bitstream_sim_type") == 0) {
-      simType = {true, Simulator::SimulationType::Bitstream};
-    }
-    if (simType.first) {
+
+    if (simTypeTmp.first) {
       bool ok{false};
       auto simTool = Simulator::ToSimulatorType(value, ok);
       if (ok) {
-        simulator->UserSimulationType(simType.second, simTool);
+        simulator->UserSimulationType(simTypeTmp.second, simTool);
       } else {
         qWarning() << "Not supported simulator: " << value.c_str();
       }
@@ -394,73 +384,31 @@ void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
       }
     };
 
-    for (const std::string& level : {"rtl", "gate", "pnr", "bitstream"}) {
-      if (arg.compare("-sim_" + level + "_opt") == 0) {
-        applyOptions(QString::fromStdString(value), "simulation",
-                     QString::fromStdString(level));
-      }
-
-      if (arg.compare("-el_" + level + "_opt") == 0) {
-        applyOptions(QString::fromStdString(value), "elaboration",
-                     QString::fromStdString(level));
-      }
-
-      if (arg.compare("-com_" + level + "_opt") == 0) {
-        applyOptions(QString::fromStdString(value), "compilation",
-                     QString::fromStdString(level));
-      }
+    if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
+      applyOptions(QString::fromStdString(value), "simulation",
+                   QString::fromStdString(simTypeStr));
     }
   }
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions() {
+std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
+                                       Simulator::SimulationType simType) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return std::string{};
 
   auto simulator{compiler->GetSimulator()};
 
   std::vector<std::string> argsList;
-  argsList.push_back("-rtl_filepath");
-  argsList.push_back(simulator->WaveFile(Simulator::SimulationType::RTL));
-  argsList.push_back("-gate_filepath");
-  argsList.push_back(simulator->WaveFile(Simulator::SimulationType::Gate));
-  argsList.push_back("-pnr_filepath");
-  argsList.push_back(simulator->WaveFile(Simulator::SimulationType::PNR));
-  argsList.push_back("-bitstream_filepath");
-  argsList.push_back(simulator->WaveFile(Simulator::SimulationType::Bitstream));
+  argsList.push_back("-" + simTypeStr + "_filepath");
+  argsList.push_back(simulator->WaveFile(simType));
+
   bool ok{false};
-  auto simType{
-      simulator->UserSimulationType(Simulator::SimulationType::RTL, ok)};
-  std::string rtlSimTypeStr{};
+  auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
+  std::string simulatorType{};
   if (ok) {
-    argsList.push_back("-rtl_sim_type");
-    rtlSimTypeStr = Simulator::ToString(simType);
-    argsList.push_back(rtlSimTypeStr);
-  }
-  ok = false;
-  simType = simulator->UserSimulationType(Simulator::SimulationType::Gate, ok);
-  std::string gateSimTypeStr{};
-  if (ok) {
-    argsList.push_back("-gate_sim_type");
-    gateSimTypeStr = Simulator::ToString(simType);
-    argsList.push_back(gateSimTypeStr);
-  }
-  ok = false;
-  simType = simulator->UserSimulationType(Simulator::SimulationType::PNR, ok);
-  std::string pnrSimTypeStr{};
-  if (ok) {
-    argsList.push_back("-pnr_sim_type");
-    pnrSimTypeStr = Simulator::ToString(simType);
-    argsList.push_back(pnrSimTypeStr);
-  }
-  ok = false;
-  simType =
-      simulator->UserSimulationType(Simulator::SimulationType::BitstreamBackDoor, ok);
-  std::string bitstreamSimTypeStr{};
-  if (ok) {
-    argsList.push_back("-bitstream_sim_type");
-    bitstreamSimTypeStr = Simulator::ToString(simType);
-    argsList.push_back(bitstreamSimTypeStr);
+    argsList.push_back("-" + simTypeStr + "_sim_type");
+    simulatorType = Simulator::ToString(simTypeTmp);
+    argsList.push_back(simulatorType);
   }
 
   auto convertSpecialChars = [](const std::string& str) -> std::string {
@@ -499,14 +447,7 @@ std::string FOEDAG::TclArgs_getSimulateOptions() {
     }
   };
 
-  pushBackSimulationOptions(rtlSimTypeStr, "rtl",
-                            Simulator::SimulationType::RTL);
-  pushBackSimulationOptions(gateSimTypeStr, "gate",
-                            Simulator::SimulationType::Gate);
-  pushBackSimulationOptions(pnrSimTypeStr, "pnr",
-                            Simulator::SimulationType::PNR);
-  pushBackSimulationOptions(bitstreamSimTypeStr, "bitstream",
-                            Simulator::SimulationType::BitstreamBackDoor);
+  pushBackSimulationOptions(simulatorType, simTypeStr, simType);
 
   return StringUtils::join(argsList, " ");
 }
@@ -548,3 +489,37 @@ void FOEDAG::TclArgs_setTimingAnalysisOptions(const std::string& argsStr) {
   }
   compiler->TimingAnalysisEngineOpt(engineVal);
 };
+
+void FOEDAG::TclArgs_setSimulateOptions_rtl(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("rtl", Simulator::SimulationType::RTL, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_rtl() {
+  return TclArgs_getSimulateOptions("rtl", Simulator::SimulationType::RTL);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_gate(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("gate", Simulator::SimulationType::Gate, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_gate() {
+  return TclArgs_getSimulateOptions("gate", Simulator::SimulationType::Gate);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_pnr(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("pnr", Simulator::SimulationType::PNR, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_pnr() {
+  return TclArgs_getSimulateOptions("pnr", Simulator::SimulationType::PNR);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_bitstream(const std::string& argsStr) {
+  TclArgs_setSimulateOptions(
+      "bitstream", Simulator::SimulationType::BitstreamBackDoor, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_bitstream() {
+  return TclArgs_getSimulateOptions(
+      "bitstream", Simulator::SimulationType::BitstreamBackDoor);
+}
