@@ -122,11 +122,11 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 }
 
 void SynthesisReportManager::parseLogFile() {
-  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
-  if (!logFile) return;
-
   m_resourceData.clear();
   m_messages.clear();
+
+  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
+  if (!logFile) return;
 
   auto fileStr = QTextStream(logFile.get()).readAll();
   logFile->close();

@@ -6,6 +6,7 @@
 #include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TextEditor/text_editor_form.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr auto FilePathRole = Qt::UserRole + 1;
@@ -33,6 +34,9 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
     if (auto reportManager = reports.getReportManager(taskId)) {
       auto filePath = task->logFileReadPath();
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+
+      if (!FileUtils::FileExists(filePath.toStdString()))
+        filePath = tr("log file not found");
       auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
       auto taskItem = new QTreeWidgetItem({itemName});
 
