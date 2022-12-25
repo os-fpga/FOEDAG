@@ -1,5 +1,6 @@
 #define STR_VALUE(arg)      #arg
 #define TO_C_STR(str)       STR_VALUE(str)
 #define FOEDAG_VERSION      @AURORA_VERSION@
+#define FOEDAG_BUILD_DATE   @AURORA_BUILD_DATE@
 #define FOEDAG_GIT_HASH     @AURORA_GIT_HASH@
 #define FOEDAG_BUILD_TYPE   @AURORA_BUILD_TYPE@

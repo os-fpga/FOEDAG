@@ -48,7 +48,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   Compiler.cpp
-  foedag_version_number.cpp
+  #foedag_version_number.cpp
+  foedag_version_number_ql.cpp
   Constraints.cpp
   CompilerOpenFPGA.cpp
   CompilerOpenFPGA_ql.cpp

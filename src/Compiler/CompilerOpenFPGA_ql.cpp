@@ -62,12 +62,24 @@
 #include <QListWidget>
 #include <QTabWidget>
 
+extern const char* foedag_version_number;
+extern const char* foedag_build_date;
+extern const char* foedag_git_hash;
+extern const char* foedag_build_type;
+
 using namespace FOEDAG;
 
 void CompilerOpenFPGA_ql::Version(std::ostream* out) {
   (*out) << "QuickLogic Aurora"
          << "\n";
-  PrintVersion(out);
+  std::string str_foedag_build_date(foedag_build_date);
+  std::replace( str_foedag_build_date.begin(), str_foedag_build_date.end(), '_', ' ');
+  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
+    (*out) << "Version     : " << foedag_version_number << "\n";
+  if (std::string(foedag_git_hash) != "${GIT_HASH}")
+    (*out) << "Revision    : " << foedag_git_hash << "\n";
+  (*out) << "Date        : " << str_foedag_build_date << "\n";
+  (*out) << "Build       : " << foedag_build_type << "\n";
 }
 
 CompilerOpenFPGA_ql::~CompilerOpenFPGA_ql() {

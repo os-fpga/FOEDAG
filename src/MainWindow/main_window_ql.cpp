@@ -58,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 extern const char* foedag_version_number;
+extern const char* foedag_build_date;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 

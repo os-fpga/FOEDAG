@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "AboutWidget.h"
 
+extern const char* foedag_build_date;
 namespace FOEDAG {
 static const auto ETC_DIR = "etc";
 static const auto WELCOME_PAGE_DIR = "Welcome_Page";
@@ -41,13 +42,13 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   QString text = QString(
                      "<p><b>%1 %2</b></p>"
                      "<p><b>%3</b></p>"
-                     "<p>Build on %4</p>"
-                     "<p>Build type: %5</p>")
+                     "<p>Date     : %4</p>"
+                     "<p>Build    : %5</p>")
                      .arg(info.name, info.version, getTagLine(srcPath),
-                          __DATE__, info.build_type);
+                          QString::fromUtf8(foedag_build_date).replace("_"," "), info.build_type);
   if (!info.url.isEmpty()) {
     text += QString(
-                "<p>From revision <a "
+                "<p>Revision : <a "
                 "href=\"%1%2\">%2</a></p>")
                 .arg(info.url, info.git_hash);
   }
