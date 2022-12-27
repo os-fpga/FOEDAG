@@ -128,9 +128,9 @@ class Compiler {
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
-  virtual void Message(const std::string& message);
-  virtual void ErrorMessage(const std::string& message);
-  std::string GetMessagePrefix();
+  virtual void Message(const std::string& message) const;
+  virtual void ErrorMessage(const std::string& message) const;
+  std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
@@ -261,6 +261,7 @@ class Compiler {
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
   void AddHeadersToLogs();
+  bool HasInternalError() const;
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

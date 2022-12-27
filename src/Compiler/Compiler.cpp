@@ -240,7 +240,7 @@ Compiler::~Compiler() {
   delete m_simulator;
 }
 
-std::string Compiler::GetMessagePrefix() {
+std::string Compiler::GetMessagePrefix() const {
   std::string prefix{};
 
   auto task = GetTaskManager()->currentTask();
@@ -252,11 +252,11 @@ std::string Compiler::GetMessagePrefix() {
   return prefix;
 }
 
-void Compiler::Message(const std::string& message) {
+void Compiler::Message(const std::string& message) const {
   if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
 }
 
-void Compiler::ErrorMessage(const std::string& message) {
+void Compiler::ErrorMessage(const std::string& message) const {
   if (m_err)
     (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
   Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
@@ -488,9 +488,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto close_design = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    if (compiler->m_tclCmdIntegration) {
-      compiler->m_tclCmdIntegration->TclCloseProject();
-    }
+    if (compiler->HasInternalError()) return TCL_ERROR;
+    compiler->m_tclCmdIntegration->TclCloseProject();
     return TCL_OK;
   };
   interp->registerCmd("close_design", close_design, this, nullptr);
@@ -503,17 +502,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->ErrorMessage("Specify a top module name");
       return TCL_ERROR;
     }
+    if (compiler->HasInternalError()) return TCL_ERROR;
     if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
     }
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclSetTopModule(argc, argv, out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
+    std::ostringstream out;
+    bool ok = compiler->m_tclCmdIntegration->TclSetTopModule(argc, argv, out);
+    if (!ok) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
     }
     return TCL_OK;
   };
@@ -585,6 +583,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
+    if (compiler->HasInternalError()) return TCL_ERROR;
     if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
@@ -635,14 +634,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          {}, {}, origPathFileList.c_str(), language, out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
+    std::ostringstream out;
+    bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
+        {}, {}, origPathFileList.c_str(), language, out);
+    if (!ok) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
     }
     return TCL_OK;
   };
@@ -750,6 +747,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto add_constraint_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
+    if (compiler->HasInternalError()) return TCL_ERROR;
     if (!compiler->ProjManager()->HasDesign()) {
       compiler->ErrorMessage("Create a design first: create_design <name>");
       return TCL_ERROR;
@@ -781,22 +779,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     compiler->Message(std::string("Adding constraint file ") + expandedFile +
                       std::string("\n"));
-    if (compiler->m_tclCmdIntegration) {
-      std::ostringstream out;
-      bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
-          expandedFile.c_str(), out);
-      if (!ok) {
-        compiler->ErrorMessage(out.str());
-        return TCL_ERROR;
-      }
-    } else {
-      int status = Tcl_Eval(
-          interp, std::string("read_sdc {" + expandedFile + "}").c_str());
-      if (status) {
-        return TCL_ERROR;
-      }
+    std::ostringstream out;
+    bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
+        expandedFile.c_str(), out);
+    if (!ok) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
     }
-
     return TCL_OK;
   };
   interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
@@ -1924,6 +1913,14 @@ void Compiler::AddHeadersToLogs() {
   }
 }
 
+bool Compiler::HasInternalError() const {
+  if (!m_tclCmdIntegration) {
+    ErrorMessage("TCL command integration did not initialize");
+    return true;
+  }
+  return false;
+}
+
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
   m_stop = false;
@@ -2545,6 +2542,7 @@ std::pair<bool, std::string> Compiler::IsDeviceSizeCorrect(
 
 int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
                         const char* argv[], AddFilesType filesType) {
+  if (compiler->HasInternalError()) return TCL_ERROR;
   if (!compiler->ProjManager()->HasDesign()) {
     compiler->ErrorMessage("Create a design first: create_design <name>");
     return TCL_ERROR;
@@ -2649,23 +2647,19 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
 
   compiler->Message(std::string("Adding ") + actualType + " " + fileList +
                     std::string("\n"));
-  if (compiler->m_tclCmdIntegration) {
-    std::ostringstream out;
-    bool ok{true};
-    if (filesType == Design) {
-      ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
-          out);
-    } else {
-      ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
-          commandsList.c_str(), libList.c_str(), fileList.c_str(), language,
-          out);
-    }
+  std::ostringstream out;
+  bool ok{true};
+  if (filesType == Design) {
+    ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
+        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+  } else {
+    ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
+        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+  }
 
-    if (!ok) {
-      compiler->ErrorMessage(out.str());
-      return TCL_ERROR;
-    }
+  if (!ok) {
+    compiler->ErrorMessage(out.str());
+    return TCL_ERROR;
   }
   return TCL_OK;
 }
