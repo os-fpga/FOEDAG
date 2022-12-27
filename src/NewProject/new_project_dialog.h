@@ -52,6 +52,8 @@ class newProjectDialog : public QDialog {
   Mode GetMode() const;
   void SetPageActive(FormIndex index);
 
+  void SetDefaultPath(const QString& path);
+
  private slots:
   void updateSummaryPage();
   void on_buttonBox_accepted();
@@ -74,6 +76,7 @@ class newProjectDialog : public QDialog {
   Mode m_mode{NewProject};
   QVector<SettingsGuiInterface*> m_settings;
   QMap<FormIndex, int> m_tabIndexes;
+  QString m_defaultPath;
 
   ProjectManager* m_projectManager;
   bool m_skipSources{false};
