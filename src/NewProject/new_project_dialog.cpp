@@ -113,6 +113,10 @@ void newProjectDialog::SetPageActive(FormIndex index) {
   }
 }
 
+void newProjectDialog::SetDefaultPath(const QString &path) {
+  m_defaultPath = path;
+}
+
 void newProjectDialog::updateSummaryPage() {
   if (m_mode == Mode::NewProject) return;
   auto currentPage = ui->m_tabWidget->currentWidget();
@@ -149,7 +153,7 @@ void newProjectDialog::ResetToNewProject() {
   setWindowTitle(tr("New Project"));
   ui->m_tabWidget->clear();
 
-  m_locationForm = new locationForm(this);
+  m_locationForm = new locationForm(m_defaultPath, this);
   ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
                              tr("Project Directory"));
   m_proTypeForm = new projectTypeForm(this);

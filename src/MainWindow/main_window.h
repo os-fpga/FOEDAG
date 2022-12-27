@@ -88,6 +88,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void showReportsTab();
   void fileModified(const QString& file);
   void refreshPinPlanner();
+  void defaultProjectPath();
 
  public slots:
   void updateSourceTree();
@@ -187,6 +188,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* simGateAction = nullptr;
   QAction* simPnrAction = nullptr;
   QAction* simBitstreamAction = nullptr;
+  QAction* defualtProjectPathAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

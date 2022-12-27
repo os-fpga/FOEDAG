@@ -70,13 +70,6 @@ auto copyLog = [](FOEDAG::ProjectManager* projManager,
   return dest;
 };
 
-auto copyLogWithHeaders = [](FOEDAG::ProjectManager* projManager,
-                             const std::string& srcFileName,
-                             const std::string& destFileName) {
-  auto logPath = copyLog(projManager, srcFileName, destFileName);
-  LogUtils::AddHeaderToLog(logPath);
-};
-
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
@@ -1064,10 +1057,9 @@ bool CompilerOpenFPGA::Synthesize() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(),
-                       ProjManager()->projectName() + "_synth.log",
-                       SYNTHESIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+            SYNTHESIS_LOG);
   });
 
   if (SynthOpt() == SynthesisOpt::Clean) {
@@ -1500,8 +1492,8 @@ bool CompilerOpenFPGA::Packing() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PACKING_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
   });
 
   if (PackOpt() == PackingOpt::Clean) {
@@ -1619,8 +1611,8 @@ bool CompilerOpenFPGA::Placement() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -1892,8 +1884,8 @@ bool CompilerOpenFPGA::Route() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -1955,8 +1947,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2084,8 +2076,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
