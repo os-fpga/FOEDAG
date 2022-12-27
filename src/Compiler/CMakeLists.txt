@@ -65,6 +65,7 @@ set (SRC_CPP_LIST
   Reports/TableReport.cpp
   Reports/TaskReportManagerRegistry.cpp
   Reports/SynthesisReportManager.cpp
+  Reports/TimingAnalysisReportManager.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -88,6 +89,7 @@ set (SRC_H_INSTALL_LIST
   Reports/TableReport.h
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
+  Reports/TimingAnalysisReportManager.h
   TaskGlobal.h
 )
 
