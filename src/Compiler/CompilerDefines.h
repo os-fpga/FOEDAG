@@ -52,8 +52,7 @@ enum Language {
 };
 }  // namespace Design
 
-Design::Language FromFileType(
-    const QString &type, Design::Language defaultValue = Design::VERILOG_2001);
+Design::Language FromFileType(const QString &type, bool postSynth = false);
 
 // ID of the tasks shouln't be changed since they save to file
 static constexpr uint IP_GENERATE{0};

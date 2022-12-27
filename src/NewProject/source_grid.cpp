@@ -210,8 +210,6 @@ void sourceGrid::AddFiles() {
   }
   if (!CheckNetlistFileExists(fileNames)) return;
 
-  auto defaultLang = CurrentProjectType() == PostSynth ? Design::VERILOG_NETLIST
-                                                       : Design::VERILOG_2001;
   for (const QString &str : fileNames) {
     const QFileInfo info{str};
     filedata fdata;
@@ -219,7 +217,8 @@ void sourceGrid::AddFiles() {
     fdata.m_fileType = info.suffix();
     fdata.m_fileName = info.fileName();
     fdata.m_filePath = info.path();
-    fdata.m_language = FromFileType(info.suffix(), defaultLang);
+    fdata.m_language =
+        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
     AddTableItem(fdata);
   }
 }
@@ -248,8 +247,6 @@ void sourceGrid::AddDirectories() {
 
   if (!CheckNetlistFileExists(checkUnique)) return;
 
-  auto defaultLang = CurrentProjectType() == PostSynth ? Design::VERILOG_NETLIST
-                                                       : Design::VERILOG_2001;
   for (auto &[fileName, filePath] : files) {
     const QFileInfo info{filePath};
     filedata fdata;
@@ -257,7 +254,8 @@ void sourceGrid::AddDirectories() {
     fdata.m_fileType = info.suffix();
     fdata.m_fileName = fileName;
     fdata.m_filePath = info.path();
-    fdata.m_language = FromFileType(info.suffix(), defaultLang);
+    fdata.m_language =
+        FromFileType(info.suffix(), CurrentProjectType() == PostSynth);
     AddTableItem(fdata);
   }
 }
