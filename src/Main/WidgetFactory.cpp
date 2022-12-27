@@ -68,8 +68,16 @@ void FOEDAG::initTclArgFns() {
                                    FOEDAG::TclArgs_getSynthesisOptions});
   addTclArgFns("Tasks_placement", {FOEDAG::TclArgs_setPlacementOptions,
                                    FOEDAG::TclArgs_getPlacementOptions});
-  addTclArgFns("Tasks_Simulate", {FOEDAG::TclArgs_setSimulateOptions,
-                                  FOEDAG::TclArgs_getSimulateOptions});
+  addTclArgFns("Tasks_Simulate_rtl", {FOEDAG::TclArgs_setSimulateOptions_rtl,
+                                      FOEDAG::TclArgs_getSimulateOptions_rtl});
+  addTclArgFns("Tasks_Simulate_gate",
+               {FOEDAG::TclArgs_setSimulateOptions_gate,
+                FOEDAG::TclArgs_getSimulateOptions_gate});
+  addTclArgFns("Tasks_Simulate_pnr", {FOEDAG::TclArgs_setSimulateOptions_pnr,
+                                      FOEDAG::TclArgs_getSimulateOptions_pnr});
+  addTclArgFns("Tasks_Simulate_bitstream",
+               {FOEDAG::TclArgs_setSimulateOptions_bitstream,
+                FOEDAG::TclArgs_getSimulateOptions_bitstream});
   addTclArgFns("Tasks_TimingAnalysis",
                {FOEDAG::TclArgs_setTimingAnalysisOptions,
                 FOEDAG::TclArgs_getTimingAnalysisOptions});

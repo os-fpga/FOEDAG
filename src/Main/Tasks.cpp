@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Tasks.h"
 
+#include <QDebug>
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QTableWidgetItem>
@@ -31,9 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
+using json = nlohmann::ordered_json;
 using namespace FOEDAG;
 
 #define TASKS_KEY "Tasks"
@@ -297,49 +300,155 @@ void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
   openReportView(compiler, task, *report);
 }
 
-void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
+void TclArgs_setSimulateOptions(const std::string& simTypeStr,
+                                Simulator::SimulationType simType,
+                                const std::string& argsStr) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return;
+
+  auto simulator{compiler->GetSimulator()};
 
   std::vector<std::string> argsList;
   StringUtils::tokenize(argsStr, " ", argsList, true);
 
-  if (argsList.size() < 2) return;
+  for (int i = 0; i < argsList.size();) {
+    std::string arg{argsList.at(i)};
+    std::string value{};
+    if ((i + 1) < argsList.size()) {
+      std::string tmp{argsList.at(i + 1)};
+      if (StringUtils::startsWith(tmp, "-")) {  // new argument
+        i++;
+      } else {  // argument value
+        value = tmp;
+        i += 2;
+      }
+    } else
+      i++;
 
-  auto simulationType{argsList.at(0)};
-  auto waveFile{argsList.at(1)};
+    if (arg.compare("-" + simTypeStr + "_filepath") == 0)
+      simulator->WaveFile(simType, value);
 
-  if (simulationType.compare("-rtl_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::RTL,
-                                       waveFile);
-  if (simulationType.compare("-gate_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Gate,
-                                       waveFile);
-  if (simulationType.compare("-pnr_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR,
-                                       waveFile);
-  if (simulationType.compare("-bitstream_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(
-        Simulator::SimulationType::BitstreamBackDoor, waveFile);
+    std::pair<bool, Simulator::SimulationType> simTypeTmp{
+        false, Simulator::SimulationType::RTL};
+    if (arg.compare("-" + simTypeStr + "_sim_type") == 0) {
+      simTypeTmp = {true, simType};
+    }
+
+    if (simTypeTmp.first) {
+      bool ok{false};
+      auto simTool = Simulator::ToSimulatorType(value, ok);
+      if (ok) {
+        simulator->UserSimulationType(simTypeTmp.second, simTool);
+      } else {
+        qWarning() << "Not supported simulator: " << value.c_str();
+      }
+    }
+
+    Settings* settings = compiler->GetSession()->GetSettings();
+    const std::map<QString, json> settingsMap{
+        {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
+        {"gate",
+         settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
+        {"pnr", settings->getJson()["Tasks"]["Simulate PNR"]["pnr_sim_type"]},
+        {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
+                                         ["bitstream_sim_type"]}};
+
+    auto applyOptions = [&settingsMap](const QString& args,
+                                       const QString& phase,
+                                       const QString& level) {
+      auto json = settingsMap.at(level);
+      const std::string unset{"<unset>"};
+      std::string simulator = unset;
+      if (json.contains("userValue")) {
+        simulator = json["userValue"];
+      } else if (json.contains("default")) {
+        simulator = json["default"].get<std::string>();
+      }
+      if (simulator != unset) {
+        simulator =
+            Settings::getLookupValue(json, QString::fromStdString(simulator))
+                .toStdString();
+      }
+      QString sim_opt = args;
+      sim_opt.replace(WF_SPACE, " ");
+      sim_opt.replace(WF_NEWLINE, " ");
+      sim_opt.replace(WF_DASH, "-");
+      auto sim_opt_list = QtUtils::StringSplit(sim_opt, ' ');
+      if (!sim_opt_list.isEmpty()) {
+        sim_opt_list.push_front(level);
+        sim_opt_list.push_front(phase);
+        sim_opt_list.push_front(QString::fromStdString(simulator));
+        sim_opt = sim_opt_list.join(' ');
+        std::string cmd = "simulation_options " + sim_opt.toStdString();
+        GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+      }
+    };
+
+    if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
+      applyOptions(QString::fromStdString(value), "simulation",
+                   QString::fromStdString(simTypeStr));
+    }
+  }
 }
 
-std::string FOEDAG::TclArgs_getSimulateOptions() {
+std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
+                                       Simulator::SimulationType simType) {
   FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
   if (!compiler) return std::string{};
 
+  auto simulator{compiler->GetSimulator()};
+
   std::vector<std::string> argsList;
-  argsList.push_back("-rtl_filepath");
-  argsList.push_back(
-      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::RTL));
-  argsList.push_back("-gate_filepath");
-  argsList.push_back(
-      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Gate));
-  argsList.push_back("-pnr_filepath");
-  argsList.push_back(
-      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR));
-  argsList.push_back("-bitstream_filepath");
-  argsList.push_back(compiler->GetSimulator()->WaveFile(
-      Simulator::SimulationType::BitstreamBackDoor));
+  argsList.push_back("-" + simTypeStr + "_filepath");
+  argsList.push_back(simulator->WaveFile(simType));
+
+  bool ok{false};
+  auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
+  std::string simulatorType{};
+  if (ok) {
+    argsList.push_back("-" + simTypeStr + "_sim_type");
+    simulatorType = Simulator::ToString(simTypeTmp);
+    argsList.push_back(simulatorType);
+  }
+
+  auto convertSpecialChars = [](const std::string& str) -> std::string {
+    std::string result = StringUtils::replaceAll(str, " ", WF_SPACE);
+    result = StringUtils::replaceAll(result, "-", WF_DASH);
+    return result;
+  };
+
+  auto pushBackSimulationOptions = [&](const std::string& simType,
+                                       const std::string& levelStr,
+                                       Simulator::SimulationType levelValue) {
+    bool ok{false};
+    auto simulatorType = Simulator::ToSimulatorType(simType, ok);
+    if (ok) {
+      auto tmp =
+          simulator->GetSimulatorRuntimeOption(levelValue, simulatorType);
+      tmp = convertSpecialChars(tmp);
+      if (!tmp.empty()) {
+        argsList.push_back("-sim_" + levelStr + "_opt");
+        argsList.push_back(tmp);
+      }
+
+      tmp = simulator->GetSimulatorElaborationOption(levelValue, simulatorType);
+      tmp = convertSpecialChars(tmp);
+      if (!tmp.empty()) {
+        argsList.push_back("-el_" + levelStr + "_opt");
+        argsList.push_back(tmp);
+      }
+
+      tmp = simulator->GetSimulatorCompileOption(levelValue, simulatorType);
+      tmp = convertSpecialChars(tmp);
+      if (!tmp.empty()) {
+        argsList.push_back("-com_" + levelStr + "_opt");
+        argsList.push_back(tmp);
+      }
+    }
+  };
+
+  pushBackSimulationOptions(simulatorType, simTypeStr, simType);
+
   return StringUtils::join(argsList, " ");
 }
 
@@ -380,3 +489,37 @@ void FOEDAG::TclArgs_setTimingAnalysisOptions(const std::string& argsStr) {
   }
   compiler->TimingAnalysisEngineOpt(engineVal);
 };
+
+void FOEDAG::TclArgs_setSimulateOptions_rtl(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("rtl", Simulator::SimulationType::RTL, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_rtl() {
+  return TclArgs_getSimulateOptions("rtl", Simulator::SimulationType::RTL);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_gate(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("gate", Simulator::SimulationType::Gate, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_gate() {
+  return TclArgs_getSimulateOptions("gate", Simulator::SimulationType::Gate);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_pnr(const std::string& argsStr) {
+  TclArgs_setSimulateOptions("pnr", Simulator::SimulationType::PNR, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_pnr() {
+  return TclArgs_getSimulateOptions("pnr", Simulator::SimulationType::PNR);
+}
+
+void FOEDAG::TclArgs_setSimulateOptions_bitstream(const std::string& argsStr) {
+  TclArgs_setSimulateOptions(
+      "bitstream", Simulator::SimulationType::BitstreamBackDoor, argsStr);
+}
+
+std::string FOEDAG::TclArgs_getSimulateOptions_bitstream() {
+  return TclArgs_getSimulateOptions(
+      "bitstream", Simulator::SimulationType::BitstreamBackDoor);
+}

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
@@ -48,7 +49,10 @@ class Simulator {
   enum class SimulationOpt { None, Clean };
 
   static SimulationType ToSimulationType(const std::string& str, bool& ok);
-
+  static SimulatorType ToSimulatorType(
+      const std::string& str, bool& ok,
+      SimulatorType defaultValue = SimulatorType::Verilator);
+  static std::string ToString(SimulatorType type);
   // Most common use case, create the compiler in your main
   Simulator() = default;
   Simulator(TclInterpreter* interp, Compiler* compiler, std::ostream* out,
@@ -104,6 +108,9 @@ class Simulator {
   void WaveFile(SimulationType type, const std::string& file);
   std::string WaveFile(SimulationType type) const;
 
+  void UserSimulationType(SimulationType simulation, SimulatorType simulator);
+  SimulatorType UserSimulationType(SimulationType simulation, bool& ok) const;
+
  protected:
   virtual bool SimulateRTL(SimulatorType type);
   virtual bool SimulateGate(SimulatorType type);
@@ -151,6 +158,7 @@ class Simulator {
   WaveformType m_waveType = WaveformType::FST;
   SimulationOpt m_simulationOpt{SimulationOpt::None};
   std::map<SimulationType, std::string> m_waveFiles;
+  std::map<SimulationType, SimulatorType> m_simulatorTypes;
   SimulationType m_simType = SimulationType::RTL;
 };
 

@@ -45,8 +45,17 @@ std::string TclArgs_getExampleArgs();
 void TclArgs_setPlacementOptions(const std::string& argsStr);
 std::string TclArgs_getPlacementOptions();
 
-void TclArgs_setSimulateOptions(const std::string& argsStr);
-std::string TclArgs_getSimulateOptions();
+void TclArgs_setSimulateOptions_rtl(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_rtl();
+
+void TclArgs_setSimulateOptions_gate(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_gate();
+
+void TclArgs_setSimulateOptions_pnr(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_pnr();
+
+void TclArgs_setSimulateOptions_bitstream(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_bitstream();
 
 void TclArgs_setTimingAnalysisOptions(const std::string& argsStr);
 std::string TclArgs_getTimingAnalysisOptions();

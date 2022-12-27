@@ -63,6 +63,46 @@ Simulator::SimulationType Simulator::ToSimulationType(const std::string& str,
   return SimulationType::RTL;
 }
 
+Simulator::SimulatorType Simulator::ToSimulatorType(
+    const std::string& str, bool& ok, SimulatorType defaultValue) {
+  Simulator::SimulatorType sim_tool = defaultValue;
+  ok = true;
+  if (str == "verilator") {
+    sim_tool = Simulator::SimulatorType::Verilator;
+  } else if (str == "icarus") {
+    sim_tool = Simulator::SimulatorType::Icarus;
+  } else if (str == "ghdl") {
+    sim_tool = Simulator::SimulatorType::GHDL;
+  } else if (str == "vcs") {
+    sim_tool = Simulator::SimulatorType::VCS;
+  } else if (str == "questa") {
+    sim_tool = Simulator::SimulatorType::Questa;
+  } else if (str == "xcelium") {
+    sim_tool = Simulator::SimulatorType::Xcelium;
+  } else {
+    ok = false;
+  }
+  return sim_tool;
+}
+
+std::string Simulator::ToString(SimulatorType type) {
+  switch (type) {
+    case Simulator::SimulatorType::GHDL:
+      return "ghdl";
+    case Simulator::SimulatorType::Icarus:
+      return "icarus";
+    case Simulator::SimulatorType::Questa:
+      return "questa";
+    case Simulator::SimulatorType::VCS:
+      return "vcs";
+    case Simulator::SimulatorType::Verilator:
+      return "verilator";
+    case Simulator::SimulatorType::Xcelium:
+      return "xcelium";
+  }
+  return std::string{};
+}
+
 Simulator::Simulator(TclInterpreter* interp, Compiler* compiler,
                      std::ostream* out,
                      TclInterpreterHandler* tclInterpreterHandler)
@@ -154,19 +194,10 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
       for (int i = 1; i < 4; i++) {
         std::string arg = argv[i];
-        if (arg == "verilator") {
-          sim_tool = Simulator::SimulatorType::Verilator;
-        } else if (arg == "icarus") {
-          sim_tool = Simulator::SimulatorType::Icarus;
-        } else if (arg == "ghdl") {
-          sim_tool = Simulator::SimulatorType::GHDL;
-        } else if (arg == "vcs") {
-          sim_tool = Simulator::SimulatorType::VCS;
-        } else if (arg == "questa") {
-          sim_tool = Simulator::SimulatorType::Questa;
-        } else if (arg == "xcelium") {
-          sim_tool = Simulator::SimulatorType::Xcelium;
-        } else if (arg == "compilation") {
+        bool ok{false};
+        auto tmp = Simulator::ToSimulatorType(arg, ok);
+        if (ok) sim_tool = tmp;
+        if (arg == "compilation") {
           phase = "compilation";
         } else if (arg == "comp") {
           phase = "compilation";
@@ -265,11 +296,28 @@ std::string Simulator::WaveFile(SimulationType type) const {
   return std::string{};
 }
 
+void Simulator::UserSimulationType(SimulationType simulation,
+                                   SimulatorType simulator) {
+  // create new item if not exists
+  m_simulatorTypes[simulation] = simulator;
+}
+
+Simulator::SimulatorType Simulator::UserSimulationType(
+    SimulationType simulation, bool& ok) const {
+  if (m_simulatorTypes.count(simulation) != 0) {
+    ok = true;
+    return m_simulatorTypes.at(simulation);
+  }
+  ok = false;
+  return SimulatorType::Verilator;
+}
+
 bool Simulator::Simulate(SimulationType action, SimulatorType type,
                          const std::string& wave_file) {
   m_simType = action;
   if (SimulationOption() == SimulationOpt::Clean) return Clean(action);
   WaveFile(action, wave_file);
+  UserSimulationType(action, type);
   m_waveFile = wave_file;
   if (wave_file.empty()) {
     m_waveFile = WaveFile(action);

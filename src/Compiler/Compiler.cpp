@@ -880,27 +880,33 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string sim_type;
       std::string wave_file;
       bool clean{false};
+      bool sim_tool_valid{false};
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "verilator") {
-          sim_tool = Simulator::SimulatorType::Verilator;
-        } else if (arg == "icarus") {
-          sim_tool = Simulator::SimulatorType::Icarus;
-        } else if (arg == "ghdl") {
-          sim_tool = Simulator::SimulatorType::GHDL;
-        } else if (arg == "vcs") {
-          sim_tool = Simulator::SimulatorType::VCS;
-        } else if (arg == "questa") {
-          sim_tool = Simulator::SimulatorType::Questa;
-        } else if (arg == "xcelium") {
-          sim_tool = Simulator::SimulatorType::Xcelium;
-        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream_fd" || arg == "bitstream_bd") {
+        bool ok{false};
+        auto sim = Simulator::ToSimulatorType(
+            arg, ok, Simulator::SimulatorType::Verilator);
+        if (ok) {
+          sim_tool = sim;
+          sim_tool_valid = true;
+        }
+        if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+            arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
         } else {
           wave_file = arg;
+        }
+      }
+      if (!sim_tool_valid) {
+        bool ok{false};
+        auto level = Simulator::ToSimulationType(sim_type, ok);
+        if (ok) {
+          ok = false;
+          auto simTool =
+              compiler->GetSimulator()->UserSimulationType(level, ok);
+          if (ok) sim_tool = simTool;
         }
       }
       compiler->SetWaveformFile(wave_file);
@@ -1193,28 +1199,34 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string sim_type;
       std::string wave_file;
       bool clean{false};
+      bool sim_tool_valid{false};
       Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "verilator") {
-          sim_tool = Simulator::SimulatorType::Verilator;
-        } else if (arg == "icarus") {
-          sim_tool = Simulator::SimulatorType::Icarus;
-        } else if (arg == "ghdl") {
-          sim_tool = Simulator::SimulatorType::GHDL;
-        } else if (arg == "vcs") {
-          sim_tool = Simulator::SimulatorType::VCS;
-        } else if (arg == "questa") {
-          sim_tool = Simulator::SimulatorType::Questa;
-        } else if (arg == "xcelium") {
-          sim_tool = Simulator::SimulatorType::Xcelium;
-        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream_bd" || arg == "bitstream_fd") {
+        bool ok{false};
+        auto sim = Simulator::ToSimulatorType(
+            arg, ok, Simulator::SimulatorType::Verilator);
+        if (ok) {
+          sim_tool = sim;
+          sim_tool_valid = true;
+        }
+        if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+            arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
         } else {
           wave_file = arg;
+        }
+      }
+      if (!sim_tool_valid) {
+        bool ok{false};
+        auto level = Simulator::ToSimulationType(sim_type, ok);
+        if (ok) {
+          ok = false;
+          auto simTool =
+              compiler->GetSimulator()->UserSimulationType(level, ok);
+          if (ok) sim_tool = simTool;
         }
       }
       compiler->SetWaveformFile(wave_file);
