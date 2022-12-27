@@ -20,20 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <QObject>
-
 #include "AbstractReportManager.h"
-
-class QString;
-class QTextStream;
 
 namespace FOEDAG {
 
-/*
+/* Report manager for timing analysis. It works with 'timing_analysis.rpt' log
+ * file. As there are two timing engines supported: Tatum (Default) and OpenSTA,
+ * this manager is responsible for recognizing messages of both.
  */
-class RoutingReportManager final : public AbstractReportManager {
+class TimingAnalysisReportManager final : public AbstractReportManager {
  public:
-  RoutingReportManager(const TaskManager &taskManager);
+  TimingAnalysisReportManager(const TaskManager &taskManager);
 
  private:
   QStringList getAvailableReportIds() const override;
@@ -46,12 +43,10 @@ class RoutingReportManager final : public AbstractReportManager {
 
   void parseLogFile();
 
-  void reset();
+  SectionKeys m_createDeviceKeys;
 
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::TableData m_circuitData;
-
-  SectionKeys m_routingKeys;
 };
 
 }  // namespace FOEDAG

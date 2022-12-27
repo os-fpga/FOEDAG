@@ -10,7 +10,6 @@
 #include "TableReport.h"
 
 namespace {
-static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
 static const QRegExp FIND_NET_CONNECTION{
     "Final Net Connection Criticality Histogram"};
@@ -86,39 +85,6 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
   emit reportCreated(reportId);
 
   return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
-}
-
-IDataReport::TableData RoutingReportManager::parseCircuitStats(QTextStream &in,
-                                                               int &lineNr) {
-  auto circuitData = IDataReport::TableData{};
-
-  auto isTotalLine = [](QString &line) -> bool {
-    return !line.startsWith(
-        "    ");  // child items have more space at the beginning
-  };
-  QStringList totalLine{};
-  QString line;
-
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    auto simplifiedLine = line.simplified();
-    auto lineData = simplifiedLine.split(":");
-    if (lineData.size() != 2)  // expected format is: "block : value";
-      continue;
-
-    if (isTotalLine(line)) {
-      // We are only interested in first section(total with parents).
-      // Second total line breaks the loop and ends parsing
-      if (totalLine.isEmpty())
-        totalLine << QString("Total") << lineData[1];
-      else
-        break;
-    } else {
-      circuitData.push_back(lineData);
-    }
-  }
-
-  return circuitData;
 }
 
 void RoutingReportManager::parseLogFile() {
