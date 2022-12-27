@@ -1,5 +1,10 @@
 gui_start
 create_design log_header
+
+# create an empty report before we run the analyze the step
+set fp [open "log_header/fake.rpt" w]
+close $fp
+
 analyze
 help
 
@@ -53,6 +58,13 @@ if { !$found } { puts "ERROR: foedag.log's Analyze messages don't have INFO: ANL
 # Verify help message doesn't have an abbreviation in front of it
 set found [regexp "\n-----  FOEDAG HELP  -----" $file_data]
 if { !$found } { puts "ERROR: foedag.log's help message has an abbreviation before it or wasn't printed"; exit 1 }
+
+# Verify that the fake.rpt file now has copyright info because we now dynamically add the header to all *.rpt's in a project folder
+set fp [open "log_header/fake.rpt" r]
+set file_data [read $fp]
+close $fp
+set found [regexp "Copyright 20\\d\\d The Foedag team" $file_data]
+if { !$found } { puts "ERROR: fake.rpt is missing header info"; exit 1 }
 
 # passed
 exit

@@ -34,7 +34,10 @@ extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
 void LogUtils::AddHeaderToLog(const std::filesystem::path& logPath) {
-  if (FileUtils::FileExists(logPath)) {
+  // Grab first 2 lines of copyright incase the first is a block comment
+  auto lines = GetCopyrightLines(2);
+
+  if (FileUtils::FileExists(logPath) && !HasHeader(logPath, lines)) {
     std::ifstream srcLog(logPath);
 
     // new file path w/ temp name
@@ -52,6 +55,47 @@ void LogUtils::AddHeaderToLog(const std::filesystem::path& logPath) {
     std::filesystem::remove(logPath);
     std::filesystem::rename(tempPath, logPath);
   }
+}
+
+// This will search a given directory (non-recursively) for files ending in the
+// given extension and add a header to the log if it doesn't already have one
+void LogUtils::AddHeadersToLogs(const std::filesystem::path& logDir,
+                                const std::string extension /* .rpt */) {
+  if (FileUtils::FileExists(logDir)) {
+    // Find files in this dir that have the given extension
+    for (auto file : std::filesystem::directory_iterator(logDir)) {
+      if (file.path().extension() == extension) {
+        AddHeaderToLog(file);
+      }
+    }
+  }
+}
+
+static std::vector<std::string> copyrightLines{};
+std::vector<std::string> LogUtils::GetCopyrightLines(int lineCount) {
+  // Assume that copyright file doesn't change so we'll only read in the lines
+  // once and then just store them in copyrightLines
+  if (((int)copyrightLines.size()) != lineCount) {
+    // Clear the cache incase a new lineCount was requested
+    copyrightLines.clear();
+
+    // Get copyright path
+    std::filesystem::path datapath = Config::Instance()->dataPath();
+    std::filesystem::path copyrightFile =
+        datapath / std::string("etc") / std::string("copyright.txt");
+
+    // Read and store the first X lines of the file
+    if (FileUtils::FileExists(copyrightFile)) {
+      std::fstream file(copyrightFile);
+      for (int i = 0; i < lineCount; i++) {
+        std::string line{};
+        getline(file, line);
+        copyrightLines.push_back(line);
+      }
+    }
+  }
+
+  return copyrightLines;
 }
 
 std::string LogUtils::GetLogHeader(std::string commentPrefix /* "" */,
@@ -74,6 +118,23 @@ std::string LogUtils::GetLogHeader(std::string commentPrefix /* "" */,
   }
 
   return result.str();
+}
+
+bool LogUtils::HasHeader(const std::filesystem::path& logPath,
+                         const std::vector<std::string>& firstLines) {
+  // default to true so we no-op if the file doesn't exist
+  bool result = true;
+  if (FileUtils::FileExists(logPath)) {
+    std::fstream file(logPath);
+    for (auto expected : firstLines) {
+      std::string line{};
+      getline(file, line);
+      // Check if expected and actual line contents match
+      result &= (expected == line);
+    }
+  }
+
+  return result;
 }
 
 void LogUtils::PrintHeader(std::ostream* out, bool printTime /*true*/) {
