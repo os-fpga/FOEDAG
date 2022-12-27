@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
