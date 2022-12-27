@@ -319,8 +319,8 @@ void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
     compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR,
                                        waveFile);
   if (simulationType.compare("-bitstream_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream,
-                                       waveFile);
+    compiler->GetSimulator()->WaveFile(
+        Simulator::SimulationType::BitstreamBackDoor, waveFile);
 }
 
 std::string FOEDAG::TclArgs_getSimulateOptions() {
@@ -338,8 +338,8 @@ std::string FOEDAG::TclArgs_getSimulateOptions() {
   argsList.push_back(
       compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR));
   argsList.push_back("-bitstream_filepath");
-  argsList.push_back(
-      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream));
+  argsList.push_back(compiler->GetSimulator()->WaveFile(
+      Simulator::SimulationType::BitstreamBackDoor));
   return StringUtils::join(argsList, " ");
 }
 
