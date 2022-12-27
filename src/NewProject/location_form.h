@@ -13,7 +13,8 @@ class locationForm : public QWidget {
   Q_OBJECT
 
  public:
-  explicit locationForm(QWidget *parent = nullptr);
+  explicit locationForm(const QString &defaultPath = QString{},
+                        QWidget *parent = nullptr);
   ~locationForm();
 
   QString getProjectName();

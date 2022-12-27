@@ -64,6 +64,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/WelcomePageWidget.cpp
   ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
+  ../MainWindow/PathEdit.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -93,6 +94,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/WelcomePageWidget.h
   CompilerNotifier.h
   ../Main/TclSimpleParser.h
+  ../MainWindow/PathEdit.h
 )
 
 set (SRC_UI_LIST "")
