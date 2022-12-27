@@ -61,6 +61,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   int parseErrorWarningSection(QTextStream &in, int lineNr,
                                const QString &sectionLine, SectionKeys keys);
 
+  IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
+
   using MessagesLines = std::map<int, QString>;
   // Creates parent item for either warnings or messages. Clears msgs
   // afterwards.
@@ -79,6 +81,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
+  static const QRegExp FIND_CIRCUIT_STAT;
 
   bool isFileParsed() const;
   void setFileParsed(bool parsed);

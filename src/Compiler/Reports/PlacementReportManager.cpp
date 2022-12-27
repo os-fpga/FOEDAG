@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
-#include <set>
 
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
@@ -114,8 +113,6 @@ void PlacementReportManager::parseLogFile() {
 
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return;
-
-  auto timings = QStringList{};
 
   auto in = QTextStream(logFile.get());
   QString line;
