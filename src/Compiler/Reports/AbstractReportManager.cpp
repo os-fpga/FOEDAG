@@ -12,6 +12,7 @@ namespace {
 static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
 static constexpr const char *BLOCKS_COL{"Blocks"};
 
+static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 static const QRegExp WARNING_REGEXP("Warning [0-9].*:");
 static const QRegExp ERROR_REGEXP("Error [0-9].*:");
 
@@ -22,6 +23,7 @@ static const QRegularExpression SPLIT_HISTOGRAM{
 namespace FOEDAG {
 
 const QRegExp AbstractReportManager::FIND_RESOURCES{"Resource usage.*"};
+const QRegExp AbstractReportManager::FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 
 AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
   // Log files should be re-parsed after starting new compilation
@@ -89,6 +91,39 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
       childSum = 0;  // New parent - reset the SUM
     }
   }
+}
+
+IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
+                                                                int &lineNr) {
+  auto circuitData = IDataReport::TableData{};
+
+  auto isTotalLine = [](QString &line) -> bool {
+    return !line.startsWith(
+        "    ");  // child items have more space at the beginning
+  };
+  QStringList totalLine{};
+  QString line;
+
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    auto simplifiedLine = line.simplified();
+    auto lineData = simplifiedLine.split(":");
+    if (lineData.size() != 2)  // expected format is: "block : value";
+      continue;
+
+    if (isTotalLine(line)) {
+      // We are only interested in first section(total with parents).
+      // Second total line breaks the loop and ends parsing
+      if (totalLine.isEmpty())
+        totalLine << QString("Total") << lineData[1];
+      else
+        break;
+    } else {
+      circuitData.push_back(lineData);
+    }
+  }
+
+  return circuitData;
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(
