@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
+#include "scope_guard/scope_guard.hpp"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -193,21 +194,26 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
-  (*out) << "   bitstream ?clean?" << std::endl;
+  (*out) << "   bitstream ?clean? ?enable_simulation?" << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
             "and testbench"
          << std::endl;
-  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
-            "post-synthesis simulation, pnr: post-pnr simulation"
+  (*out) << "             <level>: rtl, gate, pnr, bitstream_bd, bitstream_fd."
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+  (*out) << "                 rtl: RTL simulation," << std::endl;
+  (*out) << "                gate: post-synthesis simulation," << std::endl;
+  (*out) << "                 pnr: post-pnr simulation," << std::endl;
+  (*out) << "        bitstream_bd: Back-door bitstream simulation" << std::endl;
+  (*out) << "        bitstream_fd: Front-door bitstream simulation"
+         << std::endl;
+  (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
 
-void Compiler::CustomSimulatorSetup() {}
+void Compiler::CustomSimulatorSetup(Simulator::SimulationType action) {}
 
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
@@ -900,7 +906,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream") {
+                   arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -925,9 +931,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (sim_type == "pnr") {
           status = compiler->GetSimulator()->Simulate(
               Simulator::SimulationType::PNR, sim_tool, wave_file);
-        } else if (sim_type == "bitstream") {
+        } else if (sim_type == "bitstream_fd") {
           status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Bitstream, sim_tool, wave_file);
+              Simulator::SimulationType::BitstreamFrontDoor, sim_tool,
+              wave_file);
+        } else if (sim_type == "bitstream_bd") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::BitstreamBackDoor, sim_tool,
+              wave_file);
         }
       }
       return (status) ? TCL_OK : TCL_ERROR;
@@ -1113,6 +1124,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
+        } else if (arg == "enable_simulation") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -1207,7 +1220,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream") {
+                   arg == "bitstream_bd" || arg == "bitstream_fd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -1239,7 +1252,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               "simulate_rtl_th", Action::SimulatePNR, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (sim_type == "bitstream") {
+        } else if (sim_type == "bitstream_fd") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateBitstream, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (sim_type == "bitstream_bd") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulateBitstream, compiler);
           status = wthread->start();
@@ -1451,6 +1469,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
+        } else if (arg == "enable_simulation") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -1894,6 +1914,16 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }
 
+// Search the project directory for files ending in .rpt and add our header if
+// the file doesn't have it already
+void Compiler::AddHeadersToLogs() {
+  auto projManager = ProjManager();
+  if (projManager) {
+    std::filesystem::path projectPath(projManager->projectPath());
+    LogUtils::AddHeadersToLogs(projectPath);
+  }
+}
+
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
   m_stop = false;
@@ -1944,8 +1974,7 @@ bool Compiler::Analyze() {
   m_state = State::Analyzed;
   Message(("Design ") + m_projManager->projectName() + " is analyzed");
 
-  auto logPath = CreateDummyLog(m_projManager, ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, ANALYSIS_LOG);
   return true;
 }
 
@@ -1983,8 +2012,7 @@ bool Compiler::Synthesize() {
   m_state = State::Synthesized;
   Message("Design " + m_projManager->projectName() + " is synthesized");
 
-  auto logPath = CreateDummyLog(m_projManager, SYNTHESIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
   return true;
 }
 
@@ -2017,8 +2045,7 @@ bool Compiler::GlobalPlacement() {
   m_state = State::GloballyPlaced;
   Message("Design " + m_projManager->projectName() + " globally placed");
 
-  auto logPath = CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
   return true;
 }
 
@@ -2047,6 +2074,9 @@ void Compiler::finish() {
 }
 
 bool Compiler::RunCompileTask(Action action) {
+  // Use Scope Guard to add headers to new logs whenever this function exits
+  auto guard = sg::make_scope_guard([this] { AddHeadersToLogs(); });
+
   switch (action) {
     case Action::IPGen:
       return IPGenerate();
@@ -2083,9 +2113,9 @@ bool Compiler::RunCompileTask(Action action) {
                                       GetSimulator()->GetSimulatorType(),
                                       m_waveformFile);
     case Action::SimulateBitstream:
-      return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
-                                      GetSimulator()->GetSimulatorType(),
-                                      m_waveformFile);
+      return GetSimulator()->Simulate(
+          Simulator::SimulationType::BitstreamBackDoor,
+          GetSimulator()->GetSimulatorType(), m_waveformFile);
     default:
       break;
   }
@@ -2194,9 +2224,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
         ->setCustomData({CustomDataType::Sim,
                          QVariant::fromValue(Simulator::SimulationType::Gate)});
     m_taskManager->task(SIMULATE_BITSTREAM)
-        ->setCustomData(
-            {CustomDataType::Sim,
-             QVariant::fromValue(Simulator::SimulationType::Bitstream)});
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(
+                             Simulator::SimulationType::BitstreamBackDoor)});
   }
 }
 
@@ -2224,8 +2254,7 @@ bool Compiler::IPGenerate() {
                  " IPs generation failed");
   }
 
-  auto logPath = CreateDummyLog(m_projManager, IP_GENERATE_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, IP_GENERATE_LOG);
   return status;
 }
 
@@ -2247,8 +2276,7 @@ bool Compiler::Packing() {
   Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
-  auto logPath = CreateDummyLog(m_projManager, PACKING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, PACKING_LOG);
   return true;
 }
 
@@ -2270,8 +2298,7 @@ bool Compiler::Placement() {
   Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
-  auto logPath = CreateDummyLog(m_projManager, PLACEMENT_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, PLACEMENT_LOG);
   return true;
 }
 
@@ -2294,8 +2321,7 @@ bool Compiler::Route() {
   Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
-  auto logPath = CreateDummyLog(m_projManager, ROUTING_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, ROUTING_LOG);
   return true;
 }
 
@@ -2307,8 +2333,7 @@ bool Compiler::TimingAnalysis() {
   Message("Timing analysis for design: " + m_projManager->projectName() +
           "...");
   Message("Design " + m_projManager->projectName() + " is analyzed");
-  auto logPath = CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
   return true;
 }
 
@@ -2320,8 +2345,7 @@ bool Compiler::PowerAnalysis() {
   Message("Power analysis for design: " + m_projManager->projectName() + "...");
   Message("Design " + m_projManager->projectName() + " is analyzed");
 
-  auto logPath = CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
   return true;
 }
 
@@ -2334,8 +2358,7 @@ bool Compiler::GenerateBitstream() {
           "...");
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
-  auto logPath = CreateDummyLog(m_projManager, BITSTREAM_LOG);
-  LogUtils::AddHeaderToLog(logPath);
+  CreateDummyLog(m_projManager, BITSTREAM_LOG);
   return true;
 }
 

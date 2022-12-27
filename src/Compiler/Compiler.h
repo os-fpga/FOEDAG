@@ -92,7 +92,7 @@ class Compiler {
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
   enum class STAOpt { None, Clean, View, Opensta };
-  enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
+  enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
   enum class STAEngineOpt { Tatum, Opensta };
 
   // Most common use case, create the compiler in your main
@@ -206,7 +206,7 @@ class Compiler {
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
   NetlistType GetNetlistType() { return m_netlistType; }
 
-  void virtual CustomSimulatorSetup();
+  void virtual CustomSimulatorSetup(Simulator::SimulationType action);
   void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
   const std::string& GetWavefromFile() { return m_waveformFile; }
 
@@ -260,7 +260,7 @@ class Compiler {
       const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
-
+  void AddHeadersToLogs();
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

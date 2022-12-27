@@ -37,4 +37,8 @@ const IDataReport::TableData &TableReport::getData() const {
 
 const QString &TableReport::getName() const { return m_name; }
 
+bool TableReport::isEmpty() const {
+  return m_linesData.empty() || m_columns.empty();
+}
+
 }  // namespace FOEDAG

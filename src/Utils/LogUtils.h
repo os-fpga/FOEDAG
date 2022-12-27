@@ -24,14 +24,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace FOEDAG {
 
 class LogUtils final {
  public:
+  static void AddHeaderToLog(const std::filesystem::path& logPath);
+  static void AddHeadersToLogs(const std::filesystem::path& logPath,
+                               const std::string extension = ".rpt");
+  static std::vector<std::string> GetCopyrightLines(int lineCount);
   static std::string GetLogHeader(std::string commentPrefix = "",
                                   bool withLogTime = true);
-  static void AddHeaderToLog(const std::filesystem::path& logPath);
+  static bool HasHeader(const std::filesystem::path& logPath,
+                        const std::vector<std::string>& firstLines);
   static void PrintHeader(std::ostream* out, bool printTime = true);
   static void PrintCopyright(std::ostream* out);
   static void PrintVersion(std::ostream* out);

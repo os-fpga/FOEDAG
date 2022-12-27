@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/IDataReport.h"
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
+#include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/StringUtils.h"
@@ -52,7 +53,8 @@ QLabel* createTitleLabel(const QString& text) {
   return titleLabel;
 }
 
-void openReportView(const ITaskReport& report) {
+void openReportView(Compiler* compiler, const Task* task,
+                    const ITaskReport& report) {
   auto reportsWidget = new QWidget;
   auto reportLayout = new QVBoxLayout;
   reportLayout->setContentsMargins(0, 0, 0, 0);
@@ -62,6 +64,12 @@ void openReportView(const ITaskReport& report) {
     if (!dataReportName.isEmpty())
       reportLayout->addWidget(createTitleLabel(dataReportName));
 
+    if (dataReport->isEmpty()) {
+      reportLayout->addWidget(
+          new QLabel("No statistics data found to generate report."), 1,
+          Qt::AlignTop);
+      continue;
+    }
     auto reportsView = new QTableWidget();
     // Fill columns
     auto columns = dataReport->getColumns();
@@ -94,9 +102,20 @@ void openReportView(const ITaskReport& report) {
   }
   reportsWidget->setLayout(reportLayout);
 
+  auto reportName = report.getName();
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   tabWidget->addTab(reportsWidget, report.getName());
   tabWidget->setCurrentWidget(reportsWidget);
+
+  QObject::connect(
+      task, &Task::statusChanged, [compiler, reportsWidget, reportName]() {
+        auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+        // Remove the report if underlying task status has changed
+        if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
+          tabWidget->removeTab(index);
+          compiler->Message(reportName.toStdString() + " report closed.");
+        }
+      });
 }
 }  // namespace
 
@@ -269,12 +288,13 @@ void FOEDAG::handleViewFileRequested(const QString& filePath) {
   TextEditorForm::Instance()->OpenFile(path);
 }
 
-void FOEDAG::handleViewReportRequested(const QString& reportId,
+void FOEDAG::handleViewReportRequested(Compiler* compiler, const Task* task,
+                                       const QString& reportId,
                                        ITaskReportManager& reportManager) {
   auto report = reportManager.createReport(reportId);
   if (!report) return;
 
-  openReportView(*report);
+  openReportView(compiler, task, *report);
 }
 
 void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
@@ -299,8 +319,8 @@ void FOEDAG::TclArgs_setSimulateOptions(const std::string& argsStr) {
     compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR,
                                        waveFile);
   if (simulationType.compare("-bitstream_filepath") == 0)
-    compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream,
-                                       waveFile);
+    compiler->GetSimulator()->WaveFile(
+        Simulator::SimulationType::BitstreamBackDoor, waveFile);
 }
 
 std::string FOEDAG::TclArgs_getSimulateOptions() {
@@ -318,8 +338,8 @@ std::string FOEDAG::TclArgs_getSimulateOptions() {
   argsList.push_back(
       compiler->GetSimulator()->WaveFile(Simulator::SimulationType::PNR));
   argsList.push_back("-bitstream_filepath");
-  argsList.push_back(
-      compiler->GetSimulator()->WaveFile(Simulator::SimulationType::Bitstream));
+  argsList.push_back(compiler->GetSimulator()->WaveFile(
+      Simulator::SimulationType::BitstreamBackDoor));
   return StringUtils::join(argsList, " ");
 }
 

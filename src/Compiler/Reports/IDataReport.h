@@ -53,5 +53,7 @@ class IDataReport {
   virtual const TableData &getData() const = 0;
   // Returns report name
   virtual const QString &getName() const = 0;
+  // Indicates whether report has any data
+  virtual bool isEmpty() const = 0;
 };
 }  // namespace FOEDAG

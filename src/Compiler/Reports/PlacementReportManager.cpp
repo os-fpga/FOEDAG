@@ -107,12 +107,15 @@ const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
 }
 
 void PlacementReportManager::parseLogFile() {
+  m_messages.clear();
+  m_histograms.clear();
+  m_resourceData.clear();
+  m_timingData.clear();
+
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return;
 
   auto timings = QStringList{};
-  m_messages.clear();
-  m_histograms.clear();
 
   auto in = QTextStream(logFile.get());
   QString line;

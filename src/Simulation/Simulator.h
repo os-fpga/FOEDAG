@@ -37,7 +37,13 @@ class Compiler;
 class Simulator {
  public:
   enum class SimulatorType { Verilator, Icarus, GHDL, VCS, Questa, Xcelium };
-  enum class SimulationType { RTL, Gate, PNR, Bitstream };
+  enum class SimulationType {
+    RTL,
+    Gate,
+    PNR,
+    BitstreamFrontDoor,
+    BitstreamBackDoor
+  };
   enum class WaveformType { VCD, FST };
   enum class SimulationOpt { None, Clean };
 
@@ -102,7 +108,8 @@ class Simulator {
   virtual bool SimulateRTL(SimulatorType type);
   virtual bool SimulateGate(SimulatorType type);
   virtual bool SimulatePNR(SimulatorType type);
-  virtual bool SimulateBitstream(SimulatorType type);
+  virtual bool SimulateBitstream(SimulationType sim_type,
+                                 SimulatorType simulator_type);
 
   virtual std::string SimulatorName(SimulatorType type);
   virtual std::filesystem::path SimulatorExecPath(SimulatorType type);
@@ -114,7 +121,8 @@ class Simulator {
   virtual std::string TopModuleCmd(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
-  virtual std::string SimulationFileList(SimulatorType type);
+  virtual std::string SimulationFileList(SimulationType action,
+                                         SimulatorType type);
   virtual int SimulationJob(SimulationType simulation, SimulatorType type,
                             const std::string& file_list);
   virtual std::string SimulatorRunCommand(SimulationType simulation,

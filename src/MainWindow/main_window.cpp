@@ -50,6 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "NewProject/new_project_dialog.h"
+#include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
@@ -75,6 +76,7 @@ const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
+constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
 
 void centerWidget(QWidget& widget) {
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
@@ -403,7 +405,7 @@ void MainWindow::showMessagesTab() {
 }
 
 void MainWindow::showReportsTab() {
-  auto newReportsWidget = new ReportsTreeWidget(*m_taskManager);
+  auto newReportsWidget = new ReportsTreeWidget(m_compiler, *m_taskManager);
   // remove old config widget
   auto oldWidget = m_reportsDockWidget->widget();
   if (oldWidget) {
@@ -440,6 +442,35 @@ void MainWindow::refreshPinPlanner() {
   }
   pinAssignment->refresh();
   pinPlannerSaved();
+}
+
+void MainWindow::defaultProjectPath() {
+  auto defaultPath{QDir::homePath()};
+  auto path = m_settings.value(DEFAULT_PROJECT_PATH, defaultPath).toString();
+  PathEdit* edit = new PathEdit;
+  edit->setText(path);
+
+  QDialog dialog{this};
+  dialog.setWindowTitle(defualtProjectPathAction->text());
+  auto layout = new QGridLayout;
+  dialog.setLayout(layout);
+  auto buttons =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto ok = buttons->button(QDialogButtonBox::Ok);
+  auto cancel = buttons->button(QDialogButtonBox::Cancel);
+  connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
+  connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
+  layout->addWidget(edit);
+  layout->addWidget(buttons, 1, 0);
+  dialog.setModal(true);
+  auto result = dialog.exec();
+  if (result == QDialog::Accepted) {
+    auto newPath = edit->text();
+    if (QDir{newPath}.exists()) {
+      m_settings.setValue(DEFAULT_PROJECT_PATH, newPath);
+      newProjdialog->SetDefaultPath(newPath);
+    }
+  }
 }
 
 void MainWindow::saveToRecentSettings(const QString& project) {
@@ -615,6 +646,7 @@ void MainWindow::createMenus() {
   helpMenu->addSeparator();
   helpMenu->addAction(licensesAction);
 
+  preferencesMenu->addAction(defualtProjectPathAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
 
@@ -684,6 +716,8 @@ void MainWindow::createActions() {
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
+  newProjdialog->SetDefaultPath(
+      m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&New Project..."), this);
   newProjectAction->setStatusTip(tr("Create a new project"));
@@ -759,6 +793,10 @@ void MainWindow::createActions() {
   showWelcomePageAction->setChecked(m_showWelcomePage);
   connect(showWelcomePageAction, &QAction::triggered, this,
           &MainWindow::onShowWelcomePage);
+
+  defualtProjectPathAction = new QAction{tr("Default project path"), this};
+  connect(defualtProjectPathAction, &QAction::triggered, this,
+          &MainWindow::defaultProjectPath);
 
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);

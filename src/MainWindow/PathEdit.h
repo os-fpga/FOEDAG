@@ -22,30 +22,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QWidget>
 
-class QTreeWidgetItem;
-
+class QLineEdit;
 namespace FOEDAG {
-class Compiler;
-class TaskManager;
 
-/* This class shows reports in a tree view. At shown project task
- * as a parent and all available report ids as its children.
- * Double clicking on leaf node (report id) opens it in application
- * editor. In case the report has been shown already, corresponding
- * tab just gets activated.
- */
-class ReportsTreeWidget final : public QWidget {
+class PathEdit : public QWidget {
   Q_OBJECT
  public:
-  ReportsTreeWidget(Compiler *compiler, const TaskManager &taskManager);
+  explicit PathEdit(QWidget *parent = nullptr);
 
- private slots:
-  // Reacts on double click on one of tree items.
-  void onReportRequested(const QTreeWidgetItem *item, int col);
+  QString text() const;
+  void setText(const QString &text);
+
+ signals:
 
  private:
-  Compiler *m_compiler;
-  const TaskManager &m_taskManager;
+  QLineEdit *m_edit;
 };
 
 }  // namespace FOEDAG

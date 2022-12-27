@@ -70,13 +70,6 @@ auto copyLog = [](FOEDAG::ProjectManager* projManager,
   return dest;
 };
 
-auto copyLogWithHeaders = [](FOEDAG::ProjectManager* projManager,
-                             const std::string& srcFileName,
-                             const std::string& destFileName) {
-  auto logPath = copyLog(projManager, srcFileName, destFileName);
-  LogUtils::AddHeaderToLog(logPath);
-};
-
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
@@ -228,14 +221,20 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
-  (*out) << "   bitstream ?clean?          : Bitstream generation" << std::endl;
+  (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
+         << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
             "and testbench"
          << std::endl;
-  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
-            "post-synthesis simulation, pnr: post-pnr simulation"
+  (*out) << "             <level>: rtl, gate, pnr, bitstream_bd, bitstream_fd."
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+  (*out) << "                 rtl: RTL simulation," << std::endl;
+  (*out) << "                gate: post-synthesis simulation," << std::endl;
+  (*out) << "                 pnr: post-pnr simulation," << std::endl;
+  (*out) << "        bitstream_bd: Back-door bitstream simulation" << std::endl;
+  (*out) << "        bitstream_fd: Front-door bitstream simulation"
+         << std::endl;
+  (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
   (*out) << "   set_top_testbench <module> : Sets the top-level testbench "
@@ -1058,10 +1057,9 @@ bool CompilerOpenFPGA::Synthesize() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(),
-                       ProjManager()->projectName() + "_synth.log",
-                       SYNTHESIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), ProjManager()->projectName() + "_synth.log",
+            SYNTHESIS_LOG);
   });
 
   if (SynthOpt() == SynthesisOpt::Clean) {
@@ -1494,8 +1492,8 @@ bool CompilerOpenFPGA::Packing() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PACKING_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", PACKING_LOG);
   });
 
   if (PackOpt() == PackingOpt::Clean) {
@@ -1613,8 +1611,8 @@ bool CompilerOpenFPGA::Placement() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", PLACEMENT_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -1886,8 +1884,8 @@ bool CompilerOpenFPGA::Route() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -1949,8 +1947,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2078,8 +2076,8 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
   auto guard = sg::make_scope_guard([this] {
-    // Rename log file and add header info
-    copyLogWithHeaders(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2169,10 +2167,71 @@ exit
 
 )";
 
+const std::string simulationOpenFPGABitstreamScript = R"( 
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --skip_sync_clustering_and_routing_results on --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
+
+# Read OpenFPGA architecture definition
+read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
+
+# Read OpenFPGA simulation settings
+read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
+
+read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+
+# Annotate the OpenFPGA architecture to VPR data base
+# to debug use --verbose options
+link_openfpga_arch --sort_gsb_chan_node_in_edges 
+
+${PB_PIN_FIXUP}
+
+# Apply fix-up to Look-Up Table truth tables based on packing results
+lut_truth_table_fixup
+
+# Build the module graph
+#  - Enabled compression on routing architecture modules
+#  - Enable pin duplication on grid modules
+build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUILD_FABRIC_OPTION}
+
+# Repack the netlist to physical pbs
+# This must be done before bitstream generator and testbench generation
+# Strongly recommend it is done after all the fix-up have been applied
+repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
+
+build_architecture_bitstream --verbose \
+                             --write_file fabric_independent_bitstream.xml
+ 
+build_fabric_bitstream --verbose 
+
+write_fabric_verilog --file BIT_SIM \
+                     --explicit_port_mapping \
+                     --include_timing \
+                     --print_user_defined_template \
+                     --verbose
+
+write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+
+write_full_testbench --file BIT_SIM \
+                     --bitstream fabric_bitstream.bit 
+
+write_preconfigured_fabric_wrapper --file BIT_SIM --embed_bitstream iverilog
+
+write_preconfigured_testbench --file BIT_SIM
+
+write_io_mapping -f PinMapping.xml
+
+# Finish and exit OpenFPGA
+exit
+
+)";
+
 std::string CompilerOpenFPGA::InitOpenFPGAScript() {
-  // Default or custom OpenFPGA script
+  // Default, Simulation enabled or custom OpenFPGA script
   if (m_openFPGAScript.empty()) {
-    m_openFPGAScript = basicOpenFPGABitstreamScript;
+    if (BitsOpt() == BitstreamOpt::EnableSimulation) {
+      m_openFPGAScript = simulationOpenFPGABitstreamScript;
+    } else {
+      m_openFPGAScript = basicOpenFPGABitstreamScript;
+    }
   }
   return m_openFPGAScript;
 }
@@ -2329,6 +2388,12 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
     ErrorMessage("Design needs to be in routed state");
     return false;
+  }
+
+  if (BitsOpt() == BitstreamOpt::EnableSimulation) {
+    std::filesystem::path bit_path =
+        std::filesystem::path(ProjManager()->projectPath()) / "BIT_SIM";
+    std::filesystem::create_directory(bit_path);
   }
 
   if (FileUtils::IsUptoDate(
