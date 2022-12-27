@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
   FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
 
-  FOEDAG::GUI_TYPE guiType = 
+  FOEDAG::GUI_TYPE guiType =
       FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
