@@ -44,7 +44,6 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   void parseLogFile();
 
   SectionKeys m_createDeviceKeys;
-  SectionKeys m_timingStatsKeys;
 
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::TableData m_circuitData;
