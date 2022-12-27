@@ -194,21 +194,26 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
-  (*out) << "   bitstream ?clean?" << std::endl;
+  (*out) << "   bitstream ?clean? ?enable_simulation?" << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
             "and testbench"
          << std::endl;
-  (*out) << "            <level> : rtl, gate, pnr. rtl: RTL simulation, gate: "
-            "post-synthesis simulation, pnr: post-pnr simulation"
+  (*out) << "             <level>: rtl, gate, pnr, bitstream_bd, bitstream_fd."
          << std::endl;
-  (*out) << "            <simulator> : verilator, vcs, questa, icarus, ghdl, "
+  (*out) << "                 rtl: RTL simulation," << std::endl;
+  (*out) << "                gate: post-synthesis simulation," << std::endl;
+  (*out) << "                 pnr: post-pnr simulation," << std::endl;
+  (*out) << "        bitstream_bd: Back-door bitstream simulation" << std::endl;
+  (*out) << "        bitstream_fd: Front-door bitstream simulation"
+         << std::endl;
+  (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
 
-void Compiler::CustomSimulatorSetup() {}
+void Compiler::CustomSimulatorSetup(Simulator::SimulationType action) {}
 
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
@@ -897,7 +902,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream") {
+                   arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -922,9 +927,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (sim_type == "pnr") {
           status = compiler->GetSimulator()->Simulate(
               Simulator::SimulationType::PNR, sim_tool, wave_file);
-        } else if (sim_type == "bitstream") {
+        } else if (sim_type == "bitstream_fd") {
           status = compiler->GetSimulator()->Simulate(
-              Simulator::SimulationType::Bitstream, sim_tool, wave_file);
+              Simulator::SimulationType::BitstreamFrontDoor, sim_tool,
+              wave_file);
+        } else if (sim_type == "bitstream_bd") {
+          status = compiler->GetSimulator()->Simulate(
+              Simulator::SimulationType::BitstreamBackDoor, sim_tool,
+              wave_file);
         }
       }
       return (status) ? TCL_OK : TCL_ERROR;
@@ -1110,6 +1120,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
+        } else if (arg == "enable_simulation") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -1204,7 +1216,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "xcelium") {
           sim_tool = Simulator::SimulatorType::Xcelium;
         } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-                   arg == "bitstream") {
+                   arg == "bitstream_bd" || arg == "bitstream_fd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -1236,7 +1248,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
               "simulate_rtl_th", Action::SimulatePNR, compiler);
           status = wthread->start();
           if (!status) return TCL_ERROR;
-        } else if (sim_type == "bitstream") {
+        } else if (sim_type == "bitstream_fd") {
+          WorkerThread* wthread = new WorkerThread(
+              "simulate_rtl_th", Action::SimulateBitstream, compiler);
+          status = wthread->start();
+          if (!status) return TCL_ERROR;
+        } else if (sim_type == "bitstream_bd") {
           WorkerThread* wthread = new WorkerThread(
               "simulate_rtl_th", Action::SimulateBitstream, compiler);
           status = wthread->start();
@@ -1448,6 +1465,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Force);
         } else if (arg == "clean") {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
+        } else if (arg == "enable_simulation") {
+          compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -2090,9 +2109,9 @@ bool Compiler::RunCompileTask(Action action) {
                                       GetSimulator()->GetSimulatorType(),
                                       m_waveformFile);
     case Action::SimulateBitstream:
-      return GetSimulator()->Simulate(Simulator::SimulationType::Bitstream,
-                                      GetSimulator()->GetSimulatorType(),
-                                      m_waveformFile);
+      return GetSimulator()->Simulate(
+          Simulator::SimulationType::BitstreamBackDoor,
+          GetSimulator()->GetSimulatorType(), m_waveformFile);
     default:
       break;
   }
@@ -2201,9 +2220,9 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
         ->setCustomData({CustomDataType::Sim,
                          QVariant::fromValue(Simulator::SimulationType::Gate)});
     m_taskManager->task(SIMULATE_BITSTREAM)
-        ->setCustomData(
-            {CustomDataType::Sim,
-             QVariant::fromValue(Simulator::SimulationType::Bitstream)});
+        ->setCustomData({CustomDataType::Sim,
+                         QVariant::fromValue(
+                             Simulator::SimulationType::BitstreamBackDoor)});
   }
 }
 

@@ -57,7 +57,8 @@ Simulator::SimulationType Simulator::ToSimulationType(const std::string& str,
   if (str == "rtl") return SimulationType::RTL;
   if (str == "pnr") return SimulationType::PNR;
   if (str == "gate") return SimulationType::Gate;
-  if (str == "bitstream") return SimulationType::Bitstream;
+  if (str == "bitstream_bd") return SimulationType::BitstreamBackDoor;
+  if (str == "bitstream_fd") return SimulationType::BitstreamFrontDoor;
   ok = false;
   return SimulationType::RTL;
 }
@@ -83,7 +84,8 @@ void Simulator::SetSimulatorCompileOption(const std::string& simulation,
     m_simulatorCompileOptionMap[level].emplace(type, options);
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
-                       SimulationType::Gate, SimulationType::Bitstream})
+                       SimulationType::Gate, SimulationType::BitstreamBackDoor,
+                       SimulationType::BitstreamFrontDoor})
       m_simulatorCompileOptionMap[level].emplace(type, options);
   }
 }
@@ -97,7 +99,8 @@ void Simulator::SetSimulatorElaborationOption(const std::string& simulation,
     m_simulatorElaborationOptionMap[level].emplace(type, options);
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
-                       SimulationType::Gate, SimulationType::Bitstream})
+                       SimulationType::Gate, SimulationType::BitstreamBackDoor,
+                       SimulationType::BitstreamFrontDoor})
       m_simulatorElaborationOptionMap[level].emplace(type, options);
   }
 }
@@ -111,7 +114,8 @@ void Simulator::SetSimulatorRuntimeOption(const std::string& simulation,
     m_simulatorRuntimeOptionMap[level].emplace(type, options);
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
-                       SimulationType::Gate, SimulationType::Bitstream})
+                       SimulationType::Gate, SimulationType::BitstreamBackDoor,
+                       SimulationType::BitstreamFrontDoor})
       m_simulatorRuntimeOptionMap[level].emplace(type, options);
   }
 }
@@ -140,7 +144,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
         std::string arg{argv[i]};
         // skip level if available
         if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
-            arg == "bitstream") {
+            arg == "bitstream_bd" || arg == "bitstream_fd") {
           continue;
         }
         options += arg + " ";
@@ -175,7 +179,7 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
         } else if (arg == "simulation") {
           phase = "simulation";
         } else if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
-                   arg == "bitstream") {
+                   arg == "bitstream_bd" || arg == "bitstream_fd") {
           level = arg;
         }
       }
@@ -288,8 +292,12 @@ bool Simulator::Simulate(SimulationType action, SimulatorType type,
       return SimulatePNR(type);
       break;
     }
-    case SimulationType::Bitstream: {
-      return SimulateBitstream(type);
+    case SimulationType::BitstreamFrontDoor: {
+      return SimulateBitstream(action, type);
+      break;
+    }
+    case SimulationType::BitstreamBackDoor: {
+      return SimulateBitstream(action, type);
       break;
     }
   }
@@ -311,7 +319,7 @@ std::string Simulator::SimulatorName(SimulatorType type) {
     case SimulatorType::Verilator:
       return "verilator";
     case SimulatorType::Icarus:
-      return "icarus";
+      return "iverilog";
     case SimulatorType::GHDL:
       return "ghdl";
     case SimulatorType::Questa:
@@ -429,7 +437,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       break;
     }
     case SimulatorType::Icarus:
-      return "";
+      return "-gno-specify -v";
     case SimulatorType::GHDL:
       return "-a -fsynopsys";
     case SimulatorType::Questa:
@@ -465,7 +473,7 @@ std::string Simulator::TopModuleCmd(SimulatorType type) {
     case SimulatorType::Verilator:
       return "--top-module ";
     case SimulatorType::Icarus:
-      return "Todo";
+      return "-s ";
     case SimulatorType::GHDL:
       return " ";
     case SimulatorType::Questa:
@@ -506,6 +514,28 @@ std::string Simulator::LanguageDirective(SimulatorType type,
       }
       break;
     case SimulatorType::Icarus:
+      switch (lang) {
+        case Design::Language::VERILOG_1995:
+          return "-g1995";
+        case Design::Language::VERILOG_2001:
+          return "-g2001";
+        case Design::Language::SYSTEMVERILOG_2005:
+          return "-g2005";
+        case Design::Language::SYSTEMVERILOG_2009:
+          return "-g2009";
+        case Design::Language::SYSTEMVERILOG_2012:
+          return "-g2012";
+        case Design::Language::SYSTEMVERILOG_2017:
+          return "-g2012";
+        case Design::Language::VERILOG_NETLIST:
+          return "";
+        case Design::Language::C:
+          return "";
+        case Design::Language::CPP:
+          return "";
+        default:
+          return "--invalid-lang-for-icarus";
+      }
       break;
     case SimulatorType::GHDL:
       switch (lang) {
@@ -578,8 +608,13 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
       if (!m_waveFile.empty()) command += " " + m_waveFile;
       return command;
     }
-    case SimulatorType::Icarus:
-      return "Todo";
+    case SimulatorType::Icarus: {
+      std::string command = "vvp ./a.out";
+      if (m_waveType == WaveformType::FST) {
+        command += " -fst";
+      }
+      return command;
+    }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -r -fsynopsys";
       if (!simulationTop.empty()) {
@@ -604,9 +639,10 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
   return "Invalid";
 }
 
-std::string Simulator::SimulationFileList(SimulatorType type) {
+std::string Simulator::SimulationFileList(SimulationType action,
+                                          SimulatorType type) {
   std::string fileList;
-  m_compiler->CustomSimulatorSetup();
+  m_compiler->CustomSimulatorSetup(action);
   if (type != SimulatorType::GHDL) {
     auto simulationTop{ProjManager()->SimulationTopModule()};
     if (!simulationTop.empty()) {
@@ -718,7 +754,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     return false;
   if (!m_compiler->HasTargetDevice()) return false;
 
-  std::string fileList = SimulationFileList(type);
+  std::string fileList = SimulationFileList(SimulationType::RTL, type);
   bool langDirective = false;
   if (type == SimulatorType::GHDL) {
     if (fileList.find("--std=") != std::string::npos) {
@@ -766,7 +802,7 @@ bool Simulator::SimulateGate(SimulatorType type) {
   Message("Gate simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  std::string fileList = SimulationFileList(type);
+  std::string fileList = SimulationFileList(SimulationType::Gate, type);
 
   std::string netlistFile;
   switch (m_compiler->GetNetlistType()) {
@@ -831,7 +867,7 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   Message("Post-PnR simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  std::string fileList = SimulationFileList(type);
+  std::string fileList = SimulationFileList(SimulationType::PNR, type);
 
   std::string netlistFile =
       ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
@@ -846,7 +882,7 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " simulation failed!\n");
+                 " Post-PnR simulation failed!\n");
     return false;
   }
 
@@ -855,7 +891,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   return true;
 }
-bool Simulator::SimulateBitstream(SimulatorType type) {
+
+bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   if (!ProjManager()->HasDesign() && !m_compiler->CreateDesign("noname"))
     return false;
   if (!m_compiler->HasTargetDevice()) return false;
@@ -863,5 +900,64 @@ bool Simulator::SimulateBitstream(SimulatorType type) {
   Message("##################################################");
   Message("Bitstream simulation for design: " + ProjManager()->projectName());
   Message("##################################################");
+
+  std::string fileList;
+
+  bool langDirective = false;
+  for (const auto& lang_file : ProjManager()->SimulationFiles()) {
+    if (langDirective == false) {
+      Design::Language language = (Design::Language)lang_file.first.language;
+      std::string directive = LanguageDirective(type, language);
+      if (!directive.empty()) {
+        langDirective = true;
+        fileList += directive + " ";
+      }
+    }
+    if (type == SimulatorType::Verilator) {
+      if (lang_file.second.find(".c") != std::string::npos) {
+        fileList += "--exe ";
+      }
+    }
+    fileList += lang_file.second + " ";
+  }
+
+  for (auto path : ProjManager()->includePathList()) {
+    fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+  }
+
+  for (auto path : ProjManager()->libraryPathList()) {
+    fileList += LibraryPathDirective(type) + FileUtils::AdjustPath(path) + " ";
+  }
+
+  for (auto ext : ProjManager()->libraryExtensionList()) {
+    fileList += LibraryExtDirective(type) + ext + " ";
+  }
+
+  fileList += LanguageDirective(type, Design::Language::SYSTEMVERILOG_2012) +
+              " BIT_SIM/fabric_netlists.v";
+
+  if (sim_type == SimulationType::BitstreamBackDoor) {
+    fileList += " BIT_SIM/" +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_formal_random_top_tb.v";
+    fileList += " BIT_SIM/" +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_top_formal_verification.v";
+  } else {
+    fileList += " BIT_SIM/" +
+                ProjManager()->getDesignTopModule().toStdString() +
+                "_autocheck_top_tb.v";
+  }
+
+  bool status = SimulationJob(sim_type, type, fileList);
+
+  if (status) {
+    ErrorMessage("Design " + ProjManager()->projectName() +
+                 " Bitstream simulation failed!\n");
+    return false;
+  }
+
+  Message("Bitstream simulation for design: " + ProjManager()->projectName() +
+          " had ended");
   return true;
 }
