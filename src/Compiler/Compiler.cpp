@@ -399,11 +399,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
   }
+  if (m_DesignQuery == nullptr) {
+    m_DesignQuery = new DesignQuery(this);
+  }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
+  m_DesignQuery->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
