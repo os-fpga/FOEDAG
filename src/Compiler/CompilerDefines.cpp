@@ -150,8 +150,11 @@ uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
 }
 
 FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
-                                              Design::Language defaultValue) {
-  if (QtUtils::IsEqual(type, "v")) return Design::Language::VERILOG_2001;
+                                              bool postSynth) {
+  if (QtUtils::IsEqual(type, "v")) {
+    if (postSynth) return Design::Language::VERILOG_NETLIST;
+    return Design::Language::VERILOG_2001;
+  }
   if (QtUtils::IsEqual(type, "sv")) return Design::Language::SYSTEMVERILOG_2017;
   if (QtUtils::IsEqual(type, "vhd")) return Design::Language::VHDL_2008;
   if (QtUtils::IsEqual(type, "blif")) return Design::Language::BLIF;
@@ -159,7 +162,8 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
   if (QtUtils::IsEqual(type, "c") || QtUtils::IsEqual(type, "cc"))
     return Design::Language::C;
   if (QtUtils::IsEqual(type, "cpp")) return Design::Language::CPP;
-  return defaultValue;  // default
+  return postSynth ? Design::Language::VERILOG_NETLIST
+                   : Design::Language::VERILOG_2001;
 }
 
 int FOEDAG::read_sdc(const QString &file) {

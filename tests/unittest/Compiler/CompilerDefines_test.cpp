@@ -52,7 +52,8 @@ TEST(CompilerDefines, FromFileType) {
   EXPECT_EQ(FromFileType("anything"), Language::VERILOG_2001);
 }
 
-TEST(CompilerDefines, FromFileTypeDefault) {
-  auto type = FromFileType("anything", Language::CPP);
-  EXPECT_EQ(type, Language::CPP);
+TEST(CompilerDefines, FromFileTypePostSynth) {
+  EXPECT_EQ(FromFileType("v", true), Language::VERILOG_NETLIST);
+  EXPECT_EQ(FromFileType("V", true), Language::VERILOG_NETLIST);
+  EXPECT_EQ(FromFileType("anything", true), Language::VERILOG_NETLIST);
 }
