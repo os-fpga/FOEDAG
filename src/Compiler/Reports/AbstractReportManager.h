@@ -44,6 +44,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   AbstractReportManager(const TaskManager &taskManager);
 
  protected:
+  // Launches file parsing, if needed. Returns messages.
+  const Messages &getMessages() override;
+  // Parses corresponding log file
+  virtual void parseLogFile() = 0;
   // Getter for timing report file name
   virtual QString getTimingLogFileName() const = 0;
   // Returns true if given line holds statistical timing info.

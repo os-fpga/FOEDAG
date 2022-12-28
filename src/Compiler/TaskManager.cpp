@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 
 #include "Compiler/CompilerDefines.h"
+#include "Reports/PackingReportManager.h"
 #include "Reports/PlacementReportManager.h"
 #include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
@@ -198,6 +199,11 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
           &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(TIMING_SIGN_OFF,
                                                 std::move(taReportManager));
+  auto packingReportManager = std::make_shared<PackingReportManager>(*this);
+  connect(packingReportManager.get(), &AbstractReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(
+      PACKING, std::move(packingReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

@@ -100,11 +100,6 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
   return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
-const ITaskReportManager::Messages &PlacementReportManager::getMessages() {
-  if (!isFileParsed()) parseLogFile();
-  return m_messages;
-}
-
 void PlacementReportManager::parseLogFile() {
   m_messages.clear();
   m_histograms.clear();
