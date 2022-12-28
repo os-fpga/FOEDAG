@@ -1083,19 +1083,6 @@ bool CompilerOpenFPGA::Synthesize() {
   Message("##################################################");
   std::string yosysScript = InitSynthesisScript();
 
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first.language) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        Message("Skipping synthesis, gate-level design.");
-        return true;
-        break;
-      default:
-        break;
-    }
-  }
-
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
   m_constraints->reset();
@@ -1106,6 +1093,19 @@ bool CompilerOpenFPGA::Synthesize() {
     if (res != TCL_OK) {
       ErrorMessage(status);
       return false;
+    }
+  }
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first.language) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        Message("Skipping synthesis, gate-level design.");
+        return true;
+        break;
+      default:
+        break;
     }
   }
 
