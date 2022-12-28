@@ -109,11 +109,6 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
   return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
-const ITaskReportManager::Messages &TimingAnalysisReportManager::getMessages() {
-  if (!isFileParsed()) parseLogFile();
-  return m_messages;
-}
-
 QString TimingAnalysisReportManager::getTimingLogFileName() const {
   return QString(TA_TIMING_LOG);
 }

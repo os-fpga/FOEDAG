@@ -58,11 +58,6 @@ QStringList RoutingReportManager::getAvailableReportIds() const {
           QString(TIMING_REPORT_NAME)};
 }
 
-const ITaskReportManager::Messages &RoutingReportManager::getMessages() {
-  if (!isFileParsed()) parseLogFile();
-  return m_messages;
-}
-
 std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();

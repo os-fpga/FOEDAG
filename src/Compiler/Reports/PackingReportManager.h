@@ -24,14 +24,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-/* Placement-specific report manager. It triggers 'placement.rpt' log file
- * parsing and creates two reports:
- * - Report Resource Utilization, shown as table in application editor area;
- * - Report Static Timing, placed into post_place_timing.rpt file.
+/* Report manager for Packing task. It works with 'packing.rpt' log
+ * file and gets messages and reports info out of it.
+ * Supported reports:
+ * - Circuit statistics;
+ * - Resource usage.
  */
-class PlacementReportManager final : public AbstractReportManager {
+class PackingReportManager final : public AbstractReportManager {
  public:
-  PlacementReportManager(const TaskManager &taskManager);
+  PackingReportManager(const TaskManager &taskManager);
 
  private:
   QStringList getAvailableReportIds() const override;
@@ -42,8 +43,8 @@ class PlacementReportManager final : public AbstractReportManager {
   void splitTimingData(const QString &timingStr) override;
   void parseLogFile() override;
 
-  SectionKeys m_createDeviceKeys;
-  SectionKeys m_placementKeys;
+  IDataReport::ColumnValues m_circuitColumns;
+  IDataReport::TableData m_circuitData;
 };
 
 }  // namespace FOEDAG

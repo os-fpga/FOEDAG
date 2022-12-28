@@ -37,6 +37,11 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
                         ReportColumn{"Histogram"}};
 }
 
+const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
+  if (!isFileParsed()) parseLogFile();
+  return m_messages;
+}
+
 void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
   m_resourceColumns.clear();
 

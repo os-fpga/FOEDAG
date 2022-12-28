@@ -35,13 +35,11 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
  private:
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  const Messages &getMessages() override;
   QString getTimingLogFileName() const override;
   bool isStatisticalTimingLine(const QString &line) override;
   bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
-
-  void parseLogFile();
+  void parseLogFile() override;
 
   SectionKeys m_createDeviceKeys;
 
