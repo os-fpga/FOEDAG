@@ -154,6 +154,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   clear_simulation_files     : Remove all simulation files"
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
