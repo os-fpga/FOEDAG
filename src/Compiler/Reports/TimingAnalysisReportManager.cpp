@@ -233,14 +233,19 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
   if (in.atEnd()) return;
 
   QString line;
+  auto timings = QStringList{};
+
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
     if (line.contains(READ_IN_DATA))
       lineNr = parseErrorWarningSection(
           in, lineNr, READ_IN_DATA,
           {QRegExp("Startpoint:.*"), QRegExp("Endpoint:.*")}, true);
+    else if (isStatisticalTimingLine(line))
+      timings << line + "\n";
     ++lineNr;
   }
+  if (!timings.isEmpty()) fillTimingData(timings);
 
   logFile->close();
 
