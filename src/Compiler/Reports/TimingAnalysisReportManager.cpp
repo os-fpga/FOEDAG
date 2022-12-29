@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
@@ -65,12 +66,17 @@ static const QStringList TIMING_FIELDS{"Hold WNS",
                                        "Setup TNS",
                                        "Intra-domain period",
                                        "Fanout-weighted intra-domain period"};
+
+// OpenSTA stuff
+static const QString READ_IN_DATA{
+    "This program comes with ABSOLUTELY NO WARRANTY; for details type "
+    "`show_warranty'"};
 }  // namespace
 
 namespace FOEDAG {
 TimingAnalysisReportManager::TimingAnalysisReportManager(
-    const TaskManager &taskManager)
-    : AbstractReportManager(taskManager) {
+    const TaskManager &taskManager, Compiler *compiler)
+    : AbstractReportManager(taskManager), m_compiler{compiler} {
   m_circuitColumns = {ReportColumn{"Block type"},
                       ReportColumn{"Number of blocks", Qt::AlignCenter}};
 
@@ -79,6 +85,10 @@ TimingAnalysisReportManager::TimingAnalysisReportManager(
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
+  if (m_compiler &&
+      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta)
+    return {QString(TIMING_REPORT_NAME)};
+
   return {QString(CIRCUIT_REPORT_NAME), QString(RESOURCE_REPORT_NAME),
           QString(TIMING_REPORT_NAME)};
 }
@@ -114,6 +124,10 @@ QString TimingAnalysisReportManager::getTimingLogFileName() const {
 }
 
 bool TimingAnalysisReportManager::isStatisticalTimingLine(const QString &line) {
+  if (m_compiler &&
+      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta)
+    return line.contains("wns") || line.contains("tns");
+
   return FIND_TA_TIMING.indexIn(line) != -1;
 }
 
@@ -123,6 +137,18 @@ bool TimingAnalysisReportManager::isStatisticalTimingHistogram(
 }
 
 void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
+  if (m_compiler &&
+      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta) {
+    auto timings = timingStr.simplified().split(" ");
+    // TODO: This is ugly, but at this point there is no clear view on timings.
+    // We expect it to consist of two KEY VALUE pairs.
+    if (timings.size() == 4) {
+      m_timingData.push_back({timings[0], timings[1]});
+      m_timingData.push_back({timings[2], timings[3]});
+    }
+    return;
+  }
+
   auto matchIt = SPLIT_STAT_TIMING.globalMatch(timingStr);
   auto valueIndex = 0;
   while (matchIt.hasNext() && valueIndex < TIMING_FIELDS.size()) {
@@ -136,13 +162,21 @@ void TimingAnalysisReportManager::parseLogFile() {
   m_histograms.clear();
   m_resourceData.clear();
   m_timingData.clear();
+  m_circuitData.clear();
 
+  if (m_compiler &&
+      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta) {
+    parseOpenSTALog();
+    return;
+  }
   auto logFile = createLogFile(QString(TIMING_ANALYSIS_LOG));
   if (!logFile) return;
 
   auto timings = QStringList{};
 
   auto in = QTextStream(logFile.get());
+  if (in.atEnd()) return;
+
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
@@ -185,6 +219,28 @@ void TimingAnalysisReportManager::parseLogFile() {
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);
+
+  logFile->close();
+
+  setFileParsed(true);
+}
+
+void TimingAnalysisReportManager::parseOpenSTALog() {
+  auto logFile = createLogFile(QString(TIMING_ANALYSIS_LOG));
+  if (!logFile) return;
+
+  auto in = QTextStream(logFile.get());
+  if (in.atEnd()) return;
+
+  QString line;
+  auto lineNr = 0;
+  while (in.readLineInto(&line)) {
+    if (line.contains(READ_IN_DATA))
+      lineNr = parseErrorWarningSection(
+          in, lineNr, READ_IN_DATA,
+          {QRegExp("Startpoint:.*"), QRegExp("Endpoint:.*")}, true);
+    ++lineNr;
+  }
 
   logFile->close();
 

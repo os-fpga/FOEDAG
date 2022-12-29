@@ -383,7 +383,7 @@ bool Foedag::initBatch() {
   m_projectFileLoader->registerComponent(
       new ProjectManagerComponent{m_compiler->ProjManager()},
       ComponentId::ProjectManager);
-  auto taskM = new TaskManager;
+  auto taskM = new TaskManager(m_compiler);
   m_compiler->setTaskManager(taskM);
   m_projectFileLoader->registerComponent(new TaskManagerComponent{taskM},
                                          ComponentId::TaskManager);

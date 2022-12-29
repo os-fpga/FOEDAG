@@ -31,7 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-TaskManager::TaskManager(QObject *parent) : QObject{parent} {
+TaskManager::TaskManager(Compiler *compiler, QObject *parent)
+    : QObject{parent} {
   qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
 
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
@@ -194,7 +195,8 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       ROUTING, std::move(routingReportManager));
-  auto taReportManager = std::make_shared<TimingAnalysisReportManager>(*this);
+  auto taReportManager =
+      std::make_shared<TimingAnalysisReportManager>(*this, compiler);
   connect(taReportManager.get(), &AbstractReportManager::reportCreated, this,
           &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(TIMING_SIGN_OFF,

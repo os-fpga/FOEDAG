@@ -39,7 +39,7 @@ extern FOEDAG::Session *GlobalSession;
 
 QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
                                         TaskManager **taskManager) {
-  TaskManager *tManager = new TaskManager;
+  TaskManager *tManager = new TaskManager(compiler);
   TaskModel *model = new TaskModel{tManager};
   TaskTableView *view = new TaskTableView{tManager};
   QObject::connect(view, &TaskTableView::TaskDialogRequested,

@@ -89,7 +89,7 @@ void RoutingReportManager::parseLogFile() {
   if (!logFile) return;
 
   QTextStream in(logFile.get());
-
+  if (in.atEnd()) return;
   auto timings = QStringList{};
   auto lineNr = 0;
   QString line;
