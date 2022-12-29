@@ -145,6 +145,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   clear_simulation_files     : Remove all simulation files"
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -578,6 +580,24 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return compiler->add_files(compiler, interp, argc, argv, Simulation);
   };
   interp->registerCmd("add_simulation_file", add_simulation_file, this,
+                      nullptr);
+
+  auto clear_simulation_files = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler->HasInternalError()) return TCL_ERROR;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::ostringstream out;
+    if (!compiler->m_tclCmdIntegration->TclClearSimulationFiles(out)) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("clear_simulation_files", clear_simulation_files, this,
                       nullptr);
 
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
