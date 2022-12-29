@@ -50,6 +50,7 @@ class TclCommandIntegration : public QObject {
   bool TclCreateProject(const QString &name, const QString &type,
                         std::ostream &out);
   bool TclCloseProject();
+  bool TclClearSimulationFiles(std::ostream &out);
 
   ProjectManager *GetProjectManager();
 

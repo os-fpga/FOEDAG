@@ -320,6 +320,21 @@ bool TclCommandIntegration::TclCloseProject() {
   return true;
 }
 
+bool TclCommandIntegration::TclClearSimulationFiles(std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+  auto simFiles = m_projManager->getSimulationFiles(
+      m_projManager->getSimulationActiveFileSet());
+  for (const auto &strfile : simFiles) {
+    const QFileInfo info{strfile};
+    m_projManager->deleteFile(info.fileName());
+  }
+  update();
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
