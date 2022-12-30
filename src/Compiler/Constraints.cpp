@@ -22,8 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/Compiler.h"
 #include "MainWindow/Session.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
+
+constexpr auto TimingLimitErrorMessage{"Invalid setting for -period: 0.1 1000"};
 
 Constraints::Constraints(Compiler* compiler) : m_compiler(compiler) {
   m_interp = new TclInterpreter("");
@@ -53,6 +56,23 @@ static std::string getConstraint(uint64_t argc, const char* argv[]) {
     command += std::string(argv[i]) + " ";
   }
   return command;
+}
+
+static bool verifyTimingLimits(uint64_t argc, const char* argv[]) {
+  for (uint64_t i = 0; i < argc; i++) {
+    std::string command = std::string(argv[i]);
+    if (command == "create_clock") {
+      for (uint64_t j = i + 1; j < argc - 1; j++) {
+        command = std::string(argv[j]);
+        if (command == "-period") {
+          auto value = std::string(argv[j + 1]);
+          double period = std::stod(value);
+          if ((period < 0.1) || (period > 1000)) return false;
+        }
+      }
+    }
+  }
+  return true;
 }
 
 static std::vector<std::string> constraint_procs = {
@@ -116,6 +136,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto name_harvesting_sdc_command = [](void* clientData, Tcl_Interp* interp,
                                         int argc, const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
     const std::string constraint = getConstraint(argc, argv);
     constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
@@ -160,12 +184,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto pin_loc = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    constraints->addConstraint(getConstraint(argc, argv));
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    auto constraint = getConstraint(argc, argv);
+    constraints->addConstraint(constraint);
     if ((argc != 3) && (argc != 4)) {
       Tcl_AppendResult(
           interp,
           strdup(std::string("set_pin_loc command takes 2 or 3 arguments: " +
-                             getConstraint(argc, argv))
+                             constraint)
                      .c_str()),
           (char*)NULL);
       return TCL_ERROR;
@@ -184,6 +213,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto set_mode = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
     constraints->addConstraint(getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
@@ -199,6 +232,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto set_property = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
     constraints->addConstraint(getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
@@ -226,6 +263,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto region_loc = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
     constraints->addConstraint(getConstraint(argc, argv));
     for (int i = 0; i < argc; i++) {
       std::string arg = argv[i];
