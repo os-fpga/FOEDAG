@@ -17,7 +17,8 @@ static const QRegExp FIND_ROUTING_TIMING{"Final.*(Slack|MHz).*"};
 static const QRegExp ROUTING_SUMMARY{"Circuit successfully routed.*"};
 static const QRegExp TIMING_INFO{"Final hold Worst Negative Slack.*"};
 
-static constexpr const char *CIRCUIT_REPORT_NAME{"Circuit Statistics Report"};
+static constexpr const char *CIRCUIT_REPORT_NAME{
+    "Post routing - Circuit Statistics Report"};
 static constexpr const char *RESOURCE_REPORT_NAME{
     "Post routing - Report Resource Utilization"};
 static constexpr const char *TIMING_REPORT_NAME{

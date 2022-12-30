@@ -71,6 +71,10 @@ static const QStringList TIMING_FIELDS{"Hold WNS",
 static const QString READ_IN_DATA{
     "This program comes with ABSOLUTELY NO WARRANTY; for details type "
     "`show_warranty'"};
+
+static const QRegularExpression OPENSTA_TIMING{"Delay.*Time.*Description"};
+static const QRegularExpression SPLIT_OPENSTA_TIMING{
+    "([-]?(([0-9]*[.])?[0-9]+) \\^?)|([a-z].*)"};
 }  // namespace
 
 namespace FOEDAG {
@@ -80,13 +84,17 @@ TimingAnalysisReportManager::TimingAnalysisReportManager(
   m_circuitColumns = {ReportColumn{"Block type"},
                       ReportColumn{"Number of blocks", Qt::AlignCenter}};
 
+  m_openSTATimingColumns = {ReportColumn{"Delay", Qt::AlignCenter},
+                            ReportColumn{"Time", Qt::AlignCenter},
+                            ReportColumn{"Description"}};
+
   m_createDeviceKeys = {QRegExp("Device Utilization.*"),
                         QRegExp{"Build tileable routing resource graph"}};
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
   if (m_compiler &&
-      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta)
+      m_compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta)
     return {QString(TIMING_REPORT_NAME)};
 
   return {QString(CIRCUIT_REPORT_NAME), QString(RESOURCE_REPORT_NAME),
@@ -109,9 +117,16 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
         m_timingColumns, m_timingData, QString{}));
-    for (auto &hgrm : m_histograms)
-      dataReports.push_back(std::make_unique<TableReport>(
-          m_histogramColumns, hgrm.second, hgrm.first));
+    if (m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
+                          Compiler::STAEngineOpt::Opensta) {
+      for (auto &hgrm : m_histograms)
+        dataReports.push_back(std::make_unique<TableReport>(
+            m_openSTATimingColumns, hgrm.second, hgrm.first));
+    } else {
+      for (auto &hgrm : m_histograms)
+        dataReports.push_back(std::make_unique<TableReport>(
+            m_histogramColumns, hgrm.second, hgrm.first));
+    }
   }
 
   emit reportCreated(reportId);
@@ -125,7 +140,7 @@ QString TimingAnalysisReportManager::getTimingLogFileName() const {
 
 bool TimingAnalysisReportManager::isStatisticalTimingLine(const QString &line) {
   if (m_compiler &&
-      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta)
+      m_compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta)
     return line.contains("wns") || line.contains("tns");
 
   return FIND_TA_TIMING.indexIn(line) != -1;
@@ -137,8 +152,8 @@ bool TimingAnalysisReportManager::isStatisticalTimingHistogram(
 }
 
 void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
-  if (m_compiler &&
-      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta) {
+  if (m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
+                        Compiler::STAEngineOpt::Opensta) {
     auto timings = timingStr.simplified().split(" ");
     // TODO: This is ugly, but at this point there is no clear view on timings.
     // We expect it to consist of two KEY VALUE pairs.
@@ -164,8 +179,8 @@ void TimingAnalysisReportManager::parseLogFile() {
   m_timingData.clear();
   m_circuitData.clear();
 
-  if (m_compiler &&
-      m_compiler->TimingAnalysisOpt() == Compiler::STAOpt::Opensta) {
+  if (m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
+                        Compiler::STAEngineOpt::Opensta) {
     parseOpenSTALog();
     return;
   }
@@ -243,6 +258,9 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
           {QRegExp("Startpoint:.*"), QRegExp("Endpoint:.*")}, true);
     else if (isStatisticalTimingLine(line))
       timings << line + "\n";
+    else if (line.contains(OPENSTA_TIMING))
+      m_histograms.push_back(qMakePair(QString("Timing table"),
+                                       parseOpenSTATimingTable(in, lineNr)));
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);
@@ -250,6 +268,33 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
   logFile->close();
 
   setFileParsed(true);
+}
+
+IDataReport::TableData TimingAnalysisReportManager::parseOpenSTATimingTable(
+    QTextStream &in, int &lineNr) const {
+  // Stop after second empty line in a row
+  bool previousLineEmpty = false;
+  IDataReport::TableData result;
+  QString line;
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.simplified().isEmpty()) {
+      // Break if previous line was empty
+      if (previousLineEmpty) break;
+      // Remember that current line is empty
+      previousLineEmpty = true;
+      continue;
+    }
+    previousLineEmpty = false;
+    auto match = SPLIT_OPENSTA_TIMING.globalMatch(line);
+    QStringList tableLine;
+    while (match.hasNext()) tableLine << match.next().captured();
+    // Delay may be missing. In this case first value should be empty
+    if (tableLine.size() == 2) tableLine.insert(0, {});
+    // Table also contains irrelevant data - skip it
+    if (tableLine.size() == 3) result.push_back(std::move(tableLine));
+  }
+  return result;
 }
 
 }  // namespace FOEDAG

@@ -99,6 +99,7 @@ void openReportView(Compiler* compiler, const Task* task,
     }
     // Initialize the view itself
     reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    reportsView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     reportsView->horizontalHeader()->resizeSections(
         QHeaderView::ResizeToContents);
     reportLayout->addWidget(reportsView);

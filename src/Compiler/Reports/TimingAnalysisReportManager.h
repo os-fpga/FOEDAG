@@ -44,11 +44,15 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   void parseLogFile() override;
 
   void parseOpenSTALog();
+  IDataReport::TableData parseOpenSTATimingTable(QTextStream &in,
+                                                 int &lineNr) const;
 
   SectionKeys m_createDeviceKeys;
 
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::TableData m_circuitData;
+  IDataReport::ColumnValues m_openSTATimingColumns;
+
   Compiler *m_compiler;
 };
 
