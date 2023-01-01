@@ -3519,7 +3519,7 @@ bool CompilerOpenFPGA_ql::Placement() {
              std::string("--place");
 
   if (!filepath_fpga_fix_pins_place_str.empty()) {
-    command += std::string(" --fix_pins") + 
+    command += std::string(" --fix_clusters") + 
                std::string(" ") + 
                filepath_fpga_fix_pins_place_str;
   }
@@ -4851,7 +4851,9 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
                                std::string(" --fpga_io_map") +
                                std::string(" ") + filepath_fpga_io_map_xml.string() +
                                std::string(" --fpga_fix_pins") +
-                               std::string(" ") + filepath_fpga_fix_pins_place.string();
+                               std::string(" ") + filepath_fpga_fix_pins_place.string() +
+                               std::string(" --pin_table_direction_convention") +
+                               std::string(" ") + std::string("quicklogic");
   // this does not seem to be supported in OpenFPGA
   // openfpga_pcf2place_command += std::string(" --assign_unconstrained_pins") + 
   //                               std::string(" ") + 
