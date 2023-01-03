@@ -2487,10 +2487,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   else if(family == "QLF_K4N8") {
     yosysScript = ReplaceAll(yosysScript, "${FAMILY}", std::string("qlf_k4n8"));
   }
-  else {
-    ErrorMessage("Unknown Family Specified: " + family);
-    return false;
-  }
+  // ignore unknown family, as it might be customized in the template script.
+  // if yosys-plugins does not recognize the family, it will throw an error anyway.
+  //else {
+    // ErrorMessage("Unknown Family Specified: " + family);
+    // return false;
+  //}
   
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
