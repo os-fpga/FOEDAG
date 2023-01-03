@@ -39,6 +39,9 @@ class DesignQuery {
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  std::filesystem::path GetProjDir() const;
+  std::filesystem::path GetHierInfoPath() const;
+  std::filesystem::path GetPortInfoPath() const;
 
  protected:
   Compiler* m_compiler = nullptr;

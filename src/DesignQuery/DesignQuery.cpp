@@ -58,6 +58,43 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 
+std::filesystem::path DesignQuery::GetProjDir() const {
+    ProjectManager* projManager = m_compiler->ProjManager();
+    std::filesystem::path dir(projManager->getProjectPath().toStdString());
+    return dir;
+}
+
+std::filesystem::path DesignQuery::GetHierInfoPath() const {
+    std::filesystem::path dir = GetProjDir();
+    std::filesystem::path hier_info = "hier_info.json";
+    return dir / hier_info;
+}
+
+std::filesystem::path DesignQuery::GetPortInfoPath() const {
+    std::filesystem::path dir = GetProjDir();
+    std::filesystem::path port_info = "port_info.json";
+    return dir / port_info;
+}
+
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
-  return true;
+    auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+        DesignQuery* design_query = (DesignQuery*)clientData;
+        Compiler* compiler = design_query->GetCompiler();
+        bool status = true;
+
+        std::filesystem::path port_info = design_query->GetPortInfoPath();
+        compiler->Message(port_info.string());
+
+        if (!FileUtils::FileExists(port_info)) {
+            status = false;
+            compiler->Message("port_info.json not found");
+        } else {
+            compiler->Message("port_info.json found!");
+        }
+
+        return (status) ? TCL_OK : TCL_ERROR;
+    };
+    interp->registerCmd("get_file_ids", get_file_ids, this, 0);
+    return true;
 }
