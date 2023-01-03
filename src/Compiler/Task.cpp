@@ -80,8 +80,10 @@ void Task::setValid(bool newValid) { m_valid = newValid; }
 bool Task::isEnable() const { return m_enable; }
 
 void Task::setEnable(bool newEnable) {
-  m_enable = newEnable;
-  for (const auto &sub : m_subTask) sub->setEnable(newEnable);
+  if (m_enable != newEnable) {
+    m_enable = newEnable;
+    for (const auto &sub : m_subTask) sub->setEnable(newEnable);
+  }
 }
 
 }  // namespace FOEDAG
