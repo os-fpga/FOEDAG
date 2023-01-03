@@ -983,6 +983,8 @@ bool CompilerOpenFPGA::Analyze() {
     // Remove generated json files
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          ANALYSIS_LOG);
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -1074,6 +1076,11 @@ bool CompilerOpenFPGA::Synthesize() {
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.v"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(SYNTHESIS_LOG));
+    FileUtils::removeFile(
+        std::filesystem::path(ProjManager()->projectPath()) /
+        std::string(ProjManager()->projectName() + "_synth.log"));
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -1505,6 +1512,10 @@ bool CompilerOpenFPGA::Packing() {
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.net"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string("vpr_stdout.log"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(PACKING_LOG));
     return true;
   }
   if (!HasTargetDevice()) return false;
@@ -1628,6 +1639,10 @@ bool CompilerOpenFPGA::Placement() {
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.place"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string("vpr_stdout.log"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(PLACEMENT_LOG));
     return true;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced &&
@@ -1901,6 +1916,10 @@ bool CompilerOpenFPGA::Route() {
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_post_synth.route"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string("vpr_stdout.log"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(ROUTING_LOG));
     return true;
   }
   if (m_state != State::Placed) {
@@ -1967,6 +1986,10 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     std::filesystem::remove(
         std::filesystem::path(ProjManager()->projectPath()) /
         std::string(ProjManager()->projectName() + "_sta.cmd"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string("vpr_stdout.log"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(TIMING_ANALYSIS_LOG));
     return true;
   }
 
@@ -2092,6 +2115,10 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     Message("Cleaning PoweAnalysis results for " +
             ProjManager()->projectName());
     PowerAnalysisOpt(PowerOpt::None);
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string("vpr_stdout.log"));
+    FileUtils::removeFile(std::filesystem::path(ProjManager()->projectPath()) /
+                          std::string(POWER_ANALYSIS_LOG));
     m_state = State::Routed;
     return true;
   }

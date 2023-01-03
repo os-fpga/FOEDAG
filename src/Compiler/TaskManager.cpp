@@ -266,7 +266,13 @@ void TaskManager::startAll(bool simulation) {
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
   if (!t->isValid() || !t->isEnable()) return;
-  appendTask(t);
+  if (t->type() == TaskType::Clean) {
+    // put clean commands in the reverse order. Otherwise it will brake compiler
+    // state machine
+    for (auto &clearTask : getDownstreamCleanTasks(t)) appendTask(clearTask);
+  } else {
+    appendTask(t);
+  }
   m_taskCount = m_runStack.count();
   counter = 0;
   emit started();
@@ -324,7 +330,7 @@ void TaskManager::run() {
   if (!m_runStack.isEmpty()) {
     auto task = m_runStack.first();
     cleanDownStreamStatus(task);
-    m_runStack.first()->trigger();
+    task->trigger();
   }
 }
 
@@ -363,6 +369,15 @@ bool TaskManager::isSimulation(const Task *const task) {
 
 void TaskManager::appendTask(Task *t) {
   if (t->isEnable()) m_runStack.append(t);
+}
+
+QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
+  QVector<Task *> tasks;
+  for (auto it{m_taskQueue.rbegin()}; it != m_taskQueue.rend(); ++it) {
+    if ((*it)->type() == TaskType::Clean) tasks.append(*it);
+    if (*it == t) break;
+  }
+  return tasks;
 }
 
 }  // namespace FOEDAG

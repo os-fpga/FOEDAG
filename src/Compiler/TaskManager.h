@@ -127,6 +127,12 @@ class TaskManager : public QObject {
   void cleanDownStreamStatus(Task *t);
   void appendTask(Task *t);
 
+  /*!
+   * \brief getDownstreamClearTasks
+   * \return vector of clean tasks in reverse order. Vector includes \param t.
+   */
+  QVector<Task *> getDownstreamCleanTasks(Task *t) const;
+
  private:
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
