@@ -84,6 +84,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onShowStopMessage(bool showStopCompilationMsg);
   void onShowLicenses();
   void stopCompilation();
+  void forceStopCompilation();
   void showMessagesTab();
   void showReportsTab();
   void fileModified(const QString& file);
