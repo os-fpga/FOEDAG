@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Task.h"
 
 namespace FOEDAG {
+class Compiler;
 
 /*!
  * \brief The TaskManager class
@@ -38,7 +39,7 @@ class TaskManager : public QObject {
   Q_OBJECT
  public:
   static constexpr uint invalid_id{1000};
-  explicit TaskManager(QObject *parent = nullptr);
+  explicit TaskManager(Compiler *compiler, QObject *parent = nullptr);
   ~TaskManager();
   QList<Task *> tasks() const;
   /*!

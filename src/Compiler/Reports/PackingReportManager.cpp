@@ -86,6 +86,8 @@ void PackingReportManager::parseLogFile() {
   if (!logFile) return;
 
   auto in = QTextStream(logFile.get());
+  if (in.atEnd()) return;
+
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {

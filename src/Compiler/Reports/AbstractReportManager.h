@@ -63,7 +63,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   using SectionKeys = QVector<QRegExp>;
   int parseErrorWarningSection(QTextStream &in, int lineNr,
-                               const QString &sectionLine, SectionKeys keys);
+                               const QString &sectionLine, SectionKeys keys,
+                               bool stopEmptyLine = false);
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
 
