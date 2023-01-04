@@ -294,6 +294,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
   simulationMenu->setEnabled(!design.isEmpty());
+  updateTaskTable();
 }
 
 void MainWindow::startStopButtonsState() {
@@ -1328,6 +1329,7 @@ void MainWindow::updateViewMenu() {
 }
 
 void MainWindow::updateTaskTable() {
+  if (!m_taskManager) return;
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
   m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
   m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
