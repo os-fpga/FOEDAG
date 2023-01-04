@@ -36,7 +36,8 @@ QWidget* DesignRunsBuilder(FOEDAG::Session* session) {
         new FOEDAG::ProjectManagerComponent(runForm->projectManager()),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
-        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        new FOEDAG::TaskManagerComponent(
+            new FOEDAG::TaskManager(GlobalSession->GetCompiler())),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
         new FOEDAG::CompilerComponent(GlobalSession->GetCompiler()),

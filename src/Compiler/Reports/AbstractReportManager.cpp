@@ -13,8 +13,8 @@ static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
 static constexpr const char *BLOCKS_COL{"Blocks"};
 
 static const QRegExp FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
-static const QRegExp WARNING_REGEXP("Warning [0-9].*:");
-static const QRegExp ERROR_REGEXP("Error [0-9].*:");
+static const QRegExp WARNING_REGEXP("Warning( [0-9])?.*:");
+static const QRegExp ERROR_REGEXP("Error( [0-9])?.*:");
 
 static const QRegularExpression SPLIT_HISTOGRAM{
     "((([0-9]*[.])?[0-9]+)e?[+-]?%?)+|\\*.*"};
@@ -150,7 +150,8 @@ std::unique_ptr<QFile> AbstractReportManager::createLogFile(
 // errors/warnings group is kept.
 int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
                                                     const QString &sectionLine,
-                                                    SectionKeys keys) {
+                                                    SectionKeys keys,
+                                                    bool stopEmptyLine) {
   auto sectionName = sectionLine;
   sectionName = sectionName.remove('#').simplified();
   auto sectionMsg = TaskMessage{lineNr, MessageSeverity::NONE, sectionName, {}};
@@ -176,6 +177,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
     ++lineNr;
     // We reached the end of section
     if (line.startsWith(sectionLine)) break;
+    if (stopEmptyLine && line.isEmpty()) break;
 
     // check whether current line is among desired keys
     for (auto &keyRegExp : keys) {
