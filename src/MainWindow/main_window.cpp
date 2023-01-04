@@ -196,6 +196,7 @@ void MainWindow::ProgressVisible(bool visible) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
   if (confirmExitProgram()) {
+    forceStopCompilation();
     event->accept();
   } else {
     event->ignore();
@@ -267,6 +268,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
 void MainWindow::closeProject(bool force) {
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
+    forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
@@ -384,9 +386,13 @@ void MainWindow::stopCompilation() {
   }
 
   if (stop) {
-    m_compiler->Stop();
-    m_progressBar->hide();
+    forceStopCompilation();
   }
+}
+
+void MainWindow::forceStopCompilation() {
+  m_compiler->Stop();
+  m_progressBar->hide();
 }
 
 void MainWindow::showMessagesTab() {
@@ -766,6 +772,7 @@ void MainWindow::createActions() {
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
+      forceStopCompilation();
       Command cmd("gui_stop; exit");
       GlobalSession->CmdStack()->push_and_exec(&cmd);
     }
