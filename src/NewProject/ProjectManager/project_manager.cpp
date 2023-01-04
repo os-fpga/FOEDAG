@@ -2213,7 +2213,7 @@ void DesignFileWatcher::setFiles(const QStringList& filePaths) {
   if (filePaths != watchFiles) {
     // QT prints to terminal if you call removePaths on an empty filewatcher
     // so we have to check for empty first
-    if (this->files().empty()) {
+    if (!this->files().empty()) {
       // Remove old watchers
       this->removePaths(this->files());
     }
