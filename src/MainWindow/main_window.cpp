@@ -160,6 +160,10 @@ MainWindow::MainWindow(Session* session)
           &MainWindow::handleProjectOpened);
   connect(this, &MainWindow::runProjectRequested, this,
           &MainWindow::onRunProjectRequested, Qt::QueuedConnection);
+  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designFilesChanged,
+          this, &MainWindow::onDesignFilesChanged);
+  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designCreated,
+          this, &MainWindow::onDesignCreated);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -506,6 +510,16 @@ void MainWindow::saveToRecentSettings(const QString& project) {
                         pr);
   }
   createRecentMenu();
+}
+
+void MainWindow::onDesignFilesChanged() {
+  QString msg = "Design files changed. Recompile might be needed.";
+  setStatusAndProgressText(msg);
+}
+
+void MainWindow::onDesignCreated() {
+  QString msg = "New Design, compile needed.";
+  setStatusAndProgressText(msg);
 }
 
 bool MainWindow::saveConstraintFile() {
@@ -1004,26 +1018,21 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_taskView->setParent(this);
   m_taskModel = dynamic_cast<TaskModel*>(m_taskView->model());
 
-  connect(
-      m_taskManager, &TaskManager::progress, this,
-      [this](int val, int max, const QString& statusMsg) {
-        if (max < 2) {
-          // If only 1 task is running, then change progress bar to permaloading
-          // since 0/1 will have no visual progress until it finishes
-          m_progressBar->setMaximum(0);
-          m_progressBar->setValue(0);
-        } else {
-          m_progressBar->setMaximum(max);
-          m_progressBar->setValue(val);
-        }
-        m_progressBar->show();
-        m_progressWidgetLbl->setText("<strong>STATUS</strong> " + statusMsg);
-        m_progressWidgetLbl->setVisible(!statusMsg.isEmpty());
-        menuBar()->adjustSize();
-
-        // Duplicate status in the actual window status bar
-        statusBar()->showMessage(statusMsg);
-      });
+  connect(m_taskManager, &TaskManager::progress, this,
+          [this](int val, int max, const QString& statusMsg) {
+            if (max < 2) {
+              // If only 1 task is running, then change progress bar to
+              // permaloading since 0/1 will have no visual progress until it
+              // finishes
+              m_progressBar->setMaximum(0);
+              m_progressBar->setValue(0);
+            } else {
+              m_progressBar->setMaximum(max);
+              m_progressBar->setValue(val);
+            }
+            m_progressBar->show();
+            setStatusAndProgressText(statusMsg);
+          });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
@@ -1365,6 +1374,8 @@ void MainWindow::handleProjectOpened() {
   IpConfigurator::ReloadIps();
   // Update tree to show new instances
   updateSourceTree();
+  // Update watcher files
+  m_projectManager->updateDesignFileWatchers();
 }
 
 void MainWindow::saveWelcomePageConfig() {
@@ -1446,6 +1457,14 @@ void MainWindow::pinPlannerSaved() {
     }
   }
   QtUtils::AppendToEventQueue([this]() { setVisibleRefreshButtons(false); });
+}
+void MainWindow::setStatusAndProgressText(const QString& text) {
+  m_progressWidgetLbl->setText("<strong>STATUS</strong> " + text);
+  m_progressWidgetLbl->setVisible(!text.isEmpty());
+  menuBar()->adjustSize();
+
+  // Duplicate status in the actual window status bar
+  statusBar()->showMessage(text);
 }
 
 void MainWindow::onShowWelcomePage(bool show) {
