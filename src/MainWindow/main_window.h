@@ -90,6 +90,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void fileModified(const QString& file);
   void refreshPinPlanner();
   void defaultProjectPath();
+  void onDesignFilesChanged();
+  void onDesignCreated();
 
  public slots:
   void updateSourceTree();
@@ -146,6 +148,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool confirmExitProgram();
   void setVisibleRefreshButtons(bool visible);
   void pinPlannerSaved();
+  void setStatusAndProgressText(const QString& text);
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
