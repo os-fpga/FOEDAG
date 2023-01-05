@@ -657,7 +657,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
       return command;
     }
     case SimulatorType::Icarus: {
-      std::string command = (SimulatorExecPath(type) / "vvp").string() + " ./a.out";
+      std::string command =
+          (SimulatorExecPath(type) / "vvp").string() + " ./a.out";
       if (m_waveType == WaveformType::FST) {
         command += " -fst";
       }
