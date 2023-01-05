@@ -2353,6 +2353,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", BITSTREAM_LOG);
+  });
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;
