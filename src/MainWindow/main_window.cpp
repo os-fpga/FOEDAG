@@ -512,6 +512,29 @@ void MainWindow::saveToRecentSettings(const QString& project) {
   createRecentMenu();
 }
 
+void MainWindow::popRecentSetting() {
+  std::list<QString> projects;
+
+  for (uint i = 0; i < RECENT_PROJECT_COUNT; i++) {
+    auto key = RECENT_PROJECT_KEY.arg(QString::number(i));
+    auto pr = m_settings.value(key).toString();
+    if (pr.isEmpty()) break;
+    projects.push_back(pr);
+  }
+
+  projects.pop_back();
+
+  uint projCounter = 0;
+  for (const auto& pr : projects) {
+    m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter++)),
+                        pr);
+  }
+  // clear last
+  m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter)),
+                      QString{});
+  createRecentMenu();
+}
+
 void MainWindow::onDesignFilesChanged() {
   QString msg = "Design files changed. Recompile might be needed.";
   setStatusAndProgressText(msg);
@@ -1392,7 +1415,16 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name, false, false);
+    if (!name.isEmpty()) {
+      if (!QFileInfo::exists(name)) {
+        QMessageBox::critical(this, name,
+                              QString{"Project %1 does not exist."}.arg(name));
+        saveToRecentSettings(name);  // push on top
+        popRecentSetting();
+        return;
+      }
+      openProject(name, false, false);
+    }
   }
 }
 

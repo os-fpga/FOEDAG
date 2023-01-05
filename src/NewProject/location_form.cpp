@@ -11,8 +11,7 @@ locationForm::locationForm(const QString &defaultPath, QWidget *parent)
   int count = 1;
   QString project_prefix = "project_";
   QString homePath = defaultPath.isEmpty() ? QDir::homePath() : defaultPath;
-  QString projectPathPrefix =
-      QDir::homePath() + QDir::separator() + project_prefix;
+  QString projectPathPrefix = homePath + QDir::separator() + project_prefix;
   while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
   }
