@@ -130,6 +130,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
+  void popRecentSetting();
 
   // Shows or hides menus depending on welcome page visibility
   void updateMenusVisibility(bool welcomePageShown);
