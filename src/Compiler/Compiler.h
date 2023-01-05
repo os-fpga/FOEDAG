@@ -129,7 +129,8 @@ class Compiler {
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message) const;
-  virtual void ErrorMessage(const std::string& message) const;
+  virtual void ErrorMessage(const std::string& message,
+                            bool append = true) const;
   std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 
@@ -261,6 +262,7 @@ class Compiler {
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
   void AddHeadersToLogs();
+  void AddErrorLink(const class Task* const current);
   bool HasInternalError() const;
   /* Propected members */
   TclInterpreter* m_interp = nullptr;

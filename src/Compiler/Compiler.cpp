@@ -258,10 +258,10 @@ void Compiler::Message(const std::string& message) const {
   if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
 }
 
-void Compiler::ErrorMessage(const std::string& message) const {
+void Compiler::ErrorMessage(const std::string& message, bool append) const {
   if (m_err)
     (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
-  Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 static std::string TclInterpCloneScript() {
@@ -1945,6 +1945,30 @@ void Compiler::AddHeadersToLogs() {
   }
 }
 
+void Compiler::AddErrorLink(const Task* const current) {
+  if (!current) return;
+  auto logFile = current->logFileReadPath();
+  if (logFile.isEmpty()) return;
+  logFile.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  static const QRegularExpression ERROR_REGEXP("Error [0-9].*:");
+  QFile file{logFile};
+  if (!file.open(QFile::ReadOnly)) return;
+
+  uint lineNumber{0};
+  while (!file.atEnd()) {
+    auto line = file.readLine();
+    auto match = ERROR_REGEXP.match(line);
+    if (match.hasMatch()) {
+      ErrorMessage(QString{"file \"%1\" line %2"}
+                       .arg(logFile, QString::number(lineNumber + 1))
+                       .toStdString(),
+                   false);
+      break;
+    }
+    lineNumber++;
+  }
+}
+
 bool Compiler::HasInternalError() const {
   if (!m_tclCmdIntegration) {
     ErrorMessage("TCL command integration did not initialize");
@@ -2103,8 +2127,12 @@ void Compiler::finish() {
 }
 
 bool Compiler::RunCompileTask(Action action) {
+  auto currentTask = m_taskManager->currentTask();
   // Use Scope Guard to add headers to new logs whenever this function exits
-  auto guard = sg::make_scope_guard([this] { AddHeadersToLogs(); });
+  auto guard = sg::make_scope_guard([this, currentTask] {
+    AddHeadersToLogs();
+    AddErrorLink(currentTask);
+  });
 
   switch (action) {
     case Action::IPGen:
