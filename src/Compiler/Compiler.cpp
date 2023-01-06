@@ -1106,7 +1106,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else if (arg == "opensta") {
-          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
+          compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1454,7 +1454,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else if (arg == "opensta") {
-          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
+          compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
