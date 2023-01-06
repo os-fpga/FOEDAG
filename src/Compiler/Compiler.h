@@ -91,7 +91,7 @@ class Compiler {
   enum class PinAssignOpt { Random, In_Define_Order, Free };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean, View, Opensta };
+  enum class STAOpt { None, Clean, View };
   enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
   enum class STAEngineOpt { Tatum, Opensta };
 
