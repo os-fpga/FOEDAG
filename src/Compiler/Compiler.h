@@ -244,8 +244,9 @@ class Compiler {
 
   void SetEnvironmentVariable(const std::string variable,
                               const std::string value);
-  virtual int ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile = "");
+  virtual int ExecuteAndMonitorSystemCommand(
+      const std::string& command, const std::string logFile = std::string{},
+      bool appendLog = false);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(

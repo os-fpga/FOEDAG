@@ -127,6 +127,11 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[TIMING_SIGN_OFF]->setLogFileReadPath("$OSRCDIR/timing_analysis.rpt");
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
+  m_tasks[SIMULATE_RTL]->setLogFileReadPath("$OSRCDIR/simulation_rtl.rpt");
+  m_tasks[SIMULATE_GATE]->setLogFileReadPath("$OSRCDIR/simulation_gate.rpt");
+  m_tasks[SIMULATE_PNR]->setLogFileReadPath("$OSRCDIR/simulation_pnr.rpt");
+  m_tasks[SIMULATE_BITSTREAM]->setLogFileReadPath(
+      "$OSRCDIR/simulation_bitstream_back.rpt");
 
   // If a task has its abbreviation set the calls to Message() will be appended
   // with the set abbreviation when that task is the current task.

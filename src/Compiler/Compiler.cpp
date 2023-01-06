@@ -2505,7 +2505,8 @@ void Compiler::SetEnvironmentVariable(const std::string variable,
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile) {
+                                             const std::string logFile,
+                                             bool appendLog) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
@@ -2525,7 +2526,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   m_process->setEnvironment(env);
   std::ofstream ofs;
   if (!logFile.empty()) {
-    ofs.open(logFile);
+    std::ios_base::openmode openMode{std::ios_base::out};
+    if (appendLog) openMode = std::ios_base::out | std::ios_base::app;
+    ofs.open(logFile, openMode);
     QObject::connect(m_process, &QProcess::readyReadStandardOutput,
                      [this, &ofs]() {
                        qint64 bytes = m_process->bytesAvailable();
