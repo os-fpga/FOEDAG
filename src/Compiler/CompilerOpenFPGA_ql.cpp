@@ -787,9 +787,9 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     }
 
     // parse args
-    std::string family = compiler->ToUpper(std::string(argv[1]));
-    std::string foundry = compiler->ToUpper(std::string(argv[2]));
-    std::string node = compiler->ToLower(std::string(argv[3]));
+    std::string family = std::string(argv[1]);
+    std::string foundry = std::string(argv[2]);
+    std::string node = std::string(argv[3]);
     std::filesystem::path source_device_data_dir_path = argv[4];
     bool force = false;
     if(argc == 6) {
@@ -1181,9 +1181,9 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     }
 
     // parse args
-    std::string family = compiler->ToUpper(std::string(argv[1]));
-    std::string foundry = compiler->ToUpper(std::string(argv[2]));
-    std::string node = compiler->ToLower(std::string(argv[3]));
+    std::string family = std::string(argv[1]);
+    std::string foundry = std::string(argv[2]);
+    std::string node = std::string(argv[3]);
     std::filesystem::path source_device_data_dir_path;
     bool force = false;
     if(argc == 4) {
