@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AbstractReportManager.h"
 
 namespace FOEDAG {
+class Compiler;
 
 /* Report manager for timing analysis. It works with 'timing_analysis.rpt' log
  * file. As there are two timing engines supported: Tatum (Default) and OpenSTA,
@@ -30,23 +31,29 @@ namespace FOEDAG {
  */
 class TimingAnalysisReportManager final : public AbstractReportManager {
  public:
-  TimingAnalysisReportManager(const TaskManager &taskManager);
+  TimingAnalysisReportManager(const TaskManager &taskManager,
+                              Compiler *compiler);
 
  private:
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
-  const Messages &getMessages() override;
   QString getTimingLogFileName() const override;
   bool isStatisticalTimingLine(const QString &line) override;
   bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
+  void parseLogFile() override;
 
-  void parseLogFile();
+  void parseOpenSTALog();
+  IDataReport::TableData parseOpenSTATimingTable(QTextStream &in,
+                                                 int &lineNr) const;
 
   SectionKeys m_createDeviceKeys;
 
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::TableData m_circuitData;
+  IDataReport::ColumnValues m_openSTATimingColumns;
+
+  Compiler *m_compiler;
 };
 
 }  // namespace FOEDAG

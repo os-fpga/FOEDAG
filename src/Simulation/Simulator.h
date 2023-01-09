@@ -137,6 +137,7 @@ class Simulator {
   virtual std::string SimulatorCompilationOptions(SimulatorType type);
   class ProjectManager* ProjManager() const;
   std::string FileList(SimulationType action);
+  static std::string LogFile(SimulationType type);
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Compiler* m_compiler = nullptr;

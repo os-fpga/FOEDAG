@@ -24,6 +24,7 @@ project object is singleton mode.
 #ifndef PROJECTMANAGER_H
 #define PROJECTMANAGER_H
 
+#include <QFileSystemWatcher>
 #include <QObject>
 #include <filesystem>
 
@@ -387,6 +388,8 @@ class ProjectManager : public QObject {
   static void AddFiles(const ProjectOptions::FileData &fileData,
                        const AddFileFunction &addFileFunction);
 
+  void updateDesignFileWatchers();
+
  private:
   // Please set currentfileset before using this function
   int setDesignFile(const QString &strFileName, bool isFileCopy = true,
@@ -422,6 +425,22 @@ class ProjectManager : public QObject {
  signals:
   void projectPathChanged();
   void saveFile();
+};
+
+class DesignFileWatcher : public QFileSystemWatcher {
+  Q_OBJECT
+
+ public:
+  static DesignFileWatcher *Instance();
+  void emitDesignCreated() { emit designCreated(); }
+  void setFiles(const QStringList &filePaths);
+
+ private:
+  QStringList watchFiles;
+
+ signals:
+  void designFilesChanged();
+  void designCreated();
 };
 
 }  // namespace FOEDAG

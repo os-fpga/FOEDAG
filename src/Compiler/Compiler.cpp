@@ -145,6 +145,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   clear_simulation_files     : Remove all simulation files"
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -256,10 +258,10 @@ void Compiler::Message(const std::string& message) const {
   if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
 }
 
-void Compiler::ErrorMessage(const std::string& message) const {
+void Compiler::ErrorMessage(const std::string& message, bool append) const {
   if (m_err)
     (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
-  Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 static std::string TclInterpCloneScript() {
@@ -578,6 +580,24 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return compiler->add_files(compiler, interp, argc, argv, Simulation);
   };
   interp->registerCmd("add_simulation_file", add_simulation_file, this,
+                      nullptr);
+
+  auto clear_simulation_files = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (compiler->HasInternalError()) return TCL_ERROR;
+    if (!compiler->ProjManager()->HasDesign()) {
+      compiler->ErrorMessage("Create a design first: create_design <name>");
+      return TCL_ERROR;
+    }
+    std::ostringstream out;
+    if (!compiler->m_tclCmdIntegration->TclClearSimulationFiles(out)) {
+      compiler->ErrorMessage(out.str());
+      return TCL_ERROR;
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("clear_simulation_files", clear_simulation_files, this,
                       nullptr);
 
   auto read_netlist = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -1086,7 +1106,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else if (arg == "opensta") {
-          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
+          compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1434,7 +1454,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
         } else if (arg == "opensta") {
-          compiler->TimingAnalysisOpt(Compiler::STAOpt::Opensta);
+          compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1925,6 +1945,30 @@ void Compiler::AddHeadersToLogs() {
   }
 }
 
+void Compiler::AddErrorLink(const Task* const current) {
+  if (!current) return;
+  auto logFile = current->logFileReadPath();
+  if (logFile.isEmpty()) return;
+  logFile.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  static const QRegularExpression ERROR_REGEXP("Error [0-9].*:");
+  QFile file{logFile};
+  if (!file.open(QFile::ReadOnly)) return;
+
+  uint lineNumber{0};
+  while (!file.atEnd()) {
+    auto line = file.readLine();
+    auto match = ERROR_REGEXP.match(line);
+    if (match.hasMatch()) {
+      ErrorMessage(QString{"file \"%1\" line %2"}
+                       .arg(logFile, QString::number(lineNumber + 1))
+                       .toStdString(),
+                   false);
+      break;
+    }
+    lineNumber++;
+  }
+}
+
 bool Compiler::HasInternalError() const {
   if (!m_tclCmdIntegration) {
     ErrorMessage("TCL command integration did not initialize");
@@ -2083,8 +2127,12 @@ void Compiler::finish() {
 }
 
 bool Compiler::RunCompileTask(Action action) {
+  auto currentTask = m_taskManager->currentTask();
   // Use Scope Guard to add headers to new logs whenever this function exits
-  auto guard = sg::make_scope_guard([this] { AddHeadersToLogs(); });
+  auto guard = sg::make_scope_guard([this, currentTask] {
+    AddHeadersToLogs();
+    AddErrorLink(currentTask);
+  });
 
   switch (action) {
     case Action::IPGen:
@@ -2457,7 +2505,8 @@ void Compiler::SetEnvironmentVariable(const std::string variable,
 }
 
 int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile) {
+                                             const std::string logFile,
+                                             bool appendLog) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
@@ -2477,7 +2526,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   m_process->setEnvironment(env);
   std::ofstream ofs;
   if (!logFile.empty()) {
-    ofs.open(logFile);
+    std::ios_base::openmode openMode{std::ios_base::out};
+    if (appendLog) openMode = std::ios_base::out | std::ios_base::app;
+    ofs.open(logFile, openMode);
     QObject::connect(m_process, &QProcess::readyReadStandardOutput,
                      [this, &ofs]() {
                        qint64 bytes = m_process->bytesAvailable();

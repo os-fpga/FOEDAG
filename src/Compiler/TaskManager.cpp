@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 
 #include "Compiler/CompilerDefines.h"
+#include "Reports/PackingReportManager.h"
 #include "Reports/PlacementReportManager.h"
 #include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
@@ -30,7 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-TaskManager::TaskManager(QObject *parent) : QObject{parent} {
+TaskManager::TaskManager(Compiler *compiler, QObject *parent)
+    : QObject{parent} {
   qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
 
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
@@ -125,6 +127,11 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
   m_tasks[TIMING_SIGN_OFF]->setLogFileReadPath("$OSRCDIR/timing_analysis.rpt");
   m_tasks[POWER]->setLogFileReadPath("$OSRCDIR/power_analysis.rpt");
   m_tasks[BITSTREAM]->setLogFileReadPath("$OSRCDIR/bitstream.rpt");
+  m_tasks[SIMULATE_RTL]->setLogFileReadPath("$OSRCDIR/simulation_rtl.rpt");
+  m_tasks[SIMULATE_GATE]->setLogFileReadPath("$OSRCDIR/simulation_gate.rpt");
+  m_tasks[SIMULATE_PNR]->setLogFileReadPath("$OSRCDIR/simulation_pnr.rpt");
+  m_tasks[SIMULATE_BITSTREAM]->setLogFileReadPath(
+      "$OSRCDIR/simulation_bitstream_back.rpt");
 
   // If a task has its abbreviation set the calls to Message() will be appended
   // with the set abbreviation when that task is the current task.
@@ -193,11 +200,17 @@ TaskManager::TaskManager(QObject *parent) : QObject{parent} {
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       ROUTING, std::move(routingReportManager));
-  auto taReportManager = std::make_shared<TimingAnalysisReportManager>(*this);
+  auto taReportManager =
+      std::make_shared<TimingAnalysisReportManager>(*this, compiler);
   connect(taReportManager.get(), &AbstractReportManager::reportCreated, this,
           &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(TIMING_SIGN_OFF,
                                                 std::move(taReportManager));
+  auto packingReportManager = std::make_shared<PackingReportManager>(*this);
+  connect(packingReportManager.get(), &AbstractReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(
+      PACKING, std::move(packingReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

@@ -160,6 +160,10 @@ MainWindow::MainWindow(Session* session)
           &MainWindow::handleProjectOpened);
   connect(this, &MainWindow::runProjectRequested, this,
           &MainWindow::onRunProjectRequested, Qt::QueuedConnection);
+  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designFilesChanged,
+          this, &MainWindow::onDesignFilesChanged);
+  connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designCreated,
+          this, &MainWindow::onDesignCreated);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -196,6 +200,7 @@ void MainWindow::ProgressVisible(bool visible) {
 
 void MainWindow::closeEvent(QCloseEvent* event) {
   if (confirmExitProgram()) {
+    forceStopCompilation();
     event->accept();
   } else {
     event->ignore();
@@ -267,6 +272,7 @@ void MainWindow::openProjectDialog(const QString& dir) {
 void MainWindow::closeProject(bool force) {
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
+    forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
     CloseOpenedTabs();
@@ -292,6 +298,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
   simulationMenu->setEnabled(!design.isEmpty());
+  updateTaskTable();
 }
 
 void MainWindow::startStopButtonsState() {
@@ -383,9 +390,13 @@ void MainWindow::stopCompilation() {
   }
 
   if (stop) {
-    m_compiler->Stop();
-    m_progressBar->hide();
+    forceStopCompilation();
   }
+}
+
+void MainWindow::forceStopCompilation() {
+  m_compiler->Stop();
+  m_progressBar->hide();
 }
 
 void MainWindow::showMessagesTab() {
@@ -499,6 +510,39 @@ void MainWindow::saveToRecentSettings(const QString& project) {
                         pr);
   }
   createRecentMenu();
+}
+
+void MainWindow::popRecentSetting() {
+  std::list<QString> projects;
+
+  for (uint i = 0; i < RECENT_PROJECT_COUNT; i++) {
+    auto key = RECENT_PROJECT_KEY.arg(QString::number(i));
+    auto pr = m_settings.value(key).toString();
+    if (pr.isEmpty()) break;
+    projects.push_back(pr);
+  }
+
+  projects.pop_back();
+
+  uint projCounter = 0;
+  for (const auto& pr : projects) {
+    m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter++)),
+                        pr);
+  }
+  // clear last
+  m_settings.setValue(RECENT_PROJECT_KEY.arg(QString::number(projCounter)),
+                      QString{});
+  createRecentMenu();
+}
+
+void MainWindow::onDesignFilesChanged() {
+  QString msg = "Design files changed. Recompile might be needed.";
+  setStatusAndProgressText(msg);
+}
+
+void MainWindow::onDesignCreated() {
+  QString msg = "New Design, compile needed.";
+  setStatusAndProgressText(msg);
 }
 
 bool MainWindow::saveConstraintFile() {
@@ -765,6 +809,7 @@ void MainWindow::createActions() {
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
+      forceStopCompilation();
       Command cmd("gui_stop; exit");
       GlobalSession->CmdStack()->push_and_exec(&cmd);
     }
@@ -996,26 +1041,21 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_taskView->setParent(this);
   m_taskModel = dynamic_cast<TaskModel*>(m_taskView->model());
 
-  connect(
-      m_taskManager, &TaskManager::progress, this,
-      [this](int val, int max, const QString& statusMsg) {
-        if (max < 2) {
-          // If only 1 task is running, then change progress bar to permaloading
-          // since 0/1 will have no visual progress until it finishes
-          m_progressBar->setMaximum(0);
-          m_progressBar->setValue(0);
-        } else {
-          m_progressBar->setMaximum(max);
-          m_progressBar->setValue(val);
-        }
-        m_progressBar->show();
-        m_progressWidgetLbl->setText("<strong>STATUS</strong> " + statusMsg);
-        m_progressWidgetLbl->setVisible(!statusMsg.isEmpty());
-        menuBar()->adjustSize();
-
-        // Duplicate status in the actual window status bar
-        statusBar()->showMessage(statusMsg);
-      });
+  connect(m_taskManager, &TaskManager::progress, this,
+          [this](int val, int max, const QString& statusMsg) {
+            if (max < 2) {
+              // If only 1 task is running, then change progress bar to
+              // permaloading since 0/1 will have no visual progress until it
+              // finishes
+              m_progressBar->setMaximum(0);
+              m_progressBar->setValue(0);
+            } else {
+              m_progressBar->setMaximum(max);
+              m_progressBar->setValue(val);
+            }
+            m_progressBar->show();
+            setStatusAndProgressText(statusMsg);
+          });
 
   connect(m_taskManager, &TaskManager::done, this, [this]() {
     if (!m_progressVisible) m_progressBar->hide();
@@ -1321,6 +1361,7 @@ void MainWindow::updateViewMenu() {
 }
 
 void MainWindow::updateTaskTable() {
+  if (!m_taskManager) return;
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
   m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
   m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
@@ -1333,7 +1374,13 @@ void MainWindow::updateTaskTable() {
       int row = m_taskModel->ToRowIndex(taskId);
       m_taskView->setRowHidden(row, isPostSynthPure);
     }
+    for (auto taskId : {SIMULATE_BITSTREAM, SIMULATE_BITSTREAM_CLEAN,
+                        SIMULATE_BITSTREAM_SETTINGS}) {
+      int row = m_taskModel->ToRowIndex(taskId);
+      m_taskView->setRowHidden(row, true);
+    }
   }
+  m_taskManager->task(SIMULATE_BITSTREAM)->setEnable(false);
 }
 
 void MainWindow::slotTabChanged(int index) {
@@ -1350,6 +1397,8 @@ void MainWindow::handleProjectOpened() {
   IpConfigurator::ReloadIps();
   // Update tree to show new instances
   updateSourceTree();
+  // Update watcher files
+  m_projectManager->updateDesignFileWatchers();
 }
 
 void MainWindow::saveWelcomePageConfig() {
@@ -1366,7 +1415,16 @@ void MainWindow::recentProjectOpen() {
                               });
   if (project != m_recentProjectsActions.end()) {
     const QString name = project->second;
-    if (!name.isEmpty()) openProject(name, false, false);
+    if (!name.isEmpty()) {
+      if (!QFileInfo::exists(name)) {
+        QMessageBox::critical(this, name,
+                              QString{"Project %1 does not exist."}.arg(name));
+        saveToRecentSettings(name);  // push on top
+        popRecentSetting();
+        return;
+      }
+      openProject(name, false, false);
+    }
   }
 }
 
@@ -1431,6 +1489,14 @@ void MainWindow::pinPlannerSaved() {
     }
   }
   QtUtils::AppendToEventQueue([this]() { setVisibleRefreshButtons(false); });
+}
+void MainWindow::setStatusAndProgressText(const QString& text) {
+  m_progressWidgetLbl->setText("<strong>STATUS</strong> " + text);
+  m_progressWidgetLbl->setVisible(!text.isEmpty());
+  menuBar()->adjustSize();
+
+  // Duplicate status in the actual window status bar
+  statusBar()->showMessage(text);
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

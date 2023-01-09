@@ -68,6 +68,7 @@ void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
 
 void Editor::markLine(int line) {
   m_scintilla->markerAdd(line - 1, ERROR_MARKER);
+  m_scintilla->ensureLineVisible(line - 1);
 }
 
 void Editor::selectLines(int lineFrom, int lineTo) {

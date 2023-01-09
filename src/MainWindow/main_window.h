@@ -84,11 +84,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onShowStopMessage(bool showStopCompilationMsg);
   void onShowLicenses();
   void stopCompilation();
+  void forceStopCompilation();
   void showMessagesTab();
   void showReportsTab();
   void fileModified(const QString& file);
   void refreshPinPlanner();
   void defaultProjectPath();
+  void onDesignFilesChanged();
+  void onDesignCreated();
 
  public slots:
   void updateSourceTree();
@@ -127,6 +130,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
   void cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets);
   void saveToRecentSettings(const QString& project);
+  void popRecentSetting();
 
   // Shows or hides menus depending on welcome page visibility
   void updateMenusVisibility(bool welcomePageShown);
@@ -145,6 +149,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool confirmExitProgram();
   void setVisibleRefreshButtons(bool visible);
   void pinPlannerSaved();
+  void setStatusAndProgressText(const QString& text);
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.

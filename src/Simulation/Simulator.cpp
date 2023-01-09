@@ -237,6 +237,9 @@ bool Simulator::Clean(SimulationType action) {
     auto filePath =
         std::filesystem::path(ProjManager()->projectPath()) / waveFile->second;
     if (FileUtils::FileExists(filePath)) std::filesystem::remove(filePath);
+    auto logPath =
+        std::filesystem::path(ProjManager()->projectPath()) / LogFile(action);
+    if (FileUtils::FileExists(logPath)) std::filesystem::remove(logPath);
   }
   SimulationOption(SimulationOpt::None);
   return true;
@@ -360,6 +363,22 @@ std::string Simulator::FileList(SimulationType action) {
   std::string list;
 
   return list;
+}
+
+std::string Simulator::LogFile(SimulationType type) {
+  switch (type) {
+    case Simulator::SimulationType::RTL:
+      return std::string{"simulation_rtl.rpt"};
+    case Simulator::SimulationType::Gate:
+      return std::string{"simulation_gate.rpt"};
+    case Simulator::SimulationType::PNR:
+      return std::string{"simulation_pnr.rpt"};
+    case Simulator::SimulationType::BitstreamFrontDoor:
+      return std::string{"simulation_bitstream_front.rpt"};
+    case Simulator::SimulationType::BitstreamBackDoor:
+      return std::string{"simulation_bitstream_back.rpt"};
+  }
+  return std::string{};
 }
 
 std::string Simulator::SimulatorName(SimulatorType type) {
@@ -657,7 +676,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
       return command;
     }
     case SimulatorType::Icarus: {
-      std::string command = "vvp ./a.out";
+      std::string command =
+          (SimulatorExecPath(type) / "vvp").string() + " ./a.out";
       if (m_waveType == WaveformType::FST) {
         command += " -fst";
       }
@@ -742,6 +762,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
 
+  std::string log{LogFile(simulation)};
   // Simulator Model compilation step
   std::string execPath =
       (SimulatorExecPath(type) / SimulatorName(type)).string();
@@ -749,7 +770,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   if (!GetSimulatorCompileOption(simulation, type).empty())
     command += " " + GetSimulatorCompileOption(simulation, type);
   command += " " + fileList;
-  int status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation compilation failed!\n");
@@ -764,7 +785,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
           "make -j -C obj_dir/ -f V" + simulationTop + ".mk V" + simulationTop;
       if (!GetSimulatorElaborationOption(simulation, type).empty())
         command += " " + GetSimulatorElaborationOption(simulation, type);
-      status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -779,7 +800,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
-      status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -793,7 +814,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
 
   // Actual simulation
   command = SimulatorRunCommand(simulation, type);
-  status = m_compiler->ExecuteAndMonitorSystemCommand(command);
+  status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
   return status;
 }
 

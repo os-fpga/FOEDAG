@@ -154,6 +154,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "              -work <libName> : Compiles the compilation unit "
             "into library <libName>, default is \"work\""
          << std::endl;
+  (*out) << "   clear_simulation_files     : Remove all simulation files"
+         << std::endl;
   (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
             "design (Skip Synthesis)"
          << std::endl;
@@ -1083,19 +1085,6 @@ bool CompilerOpenFPGA::Synthesize() {
   Message("##################################################");
   std::string yosysScript = InitSynthesisScript();
 
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first.language) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF:
-        Message("Skipping synthesis, gate-level design.");
-        return true;
-        break;
-      default:
-        break;
-    }
-  }
-
   // update constraints
   const auto& constrFiles = ProjManager()->getConstrFiles();
   m_constraints->reset();
@@ -1106,6 +1095,19 @@ bool CompilerOpenFPGA::Synthesize() {
     if (res != TCL_OK) {
       ErrorMessage(status);
       return false;
+    }
+  }
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first.language) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        Message("Skipping synthesis, gate-level design.");
+        return true;
+        break;
+      default:
+        break;
     }
   }
 
@@ -2002,8 +2004,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   int status = 0;
   std::string taCommand;
   // use OpenSTA to do the job
-  if (TimingAnalysisOpt() == STAOpt::Opensta ||
-      TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
+  if (TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
@@ -2351,6 +2352,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 }
 
 bool CompilerOpenFPGA::GenerateBitstream() {
+  // Using a Scope Guard so this will fire even if we exit mid function
+  // This will fire when the containing function goes out of scope
+  auto guard = sg::make_scope_guard([this] {
+    // Rename log file
+    copyLog(ProjManager(), "vpr_stdout.log", BITSTREAM_LOG);
+  });
+
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
     return false;

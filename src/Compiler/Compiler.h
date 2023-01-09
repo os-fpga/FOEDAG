@@ -91,7 +91,7 @@ class Compiler {
   enum class PinAssignOpt { Random, In_Define_Order, Free };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean, View, Opensta };
+  enum class STAOpt { None, Clean, View };
   enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
   enum class STAEngineOpt { Tatum, Opensta };
 
@@ -129,7 +129,8 @@ class Compiler {
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message) const;
-  virtual void ErrorMessage(const std::string& message) const;
+  virtual void ErrorMessage(const std::string& message,
+                            bool append = true) const;
   std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 
@@ -243,8 +244,9 @@ class Compiler {
 
   void SetEnvironmentVariable(const std::string variable,
                               const std::string value);
-  virtual int ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile = "");
+  virtual int ExecuteAndMonitorSystemCommand(
+      const std::string& command, const std::string logFile = std::string{},
+      bool appendLog = false);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
@@ -261,6 +263,7 @@ class Compiler {
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
   void AddHeadersToLogs();
+  void AddErrorLink(const class Task* const current);
   bool HasInternalError() const;
   /* Propected members */
   TclInterpreter* m_interp = nullptr;

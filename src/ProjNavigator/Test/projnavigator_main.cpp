@@ -36,7 +36,8 @@ QWidget* proNavigatorBuilder(FOEDAG::Session* session) {
         new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
-        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        new FOEDAG::TaskManagerComponent(
+            new FOEDAG::TaskManager(session->GetCompiler())),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
         new FOEDAG::CompilerComponent(session->GetCompiler()),

@@ -190,12 +190,6 @@ void SynthesisReportManager::parseLogFile() {
   setFileParsed(true);
 }
 
-const ITaskReportManager::Messages &SynthesisReportManager::getMessages() {
-  if (!isFileParsed()) parseLogFile();
-
-  return m_messages;
-}
-
 QString SynthesisReportManager::getTimingLogFileName() const {
   // Current synthesis log implementation doesn't contain timing info
   return {};
