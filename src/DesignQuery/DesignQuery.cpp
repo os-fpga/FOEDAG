@@ -96,7 +96,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       compiler->Message("port_info.json found!");
       std::ifstream port_info_f(port_info_path);
       port_json = json::parse(port_info_f);
-      
     }
     if (!FileUtils::FileExists(hier_info_path)) {
       status = false;
@@ -124,7 +123,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("get_file_ids", get_file_ids, this, 0);
 
   auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                        const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
@@ -136,7 +135,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("get_modules", get_modules, this, 0);
 
   auto get_file_name = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                          const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
@@ -150,7 +149,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("get_file_name", get_file_name, this, 0);
 
   auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                           const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
@@ -162,7 +161,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("get_top_module", get_top_module, this, 0);
 
   auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                      const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
