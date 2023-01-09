@@ -91,14 +91,14 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path hier_info_path = design_query->GetHierInfoPath();
     if (!FileUtils::FileExists(port_info_path)) {
       status = false;
-      compiler->Message("Unable to locate port_info.json");
+      compiler->Message("Unable to locate port_info.json in design directory: "+ design_query->GetProjDir().string());
     } else {
       std::ifstream port_info_f(port_info_path);
       port_json = json::parse(port_info_f);
     }
     if (!FileUtils::FileExists(hier_info_path)) {
       status = false;
-      compiler->Message("Unable to locate hier_info.json");
+      compiler->Message("Unable to locate port_info.json in design directory: "+ design_query->GetProjDir().string());
     } else {
       std::ifstream hier_info_f(hier_info_path);
       hier_json = json::parse(hier_info_f);
@@ -110,11 +110,9 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-    DesignQuery* design_query = (DesignQuery*)clientData;
-    Compiler* compiler = design_query->GetCompiler();
+    // DesignQuery* design_query = (DesignQuery*)clientData;
+    // Compiler* compiler = design_query->GetCompiler();
     bool status = true;
-
-    compiler->Message("Called get_file_ids");
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -122,11 +120,9 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    DesignQuery* design_query = (DesignQuery*)clientData;
-    Compiler* compiler = design_query->GetCompiler();
+    // DesignQuery* design_query = (DesignQuery*)clientData;
+    // Compiler* compiler = design_query->GetCompiler();
     bool status = true;
-
-    compiler->Message("Called get_modules");
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -134,13 +130,11 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_file_name = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
-    DesignQuery* design_query = (DesignQuery*)clientData;
-    Compiler* compiler = design_query->GetCompiler();
+    // DesignQuery* design_query = (DesignQuery*)clientData;
+    // Compiler* compiler = design_query->GetCompiler();
     bool status = true;
 
     // Parse Argument file_id
-
-    compiler->Message("Called get_file_name");
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -148,11 +142,9 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    DesignQuery* design_query = (DesignQuery*)clientData;
-    Compiler* compiler = design_query->GetCompiler();
+    // DesignQuery* design_query = (DesignQuery*)clientData;
+    // Compiler* compiler = design_query->GetCompiler();
     bool status = true;
-
-    compiler->Message("Called get_top_module");
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -160,13 +152,11 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
-    DesignQuery* design_query = (DesignQuery*)clientData;
-    Compiler* compiler = design_query->GetCompiler();
+    // DesignQuery* design_query = (DesignQuery*)clientData;
+    // Compiler* compiler = design_query->GetCompiler();
     bool status = true;
 
     // Parse Argument module_name
-
-    compiler->Message("Called get_ports");
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
