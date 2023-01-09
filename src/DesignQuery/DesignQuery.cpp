@@ -91,14 +91,18 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::filesystem::path hier_info_path = design_query->GetHierInfoPath();
     if (!FileUtils::FileExists(port_info_path)) {
       status = false;
-      compiler->Message("Unable to locate port_info.json in design directory: "+ design_query->GetProjDir().string());
+      compiler->Message(
+          "Unable to locate port_info.json in design directory: " +
+          design_query->GetProjDir().string());
     } else {
       std::ifstream port_info_f(port_info_path);
       port_json = json::parse(port_info_f);
     }
     if (!FileUtils::FileExists(hier_info_path)) {
       status = false;
-      compiler->Message("Unable to locate port_info.json in design directory: "+ design_query->GetProjDir().string());
+      compiler->Message(
+          "Unable to locate port_info.json in design directory: " +
+          design_query->GetProjDir().string());
     } else {
       std::ifstream hier_info_f(hier_info_path);
       hier_json = json::parse(hier_info_f);
