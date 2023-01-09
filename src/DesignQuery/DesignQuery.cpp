@@ -57,44 +57,122 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
+using json = nlohmann::ordered_json;
 
 std::filesystem::path DesignQuery::GetProjDir() const {
-    ProjectManager* projManager = m_compiler->ProjManager();
-    std::filesystem::path dir(projManager->getProjectPath().toStdString());
-    return dir;
+  ProjectManager* projManager = m_compiler->ProjManager();
+  std::filesystem::path dir(projManager->getProjectPath().toStdString());
+  return dir;
 }
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
-    std::filesystem::path dir = GetProjDir();
-    std::filesystem::path hier_info = "hier_info.json";
-    return dir / hier_info;
+  std::filesystem::path dir = GetProjDir();
+  std::filesystem::path hier_info = "hier_info.json";
+  return dir / hier_info;
 }
 
 std::filesystem::path DesignQuery::GetPortInfoPath() const {
-    std::filesystem::path dir = GetProjDir();
-    std::filesystem::path port_info = "port_info.json";
-    return dir / port_info;
+  std::filesystem::path dir = GetProjDir();
+  std::filesystem::path port_info = "port_info.json";
+  return dir / port_info;
 }
 
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
-    auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto parse_design_data = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    json& hier_json = design_query->getHierJson();
+    json& port_json = design_query->getPortJson();
+
+    std::filesystem::path port_info_path = design_query->GetPortInfoPath();
+    std::filesystem::path hier_info_path = design_query->GetHierInfoPath();
+    if (!FileUtils::FileExists(port_info_path)) {
+      status = false;
+      compiler->Message("port_info.json not found");
+    } else {
+      compiler->Message("port_info.json found!");
+      std::ifstream port_info_f(port_info_path);
+      port_json = json::parse(port_info_f);
+      
+    }
+    if (!FileUtils::FileExists(hier_info_path)) {
+      status = false;
+      compiler->Message("hier_info.json not found");
+    } else {
+      compiler->Message("hier_info.json found!");
+      std::ifstream hier_info_f(hier_info_path);
+      hier_json = json::parse(hier_info_f);
+    }
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("parse_design_data", parse_design_data, this, 0);
+
+  auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
-        DesignQuery* design_query = (DesignQuery*)clientData;
-        Compiler* compiler = design_query->GetCompiler();
-        bool status = true;
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
 
-        std::filesystem::path port_info = design_query->GetPortInfoPath();
-        compiler->Message(port_info.string());
+    compiler->Message("Called get_file_ids");
 
-        if (!FileUtils::FileExists(port_info)) {
-            status = false;
-            compiler->Message("port_info.json not found");
-        } else {
-            compiler->Message("port_info.json found!");
-        }
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_file_ids", get_file_ids, this, 0);
 
-        return (status) ? TCL_OK : TCL_ERROR;
-    };
-    interp->registerCmd("get_file_ids", get_file_ids, this, 0);
-    return true;
+  auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    compiler->Message("Called get_modules");
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_modules", get_modules, this, 0);
+
+  auto get_file_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    // Parse Argument file_id
+
+    compiler->Message("Called get_file_name");
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_file_name", get_file_name, this, 0);
+
+  auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    compiler->Message("Called get_top_module");
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_top_module", get_top_module, this, 0);
+
+  auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    // Parse Argument module_name
+
+    compiler->Message("Called get_ports");
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_ports", get_ports, this, 0);
+  return true;
 }
