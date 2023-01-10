@@ -44,6 +44,8 @@ void TclArgs_setExampleArgs(const std::string& argsStr);
 std::string TclArgs_getExampleArgs();
 void TclArgs_setPlacementOptions(const std::string& argsStr);
 std::string TclArgs_getPlacementOptions();
+void TclArgs_setPackingOptions(const std::string& argsStr);
+std::string TclArgs_getPackingOptions();
 
 void TclArgs_setSimulateOptions_rtl(const std::string& argsStr);
 std::string TclArgs_getSimulateOptions_rtl();
