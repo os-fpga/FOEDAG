@@ -125,6 +125,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path,
                              const std::filesystem::path& outputFile);
+  virtual std::vector<std::string> GetFiles(
+      Action action, const std::string& projectName) const;
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
   virtual std::string InitAnalyzeScript();

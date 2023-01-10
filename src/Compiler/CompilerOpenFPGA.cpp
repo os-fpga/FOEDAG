@@ -789,6 +789,21 @@ bool CompilerOpenFPGA::DesignChanged(
   return result;
 }
 
+std::vector<std::string> CompilerOpenFPGA::GetFiles(
+    Action action, const std::string& projectName) const {
+  std::vector<std::string> files;
+  switch (action) {
+    case Compiler::Action::Analyze:
+      files = {ANALYSIS_LOG, "port_info.json",
+               std::string{projectName + "_analyzer.cmd"}};
+      break;
+    // TODO add for others
+    default:
+      break;
+  }
+  return files;
+}
+
 std::string CompilerOpenFPGA::InitAnalyzeScript() {
   std::string analysisScript;
   if (m_useVerific) {
@@ -980,9 +995,7 @@ bool CompilerOpenFPGA::Analyze() {
     Message("Cleaning analysis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
     AnalyzeOpt(DesignAnalysisOpt::None);
-    // Remove generated json files
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    CleanFiles(Action::Analyze);
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
