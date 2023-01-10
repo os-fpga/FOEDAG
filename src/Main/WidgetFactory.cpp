@@ -68,6 +68,8 @@ void FOEDAG::initTclArgFns() {
                                    FOEDAG::TclArgs_getSynthesisOptions});
   addTclArgFns("Tasks_placement", {FOEDAG::TclArgs_setPlacementOptions,
                                    FOEDAG::TclArgs_getPlacementOptions});
+  addTclArgFns("Tasks_packing", {FOEDAG::TclArgs_setPackingOptions,
+                                 FOEDAG::TclArgs_getPackingOptions});
   addTclArgFns("Tasks_Simulate_rtl", {FOEDAG::TclArgs_setSimulateOptions_rtl,
                                       FOEDAG::TclArgs_getSimulateOptions_rtl});
   addTclArgFns("Tasks_Simulate_gate",

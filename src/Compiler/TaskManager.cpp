@@ -44,6 +44,8 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
                  new Task{"Edit settings...", TaskType::Settings});
   m_tasks.insert(PACKING, new Task{"Packing"});
   m_tasks.insert(PACKING_CLEAN, new Task{"Clean", TaskType::Clean});
+  m_tasks.insert(PACKING_SETTINGS,
+                 new Task{"Edit settings...", TaskType::Settings});
   // m_tasks.insert(GLOBAL_PLACEMENT, new Task{"Global Placement"});
   // m_tasks.insert(GLOBAL_PLACEMENT_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(PLACEMENT, new Task{"Placement"});
@@ -81,6 +83,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
                  new Task{"Edit settings...", TaskType::Settings});
 
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
+  m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_SETTINGS]);
   // m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
   m_tasks[ANALYSIS]->appendSubTask(m_tasks[ANALYSIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_CLEAN]);
@@ -106,6 +109,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[SYNTHESIS_SETTINGS]->setSettingsKey("Synthesis");
   m_tasks[PLACEMENT_SETTINGS]->setSettingsKey("Placement");
   m_tasks[ROUTING_SETTINGS]->setSettingsKey("Routing");
+  m_tasks[PACKING_SETTINGS]->setSettingsKey("Packing");
   m_tasks[TIMING_SIGN_OFF_SETTINGS]->setSettingsKey("Timing Analysis");
   m_tasks[SIMULATE_RTL_SETTINGS]->setSettingsKey("Simulate RTL");
   m_tasks[SIMULATE_GATE_SETTINGS]->setSettingsKey("Simulate Gate");
@@ -167,6 +171,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_taskQueue.append(m_tasks[SIMULATE_GATE_CLEAN]);
   m_taskQueue.append(m_tasks[PACKING]);
   m_taskQueue.append(m_tasks[PACKING_CLEAN]);
+  m_taskQueue.append(m_tasks[PACKING_SETTINGS]);
   // m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT]);
   // m_taskQueue.append(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
   m_taskQueue.append(m_tasks[PLACEMENT]);

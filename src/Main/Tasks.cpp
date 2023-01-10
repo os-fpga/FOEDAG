@@ -43,6 +43,7 @@ using namespace FOEDAG;
 #define SYNTH_ARG "_SynthOpt_"
 #define TIMING_ANALYSIS_ARG "_StaOpt_"
 #define PLACE_ARG "pin_assign_method"
+#define PACKING_ARG "netlist_lang"
 
 #define TASKS_DEBUG false
 
@@ -164,6 +165,13 @@ static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
     {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"},
     {FOEDAG::Compiler::PinAssignOpt::Free, "free"}};
+
+// Lookup for PackingOpt values
+static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
+    {FOEDAG::Compiler::NetlistType::Blif, "blif"},
+    {FOEDAG::Compiler::NetlistType::Edif, "edif"},
+    {FOEDAG::Compiler::NetlistType::VHDL, "vhdl"},
+    {FOEDAG::Compiler::NetlistType::Verilog, "verilog"}};
 
 // Helper to convert a SynthesisOpt enum to string
 auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
@@ -523,4 +531,33 @@ void FOEDAG::TclArgs_setSimulateOptions_bitstream(const std::string& argsStr) {
 std::string FOEDAG::TclArgs_getSimulateOptions_bitstream() {
   return TclArgs_getSimulateOptions(
       "bitstream", Simulator::SimulationType::BitstreamBackDoor);
+}
+
+void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return;
+
+  [[maybe_unused]] auto [netlistArg, moreOpts] =
+      separateArg(PACKING_ARG, QString::fromStdString(argsStr));
+
+  auto netlistVal = Compiler::NetlistType::Verilog;
+  QStringList tokens = netlistArg.split(" ");
+  if (tokens.size() > 1) {
+    auto iter = std::find_if(
+        netlistOptMap.begin(), netlistOptMap.end(),
+        [tokens](const std::pair<Compiler::NetlistType, const char*> val) {
+          return std::string{val.second} == tokens[1].toStdString();
+        });
+    if (iter != netlistOptMap.end()) {
+      netlistVal = iter->first;
+    }
+  }
+  compiler->SetNetlistType(netlistVal);
+}
+
+std::string FOEDAG::TclArgs_getPackingOptions() {
+  QString tclOptions = QString{"-%1 %2"}.arg(
+      PACKING_ARG, QString::fromStdString(netlistOptMap.at(
+                       GlobalSession->GetCompiler()->GetNetlistType())));
+  return tclOptions.toStdString();
 }
