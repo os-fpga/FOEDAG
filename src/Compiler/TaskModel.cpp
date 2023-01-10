@@ -181,6 +181,7 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, SIMULATE_GATE_SETTINGS});
   m_taskOrder.push_back({row++, PACKING});
   m_taskOrder.push_back({row++, PACKING_CLEAN});
+  m_taskOrder.push_back({row++, PACKING_SETTINGS});
   // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
   // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT_CLEAN});
   m_taskOrder.push_back({row++, PLACEMENT});
