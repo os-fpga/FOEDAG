@@ -59,6 +59,7 @@ class IPGenerator {
   bool Generate();
   std::filesystem::path GetBuildDir(IPInstance* instance) const;
   std::filesystem::path GetCachePath(IPInstance* instance) const;
+  std::vector<std::filesystem::path> GetDesignFiles(IPInstance* instance);
 
  protected:
   IPCatalog* m_catalog = nullptr;

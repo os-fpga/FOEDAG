@@ -251,6 +251,8 @@ void IpConfigWidget::AddIpToProject(const QString& cmd) {
     cmds.push_back(cmd.toStdString());
     // Store the updated instance list
     projManager->setIpInstanceCmdList(cmds);
+    // Update file watchers since new ip folders have probably been added
+    projManager->updateDesignFileWatchers();
   }
 }
 
