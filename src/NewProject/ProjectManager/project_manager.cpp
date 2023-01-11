@@ -2184,10 +2184,34 @@ void ProjectManager::updateDesignFileWatchers() {
   DesignFileWatcher* watcher = DesignFileWatcher::Instance();
   QStringList files;
 
+  // Watch Design Files
   files += getDesignFiles();
+  // Watch Sim Files
   files += getSimulationFiles(getSimulationActiveFileSet());
+  // Watch Constraint Files
   for (auto file : getConstrFiles()) {
     files += QString::fromStdString(file);
+  }
+
+  // Watch IP Files
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+  // QSystemFileWatcher works on directories, but not recursively and QT
+  // has intenionally ignored a bug in their directory file watching
+  // that doesn't alert when an immediate child file changes.
+  // https://bugreports.qt.io/browse/QTBUG-24693
+  // As such we have to add a filewatcher to each ip src file and the cache json
+  if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    // Step through our IP Instance
+    for (auto instance : ipGen->IPInstances()) {
+      auto ipPaths = ipGen->GetDesignFiles(instance);
+      // Loop through each design file of the IP
+      for (auto file : ipPaths) {
+        // Store file
+        files += QString::fromStdString(file.string());
+      }
+    }
   }
 
   watcher->setFiles(files);
