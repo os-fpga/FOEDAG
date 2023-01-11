@@ -397,6 +397,14 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
       applyOptions(QString::fromStdString(value), "simulation",
                    QString::fromStdString(simTypeStr));
     }
+    if (arg.compare("-el_" + simTypeStr + "_opt") == 0) {
+      applyOptions(QString::fromStdString(value), "elaboration",
+                   QString::fromStdString(simTypeStr));
+    }
+    if (arg.compare("-com_" + simTypeStr + "_opt") == 0) {
+      applyOptions(QString::fromStdString(value), "compilation",
+                   QString::fromStdString(simTypeStr));
+    }
   }
 }
 
