@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <sys/stat.h>
 
+#include <QDebug>
 #include <QProcess>
 #include <algorithm>
 #include <filesystem>
@@ -281,6 +282,12 @@ std::string FileUtils::AdjustPath(const std::string& p) {
     the_path = std::filesystem::path(std::filesystem::path("..") / p);
   }
   return the_path.string();
+}
+
+void FileUtils::printArgs(int argc, const char* argv[]) {
+  std::string res{};
+  for (int i = 0; i < argc; i++) res += std::string{argv[i]} + " ";
+  qDebug() << res.c_str();
 }
 
 bool FileUtils::removeFile(const std::string& file) noexcept {
