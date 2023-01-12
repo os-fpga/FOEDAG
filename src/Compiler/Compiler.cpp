@@ -264,6 +264,22 @@ void Compiler::ErrorMessage(const std::string& message, bool append) const {
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
+std::vector<std::string> Compiler::GetCleanFiles(
+    Action action, const std::string& projectName,
+    const std::string& topModule) const {
+  return {};
+}
+
+void Compiler::CleanFiles(Action action) {
+  const std::filesystem::path base{ProjManager()->projectPath()};
+  auto removeFiles = GetCleanFiles(action, ProjManager()->projectName(),
+                                   ProjManager()->DesignTopModule());
+  for (const auto& fileName : removeFiles) {
+    const std::filesystem::path p{base / fileName};
+    FileUtils::removeFile(p.string());
+  }
+}
+
 static std::string TclInterpCloneScript() {
   std::string script = R"(
     # Simple Tcl Interpreter State copy utility

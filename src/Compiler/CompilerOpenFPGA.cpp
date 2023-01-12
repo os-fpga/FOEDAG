@@ -52,24 +52,6 @@ using json = nlohmann::ordered_json;
 
 using namespace FOEDAG;
 
-auto copyLog = [](FOEDAG::ProjectManager* projManager,
-                  const std::string& srcFileName,
-                  const std::string& destFileName) -> std::filesystem::path {
-  std::filesystem::path dest{};
-
-  if (projManager) {
-    std::filesystem::path projectPath(projManager->projectPath());
-    std::filesystem::path src = projectPath / srcFileName;
-    if (FileUtils::FileExists(src)) {
-      dest = projectPath / destFileName;
-      std::filesystem::remove(dest);
-      std::filesystem::copy_file(src, dest);
-    }
-  }
-
-  return dest;
-};
-
 void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
@@ -700,6 +682,24 @@ bool CompilerOpenFPGA::VerifyTargetDevice() const {
   return target || archFile;
 }
 
+std::filesystem::path CompilerOpenFPGA::copyLog(
+    FOEDAG::ProjectManager* projManager, const std::string& srcFileName,
+    const std::string& destFileName) {
+  std::filesystem::path dest{};
+
+  if (projManager) {
+    std::filesystem::path projectPath(projManager->projectPath());
+    std::filesystem::path src = projectPath / srcFileName;
+    if (FileUtils::FileExists(src)) {
+      dest = projectPath / destFileName;
+      std::filesystem::remove(dest);
+      std::filesystem::copy_file(src, dest);
+    }
+  }
+
+  return dest;
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
@@ -787,6 +787,117 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   std::filesystem::current_path(path);
   return result;
+}
+
+std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
+    Action action, const std::string& projectName,
+    const std::string& topModule) const {
+  std::vector<std::string> files;
+  switch (action) {
+    case Compiler::Action::Analyze:
+      files = {ANALYSIS_LOG, "port_info.json",
+               std::string{projectName + "_analyzer.cmd"}};
+      break;
+    case Compiler::Action::Synthesis:
+      files = {
+          std::string{projectName + "_post_synth.blif"},
+          std::string{projectName + "_post_synth.edif"},
+          std::string{projectName + "_post_synth.v"},
+          std::string{projectName + "_post_synth.vhd"},
+          std::string{projectName + ".ys"},
+          std::string{projectName + "_synth.log"},
+          SYNTHESIS_LOG,
+      };
+      break;
+    case Compiler::Action::Pack:
+      files = {
+          std::string{projectName + "_post_synth.net"},
+          std::string{projectName + "_pack.cmd"},
+          "check_rr_node_warnings.log",
+          "packing_pin_util.rpt",
+          "pre_pack.report_timing.setup.rpt",
+          std::string{projectName + "_openfpga.sdc"},
+          std::string{projectName + "_post_synth_ports.json"},
+          "vpr_stdout.log",
+          PACKING_LOG,
+      };
+      break;
+    case Compiler::Action::Detailed:
+      files = {
+          "packing_pin_util.rpt",
+          std::string{projectName + "_post_place_timing.rpt"},
+          std::string{projectName + "_post_synth_ports.json"},
+          std::string{projectName + "_place.cmd"},
+          std::string{projectName + "_openfpga.pcf"},
+          "check_rr_node_warnings.log",
+          std::string{projectName + "_post_synth.place"},
+          "vpr_stdout.log",
+          "post_place_timing.rpt",
+          PLACEMENT_LOG,
+      };
+      break;
+    case Compiler::Action::Routing:
+      files = {"check_rr_node_warnings.log",
+               std::string{topModule + "_post_synthesis.blif"},
+               std::string{topModule + "_post_synthesis.sdf"},
+               std::string{topModule + "_post_synthesis.v"},
+               std::string{projectName + "_post_synth_ports.json"},
+               std::string{projectName + "_route.cmd"},
+               std::string{projectName + "_post_synth.route"},
+               "packing_pin_util.rpt",
+               "post_place_timing.rpt",
+               "post_route_timing.rpt",
+               "report_timing.hold.rpt",
+               "report_timing.setup.rpt",
+               "report_unconstrained_timing.hold.rpt",
+               "report_unconstrained_timing.setup.rpt",
+               ROUTING_LOG,
+               "vpr_stdout.log"};
+      break;
+    case Compiler::Action::STA:
+      files = {"check_rr_node_warnings.log",
+               std::string{topModule + "_post_synthesis.blif"},
+               std::string{topModule + "_post_synthesis.sdf"},
+               std::string{topModule + "_post_synthesis.v"},
+               std::string{projectName + "_sta.cmd"},
+               std::string{projectName + "_post_synth_ports.json"},
+               "packing_pin_util.rpt",
+               "post_place_timing.rpt",
+               "post_route_timing.rpt",
+               "post_ta_timing.rpt",
+               "report_timing.hold.rpt",
+               "report_timing.setup.rpt",
+               "report_unconstrained_timing.hold.rpt",
+               "report_unconstrained_timing.setup.rpt",
+               TIMING_ANALYSIS_LOG,
+               "vpr_stdout.log"};
+      break;
+    case Compiler::Action::Power:
+      files = {"post_place_timing.rpt", "post_route_timing.rpt",
+               "post_ta_timing.rpt", "vpr_stdout.log", POWER_ANALYSIS_LOG};
+      break;
+    case Compiler::Action::Bitstream:
+      files = {std::string{projectName + ".openfpga"},
+               std::string{projectName + "_bitstream.cmd"},
+               std::string{projectName + "_post_synth_ports.json"},
+               "fabric_bitstream.bit",
+               "fabric_independent_bitstream.xml",
+               "packing_pin_util.rpt",
+               "PinMapping.xml",
+               "post_place_timing.rpt",
+               "post_route_timing.rpt",
+               "post_ta_timing.rpt",
+               "report_timing.hold.rpt",
+               "report_timing.setup.rpt",
+               "report_unconstrained_timing.hold.rpt",
+               "report_unconstrained_timing.setup.rpt",
+               "vpr_stdout.log",
+               BITSTREAM_LOG};
+      break;
+    default:
+      break;
+  }
+  return files;
 }
 
 std::string CompilerOpenFPGA::InitAnalyzeScript() {
@@ -980,9 +1091,7 @@ bool CompilerOpenFPGA::Analyze() {
     Message("Cleaning analysis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
     AnalyzeOpt(DesignAnalysisOpt::None);
-    // Remove generated json files
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) / "port_info.json");
+    CleanFiles(Action::Analyze);
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -1068,12 +1177,7 @@ bool CompilerOpenFPGA::Synthesize() {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
     SynthOpt(SynthesisOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.blif"));
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.v"));
+    CleanFiles(Action::Synthesis);
     return true;
   }
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
@@ -1502,9 +1606,7 @@ bool CompilerOpenFPGA::Packing() {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    CleanFiles(Action::Pack);
     return true;
   }
   if (!HasTargetDevice()) return false;
@@ -1625,9 +1727,7 @@ bool CompilerOpenFPGA::Placement() {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    CleanFiles(Action::Detailed);
     return true;
   }
   if (m_state != State::Packed && m_state != State::GloballyPlaced &&
@@ -1898,9 +1998,7 @@ bool CompilerOpenFPGA::Route() {
     Message("Cleaning routing results for " + ProjManager()->projectName());
     m_state = State::Placed;
     RouteOpt(RoutingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    CleanFiles(Action::Routing);
     return true;
   }
   if (m_state != State::Placed) {
@@ -1964,9 +2062,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
             ProjManager()->projectName());
     TimingAnalysisOpt(STAOpt::None);
     m_state = State::Routed;
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_sta.cmd"));
+    CleanFiles(Action::STA);
     return true;
   }
 
@@ -2092,6 +2188,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
             ProjManager()->projectName());
     PowerAnalysisOpt(PowerOpt::None);
     m_state = State::Routed;
+    CleanFiles(Action::Power);
     return true;
   }
 
@@ -2373,12 +2470,7 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     Message("Cleaning bitstream results for " + ProjManager()->projectName());
     m_state = State::Routed;
     BitsOpt(BitstreamOpt::DefaultBitsOpt);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string("fabric_bitstream.bit"));
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string("fabric_independent_bitstream.xml"));
+    CleanFiles(Action::Bitstream);
     return true;
   }
   if (!ProjManager()->getTargetDevice().empty()) {

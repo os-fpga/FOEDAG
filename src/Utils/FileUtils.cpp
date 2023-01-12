@@ -283,4 +283,16 @@ std::string FileUtils::AdjustPath(const std::string& p) {
   return the_path.string();
 }
 
+bool FileUtils::removeFile(const std::string& file) noexcept {
+  const std::filesystem::path path{file};
+  return removeFile(path);
+}
+
+bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
+  if (!FileExists(file)) return false;
+  std::error_code ec;
+  std::filesystem::remove(file, ec);
+  return ec.value() == 0;
+}
+
 }  // namespace FOEDAG
