@@ -333,6 +333,8 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     } else
       i++;
 
+    value = restoreAll(QString::fromStdString(value)).toStdString();
+
     if (arg.compare("-" + simTypeStr + "_filepath") == 0)
       simulator->WaveFile(simType, value);
 
@@ -381,15 +383,11 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
             Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
                 .toStdString();
       }
-      std::string sim_opt = args;
-      sim_opt = StringUtils::replaceAll(sim_opt, WF_SPACE, " ");
-      sim_opt = StringUtils::replaceAll(sim_opt, WF_NEWLINE, " ");
-      sim_opt = StringUtils::replaceAll(sim_opt, WF_DASH, "-");
 
       if (setter) {
         bool ok{false};
         auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
-        if (ok) setter(simulator, level, simulatorType, sim_opt);
+        if (ok) setter(simulator, level, simulatorType, args);
       }
     };
 
@@ -412,10 +410,13 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
   if (!compiler) return std::string{};
 
   auto simulator{compiler->GetSimulator()};
+  auto convertSpecialChars = [](const std::string& str) -> std::string {
+    return convertAll(QString::fromStdString(str)).toStdString();
+  };
 
   std::vector<std::string> argsList;
   argsList.push_back("-" + simTypeStr + "_filepath");
-  argsList.push_back(simulator->WaveFile(simType));
+  argsList.push_back(convertSpecialChars(simulator->WaveFile(simType)));
 
   bool ok{false};
   auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
@@ -425,12 +426,6 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
     simulatorType = Simulator::ToString(simTypeTmp);
     argsList.push_back(simulatorType);
   }
-
-  auto convertSpecialChars = [](const std::string& str) -> std::string {
-    std::string result = StringUtils::replaceAll(str, " ", WF_SPACE);
-    result = StringUtils::replaceAll(result, "-", WF_DASH);
-    return result;
-  };
 
   auto pushBackSimulationOptions = [&](const std::string& simType,
                                        const std::string& levelStr,
