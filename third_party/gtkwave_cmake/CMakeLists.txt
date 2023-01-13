@@ -58,7 +58,3 @@ add_custom_command(
         WORKING_DIRECTORY ${install_path}
 )
 
-install(
-    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
-    USE_SOURCE_PERMISSIONS
-)
