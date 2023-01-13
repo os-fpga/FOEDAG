@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
-#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
@@ -354,7 +353,7 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     }
 
     Settings* settings = compiler->GetSession()->GetSettings();
-    const std::map<QString, json> settingsMap{
+    const std::map<std::string, json> settingsMap{
         {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
         {"gate",
          settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
@@ -362,48 +361,47 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
         {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
                                          ["bitstream_sim_type"]}};
 
-    auto applyOptions = [&settingsMap](const QString& args,
-                                       const QString& phase,
-                                       const QString& level) {
+    using SetFunction =
+        std::function<void(Simulator*, const std::string&,
+                           Simulator::SimulatorType, const std::string&)>;
+
+    auto applyOptions = [&settingsMap, simulator](const std::string& args,
+                                                  SetFunction setter,
+                                                  const std::string& level) {
       auto json = settingsMap.at(level);
       const std::string unset{"<unset>"};
-      std::string simulator = unset;
+      std::string simulatorStr = unset;
       if (json.contains("userValue")) {
-        simulator = json["userValue"];
+        simulatorStr = json["userValue"];
       } else if (json.contains("default")) {
-        simulator = json["default"].get<std::string>();
+        simulatorStr = json["default"].get<std::string>();
       }
-      if (simulator != unset) {
-        simulator =
-            Settings::getLookupValue(json, QString::fromStdString(simulator))
+      if (simulatorStr != unset) {
+        simulatorStr =
+            Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
                 .toStdString();
       }
-      QString sim_opt = args;
-      sim_opt.replace(WF_SPACE, " ");
-      sim_opt.replace(WF_NEWLINE, " ");
-      sim_opt.replace(WF_DASH, "-");
-      auto sim_opt_list = QtUtils::StringSplit(sim_opt, ' ');
-      if (!sim_opt_list.isEmpty()) {
-        sim_opt_list.push_front(level);
-        sim_opt_list.push_front(phase);
-        sim_opt_list.push_front(QString::fromStdString(simulator));
-        sim_opt = sim_opt_list.join(' ');
-        std::string cmd = "simulation_options " + sim_opt.toStdString();
-        GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+      std::string sim_opt = args;
+      sim_opt = StringUtils::replaceAll(sim_opt, WF_SPACE, " ");
+      sim_opt = StringUtils::replaceAll(sim_opt, WF_NEWLINE, " ");
+      sim_opt = StringUtils::replaceAll(sim_opt, WF_DASH, "-");
+
+      if (setter) {
+        bool ok{false};
+        auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
+        if (ok) setter(simulator, level, simulatorType, sim_opt);
       }
     };
 
     if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "simulation",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorRuntimeOption, simTypeStr);
     }
     if (arg.compare("-el_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "elaboration",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorElaborationOption,
+                   simTypeStr);
     }
     if (arg.compare("-com_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "compilation",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorCompileOption, simTypeStr);
     }
   }
 }
