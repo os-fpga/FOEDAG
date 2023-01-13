@@ -2701,6 +2701,11 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
       }
       const std::string file = argv[i];
       std::string expandedFile = file;
+      if (expandedFile.find(" ") != std::string::npos) {
+        compiler->ErrorMessage(expandedFile +
+                               ": file name with space not supported.");
+        return TCL_ERROR;
+      }
       bool use_orig_path = false;
       if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;
