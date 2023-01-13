@@ -33,6 +33,18 @@ createFileDialog::createFileDialog(const QString &projectPath, QWidget *parent)
 
 createFileDialog::~createFileDialog() { delete ui; }
 
+bool createFileDialog::verifyFileName(const QString &fileName,
+                                      QWidget *parent) {
+  if (fileName.contains(" ")) {
+    QMessageBox::warning(
+        parent, tr("Warning"),
+        QString("\"%1\": file name with space not supported.").arg(fileName),
+        QMessageBox::Ok);
+    return false;
+  }
+  return true;
+}
+
 void createFileDialog::initialDialog(int type) {
   m_type = type;
   if (GT_SOURCE == m_type || GT_SIM == m_type) {
@@ -61,6 +73,8 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
                              tr("Please specify a file name"), QMessageBox::Ok);
     return;
   }
+  if (!verifyFileName(ui->m_lineEditFileName->text(), this)) return;
+
   filedata fdata;
   fdata.m_isFolder = false;
   if (GT_SOURCE == m_type || GT_SIM == m_type) {
