@@ -164,7 +164,7 @@ QRect TaskTableView::expandArea(const QModelIndex &index) const {
   opt.rect = visualRect(index);
   auto r = style()->proxy()->subElementRect(QStyle::SE_ItemViewItemDecoration,
                                             &opt, this);
-  int h = rowHeight(0);
+  int h = rowHeight(index.row());
   r.setSize({h, h});
   return r;
 }

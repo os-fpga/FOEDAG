@@ -279,6 +279,7 @@ void MainWindow::closeProject(bool force) {
     CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
+    setStatusAndProgressText(QString{});
   }
 }
 
@@ -363,7 +364,15 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   ReShowWindow(project);
   loadFile(project);
   emit projectOpened();
+
+  // this should be first in order to keep console visible.
+  // Otherwise message or repost tab become visible.
+  m_dockConsole->setVisible(true);
+  showMessagesTab();
+  showReportsTab();
+
   if (run) startProject(false);
+  setStatusAndProgressText(QString{});
 }
 
 bool MainWindow::isRunning() const {
