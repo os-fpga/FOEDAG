@@ -278,6 +278,7 @@ void MainWindow::closeProject(bool force) {
     CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
+    setStatusAndProgressText(QString{});
   }
 }
 
