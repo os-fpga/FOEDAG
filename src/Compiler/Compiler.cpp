@@ -692,7 +692,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (FileUtils::FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile) && (expandedFile != "./") &&
+          (expandedFile != ".")) {
         use_orig_path = true;
       }
 
@@ -722,7 +723,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (FileUtils::FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile) && (expandedFile != "./") &&
+          (expandedFile != ".")) {
         use_orig_path = true;
       }
 
