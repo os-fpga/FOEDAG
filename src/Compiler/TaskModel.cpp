@@ -213,25 +213,27 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     m_taskManager->startTask(ToTaskId(index));
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
-    ExpandAreaAction act = value.value<ExpandAreaAction>();
-    switch (act) {
-      case ExpandAreaAction::Invert:
-        m_expanded[index] =
-            m_expanded.contains(index) ? !m_expanded[index] : true;
-        break;
-      case ExpandAreaAction::Expand:
-        m_expanded[index] = false;
-        break;
-      case ExpandAreaAction::Collapse:
-        m_expanded[index] = true;
-        break;
-    }
     auto task = m_taskManager->task(ToTaskId(index));
-    emit dataChanged(
-        createIndex(index.row() + 1, index.column()),
-        createIndex(index.row() + task->subTask().count(), index.column()),
-        {Qt::DecorationRole});
-    emit layoutChanged();
+    if (task && task->isEnable()) {
+      ExpandAreaAction act = value.value<ExpandAreaAction>();
+      switch (act) {
+        case ExpandAreaAction::Invert:
+          m_expanded[index] =
+              m_expanded.contains(index) ? !m_expanded[index] : true;
+          break;
+        case ExpandAreaAction::Expand:
+          m_expanded[index] = false;
+          break;
+        case ExpandAreaAction::Collapse:
+          m_expanded[index] = true;
+          break;
+      }
+      emit dataChanged(
+          createIndex(index.row() + 1, index.column()),
+          createIndex(index.row() + task->subTask().count(), index.column()),
+          {Qt::DecorationRole});
+      emit layoutChanged();
+    }
   }
   return QAbstractTableModel::setData(index, value, role);
 }
