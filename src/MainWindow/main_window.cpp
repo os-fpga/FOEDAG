@@ -49,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MessagesTabWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
+#include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
@@ -1407,7 +1408,7 @@ void MainWindow::handleProjectOpened() {
   // Update tree to show new instances
   updateSourceTree();
   // Update watcher files
-  m_projectManager->updateDesignFileWatchers();
+  DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
 }
 
 void MainWindow::saveWelcomePageConfig() {
