@@ -370,6 +370,7 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   showReportsTab();
 
   if (run) startProject(false);
+  setStatusAndProgressText(QString{});
 }
 
 bool MainWindow::isRunning() const {
