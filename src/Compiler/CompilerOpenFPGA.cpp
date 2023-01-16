@@ -2184,7 +2184,7 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   if (!HasTargetDevice()) return false;
 
   if (PowerAnalysisOpt() == PowerOpt::Clean) {
-    Message("Cleaning PoweAnalysis results for " +
+    Message("Cleaning PowerAnalysis results for " +
             ProjManager()->projectName());
     PowerAnalysisOpt(PowerOpt::None);
     m_state = State::Routed;
