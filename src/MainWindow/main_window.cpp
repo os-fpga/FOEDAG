@@ -363,6 +363,7 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   loadFile(project);
   emit projectOpened();
   if (run) startProject(false);
+  setStatusAndProgressText(QString{});
 }
 
 bool MainWindow::isRunning() const {
