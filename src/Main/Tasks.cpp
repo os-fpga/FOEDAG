@@ -56,12 +56,7 @@ QLabel* createTitleLabel(const QString& text) {
   return titleLabel;
 }
 
-void openReportView(Compiler* compiler, const Task* task,
-                    const ITaskReport& report) {
-  auto reportsWidget = new QWidget;
-  auto reportLayout = new QVBoxLayout;
-  reportLayout->setContentsMargins(0, 0, 0, 0);
-
+void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
   for (auto& dataReport : report.getDataReports()) {
     auto dataReportName = dataReport->getName();
     if (!dataReportName.isEmpty())
@@ -104,22 +99,56 @@ void openReportView(Compiler* compiler, const Task* task,
         QHeaderView::ResizeToContents);
     reportLayout->addWidget(reportsView);
   }
-  reportsWidget->setLayout(reportLayout);
+}
 
+void openReportView(Compiler* compiler, const Task* task,
+                    const ITaskReport& report) {
   auto reportName = report.getName();
+  bool newReport{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-  tabWidget->addTab(reportsWidget, report.getName());
-  tabWidget->setCurrentWidget(reportsWidget);
+  for (int i = 0; i < tabWidget->count(); i++) {
+    if (tabWidget->tabText(i) == reportName) {
+      tabWidget->setCurrentIndex(i);
+      auto reportLayout{
+          dynamic_cast<QVBoxLayout*>(tabWidget->currentWidget()->layout())};
 
-  QObject::connect(
-      task, &Task::statusChanged, [compiler, reportsWidget, reportName]() {
-        auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-        // Remove the report if underlying task status has changed
-        if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
-          tabWidget->removeTab(index);
-          compiler->Message(reportName.toStdString() + " report closed.");
-        }
-      });
+      // clear previous report
+      QLayoutItem* item;
+      while ((item = reportLayout->takeAt(0)) != nullptr) {
+        delete item->widget();
+        delete item;
+      }
+
+      generateReport(report, reportLayout);
+
+      newReport = false;
+      break;
+    }
+  }
+
+  if (newReport) {
+    auto reportsWidget = new QWidget;
+    auto reportLayout = new QVBoxLayout;
+    reportLayout->setContentsMargins(0, 0, 0, 0);
+
+    generateReport(report, reportLayout);
+    reportsWidget->setLayout(reportLayout);
+
+    tabWidget->addTab(reportsWidget, reportName);
+    tabWidget->setCurrentWidget(reportsWidget);
+
+    QObject::connect(
+        task, &Task::statusChanged, reportsWidget,
+        [compiler, reportsWidget, reportName, task]() {
+          auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+          // Remove the report if underlying task status has changed
+          if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
+            tabWidget->removeTab(index);
+            compiler->Message(reportName.toStdString() + " report closed.");
+            reportsWidget->deleteLater();
+          }
+        });
+  }
 }
 }  // namespace
 
