@@ -32,13 +32,15 @@ class DesignFileWatcher : public QObject {
   static DesignFileWatcher *Instance();
   void init();
   void emitDesignCreated();
-  void setFiles(const QStringList &filePaths);
   void updateDesignFileWatchers(ProjectManager *pManager);
   bool isValid() const;
 
  signals:
   void designFilesChanged();
   void designCreated();
+
+ private:
+  void setFiles(const QStringList &filePaths);
 
  private:
   QStringList m_watchFiles{};
