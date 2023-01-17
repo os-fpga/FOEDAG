@@ -752,21 +752,21 @@ void MainWindow::createActions() {
   newAction = new QAction(tr("&New..."), this);
   newAction->setIcon(QIcon(":/images/icon_newfile.png"));
   newAction->setShortcut(QKeySequence::New);
-  newAction->setStatusTip(tr("Create a new source file"));
+  newAction->setToolTip(tr("Create a new source file"));
   connect(newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
   openProjectAction = new QAction(tr("Open &Project..."), this);
-  openProjectAction->setStatusTip(tr("Open a new project"));
+  openProjectAction->setToolTip(tr("Open a new project"));
   connect(openProjectAction, SIGNAL(triggered()), this,
           SLOT(openProjectDialog()));
 
   openExampleAction = new QAction(tr("Open &Example Design..."), this);
-  openExampleAction->setStatusTip(tr("Open example design"));
+  openExampleAction->setToolTip(tr("Open example design"));
   connect(openExampleAction, SIGNAL(triggered()), this,
           SLOT(openExampleProject()));
 
   closeProjectAction = new QAction(tr("&Close Project"), this);
-  closeProjectAction->setStatusTip(tr("Close current project"));
+  closeProjectAction->setToolTip(tr("Close current project"));
   connect(closeProjectAction, SIGNAL(triggered()), this, SLOT(closeProject()));
 
   newProjdialog = new newProjectDialog(this);
@@ -774,29 +774,29 @@ void MainWindow::createActions() {
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&New Project..."), this);
-  newProjectAction->setStatusTip(tr("Create a new project"));
+  newProjectAction->setToolTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 
   openFile = new QAction(tr("&Open File..."), this);
-  openFile->setStatusTip(tr("Open file"));
+  openFile->setToolTip(tr("Open file"));
   openFile->setIcon(QIcon(":/images/open-file.png"));
   connect(openFile, SIGNAL(triggered()), this, SLOT(openFileSlot()));
 
   exitAction = new QAction(tr("E&xit"), this);
   exitAction->setShortcut(tr("Ctrl+Q"));
-  exitAction->setStatusTip(tr("Exit the application"));
+  exitAction->setToolTip(tr("Exit the application"));
 
   startAction = new QAction(tr("Start"), this);
   startAction->setIcon(QIcon(":/images/play.png"));
-  startAction->setStatusTip(tr("Start compilation tasks"));
+  startAction->setToolTip(tr("Start compilation tasks"));
 
   startSimAction = new QAction(tr("Start with Simulation"), this);
   startSimAction->setIcon(QIcon(":/images/playSim.png"));
-  startSimAction->setStatusTip(tr("Start compilation tasks with simulation"));
+  startSimAction->setToolTip(tr("Start compilation tasks with simulation"));
 
   stopAction = new QAction(tr("Stop"), this);
   stopAction->setIcon(QIcon(":/images/stop.png"));
-  stopAction->setStatusTip(tr("Stop compilation tasks"));
+  stopAction->setToolTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
   connect(startAction, &QAction::triggered, this,
           [this]() { startProject(false); });
