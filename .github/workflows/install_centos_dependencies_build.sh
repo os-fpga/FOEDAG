@@ -47,11 +47,11 @@ then
   cd ..
 else
   echo "Building QT..."
-  mkdir buildqt5
   # work around to make it complie on GCC 11. For reference, see source (https://forum.qt.io/topic/139626/unable-to-build-static-version-of-qt-5-15-2/13)
   sed -i '44i\#include <limits>' qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
   sed -i '52i\#include <limits>' qt-everywhere-src-5.15.4/qtdeclarative/src/qmldebug/qqmlprofilerevent_p.h
   cat qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
+  mkdir buildqt5
   cd buildqt5
   source /opt/rh/devtoolset-11/enable
   ../qt-everywhere-src-5.15.4/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -no-compile-examples -nomake examples
