@@ -587,6 +587,7 @@ int ProjectManager::deleteFile(const QString& strFileName) {
   }
 
   proFileSet->deleteFile(strFileName);
+  DesignFileWatcher::Instance()->updateDesignFileWatchers(this);
   return ret;
 }
 
