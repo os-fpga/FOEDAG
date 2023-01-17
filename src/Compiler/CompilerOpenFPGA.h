@@ -125,6 +125,9 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path,
                              const std::filesystem::path& outputFile);
+  virtual std::vector<std::string> GetCleanFiles(
+      Action action, const std::string& projectName,
+      const std::string& topModule) const;
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
   virtual std::string InitAnalyzeScript();
@@ -135,6 +138,9 @@ class CompilerOpenFPGA : public Compiler {
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
   bool VerifyTargetDevice() const;
+  static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
+                                       const std::string& srcFileName,
+                                       const std::string& destFileName);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;

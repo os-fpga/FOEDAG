@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
-#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
@@ -43,6 +42,7 @@ using namespace FOEDAG;
 #define SYNTH_ARG "_SynthOpt_"
 #define TIMING_ANALYSIS_ARG "_StaOpt_"
 #define PLACE_ARG "pin_assign_method"
+#define PACKING_ARG "netlist_lang"
 
 #define TASKS_DEBUG false
 
@@ -164,6 +164,13 @@ static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
     {FOEDAG::Compiler::PinAssignOpt::Random, "random"},
     {FOEDAG::Compiler::PinAssignOpt::In_Define_Order, "in_define_order"},
     {FOEDAG::Compiler::PinAssignOpt::Free, "free"}};
+
+// Lookup for PackingOpt values
+static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
+    {FOEDAG::Compiler::NetlistType::Blif, "blif"},
+    {FOEDAG::Compiler::NetlistType::Edif, "edif"},
+    {FOEDAG::Compiler::NetlistType::VHDL, "vhdl"},
+    {FOEDAG::Compiler::NetlistType::Verilog, "verilog"}};
 
 // Helper to convert a SynthesisOpt enum to string
 auto synthOptToStr = [](FOEDAG::Compiler::SynthesisOpt opt) -> QString {
@@ -326,6 +333,8 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     } else
       i++;
 
+    value = restoreAll(QString::fromStdString(value)).toStdString();
+
     if (arg.compare("-" + simTypeStr + "_filepath") == 0)
       simulator->WaveFile(simType, value);
 
@@ -346,7 +355,7 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     }
 
     Settings* settings = compiler->GetSession()->GetSettings();
-    const std::map<QString, json> settingsMap{
+    const std::map<std::string, json> settingsMap{
         {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
         {"gate",
          settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
@@ -354,40 +363,43 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
         {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
                                          ["bitstream_sim_type"]}};
 
-    auto applyOptions = [&settingsMap](const QString& args,
-                                       const QString& phase,
-                                       const QString& level) {
+    using SetFunction =
+        std::function<void(Simulator*, const std::string&,
+                           Simulator::SimulatorType, const std::string&)>;
+
+    auto applyOptions = [&settingsMap, simulator](const std::string& args,
+                                                  SetFunction setter,
+                                                  const std::string& level) {
       auto json = settingsMap.at(level);
       const std::string unset{"<unset>"};
-      std::string simulator = unset;
+      std::string simulatorStr = unset;
       if (json.contains("userValue")) {
-        simulator = json["userValue"];
+        simulatorStr = json["userValue"];
       } else if (json.contains("default")) {
-        simulator = json["default"].get<std::string>();
+        simulatorStr = json["default"].get<std::string>();
       }
-      if (simulator != unset) {
-        simulator =
-            Settings::getLookupValue(json, QString::fromStdString(simulator))
+      if (simulatorStr != unset) {
+        simulatorStr =
+            Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
                 .toStdString();
       }
-      QString sim_opt = args;
-      sim_opt.replace(WF_SPACE, " ");
-      sim_opt.replace(WF_NEWLINE, " ");
-      sim_opt.replace(WF_DASH, "-");
-      auto sim_opt_list = QtUtils::StringSplit(sim_opt, ' ');
-      if (!sim_opt_list.isEmpty()) {
-        sim_opt_list.push_front(level);
-        sim_opt_list.push_front(phase);
-        sim_opt_list.push_front(QString::fromStdString(simulator));
-        sim_opt = sim_opt_list.join(' ');
-        std::string cmd = "simulation_options " + sim_opt.toStdString();
-        GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+
+      if (setter) {
+        bool ok{false};
+        auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
+        if (ok) setter(simulator, level, simulatorType, args);
       }
     };
 
     if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "simulation",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorRuntimeOption, simTypeStr);
+    }
+    if (arg.compare("-el_" + simTypeStr + "_opt") == 0) {
+      applyOptions(value, &Simulator::SetSimulatorElaborationOption,
+                   simTypeStr);
+    }
+    if (arg.compare("-com_" + simTypeStr + "_opt") == 0) {
+      applyOptions(value, &Simulator::SetSimulatorCompileOption, simTypeStr);
     }
   }
 }
@@ -398,10 +410,13 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
   if (!compiler) return std::string{};
 
   auto simulator{compiler->GetSimulator()};
+  auto convertSpecialChars = [](const std::string& str) -> std::string {
+    return convertAll(QString::fromStdString(str)).toStdString();
+  };
 
   std::vector<std::string> argsList;
   argsList.push_back("-" + simTypeStr + "_filepath");
-  argsList.push_back(simulator->WaveFile(simType));
+  argsList.push_back(convertSpecialChars(simulator->WaveFile(simType)));
 
   bool ok{false};
   auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
@@ -411,12 +426,6 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
     simulatorType = Simulator::ToString(simTypeTmp);
     argsList.push_back(simulatorType);
   }
-
-  auto convertSpecialChars = [](const std::string& str) -> std::string {
-    std::string result = StringUtils::replaceAll(str, " ", WF_SPACE);
-    result = StringUtils::replaceAll(result, "-", WF_DASH);
-    return result;
-  };
 
   auto pushBackSimulationOptions = [&](const std::string& simType,
                                        const std::string& levelStr,
@@ -523,4 +532,33 @@ void FOEDAG::TclArgs_setSimulateOptions_bitstream(const std::string& argsStr) {
 std::string FOEDAG::TclArgs_getSimulateOptions_bitstream() {
   return TclArgs_getSimulateOptions(
       "bitstream", Simulator::SimulationType::BitstreamBackDoor);
+}
+
+void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
+  FOEDAG::Compiler* compiler = GlobalSession->GetCompiler();
+  if (!compiler) return;
+
+  [[maybe_unused]] auto [netlistArg, moreOpts] =
+      separateArg(PACKING_ARG, QString::fromStdString(argsStr));
+
+  auto netlistVal = Compiler::NetlistType::Verilog;
+  QStringList tokens = netlistArg.split(" ");
+  if (tokens.size() > 1) {
+    auto iter = std::find_if(
+        netlistOptMap.begin(), netlistOptMap.end(),
+        [tokens](const std::pair<Compiler::NetlistType, const char*> val) {
+          return std::string{val.second} == tokens[1].toStdString();
+        });
+    if (iter != netlistOptMap.end()) {
+      netlistVal = iter->first;
+    }
+  }
+  compiler->SetNetlistType(netlistVal);
+}
+
+std::string FOEDAG::TclArgs_getPackingOptions() {
+  QString tclOptions = QString{"-%1 %2"}.arg(
+      PACKING_ARG, QString::fromStdString(netlistOptMap.at(
+                       GlobalSession->GetCompiler()->GetNetlistType())));
+  return tclOptions.toStdString();
 }

@@ -579,3 +579,31 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   return dir;
 }
+
+// This will return a vector of paths to ./*.json and ./src/* in a given IP
+// instance's build dir
+std::vector<std::filesystem::path> IPGenerator::GetDesignFiles(
+    IPInstance* instance) {
+  std::vector<std::filesystem::path> paths{};
+
+  // Get this IP's build path
+  auto buildPath = GetBuildDir(instance);
+
+  if (FileUtils::FileExists(buildPath)) {
+    // Find the ip cache json file
+    for (const auto& entry : std::filesystem::directory_iterator(buildPath)) {
+      if (entry.path().extension() == ".json") {
+        paths.push_back(entry.path());
+      }
+    }
+    // Find any files in the ip src dir
+    auto srcPath = buildPath / "src";
+    if (FileUtils::FileExists(srcPath)) {
+      for (const auto& entry : std::filesystem::directory_iterator(srcPath)) {
+        paths.push_back(entry.path());
+      }
+    }
+  }
+
+  return paths;
+}

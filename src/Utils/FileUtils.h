@@ -72,6 +72,13 @@ class FileUtils final {
 
   static std::string AdjustPath(const std::string& p);
 
+  // return true if file was removed otherwise return false
+  static bool removeFile(const std::string& file) noexcept;
+  static bool removeFile(const std::filesystem::path& file) noexcept;
+
+  // for the debug purposes, this function prints arguments
+  static void printArgs(int argc, const char* argv[]);
+
  private:
   FileUtils() = delete;
   FileUtils(const FileUtils& orig) = delete;

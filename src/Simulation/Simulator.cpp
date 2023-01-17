@@ -121,12 +121,12 @@ void Simulator::SetSimulatorCompileOption(const std::string& simulation,
   bool ok{false};
   auto level = ToSimulationType(simulation, ok);
   if (ok) {
-    m_simulatorCompileOptionMap[level].emplace(type, options);
+    m_simulatorCompileOptionMap[level][type] = options;
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
                        SimulationType::Gate, SimulationType::BitstreamBackDoor,
                        SimulationType::BitstreamFrontDoor})
-      m_simulatorCompileOptionMap[level].emplace(type, options);
+      m_simulatorCompileOptionMap[level][type] = options;
   }
 }
 
@@ -136,12 +136,12 @@ void Simulator::SetSimulatorElaborationOption(const std::string& simulation,
   bool ok{false};
   auto level = ToSimulationType(simulation, ok);
   if (ok) {
-    m_simulatorElaborationOptionMap[level].emplace(type, options);
+    m_simulatorElaborationOptionMap[level][type] = options;
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
                        SimulationType::Gate, SimulationType::BitstreamBackDoor,
                        SimulationType::BitstreamFrontDoor})
-      m_simulatorElaborationOptionMap[level].emplace(type, options);
+      m_simulatorElaborationOptionMap[level][type] = options;
   }
 }
 
@@ -151,12 +151,12 @@ void Simulator::SetSimulatorRuntimeOption(const std::string& simulation,
   bool ok{false};
   auto level = ToSimulationType(simulation, ok);
   if (ok) {
-    m_simulatorRuntimeOptionMap[level].emplace(type, options);
+    m_simulatorRuntimeOptionMap[level][type] = options;
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
                        SimulationType::Gate, SimulationType::BitstreamBackDoor,
                        SimulationType::BitstreamFrontDoor})
-      m_simulatorRuntimeOptionMap[level].emplace(type, options);
+      m_simulatorRuntimeOptionMap[level][type] = options;
   }
 }
 
@@ -491,7 +491,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
           "-cc --assert -Wall -Wno-DECLFILENAME "
           "-Wno-UNUSEDSIGNAL "
           "-Wno-TIMESCALEMOD "
-          "-Wno-WIDTH ";
+          "-Wno-WIDTH -Wno-fatal -Wno-BLKANDNBLK ";
       switch (m_waveType) {
         case WaveformType::VCD:
           options += "--trace ";

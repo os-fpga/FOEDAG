@@ -11,6 +11,7 @@
 #include <set>
 
 #include "Compiler/CompilerDefines.h"
+#include "DesignFileWatcher.h"
 #include "MainWindow/Session.h"
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
@@ -64,7 +65,7 @@ void ProjectManager::UpdateProject(const ProjectOptions& opt) {
   setSimulationFileSet(DEFAULT_FOLDER_SIM);
 
   UpdateProjectInternal(opt, false);
-  updateDesignFileWatchers();
+  DesignFileWatcher::Instance()->updateDesignFileWatchers(this);
 }
 
 QString ProjectManager::ProjectFilesPath(const QString& projPath,
@@ -2178,60 +2179,6 @@ QString ProjectManager::currentFileSet() const { return m_currentFileSet; }
 
 void ProjectManager::setCurrentFileSet(const QString& currentFileSet) {
   m_currentFileSet = currentFileSet;
-}
-
-void ProjectManager::updateDesignFileWatchers() {
-  DesignFileWatcher* watcher = DesignFileWatcher::Instance();
-  QStringList files;
-
-  files += getDesignFiles();
-  files += getSimulationFiles(getSimulationActiveFileSet());
-  for (auto file : getConstrFiles()) {
-    files += QString::fromStdString(file);
-  }
-
-  watcher->setFiles(files);
-}
-
-// ProjectMananager isn't a singleton class so storing a file watcher within it
-// was problematic as the main_window had trouble connecting to all the ProjMan
-// ptrs. As an alternative, we'll create a singleton for the filewatcher itself
-Q_GLOBAL_STATIC(DesignFileWatcher, designFileWatcher)
-DesignFileWatcher* DesignFileWatcher::Instance() {
-  // If this is the first time calling Instance(), connect our signal
-  if (!designFileWatcher.exists()) {
-    // Notify any time a tracked file changes
-    QObject::connect(designFileWatcher(), &QFileSystemWatcher::fileChanged,
-                     designFileWatcher(),
-                     &DesignFileWatcher::designFilesChanged);
-  }
-  return designFileWatcher();
-}
-
-void DesignFileWatcher::setFiles(const QStringList& filePaths) {
-  // Do nothing if new file list is the same
-  if (filePaths != watchFiles) {
-    // QT prints to terminal if you call removePaths on an empty filewatcher
-    // so we have to check for empty first
-    if (!this->files().empty()) {
-      // Remove old watchers
-      this->removePaths(this->files());
-    }
-
-    // Add each file to the watcher
-    // Note that some systems potentially have a max file limit, see qt docs
-    // for details https://doc.qt.io/qt-5/qfilesystemwatcher.html#details
-    for (auto file : filePaths) {
-      // Convert paths incase they have PROJECT_OSRCDIR relative paths
-      file.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
-      // Add file to watcher
-      this->addPath(file);
-    }
-    watchFiles = filePaths;
-
-    // Consider any change to the design file list (filePaths) a design change
-    emit designFilesChanged();
-  }
 }
 
 std::ostream& operator<<(std::ostream& out, const QString& text) {

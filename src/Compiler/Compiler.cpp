@@ -264,6 +264,22 @@ void Compiler::ErrorMessage(const std::string& message, bool append) const {
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
+std::vector<std::string> Compiler::GetCleanFiles(
+    Action action, const std::string& projectName,
+    const std::string& topModule) const {
+  return {};
+}
+
+void Compiler::CleanFiles(Action action) {
+  const std::filesystem::path base{ProjManager()->projectPath()};
+  auto removeFiles = GetCleanFiles(action, ProjManager()->projectName(),
+                                   ProjManager()->DesignTopModule());
+  for (const auto& fileName : removeFiles) {
+    const std::filesystem::path p{base / fileName};
+    FileUtils::removeFile(p.string());
+  }
+}
+
 static std::string TclInterpCloneScript() {
   std::string script = R"(
     # Simple Tcl Interpreter State copy utility
@@ -676,7 +692,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (FileUtils::FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile) && (expandedFile != "./") &&
+          (expandedFile != ".")) {
         use_orig_path = true;
       }
 
@@ -706,7 +723,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string file = argv[i];
       std::string expandedFile = file;
       bool use_orig_path = false;
-      if (FileUtils::FileExists(expandedFile)) {
+      if (FileUtils::FileExists(expandedFile) && (expandedFile != "./") &&
+          (expandedFile != ".")) {
         use_orig_path = true;
       }
 
@@ -2685,6 +2703,11 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
       }
       const std::string file = argv[i];
       std::string expandedFile = file;
+      if (expandedFile.find(" ") != std::string::npos) {
+        compiler->ErrorMessage(expandedFile +
+                               ": file name with space not supported.");
+        return TCL_ERROR;
+      }
       bool use_orig_path = false;
       if (FileUtils::FileExists(expandedFile)) {
         use_orig_path = true;

@@ -131,6 +131,10 @@ class Compiler {
   virtual void Message(const std::string& message) const;
   virtual void ErrorMessage(const std::string& message,
                             bool append = true) const;
+  virtual std::vector<std::string> GetCleanFiles(
+      Action action, const std::string& projectName,
+      const std::string& topModule) const;
+  void CleanFiles(Action action);
   std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 

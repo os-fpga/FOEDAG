@@ -49,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MessagesTabWidget.h"
 #include "NewFile/new_file.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
+#include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
@@ -278,6 +279,7 @@ void MainWindow::closeProject(bool force) {
     CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
+    setStatusAndProgressText(QString{});
   }
 }
 
@@ -362,7 +364,15 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
   ReShowWindow(project);
   loadFile(project);
   emit projectOpened();
+
+  // this should be first in order to keep console visible.
+  // Otherwise message or repost tab become visible.
+  m_dockConsole->setVisible(true);
+  showMessagesTab();
+  showReportsTab();
+
   if (run) startProject(false);
+  setStatusAndProgressText(QString{});
 }
 
 bool MainWindow::isRunning() const {
@@ -1398,7 +1408,7 @@ void MainWindow::handleProjectOpened() {
   // Update tree to show new instances
   updateSourceTree();
   // Update watcher files
-  m_projectManager->updateDesignFileWatchers();
+  DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
 }
 
 void MainWindow::saveWelcomePageConfig() {

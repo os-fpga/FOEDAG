@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 
@@ -251,6 +252,8 @@ void IpConfigWidget::AddIpToProject(const QString& cmd) {
     cmds.push_back(cmd.toStdString());
     // Store the updated instance list
     projManager->setIpInstanceCmdList(cmds);
+    // Update file watchers since new ip folders have probably been added
+    DesignFileWatcher::Instance()->updateDesignFileWatchers(projManager);
   }
 }
 
