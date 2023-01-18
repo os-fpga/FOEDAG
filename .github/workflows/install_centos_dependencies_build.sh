@@ -25,8 +25,8 @@ yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel li
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
 yum install -y gtk3-devel
 ln -s $PWD/cmake-3.15.7-Linux-x86_64/bin/ctest /usr/bin/ctest
-echo 'CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
-echo 'CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
+echo 'QMAKE_CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
+echo 'QMAKE_CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
 echo 'PATH=/usr/local/Qt-5.15.4/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
 if [ -f buildqt5-centos7-gcc/buildqt5-centos7-gcc.tgz ]
@@ -39,24 +39,24 @@ echo "Downloading QT..."
 curl -L https://download.qt.io/official_releases/qt/5.15/5.15.4/single/qt-everywhere-opensource-src-5.15.4.tar.xz --output qt-everywhere-src-5.15.4.tar.xz
 tar -xf qt-everywhere-src-5.15.4.tar.xz
 
-if [ -d "buildqt5" ] 
-then
-  echo "Installing QT..."
-  cd buildqt5  
-  make install
-  cd ..
-else
-  echo "Building QT..."
-  # work around to make it complie on GCC 11. For reference, see source (https://forum.qt.io/topic/139626/unable-to-build-static-version-of-qt-5-15-2/13)
-  sed -i '44i\#include <limits>' qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
-  sed -i '52i\#include <limits>' qt-everywhere-src-5.15.4/qtdeclarative/src/qmldebug/qqmlprofilerevent_p.h
-  cat qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
-  mkdir buildqt5
-  cd buildqt5
-  source /opt/rh/devtoolset-11/enable
-  ../qt-everywhere-src-5.15.4/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -no-compile-examples -nomake examples
-  make -j 2
-  echo "Installing QT..."
-  make install
-  cd ..
-fi
+# if [ -d "buildqt5" ] 
+# then
+#   echo "Installing QT..."
+#   cd buildqt5  
+#   make install
+#   cd ..
+# else
+echo "Building QT..."
+# work around to make it complie on GCC 11. For reference, see source (https://forum.qt.io/topic/139626/unable-to-build-static-version-of-qt-5-15-2/13)
+sed -i '44i\#include <limits>' qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
+sed -i '52i\#include <limits>' qt-everywhere-src-5.15.4/qtdeclarative/src/qmldebug/qqmlprofilerevent_p.h
+cat qt-everywhere-src-5.15.4/qtbase/src/corelib/text/qbytearraymatcher.h
+mkdir buildqt5
+cd buildqt5
+source /opt/rh/devtoolset-11/enable
+../qt-everywhere-src-5.15.4/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -no-compile-examples -nomake examples
+make -j 2
+echo "Installing QT..."
+make install
+cd ..
+# fi
