@@ -261,6 +261,8 @@ class Compiler {
                 const char* argv[], AddFilesType filesType);
 
   void installGTKWaveHelpers();
+  void waitGTKWaveDone();
+  bool isGuiMode() const;
   void writeHelp(
       std::ostream* out,
       const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
@@ -329,6 +331,8 @@ class Compiler {
 
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
+  bool busy{false};
+  bool installHelper{false};
 };
 
 }  // namespace FOEDAG

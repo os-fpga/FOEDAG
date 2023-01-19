@@ -1743,11 +1743,31 @@ void Compiler::GTKWaveSendCmd(const std::string& gtkWaveCmd,
       // to focus
       cmd = "gtkwave::presentWindow\n" + cmd;
     }
+    if (!isGuiMode()) cmd += "puts _DONE_\n";
 
     // Send command to GTKWave's stdin
+    busy = true;
     process->write(cmd.c_str());
     process->waitForBytesWritten();
+    waitGTKWaveDone();
+    if (installHelper) {
+      installHelper = false;
+      installGTKWaveHelpers();
+    }
   }
+}
+
+void Compiler::waitGTKWaveDone() {
+  if (!isGuiMode()) {
+    while (busy) {
+      m_gtkwave_process->waitForReadyRead(-1);
+    }
+  }
+}
+
+bool Compiler::isGuiMode() const {
+  return GetSession()->CmdLine()->WithQt() ||
+         GetSession()->CmdLine()->WithQml();
 }
 
 // This will return a pointer to the current gtkwave process, if no process is
@@ -1767,7 +1787,7 @@ QProcess* Compiler::GetGTKWaveProcess() {
     QString wishArg = "--wish";
     QStringList args{wishArg};
 
-    auto cleanMessage = [](const QString& msg) {
+    auto cleanMessage = [this](const QString& msg) {
       // GTKWave seems to prefix every error message with its version along with
       // way too many empty lines so we'll clear both of those out
       QStringList validLines{};
@@ -1776,6 +1796,7 @@ QProcess* Compiler::GetGTKWaveProcess() {
           // ignore pointless lines
           continue;
         } else if (line.startsWith("WM Destroy")) {
+          busy = false;
           // Make the WM Destory message more user friendly
           validLines << "window has been closed";
           continue;
@@ -1802,7 +1823,7 @@ QProcess* Compiler::GetGTKWaveProcess() {
       // Listen for the wish interface being opened
       if (trimmed.startsWith("Interpreter id is")) {
         // Install extra tcl helpers
-        installGTKWaveHelpers();
+        installHelper = true;
       }
 
       // If the user had gtkwave print _RETURN_, capture and
@@ -1812,6 +1833,13 @@ QProcess* Compiler::GetGTKWaveProcess() {
       if (trimmed.startsWith(retStr)) {
         trimmed.remove(0, retStr.size());
         m_gtkwave_process->setProperty("ReturnVal", trimmed);
+      }
+
+      const QString done{"_DONE_"};
+      auto tmp = trimmed;
+      if (trimmed.endsWith(done)) {
+        trimmed.chop(done.size());
+        busy = false;
       }
 
       // Print message
