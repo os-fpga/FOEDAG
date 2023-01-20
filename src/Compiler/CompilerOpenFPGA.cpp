@@ -96,7 +96,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
             "optional openfpga arch file (For bitstream generation)"
          << std::endl;
   (*out) << "   bitstream_config_files -bitstream <bitstream_setting.xml> "
-            "-sim <sim_setting.xml> -repack <repack_setting.xml>"
+            "-sim <sim_setting.xml> -repack <repack_setting.xml> -key "
+            "<fabric_key.xml>"
          << std::endl;
   (*out) << "                              : Uses alternate bitstream "
             "generation configuration files"
@@ -354,6 +355,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
         fileType = "sim";
       } else if (arg == "-repack") {
         fileType = "repack";
+      } else if (arg == "-key") {
+        fileType = "key";
       } else {
         compiler->ErrorMessage(
             "Not a legal option for bitstream_config_files: " + arg);
@@ -398,6 +401,10 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       } else if (fileType == "repack") {
         compiler->OpenFpgaRepackConstraintsFile(expandedFile);
         compiler->Message("OpenFPGA Repack Constraint file: " + expandedFile);
+      } else if (fileType == "key") {
+        compiler->OpenFpgaFabricKeyFile(expandedFile);
+        compiler->Message("OpenFPGA Fabric Key Constraint file: " +
+                          expandedFile);
       }
     }
     return TCL_OK;
