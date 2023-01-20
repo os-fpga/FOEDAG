@@ -23,16 +23,17 @@ yum install -y xorg-x11-server-Xvfb
 yum install -y mesa-libGL-devel
 yum install -y libxcb libxcb-devel xcb-util xcb-util-devel libxkbcommon-devel libxkbcommon-x11-devel
 yum install -y xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
-yum install -y gtk3-devel
+yum install -y gtk3-devel zip unzip
 ln -s $PWD/cmake-3.15.7-Linux-x86_64/bin/ctest /usr/bin/ctest
 echo 'QMAKE_CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
 echo 'QMAKE_CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
 echo 'PATH=/usr/local/Qt-5.15.4/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
 
-if [ -f buildqt5-centos7-gcc.tgz ]
+if [ -f buildqt5-centos7-gcc.zip ]
 then
   echo "Found QT build artifact, untarring..."
-  tar xvzf buildqt5-centos7-gcc.tgz
+  unzip buildqt5-centos7-gcc.zip
+  tar xvzf buildqt5-centos7-gcc/buildqt5-centos7-gcc.tgz
 fi
 
 echo "Downloading QT..."

@@ -164,6 +164,7 @@ jobs:
         workflow: main.yml
         repo: ${{ github.repository }}
         run_number: 3912
+        skip_unpack: true
 
     - name: Install dependencies and build QT
       run: |
