@@ -33,7 +33,7 @@ if [ -f buildqt5-centos7-gcc.zip ]
 then
   echo "Found QT build artifact, untarring..."
   unzip buildqt5-centos7-gcc.zip
-  tar xvzf buildqt5-centos7-gcc/buildqt5-centos7-gcc.tgz
+  tar xvzf buildqt5-centos7-gcc.tgz
 fi
 
 echo "Downloading QT..."
