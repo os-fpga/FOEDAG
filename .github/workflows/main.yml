@@ -156,8 +156,6 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - name: Output Run Number
-      run: echo ${{ github.run_number }}
 
     - name: Download workflow artifact
       if: matrix.mode == 'test'
