@@ -205,6 +205,7 @@ void sourceGrid::AddFiles() {
   const QStringList fileNames = QFileDialog::getOpenFileNames(
       this, tr("Select File"), "", fileformat, nullptr, option);
   for (const QString &str : fileNames) {
+    if (!createFileDialog::verifyFileName(str, this)) return;
     const QFileInfo info{str};
     if (!CheckPinFileExists(info.suffix())) return;
   }
@@ -248,6 +249,7 @@ void sourceGrid::AddDirectories() {
   if (!CheckNetlistFileExists(checkUnique)) return;
 
   for (auto &[fileName, filePath] : files) {
+    if (!createFileDialog::verifyFileName(filePath, this)) continue;
     const QFileInfo info{filePath};
     filedata fdata;
     fdata.m_isFolder = false;

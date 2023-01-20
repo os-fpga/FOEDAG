@@ -39,6 +39,7 @@ set (SRC_CPP_LIST
   ProjectManager/project_manager.cpp
   ProjectManager/compiler_configuration.cpp
   ProjectManager/ip_configuration.cpp
+  ProjectManager/DesignFileWatcher.cpp
   newprojectmodel.cpp
   add_sim_form.cpp
 )
@@ -63,6 +64,7 @@ set (SRC_H_LIST
   ProjectManager/project_manager.h
   ProjectManager/compiler_configuration.h
   ProjectManager/ip_configuration.h
+  ProjectManager/DesignFileWatcher.h
   newprojectmodel.h
   SettingsGuiInterface.h
   add_sim_form.h
@@ -127,6 +129,7 @@ install(
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_run.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/compiler_configuration.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/ip_configuration.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/DesignFileWatcher.h
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/ProjectManager)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

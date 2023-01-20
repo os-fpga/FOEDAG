@@ -18,6 +18,7 @@ class createFileDialog : public QDialog {
   explicit createFileDialog(const QString &projectPath,
                             QWidget *parent = nullptr);
   ~createFileDialog();
+  static bool verifyFileName(const QString &fileName, QWidget *parent);
 
   void initialDialog(int type);
  signals:

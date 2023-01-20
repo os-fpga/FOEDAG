@@ -164,7 +164,7 @@ void storeTclArg(QObject* obj, const QString& argStr) {
 
 template <typename T>
 T getDefault(const json& jsonObj) {
-  T val;
+  T val{};
   if (jsonObj.contains("default")) {
     val = jsonObj["default"].get<T>();
   }
@@ -824,8 +824,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
             if (arg != "") {
-              userVal = convertSpaces(userVal);
-              userVal = convertDashes(userVal);
+              userVal = convertAll(userVal);
               QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
@@ -882,8 +881,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
-        argVal = restoreSpaces(argVal);
-        argVal = restoreDashes(argVal);
+        argVal = restoreAll(argVal);
         setVal(ptr, argVal);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
@@ -961,9 +959,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
             if (arg != "") {
-              userVal = convertSpaces(userVal);
-              userVal = convertNewLines(userVal);
-              userVal = convertDashes(userVal);
+              userVal = convertAll(userVal);
               QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
@@ -975,10 +971,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
-        QString tempStr = restoreSpaces(argVal);
-        tempStr = restoreNewLines(tempStr);
-        tempStr = restoreDashes(tempStr);
-        setVal(ptr, tempStr);
+        argVal = restoreAll(argVal);
+        setVal(ptr, argVal);
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
@@ -1501,4 +1495,12 @@ QList<QObject*> FOEDAG::getTargetObjectsFromLayout(QLayout* layout) {
   }
 
   return settingsObjs;
+}
+
+QString FOEDAG::convertAll(const QString& str) {
+  return convertSpaces(convertNewLines(convertDashes(str)));
+}
+
+QString FOEDAG::restoreAll(const QString& str) {
+  return restoreSpaces(restoreNewLines(restoreDashes(str)));
 }

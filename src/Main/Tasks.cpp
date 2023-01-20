@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Task.h"
 #include "Foedag.h"
 #include "TextEditor/text_editor_form.h"
-#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
@@ -57,12 +56,7 @@ QLabel* createTitleLabel(const QString& text) {
   return titleLabel;
 }
 
-void openReportView(Compiler* compiler, const Task* task,
-                    const ITaskReport& report) {
-  auto reportsWidget = new QWidget;
-  auto reportLayout = new QVBoxLayout;
-  reportLayout->setContentsMargins(0, 0, 0, 0);
-
+void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
   for (auto& dataReport : report.getDataReports()) {
     auto dataReportName = dataReport->getName();
     if (!dataReportName.isEmpty())
@@ -105,22 +99,56 @@ void openReportView(Compiler* compiler, const Task* task,
         QHeaderView::ResizeToContents);
     reportLayout->addWidget(reportsView);
   }
-  reportsWidget->setLayout(reportLayout);
+}
 
+void openReportView(Compiler* compiler, const Task* task,
+                    const ITaskReport& report) {
   auto reportName = report.getName();
+  bool newReport{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-  tabWidget->addTab(reportsWidget, report.getName());
-  tabWidget->setCurrentWidget(reportsWidget);
+  for (int i = 0; i < tabWidget->count(); i++) {
+    if (tabWidget->tabText(i) == reportName) {
+      tabWidget->setCurrentIndex(i);
+      auto reportLayout{
+          dynamic_cast<QVBoxLayout*>(tabWidget->currentWidget()->layout())};
 
-  QObject::connect(
-      task, &Task::statusChanged, [compiler, reportsWidget, reportName]() {
-        auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-        // Remove the report if underlying task status has changed
-        if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
-          tabWidget->removeTab(index);
-          compiler->Message(reportName.toStdString() + " report closed.");
-        }
-      });
+      // clear previous report
+      QLayoutItem* item;
+      while ((item = reportLayout->takeAt(0)) != nullptr) {
+        delete item->widget();
+        delete item;
+      }
+
+      generateReport(report, reportLayout);
+
+      newReport = false;
+      break;
+    }
+  }
+
+  if (newReport) {
+    auto reportsWidget = new QWidget;
+    auto reportLayout = new QVBoxLayout;
+    reportLayout->setContentsMargins(0, 0, 0, 0);
+
+    generateReport(report, reportLayout);
+    reportsWidget->setLayout(reportLayout);
+
+    tabWidget->addTab(reportsWidget, reportName);
+    tabWidget->setCurrentWidget(reportsWidget);
+
+    QObject::connect(
+        task, &Task::statusChanged, reportsWidget,
+        [compiler, reportsWidget, reportName, task]() {
+          auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+          // Remove the report if underlying task status has changed
+          if (auto index = tabWidget->indexOf(reportsWidget); index != -1) {
+            tabWidget->removeTab(index);
+            compiler->Message(reportName.toStdString() + " report closed.");
+            reportsWidget->deleteLater();
+          }
+        });
+  }
 }
 }  // namespace
 
@@ -334,6 +362,8 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     } else
       i++;
 
+    value = restoreAll(QString::fromStdString(value)).toStdString();
+
     if (arg.compare("-" + simTypeStr + "_filepath") == 0)
       simulator->WaveFile(simType, value);
 
@@ -354,7 +384,7 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     }
 
     Settings* settings = compiler->GetSession()->GetSettings();
-    const std::map<QString, json> settingsMap{
+    const std::map<std::string, json> settingsMap{
         {"rtl", settings->getJson()["Tasks"]["Simulate RTL"]["rtl_sim_type"]},
         {"gate",
          settings->getJson()["Tasks"]["Simulate Gate"]["gate_sim_type"]},
@@ -362,48 +392,43 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
         {"bitstream", settings->getJson()["Tasks"]["Simulate Bitstream"]
                                          ["bitstream_sim_type"]}};
 
-    auto applyOptions = [&settingsMap](const QString& args,
-                                       const QString& phase,
-                                       const QString& level) {
+    using SetFunction =
+        std::function<void(Simulator*, const std::string&,
+                           Simulator::SimulatorType, const std::string&)>;
+
+    auto applyOptions = [&settingsMap, simulator](const std::string& args,
+                                                  SetFunction setter,
+                                                  const std::string& level) {
       auto json = settingsMap.at(level);
       const std::string unset{"<unset>"};
-      std::string simulator = unset;
+      std::string simulatorStr = unset;
       if (json.contains("userValue")) {
-        simulator = json["userValue"];
+        simulatorStr = json["userValue"];
       } else if (json.contains("default")) {
-        simulator = json["default"].get<std::string>();
+        simulatorStr = json["default"].get<std::string>();
       }
-      if (simulator != unset) {
-        simulator =
-            Settings::getLookupValue(json, QString::fromStdString(simulator))
+      if (simulatorStr != unset) {
+        simulatorStr =
+            Settings::getLookupValue(json, QString::fromStdString(simulatorStr))
                 .toStdString();
       }
-      QString sim_opt = args;
-      sim_opt.replace(WF_SPACE, " ");
-      sim_opt.replace(WF_NEWLINE, " ");
-      sim_opt.replace(WF_DASH, "-");
-      auto sim_opt_list = QtUtils::StringSplit(sim_opt, ' ');
-      if (!sim_opt_list.isEmpty()) {
-        sim_opt_list.push_front(level);
-        sim_opt_list.push_front(phase);
-        sim_opt_list.push_front(QString::fromStdString(simulator));
-        sim_opt = sim_opt_list.join(' ');
-        std::string cmd = "simulation_options " + sim_opt.toStdString();
-        GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+
+      if (setter) {
+        bool ok{false};
+        auto simulatorType = Simulator::ToSimulatorType(simulatorStr, ok);
+        if (ok) setter(simulator, level, simulatorType, args);
       }
     };
 
     if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "simulation",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorRuntimeOption, simTypeStr);
     }
     if (arg.compare("-el_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "elaboration",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorElaborationOption,
+                   simTypeStr);
     }
     if (arg.compare("-com_" + simTypeStr + "_opt") == 0) {
-      applyOptions(QString::fromStdString(value), "compilation",
-                   QString::fromStdString(simTypeStr));
+      applyOptions(value, &Simulator::SetSimulatorCompileOption, simTypeStr);
     }
   }
 }
@@ -414,10 +439,13 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
   if (!compiler) return std::string{};
 
   auto simulator{compiler->GetSimulator()};
+  auto convertSpecialChars = [](const std::string& str) -> std::string {
+    return convertAll(QString::fromStdString(str)).toStdString();
+  };
 
   std::vector<std::string> argsList;
   argsList.push_back("-" + simTypeStr + "_filepath");
-  argsList.push_back(simulator->WaveFile(simType));
+  argsList.push_back(convertSpecialChars(simulator->WaveFile(simType)));
 
   bool ok{false};
   auto simTypeTmp{simulator->UserSimulationType(simType, ok)};
@@ -427,12 +455,6 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
     simulatorType = Simulator::ToString(simTypeTmp);
     argsList.push_back(simulatorType);
   }
-
-  auto convertSpecialChars = [](const std::string& str) -> std::string {
-    std::string result = StringUtils::replaceAll(str, " ", WF_SPACE);
-    result = StringUtils::replaceAll(result, "-", WF_DASH);
-    return result;
-  };
 
   auto pushBackSimulationOptions = [&](const std::string& simType,
                                        const std::string& levelStr,

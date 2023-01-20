@@ -55,6 +55,7 @@ extern "C" {
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
 #include "MainWindow/main_window.h"
+#include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/config.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "ProjectFile/ProjectFileLoader.h"
@@ -191,6 +192,7 @@ bool Foedag::initGui() {
 
   GlobalSession = new FOEDAG::Session(nullptr, interpreter, commands, m_cmdLine,
                                       m_context, m_compiler, m_settings);
+  DesignFileWatcher::Instance()->init();
   GlobalSession->setGuiType(GUI_TYPE::GT_WIDGET);
   if (m_mainWinBuilder) {
     mainWin = m_mainWinBuilder(GlobalSession);

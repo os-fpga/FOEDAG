@@ -46,6 +46,8 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 #define WF_DASH "_TclArgDash_"
 
 namespace FOEDAG {
+QString convertAll(const QString& str);
+QString restoreAll(const QString& str);
 void initTclArgFns();
 void clearTclArgFns();
 void addTclArgFns(const std::string& tclArgKey, tclArgFns argFns);
