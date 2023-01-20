@@ -159,13 +159,13 @@ jobs:
     - name: Output Run Number
       run: echo ${{ github.run_number }}
 
-    - name: Download workflow artifact
-      if: matrix.mode == 'test'
-      uses: dawidd6/action-download-artifact@v2.24.0
-      with:
-        workflow: main.yml
-        repo: ${{ github.repository }}
-        run_id: 3888
+ #   - name: Download workflow artifact
+ #     if: matrix.mode == 'test'
+ #     uses: dawidd6/action-download-artifact@v2.24.0
+ #     with:
+ #       workflow: main.yml
+ #       repo: ${{ github.repository }}
+ #       run_number: 3888
 
     - name: Install dependencies and build QT
       run: |
