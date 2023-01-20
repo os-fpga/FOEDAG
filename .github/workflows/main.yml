@@ -163,7 +163,7 @@ jobs:
       with:
         workflow: main.yml
         repo: ${{ github.repository }}
-        run_id: 6789716504
+        run_number: 3888
 
     - name: Install dependencies and build QT
       run: |
