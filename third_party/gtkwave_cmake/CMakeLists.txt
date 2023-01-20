@@ -55,10 +55,13 @@ endif()
 
 add_library(gtkwave)
 
-add_custom_command(
-  TARGET gtkwave POST_BUILD
-  COMMENT "Extracting ${gtkwave_tar} to ${install_path}"
-  COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
-        WORKING_DIRECTORY ${install_path}
+message(STATUS "Creating directory ${install_path}")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${install_path}
 )
 
+message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
+    WORKING_DIRECTORY ${install_path}
+)
