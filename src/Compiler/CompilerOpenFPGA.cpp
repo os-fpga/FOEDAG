@@ -2315,6 +2315,8 @@ write_fabric_verilog --file BIT_SIM \
 
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
 
+write_fabric_bitstream --format xml --file fabric_bitstream.xml
+
 write_full_testbench --file BIT_SIM \
                      --bitstream fabric_bitstream.bit 
 
