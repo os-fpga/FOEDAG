@@ -29,6 +29,7 @@ namespace FOEDAG {
 enum PinData {
   PinName = 0,
   BallName = 1,
+  BallId = 2,
   InternalPinName = 12,
   ModeFirst = 13,
   ModeLast = 42,
@@ -62,6 +63,7 @@ struct HeaderData {
   bool visible;
 };
 
+using BallData = QMap<QString, QString>;  // <id, name>
 using InternalPins = QMap<QString, QMap<int, QStringList>>;
 class PinsBaseModel;
 class PackagePinsModel : public QObject {
@@ -98,9 +100,18 @@ class PackagePinsModel : public QObject {
 
   void setBaseModel(PinsBaseModel *m);
 
+  void setUseBallId(bool useBallId);
+  bool useBallId() const;
+
+  QString convertPinName(const QString &name) const;
+  QString getBallId(const QString &name) const;
+  void insertBallData(const QString &name, const QString &id);
+  void detectBallIdUsage(const QString &nameOrId);
+
  signals:
   void modeHasChanged(const QString &pin, const QString &mode);
   void internalPinHasChanged(const QString &pin, const QString &intPin);
+  void pinNameChanged();
 
  private:
   QVector<PackagePinGroup> m_pinData;
@@ -114,6 +125,8 @@ class PackagePinsModel : public QObject {
   QMap<QString, int> m_modes;
   InternalPins m_internalPinsData;  // <PinName, <ModeId, InternalPins>>
   PinsBaseModel *m_baseModel;
+  bool m_useBallId{false};
+  BallData m_ballData;
 };
 
 }  // namespace FOEDAG

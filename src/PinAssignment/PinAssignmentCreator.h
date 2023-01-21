@@ -35,7 +35,8 @@ struct PinAssignmentData {
   QString target{};
   QStringList commands{};
   QString projectPath{};
-  QString pinFile;
+  QString pinFile{};
+  bool useBallId{false};
 };
 
 class PinAssignmentCreator : public QObject {

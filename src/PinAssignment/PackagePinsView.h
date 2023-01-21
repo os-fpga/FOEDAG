@@ -60,6 +60,7 @@ class PackagePinsView : public PinAssignmentBaseView {
   void internalPinChanged(const QString &port, const QString &intPin);
   void portAssignmentChanged(const QString &port, const QString &pin, int row);
   QTreeWidgetItem *CreateNewLine(QTreeWidgetItem *parent);
+  void updatePinNames();
 
  private:
   const int MAX_ROWS{};

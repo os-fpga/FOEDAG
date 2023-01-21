@@ -48,8 +48,9 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
   }
 
   QTreeWidgetItem *topLevelPackagePin = new QTreeWidgetItem(this);
-  topLevelPackagePin->setText(0, "All Pins");
+  topLevelPackagePin->setText(NameCol, "All Pins");
   const auto banks = model->packagePinModel()->pinData();
+  const bool useBallId{model->packagePinModel()->useBallId()};
   for (const auto &b : banks) {
     QTreeWidgetItem *bank = new QTreeWidgetItem(topLevelPackagePin);
     bank->setText(NameCol, b.name);
@@ -59,7 +60,7 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       uint col = PortsCol + 1;
       QTreeWidgetItem *pinItem = new QTreeWidgetItem(bank);
       m_pinItems.append(pinItem);
-      insertData(p.data, PinName, NameCol, pinItem);
+      insertData(p.data, useBallId ? BallId : BallName, NameCol, pinItem);
       insertData(p.data, RefClock, col++, pinItem);
       insertData(p.data, Bank, col++, pinItem);
       insertData(p.data, ALT, col++, pinItem);
@@ -72,7 +73,6 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
       insertData(p.data, PowerPad, col++, pinItem);
       insertData(p.data, Discription, col++, pinItem);
       insertData(p.data, Voltage2, col++, pinItem);
-      insertData(p.data, RefClock, col++, pinItem);
 
       initLine(pinItem);
 
@@ -93,6 +93,8 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
           this, &PackagePinsView::internalPinChanged);
   connect(model, &PinsBaseModel::portAssignmentChanged, this,
           &PackagePinsView::portAssignmentChanged);
+  connect(model->packagePinModel(), &PackagePinsModel::pinNameChanged, this,
+          &PackagePinsView::updatePinNames);
   expandItem(topLevelPackagePin);
   setAlternatingRowColors(true);
   setColumnWidth(NameCol, 200);
@@ -205,7 +207,7 @@ void PackagePinsView::internalPinSelectionHasChanged(const QModelIndex &index) {
       const auto combos{m_intPins[item->text(NameCol)]};
       for (auto c : combos) {
         if (combo != c)
-          updateInternalPinSelection(itemFromIndex(index)->text(PinName), c);
+          updateInternalPinSelection(itemFromIndex(index)->text(NameCol), c);
       }
       emit selectionHasChanged();
     }
@@ -271,7 +273,7 @@ void PackagePinsView::updateInternalPinCombo(const QString &mode,
     } else {
       intPinCombo->setEnabled(true);
       auto current = intPinCombo->currentText();
-      auto pin = itemFromIndex(index)->text(PinName);
+      auto pin = itemFromIndex(index)->text(NameCol);
       auto model = new QStringListModel{};
       QStringList list{{""}};
       list.append(m_model->packagePinModel()->GetInternalPinsList(pin, mode));
@@ -413,7 +415,7 @@ void PackagePinsView::portAssignmentChanged(const QString &port,
 
 QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
   auto child = new QTreeWidgetItem;
-  child->setText(0, parent->text(0));
+  child->setText(NameCol, parent->text(NameCol));
   parent->addChild(child);
 
   const auto &[widget, button] = prepareButtonWithLabel(
@@ -431,6 +433,21 @@ QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
 
   updateEditorGeometries();
   return child;
+}
+
+void PackagePinsView::updatePinNames() {
+  if (!m_model->packagePinModel()->useBallId()) return;
+
+  for (auto &pinItem : m_pinItems) {
+    auto widget = itemWidget(pinItem, NameCol);
+    QLabel *label = widget->findChild<QLabel *>();
+    if (label) {
+      auto current{label->text()};
+      auto newText{m_model->packagePinModel()->getBallId(current)};
+      label->setText(newText);
+      pinItem->setText(NameCol, newText);
+    }
+  }
 }
 
 }  // namespace FOEDAG

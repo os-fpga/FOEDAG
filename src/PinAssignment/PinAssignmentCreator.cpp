@@ -64,6 +64,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   connect(packagePins, &PackagePinsView::selectionHasChanged, this,
           &PinAssignmentCreator::changed);
   m_packagePinsView = CreateLayoutedWidget(packagePins);
+  packagePinModel->setUseBallId(data.useBallId);
   parseConstraints(data.commands, packagePins, portsView);
 }
 
@@ -144,6 +145,19 @@ PortsLoader *PinAssignmentCreator::FindPortsLoader(
 void PinAssignmentCreator::parseConstraints(const QStringList &commands,
                                             PackagePinsView *packagePins,
                                             PortsView *portsView) {
+  // detect ball name or id
+  for (const auto &cmd : commands) {
+    if (cmd.startsWith("set_pin_loc")) {
+      auto list = QtUtils::StringSplit(cmd, ' ');
+      if (list.size() >= 3) {
+        auto pinName = list.at(2);
+        m_baseModel->packagePinModel()->detectBallIdUsage(pinName);
+        // detect ball name or ball id by the first occurrence
+        break;
+      }
+    }
+  }
+
   // First need to setup ports and then modes sinse mode will apply only when
   // port is selected.
   QVector<QStringList> internalPins;
