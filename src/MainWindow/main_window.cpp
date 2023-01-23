@@ -496,6 +496,17 @@ void MainWindow::defaultProjectPath() {
 }
 
 void MainWindow::pinPlannerPinName() {
+  bool save{false};
+  bool clean{false};
+  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+    auto answer = QMessageBox::question(
+        this, "Pin planner",
+        "Some changes are not saved. Do you want to save them?",
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if (answer == QMessageBox::Yes) save = true;
+    if (answer == QMessageBox::No) clean = true;
+    if (answer == QMessageBox::Cancel) return;
+  }
   QDialog dialog{this};
   dialog.setWindowTitle(pinPlannerPinNameAction->text());
   auto layout = new QGridLayout;
@@ -521,8 +532,15 @@ void MainWindow::pinPlannerPinName() {
   dialog.setModal(true);
   auto result = dialog.exec();
   if (result == QDialog::Accepted) {
+    if (save)
+      if (!saveActionTriggered()) return;
+    if (clean) pinPlannerSaved();
     bool useBallId = combo->currentIndex() == 1;
     m_settings.setValue(PIN_PLANNER_PIN_NAME, useBallId);
+    auto pinAssignment = findChild<PinAssignmentCreator*>();
+    if (pinAssignment) {
+      pinAssignment->setUseBallId(useBallId);
+    }
   }
 }
 
@@ -1198,7 +1216,7 @@ void MainWindow::updatePRViewButton(int state) {
   }
 }
 
-void MainWindow::saveActionTriggered() {
+bool MainWindow::saveActionTriggered() {
   // This blocking need because of Refresh button blinks. Button become visible
   // after file save and then we hide it.
   m_blockRefereshEn = true;
@@ -1208,9 +1226,11 @@ void MainWindow::saveActionTriggered() {
   if (saveConstraintFile()) {
     QtUtils::AppendToEventQueue([this]() { m_blockRefereshEn = false; });
     pinPlannerSaved();
+    return true;
   } else {
     m_blockRefereshEn = false;
   }
+  return false;
 }
 
 void MainWindow::pinAssignmentActionTriggered() {

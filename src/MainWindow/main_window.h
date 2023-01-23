@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newDesignCreated(const QString& design);
   void reloadSettings();
   void updatePRViewButton(int state);
-  void saveActionTriggered();
+  bool saveActionTriggered();
   void pinAssignmentActionTriggered();
   void pinAssignmentChanged();
   void ipConfiguratorActionTriggered();

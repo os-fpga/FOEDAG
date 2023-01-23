@@ -436,16 +436,15 @@ QTreeWidgetItem *PackagePinsView::CreateNewLine(QTreeWidgetItem *parent) {
 }
 
 void PackagePinsView::updatePinNames() {
-  if (!m_model->packagePinModel()->useBallId()) return;
-
   for (auto &pinItem : m_pinItems) {
     auto widget = itemWidget(pinItem, NameCol);
     QLabel *label = widget->findChild<QLabel *>();
     if (label) {
       auto current{label->text()};
-      auto newText{m_model->packagePinModel()->getBallId(current)};
-      label->setText(newText);
-      pinItem->setText(NameCol, newText);
+      auto convertedName =
+          m_model->packagePinModel()->convertPinNameUsage(current);
+      label->setText(convertedName);
+      pinItem->setText(NameCol, convertedName);
     }
   }
 }

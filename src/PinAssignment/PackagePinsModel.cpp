@@ -151,10 +151,6 @@ QString PackagePinsModel::convertPinName(const QString &name) const {
   return m_ballData.value(name);
 }
 
-QString PackagePinsModel::getBallId(const QString &name) const {
-  return m_ballData.key(name);
-}
-
 void PackagePinsModel::insertBallData(const QString &name, const QString &id) {
   m_ballData[id] = name;
 }

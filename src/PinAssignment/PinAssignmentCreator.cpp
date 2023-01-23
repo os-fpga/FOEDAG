@@ -214,6 +214,13 @@ void PinAssignmentCreator::setPinFile(const QString &file) {
   m_data.pinFile = file;
 }
 
+void PinAssignmentCreator::setUseBallId(bool useBallId) {
+  if (m_data.useBallId != useBallId) {
+    m_data.useBallId = useBallId;
+    refresh();
+  }
+}
+
 void PinAssignmentCreator::refresh() {
   const QSignalBlocker signalBlocker{this};
   auto portView = m_portsView->findChild<PortsView *>();
@@ -224,6 +231,7 @@ void PinAssignmentCreator::refresh() {
   if (file.open(QFile::ReadOnly)) {
     m_data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
   }
+  m_baseModel->packagePinModel()->setUseBallId(m_data.useBallId);
   if (ppView && portView) parseConstraints(m_data.commands, ppView, portView);
 }
 

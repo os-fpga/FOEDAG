@@ -104,7 +104,6 @@ class PackagePinsModel : public QObject {
   bool useBallId() const;
 
   QString convertPinName(const QString &name) const;
-  QString getBallId(const QString &name) const;
   void insertBallData(const QString &name, const QString &id);
   QString convertPinNameUsage(const QString &nameOrId);
 

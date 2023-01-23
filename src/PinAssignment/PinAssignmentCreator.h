@@ -50,6 +50,7 @@ class PinAssignmentCreator : public QObject {
   PinsBaseModel *baseModel() const;
   const PinAssignmentData &data() const;
   void setPinFile(const QString &file);
+  void setUseBallId(bool useBallId);
 
   /*!
    * \brief refresh
