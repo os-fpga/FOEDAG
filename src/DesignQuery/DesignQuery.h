@@ -46,11 +46,15 @@ class DesignQuery {
   std::filesystem::path GetProjDir() const;
   std::filesystem::path GetHierInfoPath() const;
   std::filesystem::path GetPortInfoPath() const;
+  bool LoadPortInfo();
+  bool LoadHierInfo();
 
  protected:
   Compiler* m_compiler = nullptr;
   nlohmann::ordered_json m_hier_json;
   nlohmann::ordered_json m_port_json;
+  bool m_parsed_portinfo = false;
+  bool m_parsed_hierinfo = false;
 };
 
 }  // namespace FOEDAG

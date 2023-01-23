@@ -77,46 +77,66 @@ std::filesystem::path DesignQuery::GetPortInfoPath() const {
   return dir / port_info;
 }
 
+bool DesignQuery::LoadPortInfo() {
+  bool status = true;
+
+  if (!m_parsed_portinfo) {
+    std::filesystem::path port_info_path = GetPortInfoPath();
+    if (!FileUtils::FileExists(port_info_path)) {
+      status = false;
+      m_compiler->Message("Unable to locate port_info.json in design directory: "+ GetProjDir().string());
+    } else {
+      std::ifstream port_info_f(port_info_path);
+      m_port_json = json::parse(port_info_f);
+      m_parsed_portinfo = true;
+    }
+  }
+
+  return status;
+}
+
+bool DesignQuery::LoadHierInfo() {
+  bool status = true;
+
+  if (!m_parsed_hierinfo) {
+    std::filesystem::path hier_info_path = GetHierInfoPath();
+    if (!FileUtils::FileExists(hier_info_path)) {
+      status = false;
+      m_compiler->Message("Unable to locate hier_info.json in design directory: "+ GetProjDir().string());
+    } else {
+      std::ifstream hier_info_f(hier_info_path);
+      m_hier_json = json::parse(hier_info_f);
+      m_parsed_hierinfo = true;
+    }
+  }
+
+  return status;
+}
+
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
-  auto parse_design_data = [](void* clientData, Tcl_Interp* interp, int argc,
-                              const char* argv[]) -> int {
+  auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
     Compiler* compiler = design_query->GetCompiler();
     bool status = true;
 
-    json& hier_json = design_query->getHierJson();
-    json& port_json = design_query->getPortJson();
-
-    std::filesystem::path port_info_path = design_query->GetPortInfoPath();
-    std::filesystem::path hier_info_path = design_query->GetHierInfoPath();
-    if (!FileUtils::FileExists(port_info_path)) {
+    if (!design_query->LoadHierInfo()) {
       status = false;
-      compiler->Message(
-          "Unable to locate port_info.json in design directory: " +
-          design_query->GetProjDir().string());
-    } else {
-      std::ifstream port_info_f(port_info_path);
-      port_json = json::parse(port_info_f);
     }
-    if (!FileUtils::FileExists(hier_info_path)) {
-      status = false;
-      compiler->Message(
-          "Unable to locate port_info.json in design directory: " +
-          design_query->GetProjDir().string());
-    } else {
-      std::ifstream hier_info_f(hier_info_path);
-      hier_json = json::parse(hier_info_f);
+    else {
+      json& hier_info = design_query->getHierJson();
+      json file_ids_obj = hier_info["fileIDs"];
+      if (!file_ids_obj.is_object()) {
+        status = false;
+      } else {
+        std::string ret = "";
+        for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++) {
+          ret += " ";
+          ret += it.key();
+        }
+        compiler->TclInterp()->setResult(ret);
+      }
     }
-
-    return (status) ? TCL_OK : TCL_ERROR;
-  };
-  interp->registerCmd("parse_design_data", parse_design_data, this, 0);
-
-  auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
-    // DesignQuery* design_query = (DesignQuery*)clientData;
-    // Compiler* compiler = design_query->GetCompiler();
-    bool status = true;
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
