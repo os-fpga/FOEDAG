@@ -507,11 +507,11 @@ void MainWindow::pinPlannerPinName() {
   connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
   connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
 
-  QLabel* label = new QLabel{"Select Package pin name: "};
+  QLabel* label = new QLabel{"Selection type:"};
   layout->addWidget(label);
 
   QComboBox* combo = new QComboBox{};
-  combo->addItem("Use Ball names");
+  combo->addItem("Use Ball Names");
   combo->addItem("Use Ball IDs");
   if (m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool())
     combo->setCurrentIndex(1);
@@ -886,7 +886,7 @@ void MainWindow::createActions() {
   connect(defualtProjectPathAction, &QAction::triggered, this,
           &MainWindow::defaultProjectPath);
 
-  pinPlannerPinNameAction = new QAction{tr("Pin Planner Pin Name"), this};
+  pinPlannerPinNameAction = new QAction{tr("Pin planner pin selection"), this};
   connect(pinPlannerPinNameAction, &QAction::triggered, this,
           &MainWindow::pinPlannerPinName);
 

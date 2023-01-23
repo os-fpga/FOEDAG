@@ -145,15 +145,19 @@ PortsLoader *PinAssignmentCreator::FindPortsLoader(
 void PinAssignmentCreator::parseConstraints(const QStringList &commands,
                                             PackagePinsView *packagePins,
                                             PortsView *portsView) {
-  // detect ball name or id
-  for (const auto &cmd : commands) {
-    if (cmd.startsWith("set_pin_loc")) {
-      auto list = QtUtils::StringSplit(cmd, ' ');
+  QStringList convertedCommands = commands;
+  // convert pin name to ball name or ball id
+  for (int i = 0; i < convertedCommands.size(); i++) {
+    if (convertedCommands.at(i).startsWith("set_pin_loc") ||
+        convertedCommands.at(i).startsWith("set_mode")) {
+      auto list = QtUtils::StringSplit(convertedCommands.at(i), ' ');
       if (list.size() >= 3) {
-        auto pinName = list.at(2);
-        m_baseModel->packagePinModel()->detectBallIdUsage(pinName);
-        // detect ball name or ball id by the first occurrence
-        break;
+        auto convertedName =
+            m_baseModel->packagePinModel()->convertPinNameUsage(list.at(2));
+        if (!convertedName.isEmpty()) {
+          list[2] = convertedName;
+          convertedCommands[i] = list.join(' ');
+        }
       }
     }
   }
@@ -162,7 +166,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
   // port is selected.
   QVector<QStringList> internalPins;
   QMap<QString, int> indx{};
-  for (const auto &cmd : commands) {
+  for (const auto &cmd : qAsConst(convertedCommands)) {
     if (cmd.startsWith("set_pin_loc")) {
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {
@@ -171,7 +175,7 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
       if (list.size() >= 4) internalPins.append(list);
     }
   }
-  for (const auto &cmd : commands) {
+  for (const auto &cmd : qAsConst(convertedCommands)) {
     if (cmd.startsWith("set_mode")) {
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {

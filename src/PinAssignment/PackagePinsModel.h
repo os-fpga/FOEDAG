@@ -106,7 +106,7 @@ class PackagePinsModel : public QObject {
   QString convertPinName(const QString &name) const;
   QString getBallId(const QString &name) const;
   void insertBallData(const QString &name, const QString &id);
-  void detectBallIdUsage(const QString &nameOrId);
+  QString convertPinNameUsage(const QString &nameOrId);
 
  signals:
   void modeHasChanged(const QString &pin, const QString &mode);

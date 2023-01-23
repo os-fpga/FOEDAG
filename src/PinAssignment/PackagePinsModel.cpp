@@ -159,19 +159,20 @@ void PackagePinsModel::insertBallData(const QString &name, const QString &id) {
   m_ballData[id] = name;
 }
 
-void PackagePinsModel::detectBallIdUsage(const QString &nameOrId) {
+QString PackagePinsModel::convertPinNameUsage(const QString &nameOrId) {
   auto iter = m_ballData.cbegin();
   while (iter != m_ballData.cend()) {
-    if (iter.key() == nameOrId) {
-      setUseBallId(true);
-      break;
+    if (iter.key() == nameOrId) {  // ball id detected
+      if (useBallId()) return nameOrId;
+      return iter.value();
     }
-    if (iter.value() == nameOrId) {
-      setUseBallId(false);
-      break;
+    if (iter.value() == nameOrId) {  // ball name detected
+      if (useBallId()) return iter.key();
+      return nameOrId;
     }
     iter++;
   }
+  return QString{};
 }
 
 }  // namespace FOEDAG
