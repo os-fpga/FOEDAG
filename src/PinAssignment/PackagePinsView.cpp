@@ -102,6 +102,10 @@ PackagePinsView::PackagePinsView(PinsBaseModel *model, QWidget *parent)
   setColumnWidth(InternalPinCol, 170);
   resizeColumnToContents(PortsCol);
   header()->setSectionResizeMode(PortsCol, QHeaderView::Fixed);
+  // temporary hide columns since no data available
+  headerItem()->setText(InternalPinCol + 1, QString{});
+  headerItem()->setToolTip(InternalPinCol + 1, QString{});
+  for (int i = InternalPinCol + 2; i < columnCount(); i++) hideColumn(i);
 }
 
 void PackagePinsView::SetMode(const QString &pin, const QString &mode) {
