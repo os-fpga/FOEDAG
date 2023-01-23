@@ -70,7 +70,7 @@ InternalPins &PackagePinsModel::internalPinsRef() { return m_internalPinsData; }
 QStringList PackagePinsModel::GetInternalPinsList(
     const QString &pin, const QString &mode, const QString &current) const {
   int modeId = m_modes.value(mode);
-  auto v = m_internalPinsData.value(pin).value(modeId);
+  auto v = m_internalPinsData.value(convertPinName(pin)).value(modeId);
   if (m_baseModel) {
     const auto ports = m_baseModel->getPort(pin);
     for (const auto &p : ports) {
@@ -118,9 +118,9 @@ QStringListModel *PackagePinsModel::modeModelRx() const {
 void PackagePinsModel::initListModel() {
   QStringList pinsList;
   pinsList.append(QString());
-  for (const auto &group : m_pinData) {
+  for (const auto &group : qAsConst(m_pinData)) {
     for (const auto &pin : group.pinData) {
-      pinsList.append(pin.data.at(PinName));
+      pinsList.append(pin.data.at(useBallId() ? BallId : BallName));
     }
   }
   m_listModel->setStringList(pinsList);
@@ -135,5 +135,40 @@ void PackagePinsModel::appendUserGroup(const QString &userGroup) {
 }
 
 void PackagePinsModel::setBaseModel(PinsBaseModel *m) { m_baseModel = m; }
+
+void PackagePinsModel::setUseBallId(bool useBallId) {
+  if (m_useBallId != useBallId) {
+    m_useBallId = useBallId;
+    initListModel();
+    emit pinNameChanged();
+  }
+}
+
+bool PackagePinsModel::useBallId() const { return m_useBallId; }
+
+QString PackagePinsModel::convertPinName(const QString &name) const {
+  if (!useBallId()) return name;
+  return m_ballData.value(name);
+}
+
+void PackagePinsModel::insertBallData(const QString &name, const QString &id) {
+  m_ballData[id] = name;
+}
+
+QString PackagePinsModel::convertPinNameUsage(const QString &nameOrId) {
+  auto iter = m_ballData.cbegin();
+  while (iter != m_ballData.cend()) {
+    if (iter.key() == nameOrId) {  // ball id detected
+      if (useBallId()) return nameOrId;
+      return iter.value();
+    }
+    if (iter.value() == nameOrId) {  // ball name detected
+      if (useBallId()) return iter.key();
+      return nameOrId;
+    }
+    iter++;
+  }
+  return QString{};
+}
 
 }  // namespace FOEDAG

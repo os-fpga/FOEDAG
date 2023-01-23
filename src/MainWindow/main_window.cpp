@@ -78,6 +78,7 @@ constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
 constexpr const char* DEFAULT_PROJECT_PATH{"defaultProjectPath"};
+constexpr const char* PIN_PLANNER_PIN_NAME{"pinPlannerPinName"};
 
 void centerWidget(QWidget& widget) {
   auto screenGeometry = qApp->primaryScreen()->availableGeometry();
@@ -494,6 +495,55 @@ void MainWindow::defaultProjectPath() {
   }
 }
 
+void MainWindow::pinPlannerPinName() {
+  bool save{false};
+  bool clean{false};
+  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+    auto answer = QMessageBox::question(
+        this, "Pin planner",
+        "Some changes are not saved. Do you want to save them?",
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if (answer == QMessageBox::Yes) save = true;
+    if (answer == QMessageBox::No) clean = true;
+    if (answer == QMessageBox::Cancel) return;
+  }
+  QDialog dialog{this};
+  dialog.setWindowTitle(pinPlannerPinNameAction->text());
+  auto layout = new QGridLayout;
+  dialog.setLayout(layout);
+  auto buttons =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto ok = buttons->button(QDialogButtonBox::Ok);
+  auto cancel = buttons->button(QDialogButtonBox::Cancel);
+  connect(ok, &QPushButton::clicked, &dialog, &QDialog::accept);
+  connect(cancel, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+  QLabel* label = new QLabel{"Selection type:"};
+  layout->addWidget(label);
+
+  QComboBox* combo = new QComboBox{};
+  combo->addItem("Use Ball Names");
+  combo->addItem("Use Ball IDs");
+  if (m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool())
+    combo->setCurrentIndex(1);
+  layout->addWidget(combo, 0, 1);
+  layout->addWidget(buttons, 1, 0, 1, 2);
+
+  dialog.setModal(true);
+  auto result = dialog.exec();
+  if (result == QDialog::Accepted) {
+    if (save)
+      if (!saveActionTriggered()) return;
+    if (clean) pinPlannerSaved();
+    bool useBallId = combo->currentIndex() == 1;
+    m_settings.setValue(PIN_PLANNER_PIN_NAME, useBallId);
+    auto pinAssignment = findChild<PinAssignmentCreator*>();
+    if (pinAssignment) {
+      pinAssignment->setUseBallId(useBallId);
+    }
+  }
+}
+
 void MainWindow::saveToRecentSettings(const QString& project) {
   if (project.isEmpty()) return;
 
@@ -701,6 +751,7 @@ void MainWindow::createMenus() {
   helpMenu->addAction(licensesAction);
 
   preferencesMenu->addAction(defualtProjectPathAction);
+  preferencesMenu->addAction(pinPlannerPinNameAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
 
@@ -852,6 +903,10 @@ void MainWindow::createActions() {
   defualtProjectPathAction = new QAction{tr("Default project path"), this};
   connect(defualtProjectPathAction, &QAction::triggered, this,
           &MainWindow::defaultProjectPath);
+
+  pinPlannerPinNameAction = new QAction{tr("Pin planner pin selection"), this};
+  connect(pinPlannerPinNameAction, &QAction::triggered, this,
+          &MainWindow::pinPlannerPinName);
 
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);
@@ -1161,7 +1216,7 @@ void MainWindow::updatePRViewButton(int state) {
   }
 }
 
-void MainWindow::saveActionTriggered() {
+bool MainWindow::saveActionTriggered() {
   // This blocking need because of Refresh button blinks. Button become visible
   // after file save and then we hide it.
   m_blockRefereshEn = true;
@@ -1171,9 +1226,11 @@ void MainWindow::saveActionTriggered() {
   if (saveConstraintFile()) {
     QtUtils::AppendToEventQueue([this]() { m_blockRefereshEn = false; });
     pinPlannerSaved();
+    return true;
   } else {
     m_blockRefereshEn = false;
   }
+  return false;
 }
 
 void MainWindow::pinAssignmentActionTriggered() {
@@ -1199,6 +1256,7 @@ void MainWindow::pinAssignmentActionTriggered() {
     if (file.open(QFile::ReadOnly)) {
       data.commands = QtUtils::StringSplit(QString{file.readAll()}, '\n');
     }
+    data.useBallId = m_settings.value(PIN_PLANNER_PIN_NAME, false).toBool();
 
     PinAssignmentCreator* creator = new PinAssignmentCreator{data, this};
     connect(creator, &PinAssignmentCreator::changed, this,

@@ -54,12 +54,14 @@ std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
     data.pop_front();
     // internal pins parsing
     for (int i = ModeFirst; (i <= ModeLast) && (i < data.count()); i++) {
-      if (data.at(i) == "Y")
-        internalPins[data.at(PinName)][i].append(data.at(InternalPinName));
+      if (data.at(i) == "Y") {
+        internalPins[data.at(BallName)][i].append(data.at(InternalPinName));
+        m_model->insertBallData(data.at(BallName), data.at(BallId));
+      }
     }
     // -------------
-    if (uniquePins.contains(data.at(PinName))) continue;
-    uniquePins.insert(data.at(PinName));
+    if (uniquePins.contains(data.at(BallName))) continue;
+    uniquePins.insert(data.at(BallName));
     group.pinData.append({data});
   }
   if (m_model->userGroups().contains(group.name))
