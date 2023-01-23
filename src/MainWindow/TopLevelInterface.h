@@ -35,6 +35,9 @@ class TopLevelInterface {
                            bool run) = 0;
   virtual bool isRunning() const = 0;
   virtual void ProgressVisible(bool visible) = 0;
+
+  // this function is call after tcl script has finished
+  virtual void ScriptFinished() {}
 };
 
 }  // namespace FOEDAG

@@ -58,6 +58,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  protected:
   void closeEvent(QCloseEvent* event) override;
+  void ScriptFinished() override;
 
  private slots: /* slots */
   void newFile();

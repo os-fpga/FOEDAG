@@ -196,7 +196,7 @@ void MainWindow::CloseOpenedTabs() {
 
 void MainWindow::ProgressVisible(bool visible) {
   m_progressVisible = visible;
-  m_progressWidget->setVisible(visible);
+  m_progressBar->setVisible(visible);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -206,6 +206,11 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   } else {
     event->ignore();
   }
+}
+
+void MainWindow::ScriptFinished() {
+  ProgressVisible(false);
+  DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
 }
 
 void MainWindow::newFile() {
