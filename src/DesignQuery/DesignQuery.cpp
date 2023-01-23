@@ -84,7 +84,9 @@ bool DesignQuery::LoadPortInfo() {
     std::filesystem::path port_info_path = GetPortInfoPath();
     if (!FileUtils::FileExists(port_info_path)) {
       status = false;
-      m_compiler->Message("Unable to locate port_info.json in design directory: "+ GetProjDir().string());
+      m_compiler->Message(
+          "Unable to locate port_info.json in design directory: \"" +
+          GetProjDir().string() + "\"");
     } else {
       std::ifstream port_info_f(port_info_path);
       m_port_json = json::parse(port_info_f);
@@ -102,7 +104,9 @@ bool DesignQuery::LoadHierInfo() {
     std::filesystem::path hier_info_path = GetHierInfoPath();
     if (!FileUtils::FileExists(hier_info_path)) {
       status = false;
-      m_compiler->Message("Unable to locate hier_info.json in design directory: "+ GetProjDir().string());
+      m_compiler->Message(
+          "Unable to locate hier_info.json in design directory: \"" +
+          GetProjDir().string() + "\"");
     } else {
       std::ifstream hier_info_f(hier_info_path);
       m_hier_json = json::parse(hier_info_f);
@@ -122,8 +126,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     if (!design_query->LoadHierInfo()) {
       status = false;
-    }
-    else {
+    } else {
       json& hier_info = design_query->getHierJson();
       json file_ids_obj = hier_info["fileIDs"];
       if (!file_ids_obj.is_object()) {
