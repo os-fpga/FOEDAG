@@ -24,7 +24,11 @@ project(GTKWave)
 if(RAPTOR)
     set(root_dir ${PROJECT_SOURCE_DIR}/../../../..)
 else()
-    set(root_dir ${PROJECT_SOURCE_DIR}/../..)
+    if ((EXISTS ${PROJECT_SOURCE_DIR}/../../build) OR (EXISTS ${PROJECT_SOURCE_DIR}/../../dbuild))
+        set(root_dir ${PROJECT_SOURCE_DIR}/../..)
+    else()
+        set(root_dir ${PROJECT_SOURCE_DIR}/../../..)
+    endif()
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -51,14 +55,13 @@ endif()
 
 add_library(gtkwave)
 
-add_custom_command(
-  TARGET gtkwave POST_BUILD
-  COMMENT "Extracting ${gtkwave_tar} to ${install_path}"
-  COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
-        WORKING_DIRECTORY ${install_path}
+message(STATUS "Creating directory ${install_path}")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${install_path}
 )
 
-install(
-    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
-    USE_SOURCE_PERMISSIONS
+message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
+    WORKING_DIRECTORY ${install_path}
 )

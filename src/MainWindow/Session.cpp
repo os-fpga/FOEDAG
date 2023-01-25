@@ -73,7 +73,7 @@ void Session::windowShow() {
             m_compiler->ErrorMessage(result);
           m_compiler->finish();
           if (topLevel) {
-            topLevel->ProgressVisible(false);
+            topLevel->ScriptFinished();
           }
         }
       }

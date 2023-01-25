@@ -58,6 +58,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
 
  protected:
   void closeEvent(QCloseEvent* event) override;
+  void ScriptFinished() override;
 
  private slots: /* slots */
   void newFile();
@@ -69,7 +70,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void newDesignCreated(const QString& design);
   void reloadSettings();
   void updatePRViewButton(int state);
-  void saveActionTriggered();
+  bool saveActionTriggered();
   void pinAssignmentActionTriggered();
   void pinAssignmentChanged();
   void ipConfiguratorActionTriggered();
@@ -90,6 +91,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void fileModified(const QString& file);
   void refreshPinPlanner();
   void defaultProjectPath();
+  void pinPlannerPinName();
   void onDesignFilesChanged();
   void onDesignCreated();
 
@@ -194,6 +196,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* simPnrAction = nullptr;
   QAction* simBitstreamAction = nullptr;
   QAction* defualtProjectPathAction = nullptr;
+  QAction* pinPlannerPinNameAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

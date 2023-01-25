@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 103)
+set(VERSION_PATCH 108)
 
 option(
   WITH_LIBCXX
@@ -519,8 +519,14 @@ install(
 
 install(
   DIRECTORY examples DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
+
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
+    USE_SOURCE_PERMISSIONS
+)
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
