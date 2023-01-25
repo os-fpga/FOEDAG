@@ -344,7 +344,8 @@ tcl_interp_clone
   return script;
 }
 
-bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
+bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath,
+                                   bool namesOnly) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
@@ -353,8 +354,8 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
-  bool result =
-      builder.buildLiteXCatalog(GetIPGenerator()->Catalog(), litexPath);
+  bool result = builder.buildLiteXCatalog(GetIPGenerator()->Catalog(),
+                                          litexPath, namesOnly);
   return result;
 }
 

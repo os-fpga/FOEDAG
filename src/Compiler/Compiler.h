@@ -143,7 +143,8 @@ class Compiler {
   void SetSimulator(Simulator* simulator) { m_simulator = simulator; }
   Simulator* GetSimulator();
 
-  bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
+  bool BuildLiteXIPCatalog(std::filesystem::path litexPath,
+                           bool namesOnly = false);
   bool HasIPInstances();
   bool HasIPDefinitions();
 

@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef IPCATALOGBUILDER_H
+#define IPCATALOGBUILDER_H
 
 #include <filesystem>
 #include <fstream>
@@ -27,22 +29,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "IPGenerate/IPCatalog.h"
 
-#ifndef IPCATALOGBUILDER_H
-#define IPCATALOGBUILDER_H
 
 namespace FOEDAG {
+class Compiler;
 
 class IPCatalogBuilder {
  public:
   IPCatalogBuilder(Compiler* compiler) : m_compiler(compiler) {}
   bool buildLiteXCatalog(IPCatalog* catalog,
-                         const std::filesystem::path& litexIPgenPath);
+                         const std::filesystem::path& litexIPgenPath,
+                         bool namesOnly = false);
 
   virtual ~IPCatalogBuilder() {}
 
- protected:
   bool buildLiteXIPFromGenerator(
-      IPCatalog* catalog, const std::filesystem::path& pythonGeneratorScript);
+      IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);
+
+ protected:
+  bool buildLiteXIPFromGeneratorInternal(
+      IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);
   Compiler* m_compiler = nullptr;
 };
 
