@@ -147,8 +147,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
-    // DesignQuery* design_query = (DesignQuery*)clientData;
-    // Compiler* compiler = design_query->GetCompiler();
+    // TODO: Implement this API
     bool status = true;
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -157,11 +156,8 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_file_name = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
-    // DesignQuery* design_query = (DesignQuery*)clientData;
-    // Compiler* compiler = design_query->GetCompiler();
+    // TODO: Implement this API
     bool status = true;
-
-    // Parse Argument file_id
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
@@ -169,8 +165,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    // DesignQuery* design_query = (DesignQuery*)clientData;
-    // Compiler* compiler = design_query->GetCompiler();
+    // TODO: Implement this API
     bool status = true;
 
     return (status) ? TCL_OK : TCL_ERROR;
@@ -179,11 +174,8 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
-    // DesignQuery* design_query = (DesignQuery*)clientData;
-    // Compiler* compiler = design_query->GetCompiler();
+    // TODO: Implement this API
     bool status = true;
-
-    // Parse Argument module_name
 
     return (status) ? TCL_OK : TCL_ERROR;
   };
