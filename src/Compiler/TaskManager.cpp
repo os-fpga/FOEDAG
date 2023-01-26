@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 
 #include "Compiler/CompilerDefines.h"
+#include "Main/DialogProvider.h"
 #include "Reports/PackingReportManager.h"
 #include "Reports/PlacementReportManager.h"
 #include "Reports/RoutingReportManager.h"
@@ -30,6 +31,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Reports/TimingAnalysisReportManager.h"
 
 namespace FOEDAG {
+
+static constexpr auto CleanTitle{"Clean files"};
+static constexpr auto CleanText{
+    "Do you want to proceed with the cleaning of the %1?\n\nNote: All the "
+    "files generated from the selected task will be deleted "
+    "from disk. Also, this will trigger the cleaning of the subsequent tasks "
+    "in compile order."};
 
 TaskManager::TaskManager(Compiler *compiler, QObject *parent)
     : QObject{parent} {
@@ -277,6 +285,12 @@ void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
   if (!t->isValid() || !t->isEnable()) return;
   if (t->type() == TaskType::Clean) {
+    if (m_dialogProvider) {
+      if (m_dialogProvider->question(
+              CleanTitle, QString{CleanText}.arg(t->parentTask()->title())) !=
+          UserSelection::Accept)
+        return;
+    }
     // put clean commands in the reverse order. Otherwise it will brake compiler
     // state machine
     for (auto &clearTask : getDownstreamCleanTasks(t)) appendTask(clearTask);
@@ -375,6 +389,10 @@ const TaskReportManagerRegistry &TaskManager::getReportManagerRegistry() const {
 
 bool TaskManager::isSimulation(const Task *const task) {
   return task->cusomData().type == CustomDataType::Sim;
+}
+
+void TaskManager::setDialogProvider(const DialogProvider *const dProvider) {
+  m_dialogProvider = dProvider;
 }
 
 void TaskManager::appendTask(Task *t) {

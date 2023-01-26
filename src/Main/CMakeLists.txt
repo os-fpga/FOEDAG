@@ -65,6 +65,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
   ../MainWindow/PathEdit.cpp
+  ../Main/DialogProvider.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -95,6 +96,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   CompilerNotifier.h
   ../Main/TclSimpleParser.h
   ../MainWindow/PathEdit.h
+  ../Main/DialogProvider.h
 )
 
 set (SRC_UI_LIST "")
@@ -158,6 +160,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/Tasks.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/AboutWidget.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/DialogProvider.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(

@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IpConfigurator/IpConfigurator.h"
 #include "IpConfigurator/IpConfiguratorCreator.h"
 #include "Main/CompilerNotifier.h"
+#include "Main/DialogProvider.h"
 #include "Main/Foedag.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/licenseviewer.h"
@@ -1107,6 +1108,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // compiler task view
   delete m_taskView;
   m_taskView = prepareCompilerView(m_compiler, &m_taskManager);
+  m_taskManager->setDialogProvider(new DialogProvider{this});
   m_taskView->setObjectName("compilerTaskView");
   m_taskView->setParent(this);
   m_taskModel = dynamic_cast<TaskModel*>(m_taskView->model());
