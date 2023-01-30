@@ -44,7 +44,11 @@ else()
 endif()
 
 set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
-set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/gtkwaveTCL.tar.gz)
+if(WIN32)
+    set(temp_path "${CMAKE_CURRENT_SOURCE_DIR}/gtkwave-3.3.100-bin-win32.zip")
+else()
+    set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/gtkwaveTCL.tar.gz)
+endif()
 set(install_path ${build_dir}/bin)
 set(gtkwave_path ${install_path}/gtkwave)
 
@@ -61,7 +65,19 @@ execute_process(
 )
 
 message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
-execute_process(
+add_custom_command(
+  TARGET gtkwave POST_BUILD
+  COMMENT "Extracting ${gtkwave_tar} to ${install_path}"
+  if(WIN32)
+    COMMAND unzip -o ${temp_path}
+    WORKING_DIRECTORY ${install_path}
+  else()
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
     WORKING_DIRECTORY ${install_path}
+  endif()
+)
+
+install(
+    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
+    USE_SOURCE_PERMISSIONS
 )
