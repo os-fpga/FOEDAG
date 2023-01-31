@@ -65,19 +65,7 @@ execute_process(
 )
 
 message(STATUS "Extracting ${gtkwave_tar} to ${install_path}")
-add_custom_command(
-  TARGET gtkwave POST_BUILD
-  COMMENT "Extracting ${gtkwave_tar} to ${install_path}"
-  if(WIN32)
-    COMMAND unzip -o ${temp_path}
-    WORKING_DIRECTORY ${install_path}
-  else()
+execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path}
     WORKING_DIRECTORY ${install_path}
-  endif()
-)
-
-install(
-    DIRECTORY ${install_path}/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
-    USE_SOURCE_PERMISSIONS
 )
