@@ -93,6 +93,9 @@ void newProjectDialog::Reset(Mode mode) {
   m_mode = mode;
   m_index = INDEX_LOCATION;
   m_skipSources = false;
+  QVector<QWidget *> oldWidgets;
+  for (int i = 0; i < ui->m_tabWidget->count(); i++)
+    oldWidgets.push_back(ui->m_tabWidget->widget(i));
   ui->m_tabWidget->clear();
 
   if (mode == NewProject)
@@ -101,6 +104,7 @@ void newProjectDialog::Reset(Mode mode) {
     ResetToProjectSettings();
 
   UpdateDialogView(mode);
+  qDeleteAll(oldWidgets);
 }
 
 Mode newProjectDialog::GetMode() const { return m_mode; }
@@ -151,7 +155,6 @@ void newProjectDialog::UpdateDialogView(Mode mode) {
 
 void newProjectDialog::ResetToNewProject() {
   setWindowTitle(tr("New Project"));
-  ui->m_tabWidget->clear();
 
   m_locationForm = new locationForm(m_defaultPath, this);
   ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
@@ -189,6 +192,8 @@ void newProjectDialog::ResetToNewProject() {
 void newProjectDialog::ResetToProjectSettings() {
   setWindowTitle(tr("Project settings"));
   m_settings.clear();
+  m_locationForm = nullptr;
+  m_proTypeForm = nullptr;
 
   m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Design Files");
@@ -297,9 +302,12 @@ void newProjectDialog::on_buttonBox_accepted() {
   }
 
   ProjectOptions opt{
-      m_locationForm->getProjectName(),
-      m_locationForm->getProjectPath(),
-      m_proTypeForm->projectType(),
+      m_locationForm ? m_locationForm->getProjectName()
+                     : m_projectManager->getProjectName(),
+      m_locationForm ? m_locationForm->getProjectPath()
+                     : m_projectManager->getProjectPath(),
+      m_proTypeForm ? m_proTypeForm->projectType()
+                    : m_projectManager->projectType(),
       {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
       {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
       {m_addSimForm->getFileData(), m_addSimForm->IsCopySource()},
