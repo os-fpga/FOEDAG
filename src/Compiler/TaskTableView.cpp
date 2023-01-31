@@ -263,13 +263,26 @@ void TaskTableView::TasksDelegate::paint(QPainter *painter,
     if (statusData.type() == QVariant::Bool) {
       label->setMovie(m_inProgressMovie);
       // Place the animation to cells left side, similar to other decorations
-      label->move(m_view.visualRect(index).topLeft());
+      label->move(m_view.visualRect(index).center() -
+                  (label->rect().center() - QPoint{6, 0}));
       m_inProgressMovie->start();
       return;
     } else {
       // Reset the movie when task is no longer in progress
       label->setMovie(nullptr);
     }
+
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    opt.decorationAlignment = Qt::AlignCenter;
+    opt.decorationPosition = QStyleOptionViewItem::Top;
+    opt.decorationSize = QSize{20, 20};
+    opt.showDecorationSelected = false;
+    QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
+    opt.icon = icon;
+    opt.rect = opt.rect.adjusted(0, 4, 0, 0);
+    QStyledItemDelegate::paint(painter, opt, index);
+    return;
   }
   QStyledItemDelegate::paint(painter, option, index);
 }

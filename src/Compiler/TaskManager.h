@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 class Compiler;
+class DialogProvider;
 
 /*!
  * \brief The TaskManager class
@@ -96,6 +97,7 @@ class TaskManager : public QObject {
   const TaskReportManagerRegistry &getReportManagerRegistry() const;
 
   static bool isSimulation(const Task *const task);
+  void setDialogProvider(const DialogProvider *const dProvider);
 
  signals:
   /*!
@@ -140,6 +142,7 @@ class TaskManager : public QObject {
   TaskReportManagerRegistry m_reportManagerRegistry;
   int m_taskCount{0};
   int counter{0};
+  const DialogProvider *m_dialogProvider{nullptr};
 };
 
 }  // namespace FOEDAG
