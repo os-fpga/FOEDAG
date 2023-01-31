@@ -57,7 +57,128 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
+using json = nlohmann::ordered_json;
+
+std::filesystem::path DesignQuery::GetProjDir() const {
+  ProjectManager* projManager = m_compiler->ProjManager();
+  std::filesystem::path dir(projManager->getProjectPath().toStdString());
+  return dir;
+}
+
+std::filesystem::path DesignQuery::GetHierInfoPath() const {
+  std::filesystem::path dir = GetProjDir();
+  std::filesystem::path hier_info = "hier_info.json";
+  return dir / hier_info;
+}
+
+std::filesystem::path DesignQuery::GetPortInfoPath() const {
+  std::filesystem::path dir = GetProjDir();
+  std::filesystem::path port_info = "port_info.json";
+  return dir / port_info;
+}
+
+bool DesignQuery::LoadPortInfo() {
+  bool status = true;
+
+  if (!m_parsed_portinfo) {
+    std::filesystem::path port_info_path = GetPortInfoPath();
+    if (!FileUtils::FileExists(port_info_path)) {
+      status = false;
+      m_compiler->Message(
+          "Unable to locate port_info.json in design directory: \"" +
+          GetProjDir().string() + "\"");
+    } else {
+      std::ifstream port_info_f(port_info_path);
+      m_port_json = json::parse(port_info_f);
+      m_parsed_portinfo = true;
+    }
+  }
+
+  return status;
+}
+
+bool DesignQuery::LoadHierInfo() {
+  bool status = true;
+
+  if (!m_parsed_hierinfo) {
+    std::filesystem::path hier_info_path = GetHierInfoPath();
+    if (!FileUtils::FileExists(hier_info_path)) {
+      status = false;
+      m_compiler->Message(
+          "Unable to locate hier_info.json in design directory: \"" +
+          GetProjDir().string() + "\"");
+    } else {
+      std::ifstream hier_info_f(hier_info_path);
+      m_hier_json = json::parse(hier_info_f);
+      m_parsed_hierinfo = true;
+    }
+  }
+
+  return status;
+}
 
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+
+    if (!design_query->LoadHierInfo()) {
+      status = false;
+    } else {
+      json& hier_info = design_query->getHierJson();
+      json file_ids_obj = hier_info["fileIDs"];
+      if (!file_ids_obj.is_object()) {
+        status = false;
+      } else {
+        std::string ret = "";
+        for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++) {
+          ret += " ";
+          ret += it.key();
+        }
+        compiler->TclInterp()->setResult(ret);
+      }
+    }
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_file_ids", get_file_ids, this, 0);
+
+  auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = true;
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_modules", get_modules, this, 0);
+
+  auto get_file_name = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = true;
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_file_name", get_file_name, this, 0);
+
+  auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = true;
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_top_module", get_top_module, this, 0);
+
+  auto get_ports = [](void* clientData, Tcl_Interp* interp, int argc,
+                      const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = true;
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_ports", get_ports, this, 0);
   return true;
 }
