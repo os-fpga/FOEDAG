@@ -1124,6 +1124,8 @@ void MainWindow::ReShowWindow(QString strProject) {
             } else {
               m_progressBar->setMaximum(max);
               m_progressBar->setValue(val);
+              showMessagesTab();
+              showReportsTab();
             }
             m_progressBar->show();
             setStatusAndProgressText(statusMsg);

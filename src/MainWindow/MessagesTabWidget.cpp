@@ -35,15 +35,17 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
       auto filePath = task->logFileReadPath();
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
-      if (!FileUtils::FileExists(filePath.toStdString()))
-        filePath = tr("log file not found");
+      const bool fileExists{FileUtils::FileExists(filePath.toStdString())};
+      if (!fileExists) filePath = tr("log file not found");
       auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
       auto taskItem = new QTreeWidgetItem({itemName});
 
-      const auto &msgs = reportManager->getMessages();
-      for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
-        auto msgItem = createTaskMessageItem(it.value(), filePath);
-        taskItem->addChild(msgItem);
+      if (fileExists) {
+        const auto &msgs = reportManager->getMessages();
+        for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
+          auto msgItem = createTaskMessageItem(it.value(), filePath);
+          taskItem->addChild(msgItem);
+        }
       }
       treeWidget->addTopLevelItem(taskItem);
     }
