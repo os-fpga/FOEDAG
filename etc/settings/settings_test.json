@@ -278,18 +278,12 @@
                 "options": [
                     "Verilator",
                     "GHDL",
-                    "Icarus",
-                    "VCS",
-                    "Questa",
-                    "Xcelium"
+                    "Icarus"
                 ],
                 "optionsLookup": [
                     "verilator",
                     "ghdl",
-                    "icarus",
-                    "vcs",
-                    "questa",
-                    "xcelium"
+                    "icarus"
                 ],
                 "default": "verilator",
                 "arg": "rtl_sim_type"
@@ -331,18 +325,12 @@
                 "options": [
                     "Verilator",
                     "GHDL",
-                    "Icarus",
-                    "VCS",
-                    "Questa",
-                    "Xcelium"
+                    "Icarus"
                 ],
                 "optionsLookup": [
                     "verilator",
                     "ghdl",
-                    "icarus",
-                    "vcs",
-                    "questa",
-                    "xcelium"
+                    "icarus"
                 ],
                 "default": "verilator",
                 "arg": "gate_sim_type"
@@ -384,18 +372,12 @@
                 "options": [
                     "Verilator",
                     "GHDL",
-                    "Icarus",
-                    "VCS",
-                    "Questa",
-                    "Xcelium"
+                    "Icarus"
                 ],
                 "optionsLookup": [
                     "verilator",
                     "ghdl",
-                    "icarus",
-                    "vcs",
-                    "questa",
-                    "xcelium"
+                    "icarus"
                 ],
                 "default": "verilator",
                 "arg": "pnr_sim_type"
@@ -437,18 +419,12 @@
                 "options": [
                     "Verilator",
                     "GHDL",
-                    "Icarus",
-                    "VCS",
-                    "Questa",
-                    "Xcelium"
+                    "Icarus"
                 ],
                 "optionsLookup": [
                     "verilator",
                     "ghdl",
-                    "icarus",
-                    "vcs",
-                    "questa",
-                    "xcelium"
+                    "icarus"
                 ],
                 "default": "verilator",
                 "arg": "bitstream_sim_type"
