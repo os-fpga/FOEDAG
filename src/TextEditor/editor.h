@@ -40,7 +40,8 @@ class Editor : public QWidget {
   void Replace(const QString& strFind, const QString& strDesWord);
   void ReplaceAndFind(const QString& strFind, const QString& strDesWord);
   void ReplaceAll(const QString& strFind, const QString& strDesWord);
-  void markLine(int line);
+  void markLineError(int line);
+  void markLineWarning(int line);
   void clearMarkers();
   void reload();
   void selectLines(int lineFrom, int lineTo);
