@@ -9,5 +9,6 @@
         <file>images/save.png</file>
         <file>images/minus.png</file>
         <file>images/playSim.png</file>
+        <file>images/erase.png</file>
     </qresource>
 </RCC>

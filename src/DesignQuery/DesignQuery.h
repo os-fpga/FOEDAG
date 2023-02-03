@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#include "nlohmann_json/json.hpp"
+
 namespace FOEDAG {
 
 class TclInterpreter;
@@ -38,10 +40,21 @@ class DesignQuery {
   DesignQuery(Compiler* compiler) : m_compiler(compiler) {}
   virtual ~DesignQuery() {}
   Compiler* GetCompiler() { return m_compiler; }
+  nlohmann::ordered_json& getHierJson() { return m_hier_json; }
+  nlohmann::ordered_json& getPortJson() { return m_port_json; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  std::filesystem::path GetProjDir() const;
+  std::filesystem::path GetHierInfoPath() const;
+  std::filesystem::path GetPortInfoPath() const;
+  bool LoadPortInfo();
+  bool LoadHierInfo();
 
  protected:
   Compiler* m_compiler = nullptr;
+  nlohmann::ordered_json m_hier_json;
+  nlohmann::ordered_json m_port_json;
+  bool m_parsed_portinfo = false;
+  bool m_parsed_hierinfo = false;
 };
 
 }  // namespace FOEDAG

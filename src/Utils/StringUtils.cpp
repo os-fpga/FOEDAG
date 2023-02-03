@@ -33,31 +33,29 @@ std::map<std::string, std::string> StringUtils::envVars;
 
 void StringUtils::tokenize(std::string_view str, std::string_view separator,
                            std::vector<std::string>& result, bool skipEmpty) {
+  std::string::size_type pos{0};
+  const auto sepSize = separator.size();
+  const auto stringSize = str.size();
   std::string tmp;
-  const unsigned int sepSize = separator.size();
-  const unsigned int stringSize = str.size();
-  for (unsigned int i = 0; i < stringSize; i++) {
-    bool isSeparator = false;
-    for (unsigned int j = 0; j < sepSize; j++) {
-      if (str[i] == separator[j]) {
-        isSeparator = true;
-        break;
-      }
-    }
-    if (isSeparator) {
-      if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
-      tmp = "";
-      if (i == (str.size() - 1)) {
-        if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
-      }
-    } else if (i == (str.size() - 1)) {
-      tmp += str[i];
-      if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
-      tmp = "";
-    } else {
-      tmp += str[i];
-    }
+  std::string::size_type n = str.find(separator, pos);
+  while (n != std::string::npos) {
+    tmp = str.substr(pos, n - pos);
+    if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
+    pos = n + sepSize;
+    n = str.find(separator, pos);
   }
+  if (pos < stringSize) {  // put last part
+    tmp = str.substr(pos, stringSize - pos);
+    if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
+  }
+}
+
+std::vector<std::string> StringUtils::tokenize(std::string_view str,
+                                               std::string_view separator,
+                                               bool skipEmpty) {
+  std::vector<std::string> result;
+  tokenize(str, separator, result, skipEmpty);
+  return result;
 }
 
 std::string StringUtils::join(const std::vector<std::string>& strings,

@@ -58,10 +58,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "ReportsTreeWidget.h"
+#include "Tasks.h"
 #include "TextEditor/text_editor.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
 #include "Utils/QtUtils.h"
+#include "WidgetFactory.h"
 #include "foedag_version.h"
 
 using namespace FOEDAG;
@@ -213,6 +215,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 void MainWindow::ScriptFinished() {
   ProgressVisible(false);
   DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
+  saveSettings();
 }
 
 void MainWindow::newFile() {
@@ -1575,6 +1578,22 @@ void MainWindow::setStatusAndProgressText(const QString& text) {
 
   // Duplicate status in the actual window status bar
   statusBar()->showMessage(text);
+}
+
+void MainWindow::saveSettings() {
+  if (m_taskManager) {
+    const auto tasks = m_taskManager->tasks();
+    for (const Task* const t : tasks) {
+      if (!t->settingsKey().isEmpty()) {
+        auto d = FOEDAG::createTaskDialog(t->settingsKey());
+        if (d) {
+          QDialogButtonBox* btnBox =
+              d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
+          if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();
+        }
+      }
+    }
+  }
 }
 
 void MainWindow::onShowWelcomePage(bool show) {
