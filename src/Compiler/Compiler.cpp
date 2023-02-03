@@ -2487,28 +2487,6 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
   return true;
 }
 
-void Compiler::PrintVersion(std::ostream* out) {
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version     : " << foedag_version_number << "\n";
-  if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Revision    : " << foedag_git_hash << "\n";
-  (*out) << "Date        : " << __DATE__ << "\n";
-  (*out) << "Build       : " << foedag_build_type << "\n";
-}
-
-bool Compiler::ExecuteSystemCommand(const std::string& command) {
-#if (defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN__))
-  // TODO: Windows System call
-#else
-  int result = system(command.c_str());
-  if (result == 0) {
-    return true;
-  }
-#endif
-
-  return false;
-}
-
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile =
       (std::filesystem::path(ProjManager()->projectPath()) /
