@@ -205,7 +205,6 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   route ?clean?              : Router" << std::endl;
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
-  (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
          << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
@@ -1770,15 +1769,6 @@ bool CompilerOpenFPGA::Placement() {
   bool userConstraint = false;
   std::vector<std::string> constraints;
   for (auto constraint : m_constraints->getConstraints()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(constraint, " ", tokens);
-    constraint = "";
-    constraint += tokens[0];
-    // last token tokens[tokens.size() - 1]  is "" (why?)
-    for (uint32_t i = 1; i < tokens.size() - 1; i++) {
-      const std::string& tok = tokens[i];
-      constraint += " " + tok;
-    }
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
     // pin location constraints have to be translated to .place:
