@@ -205,7 +205,6 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   route ?clean?              : Router" << std::endl;
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
-  (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
          << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "

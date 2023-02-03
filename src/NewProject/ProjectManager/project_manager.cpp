@@ -432,6 +432,56 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
   return result;
 }
 
+int ProjectManager::setSimulationFiles(const QString& commands,
+                                       const QString& libs,
+                                       const QString& fileNames, int lang,
+                                       const QString& grName, bool isFileCopy,
+                                       bool localToProject) {
+  // TODO @volodymyrk RG-305
+  setCurrentFileSet(getSimulationActiveFileSet());
+  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
+  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
+  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
+
+  ProjectFileSet* proFileSet =
+      Project::Instance()->getProjectFileset(m_currentFileSet);
+  if (nullptr == proFileSet) {
+    return -1;
+  }
+
+  if (localToProject) {
+    const auto path =
+        ProjectFilesPath(Project::Instance()->projectPath(),
+                         Project::Instance()->projectName(), m_currentFileSet);
+    QStringList fullPathFileList;
+    for (const auto& file : fileList) {
+      fullPathFileList.append(QtUtils::CreatePath(path, file));
+    }
+    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang,
+                         grName);
+  } else {
+    if (isFileCopy) {
+      QStringList localFileList;
+      for (const auto& file : fileList) {
+        const QFileInfo info{file};
+        localFileList.append(
+            ProjectFilesPath(getProjectPath(), getProjectName(),
+                             m_currentFileSet, info.fileName()));
+      }
+      proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
+    } else {
+      proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
+    }
+  }
+
+  int result{0};
+  for (const auto& file : fileList) {
+    int res = setSimulationFile(file, isFileCopy, localToProject);
+    if (res != 0) result = res;
+  }
+  return result;
+}
+
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
                                   bool localToProject) {
   int ret = 0;
@@ -1815,7 +1865,7 @@ void ProjectManager::UpdateProjectInternal(const ProjectOptions& opt,
                             const QString& fileNames, int lang,
                             const QString& grName, bool isFileCopy,
                             bool localToProject) {
-    addSimulationFiles(commands, libs, fileNames, lang, grName, isFileCopy,
+    setSimulationFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                        localToProject);
   };
 

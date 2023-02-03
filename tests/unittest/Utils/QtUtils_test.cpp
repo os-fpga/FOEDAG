@@ -62,3 +62,42 @@ TEST(QtUtils, AppendToEventQueue) {
   std::vector<int> expected{3, 1, 2};
   EXPECT_EQ(testData, expected);
 }
+
+TEST(QtUtils, CreatePath) {
+  QString path{"some_path"};
+  QString file{"some_file"};
+  auto fullPath = QtUtils::CreatePath(path, file);
+
+  EXPECT_EQ(fullPath, QString{"%1%2%3"}.arg(path, QDir::separator(), file));
+}
+
+TEST(QtUtils, CreatePathOneArg) {
+  QString path{"some_path"};
+  auto fullPath = QtUtils::CreatePath(path);
+
+  EXPECT_EQ(fullPath, QString{"%1"}.arg(path));
+}
+
+TEST(QtUtils, CreatePathFourArgs) {
+  QString folder1{"folder1"};
+  QString folder2{"folder2"};
+  QString folder3{"folder3"};
+  QString folder4{"folder4"};
+  auto fullPath = QtUtils::CreatePath(folder1, folder2, folder3, folder4);
+
+  EXPECT_EQ(fullPath,
+            QString{"%1%2%3%4%5%6%7"}.arg(folder1, QDir::separator(), folder2,
+                                          QDir::separator(), folder3,
+                                          QDir::separator(), folder4));
+}
+
+TEST(QtUtils, CreatePathThreeArgs) {
+  QString folder1{"folder1"};
+  QString folder2{"folder2"};
+  QString folder3{"folder3"};
+  auto fullPath = QtUtils::CreatePath(folder1, folder2, folder3);
+
+  EXPECT_EQ(fullPath,
+            QString{"%1%2%3%4%5"}.arg(folder1, QDir::separator(), folder2,
+                                      QDir::separator(), folder3));
+}
