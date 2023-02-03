@@ -26,8 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+class Compiler;
+class ITaskReportManager;
+class Task;
+
 QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
+void handleViewFileRequested(const QString& filePath);
+void handleViewReportRequested(Compiler* compiler, const Task* task,
+                               const QString& reportId,
+                               ITaskReportManager& reportManager);
 
 // Setters/Getters for tclArgs
 void TclArgs_setSynthesisOptions(const std::string& argsStr);
@@ -36,6 +44,23 @@ void TclArgs_setExampleArgs(const std::string& argsStr);
 std::string TclArgs_getExampleArgs();
 void TclArgs_setPlacementOptions(const std::string& argsStr);
 std::string TclArgs_getPlacementOptions();
+void TclArgs_setPackingOptions(const std::string& argsStr);
+std::string TclArgs_getPackingOptions();
+
+void TclArgs_setSimulateOptions_rtl(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_rtl();
+
+void TclArgs_setSimulateOptions_gate(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_gate();
+
+void TclArgs_setSimulateOptions_pnr(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_pnr();
+
+void TclArgs_setSimulateOptions_bitstream(const std::string& argsStr);
+std::string TclArgs_getSimulateOptions_bitstream();
+
+void TclArgs_setTimingAnalysisOptions(const std::string& argsStr);
+std::string TclArgs_getTimingAnalysisOptions();
 
 }  // namespace FOEDAG
 

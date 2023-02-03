@@ -24,7 +24,7 @@
      </property>
      <widget class="QWidget" name="m_tabHierarchy">
       <attribute name="title">
-       <string>Hierarchy</string>
+       <string>Files</string>
       </attribute>
      </widget>
      <widget class="QWidget" name="tab_2">

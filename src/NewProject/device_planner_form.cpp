@@ -77,9 +77,10 @@ QList<QString> devicePlannerForm::getSelectedDevice() const {
   listRtn.append(ui->m_comboBoxFamily->currentText());
   listRtn.append(ui->m_comboBoxPackage->currentText());
 
-  if (m_selectmodel->hasSelection()) {
-    int curRow = m_selectmodel->currentIndex().row();
-    listRtn.append(m_model->data(m_model->index(curRow, 0)).toString());
+  if (m_selectmodel->hasSelection() &&
+      !m_selectmodel->selectedRows(0).isEmpty()) {
+    auto index = m_selectmodel->selectedRows(0).first();
+    listRtn.append(m_model->data(index).toString());
   } else {
     listRtn.append(m_model->data(m_model->index(0, 0)).toString());
   }
@@ -94,14 +95,23 @@ void devicePlannerForm::updateUi(ProjectManager *pm) {
   auto family = pm->getSynthOption(PROJECT_PART_FAMILY);
   auto package = pm->getSynthOption(PROJECT_PART_PACKAGE);
 
-  if (series.isEmpty() || family.isEmpty() || package.isEmpty()) return;
-  // The order is important here since every combo depends on previous selection
-  ui->m_comboBoxSeries->setCurrentIndex(
-      ui->m_comboBoxSeries->findData(series, Qt::DisplayRole));
-  ui->m_comboBoxFamily->setCurrentIndex(
-      ui->m_comboBoxFamily->findData(family, Qt::DisplayRole));
-  ui->m_comboBoxPackage->setCurrentIndex(
-      ui->m_comboBoxPackage->findData(package, Qt::DisplayRole));
+  if (!series.isEmpty() && !family.isEmpty() && !package.isEmpty()) {
+    // The order is important here since every combo depends on previous
+    // selection
+    ui->m_comboBoxSeries->setCurrentIndex(
+        ui->m_comboBoxSeries->findData(series, Qt::DisplayRole));
+    ui->m_comboBoxFamily->setCurrentIndex(
+        ui->m_comboBoxFamily->findData(family, Qt::DisplayRole));
+    ui->m_comboBoxPackage->setCurrentIndex(
+        ui->m_comboBoxPackage->findData(package, Qt::DisplayRole));
+  }
+
+  auto device = pm->getSynthOption(PROJECT_PART_DEVICE);
+  auto items = m_model->findItems(device);
+  if (!items.isEmpty()) {
+    auto index = items.first()->index();
+    UpdateSelection(index);
+  }
 }
 
 void devicePlannerForm::onSeriestextChanged(const QString &arg1) {
@@ -196,4 +206,11 @@ void devicePlannerForm::UpdateDeviceTableView() {
 
     m_model->insertRow(rows, items);
   }
+  UpdateSelection(m_selectmodel->model()->index(0, 0));
+}
+
+void devicePlannerForm::UpdateSelection(const QModelIndex &index) {
+  m_selectmodel->select(index,
+                        QItemSelectionModel::SelectionFlag::ClearAndSelect |
+                            QItemSelectionModel::Rows);
 }

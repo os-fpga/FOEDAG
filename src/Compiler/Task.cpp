@@ -45,9 +45,7 @@ TaskStatus Task::status() const { return m_status; }
 void Task::setStatus(TaskStatus newStatus) {
   if (m_status != newStatus) {
     m_status = newStatus;
-    emit statusChanged();
-    if (m_status == TaskStatus::Success || m_status == TaskStatus::Fail)
-      emit finished();
+    emit statusChanged(m_status);
   }
 }
 
@@ -56,6 +54,18 @@ void Task::setTaskType(TaskType newType) { m_type = newType; }
 
 QString Task::settingsKey() const { return m_settings_key; }
 void Task::setSettingsKey(QString key) { m_settings_key = key; }
+
+QString Task::logFileReadPath() const { return m_logFilePath; }
+void Task::setLogFileReadPath(QString path) { m_logFilePath = path; }
+
+QString Task::abbreviation() const { return m_abbreviation; }
+void Task::setAbbreviation(QString abbreviation) {
+  m_abbreviation = abbreviation;
+}
+
+void Task::setCustomData(const CustomData &data) { m_customData = data; }
+
+const CustomData &Task::cusomData() const { return m_customData; }
 
 void Task::trigger() {
   if (m_status != TaskStatus::InProgress) emit taskTriggered();
@@ -66,5 +76,14 @@ const QVector<Task *> &Task::subTask() const { return m_subTask; }
 bool Task::isValid() const { return m_valid; }
 
 void Task::setValid(bool newValid) { m_valid = newValid; }
+
+bool Task::isEnable() const { return m_enable; }
+
+void Task::setEnable(bool newEnable) {
+  if (m_enable != newEnable) {
+    m_enable = newEnable;
+    for (const auto &sub : m_subTask) sub->setEnable(newEnable);
+  }
+}
 
 }  // namespace FOEDAG

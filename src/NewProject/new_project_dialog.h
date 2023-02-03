@@ -7,6 +7,7 @@
 
 #include "ProjectManager/project_manager.h"
 #include "add_constraints_form.h"
+#include "add_sim_form.h"
 #include "add_source_form.h"
 #include "device_planner_form.h"
 #include "location_form.h"
@@ -23,6 +24,7 @@ enum FormIndex {
   INDEX_LOCATION = 0,
   INDEX_PROJTYPE,
   INDEX_ADDSOURC,
+  INDEX_ADDSIM,
   INDEX_ADDCONST,
   INDEX_DEVICEPL,
   INDEX_SUMMARYF
@@ -48,9 +50,12 @@ class newProjectDialog : public QDialog {
   QString getProject();
   void Reset(Mode mode = NewProject);
   Mode GetMode() const;
+  void SetPageActive(FormIndex index);
+
+  void SetDefaultPath(const QString& path);
 
  private slots:
-
+  void updateSummaryPage();
   void on_buttonBox_accepted();
   void on_buttonBox_rejected();
   void on_next();
@@ -64,17 +69,23 @@ class newProjectDialog : public QDialog {
   locationForm* m_locationForm;
   projectTypeForm* m_proTypeForm;
   addSourceForm* m_addSrcForm;
+  addSourceForm* m_addSimForm;
   addConstraintsForm* m_addConstrsForm;
   devicePlannerForm* m_devicePlanForm;
   summaryForm* m_sumForm;
   Mode m_mode{NewProject};
   QVector<SettingsGuiInterface*> m_settings;
+  QMap<FormIndex, int> m_tabIndexes;
+  QString m_defaultPath;
 
   ProjectManager* m_projectManager;
   bool m_skipSources{false};
   void UpdateDialogView(Mode mode = NewProject);
   void ResetToNewProject();
   void ResetToProjectSettings();
+  std::pair<bool, QString> ValuesValid() const;
+  QList<QString> FindCompileUnitConflicts() const;
+  void updateSummary(const QString& projectName, const QString& projectType);
 };
 }  // namespace FOEDAG
 #endif  // CREATEPROJECTDIALOG_H

@@ -26,14 +26,19 @@ typedef struct tagFileData {
 } FILEDATA;
 
 typedef FILEDATA filedata;
+class ProjectManager;
+constexpr int NO_PROJECT_TYPE{-1};
 
 class sourceGrid : public QWidget {
   Q_OBJECT
 
  public:
   explicit sourceGrid(QWidget *parent = nullptr);
+  void setProjectType(int projectType);
+  int projectType() const;
 
   void setGridType(GridType type);
+  GridType gridType() const;
   QList<filedata> getTableViewData();
 
   void currentFileSet(const QString &fileSet);
@@ -49,6 +54,7 @@ class sourceGrid : public QWidget {
   void DownTableItem();
   void TableViewSelectionChanged();
 
+  void CreateNewFile(FOEDAG::filedata fdata);
   void AddTableItem(FOEDAG::filedata fdata);
 
  private slots:
@@ -70,13 +76,23 @@ class sourceGrid : public QWidget {
 
   QList<filedata> m_lisFileData;
   QString m_currentFileSet;
-  QStringList GetAllDesignSourceExtentions() const;
-  void initLanguageCombo(int row, const QVariant &data);
+  ProjectManager *m_projectManager{nullptr};
+  int m_projectType{NO_PROJECT_TYPE};
+  static const QStringList uniqueExtentions;
 
  private:
+  QStringList GetAllDesignSourceExtentions(int projectType) const;
+  void initLanguageCombo(int row, const QVariant &data);
+  int CurrentProjectType() const;
+
   void MoveTableRow(int from, int to);
   bool IsFileDataExit(filedata fdata);
-  static QComboBox *CreateLanguageCombo();
+  static QComboBox *CreateLanguageCombo(int projectType, GridType gType);
+  bool CheckPinFileExists(const QString &suffix);
+  bool CheckNetlistFileExists(const QStringList &files);
+  bool isPinFileAdded() const;
+  bool isNetlistFileAdded() const;
+  QString Filter(int projectType, GridType gType) const;
 };
 }  // namespace FOEDAG
 

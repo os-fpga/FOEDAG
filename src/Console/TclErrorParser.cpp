@@ -30,8 +30,9 @@ TclErrorParser::TclErrorParser() {}
 LineParser::Result TclErrorParser::handleLine(const QString &message,
                                               OutputFormat format) {
   Q_UNUSED(format);
-  const QRegularExpression getFile{"(?<=file \")(.*)(?=\" line*)"};
-  const QRegularExpression getLine{"(?<=line )(\\d+)"};
+  // use static to fix use-static-qregularexpression clazy warning
+  static const QRegularExpression getFile{"(?<=file \")(.*)(?=\" line*)"};
+  static const QRegularExpression getLine{"(?<=line )(\\d+)"};
   auto regExpMatch = getFile.match(message);
   auto lineMatch = getLine.match(message);
   if (regExpMatch.hasMatch() && lineMatch.hasMatch()) {

@@ -1,6 +1,8 @@
 #include "project_fileset.h"
 using namespace FOEDAG;
 
+#define PROJECT_OSRCDIR "$OSRCDIR"
+
 ProjectFileSet::ProjectFileSet(QObject *parent) : ProjectOption(parent) {
   m_setName = "";
   m_setType = "";
@@ -23,6 +25,19 @@ ProjectFileSet &ProjectFileSet::operator=(const ProjectFileSet &other) {
   return *this;
 }
 
+QString ProjectFileSet::getDefaultUnitName() const {
+  uint counter{0};
+  const QString base{"unit_"};
+  for (const auto &group : m_langMap) {
+    auto name{QString{"%1%2"}.arg(base, QString::number(counter))};
+    if (group.first.group == name)
+      counter++;
+    else
+      return name;
+  }
+  return QString{"%1%2"}.arg(base, QString::number(counter));
+}
+
 void ProjectFileSet::addFile(const QString &strFileName,
                              const QString &strFilePath) {
   m_mapFiles.push_back(std::make_pair(strFileName, strFilePath));
@@ -30,8 +45,8 @@ void ProjectFileSet::addFile(const QString &strFileName,
 
 void ProjectFileSet::addFiles(const QStringList &commands,
                               const QStringList &libs, const QStringList &files,
-                              int language) {
-  m_langMap.push_back(std::make_pair(language, files));
+                              int language, const QString &gr) {
+  m_langMap.push_back(std::make_pair(CompilationUnit{language, gr}, files));
   m_commandsLibs.push_back(std::make_pair(commands, libs));
 }
 
@@ -52,15 +67,24 @@ void ProjectFileSet::deleteFile(const QString &strFileName) {
                            [&](const std::pair<QString, QString> &p) {
                              return p.first == strFileName;
                            });
-  QString file;
   if (iter != m_mapFiles.end()) {
-    file = iter->second;
+    const QString file = iter->second;
     m_mapFiles.erase(iter);
-  }
-  if (!file.isEmpty()) {
+
+    auto searchPath = [](const QStringList &source,
+                         const QString &searchStr) -> int {
+      auto tmp = searchStr;
+      tmp.replace(PROJECT_OSRCDIR, QString{});
+      for (int i = 0; i < source.size(); i++) {
+        if (source.at(i).endsWith(tmp)) return i;
+      }
+      return -1;
+    };
+
     for (auto it = m_langMap.begin(); it != m_langMap.end(); ++it) {
-      if (it->second.contains(file)) {
-        it->second.removeOne(file);
+      auto index = searchPath(it->second, file);
+      if (index != -1) {
+        it->second.removeAt(index);
         if (it->second.isEmpty()) {
           auto dst = std::distance(m_langMap.begin(), it);
           m_langMap.erase(it);
@@ -91,7 +115,8 @@ const std::vector<std::pair<QString, QString>> &ProjectFileSet::getMapFiles()
   return m_mapFiles;
 }
 
-const std::vector<std::pair<int, QStringList>> &ProjectFileSet::Files() const {
+const std::vector<std::pair<CompilationUnit, QStringList>>
+    &ProjectFileSet::Files() const {
   return m_langMap;
 }
 

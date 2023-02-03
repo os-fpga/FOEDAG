@@ -41,7 +41,7 @@ namespace FOEDAG {
 
 class Constraints {
  public:
-  Constraints();
+  Constraints(Compiler* compiler);
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() { return m_session; }
@@ -54,8 +54,10 @@ class Constraints {
   void registerCommands(TclInterpreter* interp);
   void addKeep(const std::string& name) { m_keeps.insert(name); }
   void addConstraint(const std::string& name) { m_constraints.push_back(name); }
+  Compiler* GetCompiler() { return m_compiler; }
 
  protected:
+  Compiler* m_compiler = nullptr;
   std::ostream* m_out = &std::cout;
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;

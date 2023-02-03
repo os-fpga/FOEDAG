@@ -26,8 +26,8 @@ using namespace FOEDAG;
 
 TEST(PinsBaseModel, PinMap) {
   PinsBaseModel model;
-  model.insert("port1", "pin1");
-  model.insert("port2", "pin2");
+  model.update("port1", "pin1");
+  model.update("port2", "pin2");
   QMap<QString, QString> expectedMap{{"port1", "pin1"}, {"port2", "pin2"}};
   QMap<QString, QString> actualMap = model.pinMap();
   EXPECT_EQ(actualMap, expectedMap);
@@ -35,11 +35,31 @@ TEST(PinsBaseModel, PinMap) {
 
 TEST(PinsBaseModel, Exists) {
   PinsBaseModel model;
-  model.insert("port1", "pin1");
-  model.insert("port2", "pin2");
+  model.update("port1", "pin1");
+  model.update("port2", "pin2");
   EXPECT_EQ(model.exists("port2", "pin2"), true);
   EXPECT_EQ(model.exists("port1", "pin1"), true);
 
   EXPECT_EQ(model.exists("port2", "pin1"), false);
   EXPECT_EQ(model.exists("port1", "pin2"), false);
+}
+
+TEST(PinsBaseModel, UpdatePinEmpty) {
+  PinsBaseModel model;
+  model.update("port1", "pin1");
+  model.update("port2", "pin2");
+  model.update("port1", QString{});
+  EXPECT_EQ(model.exists("port2", "pin2"), true);
+  EXPECT_EQ(model.exists("port1", "pin1"), false);
+  EXPECT_EQ(model.exists("port1", QString{}), false);
+}
+
+TEST(PinsBaseModel, UpdatePortEmpty) {
+  PinsBaseModel model;
+  model.update("port1", "pin1");
+  model.update("port2", "pin2");
+  model.update(QString{}, "pin1");
+  EXPECT_EQ(model.exists("port2", "pin2"), true);
+  EXPECT_EQ(model.exists("port1", "pin1"), false);
+  EXPECT_EQ(model.exists("port1", QString{}), false);
 }

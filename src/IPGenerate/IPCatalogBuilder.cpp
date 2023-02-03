@@ -76,8 +76,8 @@ void buildMockUpIPDef(IPCatalog* catalog) {
 bool IPCatalogBuilder::buildLiteXCatalog(
     IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
   bool result = true;
-  buildMockUpIPDef(catalog);
   if (FileUtils::FileExists(litexIPgenPath)) {
+    int foundCount = 0;
     std::filesystem::path execPath = litexIPgenPath;
     if (!std::filesystem::is_directory(execPath)) {
       execPath = execPath.parent_path();
@@ -91,13 +91,16 @@ bool IPCatalogBuilder::buildLiteXCatalog(
       const std::string& exec_name = entry.string();
       if (exec_name.find("__init__.py") != std::string::npos) continue;
       if (exec_name.find("_gen.py") != std::string::npos) {
-        m_compiler->Message("IP Catalog, found IP compiler: " + exec_name);
+        foundCount++;
         bool res = buildLiteXIPFromGenerator(catalog, entry);
         if (res == false) {
           result = false;
         }
       }
     }
+    std::string msg =
+        std::string("IP Catalog, found ") + std::to_string(foundCount) + " IPs";
+    m_compiler->Message(msg);
   } else {
     result = false;
     m_compiler->ErrorMessage("IP Catalog, directory does not exist: " +
@@ -113,6 +116,29 @@ static std::string& rtrim(std::string& str, char c) {
   return str;
 }
 
+std::vector<std::string> JsonArrayToStringVector(
+    const json& jsonArray, bool removeOuterQuotes = true) {
+  std::vector<std::string> vals{};
+  for (auto& item : jsonArray.items()) {
+    // Generically convert the value to a string
+    std::ostringstream stream;
+    stream << item.value();
+    std::string val(stream.str());
+
+    // if this is wrapped in quotes
+    if (removeOuterQuotes && val.front() == '"' && val.back() == '"') {
+      // Remove first and last chars
+      val.erase(0, 1);
+      val.pop_back();
+    }
+
+    // add value to the list
+    vals.push_back(val);
+  }
+
+  return vals;
+}
+
 bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
   bool result = true;
@@ -124,8 +150,12 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     if (python3Path.empty()) {
       m_compiler->ErrorMessage(
           "IP Catalog, unable to find python interpreter in local "
-          "environment.\n");
-      return false;
+          "environment, trying to use system copy 'python3'. Some IP Catalog "
+          "features might not work with this "
+          "interpreter.\n");
+
+      // don't specify a path and hope the system finds something in its path
+      pythonPath = "python3";
     } else {
       pythonPath = python3Path;
       m_compiler->ErrorMessage(
@@ -186,32 +216,69 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
 
   std::vector<Value*> parameters;
   std::vector<Connector*> connections;
-  for (auto& el : jopts.items()) {
-    std::string key = el.key();
-    if (key == "build_dir" || (key == "json") || (key == "json_template") ||
-        (key == "build") || (key == "build_name")) {
-      continue;
+
+  auto params = jopts.value("parameters", json::array());
+  for (auto param : params) {
+    auto paramName = param.value("parameter", "");
+    auto title = param.value("title", paramName);
+    auto options = param.value("options", json::array());
+    auto range = param.value("range", json::array());
+    auto type = param.value("type", "");
+    auto description = param.value("description", "");
+
+    std::string defaultVal{};
+    try {
+      defaultVal = param.value("default", "");
+    } catch (json::type_error& error) {
+      // Default value has potential to be passed non-string values so we'll
+      // check for it here
+      std::string msg =
+          "IP Catalog, \"default\" key expects a string value. Default param "
+          "set to \"\". Json error: " +
+          std::string(error.what());
+      m_compiler->ErrorMessage(msg);
     }
 
-    auto val = el.value();
-    if (val.is_string()) {
-      std::string value = el.value();
-      SParameter* p = new SParameter(key, value);
-      parameters.push_back(p);
-    } else if (val.is_boolean()) {
-      Parameter* p = new Parameter(key, val);
-      parameters.push_back(p);
-    } else {
-      int64_t value = el.value();
-      Parameter* p = new Parameter(key, value);
-      parameters.push_back(p);
+    // Dependency is currently a single variable field, but it sounds like there
+    // could be multiple in the future. To support future scenarios we'll check
+    // for strings and arrays and store the values accordingly
+    auto dependency = param.value("dependency", json::array());
+    std::vector<std::string> deps{};
+    if (dependency.is_string()) {
+      deps.push_back(dependency.get<std::string>());
+    } else if (dependency.is_array()) {
+      for (auto dep : dependency) {
+        deps.push_back(dep.get<std::string>());
+      }
     }
+
+    IPParameter::ParamType paramType;
+    type = StringUtils::toLower(type);
+    if (type == "int") {
+      paramType = IPParameter::ParamType::Int;
+    } else if (type == "float") {
+      paramType = IPParameter::ParamType::Float;
+    } else if (type == "bool") {
+      paramType = IPParameter::ParamType::Bool;
+    } else if (type == "filepath") {
+      paramType = IPParameter::ParamType::FilePath;
+    } else {
+      paramType = IPParameter::ParamType::String;
+    }
+
+    IPParameter* parameter =
+        new IPParameter(paramName, title, defaultVal, paramType);
+    parameter->SetOptions(JsonArrayToStringVector(options));
+    parameter->SetDependencies(JsonArrayToStringVector(deps));
+    parameter->SetRange(JsonArrayToStringVector(range));
+    parameter->SetDescription(description);
+
+    parameters.push_back(parameter);
   }
 
   // get default build_name which is used during ip configuration
   std::string build_name = jopts.value("build_name", "");
 
-  m_compiler->Message("IP Catalog, adding IP: " + IPName);
   IPDefinition* def =
       new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
                        pythonConverterScript, connections, parameters);

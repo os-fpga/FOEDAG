@@ -157,7 +157,9 @@ target_link_libraries(test_hellofoedag
   texteditor
   console
   compiler
+  simulation
   ipgenerate
+  designquery
   foedagutils
   QConsole
   qscintilla2_qt

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "compiler_configuration.h"
+#include "ip_configuration.h"
 #include "project_configuration.h"
 #include "project_fileset.h"
 #include "project_run.h"
@@ -27,6 +28,8 @@ class Project : public QObject {
 
   ProjectConfiguration *projectConfig() const;
   CompilerConfiguration *compilerConfig() const;
+  CompilerConfiguration *simulationConfig() const;
+  IpConfiguration *ipConfig();
 
   ProjectFileSet *getProjectFileset(const QString &strName) const;
   int setProjectFileset(const ProjectFileSet &projectFileset);
@@ -50,6 +53,8 @@ class Project : public QObject {
 
   ProjectConfiguration *m_projectConfig;
   std::unique_ptr<CompilerConfiguration> m_compilerConfig;
+  std::unique_ptr<CompilerConfiguration> m_simulationConfig;
+  std::unique_ptr<IpConfiguration> m_ipConfig;
   QMap<QString, ProjectFileSet *> m_mapProjectFileset;
   QMap<QString, ProjectRun *> m_mapProjectRun;
 };

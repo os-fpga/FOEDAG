@@ -22,17 +22,54 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-PinsBaseModel::PinsBaseModel() {}
+PinsBaseModel::PinsBaseModel(QObject *parent) : QObject(parent) {}
 
 bool PinsBaseModel::exists(const QString &port, const QString &pin) const {
   for (auto it = m_pinsMap.constBegin(); it != m_pinsMap.constEnd(); ++it) {
-    if (it.key() == port && it.value() == pin) return true;
+    if (it.key() == port && it.value().first == pin) return true;
   }
   return false;
 }
 
-void PinsBaseModel::insert(const QString &port, const QString &pin) {
-  m_pinsMap.insert(port, pin);
+void PinsBaseModel::update(const QString &port, const QString &pin, int index) {
+  if (port.isEmpty()) return;
+  if (pin.isEmpty()) {
+    auto values = m_pinsMap.value(port);
+    m_pinsMap.remove(port);
+    emit portAssignmentChanged(port, values.first, values.second);
+  } else {
+    auto pinPair = m_pinsMap.value(port);
+    bool changed = (pinPair.first != pin || pinPair.second != index);
+    m_pinsMap.insert(port, std::make_pair(pin, index));
+    if (changed) emit portAssignmentChanged(port, pin, index);
+  }
+}
+
+void PinsBaseModel::remove(const QString &port, const QString &pin, int index) {
+  m_pinsMap.remove(port);
+  emit portAssignmentChanged(port, QString{}, index);
+}
+
+QStringList PinsBaseModel::getPort(const QString &pin) const {
+  QStringList ports;
+  for (auto it{m_pinsMap.begin()}; it != m_pinsMap.end(); ++it) {
+    if (it.value().first == pin) ports.append(it.key());
+  }
+  return ports;
+}
+
+int PinsBaseModel::getIndex(const QString &pin) const {
+  QVector<int> indexes;
+  for (auto it{m_pinsMap.begin()}; it != m_pinsMap.end(); ++it) {
+    if (it.value().first == pin) {
+      indexes.append(it.value().second);
+    }
+  }
+  std::sort(indexes.begin(), indexes.end());
+  for (int i = 0; i < indexes.count(); i++) {
+    if (i != indexes.at(i)) return i;
+  }
+  return indexes.count();
 }
 
 PackagePinsModel *PinsBaseModel::packagePinModel() const {
@@ -49,7 +86,7 @@ void PinsBaseModel::setPortsModel(PortsModel *newPortsModel) {
   m_portsModel = newPortsModel;
 }
 
-const QMap<QString, QString> &PinsBaseModel::pinMap() const {
+const QMap<QString, std::pair<QString, int> > &PinsBaseModel::pinMap() const {
   return m_pinsMap;
 }
 

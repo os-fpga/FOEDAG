@@ -29,8 +29,8 @@ namespace FOEDAG {
 class PortsLoader : public QObject {
  public:
   PortsLoader(PortsModel *model, QObject *parent = nullptr);
-  virtual ~PortsLoader();
   virtual std::pair<bool, QString> load(const QString &file);
+  void SetModel(PortsModel *model);
 
  protected:
   PortsModel *m_model{nullptr};

@@ -32,7 +32,7 @@ namespace FOEDAG {
 std::map<std::string, std::string> StringUtils::envVars;
 
 void StringUtils::tokenize(std::string_view str, std::string_view separator,
-                           std::vector<std::string>& result) {
+                           std::vector<std::string>& result, bool skipEmpty) {
   std::string tmp;
   const unsigned int sepSize = separator.size();
   const unsigned int stringSize = str.size();
@@ -45,12 +45,14 @@ void StringUtils::tokenize(std::string_view str, std::string_view separator,
       }
     }
     if (isSeparator) {
-      result.push_back(tmp);
+      if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
       tmp = "";
-      if (i == (str.size() - 1)) result.push_back(tmp);
+      if (i == (str.size() - 1)) {
+        if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
+      }
     } else if (i == (str.size() - 1)) {
       tmp += str[i];
-      result.push_back(tmp);
+      if (!(tmp.empty() && skipEmpty)) result.push_back(tmp);
       tmp = "";
     } else {
       tmp += str[i];
@@ -245,6 +247,14 @@ bool StringUtils::endsWith(const std::string& fullString,
   } else {
     return false;
   }
+}
+
+bool StringUtils::startsWith(const std::string& text,
+                             const std::string& start) {
+  if (text.length() >= start.length()) {
+    return (0 == text.compare(0, start.length(), start));
+  }
+  return false;
 }
 
 std::string StringUtils::toLower(const std::string& text) {

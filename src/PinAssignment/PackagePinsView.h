@@ -24,23 +24,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinsBaseModel.h"
 
 class QComboBox;
+class QToolButton;
 namespace FOEDAG {
 
 class PackagePinsView : public PinAssignmentBaseView {
   Q_OBJECT
  public:
   PackagePinsView(PinsBaseModel *model, QWidget *parent = nullptr);
+  void SetMode(const QString &pin, const QString &mode);
+  void SetInternalPin(const QString &port, const QString &intPin);
+  void SetPort(const QString &pin, const QString &port, int row);
+  void cleanTable();
 
  signals:
   void selectionHasChanged();
 
  private:
   void ioPortsSelectionHasChanged(const QModelIndex &index);
+  void modeSelectionHasChanged(const QModelIndex &index);
+  void internalPinSelectionHasChanged(const QModelIndex &index);
   void insertData(const QStringList &data, int index, int column,
                   QTreeWidgetItem *item);
+  void updateModeCombo(const QString &port, const QModelIndex &index);
+  void updateInternalPinCombo(const QString &mode, const QModelIndex &index);
+  static std::pair<QWidget *, QToolButton *> prepareButtonWithLabel(
+      const QString &text, const QIcon &icon);
+  void initLine(QTreeWidgetItem *item);
+  void copyData(QTreeWidgetItem *from, QTreeWidgetItem *to);
+  void resetItem(QTreeWidgetItem *item);
+  void removeItem(QTreeWidgetItem *parent, QTreeWidgetItem *child);
+  QString GetPort(const QModelIndex &index) const;
 
  private slots:
-  void itemHasChanged(const QModelIndex &index, const QString &pin);
+  void modeChanged(const QString &pin, const QString &mode);
+  void internalPinChanged(const QString &port, const QString &intPin);
+  void portAssignmentChanged(const QString &port, const QString &pin, int row);
+  QTreeWidgetItem *CreateNewLine(QTreeWidgetItem *parent);
+  void updatePinNames();
+
+ private:
+  const int MAX_ROWS{};
+  QVector<QTreeWidgetItem *> m_pinItems;
 };
 
 }  // namespace FOEDAG

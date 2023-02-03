@@ -31,12 +31,12 @@ class IpCatalogTree : public QTreeWidget {
  public:
   explicit IpCatalogTree(QWidget* parent = nullptr);
   void refresh();
+  static void loadIps(const std::vector<std::filesystem::path>& paths);
 
  private:
   QStringList prevIpCatalogResults;
 
   QStringList getAvailableIPs(const std::vector<std::filesystem::path>& paths);
-  void loadIps(const std::vector<std::filesystem::path>& paths);
 };
 
 }  // namespace FOEDAG

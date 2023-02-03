@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QSet>
 #include <QTreeWidget>
 
 class QComboBox;
@@ -35,14 +36,34 @@ class PinsBaseModel;
 class PinAssignmentBaseView : public QTreeWidget {
  public:
   PinAssignmentBaseView(PinsBaseModel *model, QWidget *parent = nullptr);
+  ~PinAssignmentBaseView();
 
  protected:
   void removeDuplications(const QString &text, QComboBox *current);
+  QModelIndexList match(const QString &text) const;
+  QModelIndexList indexFromText(QTreeWidgetItem *i, const QString &text) const;
+  void updateInternalPinSelection(const QString &pin, QComboBox *combo);
+
+  template <class ComboPtr = QComboBox *>
+  ComboPtr GetCombo(const QModelIndex &index) const {
+    return qobject_cast<ComboPtr>(indexWidget(index));
+  }
+  template <class ComboPtr = QComboBox *>
+  ComboPtr GetCombo(const QModelIndex &index, int column) const {
+    return qobject_cast<ComboPtr>(itemWidget(itemFromIndex(index), column));
+  }
+  template <class Combo = QComboBox *>
+  Combo GetCombo(QTreeWidgetItem *item, int column) const {
+    return qobject_cast<Combo>(itemWidget(item, column));
+  }
+  void setComboData(const QModelIndex &index, const QString &data);
+  void setComboData(const QModelIndex &index, int column, const QString &data);
 
  protected:
   PinsBaseModel *m_model{nullptr};
+  QMap<QComboBox *, QModelIndex> m_allCombo;
   bool m_blockUpdate{false};
-  QVector<QComboBox *> m_allCombo;
+  QMap<QString, QSet<QComboBox *>> m_intPins;
 };
 
 }  // namespace FOEDAG

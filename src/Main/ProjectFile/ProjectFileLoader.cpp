@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
+#include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
 #include "foedag_version.h"

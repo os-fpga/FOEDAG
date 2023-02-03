@@ -302,6 +302,12 @@ QString Settings::getTclArgString(json& jsonData) {
             if (tclVal.isEmpty()) {
               tclVal = val;
             }
+
+            // we expect tclVal might be multi-space value like "-a val0 -b
+            // val1" or "--some-arg=val" so need to convert spaces/dashes/new
+            // lines.
+            tclVal = convertAll(tclVal);
+
             argStr += " -" + tclArg + " " + tclVal;
           }
         }

@@ -81,6 +81,7 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaPinmapCSVFile(const std::filesystem::path& path) {
     m_OpenFpgaPinMapCSV = path;
   }
+  void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
   void Help(std::ostream* out);
   void Version(std::ostream* out);
@@ -107,12 +108,6 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
-  bool UseVerilogNetlist() { return m_useVerilogNetlist; }
-  void UseVerilogNetlist(bool on) { m_useVerilogNetlist = on; }
-
-  bool UseEdifNetlist() { return m_useEdifNetlist; }
-  void UseEdifNetlist(bool on) { m_useEdifNetlist = on; }
-
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
@@ -130,14 +125,22 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path,
                              const std::filesystem::path& outputFile);
+  virtual std::vector<std::string> GetCleanFiles(
+      Action action, const std::string& projectName,
+      const std::string& topModule) const;
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
+  virtual std::string InitAnalyzeScript();
+  virtual std::string FinishAnalyzeScript(const std::string& script);
   virtual std::string InitOpenFPGAScript();
   virtual std::string FinishOpenFPGAScript(const std::string& script);
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
   bool VerifyTargetDevice() const;
+  static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
+                                       const std::string& srcFileName,
+                                       const std::string& destFileName);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;
@@ -171,6 +174,8 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
+  std::string m_pb_pin_fixup;
+
   virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
@@ -178,8 +183,6 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdfFileName,
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
-  bool m_useVerilogNetlist = false;
-  bool m_useEdifNetlist = false;
 };
 
 }  // namespace FOEDAG

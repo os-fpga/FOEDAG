@@ -20,22 +20,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QMap>
 #include <QWidget>
 
 namespace FOEDAG {
 
-class ProjectManager;
 class ToolContext;
 class PinsBaseModel;
+class PackagePinsLoader;
+class PortsLoader;
+
+struct PinAssignmentData {
+  ToolContext *context{nullptr};
+  QString target{};
+  QStringList commands{};
+  QString projectPath{};
+  QString pinFile{};
+  bool useBallId{false};
+};
+
 class PinAssignmentCreator : public QObject {
   Q_OBJECT
  public:
-  PinAssignmentCreator(ProjectManager *projectManager, ToolContext *context,
+  PinAssignmentCreator(const PinAssignmentData &data,
                        QObject *parent = nullptr);
   QWidget *GetPackagePinsWidget();
   QWidget *GetPortsWidget();
   QString generateSdc() const;
   PinsBaseModel *baseModel() const;
+  const PinAssignmentData &data() const;
+  void setPinFile(const QString &file);
+  void setUseBallId(bool useBallId);
+
+  /*!
+   * \brief refresh
+   * Reload all data from *.pin file
+   */
+  void refresh();
 
   /*!
    * \brief searchPortsFile
@@ -43,21 +64,31 @@ class PinAssignmentCreator : public QObject {
    * \return full path to the file if it exists otherwise return empty string
    */
   static QString searchPortsFile(const QString &projectPath);
+  static void RegisterPackagePinLoader(const QString &device,
+                                       PackagePinsLoader *l);
+  static void RegisterPortsLoader(const QString &device, PortsLoader *l);
 
  signals:
-  void selectionHasChanged();
+  void changed();
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);
   QString searchCsvFile(const QString &targetDevice,
                         ToolContext *context) const;
-  QString targetDevice(ProjectManager *projectManager) const;
   QString packagePinHeaderFile(ToolContext *context) const;
+  PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
+  PortsLoader *FindPortsLoader(const QString &targetDevice) const;
+  void parseConstraints(const QStringList &commands,
+                        class PackagePinsView *packagePins,
+                        class PortsView *portsView);
 
  private:
   QWidget *m_portsView{nullptr};
   QWidget *m_packagePinsView{nullptr};
   PinsBaseModel *m_baseModel{nullptr};
+  static QMap<QString, PackagePinsLoader *> m_loader;
+  static QMap<QString, PortsLoader *> m_portsLoader;
+  PinAssignmentData m_data;
 };
 
 }  // namespace FOEDAG

@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PackagePinsLoader.h"
 
 #include <QFile>
+#include <QSet>
 
+#include "Utils/QtUtils.h"
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
@@ -30,36 +32,40 @@ namespace FOEDAG {
 PackagePinsLoader::PackagePinsLoader(PackagePinsModel *model, QObject *parent)
     : QObject(parent), m_model(model) {}
 
-PackagePinsLoader::~PackagePinsLoader() {}
-
 std::pair<bool, QString> PackagePinsLoader::load(const QString &fileName) {
   const auto &[success, content] = getFileContent(fileName);
   if (!success) return std::make_pair(success, content);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
-  QStringList lines = content.split("\n", Qt::SkipEmptyParts);
-#else
-  QStringList lines = content.split("\n", QString::SkipEmptyParts);
-#endif
-  lines.pop_front();  // header
+  InternalPins &internalPins = m_model->internalPinsRef();
+  QStringList lines = QtUtils::StringSplit(content, '\n');
+  parseHeader(lines.takeFirst());
   PackagePinGroup group{};
+  QSet<QString> uniquePins;
   for (const auto &line : lines) {
     QStringList data = line.split(",");
     if (!data.first().isEmpty()) {
       if (!group.name.isEmpty() && (group.name != data.first())) {
-        m_model->append(group);
+        if (m_model->userGroups().contains(group.name)) m_model->append(group);
         group.pinData.clear();
+        uniquePins.clear();
       }
       group.name = data.first();
     }
     data.pop_front();
-    if (!group.pinData.isEmpty()) {
-      if (group.pinData.last().data.count() > PinName && data.count() > PinName)
-        if (group.pinData.last().data.at(PinName) == data.at(PinName)) continue;
+    // internal pins parsing
+    for (int i = ModeFirst; (i <= ModeLast) && (i < data.count()); i++) {
+      if (data.at(i) == "Y") {
+        internalPins[data.at(BallName)][i].append(data.at(InternalPinName));
+        m_model->insertBallData(data.at(BallName), data.at(BallId));
+      }
     }
+    // -------------
+    if (uniquePins.contains(data.at(BallName))) continue;
+    uniquePins.insert(data.at(BallName));
     group.pinData.append({data});
   }
-  m_model->append(group);  // append last
+  if (m_model->userGroups().contains(group.name))
+    m_model->append(group);  // append last
   m_model->initListModel();
 
   return std::make_pair(true, QString());
@@ -88,21 +94,45 @@ std::pair<bool, QString> PackagePinsLoader::loadHeader(
                             visible};
     m_model->appendHeaderData(header);
   }
+  auto groups = jsonObject.at("groups");
+  for (const auto &group : groups) {
+    m_model->appendUserGroup(QString::fromStdString(group));
+  }
 
   return std::make_pair(true, QString());
 }
+
+void PackagePinsLoader::setModel(PackagePinsModel *model) { m_model = model; }
 
 std::pair<bool, QString> PackagePinsLoader::getFileContent(
     const QString &fileName) const {
   if (!m_model) return std::make_pair(false, "Package pin model is missing");
   QFile file{fileName};
-  if (!file.exists())
-    return std::make_pair(false,
-                          QString("File %1 doesn't exist").arg(fileName));
   if (!file.open(QFile::ReadOnly))
     return std::make_pair(false, QString("Can't open file %1").arg(fileName));
 
   return std::make_pair(true, file.readAll());
+}
+
+void PackagePinsLoader::parseHeader(const QString &header) {
+  const QStringList columns = header.split(",");
+  QStringList modesRx{};
+  QStringList modesTx{};
+  for (const auto &col : columns) {
+    if (col.startsWith("Mode_")) {
+      m_model->insertMode(columns.indexOf(col) - 1, col);
+      if (col.endsWith("tx", Qt::CaseInsensitive))
+        modesTx.append(col);
+      else if (col.endsWith("rx", Qt::CaseInsensitive))
+        modesRx.append(col);
+    }
+  }
+
+  if (!modesRx.isEmpty()) modesRx.push_front({});  // one empty element
+  if (!modesTx.isEmpty()) modesTx.push_front({});  // one empty element
+
+  m_model->modeModelTx()->setStringList(modesTx);
+  m_model->modeModelRx()->setStringList(modesRx);
 }
 
 }  // namespace FOEDAG

@@ -13,15 +13,15 @@ class ProjectConfiguration : public ProjectOption {
   QString id() const;
   void setId(const QString &id);
 
-  QString projectType() const;
-  void setProjectType(const QString &projectType);
+  int projectType() const;
+  void setProjectType(int projectType);
 
   QString activeSimSet() const;
   void setActiveSimSet(const QString &activeSimSet);
 
  private:
+  int m_projectType;
   QString m_id;
-  QString m_projectType;
   QString m_activeSimSet;
 
   void initProjectID();

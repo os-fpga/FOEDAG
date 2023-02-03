@@ -22,6 +22,7 @@ class addConstraintsForm : public QWidget, public SettingsGuiInterface {
   QList<filedata> getFileData();
   bool IsCopySource();
   bool IsRandom() const;
+  bool IsFree() const;
   void updateUi(ProjectManager *pm) override;
   void SetTitle(const QString &title);
 
