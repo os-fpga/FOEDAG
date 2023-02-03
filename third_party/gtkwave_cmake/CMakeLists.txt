@@ -44,7 +44,11 @@ else()
 endif()
 
 set(download_path "https://github.com/RapidSilicon/post_build_artifacts/releases/download/v0.1/${gtkwave_tar}")
-set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/gtkwaveTCL.tar.gz)
+if(WIN32)
+    set(temp_path "${CMAKE_CURRENT_SOURCE_DIR}/gtkwave-3.3.100-bin-win32.zip")
+else()
+    set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/gtkwaveTCL.tar.gz)
+endif()
 set(install_path ${build_dir}/bin)
 set(gtkwave_path ${install_path}/gtkwave)
 
