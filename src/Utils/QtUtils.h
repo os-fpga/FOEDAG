@@ -20,8 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QDir>
 #include <QStringList>
 #include <QTimer>
+#include <string>
 
 namespace FOEDAG {
 
@@ -36,6 +38,17 @@ class QtUtils {
   template <class Functor>
   static void AppendToEventQueue(Functor functor) {
     QTimer::singleShot(1, functor);
+  }
+
+  // variadic tamplate to create path with any number of folders (files)
+  template <class St, class... String>
+  static St CreatePath(St s, String... args) {
+    return s + QDir::separator() + CreatePath(args...);
+  }
+
+  template <class St>
+  static St CreatePath(St s) {
+    return s;
   }
 };
 
