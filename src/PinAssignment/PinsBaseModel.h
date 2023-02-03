@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <QObject>
 #include <QStringList>
 #include <QVector>
 
@@ -27,12 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class PinsBaseModel {
+class PinsBaseModel : public QObject {
+  Q_OBJECT
+
  public:
-  PinsBaseModel();
+  PinsBaseModel(QObject *parent = nullptr);
 
   bool exists(const QString &port, const QString &pin) const;
-  void insert(const QString &port, const QString &pin);
+  void update(const QString &port, const QString &pin, int index);
+  void remove(const QString &port, const QString &pin, int index);
+  QStringList getPort(const QString &pin) const;
+  int getIndex(const QString &pin) const;
 
   PackagePinsModel *packagePinModel() const;
   void setPackagePinModel(PackagePinsModel *newPackagePinModel);
@@ -40,10 +46,13 @@ class PinsBaseModel {
   PortsModel *portsModel() const;
   void setPortsModel(PortsModel *newPortsModel);
 
-  const QMap<QString, QString> &pinMap() const;
+  const QMap<QString, std::pair<QString, int>> &pinMap() const;
+
+ signals:
+  void portAssignmentChanged(const QString &port, const QString &pin, int row);
 
  private:
-  QMap<QString, QString> m_pinsMap;
+  QMap<QString, std::pair<QString, int>> m_pinsMap;  // key - port, value - pin
   PackagePinsModel *m_packagePinModel;
   PortsModel *m_portsModel;
 };

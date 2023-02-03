@@ -16,8 +16,13 @@ class addSourceForm : public QWidget, public SettingsGuiInterface {
   Q_OBJECT
 
  public:
-  explicit addSourceForm(QWidget *parent = nullptr);
+  explicit addSourceForm(GridType gt, QWidget *parent = nullptr);
   ~addSourceForm();
+  void setProjectType(int projectType);
+  int projectType() const;
+  void clear();
+
+  void SetBasePath(const QString &p);
 
   QList<filedata> getFileData();
   bool IsCopySource();
@@ -30,10 +35,18 @@ class addSourceForm : public QWidget, public SettingsGuiInterface {
   void updateUi(ProjectManager *pm) override;
   void SetTitle(const QString &title);
 
+ private slots:
+  void includePathClicked();
+  void libraryPathClicked();
+
+ private:
+  static QString GetRelatedPath(QWidget *parent, const QString &base);
+
  private:
   Ui::addSourceForm *ui;
 
   sourceGrid *m_widgetGrid;
+  QString m_basePath;
 };
 }  // namespace FOEDAG
 #endif  // ADDSOURCEFORM_H

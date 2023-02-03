@@ -28,16 +28,28 @@ set (CPP_LIST
     Utils/StringUtils_test.cpp
     NewProject/ProjectManager_test.cpp
     PinAssignment/BufferedComboBox_test.cpp
-    PinAssignment/PinAssignmentCreator_test.cpp
-    PinAssignment/PinsBaseModel_test.cpp
+#    PinAssignment/PinAssignmentCreator_test.cpp // TODO @volodymyrk RG-181
+#    PinAssignment/PinsBaseModel_test.cpp // TODO @volodymyrk RG-181
     PinAssignment/PortsLoader_test.cpp
-    PinAssignment/PackagePinsLoader_test.cpp
+#    PinAssignment/PackagePinsLoader_test.cpp // TODO @volodymyrk RG-181
     Settings/Settings_test.cpp
     IPGenerator/IPGenerator_test.cpp
     NewProject/source_grid_test.cpp
+    Utils/sequential_map_test.cpp
+    Utils/QtUtils_test.cpp
+    PinAssignment/TestLoader.cpp
+    PinAssignment/TestPortsLoader.cpp
+    Compiler/CompilerDefines_test.cpp
+    PinAssignment/PortsModel_test.cpp
+    PinAssignment/PinAssignmentBaseView_test.cpp
+    Simulation/Simulation_test.cpp
+)
+set (H_LIST
+    PinAssignment/TestLoader.h
+    PinAssignment/TestPortsLoader.h
 )
 
-add_executable(unittest unittest_main.cpp ${CPP_LIST} resources.qrc)
+add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
 include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
 

@@ -85,7 +85,7 @@ void ProcessUtils::Start(int64_t processId) {
 
 void ProcessUtils::Stop() {
   m_stop = true;
-  m_thread->join();
+  if (m_thread) m_thread->join();
   cleanup();
   m_max_utiliation = static_cast<uint>(m_vm);
 }

@@ -43,6 +43,7 @@ class TaskModel : public QAbstractTableModel {
 
   TaskManager *taskManager() const;
   void setTaskManager(TaskManager *newTaskManager);
+  int ToRowIndex(uint taskId) const;
 
  private:
   bool setData(const QModelIndex &index, const QVariant &value,
@@ -56,7 +57,6 @@ class TaskModel : public QAbstractTableModel {
   bool hasChildren(const QModelIndex &parent) const override;
   Qt::ItemFlags flags(const QModelIndex &index) const override;
   uint ToTaskId(const QModelIndex &index) const;
-  int ToRowIndex(uint taskId) const;
 
  private:
   TaskManager *m_taskManager{nullptr};

@@ -91,3 +91,11 @@ TEST(PortsLoader, LoadBus) {
     EXPECT_EQ(p.range, "Msb: 4, lsb: 0");
   }
 }
+
+TEST(PortsLoader, LoadCorruptedJson) {
+  PortsModel model;
+  PortsLoader loader{&model};
+  auto [res, error] = loader.load(":/PinAssignment/corrupted.json");
+  EXPECT_EQ(res, false) << error.toStdString();
+  EXPECT_NE(error, QString{});
+}

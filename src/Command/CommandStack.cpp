@@ -24,28 +24,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <ctime>
 
+#include "Utils/LogUtils.h"
+
 using namespace FOEDAG;
 
 CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile,
                            bool mute)
     : m_interp(interp) {
   if (!mute) {
+    std::string textHeader = LogUtils::GetLogHeader();
+    std::string tclHeader = LogUtils::GetLogHeader("# ");
+
     m_logger = new Logger(logFile.empty() ? "cmd.tcl" : logFile + "_cmd.tcl");
     m_logger->open();
-    std::time_t result = std::time(nullptr);
-    (*m_logger) << "# Command log file\n";
-    (*m_logger) << "# Created: " << std::ctime(&result) << "\n";
+    (*m_logger) << tclHeader;
 
     m_perfLogger =
         new Logger(logFile.empty() ? "perf.log" : logFile + "_perf.log");
     m_perfLogger->open();
-    (*m_perfLogger) << "# Perf log file\n";
-    (*m_perfLogger) << "# Created: " << std::ctime(&result) << "\n";
+    (*m_perfLogger) << textHeader;
 
     m_outputLogger = new Logger(logFile.empty() ? "out.log" : logFile + ".log");
     m_outputLogger->open();
-    (*m_outputLogger) << "# Out log file\n";
-    (*m_outputLogger) << "# Created: " << std::ctime(&result) << "\n";
+    (*m_outputLogger) << textHeader;
   }
 }
 

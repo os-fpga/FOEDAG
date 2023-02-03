@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/sources_form.h"
+#include "Utils/QtUtils.h"
 
 namespace FOEDAG {
 
@@ -109,7 +110,8 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(int argc,
   for (int i = 1; i < argc; i++) {
     QFileInfo strFileName = QString{argv[i]};
     ret = m_projManager->setDesignFiles(
-        strFileName.fileName(), FromFileType(strFileName.suffix()), false);
+        strFileName.fileName(), FromFileType(strFileName.suffix()),
+        m_projManager->getDefaulUnitName(), false);
 
     if (0 != ret) {
       out << "Failed to add file: " << strFileName.fileName().toStdString()
@@ -133,7 +135,8 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
   QString strSetName = m_projManager->getDesignActiveFileSet();
 
   m_projManager->setCurrentFileSet(strSetName);
-  int ret = m_projManager->setDesignFiles(files, lang, false);
+  int ret = m_projManager->setDesignFiles(
+      files, lang, m_projManager->getDefaulUnitName(), false);
   if (0 != ret) {
     out << "Failed to add files: " << files.toStdString() << std::endl;
     return false;
@@ -154,13 +157,35 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
 
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
-  const auto ret =
-      m_projManager->addDesignFiles(commands, libs, files, lang, false, false);
+  const auto ret = m_projManager->addDesignFiles(
+      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
+      false);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;
   }
 
+  update();
+  return true;
+}
+
+bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
+                                                  const QString &libs,
+                                                  const QString &files,
+                                                  int lang, std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+  const QString strSetName = m_projManager->getSimulationActiveFileSet();
+  m_projManager->setCurrentFileSet(strSetName);
+  const auto ret = m_projManager->addSimulationFiles(
+      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
+      false);
+  if (ProjectManager::EC_Success != ret.code) {
+    error(ret.code, ret.message, out);
+    return false;
+  }
   update();
   return true;
 }
@@ -195,6 +220,16 @@ bool TclCommandIntegration::TclAddConstrFiles(const QString &file,
 
   const QString strSetName = m_projManager->getConstrActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
+
+  const QFileInfo info{file};
+  if ((info.suffix().compare("pin", Qt::CaseInsensitive) == 0) &&
+      !m_projManager->getConstrPinFile().empty()) {
+    out << "*.pin constraint file has already added. Only one *.pin file "
+           "supported"
+        << std::endl;
+    return false;
+  }
+
   const int ret = m_projManager->addConstrsFile(file, false, false);
 
   if (ProjectManager::EC_Success != ret) {
@@ -241,21 +276,62 @@ bool TclCommandIntegration::TclCreateProject(int argc, const char *argv[],
     return false;
   }
   const QString projName{argv[1]};
-  return TclCreateProject(projName, out);
+  QString type{};
+  if ((argc > 3) && QtUtils::IsEqual(QString{argv[3]}, "-type"))
+    type = QString{argv[3]};
+  return TclCreateProject(projName, type, out);
 }
 
 bool TclCommandIntegration::TclCreateProject(const QString &name,
+                                             const QString &type,
                                              std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
   }
+
+  int projectType{RTL};
+  if (!type.isEmpty()) {
+    if (QtUtils::IsEqual(type, "rtl")) {
+      projectType = RTL;
+    } else if (QtUtils::IsEqual(type, "gate-level")) {
+      projectType = PostSynth;
+    } else {
+      out << "Wrong project type. Values are rtl, gate-level";
+      return false;
+    }
+  }
+
   QDir dir(name);
   if (dir.exists()) {
     out << "Project \"" << name.toStdString() << "\" was rewritten.";
   }
 
-  createNewDesign(name);
+  createNewDesign(name, projectType);
+  return true;
+}
+
+bool TclCommandIntegration::TclCloseProject() {
+  if (m_form) {  // GUI mode
+    emit closeDesign();
+  } else {  // batch mode
+    Project::Instance()->InitProject();
+  }
+  return true;
+}
+
+bool TclCommandIntegration::TclClearSimulationFiles(std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation fail: internal error" << std::endl;
+    return false;
+  }
+  auto simFiles = m_projManager->getSimulationFiles(
+      m_projManager->getSimulationActiveFileSet());
+  for (const auto &strfile : simFiles) {
+    const QFileInfo info{strfile};
+    m_projManager->deleteFile(info.fileName());
+  }
+  update();
   return true;
 }
 
@@ -263,17 +339,19 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
 
-void TclCommandIntegration::createNewDesign(const QString &projName) {
+void TclCommandIntegration::createNewDesign(const QString &projName,
+                                            int projectType) {
   ProjectOptions opt{projName,
                      QString("%1/%2").arg(QDir::currentPath(), projName),
-                     "RTL",
+                     projectType,
+                     {{}, false},
                      {{}, false},
                      {{}, false},
                      {},
                      true /*rewrite*/,
                      DEFAULT_FOLDER_SOURCE,
-                     {},
-                     {}};
+                     ProjectOptions::Options{},
+                     ProjectOptions::Options{}};
   m_projManager->CreateProject(opt);
   QString newDesignStr{m_projManager->getProjectPath() + "/" +
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};

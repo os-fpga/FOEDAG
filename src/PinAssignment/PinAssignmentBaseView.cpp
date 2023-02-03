@@ -22,19 +22,73 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QComboBox>
 
+#include "PinsBaseModel.h"
+
 namespace FOEDAG {
 
 PinAssignmentBaseView::PinAssignmentBaseView(PinsBaseModel *model,
                                              QWidget *parent)
     : QTreeWidget(parent), m_model(model) {}
 
+PinAssignmentBaseView::~PinAssignmentBaseView() { m_allCombo.clear(); }
+
 void PinAssignmentBaseView::removeDuplications(const QString &text,
                                                QComboBox *current) {
-  for (auto &c : m_allCombo) {
-    if ((c != current) && (c->currentText() == text)) {
-      c->setCurrentIndex(0);
+  for (auto it{m_allCombo.cbegin()}; it != m_allCombo.cend(); it++) {
+    if ((it.key() != current) && (it.key()->currentText() == text)) {
+      it.key()->setCurrentIndex(0);
       break;
     }
   }
 }
+
+QModelIndexList PinAssignmentBaseView::match(const QString &text) const {
+  int count = topLevelItemCount();
+  QModelIndexList indexList;
+  for (int i = 0; i < count; i++) {
+    indexList = indexFromText(topLevelItem(i), text);
+    if (!indexList.isEmpty()) break;
+  }
+  return indexList;
+}
+
+QModelIndexList PinAssignmentBaseView::indexFromText(
+    QTreeWidgetItem *i, const QString &text) const {
+  auto indexList = model()->match(indexFromItem(i), Qt::DisplayRole, text, -1,
+                                  Qt::MatchExactly | Qt::MatchRecursive);
+  return indexList;
+}
+
+void PinAssignmentBaseView::updateInternalPinSelection(const QString &pin,
+                                                       QComboBox *combo) {
+  auto current = combo->currentText();
+
+  auto mode = m_model->packagePinModel()->getMode(pin);
+  auto model = new QStringListModel{combo};
+  QStringList list{{""}};
+  list.append(
+      m_model->packagePinModel()->GetInternalPinsList(pin, mode, current));
+  model->setStringList(list);
+  combo->blockSignals(true);
+  combo->setModel(model);
+  combo->setCurrentIndex(combo->findData(current, Qt::DisplayRole));
+  combo->blockSignals(false);
+}
+
+void PinAssignmentBaseView::setComboData(const QModelIndex &index,
+                                         const QString &data) {
+  if (auto combo = GetCombo(index)) {
+    const auto index = combo->findData(data, Qt::DisplayRole);
+    if (index > -1) combo->setCurrentIndex(index);
+  }
+}
+
+void PinAssignmentBaseView::setComboData(const QModelIndex &index, int column,
+                                         const QString &data) {
+  if (auto combo = GetCombo(index, column)) {
+    const auto index = combo->findData(data, Qt::DisplayRole);
+    if (index > -1) combo->setCurrentIndex(index);
+  }
+}
+
 }  // namespace FOEDAG

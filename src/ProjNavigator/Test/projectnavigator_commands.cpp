@@ -69,7 +69,8 @@ TCL_COMMAND(open_project) {
         new FOEDAG::ProjectManagerComponent(srcForm->ProjManager()),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
-        new FOEDAG::TaskManagerComponent(new FOEDAG::TaskManager()),
+        new FOEDAG::TaskManagerComponent(
+            new FOEDAG::TaskManager(GlobalSession->GetCompiler())),
         FOEDAG::ComponentId::TaskManager);
     loader.registerComponent(
         new FOEDAG::CompilerComponent(GlobalSession->GetCompiler()),

@@ -38,36 +38,42 @@ void Session::windowShow() {
   switch (m_guiType) {
     case GUI_TYPE::GT_WIDGET: {
       m_mainWindow->show();
-      auto hasScriptCmd = !CmdLine()->Script().empty();
-      if (auto topLevel = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-        topLevel->gui_start(!hasScriptCmd &&
-                            CmdLine()->GuiTestScript().empty());
+      const auto cmdLine = CmdLine();
+      auto hasScriptCmd = !cmdLine->Script().empty();
+      auto hasProjectFile = !cmdLine->ProjectFile().empty();
+      auto topLevel = dynamic_cast<FOEDAG::TopLevelInterface *>(m_mainWindow);
+      if (topLevel) {
+        topLevel->gui_start(!hasScriptCmd && !hasProjectFile &&
+                            cmdLine->GuiTestScript().empty());
       }
-      if (hasScriptCmd) {
+      if (hasProjectFile) {
+        topLevel->openProject(QString::fromStdString(cmdLine->ProjectFile()),
+                              true, true);
+      } else if (hasScriptCmd) {
         int returnCode{TCL_OK};
         if (m_compiler) {
           TclSimpleParser tclParser;
-          const auto &[res, msg] = tclParser.parse(CmdLine()->Script());
+          const auto &[res, msg] = tclParser.parse(cmdLine->Script());
           int counter{0};
           if (!res)
             m_compiler->ErrorMessage(msg);
           else
             counter = std::stoi(msg);
           m_compiler->GetTaskManager()->setTaskCount(counter);
-          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-            m->ProgressVisible(true);
+          if (topLevel) {
+            topLevel->ProgressVisible(true);
           }
           m_compiler->start();
         }
-        auto result = TclInterp()->evalFile(CmdLine()->Script(), &returnCode);
+        auto result = TclInterp()->evalFile(cmdLine->Script(), &returnCode);
         if (m_compiler) {
           if (returnCode == TCL_OK)
             m_compiler->Message(result);
           else
             m_compiler->ErrorMessage(result);
           m_compiler->finish();
-          if (auto m = dynamic_cast<TopLevelInterface *>(m_mainWindow)) {
-            m->ProgressVisible(false);
+          if (topLevel) {
+            topLevel->ScriptFinished();
           }
         }
       }

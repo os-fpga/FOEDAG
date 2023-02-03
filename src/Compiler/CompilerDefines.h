@@ -19,10 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <qnamespace.h>
 
-#include <QWidget>
-#include <QtGlobal>
+#include <QTableView>
 
 namespace FOEDAG {
 
@@ -30,8 +28,11 @@ class Compiler;
 class TaskManager;
 
 namespace Design {
+
+// The ID's of enum values are important since they are saved to project file.
+// Please append new values at the end
 enum Language {
-  BLIF,
+  BLIF = 0,
   EBLIF,
   VHDL_1987,
   VHDL_1993,
@@ -44,18 +45,22 @@ enum Language {
   SYSTEMVERILOG_2009,
   SYSTEMVERILOG_2012,
   SYSTEMVERILOG_2017,
+  C,
+  CPP,
+  VHDL_2019,
+  EDIF
 };
-}
+}  // namespace Design
 
-Design::Language FromFileType(const QString &type);
+Design::Language FromFileType(const QString &type, bool postSynth = false);
 
 // ID of the tasks shouln't be changed since they save to file
 static constexpr uint IP_GENERATE{0};
 static constexpr uint SYNTHESIS{1};
 static constexpr uint SYNTHESIS_CLEAN{2};
 static constexpr uint SYNTHESIS_SETTINGS{3};
-static constexpr uint SYNTHESIS_WRITE_NETLIST{4};
-static constexpr uint SYNTHESIS_TIMING_REPORT{5};
+// static constexpr uint SYNTHESIS_WRITE_NETLIST{4}; // ID deprecated by RG-230
+// static constexpr uint SYNTHESIS_TIMING_REPORT{5}; // ID deprecated by RG-230
 static constexpr uint PACKING{6};
 static constexpr uint PACKING_CLEAN{7};
 static constexpr uint GLOBAL_PLACEMENT{8};
@@ -63,12 +68,12 @@ static constexpr uint GLOBAL_PLACEMENT_CLEAN{9};
 static constexpr uint PLACEMENT{10};
 static constexpr uint PLACEMENT_CLEAN{11};
 static constexpr uint PLACEMENT_SETTINGS{12};
-static constexpr uint PLACEMENT_WRITE_NETLIST{13};
-static constexpr uint PLACEMENT_TIMING_REPORT{14};
+// static constexpr uint PLACEMENT_WRITE_NETLIST{13}; // ID deprecated by RG-230
+// static constexpr uint PLACEMENT_TIMING_REPORT{14}; // ID deprecated by RG-230
 static constexpr uint ROUTING{15};
 static constexpr uint ROUTING_CLEAN{16};
 static constexpr uint ROUTING_SETTINGS{17};
-static constexpr uint ROUTING_WRITE_NETLIST{18};
+// static constexpr uint ROUTING_WRITE_NETLIST{18}; // ID deprecated by RG-230
 static constexpr uint TIMING_SIGN_OFF{19};
 static constexpr uint POWER{20};
 static constexpr uint BITSTREAM{21};
@@ -78,13 +83,34 @@ static constexpr uint ANALYSIS_CLEAN{24};
 static constexpr uint BITSTREAM_CLEAN{25};
 static constexpr uint POWER_CLEAN{26};
 static constexpr uint TIMING_SIGN_OFF_CLEAN{27};
+static constexpr uint SIMULATE_RTL{28};
+static constexpr uint SIMULATE_RTL_CLEAN{29};
+static constexpr uint SIMULATE_RTL_SETTINGS{30};
+static constexpr uint SIMULATE_GATE{31};
+static constexpr uint SIMULATE_GATE_CLEAN{32};
+static constexpr uint SIMULATE_GATE_SETTINGS{33};
+static constexpr uint SIMULATE_PNR{34};
+static constexpr uint SIMULATE_PNR_CLEAN{35};
+static constexpr uint SIMULATE_PNR_SETTINGS{36};
+static constexpr uint SIMULATE_BITSTREAM{37};
+static constexpr uint SIMULATE_BITSTREAM_CLEAN{38};
+static constexpr uint SIMULATE_BITSTREAM_SETTINGS{39};
+static constexpr uint TIMING_SIGN_OFF_SETTINGS{40};
+static constexpr uint PACKING_SETTINGS{41};
 
-static constexpr uint UserActionRole = Qt::UserRole + 1;
-static constexpr uint ExpandAreaRole = Qt::UserRole + 2;
-static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
-static constexpr uint ParentDataRole = Qt::UserRole + 4;
-static constexpr uint TaskTypeRole = Qt::UserRole + 5;
-static constexpr uint TaskId = Qt::UserRole + 6;
+static constexpr const char *IP_GENERATE_LOG{"ip_generate.rpt"};
+static constexpr const char *ANALYSIS_LOG{"analysis.rpt"};
+static constexpr const char *SYNTHESIS_LOG{"synthesis.rpt"};
+static constexpr const char *PACKING_LOG{"packing.rpt"};
+static constexpr const char *GLOBAL_PLACEMENT_LOG{"global_placement.rpt"};
+static constexpr const char *PLACEMENT_LOG{"placement.rpt"};
+static constexpr const char *PLACEMENT_TIMING_LOG{"post_place_timing.rpt"};
+static constexpr const char *ROUTING_LOG{"routing.rpt"};
+static constexpr const char *ROUTING_TIMING_LOG{"post_route_timing.rpt"};
+static constexpr const char *TIMING_ANALYSIS_LOG{"timing_analysis.rpt"};
+static constexpr const char *TA_TIMING_LOG{"post_ta_timing.rpt"};
+static constexpr const char *POWER_ANALYSIS_LOG{"power_analysis.rpt"};
+static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
 
 /*!
  * \brief prepareCompilerView
@@ -93,10 +119,10 @@ static constexpr uint TaskId = Qt::UserRole + 6;
  * \param taskManager - output parameter to receive pointer to task manager.
  * \return widget with compiler task view
  */
-QWidget *prepareCompilerView(Compiler *compiler,
-                             TaskManager **taskManager = nullptr);
+QTableView *prepareCompilerView(Compiler *compiler,
+                                TaskManager **taskManager = nullptr);
 
-uint toTaskId(int action, const Compiler *const compiler);
+uint toTaskId(int action, Compiler *const compiler);
 
 /*!
  * \brief read_sdc

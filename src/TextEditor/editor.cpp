@@ -37,6 +37,10 @@ QString Editor::getFileName() const { return m_strFileName; }
 
 bool Editor::isModified() const { return m_scintilla->isModified(); }
 
+void Editor::SetFileWatcher(QFileSystemWatcher *watcher) {
+  m_fileWatcher = watcher;
+}
+
 void Editor::FindFirst(const QString &strWord) {
   m_scintilla->findFirst(strWord, true, true, true, true, false);
   m_scintilla->findNext();
@@ -64,9 +68,22 @@ void Editor::ReplaceAll(const QString &strFind, const QString &strDesWord) {
 
 void Editor::markLine(int line) {
   m_scintilla->markerAdd(line - 1, ERROR_MARKER);
+  m_scintilla->ensureLineVisible(line - 1);
+}
+
+void Editor::selectLines(int lineFrom, int lineTo) {
+  m_scintilla->setSelection(lineFrom, 0, lineTo,
+                            m_scintilla->lineLength(lineTo));
+  // VISIBLE_STRICT policy makes sure line is in the middle of the screen.
+  // VISIBLE_SLOP, on the other hand, just makess sure line is visible
+  m_scintilla->SendScintilla(QsciScintilla::SCI_SETVISIBLEPOLICY,
+                             QsciScintilla::VISIBLE_STRICT);
+  m_scintilla->ensureLineVisible(lineFrom);
 }
 
 void Editor::clearMarkers() { m_scintilla->markerDeleteAll(ERROR_MARKER); }
+
+void Editor::reload() { SetScintillaText(m_strFileName); }
 
 void Editor::Search() {
   QString strWord = "";
@@ -82,12 +99,18 @@ void Editor::Save() {
     return;
   }
 
+  // avoid trigger file watching during save
+  m_fileWatcher->removePath(m_strFileName);
   QTextStream out(&file);
   QApplication::setOverrideCursor(Qt::WaitCursor);
   out << m_scintilla->text();
   QApplication::restoreOverrideCursor();
 
   m_scintilla->setModified(false);
+  // QTimer::singleShot is used here to run lambda at the end of the event
+  // queue. We must wait all events because file is saved to device later.
+  QTimer::singleShot(1, this,
+                     [this]() { m_fileWatcher->addPath(m_strFileName); });
 }
 
 void Editor::Undo() { m_scintilla->undo(); }
@@ -195,7 +218,6 @@ void Editor::InitToolBar() {
 void Editor::InitScintilla(int iFileType) {
   QFont font("Arial", 9, QFont::Normal);
   m_scintilla->setFont(font);
-  QFontMetrics fontmetrics = QFontMetrics(font);
   m_scintilla->setMarginWidth(0, 27 /*fontmetrics.width("0000")*/);
 
   m_scintilla->setMarginType(0, QsciScintilla::NumberMargin);

@@ -25,9 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <optional>
 
+#include "Reports/TaskReportManagerRegistry.h"
 #include "Task.h"
 
 namespace FOEDAG {
+class Compiler;
+class DialogProvider;
 
 /*!
  * \brief The TaskManager class
@@ -37,7 +40,7 @@ class TaskManager : public QObject {
   Q_OBJECT
  public:
   static constexpr uint invalid_id{1000};
-  explicit TaskManager(QObject *parent = nullptr);
+  explicit TaskManager(Compiler *compiler, QObject *parent = nullptr);
   ~TaskManager();
   QList<Task *> tasks() const;
   /*!
@@ -50,7 +53,11 @@ class TaskManager : public QObject {
    * \return return id of the task \a t.
    */
   uint taskId(Task *t) const;
-
+  /*!
+   * \brief currentTask
+   * \return Task* to task with status InProgress.
+   */
+  Task *currentTask() const;
   /*!
    * \brief stopCurrentTask. Stop all tasks that are in progress.
    */
@@ -64,8 +71,9 @@ class TaskManager : public QObject {
 
   /*!
    * \brief startAll. Starts chain of all tasks. They will run one by one.
+   * @param simulation - add simulation tasks
    */
-  void startAll();
+  void startAll(bool simulation = false);
 
   /*!
    * \brief startTask. Start task \a t.
@@ -86,6 +94,11 @@ class TaskManager : public QObject {
 
   void setTaskCount(int count);
 
+  const TaskReportManagerRegistry &getReportManagerRegistry() const;
+
+  static bool isSimulation(const Task *const task);
+  void setDialogProvider(const DialogProvider *const dProvider);
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
@@ -103,22 +116,33 @@ class TaskManager : public QObject {
    * \brief progress
    * emits whenever current task done and send current progress and max steps.
    */
-  void progress(int progress, int max);
+  void progress(int progress, int max, const QString &msg = {});
+
+  void taskReportCreated(QString reportName);
 
  private slots:
-  void runNext();
+  void runNext(FOEDAG::TaskStatus status);
 
  private:
   void run();
   void reset();
-  void rollBack(Task *t);
+  void cleanDownStreamStatus(Task *t);
+  void appendTask(Task *t);
+
+  /*!
+   * \brief getDownstreamClearTasks
+   * \return vector of clean tasks in reverse order. Vector includes \param t.
+   */
+  QVector<Task *> getDownstreamCleanTasks(Task *t) const;
 
  private:
   QMap<uint, Task *> m_tasks;
   QVector<Task *> m_runStack;
-  QMap<Task *, QVector<Task *>> m_rollBack;
+  QVector<Task *> m_taskQueue;
+  TaskReportManagerRegistry m_reportManagerRegistry;
   int m_taskCount{0};
   int counter{0};
+  const DialogProvider *m_dialogProvider{nullptr};
 };
 
 }  // namespace FOEDAG

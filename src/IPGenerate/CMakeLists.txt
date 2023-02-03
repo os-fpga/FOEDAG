@@ -83,6 +83,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(ipgenerate_bin
 	${PROJECT_SOURCE_DIR}/../IPGenerate/Test/ipgenerate_main.cpp)
-target_link_libraries(ipgenerate_bin foedag foedagcore tcl_stubb tcl_static zlib compiler)
+target_link_libraries(ipgenerate_bin foedag foedagcore tcl_stubb tcl_static zlib compiler simulation)
 set_target_properties(ipgenerate_bin PROPERTIES OUTPUT_NAME ipgenerate_test)
 

@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QFile>
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <QObject>
 #include <QTextStream>
 #include <QToolBar>
@@ -32,6 +33,7 @@ class Editor : public QWidget {
 
   QString getFileName() const;
   bool isModified() const;
+  void SetFileWatcher(QFileSystemWatcher* watcher);
 
   void FindFirst(const QString& strWord);
   void FindNext(const QString& strWord);
@@ -40,6 +42,8 @@ class Editor : public QWidget {
   void ReplaceAll(const QString& strFind, const QString& strDesWord);
   void markLine(int line);
   void clearMarkers();
+  void reload();
+  void selectLines(int lineFrom, int lineTo);
 
  signals:
   void EditorModificationChanged(bool m);
@@ -85,6 +89,7 @@ class Editor : public QWidget {
   void SetScintillaText(QString strFileName);
 
   void UpdateToolBarStates();
+  QFileSystemWatcher* m_fileWatcher{nullptr};
 };
 
 }  // namespace FOEDAG

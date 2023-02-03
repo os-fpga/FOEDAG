@@ -60,10 +60,15 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../Main/ProjectFile/CompilerComponent.cpp
   #../Main/AboutWidget.cpp
   ../Main/AboutWidget_ql.cpp
+  ../Main/licenseviewer.cpp
   ../MainWindow/mainwindowmodel.cpp
+  ../MainWindow/MessagesTabWidget.cpp
+  ../MainWindow/ReportsTreeWidget.cpp
   ../MainWindow/WelcomePageWidget.cpp
   ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
+  ../MainWindow/PathEdit.cpp
+  ../Main/DialogProvider.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -85,11 +90,16 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ProjectFile/ProjectManagerComponent.h
   ../Main/ProjectFile/CompilerComponent.h
   ../Main/AboutWidget.h
+  ../Main/licenseviewer.h
   ../MainWindow/mainwindowmodel.h
+  ../MainWindow/MessagesTabWidget.h
+  ../MainWindow/ReportsTreeWidget.h
   ../MainWindow/TopLevelInterface.h
   ../MainWindow/WelcomePageWidget.h
   CompilerNotifier.h
   ../Main/TclSimpleParser.h
+  ../MainWindow/PathEdit.h
+  ../Main/DialogProvider.h
 )
 
 set (SRC_UI_LIST "")
@@ -153,6 +163,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../Main/Tasks.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/WidgetFactory.h
     FILES ${PROJECT_SOURCE_DIR}/../Main/AboutWidget.h
+    FILES ${PROJECT_SOURCE_DIR}/../Main/DialogProvider.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/Main/)
   
 install(

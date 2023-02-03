@@ -30,6 +30,8 @@ class PortsView : public PinAssignmentBaseView {
   Q_OBJECT
  public:
   PortsView(PinsBaseModel *model, QWidget *parent = nullptr);
+  void SetPin(const QString &port, const QString &pin);
+  void cleanTable();
 
  signals:
   void selectionHasChanged();
@@ -37,9 +39,16 @@ class PortsView : public PinAssignmentBaseView {
  private:
   void packagePinSelectionHasChanged(const QModelIndex &index);
   void insertTableItem(QTreeWidgetItem *parent, const IOPort &port);
+  void modeSelectionHasChanged(const QModelIndex &index);
+  void internalPinSelectionHasChanged(const QModelIndex &index);
+  void updateModeCombo(const QString &port, const QModelIndex &index);
+  void updateIntPinCombo(const QString &mode, const QModelIndex &index);
+  QString getPinSelection(const QModelIndex &index) const;
 
  private slots:
-  void itemHasChanged(const QModelIndex &index, const QString &pin);
+  void modeChanged(const QString &pin, const QString &mode);
+  void intPinChanged(const QString &port, const QString &intPin);
+  void portAssignmentChanged(const QString &port, const QString &pin, int row);
 };
 
 }  // namespace FOEDAG

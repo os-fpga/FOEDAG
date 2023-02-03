@@ -30,7 +30,7 @@ struct ProjectInfo {
   QString git_hash;
   QString url;
   QString build_type;
-  bool showLicense{false};
+  QString licenseFile{};  // base folder is <build path>/share/foedag/etc/
 };
 
 class AboutWidget : public QDialog {
@@ -40,7 +40,8 @@ class AboutWidget : public QDialog {
                        QWidget *parent = nullptr);
 
  private:
-  static QString License();
+  static QString License(const std::filesystem::path &srcDir,
+                         const QString &file);
   static QString getTagLine(const std::filesystem::path &srcDir);
 };
 

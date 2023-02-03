@@ -36,15 +36,20 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 34)
+set(VERSION_PATCH 112)
 
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
   On)
+option(CODE_COVERAGE "Generate code coverage information files when running unit tests" OFF)
 
 project(FOEDAG)
 
+if(CODE_COVERAGE)
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
+endif()
 
 set (BUILD_TYPE_STRING Engineering)
 if (PRODUCTION_BUILD)
@@ -89,6 +94,8 @@ add_subdirectory(third_party/QScintilla-2.13.1)
 add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/cryptor-gh)
+add_subdirectory(third_party/gtkwave_cmake)
+add_subdirectory(third_party/scope_guard)
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -98,7 +105,9 @@ add_subdirectory(src/DesignRuns)
 add_subdirectory(src/Console)
 add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
+add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
+add_subdirectory(src/DesignQuery)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -114,7 +123,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 # Python
 if (FOEDAG_WITH_PYTHON)
 find_package(Python3 3.3 REQUIRED COMPONENTS Interpreter Development)
-find_package(SWIG 3.0 REQUIRED)
+# find_package(SWIG 3.0 REQUIRED)
 message(STATUS "Python3_LIBRARIES = ${Python3_LIBRARIES}")
 message(STATUS "Python3_EXECUTABLE = ${Python3_EXECUTABLE}")
 message(STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}")
@@ -297,7 +306,9 @@ configure_file(foedag_version.ql.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
 add_dependencies(compiler tcl_stubb_build)
+add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
+add_dependencies(designquery tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -361,6 +372,8 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
+  designquery
+  simulation
   foedagutils
   console
   QConsole
@@ -370,6 +383,7 @@ target_link_libraries(foedag  PUBLIC
   nlohmann_json
   ipconfigurator
   pinassignment
+  scope_guard
 )
 #target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
@@ -511,15 +525,21 @@ install(
   DESTINATION cmake)
 
 install(
-  DIRECTORY etc DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/ DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag/etc/)
 
 install(
   DIRECTORY tests/Testcases/IPGenerate/IP_Catalog DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
 
 install(
   DIRECTORY examples DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
+
 install(
     DIRECTORY tests/Arch/ DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/foedag/Arch/)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/gtkwave DESTINATION  ${CMAKE_INSTALL_BINDIR}
+    USE_SOURCE_PERMISSIONS
+)
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
@@ -545,8 +565,13 @@ add_custom_command(TARGET foedag-bin POST_BUILD
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                  ${PROJECT_SOURCE_DIR}/etc
+                  ${PROJECT_SOURCE_DIR}/etc/
                   ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+          ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/etc/)
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/

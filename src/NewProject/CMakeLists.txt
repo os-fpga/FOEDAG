@@ -38,7 +38,11 @@ set (SRC_CPP_LIST
   ProjectManager/project.cpp
   ProjectManager/project_manager.cpp
   ProjectManager/compiler_configuration.cpp
-  newprojectmodel.cpp)
+  ProjectManager/ip_configuration.cpp
+  ProjectManager/DesignFileWatcher.cpp
+  newprojectmodel.cpp
+  add_sim_form.cpp
+)
 
 set (SRC_H_LIST
   new_project_dialog.h
@@ -59,8 +63,12 @@ set (SRC_H_LIST
   ProjectManager/project.h
   ProjectManager/project_manager.h
   ProjectManager/compiler_configuration.h
+  ProjectManager/ip_configuration.h
+  ProjectManager/DesignFileWatcher.h
   newprojectmodel.h
-  SettingsGuiInterface.h)
+  SettingsGuiInterface.h
+  add_sim_form.h
+)
 
 set (SRC_UI_LIST
   new_project_dialog.ui
@@ -70,7 +78,9 @@ set (SRC_UI_LIST
   add_constraints_form.ui
   device_planner_form.ui
   summary_form.ui
-  create_file_dialog.ui)
+  create_file_dialog.ui
+  add_sim_form.ui
+)
 
 add_library(newproject STATIC
   ${SRC_CPP_LIST}
@@ -98,6 +108,7 @@ install(
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_constraints_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/source_grid.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_source_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../NewProject/add_sim_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/device_planner_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/location_form.h
     FILES ${PROJECT_SOURCE_DIR}/../NewProject/project_type_form.h
@@ -117,6 +128,8 @@ install(
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_fileset.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/project_run.h
       FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/compiler_configuration.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/ip_configuration.h
+      FILES ${PROJECT_SOURCE_DIR}/../NewProject/ProjectManager/DesignFileWatcher.h
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/NewProject/ProjectManager)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

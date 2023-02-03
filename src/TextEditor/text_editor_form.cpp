@@ -45,6 +45,9 @@ void TextEditorForm::InitForm() {
           SLOT(SlotReplaceAll(QString, QString)));
 
   initForm = true;
+
+  connect(&m_fileWatcher, &QFileSystemWatcher::fileChanged, this,
+          &TextEditorForm::fileModifiedOnDisk);
 }
 
 int TextEditorForm::OpenFile(const QString &strFileName) {
@@ -79,6 +82,10 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   FOEDAG::Editor *editor = new FOEDAG::Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
           SLOT(SlotUpdateTabTitle(bool)));
+  connect(editor, &Editor::EditorModificationChanged, this, [=](bool m) {
+    // file saved
+    if (m == false) emit FileChanged(strFileName);
+  });
   connect(editor, SIGNAL(ShowSearchDialog(QString)), this,
           SLOT(SlotShowSearchDialog(QString)));
 
@@ -90,6 +97,8 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   pair.first = index;
   pair.second = editor;
   m_map_file_tabIndex_editor.insert(strFileName, pair);
+  m_fileWatcher.addPath(strFileName);
+  editor->SetFileWatcher(&m_fileWatcher);
 
   return ret;
 }
@@ -107,12 +116,28 @@ int TextEditorForm::OpenFileWithLine(const QString &strFileName, int line) {
   return 0;
 }
 
+int TextEditorForm::OpenFileWithSelection(const QString &strFileName,
+                                          int lineFrom, int lineTo) {
+  int res = OpenFile(strFileName);
+  if (res == 0) {
+    auto pair = m_map_file_tabIndex_editor.value(strFileName);
+    pair.second->selectLines(lineFrom, lineTo);
+  } else
+    return -1;
+  return 0;
+}
+
 void TextEditorForm::SlotTabCloseRequested(int index) {
   if (index == -1) {
     return;
   }
 
-  Editor *tabItem = (Editor *)m_tab_editor->widget(index);
+  Editor *tabItem = qobject_cast<Editor *>(m_tab_editor->widget(index));
+  if (!tabItem) {
+    m_tab_editor->removeTab(index);
+    return;
+  }
+
   QString strName = m_tab_editor->tabText(index);
   if (tabItem->isModified()) {
     int ret = QMessageBox::question(
@@ -128,6 +153,7 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
   auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
   if (iter != m_map_file_tabIndex_editor.end()) {
     m_map_file_tabIndex_editor.erase(iter);
+    m_fileWatcher.removePath(iter.key());
   }
   // Removes the tab at position index from this stack of widgets.
   // The page widget itself is not deleted.
@@ -138,19 +164,21 @@ void TextEditorForm::SlotTabCloseRequested(int index) {
 }
 
 void TextEditorForm::SlotCurrentChanged(int index) {
-  Editor *tabEditor = (Editor *)m_tab_editor->widget(index);
+  Editor *tabEditor = qobject_cast<Editor *>(m_tab_editor->widget(index));
   if (tabEditor) {
     emit CurrentFileChanged(tabEditor->getFileName());
   }
 }
 
 void TextEditorForm::SlotUpdateTabTitle(bool m) {
-  int index = m_tab_editor->currentIndex();
-  QString strName = m_tab_editor->tabText(index);
-  if (m) {
-    m_tab_editor->setTabText(index, strName + tr("*"));
-  } else {
-    m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
+  int index = m_tab_editor->indexOf(qobject_cast<Editor *>(sender()));
+  if (index != -1) {
+    QString strName = m_tab_editor->tabText(index);
+    if (m) {
+      m_tab_editor->setTabText(index, strName + tr("*"));
+    } else {
+      m_tab_editor->setTabText(index, strName.left(strName.lastIndexOf("*")));
+    }
   }
 }
 
@@ -194,5 +222,26 @@ void TextEditorForm::SlotReplaceAll(const QString &strFindWord,
   Editor *tabEditor = (Editor *)m_tab_editor->currentWidget();
   if (tabEditor) {
     tabEditor->ReplaceAll(strFindWord, strDesWord);
+  }
+}
+
+void TextEditorForm::fileModifiedOnDisk(const QString &path) {
+  auto editorPair = m_map_file_tabIndex_editor.value(path, {0, nullptr});
+  auto editor{editorPair.second};
+  if (editor) {
+    // Here we need add path again since file descriptor might be closed by
+    // other application and file watcher doesn't track this file anymore. If
+    // path has already added - nothing happened.
+    m_fileWatcher.addPath(path);
+    if (editor->isModified()) {
+      const QFileInfo info{path};
+      auto res = QMessageBox::question(
+          this, "File changed",
+          QString{
+              "The file %1 has been changed on disk. Do you want to reload it?"}
+              .arg(info.fileName()));
+      if (res == QMessageBox::No) return;
+    }
+    editor->reload();
   }
 }

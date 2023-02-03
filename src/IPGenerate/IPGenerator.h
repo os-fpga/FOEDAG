@@ -47,6 +47,8 @@ class IPGenerator {
   std::vector<IPInstance*> IPInstances() { return m_instances; }
   bool AddIPInstance(IPInstance* instance);
   IPInstance* GetIPInstance(const std::string& moduleName);
+  FOEDAG::Value* GetCatalogParam(IPInstance* instance,
+                                 const std::string& paramName);
   void RemoveIPInstance(IPInstance* instance);
   void RemoveIPInstance(const std::string& moduleName);
   void DeleteIPInstance(IPInstance* instance);
@@ -56,6 +58,8 @@ class IPGenerator {
   }
   bool Generate();
   std::filesystem::path GetBuildDir(IPInstance* instance) const;
+  std::filesystem::path GetCachePath(IPInstance* instance) const;
+  std::vector<std::filesystem::path> GetDesignFiles(IPInstance* instance);
 
  protected:
   IPCatalog* m_catalog = nullptr;

@@ -153,6 +153,8 @@ test_install:
 
 test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow.tcl
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/run_project_test/run_project.tcl
+	$(XVFB) ./dbuild/bin/aurora --compiler openfpga --replay tests/TestGui/run_project_test/run_project.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/compiler_flow_with_clean.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console.tcl
 	$(XVFB) ./dbuild/bin/console_test --replay tests/TestGui/gui_console_negative_test.tcl && exit 1 || (echo "PASSED: Caught negative test")
@@ -168,6 +170,12 @@ test/gui: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_top_settings_dlg.tcl
 	$(XVFB) ./dbuild/bin/ipconfigurator --replay tests/TestGui/gui_ipconfigurator.tcl
 	$(XVFB) ./dbuild/bin/pinassignment --replay tests/TestGui/gui_pinassignment.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/tcl_init_file_load_pt1.tcl
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/tcl_init_file_load_pt2.tcl
+	$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/gtkwave_invoke.tcl || (cat foedag.log; exit 1)
+	#$(XVFB) ./dbuild/bin/aurora --script tests/TestGui/gtkwave_cmds.tcl || (cat foedag.log; exit 1)
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
+	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/log_header.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/aurora --replay tests/TestGui/gui_start_stop.tcl
@@ -178,18 +186,23 @@ test/gui_mac: run-cmake-debug
 #	$(XVFB) ./dbuild/bin/newfile --replay tests/TestGui/gui_new_file.tcl
 
 test/batch: run-cmake-release
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_ip_generate.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestGui/compiler_flow.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_mt.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_stop.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_compiler_batch.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_task_clean.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_recursive_load.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/Testcases/project_file/test.tcl
-	./build/bin/aurora --batch --compiler openfpga --script tests/TestBatch/test_ip_configure_load.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_ip_generate.tcl
+	./build/bin/aurora --batch --script tests/Testcases/aes_decrypt_fpga/aes_decrypt.tcl
+	./build/bin/aurora --batch --script tests/TestGui/compiler_flow.tcl
+	./build/bin/aurora --batch --script tests/TestGui/simulation_flow.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_mt.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_stop.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_compiler_batch.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_task_clean.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_recursive_load.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_instances.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_modules.tcl
+	./build/bin/aurora --batch --script tests/Testcases/IPGenerate/test_ipgenerate_cache.tcl
+	./build/bin/aurora --batch --script tests/Testcases/project_file/test.tcl
+	./build/bin/aurora --batch --script tests/Testcases/oneff_close/oneff.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/test_ip_configure_load.tcl
+	./build/bin/aurora --batch --script tests/TestBatch/log_header.tcl
+	./build/bin/aurora --batch --script tests/Testcases/simulation_trivial/test.tcl
 	
 lib-only: run-cmake-release
 	cmake --build build --target foedag -j $(CPU_CORES)
@@ -209,4 +222,5 @@ uninstall:
 	$(RM) -r $(PREFIX)/lib/foedag
 	$(RM) -r $(PREFIX)/include/foedag
 	$(RM) -r $(PREFIX)/share/foedag
+	$(RM) -r $(PREFIX)/bin/gtkwave
 

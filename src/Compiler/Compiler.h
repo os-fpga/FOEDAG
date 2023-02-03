@@ -28,9 +28,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
+#include "DesignQuery/DesignQuery.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
+#include "Simulation/Simulator.h"
 #include "Tcl/TclInterpreter.h"
+
+class QProcess;
 
 namespace FOEDAG {
 
@@ -42,7 +46,10 @@ class TclCommandIntegration;
 class Constraints;
 
 class Compiler {
+  friend Simulator;
+
  public:
+  enum class NetlistType { Blif, Edif, Verilog, VHDL };
   enum class Action {
     NoAction,
     IPGen,
@@ -55,7 +62,11 @@ class Compiler {
     STA,
     Power,
     Bitstream,
-    Batch
+    Batch,
+    SimulateRTL,
+    SimulateGate,
+    SimulatePNR,
+    SimulateBitstream
   };
   enum class State {
     None,
@@ -80,8 +91,9 @@ class Compiler {
   enum class PinAssignOpt { Random, In_Define_Order, Free };
   enum class RoutingOpt { None, Clean };
   enum class PowerOpt { None, Clean };
-  enum class STAOpt { None, Clean, View, Opensta };
-  enum class BitstreamOpt { DefaultBitsOpt, Force, Clean };
+  enum class STAOpt { None, Clean, View };
+  enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
+  enum class STAEngineOpt { Tatum, Opensta };
 
   // Most common use case, create the compiler in your main
   Compiler() = default;
@@ -103,7 +115,6 @@ class Compiler {
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
-  bool Clear();
   void start();
   void finish();
   class ProjectManager* ProjManager() const {
@@ -117,12 +128,21 @@ class Compiler {
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
-  virtual void Message(const std::string& message);
-  virtual void ErrorMessage(const std::string& message);
+  virtual void Message(const std::string& message) const;
+  virtual void ErrorMessage(const std::string& message,
+                            bool append = true) const;
+  virtual std::vector<std::string> GetCleanFiles(
+      Action action, const std::string& projectName,
+      const std::string& topModule) const;
+  void CleanFiles(Action action);
+  std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
 
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
+  void SetSimulator(Simulator* simulator) { m_simulator = simulator; }
+  Simulator* GetSimulator();
+
   bool BuildLiteXIPCatalog(std::filesystem::path litexPath);
   bool HasIPInstances();
   bool HasIPDefinitions();
@@ -151,6 +171,8 @@ class Compiler {
   void TimingAnalysisOpt(STAOpt opt) { m_staOpt = opt; }
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
+  STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
+  void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
 
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
@@ -183,7 +205,19 @@ class Compiler {
   const std::map<std::string, MsgSeverity>& MsgSeverityMap() {
     return m_severityMap;
   }
-  static std::string AdjustPath(const std::string& p);
+
+  void SetConstraints(Constraints* c);
+
+  void SetNetlistType(NetlistType type) { m_netlistType = type; }
+  NetlistType GetNetlistType() { return m_netlistType; }
+
+  void virtual CustomSimulatorSetup(Simulator::SimulationType action);
+  void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
+  const std::string& GetWavefromFile() { return m_waveformFile; }
+
+  QProcess* GetGTKWaveProcess();
+  void GTKWaveSendCmd(const std::string& gtkWaveCmd,
+                      bool raiseGtkWindow = true);
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -205,19 +239,36 @@ class Compiler {
   virtual bool VerifyTargetDevice() const;
   bool HasTargetDevice();
 
-  bool CreateDesign(const std::string& name);
-  static void PrintVersion(std::ostream* out);
+  bool CreateDesign(const std::string& name,
+                    const std::string& type = std::string{});
 
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
-  virtual bool ExecuteSystemCommand(const std::string& command);
-  virtual int ExecuteAndMonitorSystemCommand(const std::string& command);
+
+  void SetEnvironmentVariable(const std::string variable,
+                              const std::string value);
+  virtual int ExecuteAndMonitorSystemCommand(
+      const std::string& command, const std::string logFile = std::string{},
+      bool appendLog = false);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
 
+  enum AddFilesType { Design, Simulation };
+  int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
+                const char* argv[], AddFilesType filesType);
+
+  void installGTKWaveHelpers();
+  void writeHelp(
+      std::ostream* out,
+      const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
+      int frontSpacePadCount, int descColumn);
+  void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
+  void AddHeadersToLogs();
+  void AddErrorLink(const class Task* const current);
+  bool HasInternalError() const;
   /* Propected members */
   TclInterpreter* m_interp = nullptr;
   Session* m_session = nullptr;
@@ -246,6 +297,7 @@ class Compiler {
   RoutingOpt m_routingOpt = RoutingOpt::None;
   PowerOpt m_powerOpt = PowerOpt::None;
   STAOpt m_staOpt = STAOpt::None;
+  STAEngineOpt m_staEngineOpt = STAEngineOpt::Tatum;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
 
   // Compiler specific options
@@ -260,10 +312,23 @@ class Compiler {
   bool m_bitstreamEnabled = true;
   bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
+
+  // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
+  Simulator* m_simulator = nullptr;
+  DesignQuery* m_DesignQuery = nullptr;
 
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
+
+  std::map<std::string, std::string> m_environmentVariableMap;
+
+  NetlistType m_netlistType = NetlistType::Blif;
+
+  std::string m_waveformFile;
+
+  // GTKWave
+  QProcess* m_gtkwave_process = nullptr;
 };
 
 }  // namespace FOEDAG

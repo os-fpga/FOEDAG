@@ -7,5 +7,6 @@
         <file>Settings/settings_tclExample_defaults.json</file>
         <file>Settings/settings_tclExample_userVals.json</file>
         <file>PinAssignment/package_pin_info.json</file>
+        <file>PinAssignment/corrupted.json</file>
     </qresource>
 </RCC>

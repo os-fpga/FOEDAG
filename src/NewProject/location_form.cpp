@@ -5,14 +5,13 @@
 #include "ui_location_form.h"
 using namespace FOEDAG;
 
-locationForm::locationForm(QWidget *parent)
+locationForm::locationForm(const QString &defaultPath, QWidget *parent)
     : QWidget(parent), ui(new Ui::locationForm) {
   ui->setupUi(this);
   int count = 1;
   QString project_prefix = "project_";
-  QString homePath = QDir::homePath();
-  QString projectPathPrefix =
-      QDir::homePath() + QDir::separator() + project_prefix;
+  QString homePath = defaultPath.isEmpty() ? QDir::homePath() : defaultPath;
+  QString projectPathPrefix = homePath + QDir::separator() + project_prefix;
   while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
   }

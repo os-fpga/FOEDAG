@@ -20,13 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+class QString;
+
 namespace FOEDAG {
 
 class TopLevelInterface {
  public:
   virtual ~TopLevelInterface() = default;
   virtual void gui_start(bool showWP) = 0;
+  // run argument indicates whether opened project should be run
+  // after opening. Delayed opening can be requested to allow the GUI to
+  // finish its initialization first.
+  virtual void openProject(const QString& projectFile, bool delayedOpen,
+                           bool run) = 0;
+  virtual bool isRunning() const = 0;
   virtual void ProgressVisible(bool visible) = 0;
+
+  // this function is call after tcl script has finished
+  virtual void ScriptFinished() {}
 };
 
 }  // namespace FOEDAG

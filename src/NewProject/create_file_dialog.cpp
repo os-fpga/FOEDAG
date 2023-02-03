@@ -33,9 +33,21 @@ createFileDialog::createFileDialog(const QString &projectPath, QWidget *parent)
 
 createFileDialog::~createFileDialog() { delete ui; }
 
+bool createFileDialog::verifyFileName(const QString &fileName,
+                                      QWidget *parent) {
+  if (fileName.contains(" ")) {
+    QMessageBox::warning(
+        parent, tr("Warning"),
+        QString("\"%1\": file name with space not supported.").arg(fileName),
+        QMessageBox::Ok);
+    return false;
+  }
+  return true;
+}
+
 void createFileDialog::initialDialog(int type) {
   m_type = type;
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     setWindowTitle(tr("Create Source File"));
     ui->m_labelDetailed->setText(
         tr("Create a new source file and add it to your project."));
@@ -43,26 +55,29 @@ void createFileDialog::initialDialog(int type) {
     ui->m_comboxFileType->clear();
     ui->m_comboxFileType->addItem(tr("Verilog"));
     ui->m_comboxFileType->addItem(tr("SystemVerilog"));
-    ui->m_comboxFileType->addItem(tr("VHDL"));
+    if (GT_SIM != m_type) ui->m_comboxFileType->addItem(tr("VHDL"));
   } else if (GT_CONSTRAINTS == m_type) {
     setWindowTitle(tr("Create Constraints File"));
     ui->m_labelDetailed->setText(
         tr("Create a new Constraints file and add it to your project."));
     ui->m_comboxFileType->clear();
-    ui->m_comboxFileType->addItem(tr("SDC"));
+    ui->m_comboxFileType->addItem(tr("sdc"));
+    ui->m_comboxFileType->addItem(tr("pin"));
   }
   // ui->m_comboxFileType->setStyleSheet("border: 1px solid gray;");
 }
 
 void createFileDialog::on_m_pushBtnOK_clicked() {
-  if ("" == ui->m_lineEditFileName->text()) {
+  if (ui->m_lineEditFileName->text().isEmpty()) {
     QMessageBox::information(this, tr("Information"),
                              tr("Please specify a file name"), QMessageBox::Ok);
     return;
   }
+  if (!verifyFileName(ui->m_lineEditFileName->text(), this)) return;
+
   filedata fdata;
   fdata.m_isFolder = false;
-  if (GT_SOURCE == m_type) {
+  if (GT_SOURCE == m_type || GT_SIM == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:
         fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");
@@ -81,16 +96,9 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
     }
     fdata.m_language = FromFileType(fdata.m_fileType);
   } else if (GT_CONSTRAINTS == m_type) {
-    switch (ui->m_comboxFileType->currentIndex()) {
-      case 0:
-        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".SDC");
-        fdata.m_fileType = QString("SDC");
-        break;
-      case 1:
-        break;
-      default:
-        break;
-    }
+    auto ext = ui->m_comboxFileType->currentText();
+    fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".%1").arg(ext);
+    fdata.m_fileType = ext;
   }
 
   fdata.m_filePath = ui->m_comboxFileLocation->currentText();

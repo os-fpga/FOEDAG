@@ -26,7 +26,7 @@ PortsModel::PortsModel(QObject *parent)
     : QObject(parent), m_model(new QStringListModel(this)) {}
 
 QStringList PortsModel::headerList() const {
-  return {"Name", "Dir", "Package Pin", "Type"};
+  return {"Name", "Dir", "Package Pin", "Mode", "Internal pins", "Type"};
 }
 
 void PortsModel::append(const IOPortGroup &p) { m_ioPorts.append(p); }
@@ -47,13 +47,25 @@ void PortsModel::initListModel() {
   m_model->setStringList(portsList);
 }
 
+IOPort PortsModel::GetPort(const QString &portName) const {
+  auto findPort =
+      [&portName](const QVector<IOPort> &ports) -> std::pair<bool, IOPort> {
+    for (const auto &p : ports) {
+      if (p.name == portName) return std::make_pair(true, p);
+    }
+    return std::make_pair(false, IOPort{});
+  };
+  for (const auto &group : m_ioPorts) {
+    const auto &[find, ioPort] = findPort(group.ports);
+    if (find) return ioPort;
+    for (const auto &subPort : group.ports) {
+      const auto &[find, ioPort] = findPort(subPort.ports);
+      if (find) return ioPort;
+    }
+  }
+  return IOPort{};
+}
+
 QStringListModel *PortsModel::listModel() const { return m_model; }
 
-void PortsModel::insert(const QString &name, const QModelIndex &index) {
-  m_indexes.insert(name, index);
-}
-
-void PortsModel::itemChange(const QString &name, const QString &newPin) {
-  emit itemHasChanged(m_indexes.value(name), newPin);
-}
 }  // namespace FOEDAG

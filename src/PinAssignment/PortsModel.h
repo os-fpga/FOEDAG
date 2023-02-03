@@ -50,18 +50,13 @@ class PortsModel : public QObject {
   void append(const IOPortGroup &p);
   const QVector<IOPortGroup> &ports() const;
   void initListModel();
+  IOPort GetPort(const QString &portName) const;
 
   QStringListModel *listModel() const;
-  void insert(const QString &name, const QModelIndex &index);
-  void itemChange(const QString &name, const QString &newPin);
-
- signals:
-  void itemHasChanged(const QModelIndex &index, const QString &newPin);
 
  private:
   QVector<IOPortGroup> m_ioPorts;
   QStringListModel *m_model;
-  QMap<QString, QModelIndex> m_indexes;
 };
 
 }  // namespace FOEDAG

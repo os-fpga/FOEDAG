@@ -18,10 +18,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "ConstraintCreator.h"
+#include "QtUtils.h"
 
 namespace FOEDAG {
 
-ConstraintCreator::ConstraintCreator() {}
+QStringList QtUtils::StringSplit(const QString &str, const QChar &sep) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+  return str.split(sep, Qt::SkipEmptyParts);
+#else
+  return str.split(sep, QString::SkipEmptyParts);
+#endif
+}
+
+bool QtUtils::IsEqual(const QString &str, const QString &s) {
+  return str.compare(s, Qt::CaseInsensitive) == 0;
+}
 
 }  // namespace FOEDAG

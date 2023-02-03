@@ -79,7 +79,7 @@ MSYS2 env with the MinGW64 g++ compiler can be used to build FOEDAG.
   
   6. Run :code:`pacman -Su` for remaining base updates
   
-  7. Run :code:`pacman -S --needed base-devel mingw-w64-x86_64-toolchain git mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base-debug mingw-w64-x86_64-qt5 mingw-w64-x86_64-swig mingw-w64-x86_64-qt5-declarative-debug mingw-w64-x86_64-tcl mingw-w64-x86_64-zlib`
+  7. Run :code:`pacman -S --needed base-devel mingw-w64-x86_64-toolchain git mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base-debug mingw-w64-x86_64-qt5 mingw-w64-x86_64-qt5-declarative-debug mingw-w64-x86_64-tcl mingw-w64-x86_64-zlib`
      for installing required packages.
      
      Select default (all) packages to install here
@@ -87,3 +87,11 @@ MSYS2 env with the MinGW64 g++ compiler can be used to build FOEDAG.
   8. Close the **MSYS2 MSYS** Shell
 
 * Now, use **MSYS2 MinGW x64** Shell (from Start Menu) to open the right shell and start building.
+* | If the system has MSVC compiler setup with Qt5 installed, it is likely that :code:`Qt5_DIR` env variable is set.  
+  | If so, the MSYS2 build will pick up the MSVC Qt5 install, and linking will fail due to the difference in name mangling.  
+  | In this case, ensure that :code:`Qt5_DIR` is set to the MinGW64 Qt5 packages before building.  
+  
+  .. code-block::
+
+      export Qt5_DIR=/mingw64/lib/cmake/Qt5
+

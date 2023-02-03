@@ -60,6 +60,15 @@ set (SRC_CPP_LIST
   TaskManager.cpp
   CompilerDefines.cpp
   Log.cpp
+  Reports/AbstractReportManager.cpp
+  Reports/DefaultTaskReport.cpp
+  Reports/RoutingReportManager.cpp
+  Reports/PackingReportManager.cpp
+  Reports/PlacementReportManager.cpp
+  Reports/TableReport.cpp
+  Reports/TaskReportManagerRegistry.cpp
+  Reports/SynthesisReportManager.cpp
+  Reports/TimingAnalysisReportManager.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -74,6 +83,19 @@ set (SRC_H_INSTALL_LIST
   TaskManager.h
   CompilerDefines.h
   Log.h
+  Reports/AbstractReportManager.h
+  Reports/DefaultTaskReport.h
+  Reports/IDataReport.h
+  Reports/ITaskReport.h
+  Reports/ITaskReportManager.h
+  Reports/RoutingReportManager.h
+  Reports/PackingReportManager.h
+  Reports/PlacementReportManager.h
+  Reports/TableReport.h
+  Reports/TaskReportManagerRegistry.h
+  Reports/SynthesisReportManager.h
+  Reports/TimingAnalysisReportManager.h
+  TaskGlobal.h
 )
 
 set (SRC_H_LIST
@@ -108,6 +130,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(compiler_bin
 	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
-target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate)
+target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate designquery simulation)
 set_target_properties(compiler_bin PROPERTIES OUTPUT_NAME compiler_test)
 

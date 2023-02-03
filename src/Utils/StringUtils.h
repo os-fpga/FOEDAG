@@ -35,7 +35,8 @@ class StringUtils final {
  public:
   // Splits the input string with respect to given separator.
   static void tokenize(std::string_view str, std::string_view separator,
-                       std::vector<std::string>& result);
+                       std::vector<std::string>& result,
+                       bool skipEmpty = false);
 
   // join strings with separator
   static std::string join(const std::vector<std::string>& strings,
@@ -102,6 +103,9 @@ class StringUtils final {
 
   // Returns bool indicating if `text` ends with `ending`
   static bool endsWith(const std::string& text, const std::string& ending);
+
+  // Returns bool indicating if `text` starts with `start`
+  static bool startsWith(const std::string& text, const std::string& start);
 
   // Converts the input text to lower case
   static std::string toLower(const std::string& text);

@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QBoxLayout>
+#include <QCheckBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -44,9 +45,12 @@ class IpConfigWidget : public QWidget {
 
  public slots:
   void updateOutputPath();
+  void handleCheckBoxChanged(const QString& customId, QCheckBox* widget);
+  void checkDependencies();
 
  private:
   void AddDialogControls(QBoxLayout* layout);
+  void AddIpToProject(const QString& cmd);
   void CreateParamFields();
   void CreateOutputFields();
   void updateMetaLabel(VLNV info);

@@ -82,6 +82,23 @@ TEST_F(MultiLineTest, tokenizeTest) {
             "Hope that this program will be useful.");
 }
 
+// TODO @volodymyrk RG-238
+// TEST_F(MultiLineTest, tokenizeLongSeparator) {
+//  auto tokenized_lines = std::vector<std::string>{};
+//  std::string testStr{"test0SEPARATORtest1SEPARATORtest2"};
+//  StringUtils::tokenize(testStr, "SEPARATOR", tokenized_lines);
+//  ASSERT_EQ(tokenized_lines.size(), 3);
+//  EXPECT_EQ(*tokenized_lines.rbegin(), "test2");
+//}
+
+TEST_F(MultiLineTest, tokenizeTestSkipEmpty) {
+  auto tokenized_lines = std::vector<std::string>{};
+  auto testStr{"  string   with   empty    spaces  "};
+  StringUtils::tokenize(testStr, " ", tokenized_lines, true);
+  ASSERT_EQ(tokenized_lines.size(), 4);
+  EXPECT_EQ(*tokenized_lines.begin(), "string");
+}
+
 TEST(StringUtilsTest, LeafTest) {
   const auto input_str = std::string("tests.unittest.utils");
   const auto leaf_str = StringUtils::leaf(input_str);

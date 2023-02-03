@@ -66,6 +66,8 @@ newProjectDialog::newProjectDialog(QWidget *parent)
 
   ui->buttonBox->button(QDialogButtonBox::Ok)->setText("Finish");
   ui->m_tabWidget->tabBar()->setStyle(new CustomTabStyle);
+  connect(ui->m_tabWidget, &QTabWidget::currentChanged, this,
+          &newProjectDialog::updateSummaryPage);
   Reset();
 
   m_projectManager = new ProjectManager(this);
@@ -91,6 +93,9 @@ void newProjectDialog::Reset(Mode mode) {
   m_mode = mode;
   m_index = INDEX_LOCATION;
   m_skipSources = false;
+  QVector<QWidget *> oldWidgets;
+  for (int i = 0; i < ui->m_tabWidget->count(); i++)
+    oldWidgets.push_back(ui->m_tabWidget->widget(i));
   ui->m_tabWidget->clear();
 
   if (mode == NewProject)
@@ -99,9 +104,32 @@ void newProjectDialog::Reset(Mode mode) {
     ResetToProjectSettings();
 
   UpdateDialogView(mode);
+  qDeleteAll(oldWidgets);
 }
 
 Mode newProjectDialog::GetMode() const { return m_mode; }
+
+void newProjectDialog::SetPageActive(FormIndex index) {
+  if (m_tabIndexes.contains(index)) {
+    ui->m_tabWidget->setCurrentIndex(m_tabIndexes.value(index));
+  } else {
+    ui->m_tabWidget->setCurrentIndex(static_cast<int>(index));
+  }
+}
+
+void newProjectDialog::SetDefaultPath(const QString &path) {
+  m_defaultPath = path;
+}
+
+void newProjectDialog::updateSummaryPage() {
+  if (m_mode == Mode::NewProject) return;
+  auto currentPage = ui->m_tabWidget->currentWidget();
+  if (currentPage == m_sumForm) {
+    updateSummary(
+        m_projectManager->getProjectName(),
+        projectTypeForm::projectTypeStr(m_projectManager->projectType()));
+  }
+}
 
 void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_LOCATION == m_index) {
@@ -113,11 +141,8 @@ void newProjectDialog::UpdateDialogView(Mode mode) {
   if (INDEX_SUMMARYF == m_index) {
     NextBtn->setEnabled(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-    m_sumForm->setProjectName(m_locationForm->getProjectName(),
-                              m_proTypeForm->getProjectType());
-    m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
-    m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
-                              m_addConstrsForm->getFileData().count());
+    updateSummary(m_locationForm->getProjectName(),
+                  m_proTypeForm->projectTypeStr());
   } else {
     NextBtn->setEnabled(true);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -130,9 +155,8 @@ void newProjectDialog::UpdateDialogView(Mode mode) {
 
 void newProjectDialog::ResetToNewProject() {
   setWindowTitle(tr("New Project"));
-  ui->m_tabWidget->clear();
 
-  m_locationForm = new locationForm(this);
+  m_locationForm = new locationForm(m_defaultPath, this);
   ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
                              tr("Project Directory"));
   m_proTypeForm = new projectTypeForm(this);
@@ -140,10 +164,14 @@ void newProjectDialog::ResetToNewProject() {
                              tr("Type of Project"));
   QObject::connect(m_proTypeForm, &projectTypeForm::skipSources, this,
                    [this](bool skip) { m_skipSources = skip; });
-  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Add Design Files");
   ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                              tr("Add Design Files"));
+  m_addSimForm = new addSourceForm(GT_SIM, this);
+  m_addSimForm->SetTitle("Add Simulation Files");
+  ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+                             tr("Add Simulation Files"));
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
   ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
@@ -164,20 +192,36 @@ void newProjectDialog::ResetToNewProject() {
 void newProjectDialog::ResetToProjectSettings() {
   setWindowTitle(tr("Project settings"));
   m_settings.clear();
+  m_locationForm = nullptr;
+  m_proTypeForm = nullptr;
 
-  m_addSrcForm = new addSourceForm(this);
+  m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Design Files");
   m_settings.append(m_addSrcForm);
-  ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm, tr("Design Files"));
+  auto index = ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
+                                          tr("Design Files"));
+  m_tabIndexes.insert(INDEX_ADDSOURC, index);
+  m_addSimForm = new addSourceForm(GT_SIM, this);
+  m_addSimForm->SetTitle("Simulation Files");
+  m_settings.append(m_addSimForm);
+  index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+                                     tr("Simulation Files"));
+  m_tabIndexes.insert(INDEX_ADDSIM, index);
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Design Constraints");
   m_settings.append(m_addConstrsForm);
-  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                             tr("Design Constraints"));
+  index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+                                     tr("Design Constraints"));
+  m_tabIndexes.insert(INDEX_ADDCONST, index);
   m_devicePlanForm = new devicePlannerForm(this);
   m_settings.append(m_devicePlanForm);
-  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
-                             tr("Select Target Device"));
+  index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+                                     tr("Select Target Device"));
+  m_tabIndexes.insert(INDEX_DEVICEPL, index);
+  m_sumForm = new summaryForm(this);
+  m_sumForm->setProjectSettings(true);
+  index = ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
+  m_tabIndexes.insert(INDEX_SUMMARYF, index);
 
   for (auto &settings : m_settings) settings->updateUi(m_projectManager);
 
@@ -188,28 +232,102 @@ void newProjectDialog::ResetToProjectSettings() {
   ui->m_tabWidget->tabBar()->setFocusPolicy(Qt::NoFocus);
   BackBtn->setVisible(false);
   NextBtn->setVisible(false);
+  m_addSrcForm->SetBasePath(m_projectManager->getProjectPath());
+  m_addSrcForm->setProjectType(m_projectManager->projectType());
+}
+
+// This will check the project wizard for potential conflicts
+// it will return an std::pair of a bool representing the validity of the
+// current values and a QString with any issues found. This function is intended
+// to grow as more potential conflicts are discovered.
+std::pair<bool, QString> newProjectDialog::ValuesValid() const {
+  QString errStr{};
+
+  // Check for Language type mistmatches in Compile Units
+  auto conflictKeys = FindCompileUnitConflicts();
+  if (!conflictKeys.isEmpty()) {
+    errStr += "The following Compile Units have a language mismatch: " +
+              conflictKeys.join(", ") +
+              "\nReturn to the Design Files tab to fix this.";
+  }
+
+  return std::make_pair(errStr.isEmpty(), errStr);
+}
+
+QList<QString> newProjectDialog::FindCompileUnitConflicts() const {
+  // Group files by Compile Unit (m_groupName)
+  QMap<QString, QList<filedata>> fileGroups{};
+  for (const filedata &fdata : m_addSrcForm->getFileData()) {
+    if (!fdata.m_groupName.isEmpty()) {
+      fileGroups[fdata.m_groupName].append(fdata);
+    }
+  }
+
+  // Determine if any group has a language mismatch
+  QStringList conflictKeys{};
+  // Step through keys
+  for (auto key : fileGroups.keys()) {
+    int lang = -1;
+    // Step through files in this group
+    for (auto file : fileGroups[key]) {
+      if (lang == -1) {
+        lang = file.m_language;
+      } else {
+        // track any groups with a mismatch
+        if (lang != file.m_language) {
+          conflictKeys.append(key);
+          break;
+        }
+      }
+    }
+  }
+
+  return conflictKeys;
+}
+
+void newProjectDialog::updateSummary(const QString &projectName,
+                                     const QString &projectType) {
+  m_sumForm->setProjectName(projectName, projectType);
+  m_sumForm->setDeviceInfo(m_devicePlanForm->getSelectedDevice());
+  m_sumForm->setSourceCount(m_addSrcForm->getFileData().count(),
+                            m_addConstrsForm->getFileData().count(),
+                            m_addSimForm->getFileData().count());
 }
 
 void newProjectDialog::on_buttonBox_accepted() {
+  auto [isValid, err] = ValuesValid();
+  if (!isValid) {
+    QMessageBox::warning(this, "Project Settings Issue", err);
+    return;
+  }
+
   ProjectOptions opt{
-      m_locationForm->getProjectName(),
-      m_locationForm->getProjectPath(),
-      m_proTypeForm->getProjectType(),
+      m_locationForm ? m_locationForm->getProjectName()
+                     : m_projectManager->getProjectName(),
+      m_locationForm ? m_locationForm->getProjectPath()
+                     : m_projectManager->getProjectPath(),
+      m_proTypeForm ? m_proTypeForm->projectType()
+                    : m_projectManager->projectType(),
       {m_addSrcForm->getFileData(), m_addSrcForm->IsCopySource()},
       {m_addConstrsForm->getFileData(), m_addConstrsForm->IsCopySource()},
+      {m_addSimForm->getFileData(), m_addSimForm->IsCopySource()},
       m_devicePlanForm->getSelectedDevice(),
       false /*rewrite*/,
       DEFAULT_FOLDER_SOURCE,
-      m_addSrcForm->TopModule(),
-      m_addSrcForm->LibraryForTopModule(),
-      m_addSrcForm->IncludePath(),
-      m_addSrcForm->LibraryPath(),
-      m_addSrcForm->LibraryExt(),
-      m_addSrcForm->Macros()};
+      ProjectOptions::Options{
+          m_addSrcForm->TopModule(), m_addSrcForm->LibraryForTopModule(),
+          m_addSrcForm->IncludePath(), m_addSrcForm->LibraryPath(),
+          m_addSrcForm->LibraryExt(), m_addSrcForm->Macros()},
+      ProjectOptions::Options{
+          m_addSimForm->TopModule(), m_addSimForm->LibraryForTopModule(),
+          m_addSimForm->IncludePath(), m_addSimForm->LibraryPath(),
+          m_addSimForm->LibraryExt(), m_addSimForm->Macros()}};
   Compiler *compiler = GlobalSession->GetCompiler();
-  if (m_addConstrsForm->IsRandom()) {
+  if (m_addConstrsForm->IsRandom())
     compiler->PinAssignOpts(Compiler::PinAssignOpt::Random);
-  } else
+  else if (m_addConstrsForm->IsFree())
+    compiler->PinAssignOpts(Compiler::PinAssignOpt::Free);
+  else
     compiler->PinAssignOpts(Compiler::PinAssignOpt::In_Define_Order);
   if (m_mode == NewProject) {
     m_projectManager->CreateProject(opt);
@@ -243,9 +361,23 @@ void newProjectDialog::on_next() {
           QMessageBox::Ok);
       return;
     }
+    m_addSrcForm->SetBasePath(m_locationForm->getProjectPath());
+  } else if (INDEX_PROJTYPE == m_index) {
+    auto projectType = m_addSrcForm->projectType();
+    int filesCount = m_addSrcForm->getFileData().count();
+    if (projectType != NO_PROJECT_TYPE &&
+        projectType != m_proTypeForm->projectType() && filesCount != 0) {
+      auto answer =
+          QMessageBox::question(this, "Project type changed",
+                                "Project type has changed. Design source files "
+                                "will be removed. Do you want to continue?");
+      if (answer == QMessageBox::No) return;
+      m_addSrcForm->clear();
+    }
+    m_addSrcForm->setProjectType(m_proTypeForm->projectType());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
-    m_index += 3;  // omit design and constraint files
+    m_index = INDEX_DEVICEPL;  // omit design and constraint files
   else
     m_index++;
   UpdateDialogView();
@@ -253,7 +385,7 @@ void newProjectDialog::on_next() {
 
 void newProjectDialog::on_back() {
   if (m_skipSources && m_index == INDEX_DEVICEPL)
-    m_index -= 3;  // omit design and constraint files
+    m_index = INDEX_PROJTYPE;  // omit design and constraint files
   else
     m_index--;
   UpdateDialogView();
