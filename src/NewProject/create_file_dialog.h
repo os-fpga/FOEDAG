@@ -31,6 +31,7 @@ class createFileDialog : public QDialog {
 
  private:
   bool FileExists(const filedata &fData) const;
+  static QString AppendExtension(const QString &fileName, const QString &ext);
 
  private:
   Ui::createFileDialog *ui;

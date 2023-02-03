@@ -68,27 +68,28 @@ void createFileDialog::initialDialog(int type) {
 }
 
 void createFileDialog::on_m_pushBtnOK_clicked() {
-  if (ui->m_lineEditFileName->text().isEmpty()) {
+  auto fileName = ui->m_lineEditFileName->text();
+  if (fileName.isEmpty()) {
     QMessageBox::information(this, tr("Information"),
                              tr("Please specify a file name"), QMessageBox::Ok);
     return;
   }
-  if (!verifyFileName(ui->m_lineEditFileName->text(), this)) return;
+  if (!verifyFileName(fileName, this)) return;
 
   filedata fdata;
   fdata.m_isFolder = false;
   if (GT_SOURCE == m_type || GT_SIM == m_type) {
     switch (ui->m_comboxFileType->currentIndex()) {
       case 0:
-        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".v");
+        fdata.m_fileName = AppendExtension(fileName, QString(".v"));
         fdata.m_fileType = QString("v");
         break;
       case 1:
-        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".sv");
+        fdata.m_fileName = AppendExtension(fileName, QString(".sv"));
         fdata.m_fileType = QString("sv");
         break;
       case 2:
-        fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".vhd");
+        fdata.m_fileName = AppendExtension(fileName, QString(".vhd"));
         fdata.m_fileType = QString("vhd");
         break;
       default:
@@ -97,7 +98,7 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
     fdata.m_language = FromFileType(fdata.m_fileType);
   } else if (GT_CONSTRAINTS == m_type) {
     auto ext = ui->m_comboxFileType->currentText();
-    fdata.m_fileName = ui->m_lineEditFileName->text() + QString(".%1").arg(ext);
+    fdata.m_fileName = AppendExtension(fileName, QString(".%1").arg(ext));
     fdata.m_fileType = ext;
   }
 
@@ -143,4 +144,10 @@ bool createFileDialog::FileExists(const filedata &fData) const {
   }
   QFileInfo fileInfo(QDir(location), fData.m_fileName);
   return fileInfo.exists();
+}
+
+QString createFileDialog::AppendExtension(const QString &fileName,
+                                          const QString &ext) {
+  if (fileName.endsWith(ext, Qt::CaseInsensitive)) return fileName;
+  return QString{"%1%2"}.arg(fileName, ext);
 }
