@@ -152,7 +152,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "                                Constraints: set_pin_loc, "
-            "set_mode, set_region_loc, all SDC commands"
+            "set_property mode, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   script_path                : path of the Tcl script passed "
             "with --script"
@@ -205,6 +205,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   route ?clean?              : Router" << std::endl;
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
+  (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
          << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
@@ -1657,6 +1658,9 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_mode") != std::string::npos) {
       continue;
     }
+    if (constraint.find("set_property") != std::string::npos) {
+      continue;
+    }
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
@@ -1769,6 +1773,15 @@ bool CompilerOpenFPGA::Placement() {
   bool userConstraint = false;
   std::vector<std::string> constraints;
   for (auto constraint : m_constraints->getConstraints()) {
+    std::vector<std::string> tokens;
+    StringUtils::tokenize(constraint, " ", tokens);
+    constraint = "";
+    constraint += tokens[0];
+    // last token tokens[tokens.size() - 1]  is "" (why?)
+    for (uint32_t i = 1; i < tokens.size() - 1; i++) {
+      const std::string& tok = tokens[i];
+      constraint += " " + tok;
+    }
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
     // pin location constraints have to be translated to .place:
@@ -1777,6 +1790,12 @@ bool CompilerOpenFPGA::Placement() {
       constraint = ReplaceAll(constraint, "set_pin_loc", "set_io");
       constraints.push_back(constraint);
     } else if (constraint.find("set_mode") != std::string::npos) {
+      constraints.push_back(constraint);
+      userConstraint = true;
+    } else if ((constraint.find("set_property") != std::string::npos) &&
+               (constraint.find(" mode ") != std::string::npos)) {
+      constraint = ReplaceAll(constraint, " mode ", " ");
+      constraint = ReplaceAll(constraint, "set_property", "set_mode");
       constraints.push_back(constraint);
       userConstraint = true;
     } else {
