@@ -27,11 +27,13 @@ class QTreeWidgetItem;
 namespace FOEDAG {
 class TaskManager;
 struct TaskMessage;
+class MessageItemParser;
 
 class MessagesTabWidget final : public QWidget {
   Q_OBJECT
  public:
   MessagesTabWidget(const TaskManager &taskManager);
+  ~MessagesTabWidget();
 
  private slots:
   // Reacts on double click on one of tree items.
@@ -39,8 +41,12 @@ class MessagesTabWidget final : public QWidget {
 
  private:
   QTreeWidgetItem *createTaskMessageItem(const TaskMessage &msg,
-                                         const QString &filePath) const;
+                                         const QString &filePath);
+  QTreeWidgetItem *createItem(const QString &message);
+  static QString createLink(const QString &str);
   const TaskManager &m_taskManager;
+  QVector<QTreeWidgetItem *> m_convertToLabel;
+  const QVector<MessageItemParser *> m_parsers;
 };
 
 }  // namespace FOEDAG

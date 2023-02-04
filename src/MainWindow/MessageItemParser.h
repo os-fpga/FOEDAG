@@ -19,37 +19,35 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-
-#include <QDir>
-#include <QStringList>
-#include <QTimer>
-#include <string>
+#include <QString>
+#include <vector>
 
 namespace FOEDAG {
 
-class QtUtils {
+enum Level { Warning, Error };
+
+struct FileInfo {
+  QString fileName{};
+  int line{};
+  Level level{};
+};
+
+class MessageItemParser {
  public:
-  // no empty parts
-  static QStringList StringSplit(const QString &str, const QChar &sep);
+  using VectorRegLevel = std::vector<std::pair<QRegularExpression, Level>>;
+  MessageItemParser() = default;
+  virtual ~MessageItemParser();
+  virtual std::pair<bool, FileInfo> parse(const QString &text) const = 0;
+};
 
-  // return true if str is equal to s with Qt::CaseInsensitive
-  static bool IsEqual(const QString &str, const QString &s);
+class VerificParser : public MessageItemParser {
+ public:
+  std::pair<bool, FileInfo> parse(const QString &text) const override;
+};
 
-  template <class Functor>
-  static void AppendToEventQueue(Functor functor) {
-    QTimer::singleShot(1, functor);
-  }
-
-  // variadic tamplate to create path with any number of folders (files)
-  template <class St, class... String>
-  static St CreatePath(St s, String... args) {
-    return s + QDir::separator() + CreatePath(args...);
-  }
-
-  template <class St>
-  static St CreatePath(St s) {
-    return s;
-  }
+class TimingAnalysisParser : public MessageItemParser {
+ public:
+  std::pair<bool, FileInfo> parse(const QString &text) const override;
 };
 
 }  // namespace FOEDAG
