@@ -159,6 +159,16 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
           convertedCommands[i] = list.join(' ');
         }
       }
+    } else if (convertedCommands.at(i).startsWith("set_property mode")) {
+      auto list = QtUtils::StringSplit(convertedCommands.at(i), ' ');
+      if (list.size() >= 4) {
+        auto convertedName =
+            m_baseModel->packagePinModel()->convertPinNameUsage(list.at(3));
+        if (!convertedName.isEmpty()) {
+          list[3] = convertedName;
+          convertedCommands[i] = list.join(' ');
+        }
+      }
     }
   }
 
@@ -180,6 +190,11 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {
         packagePins->SetMode(list.at(2), list.at(1));
+      }
+    } else if (cmd.startsWith("set_property mode")) {
+      auto list = QtUtils::StringSplit(cmd, ' ');
+      if (list.size() >= 4) {
+        packagePins->SetMode(list.at(3), list.at(2));
       }
     }
   }

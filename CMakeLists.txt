@@ -303,10 +303,12 @@ configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_ve
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
+add_dependencies(compiler nlohmann_json)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
+add_dependencies(designquery nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -377,7 +379,6 @@ target_link_libraries(foedag  PUBLIC
   tcl_stubb
   tcl_static
   zlib
-  nlohmann_json
   ipconfigurator
   pinassignment
   scope_guard
