@@ -316,7 +316,7 @@ class Compiler {
   // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
-  //DesignQuery* m_DesignQuery = nullptr;
+  // DesignQuery* m_DesignQuery = nullptr;
 
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
