@@ -16,6 +16,7 @@ add_custom_target(nlohmann_json DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../includ
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp
+  COMMAND echo "       Copying ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp"
   COMMAND ${CMAKE_COMMAND} -E copy
           ${PROJECT_SOURCE_DIR}/json.hpp
           ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp
