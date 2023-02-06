@@ -100,7 +100,7 @@ void Config::MakeDeviceMap(QString series, QString family, QString package) {
   auto iter = m_map_device.find(series);
   if (iter != m_map_device.end()) {
     mapfamily = iter.value();
-    mapfamily[family].append(package);
+    if (!mapfamily[family].contains(package)) mapfamily[family].append(package);
   } else {
     QStringList listpkg;
     listpkg.append(package);

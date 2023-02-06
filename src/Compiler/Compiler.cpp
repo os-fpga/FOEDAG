@@ -2007,6 +2007,12 @@ bool Compiler::HasInternalError() const {
   return false;
 }
 
+DeviceData Compiler::deviceData() const { return m_deviceData; }
+
+void Compiler::setDeviceData(const DeviceData& newDeviceData) {
+  m_deviceData = newDeviceData;
+}
+
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
   m_stop = false;

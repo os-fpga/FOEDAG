@@ -46,6 +46,12 @@ class DesignManager;
 class TclCommandIntegration;
 class Constraints;
 
+struct DeviceData {
+  std::string family;
+  std::string series;
+  std::string package;
+};
+
 class Compiler {
   friend Simulator;
 
@@ -223,6 +229,9 @@ class Compiler {
   void PinmapCSVFile(const std::filesystem::path& path);
   const std::filesystem::path& PinmapCSVFile() const;
 
+  DeviceData deviceData() const;
+  void setDeviceData(const DeviceData& newDeviceData);
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -304,6 +313,7 @@ class Compiler {
   STAEngineOpt m_staEngineOpt = STAEngineOpt::Tatum;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
+  DeviceData m_deviceData;
 
   // Compiler specific options
   std::string m_pnrOpt;

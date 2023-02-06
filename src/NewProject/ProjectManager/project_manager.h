@@ -364,6 +364,8 @@ class ProjectManager : public QObject {
   void addLibraryPathSim(const std::string &libraryPath);
 
   void setTargetDevice(const std::string &deviceName);
+  void setTargetDeviceData(const std::string &family, const std::string &series,
+                           const std::string &package);
   std::string getTargetDevice();
   static std::vector<std::pair<std::string, std::string>> ParseMacro(
       const QString &macro);

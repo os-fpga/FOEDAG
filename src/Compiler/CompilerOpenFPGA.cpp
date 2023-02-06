@@ -621,6 +621,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     std::string arg = argv[1];
     if (compiler->LoadDeviceData(arg)) {
       compiler->ProjManager()->setTargetDevice(arg);
+      auto deviceData = compiler->deviceData();
+      compiler->ProjManager()->setTargetDeviceData(
+          deviceData.family, deviceData.series, deviceData.package);
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
@@ -2605,6 +2608,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
       std::string series = e.attribute("series").toStdString();
       std::string package = e.attribute("package").toStdString();
       if (name == deviceName) {
+        setDeviceData({family, series, package});
         foundDevice = true;
         QDomNodeList list = e.childNodes();
         for (int i = 0; i < list.count(); i++) {
