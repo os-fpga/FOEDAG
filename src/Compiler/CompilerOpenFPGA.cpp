@@ -1853,8 +1853,8 @@ bool CompilerOpenFPGA::Placement() {
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
   if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
-      FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
-    if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+      FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
+    if (!std::filesystem::is_regular_file(m_PinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
           "for set_pin_loc constraints");
@@ -1865,7 +1865,7 @@ bool CompilerOpenFPGA::Placement() {
         std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
     }
-    pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+    pincommand += " --csv " + m_PinMapCSV.string();
 
     if (userConstraint) {
       pincommand += " --pcf " +
@@ -2601,6 +2601,9 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
       QDomElement e = node.toElement();
 
       std::string name = e.attribute("name").toStdString();
+      std::string family = e.attribute("family").toStdString();
+      std::string series = e.attribute("series").toStdString();
+      std::string package = e.attribute("package").toStdString();
       if (name == deviceName) {
         foundDevice = true;
         QDomNodeList list = e.childNodes();
@@ -2642,7 +2645,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
-                OpenFpgaPinmapCSVFile(fullPath);
+                PinmapCSVFile(fullPath);
               } else if (file_type == "plugin_lib") {
                 YosysPluginLibName(name);
               } else if (file_type == "plugin_func") {

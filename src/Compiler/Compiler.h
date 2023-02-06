@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef COMPILER_H
 #define COMPILER_H
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
@@ -219,6 +220,9 @@ class Compiler {
   void GTKWaveSendCmd(const std::string& gtkWaveCmd,
                       bool raiseGtkWindow = true);
 
+  void PinmapCSVFile(const std::filesystem::path& path);
+  const std::filesystem::path& PinmapCSVFile() const;
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -299,6 +303,7 @@ class Compiler {
   STAOpt m_staOpt = STAOpt::None;
   STAEngineOpt m_staEngineOpt = STAEngineOpt::Tatum;
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
+  std::filesystem::path m_PinMapCSV{};
 
   // Compiler specific options
   std::string m_pnrOpt;
