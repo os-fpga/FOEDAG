@@ -887,6 +887,9 @@ bool Simulator::SimulateGate(SimulatorType type) {
     case Compiler::NetlistType::Blif:
       netlistFile = ProjManager()->projectName() + "_post_synth.blif";
       break;
+    case Compiler::NetlistType::EBlif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
   }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {

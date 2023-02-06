@@ -197,6 +197,7 @@ static std::map<FOEDAG::Compiler::PinAssignOpt, const char*> pinOptMap = {
 // Lookup for PackingOpt values
 static std::map<FOEDAG::Compiler::NetlistType, const char*> netlistOptMap = {
     {FOEDAG::Compiler::NetlistType::Blif, "blif"},
+    {FOEDAG::Compiler::NetlistType::EBlif, "eblif"},
     {FOEDAG::Compiler::NetlistType::Edif, "edif"},
     {FOEDAG::Compiler::NetlistType::VHDL, "vhdl"},
     {FOEDAG::Compiler::NetlistType::Verilog, "verilog"}};

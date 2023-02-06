@@ -196,7 +196,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out)
-      << "   pnr_netlist_lang <blif, edif, verilog, vhdl> : Chooses vpr input "
+      << "   pnr_netlist_lang <blif, eblif, edif, verilog, vhdl> : Chooses vpr input "
          "netlist format"
       << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
@@ -278,6 +278,7 @@ synth -run check
 # Clean and output blif
 opt_clean -purge
 write_blif ${OUTPUT_BLIF}
+write_blif -param ${OUTPUT_EBLIF}
 write_verilog -noexpr -nodec -defparam -norename ${OUTPUT_VERILOG}
 write_edif ${OUTPUT_EDIF}
   )";
@@ -581,6 +582,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->SetNetlistType(NetlistType::Edif);
     } else if (arg == "blif") {
       compiler->SetNetlistType(NetlistType::Blif);
+    } else if (arg == "eblif") {
+      compiler->SetNetlistType(NetlistType::EBlif);
     } else if (arg == "vhdl") {
       compiler->SetNetlistType(NetlistType::VHDL);
     } else {
@@ -808,6 +811,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
     case Compiler::Action::Synthesis:
       files = {
           std::string{projectName + "_post_synth.blif"},
+          std::string{projectName + "_post_synth.eblif"},
           std::string{projectName + "_post_synth.edif"},
           std::string{projectName + "_post_synth.v"},
           std::string{projectName + "_post_synth.vhd"},
@@ -846,6 +850,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
     case Compiler::Action::Routing:
       files = {"check_rr_node_warnings.log",
                std::string{topModule + "_post_synthesis.blif"},
+               std::string{topModule + "_post_synthesis.eblif"},
                std::string{topModule + "_post_synthesis.sdf"},
                std::string{topModule + "_post_synthesis.v"},
                std::string{projectName + "_post_synth_ports.json"},
@@ -864,6 +869,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
     case Compiler::Action::STA:
       files = {"check_rr_node_warnings.log",
                std::string{topModule + "_post_synthesis.blif"},
+               std::string{topModule + "_post_synthesis.eblif"},
                std::string{topModule + "_post_synthesis.sdf"},
                std::string{topModule + "_post_synthesis.v"},
                std::string{projectName + "_sta.cmd"},
@@ -1418,6 +1424,9 @@ bool CompilerOpenFPGA::Synthesize() {
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
+  yosysScript = ReplaceAll(
+      yosysScript, "${OUTPUT_EBLIF}",
+      std::string(ProjManager()->projectName() + "_post_synth.eblif"));
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
                  std::string(ProjManager()->projectName() + "_post_synth.v"));
@@ -1444,6 +1453,9 @@ bool CompilerOpenFPGA::Synthesize() {
     case NetlistType::Blif:
       output_path = ProjManager()->projectName() + "_post_synth.blif";
       break;
+    case NetlistType::EBlif:
+      output_path = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
   }
 
   if (!DesignChanged(yosysScript, script_path, output_path)) {
@@ -1454,6 +1466,9 @@ bool CompilerOpenFPGA::Synthesize() {
   std::filesystem::remove(
       std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
+  std::filesystem::remove(
+      std::filesystem::path(ProjManager()->projectPath()) /
+      std::string(ProjManager()->projectName() + "_post_synth.eblif"));
   std::filesystem::remove(
       std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_post_synth.v"));
@@ -1534,6 +1549,9 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
       break;
     case NetlistType::Blif:
       netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      break;
+    case NetlistType::EBlif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
 
@@ -1830,24 +1848,8 @@ bool CompilerOpenFPGA::Placement() {
   }
 
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
-
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    switch (lang_file.first.language) {
-      case Design::Language::VERILOG_NETLIST:
-      case Design::Language::BLIF:
-      case Design::Language::EBLIF: {
-        netlistFile = lang_file.second;
-        std::filesystem::path the_path = netlistFile;
-        if (!the_path.is_absolute()) {
-          netlistFile =
-              std::filesystem::path(std::filesystem::path("..") / netlistFile)
-                  .string();
-        }
-        break;
-      }
-      default:
-        break;
-    }
+  if(GetNetlistType() == NetlistType::EBlif) {
+    netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
   }
 
   std::string command = BaseVprCommand() + " --place";
@@ -2390,6 +2392,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
     case NetlistType::Blif:
       netlistFile = ProjManager()->projectName() + "_post_synth.blif";
       break;
+    case NetlistType::EBlif:
+      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      break;
   }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -2425,6 +2430,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       break;
     case NetlistType::Blif:
       netlistFormat = "blif";
+      break;
+    case NetlistType::EBlif:
+      netlistFormat = "eblif";
       break;
   }
 
