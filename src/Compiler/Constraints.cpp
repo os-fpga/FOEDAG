@@ -87,14 +87,17 @@ static std::vector<std::string> constraint_procs = {
     //"get_clocks",
     "get_lib_cells", "get_lib_pins", "check_nocase_flag", "get_libs",
     "find_liberty_libraries_matching",
-    // "get_nets", "get_pins",
+    // "get_nets",
+    // "get_pins",
     "filter_pins1",
     // "get_ports",
-    "filter_ports1", "create_clock", "create_generated_clock", "group_path",
-    "check_exception_pins", "set_clock_gating_check", "set_clock_gating_check1",
-    "set_clock_groups", "set_clock_latency", "set_sense", "set_clock_sense",
-    "set_clock_sense_cmd1", "set_clock_transition", "set_clock_uncertainty",
-    "set_data_check", "set_disable_timing", "set_disable_timing_instance",
+    "filter_ports1",
+    // "create_clock",
+    "create_generated_clock", "group_path", "check_exception_pins",
+    "set_clock_gating_check", "set_clock_gating_check1", "set_clock_groups",
+    "set_clock_latency", "set_sense", "set_clock_sense", "set_clock_sense_cmd1",
+    "set_clock_transition", "set_clock_uncertainty", "set_data_check",
+    "set_disable_timing", "set_disable_timing_instance",
     "parse_disable_inst_ports", "set_disable_timing_cell",
     "parse_disable_cell_ports", "set_false_path", "set_ideal_latency",
     "set_ideal_network", "set_ideal_transition", "set_input_delay",
@@ -133,13 +136,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   // https://github.com/The-OpenROAD-Project/OpenSTA/blob/master/tcl/Sdc.tcl
   // Register all SDC commands, extract the "keeps"
 
+  // Checks for the sub-syntax supported by VPR
+
   auto name_harvesting_sdc_command = [](void* clientData, Tcl_Interp* interp,
                                         int argc, const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
-    if (!verifyTimingLimits(argc, argv)) {
-      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
-      return TCL_ERROR;
-    }
     const std::string constraint = getConstraint(argc, argv);
     constraints->addConstraint(constraint);
     for (int i = 0; i < argc; i++) {
@@ -152,11 +153,54 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         if (arg != "{*}") constraints->addKeep(arg);
       }
     }
-    return 0;
+    return TCL_OK;
   };
   for (auto proc_name : constraint_procs) {
     interp->registerCmd(proc_name, name_harvesting_sdc_command, this, 0);
   }
+
+  auto create_clock = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    const std::string constraint = getConstraint(argc, argv);
+    constraints->addConstraint(constraint);
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        arg = argv[i];
+        if (arg != "{*}") constraints->addKeep(arg);
+      } else if (arg == "-period") {
+        i++;
+      } else if (arg == "-waveform") {
+        i++;
+      } else if (arg.find("-") != std::string::npos) {
+        Tcl_AppendResult(
+            interp,
+            strdup(
+                (std::string("ERROR: Illegal option for create_clock: ") + arg)
+                    .c_str()),
+            (char*)NULL);
+        return TCL_ERROR;
+      } else if (arg.find("[") != std::string::npos) {
+        Tcl_AppendResult(
+            interp,
+            strdup(
+                (std::string("ERROR: Illegal option for create_clock: ") + arg)
+                    .c_str()),
+            (char*)NULL);
+        return TCL_ERROR;
+      } else {
+        if (arg != "{*}") constraints->addKeep(arg);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("create_clock", create_clock, this, 0);
 
   auto getter_sdc_command = [](void* clientData, Tcl_Interp* interp, int argc,
                                const char* argv[]) -> int {
