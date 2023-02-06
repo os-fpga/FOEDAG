@@ -196,7 +196,9 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, SIMULATE_PNR_SETTINGS});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF_CLEAN});
+#ifndef PRODUCTION_BUILD
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF_SETTINGS});
+#endif
   m_taskOrder.push_back({row++, POWER});
   m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
