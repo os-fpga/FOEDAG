@@ -182,7 +182,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         Tcl_AppendResult(
             interp,
             strdup(
-                (std::string("ERROR: Illegal option for create_clock: ") + arg)
+                (std::string(
+                     "ERROR: Illegal option for create_clock, check manual: ") +
+                 arg)
                     .c_str()),
             (char*)NULL);
         return TCL_ERROR;
@@ -190,7 +192,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         Tcl_AppendResult(
             interp,
             strdup(
-                (std::string("ERROR: Illegal option for create_clock: ") + arg)
+                (std::string(
+                     "ERROR: Illegal option for create_clock, check manual: ") +
+                 arg)
                     .c_str()),
             (char*)NULL);
         return TCL_ERROR;
