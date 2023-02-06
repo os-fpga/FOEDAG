@@ -42,7 +42,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
     : QObject(parent), m_data(data) {
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
-  const QString fileName = searchCsvFile(data.target, data.context);
+  const QString fileName = searchCsvFile();
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
@@ -102,19 +102,8 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   return w;
 }
 
-QString PinAssignmentCreator::searchCsvFile(const QString &targetDevice,
-                                            ToolContext *context) const {
-  std::filesystem::path path{context->DataPath()};
-  path = path / "etc" / "devices";
-  if (!targetDevice.isEmpty()) path /= targetDevice.toLower().toStdString();
-
-  QDir dir{path.string().c_str()};
-  auto files = dir.entryList({"*.csv"}, QDir::Files);
-  if (!files.isEmpty()) return dir.filePath(files.first());
-
-  std::filesystem::path pathDefault{context->DataPath()};
-  pathDefault = pathDefault / "etc" / "templates" / "Pin_Table.csv";
-  return QString(pathDefault.string().c_str());
+QString PinAssignmentCreator::searchCsvFile() const {
+  return m_data.pinMapFile;
 }
 
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {

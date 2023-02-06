@@ -1754,6 +1754,14 @@ void Compiler::GTKWaveSendCmd(const std::string& gtkWaveCmd,
   }
 }
 
+void Compiler::PinmapCSVFile(const std::filesystem::path& path) {
+  m_PinMapCSV = path;
+}
+
+const std::filesystem::path& Compiler::PinmapCSVFile() const {
+  return m_PinMapCSV;
+}
+
 // This will return a pointer to the current gtkwave process, if no process is
 // running, one will be started
 QProcess* Compiler::GetGTKWaveProcess() {
