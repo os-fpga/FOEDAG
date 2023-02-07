@@ -345,6 +345,19 @@ void MainWindow::addPinPlannerRefreshButton(QDockWidget* dock) {
   QWidget* w = new QWidget;
   auto layout = new QHBoxLayout;
   layout->addWidget(new QLabel{dock->windowTitle()});
+
+  auto saveButton = new QPushButton{dock};
+  saveButton->setObjectName("saveButton");
+  connect(saveButton, &QPushButton::clicked, this,
+          &MainWindow::saveActionTriggered);
+  saveButton->setSizePolicy(
+      QSizePolicy{QSizePolicy::Maximum, QSizePolicy::Maximum});
+  saveButton->setIcon(QIcon{":/images/save-action.png"});
+  saveButton->setToolTip("Save to *.pin file");
+  saveButton->setEnabled(false);
+  m_saveButtons.push_back(saveButton);
+  layout->addWidget(saveButton);
+
   layout->addWidget(btn);
   layout->addSpacerItem(
       new QSpacerItem{10, 10, QSizePolicy::Expanding, QSizePolicy::Expanding});
@@ -363,6 +376,7 @@ void MainWindow::cleanUpDockWidgets(std::vector<QDockWidget*>& dockWidgets) {
     }
   }
   dockWidgets.clear();
+  m_saveButtons.clear();
 }
 
 void MainWindow::openProject(const QString& project, bool delayedOpen,
@@ -466,7 +480,7 @@ void MainWindow::refreshPinPlanner() {
   auto pinAssignment = findChild<PinAssignmentCreator*>();
   if (!pinAssignment) return;
 
-  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+  if (isEnableSaveButtons()) {  // changes from pin planner not saved to file
     auto answer = QMessageBox::question(
         this, "Pin planner",
         "Some changes are not saved. Do you want to continue?");
@@ -508,7 +522,7 @@ void MainWindow::defaultProjectPath() {
 void MainWindow::pinPlannerPinName() {
   bool save{false};
   bool clean{false};
-  if (saveAction->isEnabled()) {  // changes from pin planner not saved to file
+  if (isEnableSaveButtons()) {  // changes from pin planner not saved to file
     auto answer = QMessageBox::question(
         this, "Pin planner",
         "Some changes are not saved. Do you want to save them?",
@@ -774,10 +788,6 @@ void MainWindow::createToolBars() {
   fileToolBar = addToolBar(tr("&File"));
   fileToolBar->addAction(newAction);
 
-  saveToolBar = addToolBar(tr("Save"));
-  saveToolBar->addAction(saveAction);
-  saveToolBar->setHidden(true);
-
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
   debugToolBar->addAction(startSimAction);
@@ -898,12 +908,6 @@ void MainWindow::createActions() {
   ipConfiguratorAction->setEnabled(false);
   connect(ipConfiguratorAction, &QAction::triggered, this,
           &MainWindow::ipConfiguratorActionTriggered);
-
-  saveAction = new QAction(tr("Save"), this);
-  connect(saveAction, &QAction::triggered, this,
-          &MainWindow::saveActionTriggered);
-  saveAction->setIcon(QIcon(":/images/save.png"));
-  saveAction->setEnabled(false);
 
   showWelcomePageAction = new QAction(tr("Show welcome page"), this);
   showWelcomePageAction->setCheckable(true);
@@ -1295,18 +1299,18 @@ void MainWindow::pinAssignmentActionTriggered() {
     addPinPlannerRefreshButton(packagePinDockWidget);
     m_pinAssignmentDocks = {portsDockWidget, packagePinDockWidget};
   } else {
-    if (saveAction->isEnabled()) {
+    if (isEnableSaveButtons()) {
       auto answer = QMessageBox::question(
           this, "Warning",
           "Pin planner data were modified. Do you want to save it?",
           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
           QMessageBox::Yes);
       if (answer == QMessageBox::No) {
-        saveAction->setEnabled(false);
+        setEnableSaveButtons(false);
         cleanUpDockWidgets(m_pinAssignmentDocks);
       } else if (answer == QMessageBox::Yes) {
         saveActionTriggered();
-        const bool saved = !saveAction->isEnabled();
+        const bool saved = !isEnableSaveButtons();
         if (saved)
           cleanUpDockWidgets(m_pinAssignmentDocks);
         else
@@ -1318,7 +1322,6 @@ void MainWindow::pinAssignmentActionTriggered() {
       cleanUpDockWidgets(m_pinAssignmentDocks);
     }
   }
-  saveToolBar->setHidden(!pinAssignmentAction->isChecked());
   if (!pinAssignmentAction->isChecked()) {
     // cleanup pin planner
     auto pinAssignment = findChild<PinAssignmentCreator*>();
@@ -1332,7 +1335,7 @@ void MainWindow::pinAssignmentChanged() {
       dock->setWindowTitle(dock->windowTitle() + "*");
     }
   }
-  saveAction->setEnabled(true);
+  setEnableSaveButtons(true);
 }
 
 void MainWindow::ipConfiguratorActionTriggered() {
@@ -1578,7 +1581,7 @@ void MainWindow::setVisibleRefreshButtons(bool visible) {
 }
 
 void MainWindow::pinPlannerSaved() {
-  saveAction->setEnabled(false);
+  setEnableSaveButtons(false);
   for (auto& dock : m_pinAssignmentDocks) {
     if (dock->windowTitle().endsWith("*")) {
       dock->setWindowTitle(
@@ -1610,6 +1613,15 @@ void MainWindow::saveSettings() {
       }
     }
   }
+}
+
+void MainWindow::setEnableSaveButtons(bool enable) {
+  for (const auto& b : m_saveButtons) b->setEnabled(enable);
+}
+
+bool MainWindow::isEnableSaveButtons() const {
+  if (!m_saveButtons.isEmpty()) return m_saveButtons.first()->isEnabled();
+  return false;
 }
 
 void MainWindow::onShowWelcomePage(bool show) {
