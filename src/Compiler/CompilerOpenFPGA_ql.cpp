@@ -3539,8 +3539,18 @@ bool CompilerOpenFPGA_ql::GlobalPlacement() {
   }
   if (!HasTargetDevice()) return false;
 #endif // #if UPSTREAM_UNUSED
-  if (m_state != State::Packed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed state"));
+  // state check: requires "Packed" to be completed.
+  // we should be *atleast* at "Packed" or later state.
+  if( (m_state == State::Packed) ||
+      (m_state == State::GloballyPlaced) ||
+      (m_state == State::Placed) ||
+      (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in packed state"));
     return false;
   }
 
@@ -3582,8 +3592,18 @@ bool CompilerOpenFPGA_ql::Placement() {
   if (!HasTargetDevice()) return false;
 #endif // #if UPSTREAM_UNUSED
 
-  if (m_state != State::Packed && m_state != State::GloballyPlaced) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in packed/globally_placed state"));
+  // state check: requires "Packed"/"GloballyPlaced" to be completed.
+  // we should be *atleast* at "Packed"/"GloballyPlaced" or later state.
+  if( (m_state == State::Packed) ||
+      (m_state == State::GloballyPlaced) ||
+      (m_state == State::Placed) ||
+      (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in packed/globally_placed state"));
     return false;
   }
 
@@ -3886,8 +3906,16 @@ bool CompilerOpenFPGA_ql::Route() {
   if (!HasTargetDevice()) return false;
 #endif // #if UPSTREAM_UNUSED
 
-  if (m_state != State::Placed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed state"));
+  // state check: requires "Placed" to be completed.
+  // we should be *atleast* at "Placed" or later state.
+  if( (m_state == State::Placed) ||
+      (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in placed state"));
     return false;
   }
   
@@ -3977,15 +4005,30 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 // under WIN32, running the analysis stage alone causes issues, hence we call the
 // route and analysis stages together
 // hence, we can also be at Placed state here.
-  if ( (m_state != State::Placed) && (m_state != State::Routed) ) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed/routed state"));
+  // state check: requires "Placed"/"Routed" to be completed.
+  // we should be *atleast* at "Placed"/"Routed" or later state.
+  if( (m_state == State::Placed) ||
+      (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in placed/routed state"));
     return false;
   }
 
 #else // #ifdef _WIN32
 
-  if (m_state != State::Routed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
+  // state check: requires "Routed" to be completed.
+  // we should be *atleast* at "Routed" or later state.
+  if( (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in routed state"));
     return false;
   }
 
@@ -4182,18 +4225,37 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 
   PERF_LOG("PowerAnalysis has started");
 #ifdef _WIN32
-// under WIN32, running the analysis stage along causes issues, hence we call the
+
+// under WIN32, running the analysis stage alone causes issues, hence we call the
 // route and analysis stages together
 // hence, we can also be at Placed state here.
-  if ( (m_state != State::Placed) && (m_state != State::Routed) ) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in placed/routed state"));
+  // state check: requires "Placed"/"Routed" to be completed.
+  // we should be *atleast* at "Placed"/"Routed" or later state.
+  if( (m_state == State::Placed) ||
+      (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in placed/routed state"));
     return false;
   }
+
 #else // #ifdef _WIN32
-  if (m_state != State::Routed) {
-    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be in routed state"));
+
+  // state check: requires "Routed" to be completed.
+  // we should be *atleast* at "Routed" or later state.
+  if( (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in routed state"));
     return false;
   }
+
 #endif // #ifdef _WIN32
   Message("##################################################");
   Message("Power Analysis for design: " + ProjManager()->projectName());
@@ -4893,14 +4955,21 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   }
 #endif // #if UPSTREAM_UNUSED
   PERF_LOG("GenerateBitstream has started");
+  // state check: requires "Routed" to be completed.
+  // we should be *atleast* at "Routed" or later state.
+  if( (m_state == State::Routed) ||
+      (m_state == State::TimingAnalyzed) ||
+      (m_state == State::PowerAnalyzed) ||
+      (m_state == State::BistreamGenerated) ) {
+  }
+  else {
+    ErrorMessage(std::string(__func__) + std::string("(): Design needs to be *atleast* in routed state"));
+    return false;
+  }
   Message("##################################################");
   Message("Bitstream generation for design \"" + ProjManager()->projectName() +
           "\" on device \"" + ProjManager()->getTargetDevice() + "\"");
   Message("##################################################");
-  if ((m_state != State::Routed) && (m_state != State::BistreamGenerated)) {
-    ErrorMessage("Design needs to be in routed state");
-    return false;
-  }
 
 #if UPSTREAM_UNUSED
   if (BitsOpt() == BitstreamOpt::EnableSimulation) {
