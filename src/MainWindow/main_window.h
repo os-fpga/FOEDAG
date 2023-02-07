@@ -37,6 +37,7 @@ namespace FOEDAG {
 class Session;
 class TclInterpreter;
 class ProjectFileLoader;
+class DockWidget;
 /** Main window of the program */
 class MainWindow : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
@@ -126,9 +127,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void clearDockWidgets();
   void startStopButtonsState();
   void loadFile(const QString& file);
-  QDockWidget* PrepareTab(const QString& name, const QString& objName,
-                          QWidget* widget, QDockWidget* tabToAdd,
-                          Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
+  DockWidget* PrepareTab(const QString& name, const QString& objName,
+                         QWidget* widget, QDockWidget* tabToAdd,
+                         Qt::DockWidgetArea area = Qt::BottomDockWidgetArea);
 
   void addPinPlannerRefreshButton(QDockWidget* dock);
 

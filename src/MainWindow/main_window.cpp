@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclConsoleWidget.h"
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
+#include "DockWidget.h"
 #include "IpConfigurator/IpCatalogTree.h"
 #include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpConfigurator.h"
@@ -144,7 +145,7 @@ MainWindow::MainWindow(Session* session)
   //  leftSplitter->addWidget(editor1);
   //  leftSplitter->setStretchFactor(1, 1);
 
-  //  QDockWidget* texteditorDockWidget = new QDockWidget(tr("Text Editor"));
+  //  QDockWidget* texteditorDockWidget = new DockWidget(tr("Text Editor"));
   //  texteditorDockWidget->setObjectName("texteditorDockWidget");
   //  texteditorDockWidget->setWidget(editor2);
   //  texteditorDockWidget->setAllowedAreas(Qt::LeftDockWidgetArea |
@@ -323,10 +324,10 @@ void MainWindow::startStopButtonsState() {
   stopAction->setEnabled(isRunning());
 }
 
-QDockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
-                                    QWidget* widget, QDockWidget* tabToAdd,
-                                    Qt::DockWidgetArea area) {
-  QDockWidget* dock = new QDockWidget(name, this);
+DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
+                                   QWidget* widget, QDockWidget* tabToAdd,
+                                   Qt::DockWidgetArea area) {
+  DockWidget* dock = new DockWidget(name, this);
   dock->setObjectName(objName);
   dock->setWidget(widget);
   addDockWidget(area, dock);
@@ -1002,7 +1003,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   updateMenusVisibility(false);
 
-  QDockWidget* sourceDockWidget = new QDockWidget(tr("Source"), this);
+  QDockWidget* sourceDockWidget = new DockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
   sourcesForm = new SourcesForm(this);
   connect(
@@ -1027,7 +1028,7 @@ void MainWindow::ReShowWindow(QString strProject) {
       ComponentId::ProjectManager);
   reloadSettings();
 
-  QDockWidget* propertiesDockWidget = new QDockWidget(tr("Properties"), this);
+  QDockWidget* propertiesDockWidget = new DockWidget(tr("Properties"), this);
   PropertyWidget* propertyWidget =
       new PropertyWidget{sourcesForm->ProjManager()};
   connect(sourcesForm, &SourcesForm::ShowProperty, propertyWidget,
@@ -1067,7 +1068,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   setCentralWidget(centralWidget);
 
   // console
-  QDockWidget* consoleDocWidget = new QDockWidget(tr("Console"), this);
+  QDockWidget* consoleDocWidget = new DockWidget(tr("Console"), this);
   consoleDocWidget->setObjectName("consoledocwidget");
   m_dockConsole = consoleDocWidget;
 
@@ -1102,7 +1103,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
-  // QDockWidget* runDockWidget = new QDockWidget(tr("Design Runs"), this);
+  // QDockWidget* runDockWidget = new DockWidget(tr("Design Runs"), this);
   // runDockWidget->setObjectName("designrundockwidget");
   // RunsForm* runForm = new RunsForm(this);
   // runForm->RegisterCommands(GlobalSession);
@@ -1163,7 +1164,7 @@ void MainWindow::ReShowWindow(QString strProject) {
       new TaskManagerComponent{m_taskManager}, ComponentId::TaskManager);
   m_projectFileLoader->registerComponent(new CompilerComponent(m_compiler),
                                          ComponentId::Compiler);
-  QDockWidget* taskDockWidget = new QDockWidget(tr("Task"), this);
+  QDockWidget* taskDockWidget = new DockWidget(tr("Task"), this);
   taskDockWidget->setWidget(m_taskView);
   addDockWidget(Qt::LeftDockWidgetArea, taskDockWidget);
 
@@ -1339,9 +1340,13 @@ void MainWindow::ipConfiguratorActionTriggered() {
   if (ipConfiguratorAction->isChecked()) {
     IpConfiguratorCreator creator;
     // Available IPs DockWidget
-    m_availableIpsgDockWidget = PrepareTab(tr("IPs"), "availableIpsWidget",
-                                           creator.GetAvailableIpsWidget(),
-                                           nullptr, Qt::RightDockWidgetArea);
+    auto availableIpsgDockWidget = PrepareTab(tr("IPs"), "availableIpsWidget",
+                                              creator.GetAvailableIpsWidget(),
+                                              nullptr, Qt::RightDockWidgetArea);
+    connect(availableIpsgDockWidget, &DockWidget::closed, ipConfiguratorAction,
+            &QAction::trigger);
+
+    m_availableIpsgDockWidget = availableIpsgDockWidget;
 
     // Get the actual IpCatalogTree
     auto ipsWidgets = m_availableIpsgDockWidget->findChildren<IpCatalogTree*>();
