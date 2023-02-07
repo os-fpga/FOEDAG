@@ -12,16 +12,15 @@ set (SRC_H_LIST
     json.hpp
 )
 
-add_library(nlohmann_json STATIC
-  ${SRC_H_LIST}
-)
+add_custom_target(nlohmann_json DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp)
 
-target_link_libraries(nlohmann_json PUBLIC)
 add_custom_command(
-  TARGET nlohmann_json POST_BUILD
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp
+  COMMAND echo "       Copying ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp"
   COMMAND ${CMAKE_COMMAND} -E copy
           ${PROJECT_SOURCE_DIR}/json.hpp
           ${CMAKE_CURRENT_BINARY_DIR}/../../include/nlohmann_json/json.hpp
+  DEPENDS ${PROJECT_SOURCE_DIR}/json.hpp
 )
 
 install(

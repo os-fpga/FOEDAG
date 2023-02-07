@@ -83,6 +83,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onRunProjectRequested(const QString& project);
   void startProject(bool simulation);
   void onShowStopMessage(bool showStopCompilationMsg);
+  void bitstreamEnable(bool enable);
   void onShowLicenses();
   void stopCompilation();
   void forceStopCompilation();
@@ -112,6 +113,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
  private: /* Menu bar builders */
   void updateViewMenu();
   void updateTaskTable();
+  void updateBitstream();
   void createMenus();
   void createToolBars();
   void createActions();
@@ -192,6 +194,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* saveAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
   QAction* stopCompileMessageAction = nullptr;
+  QAction* bitstreamAction = nullptr;
   QAction* simRtlAction = nullptr;
   QAction* simGateAction = nullptr;
   QAction* simPnrAction = nullptr;

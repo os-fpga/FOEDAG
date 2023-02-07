@@ -42,7 +42,7 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
     : QObject(parent), m_data(data) {
   PortsModel *portsModel = new PortsModel{this};
   auto packagePinModel = new PackagePinsModel;
-  const QString fileName = searchCsvFile(data.target, data.context);
+  const QString fileName = searchCsvFile();
   m_baseModel = new PinsBaseModel;
   m_baseModel->setPackagePinModel(packagePinModel);
   m_baseModel->setPortsModel(portsModel);
@@ -102,19 +102,8 @@ QWidget *PinAssignmentCreator::CreateLayoutedWidget(QWidget *main) {
   return w;
 }
 
-QString PinAssignmentCreator::searchCsvFile(const QString &targetDevice,
-                                            ToolContext *context) const {
-  std::filesystem::path path{context->DataPath()};
-  path = path / "etc" / "devices";
-  if (!targetDevice.isEmpty()) path /= targetDevice.toLower().toStdString();
-
-  QDir dir{path.string().c_str()};
-  auto files = dir.entryList({"*.csv"}, QDir::Files);
-  if (!files.isEmpty()) return dir.filePath(files.first());
-
-  std::filesystem::path pathDefault{context->DataPath()};
-  pathDefault = pathDefault / "etc" / "templates" / "Pin_Table.csv";
-  return QString(pathDefault.string().c_str());
+QString PinAssignmentCreator::searchCsvFile() const {
+  return m_data.pinMapFile;
 }
 
 QString PinAssignmentCreator::packagePinHeaderFile(ToolContext *context) const {
@@ -159,6 +148,16 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
           convertedCommands[i] = list.join(' ');
         }
       }
+    } else if (convertedCommands.at(i).startsWith("set_property mode")) {
+      auto list = QtUtils::StringSplit(convertedCommands.at(i), ' ');
+      if (list.size() >= 4) {
+        auto convertedName =
+            m_baseModel->packagePinModel()->convertPinNameUsage(list.at(3));
+        if (!convertedName.isEmpty()) {
+          list[3] = convertedName;
+          convertedCommands[i] = list.join(' ');
+        }
+      }
     }
   }
 
@@ -180,6 +179,11 @@ void PinAssignmentCreator::parseConstraints(const QStringList &commands,
       auto list = QtUtils::StringSplit(cmd, ' ');
       if (list.size() >= 3) {
         packagePins->SetMode(list.at(2), list.at(1));
+      }
+    } else if (cmd.startsWith("set_property mode")) {
+      auto list = QtUtils::StringSplit(cmd, ' ');
+      if (list.size() >= 4) {
+        packagePins->SetMode(list.at(3), list.at(2));
       }
     }
   }

@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 113)
+set(VERSION_PATCH 117)
 
 option(
   WITH_LIBCXX
@@ -105,7 +105,7 @@ add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
-add_subdirectory(src/DesignQuery)
+#add_subdirectory(src/DesignQuery)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -303,10 +303,12 @@ configure_file(foedag_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/foedag_ve
 
 # Explicit lib build order
 add_dependencies(foedag foedagcore)
+add_dependencies(compiler nlohmann_json)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
-add_dependencies(designquery tcl_stubb_build)
+#add_dependencies(designquery tcl_stubb_build)
+#add_dependencies(designquery nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -369,7 +371,7 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
-  designquery
+#  designquery
   simulation
   foedagutils
   console
@@ -377,7 +379,6 @@ target_link_libraries(foedag  PUBLIC
   tcl_stubb
   tcl_static
   zlib
-  nlohmann_json
   ipconfigurator
   pinassignment
   scope_guard
