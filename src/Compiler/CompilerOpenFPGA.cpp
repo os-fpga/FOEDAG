@@ -1348,8 +1348,12 @@ bool CompilerOpenFPGA::Synthesize() {
     auto topModuleLibImport = std::string{};
     if (!topModuleLib.empty())
       topModuleLibImport = "-work " + topModuleLib + " ";
-    fileList += "verific " + topModuleLibImport + importLibs + "-import " +
-                ProjManager()->DesignTopModule() + "\n";
+    if (ProjManager()->DesignTopModule().empty()) {
+      fileList += "verific -import -all\n";
+    } else {
+      fileList += "verific " + topModuleLibImport + importLibs + "-import " +
+                  ProjManager()->DesignTopModule() + "\n";
+    }
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
@@ -1412,9 +1416,15 @@ bool CompilerOpenFPGA::Synthesize() {
     yosysScript =
         ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
-
-  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
-                           ProjManager()->DesignTopModule());
+  if (!ProjManager()->DesignTopModule().empty()) {
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}",
+                             "-top " + ProjManager()->DesignTopModule());
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
+                             ProjManager()->DesignTopModule());
+  } else {
+    yosysScript =
+        ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}", "-auto-top");
+  }
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
