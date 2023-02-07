@@ -103,13 +103,17 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
   return ret;
 }
 
-int TextEditorForm::OpenFileWithLine(const QString &strFileName, int line) {
+int TextEditorForm::OpenFileWithLine(const QString &strFileName, int line,
+                                     bool error) {
   int res = OpenFile(strFileName);
   if (res == 0) {
     if (line != -1) {
       auto pair = m_map_file_tabIndex_editor.value(strFileName);
       pair.second->clearMarkers();
-      pair.second->markLine(line);
+      if (error)
+        pair.second->markLineError(line);
+      else
+        pair.second->markLineWarning(line);
     }
   } else
     return -1;

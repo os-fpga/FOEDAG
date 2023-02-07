@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 112)
+set(VERSION_PATCH 113)
 
 option(
   WITH_LIBCXX
@@ -291,12 +291,22 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
 # take everything from the aurora2 Makefile passed in variables, so no need for this:
-# execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
-#   COMMAND git rev-parse --short HEAD
-#   COMMAND tr -d '\n'
-#   OUTPUT_VARIABLE GIT_HASH
-#   ERROR_VARIABLE GIT_HASH_ERR
-#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+# if(WIN32)
+#     execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+#       COMMAND git rev-parse --short HEAD
+#       COMMAND dos2unix
+#       OUTPUT_VARIABLE GIT_HASH
+#       ERROR_VARIABLE GIT_HASH_ERR
+#       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#     set(HEADERS_TO_INCLUDE_DIRS "${HEADERS_TO_INCLUDE_DIRS} ./third_party/nlohmann_json")
+# else()
+#     execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+#       COMMAND git rev-parse --short HEAD
+#       COMMAND tr -d '\n'
+#       OUTPUT_VARIABLE GIT_HASH
+#       ERROR_VARIABLE GIT_HASH_ERR
+#       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+# endif()
 
 # message(STATUS "GIT_HASH = ${GIT_HASH}")
 # message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
@@ -454,7 +464,7 @@ function(register_gtests)
   endforeach()
 endfunction()
 
-if (WIN OR APPLE)
+if (WIN32 OR APPLE)
 else ()
 # The test works, the CI running headlessly does not
 #  register_gtests(src/Main/GuiMain_test.cpp)

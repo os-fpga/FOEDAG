@@ -152,6 +152,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void setVisibleRefreshButtons(bool visible);
   void pinPlannerSaved();
   void setStatusAndProgressText(const QString& text);
+  void saveSettings();
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.

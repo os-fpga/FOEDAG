@@ -69,6 +69,7 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   CompilerNotifier.cpp
   ../MainWindow/PathEdit.cpp
   ../Main/DialogProvider.cpp
+  ../MainWindow/MessageItemParser.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -100,6 +101,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/TclSimpleParser.h
   ../MainWindow/PathEdit.h
   ../Main/DialogProvider.h
+  ../MainWindow/MessageItemParser.h
 )
 
 set (SRC_UI_LIST "")

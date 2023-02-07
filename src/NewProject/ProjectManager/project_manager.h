@@ -205,6 +205,10 @@ class ProjectManager : public QObject {
   // Please set currentfileset before using this function
   int setSimulationFile(const QString &strFileName, bool isFileCopy = true,
                         bool localToProject = true);
+  int setSimulationFiles(const QString &commands, const QString &libs,
+                         const QString &fileNames, int lang,
+                         const QString &grName, bool isFileCopy,
+                         bool localToProject);
   int addConstrsFile(const QString &strFileName, bool isFileCopy = true,
                      bool localToProject = true);
   // Please set currentfileset before using this function
@@ -418,7 +422,9 @@ class ProjectManager : public QObject {
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
   inline static const Suffixes m_constrSuffixes{{"sdc", "pin"}};
-  inline static const Suffixes m_simSuffixes{{"v"}};
+  inline static const Suffixes m_simSuffixes{{"v", "sv", "cpp", "c", "cc",
+                                              "vhd"
+                                              "vhdl"}};
 
  signals:
   void projectPathChanged();

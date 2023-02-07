@@ -4,6 +4,7 @@
 #include <QTreeWidget>
 
 #include "Compiler/TaskManager.h"
+#include "MessageItemParser.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
@@ -11,12 +12,15 @@
 namespace {
 static constexpr auto FilePathRole = Qt::UserRole + 1;
 static constexpr auto LineNumberRole = Qt::UserRole + 2;
+static constexpr auto LineNumSrcFileRole = Qt::UserRole + 3;
+static constexpr auto LevelRole = Qt::UserRole + 4;
 }  // namespace
 
 namespace FOEDAG {
 
 MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
-    : m_taskManager{taskManager} {
+    : m_taskManager{taskManager},
+      m_parsers{new VerificParser{}, new TimingAnalysisParser{}} {
   auto layout = new QGridLayout();
   auto treeWidget = new QTreeWidget();
 
@@ -28,7 +32,8 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
   treeWidget->setHeaderLabel(tr("Task Messages"));
 
   auto &reports = m_taskManager.getReportManagerRegistry();
-  for (auto task : m_taskManager.tasks()) {
+  const auto &tasks = m_taskManager.tasks();
+  for (auto task : tasks) {
     auto taskId = m_taskManager.taskId(task);
 
     if (auto reportManager = reports.getReportManager(taskId)) {
@@ -36,9 +41,13 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
       const bool fileExists{FileUtils::FileExists(filePath.toStdString())};
-      if (!fileExists) filePath = tr("log file not found");
+      if (!fileExists)
+        filePath = tr("log file not found");
+      else
+        filePath = createLink(filePath);
       auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
       auto taskItem = new QTreeWidgetItem({itemName});
+      if (fileExists) m_convertToLabel.push_back(taskItem);
 
       if (fileExists) {
         const auto &msgs = reportManager->getMessages();
@@ -50,14 +59,29 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
       treeWidget->addTopLevelItem(taskItem);
     }
   }
+
+  for (const auto &item : qAsConst(m_convertToLabel)) {
+    auto label = new QLabel{item->text(0)};
+    label->setTextInteractionFlags(label->textInteractionFlags() |
+                                   Qt::LinksAccessibleByMouse);
+    connect(label, &QLabel::linkActivated, this, [item](const QString &link) {
+      auto line = item->data(0, LineNumSrcFileRole).toInt();
+      auto level = item->data(0, LevelRole).toInt();
+      TextEditorForm::Instance()->OpenFileWithLine(link, line, level == Error);
+    });
+    treeWidget->setItemWidget(item, 0, label);
+    item->setText(0, QString{});
+  }
   treeWidget->expandAll();
   connect(treeWidget, &QTreeWidget::itemDoubleClicked, this,
           &MessagesTabWidget::onMessageClicked);
 }
 
+MessagesTabWidget::~MessagesTabWidget() { qDeleteAll(m_parsers); }
+
 QTreeWidgetItem *MessagesTabWidget::createTaskMessageItem(
-    const TaskMessage &msg, const QString &filePath) const {
-  auto msgItem = new QTreeWidgetItem({msg.m_message});
+    const TaskMessage &msg, const QString &filePath) {
+  auto msgItem = createItem(msg.m_message);
   msgItem->setData(0, LineNumberRole, QVariant(msg.m_lineNr));
   msgItem->setData(0, FilePathRole, filePath);
 
@@ -79,6 +103,27 @@ QTreeWidgetItem *MessagesTabWidget::createTaskMessageItem(
     msgItem->addChild(createTaskMessageItem(childMsg, filePath));
 
   return msgItem;
+}
+
+QTreeWidgetItem *MessagesTabWidget::createItem(const QString &message) {
+  QTreeWidgetItem *item = new QTreeWidgetItem({message});
+  for (const auto &parser : m_parsers) {
+    auto [found, info] = parser->parse(message);
+    if (found) {
+      auto m = message;
+      m = m.replace(info.fileName, createLink(info.fileName));
+      item->setText(0, m);
+      item->setData(0, LineNumSrcFileRole, info.line);
+      item->setData(0, LevelRole, info.level);
+      m_convertToLabel.append(item);
+      break;
+    }
+  }
+  return item;
+}
+
+QString MessagesTabWidget::createLink(const QString &str) {
+  return QString{"<a href=\"%1\">%1</a>"}.arg(str);
 }
 
 void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {

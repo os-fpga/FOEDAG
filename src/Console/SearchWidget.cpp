@@ -33,7 +33,7 @@ SearchWidget::SearchWidget(QTextEdit *searchEdit, QWidget *parent,
                            Qt::WindowFlags f)
     : QWidget(parent, f), m_searchEdit(searchEdit) {
   QGridLayout *layout = new QGridLayout;
-  layout->setContentsMargins(6, 6, 6, 6);
+  layout->setContentsMargins(0, 6, 6, 6);
   QLineEdit *edit = new QLineEdit{this};
   connect(edit, &QLineEdit::textChanged, this, [this](const QString &text) {
     m_textToSearch = text;

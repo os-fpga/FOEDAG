@@ -3595,15 +3595,6 @@ bool CompilerOpenFPGA_ql::Placement() {
   bool userConstraint = false;
   std::vector<std::string> constraints;
   for (auto constraint : m_constraints->getConstraints()) {
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(constraint, " ", tokens);
-    constraint = "";
-    constraint += tokens[0];
-    // last token tokens[tokens.size() - 1]  is "" (why?)
-    for (uint32_t i = 1; i < tokens.size() - 1; i++) {
-      const std::string& tok = tokens[i];
-      constraint += " " + tok;
-    }
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
     // pin location constraints have to be translated to .place:
@@ -4283,6 +4274,8 @@ read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
 link_openfpga_arch --sort_gsb_chan_node_in_edges 
+
+${PB_PIN_FIXUP}
 
 # Apply fix-up to Look-Up Table truth tables based on packing results
 lut_truth_table_fixup
