@@ -82,6 +82,7 @@ bool Task::isEnable() const { return m_enable; }
 void Task::setEnable(bool newEnable) {
   if (m_enable != newEnable) {
     m_enable = newEnable;
+    emit enableChanged();
     for (const auto &sub : m_subTask) sub->setEnable(newEnable);
   }
 }

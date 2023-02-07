@@ -185,7 +185,7 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
          << std::endl;
   (*out) << "                                Constraints: set_pin_loc, "
-            "set_mode, set_region_loc, all SDC commands"
+            "set_property mode, set_region_loc, all SDC commands"
          << std::endl;
   (*out) << "   script_path                : path of the Tcl script passed "
             "with --script"
@@ -238,6 +238,7 @@ void CompilerOpenFPGA_ql::Help(std::ostream* out) {
   (*out) << "   route ?clean?              : Router" << std::endl;
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
+  (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
          << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
@@ -673,6 +674,9 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
     std::string arg = argv[1];
     if (compiler->LoadDeviceData(arg)) {
       compiler->ProjManager()->setTargetDevice(arg);
+      auto deviceData = compiler->deviceData();
+      compiler->ProjManager()->setTargetDeviceData(
+          deviceData.family, deviceData.series, deviceData.package);
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
@@ -2648,8 +2652,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     auto topModuleLibImport = std::string{};
     if (!topModuleLib.empty())
       topModuleLibImport = "-work " + topModuleLib + " ";
-    fileList += "verific " + topModuleLibImport + importLibs + "-import " +
-                ProjManager()->DesignTopModule() + "\n";
+    if (ProjManager()->DesignTopModule().empty()) {
+      fileList += "verific -import -all\n";
+    } else {
+      fileList += "verific " + topModuleLibImport + importLibs + "-import " +
+                  ProjManager()->DesignTopModule() + "\n";
+    }
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
@@ -2677,7 +2685,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     }
 #endif // #if UPSTREAM_UNUSED
 
-       std::string designFiles;
+    std::string designFiles;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
       std::string filesScript =
           "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
@@ -2742,8 +2750,16 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   }
 #endif // #if(AURORA_USE_TABBYCAD == 1)
 
-  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
-                           ProjManager()->DesignTopModule());
+  if (!ProjManager()->DesignTopModule().empty()) {
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}",
+                             "-top " + ProjManager()->DesignTopModule());
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
+                             ProjManager()->DesignTopModule());
+  } else {
+    yosysScript =
+        ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}", "-auto-top");
+  }
+
   json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
 
@@ -3351,6 +3367,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                   std::string(ProjManager()->projectName() + "_openfpga.sdc") +
                   std::string(" --clock_modeling ideal --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
+
   return command;
 #endif // #if UPSTREAM_UNUSED
   std::string base_vpr_command =
@@ -3452,6 +3469,9 @@ bool CompilerOpenFPGA_ql::Packing() {
       continue;
     }
     if (constraint.find("set_mode") != std::string::npos) {
+      continue;
+    }
+    if (constraint.find("set_property") != std::string::npos) {
       continue;
     }
     ofssdc << constraint << "\n";
@@ -3605,6 +3625,12 @@ bool CompilerOpenFPGA_ql::Placement() {
     } else if (constraint.find("set_mode") != std::string::npos) {
       constraints.push_back(constraint);
       userConstraint = true;
+    } else if ((constraint.find("set_property") != std::string::npos) &&
+               (constraint.find(" mode ") != std::string::npos)) {
+      constraint = ReplaceAll(constraint, " mode ", " ");
+      constraint = ReplaceAll(constraint, "set_property", "set_mode");
+      constraints.push_back(constraint);
+      userConstraint = true;
     } else {
       continue;
     }
@@ -3669,8 +3695,8 @@ bool CompilerOpenFPGA_ql::Placement() {
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
   if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
-      FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
-    if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+      FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
+    if (!std::filesystem::is_regular_file(m_PinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
           "for set_pin_loc constraints");
@@ -3681,7 +3707,7 @@ bool CompilerOpenFPGA_ql::Placement() {
         std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
     }
-    pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+    pincommand += " --csv " + m_PinMapCSV.string();
 
     if (userConstraint) {
       pincommand += " --pcf " +
@@ -3832,6 +3858,7 @@ bool CompilerOpenFPGA_ql::ConvertSdcPinConstrainToPcf(
   }
   return true;
 }
+
 bool CompilerOpenFPGA_ql::Route() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
@@ -4113,7 +4140,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   CleanTempFiles();
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
-                 " timing analysis failed!");
+                 " timing analysis failed");
     return false;
   }
 
@@ -5312,7 +5339,7 @@ bool CompilerOpenFPGA_ql::LoadDeviceData(const std::string& deviceName) {
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
-                OpenFpgaPinmapCSVFile(fullPath);
+                PinmapCSVFile(fullPath);
               } else if (file_type == "plugin_lib") {
                 YosysPluginLibName(name);
               } else if (file_type == "plugin_func") {

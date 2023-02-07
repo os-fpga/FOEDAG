@@ -30,7 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/main_window.h"
 
 QWidget* mainWindowBuilder(FOEDAG::Session* session) {
-  return new FOEDAG::MainWindow{session};
+  auto m = new FOEDAG::MainWindow{session};
+  auto info = m->Info();
+  info.licenseFile = "LICENSE";
+  m->Info(info);
+  return m;
 }
 
 int main(int argc, char** argv) {
@@ -62,25 +66,21 @@ int main(int argc, char** argv) {
   std::filesystem::path binpath = foedag->Context()->BinaryPath();
   std::filesystem::path datapath = foedag->Context()->DataPath();
   if (opcompiler) {
+    std::filesystem::path analyzePath = binpath / "analyze";
     std::filesystem::path yosysPath = binpath / "yosys";
     std::filesystem::path vprPath = binpath / "vpr";
     std::filesystem::path openFpgaPath = binpath / "openfpga";
     std::filesystem::path pinConvPath = binpath / "pin_c";
-    std::filesystem::path archPath =
-        datapath / "Arch" / "k6_frac_N10_tileable_40nm.xml";
-    std::filesystem::path openFpgaArchPath =
-        datapath / "Arch" / "k6_N10_40nm_openfpga.xml";
     std::filesystem::path bitstreamSettingPath =
         datapath / "Arch" / "bitstream_annotation.xml";
     std::filesystem::path simSettingPath =
         datapath / "Arch" / "fixed_sim_openfpga.xml";
     std::filesystem::path repackConstraintPath =
         datapath / "Arch" / "repack_design_constraint.xml";
+    opcompiler->AnalyzeExecPath(analyzePath);
     opcompiler->YosysExecPath(yosysPath);
     opcompiler->VprExecPath(vprPath);
     opcompiler->OpenFpgaExecPath(openFpgaPath);
-    opcompiler->ArchitectureFile(archPath);
-    opcompiler->OpenFpgaArchitectureFile(openFpgaArchPath);
     opcompiler->OpenFpgaBitstreamSettingFile(bitstreamSettingPath);
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);

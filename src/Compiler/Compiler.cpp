@@ -417,15 +417,15 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
   }
-  if (m_DesignQuery == nullptr) {
-    m_DesignQuery = new DesignQuery(this);
-  }
+  // if (m_DesignQuery == nullptr) {
+  //   m_DesignQuery = new DesignQuery(this);
+  // }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
-  m_DesignQuery->RegisterCommands(interp, batchMode);
+  // m_DesignQuery->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
@@ -1123,8 +1123,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
+#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1471,8 +1473,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
+#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
+#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1750,6 +1754,14 @@ void Compiler::GTKWaveSendCmd(const std::string& gtkWaveCmd,
   }
 }
 
+void Compiler::PinmapCSVFile(const std::filesystem::path& path) {
+  m_PinMapCSV = path;
+}
+
+const std::filesystem::path& Compiler::PinmapCSVFile() const {
+  return m_PinMapCSV;
+}
+
 // This will return a pointer to the current gtkwave process, if no process is
 // running, one will be started
 QProcess* Compiler::GetGTKWaveProcess() {
@@ -1993,6 +2005,12 @@ bool Compiler::HasInternalError() const {
     return true;
   }
   return false;
+}
+
+DeviceData Compiler::deviceData() const { return m_deviceData; }
+
+void Compiler::setDeviceData(const DeviceData& newDeviceData) {
+  m_deviceData = newDeviceData;
 }
 
 bool Compiler::Compile(Action action) {

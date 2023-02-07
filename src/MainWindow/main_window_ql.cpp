@@ -80,6 +80,7 @@ namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
+const QString BITSTREAM_ENABLE_KEY{"bitstreamEnable"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
@@ -110,6 +111,7 @@ MainWindow::MainWindow(Session* session)
       m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
 #if UPSTREAM_UNUSED
   centerWidget(*this);
+
   // Initially, main window should be maximized.
   showMaximized();
 #endif
@@ -778,6 +780,7 @@ void MainWindow::createMenus() {
   preferencesMenu->addAction(pinPlannerPinNameAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
+  preferencesMenu->addAction(bitstreamAction);
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
@@ -938,6 +941,17 @@ void MainWindow::createActions() {
   stopCompileMessageAction->setChecked(m_askStopCompilation);
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
+
+  bitstreamAction = new QAction(tr("Enable/Disable bitstream"), this);
+  bitstreamAction->setCheckable(true);
+  connect(bitstreamAction, &QAction::toggled, this,
+          &MainWindow::bitstreamEnable);
+#if UPSTREAM_UNUSED
+  bitstreamAction->setChecked(
+      m_settings.value(BITSTREAM_ENABLE_KEY, false).toBool());
+#endif
+  bitstreamAction->setChecked(
+      m_settings.value(BITSTREAM_ENABLE_KEY, true).toBool());
 
   simRtlAction = new QAction(tr("Simulate RTL"), this);
   connect(simRtlAction, &QAction::triggered, this, [this]() {
@@ -1183,6 +1197,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
   updateTaskTable();
+  updateBitstream();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -1276,6 +1291,8 @@ void MainWindow::pinAssignmentActionTriggered() {
 
     PinAssignmentData data;
     data.context = GlobalSession->Context();
+    data.pinMapFile =
+        QString::fromStdString(m_compiler->PinmapCSVFile().string());
     data.projectPath = m_projectManager->getProjectPath();
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
@@ -1479,6 +1496,10 @@ void MainWindow::updateTaskTable() {
   m_taskManager->task(POWER)->setEnable(false);
 }
 
+void MainWindow::updateBitstream() {
+  bitstreamEnable(bitstreamAction->isChecked());
+}
+
 void MainWindow::slotTabChanged(int index) {
   QString strName = TextEditorForm::Instance()->GetTabWidget()->tabText(index);
   SetWindowTitle((index == -1) ? QString() : strName,
@@ -1625,6 +1646,13 @@ void MainWindow::startProject(bool simulation) {
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
   m_askStopCompilation = showStopCompilationMsg;
   m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
+}
+
+void MainWindow::bitstreamEnable(bool enable) {
+  if (m_taskManager) {
+    m_taskManager->task(BITSTREAM)->setEnable(enable);
+  }
+  m_settings.setValue(BITSTREAM_ENABLE_KEY, enable);
 }
 
 void MainWindow::onShowLicenses() {

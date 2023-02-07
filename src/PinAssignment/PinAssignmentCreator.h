@@ -32,6 +32,7 @@ class PortsLoader;
 
 struct PinAssignmentData {
   ToolContext *context{nullptr};
+  QString pinMapFile{};
   QString target{};
   QStringList commands{};
   QString projectPath{};
@@ -73,8 +74,7 @@ class PinAssignmentCreator : public QObject {
 
  private:
   QWidget *CreateLayoutedWidget(QWidget *main);
-  QString searchCsvFile(const QString &targetDevice,
-                        ToolContext *context) const;
+  QString searchCsvFile() const;
   QString packagePinHeaderFile(ToolContext *context) const;
   PackagePinsLoader *FindPackagePinLoader(const QString &targetDevice) const;
   PortsLoader *FindPortsLoader(const QString &targetDevice) const;

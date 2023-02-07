@@ -2195,6 +2195,22 @@ void ProjectManager::setTargetDevice(const std::string& deviceName) {
   emit saveFile();
 }
 
+void ProjectManager::setTargetDeviceData(const std::string& family,
+                                         const std::string& series,
+                                         const std::string& package) {
+  setCurrentRun(getActiveSynthRunName());
+  auto result = setSynthesisOption({
+      {PROJECT_PART_SERIES, QString::fromStdString(series)},
+      {PROJECT_PART_FAMILY, QString::fromStdString(family)},
+      {PROJECT_PART_PACKAGE, QString::fromStdString(package)},
+  });
+  if (result != 0)
+    std::cerr << "setSynthesisOption(): something went wrong, return value is: "
+              << result
+              << std::endl;  // TODO @volodymyrk backlog,logging improve
+  emit saveFile();
+}
+
 std::string ProjectManager::getTargetDevice() {
   setCurrentRun(getActiveSynthRunName());
   return getSynthOption(PROJECT_PART_DEVICE).toStdString();

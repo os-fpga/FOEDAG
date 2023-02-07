@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 QWidget* PinAssignmentBuilder(FOEDAG::Session* session) {
   auto projectManager{session->GetCompiler()->ProjManager()};
   FOEDAG::PinAssignmentData data{
-      session->Context(), {}, {}, projectManager->getProjectPath(), {}};
+      session->Context(), {}, {}, {}, projectManager->getProjectPath(), {}};
   FOEDAG::PinAssignmentCreator* creator =
       new FOEDAG::PinAssignmentCreator{data};
   QWidget* w = new QWidget;
