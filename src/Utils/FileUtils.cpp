@@ -278,8 +278,13 @@ bool FileUtils::IsUptoDate(const std::string& sourceFile,
 
 std::string FileUtils::AdjustPath(const std::string& p) {
   std::filesystem::path the_path = p;
+  return AdjustPath(the_path);
+}
+
+std::string FileUtils::AdjustPath(const std::filesystem::path& p) {
+  std::filesystem::path the_path = p;
   if (!the_path.is_absolute()) {
-    the_path = std::filesystem::path(std::filesystem::path("..") / p);
+    the_path = std::filesystem::path("..") / p;
   }
   return the_path.string();
 }
