@@ -722,34 +722,39 @@ std::string Simulator::SimulationFileList(SimulationType action,
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
 
-  std::set<std::string> designFileDirs;
-  for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    const std::string& fileNames = lang_file.second;
-    std::vector<std::string> files;
-    StringUtils::tokenize(fileNames, " ", files);
-    for (auto file : files) {
-      std::filesystem::path filePath = file;
-      filePath = filePath.parent_path();
-      const std::string& path = filePath.string();
-      if (designFileDirs.find(path) == designFileDirs.end()) {
-        fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
-        designFileDirs.insert(path);
+  if (type != SimulatorType::GHDL) {
+    // VHDL has no include files
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          fileList +=
+              IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
       }
     }
-  }
 
-  // Add simultion files directory as an include dir
-  for (const auto& lang_file : ProjManager()->SimulationFiles()) {
-    const std::string& fileNames = lang_file.second;
-    std::vector<std::string> files;
-    StringUtils::tokenize(fileNames, " ", files);
-    for (auto file : files) {
-      std::filesystem::path filePath = file;
-      filePath = filePath.parent_path();
-      const std::string& path = filePath.string();
-      if (designFileDirs.find(path) == designFileDirs.end()) {
-        fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
-        designFileDirs.insert(path);
+    // Add simulation files directory as an include dir
+    for (const auto& lang_file : ProjManager()->SimulationFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          fileList +=
+              IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
       }
     }
   }
