@@ -51,7 +51,7 @@ class Simulator {
   static SimulationType ToSimulationType(const std::string& str, bool& ok);
   static SimulatorType ToSimulatorType(
       const std::string& str, bool& ok,
-      SimulatorType defaultValue = SimulatorType::Verilator);
+      SimulatorType defaultValue = SimulatorType::Icarus);
   static std::string ToString(SimulatorType type);
   // Most common use case, create the compiler in your main
   Simulator() = default;
@@ -147,7 +147,7 @@ class Simulator {
   std::ostream* m_err = &std::cerr;
   std::string m_result;
   TclInterpreterHandler* m_tclInterpreterHandler{nullptr};
-  SimulatorType m_simulatorTool = SimulatorType::Verilator;
+  SimulatorType m_simulatorTool = SimulatorType::Icarus;
   std::string m_output;
   std::map<SimulatorType, std::filesystem::path> m_simulatorPathMap;
   using SimulationOptionMap = std::map<SimulatorType, std::string>;
