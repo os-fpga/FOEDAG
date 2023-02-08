@@ -920,6 +920,31 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
     }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += FileUtils::AdjustPath(scriptPath) + " ";
+    }
+
+    // Add design files directory as an include dir
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
+    }
+
     fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
@@ -1250,6 +1275,30 @@ bool CompilerOpenFPGA::Synthesize() {
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
     }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += FileUtils::AdjustPath(scriptPath) + " ";
+    }
+
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
+    }
+
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
@@ -1374,6 +1423,29 @@ bool CompilerOpenFPGA::Synthesize() {
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
       includes += "-I" + FileUtils::AdjustPath(path) + " ";
+    }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += "-I" + FileUtils::AdjustPath(scriptPath) + " ";
+    }
+
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += "-I" + FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
     }
 
     std::string designFiles;
