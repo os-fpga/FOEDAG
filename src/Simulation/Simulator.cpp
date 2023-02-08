@@ -722,36 +722,35 @@ std::string Simulator::SimulationFileList(SimulationType action,
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
 
-  // Add Tcl project directory as an include dir
-  if (!GetSession()->CmdLine()->Script().empty()) {
-    std::filesystem::path script = GetSession()->CmdLine()->Script();
-    std::filesystem::path scriptPath = script.parent_path();
-    fileList += IncludeDirective(type) +
-                FileUtils::AdjustPath(scriptPath.string()) + " ";
-  }
-
-  // Add design files directory as an include dir
   std::set<std::string> designFileDirs;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    const std::string& fileName = lang_file.second;
-    std::filesystem::path filePath = fileName;
-    filePath = filePath.parent_path();
-    const std::string& path = filePath.string();
-    if (designFileDirs.find(path) == designFileDirs.end()) {
-      fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
-      designFileDirs.insert(path);
+    const std::string& fileNames = lang_file.second;
+    std::vector<std::string> files;
+    StringUtils::tokenize(fileNames, " ", files);
+    for (auto file : files) {
+      std::filesystem::path filePath = file;
+      filePath = filePath.parent_path();
+      const std::string& path = filePath.string();
+      if (designFileDirs.find(path) == designFileDirs.end()) {
+        fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+        designFileDirs.insert(path);
+      }
     }
   }
 
   // Add simultion files directory as an include dir
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
-    const std::string& fileName = lang_file.second;
-    std::filesystem::path filePath = fileName;
-    filePath = filePath.parent_path();
-    const std::string& path = filePath.string();
-    if (designFileDirs.find(path) == designFileDirs.end()) {
-      fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
-      designFileDirs.insert(path);
+    const std::string& fileNames = lang_file.second;
+    std::vector<std::string> files;
+    StringUtils::tokenize(fileNames, " ", files);
+    for (auto file : files) {
+      std::filesystem::path filePath = file;
+      filePath = filePath.parent_path();
+      const std::string& path = filePath.string();
+      if (designFileDirs.find(path) == designFileDirs.end()) {
+        fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
+        designFileDirs.insert(path);
+      }
     }
   }
 

@@ -931,13 +931,17 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     // Add design files directory as an include dir
     std::set<std::string> designFileDirs;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      const std::string& fileName = lang_file.second;
-      std::filesystem::path filePath = fileName;
-      filePath = filePath.parent_path();
-      const std::string& path = filePath.string();
-      if (designFileDirs.find(path) == designFileDirs.end()) {
-        includes += FileUtils::AdjustPath(path) + " ";
-        designFileDirs.insert(path);
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
       }
     }
 
@@ -1279,16 +1283,19 @@ bool CompilerOpenFPGA::Synthesize() {
       includes += FileUtils::AdjustPath(scriptPath) + " ";
     }
 
-    // Add design files directory as an include dir
     std::set<std::string> designFileDirs;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      const std::string& fileName = lang_file.second;
-      std::filesystem::path filePath = fileName;
-      filePath = filePath.parent_path();
-      const std::string& path = filePath.string();
-      if (designFileDirs.find(path) == designFileDirs.end()) {
-        includes += FileUtils::AdjustPath(path) + " ";
-        designFileDirs.insert(path);
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
       }
     }
 
@@ -1425,16 +1432,19 @@ bool CompilerOpenFPGA::Synthesize() {
       includes += "-I" + FileUtils::AdjustPath(scriptPath) + " ";
     }
 
-    // Add design files directory as an include dir
     std::set<std::string> designFileDirs;
     for (const auto& lang_file : ProjManager()->DesignFiles()) {
-      const std::string& fileName = lang_file.second;
-      std::filesystem::path filePath = fileName;
-      filePath = filePath.parent_path();
-      const std::string& path = filePath.string();
-      if (designFileDirs.find(path) == designFileDirs.end()) {
-        includes += "-I" + FileUtils::AdjustPath(path) + " ";
-        designFileDirs.insert(path);
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += "-I" + FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
       }
     }
 
