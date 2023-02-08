@@ -174,14 +174,14 @@
 		"widgetType": "dropdown",
 		"options": [
 		    "Blif",
-            "EBlif",
+		    "EBlif",
 		    "Edif",
 		    "Verilog",
 		    "VHDL"
 		],
 		"optionsLookup": [
 		    "blif",
-            "eblif",
+		    "eblif",
 		    "edif",
 		    "verilog",
 		    "vhdl"
