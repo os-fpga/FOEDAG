@@ -761,7 +761,9 @@ void MainWindow::createMenus() {
   helpMenu->addAction(licensesAction);
 
   preferencesMenu->addAction(defualtProjectPathAction);
+#ifndef PRODUCTION_BUILD
   preferencesMenu->addAction(pinPlannerPinNameAction);
+#endif
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
   preferencesMenu->addAction(bitstreamAction);
@@ -1440,7 +1442,9 @@ void MainWindow::resetIps() {
 void MainWindow::updateViewMenu() {
   viewMenu->clear();
   viewMenu->addAction(ipConfiguratorAction);
+#ifndef PRODUCTION_BUILD
   viewMenu->addAction(pinAssignmentAction);
+#endif
   const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
   if (!dockwidgets.empty()) {
     viewMenu->addSeparator();
