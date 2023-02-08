@@ -99,7 +99,6 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_CLEAN]);
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_SETTINGS]);
   m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_CLEAN]);
-  m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_SETTINGS]);
   m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
   m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);

@@ -189,7 +189,6 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   m_taskOrder.push_back({row++, PLACEMENT_SETTINGS});
   m_taskOrder.push_back({row++, ROUTING});
   m_taskOrder.push_back({row++, ROUTING_CLEAN});
-  m_taskOrder.push_back({row++, ROUTING_SETTINGS});
   m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
   m_taskOrder.push_back({row++, SIMULATE_PNR});
   m_taskOrder.push_back({row++, SIMULATE_PNR_CLEAN});
