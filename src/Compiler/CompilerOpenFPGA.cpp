@@ -624,6 +624,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     std::string arg = argv[1];
     if (compiler->LoadDeviceData(arg)) {
       compiler->ProjManager()->setTargetDevice(arg);
+      auto deviceData = compiler->deviceData();
+      compiler->ProjManager()->setTargetDeviceData(
+          deviceData.family, deviceData.series, deviceData.package);
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
@@ -923,6 +926,31 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
     }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += FileUtils::AdjustPath(scriptPath.string()) + " ";
+    }
+
+    // Add design files directory as an include dir
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
+    }
+
     fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
@@ -1253,6 +1281,30 @@ bool CompilerOpenFPGA::Synthesize() {
     for (auto path : ProjManager()->includePathList()) {
       includes += FileUtils::AdjustPath(path) + " ";
     }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += FileUtils::AdjustPath(scriptPath.string()) + " ";
+    }
+
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
+    }
+
     fileList += "verific -vlog-incdir " + includes + "\n";
 
     std::string libraries;
@@ -1351,8 +1403,12 @@ bool CompilerOpenFPGA::Synthesize() {
     auto topModuleLibImport = std::string{};
     if (!topModuleLib.empty())
       topModuleLibImport = "-work " + topModuleLib + " ";
-    fileList += "verific " + topModuleLibImport + importLibs + "-import " +
-                ProjManager()->DesignTopModule() + "\n";
+    if (ProjManager()->DesignTopModule().empty()) {
+      fileList += "verific -import -all\n";
+    } else {
+      fileList += "verific " + topModuleLibImport + importLibs + "-import " +
+                  ProjManager()->DesignTopModule() + "\n";
+    }
     yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
   } else {
     // Default Yosys parser
@@ -1373,6 +1429,29 @@ bool CompilerOpenFPGA::Synthesize() {
     std::string includes;
     for (auto path : ProjManager()->includePathList()) {
       includes += "-I" + FileUtils::AdjustPath(path) + " ";
+    }
+
+    // Add Tcl project directory as an include dir
+    if (!GetSession()->CmdLine()->Script().empty()) {
+      std::filesystem::path script = GetSession()->CmdLine()->Script();
+      std::filesystem::path scriptPath = script.parent_path();
+      includes += "-I" + FileUtils::AdjustPath(scriptPath.string()) + " ";
+    }
+
+    std::set<std::string> designFileDirs;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      const std::string& fileNames = lang_file.second;
+      std::vector<std::string> files;
+      StringUtils::tokenize(fileNames, " ", files);
+      for (auto file : files) {
+        std::filesystem::path filePath = file;
+        filePath = filePath.parent_path();
+        const std::string& path = filePath.string();
+        if (designFileDirs.find(path) == designFileDirs.end()) {
+          includes += "-I" + FileUtils::AdjustPath(path) + " ";
+          designFileDirs.insert(path);
+        }
+      }
     }
 
     std::string designFiles;
@@ -1415,9 +1494,15 @@ bool CompilerOpenFPGA::Synthesize() {
     yosysScript =
         ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
   }
-
-  yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
-                           ProjManager()->DesignTopModule());
+  if (!ProjManager()->DesignTopModule().empty()) {
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}",
+                             "-top " + ProjManager()->DesignTopModule());
+    yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE}",
+                             ProjManager()->DesignTopModule());
+  } else {
+    yosysScript =
+        ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}", "-auto-top");
+  }
 
   yosysScript = FinishSynthesisScript(yosysScript);
 
@@ -1855,8 +1940,8 @@ bool CompilerOpenFPGA::Placement() {
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
   if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
-      FileUtils::FileExists(pincommand) && (!m_OpenFpgaPinMapCSV.empty())) {
-    if (!std::filesystem::is_regular_file(m_OpenFpgaPinMapCSV)) {
+      FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
+    if (!std::filesystem::is_regular_file(m_PinMapCSV)) {
       ErrorMessage(
           "No pin description csv file available for this device, required "
           "for set_pin_loc constraints");
@@ -1867,7 +1952,7 @@ bool CompilerOpenFPGA::Placement() {
         std::filesystem::is_regular_file(m_OpenFpgaPinMapXml)) {
       pincommand += " --xml " + m_OpenFpgaPinMapXml.string();
     }
-    pincommand += " --csv " + m_OpenFpgaPinMapCSV.string();
+    pincommand += " --csv " + m_PinMapCSV.string();
 
     if (userConstraint) {
       pincommand += " --pcf " +
@@ -2609,7 +2694,11 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
       QDomElement e = node.toElement();
 
       std::string name = e.attribute("name").toStdString();
+      std::string family = e.attribute("family").toStdString();
+      std::string series = e.attribute("series").toStdString();
+      std::string package = e.attribute("package").toStdString();
       if (name == deviceName) {
+        setDeviceData({family, series, package});
         foundDevice = true;
         QDomNodeList list = e.childNodes();
         for (int i = 0; i < list.count(); i++) {
@@ -2650,7 +2739,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
-                OpenFpgaPinmapCSVFile(fullPath);
+                PinmapCSVFile(fullPath);
               } else if (file_type == "plugin_lib") {
                 YosysPluginLibName(name);
               } else if (file_type == "plugin_func") {
