@@ -925,7 +925,7 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     if (!GetSession()->CmdLine()->Script().empty()) {
       std::filesystem::path script = GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
-      includes += FileUtils::AdjustPath(scriptPath) + " ";
+      includes += FileUtils::AdjustPath(scriptPath.string()) + " ";
     }
 
     // Add design files directory as an include dir
@@ -1280,7 +1280,7 @@ bool CompilerOpenFPGA::Synthesize() {
     if (!GetSession()->CmdLine()->Script().empty()) {
       std::filesystem::path script = GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
-      includes += FileUtils::AdjustPath(scriptPath) + " ";
+      includes += FileUtils::AdjustPath(scriptPath.string()) + " ";
     }
 
     std::set<std::string> designFileDirs;
@@ -1429,7 +1429,7 @@ bool CompilerOpenFPGA::Synthesize() {
     if (!GetSession()->CmdLine()->Script().empty()) {
       std::filesystem::path script = GetSession()->CmdLine()->Script();
       std::filesystem::path scriptPath = script.parent_path();
-      includes += "-I" + FileUtils::AdjustPath(scriptPath) + " ";
+      includes += "-I" + FileUtils::AdjustPath(scriptPath.string()) + " ";
     }
 
     std::set<std::string> designFileDirs;

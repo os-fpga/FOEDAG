@@ -908,7 +908,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Icarus;
       if (argc < 2) {
         compiler->ErrorMessage(
             "Wrong number of arguments: simulate <type> ?<simulator>? "
@@ -922,8 +922,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         bool ok{false};
-        auto sim = Simulator::ToSimulatorType(
-            arg, ok, Simulator::SimulatorType::Verilator);
+        auto sim = Simulator::ToSimulatorType(arg, ok,
+                                              Simulator::SimulatorType::Icarus);
         if (ok) {
           sim_tool = sim;
           sim_tool_valid = true;
@@ -1240,12 +1240,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string wave_file;
       bool clean{false};
       bool sim_tool_valid{false};
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Icarus;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         bool ok{false};
-        auto sim = Simulator::ToSimulatorType(
-            arg, ok, Simulator::SimulatorType::Verilator);
+        auto sim = Simulator::ToSimulatorType(arg, ok,
+                                              Simulator::SimulatorType::Icarus);
         if (ok) {
           sim_tool = sim;
           sim_tool_valid = true;
