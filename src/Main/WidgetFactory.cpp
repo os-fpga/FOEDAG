@@ -1004,7 +1004,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
 
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
-            if (arg != "" && userVal != "<unset>") {
+            if (!arg.isEmpty()) {
               QString argStr = "-" + arg + " " +
                                lookupStr(comboOptions, comboLookup, userVal);
               storeTclArg(ptr, argStr);
@@ -1012,7 +1012,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           };
 
       // Determine if this combobox should add <unset> option
-      bool addUnset = widgetJsonObj.value("addUnset", true);
+      bool addUnset = widgetJsonObj.value("addUnset", addUnsetDefault);
 
       // Create Widget
       auto ptr = createComboBox(objName, comboOptions, sysDefaultVal, addUnset,

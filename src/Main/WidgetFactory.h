@@ -46,6 +46,7 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 #define WF_DASH "_TclArgDash_"
 
 namespace FOEDAG {
+constexpr bool addUnsetDefault{false};
 QString convertAll(const QString& str);
 QString restoreAll(const QString& str);
 void initTclArgFns();
@@ -76,7 +77,7 @@ QWidget* createContainerWidget(QWidget* widget,
                                const QString& label = QString());
 QComboBox* createComboBox(
     const QString& objectName, const QStringList& options,
-    const QString& selectedValue = "", bool addUnset = true,
+    const QString& selectedValue = "", bool addUnset = addUnsetDefault,
     std::function<void(QComboBox*, const QString&)> onChange = nullptr);
 QLineEdit* createLineEdit(
     const QString& objectName, const QString& text = "",
