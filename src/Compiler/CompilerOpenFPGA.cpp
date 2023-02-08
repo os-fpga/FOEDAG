@@ -196,7 +196,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
   (*out)
-      << "   pnr_netlist_lang <blif, eblif, edif, verilog, vhdl> : Chooses vpr input "
+      << "   pnr_netlist_lang <blif, eblif, edif, verilog> : Chooses vpr input "
          "netlist format"
       << std::endl;
   (*out) << "   packing ?clean?            : Packing" << std::endl;
