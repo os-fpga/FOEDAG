@@ -32,6 +32,7 @@ static constexpr uint RowVisibilityRole = Qt::UserRole + 3;
 static constexpr uint ParentDataRole = Qt::UserRole + 4;
 static constexpr uint TaskTypeRole = Qt::UserRole + 5;
 static constexpr uint TaskId = Qt::UserRole + 6;
+static constexpr uint UserActionCleanRole = Qt::UserRole + 7;
 
 enum ExpandAreaAction {
   Invert,

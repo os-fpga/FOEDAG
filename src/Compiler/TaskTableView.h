@@ -49,6 +49,7 @@ class TaskTableView : public QTableView {
  private slots:
   void customMenuRequested(const QPoint &pos);
   void userActionHandle(const QModelIndex &index);
+  void userActionCleanHandle(const QModelIndex &index);
   void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                    const QVector<int> &roles = QVector<int>()) override;
 

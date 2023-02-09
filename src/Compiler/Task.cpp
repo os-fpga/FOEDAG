@@ -87,4 +87,8 @@ void Task::setEnable(bool newEnable) {
   }
 }
 
+Task *Task::cleanTask() const { return m_clean; }
+
+void Task::setCleanTask(Task *newClean) { m_clean = newClean; }
+
 }  // namespace FOEDAG

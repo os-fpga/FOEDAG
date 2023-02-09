@@ -107,6 +107,9 @@ class Task : public QObject {
   bool isEnable() const;
   void setEnable(bool newEnable);
 
+  Task *cleanTask() const;
+  void setCleanTask(Task *newClean);
+
  signals:
   /*!
    * \brief statusChanged. Emits whenever status has changed.
@@ -126,6 +129,7 @@ class Task : public QObject {
   TaskType m_type{TaskType::Action};
   QVector<Task *> m_subTask;
   Task *m_parent{nullptr};
+  Task *m_clean{nullptr};
   bool m_valid{false};
   QString m_logFilePath{};
   bool m_enable{true};
