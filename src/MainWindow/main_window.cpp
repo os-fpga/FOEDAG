@@ -1485,7 +1485,9 @@ void MainWindow::updateTaskTable() {
     }
   }
   m_taskManager->task(SIMULATE_BITSTREAM)->setEnable(false);
+  m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setEnable(false);
   m_taskManager->task(POWER)->setEnable(false);
+  m_taskManager->task(POWER_CLEAN)->setEnable(false);
 }
 
 void MainWindow::updateBitstream() {

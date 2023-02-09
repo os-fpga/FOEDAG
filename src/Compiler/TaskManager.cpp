@@ -39,6 +39,8 @@ static constexpr auto CleanText{
     "from disk. Also, this will trigger the cleaning of the subsequent tasks "
     "in compile order."};
 
+static constexpr auto ParentTitle{"ParentTitle"};
+
 TaskManager::TaskManager(Compiler *compiler, QObject *parent)
     : QObject{parent} {
   qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
@@ -90,28 +92,15 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks.insert(SIMULATE_BITSTREAM_SETTINGS,
                  new Task{"Edit settings...", TaskType::Settings});
 
-  m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_CLEAN]);
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_SETTINGS]);
-  // m_tasks[GLOBAL_PLACEMENT]->appendSubTask(m_tasks[GLOBAL_PLACEMENT_CLEAN]);
-  m_tasks[ANALYSIS]->appendSubTask(m_tasks[ANALYSIS_CLEAN]);
-  m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_CLEAN]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
-  m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_CLEAN]);
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_SETTINGS]);
-  m_tasks[ROUTING]->appendSubTask(m_tasks[ROUTING_CLEAN]);
-  m_tasks[BITSTREAM]->appendSubTask(m_tasks[BITSTREAM_CLEAN]);
-  m_tasks[POWER]->appendSubTask(m_tasks[POWER_CLEAN]);
-  m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_CLEAN]);
 #ifndef PRODUCTION_BUILD
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_SETTINGS]);
 #endif
-  m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_CLEAN]);
   m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_SETTINGS]);
-  m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_CLEAN]);
   m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_SETTINGS]);
-  m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_CLEAN]);
   m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_SETTINGS]);
-  m_tasks[SIMULATE_BITSTREAM]->appendSubTask(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
   m_tasks[SIMULATE_BITSTREAM]->appendSubTask(
       m_tasks[SIMULATE_BITSTREAM_SETTINGS]);
 
@@ -225,6 +214,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PACKING, std::move(packingReportManager));
+  initCleanTasks();
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }
@@ -288,7 +278,8 @@ void TaskManager::startTask(Task *t) {
   if (t->type() == TaskType::Clean) {
     if (m_dialogProvider) {
       if (m_dialogProvider->question(
-              CleanTitle, QString{CleanText}.arg(t->parentTask()->title())) !=
+              CleanTitle,
+              QString{CleanText}.arg(t->property(ParentTitle).toString())) !=
           UserSelection::Accept)
         return;
     }
@@ -348,6 +339,23 @@ void TaskManager::runNext(TaskStatus status) {
 
   if (m_runStack.isEmpty()) {
     emit done();
+  }
+}
+
+void TaskManager::initCleanTasks() {
+  QVector<QPair<uint, uint>> tasks{{ANALYSIS, ANALYSIS_CLEAN},
+                                   {SYNTHESIS, SYNTHESIS_CLEAN},
+                                   {SIMULATE_RTL, SIMULATE_RTL_CLEAN},
+                                   {SIMULATE_GATE, SIMULATE_GATE_CLEAN},
+                                   {PACKING, PACKING_CLEAN},
+                                   {PLACEMENT, PLACEMENT_CLEAN},
+                                   {ROUTING, ROUTING_CLEAN},
+                                   {SIMULATE_PNR, SIMULATE_PNR_CLEAN},
+                                   {TIMING_SIGN_OFF, TIMING_SIGN_OFF_CLEAN},
+                                   {BITSTREAM, BITSTREAM_CLEAN}};
+  for (const auto &[parent, clean] : tasks) {
+    m_tasks[parent]->setCleanTask(m_tasks[clean]);
+    m_tasks[clean]->setProperty(ParentTitle, m_tasks[parent]->title());
   }
 }
 
