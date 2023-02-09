@@ -169,41 +169,28 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   int row{0};
   m_taskOrder.push_back({row++, IP_GENERATE});
   m_taskOrder.push_back({row++, ANALYSIS});
-  m_taskOrder.push_back({row++, ANALYSIS_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_RTL});
-  m_taskOrder.push_back({row++, SIMULATE_RTL_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_RTL_SETTINGS});
   m_taskOrder.push_back({row++, SYNTHESIS});
-  m_taskOrder.push_back({row++, SYNTHESIS_CLEAN});
   m_taskOrder.push_back({row++, SYNTHESIS_SETTINGS});
   m_taskOrder.push_back({row++, SIMULATE_GATE});
-  m_taskOrder.push_back({row++, SIMULATE_GATE_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_GATE_SETTINGS});
   m_taskOrder.push_back({row++, PACKING});
-  m_taskOrder.push_back({row++, PACKING_CLEAN});
   m_taskOrder.push_back({row++, PACKING_SETTINGS});
   // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT});
-  // m_taskOrder.push_back({row++, GLOBAL_PLACEMENT_CLEAN});
   m_taskOrder.push_back({row++, PLACEMENT});
-  m_taskOrder.push_back({row++, PLACEMENT_CLEAN});
   m_taskOrder.push_back({row++, PLACEMENT_SETTINGS});
   m_taskOrder.push_back({row++, ROUTING});
-  m_taskOrder.push_back({row++, ROUTING_CLEAN});
   m_taskOrder.push_back({row++, PLACE_AND_ROUTE_VIEW});
   m_taskOrder.push_back({row++, SIMULATE_PNR});
-  m_taskOrder.push_back({row++, SIMULATE_PNR_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_PNR_SETTINGS});
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF});
-  m_taskOrder.push_back({row++, TIMING_SIGN_OFF_CLEAN});
 #ifndef PRODUCTION_BUILD
   m_taskOrder.push_back({row++, TIMING_SIGN_OFF_SETTINGS});
 #endif
   m_taskOrder.push_back({row++, POWER});
-  m_taskOrder.push_back({row++, POWER_CLEAN});
   m_taskOrder.push_back({row++, BITSTREAM});
-  m_taskOrder.push_back({row++, BITSTREAM_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_BITSTREAM});
-  m_taskOrder.push_back({row++, SIMULATE_BITSTREAM_CLEAN});
   m_taskOrder.push_back({row++, SIMULATE_BITSTREAM_SETTINGS});
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
@@ -212,6 +199,13 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
   if (role == UserActionRole) {
     m_taskManager->startTask(ToTaskId(index));
+    return true;
+  } else if (role == UserActionCleanRole) {
+    auto taskId = ToTaskId(index);
+    auto task = m_taskManager->task(taskId);
+    if (task && task->cleanTask() != nullptr) {
+      m_taskManager->startTask(task->cleanTask());
+    }
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
     auto task = m_taskManager->task(ToTaskId(index));

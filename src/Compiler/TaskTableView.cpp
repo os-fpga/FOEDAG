@@ -125,6 +125,12 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
         connect(start, &QAction::triggered, this,
                 [this, index]() { userActionHandle(index); });
         menu->addAction(start);
+        if (task->cleanTask() != nullptr) {
+          QAction *clean = new QAction("Clean", this);
+          connect(clean, &QAction::triggered, this,
+                  [this, index]() { userActionCleanHandle(index); });
+          menu->addAction(clean);
+        }
         if (TaskManager::isSimulation(task)) {
           QAction *view = new QAction("View waveform", this);
           connect(view, &QAction::triggered, this,
@@ -143,6 +149,10 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
 
 void TaskTableView::userActionHandle(const QModelIndex &index) {
   model()->setData(index, QVariant(), UserActionRole);
+}
+
+void TaskTableView::userActionCleanHandle(const QModelIndex &index) {
+  model()->setData(index, QVariant(), UserActionCleanRole);
 }
 
 void TaskTableView::dataChanged(const QModelIndex &topLeft,

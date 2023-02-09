@@ -124,6 +124,7 @@ class TaskManager : public QObject {
   void runNext(FOEDAG::TaskStatus status);
 
  private:
+  void initCleanTasks();
   void run();
   void reset();
   void cleanDownStreamStatus(Task *t);
