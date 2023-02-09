@@ -1937,6 +1937,25 @@ bool CompilerOpenFPGA::Placement() {
     netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
   }
 
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    switch (lang_file.first.language) {
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF: {
+        netlistFile = lang_file.second;
+        std::filesystem::path the_path = netlistFile;
+        if (!the_path.is_absolute()) {
+          netlistFile =
+              std::filesystem::path(std::filesystem::path("..") / netlistFile)
+                  .string();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
   if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
