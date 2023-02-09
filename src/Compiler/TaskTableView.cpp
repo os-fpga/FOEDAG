@@ -89,7 +89,6 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
     // which can.
     setIndexWidget(statusIndex, new QLabel);
     auto task = m_taskManager->task(statusIndex.data(TaskId).toUInt());
-    connect(task, &Task::enableChanged, this, [this]() { update(); });
     if (task && ((task->type() == TaskType::Settings) ||
                  (task->type() == TaskType::Button))) {
       auto index = this->model()->index(i, TitleCol);
