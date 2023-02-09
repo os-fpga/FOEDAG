@@ -36,23 +36,29 @@ int Config::InitConfig(const QString &devicexml) {
   QDomElement docElement = doc.documentElement();
   QDomNode node = docElement.firstChild();
   if (!node.isNull() && node.isElement()) {
-    m_lsit_device_item.append("name");
-    m_lsit_device_item.append("pin_count");
-    m_lsit_device_item.append("speedgrade");
-    m_lsit_device_item.append("core_voltage");
+    m_lsit_device_item.append("Name");
+    m_lsit_device_item.append("Pin Count");
+    m_lsit_device_item.append("Speed Grade");
+    m_lsit_device_item.append("Core Voltage");
     QDomElement e = node.toElement();
 
     QDomNodeList list = e.childNodes();
     for (int i = 0; i < list.count(); i++) {
       QDomNode n = list.at(i);
       if (!n.isNull() && n.isElement()) {
-        if (n.nodeName() == "resource")
-          m_lsit_device_item.append(n.toElement().attribute("type"));
+        if (n.nodeName() == "resource") {
+          QString type = n.toElement().attribute("type");
+          QString label = n.toElement().attribute("label");
+          if (label == "") {
+            label = type;
+          }
+          m_lsit_device_item.append(label);
+        }
       }
     }
-    m_lsit_device_item.append("series");
-    m_lsit_device_item.append("family");
-    m_lsit_device_item.append("package");
+    m_lsit_device_item.append("Series");
+    m_lsit_device_item.append("Family");
+    m_lsit_device_item.append("Package");
   }
 
   while (!node.isNull()) {
