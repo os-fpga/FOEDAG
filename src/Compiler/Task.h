@@ -119,7 +119,6 @@ class Task : public QObject {
    * \brief taskTriggered. Emits when user trigger the task.
    */
   void taskTriggered();
-  void enableChanged();
 
  private:
   QString m_title;
