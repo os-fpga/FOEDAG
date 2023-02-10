@@ -4481,7 +4481,7 @@ lut_truth_table_fixup
 # - Enabled compression on routing architecture modules with '--compress_routing'
 # - Enable pin duplication on grid modules with '--duplicate_grid_pin'
 # - Create only frame views of the module graph to make it run faster with '--frame_view'
-build_fabric --compress_routing --duplicate_grid_pin --frame_view
+build_fabric --compress_routing --duplicate_grid_pin --frame_view ${OPENFPGA_BUILD_FABRIC_OPTION}
 
 # Dump GSB data
 # Necessary for creation of rr graph for SymbiFlow
@@ -4583,6 +4583,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   Settings * currentSettings = GetSession()->GetSettings();
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
 
+  json settings_obj = GetSession()->GetSettings()->getJson();
   json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
 
   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
@@ -4590,6 +4591,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
   std::string voltage_threshold = "";
   std::string p_v_t_corner = "";
+  std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
 
   std::filesystem::path device_base_dir_path = 
       std::filesystem::path(GetSession()->Context()->DataPath() /
@@ -4644,6 +4646,36 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   m_OpenFpgaSimSettingFile = 
       std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml"));
 
+  // fabric_key
+  std::string filename_fabric_key_xml;
+  std::string filename_fabric_key_xml_en;
+  // form the file name using the current device: family_foundry_node
+  filename_fabric_key_xml = family +
+                             std::string("_") +
+                             foundry +
+                             std::string("_") +
+                             node;
+  if(!voltage_threshold.empty()) {
+    filename_fabric_key_xml += std::string("_") +
+                                voltage_threshold;
+  }
+  if(!p_v_t_corner.empty()) {
+    filename_fabric_key_xml += std::string("_") +
+                                p_v_t_corner;
+  }
+  filename_fabric_key_xml += std::string("_") +
+                              device_size +
+                              std::string("_fabric_key") + std::string(".xml");
+
+  filename_fabric_key_xml_en = filename_fabric_key_xml + std::string(".en");
+
+  // fabric_key is optional:
+  m_OpenFpgaFabricKeyFile = 
+      std::filesystem::path(device_base_dir_path / std::string("fabric_key") / filename_fabric_key_xml);
+  if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
+    m_OpenFpgaFabricKeyFile.clear();
+  }
+
   // if not, use the encrypted file after decryption.
   if (!std::filesystem::exists(m_OpenFpgaArchitectureFile, ec)) {
 
@@ -4660,6 +4692,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     std::filesystem::path fixed_sim_openfpga_en_path = 
           std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
+
+    std::filesystem::path fabric_key_xml_en_path = 
+          std::filesystem::path(device_base_dir_path / std::string("fabric_key") / filename_fabric_key_xml_en);
+    m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
 
     m_cryptdbPath = 
         CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
@@ -4694,6 +4730,19 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
       // empty string returned on error.
       return std::string("");
     }
+
+    // fabric_key is optional:
+    if(std::filesystem::exists(fabric_key_xml_en_path, ec)) {
+      if (!CRFileCryptProc::getInstance()->decryptFile(fabric_key_xml_en_path, m_OpenFpgaFabricKeyFile)) {
+        ErrorMessage(std::string("decryption failed: ") + fabric_key_xml_en_path.string());
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
+    else {
+      m_OpenFpgaFabricKeyFile.clear();
+    }
+
   }
 
   Message(std::string("Using openfpga.xml for: ") + device );
@@ -4857,6 +4906,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
+
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
 
   // optional, so only if this file is available, else blank command.
@@ -4872,7 +4922,9 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                       m_OpenFpgaRepackConstraintsFile.string());
-  if (m_OpenFpgaFabricKeyFile == "") {
+
+  // fabric_key is optional
+  if (m_OpenFpgaFabricKeyFile.empty()) {
     result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
   } else {
     result =
@@ -4883,11 +4935,9 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   // call openfpga to output the fpga_io_map XML file *always*
   // write_fabric_io_info --file ${OPENFPGA_IO_MAP_FILE} --verbose
   std::string openfpga_write_fabric_io_info_command;
-  json settings_obj = GetSession()->GetSettings()->getJson();
   // fpga_io_map
   std::filesystem::path filepath_fpga_io_map_xml;
-  // form the file name using the current device: family_foundy_node
-  std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
+  // form the file name using the current device: family_foundry_node
   filepath_fpga_io_map_xml = family +
                              std::string("_") +
                              foundry +
