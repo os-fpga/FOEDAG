@@ -119,6 +119,7 @@ class TaskManager : public QObject {
   void progress(int progress, int max, const QString &msg = {});
 
   void taskReportCreated(QString reportName);
+  void enableChanged();
 
  private slots:
   void runNext(FOEDAG::TaskStatus status);
