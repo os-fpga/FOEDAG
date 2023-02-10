@@ -1764,6 +1764,9 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_property") != std::string::npos) {
       continue;
     }
+    if (constraint.find("set_clock_pin") != std::string::npos) {
+      continue;
+    }
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
@@ -1875,6 +1878,7 @@ bool CompilerOpenFPGA::Placement() {
 
   bool userConstraint = false;
   std::vector<std::string> constraints;
+  std::vector<std::string> set_clks;
   for (auto constraint : m_constraints->getConstraints()) {
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
@@ -1892,6 +1896,9 @@ bool CompilerOpenFPGA::Placement() {
       constraint = ReplaceAll(constraint, "set_property", "set_mode");
       constraints.push_back(constraint);
       userConstraint = true;
+    } else if (constraint.find("set_clock_pin") != std::string::npos) {
+      set_clks.push_back(constraint);
+      userConstraint = true;
     } else {
       continue;
     }
@@ -1907,6 +1914,11 @@ bool CompilerOpenFPGA::Placement() {
   std::ofstream ofspcf(pcfOut);
   for (auto constraint : constraints) {
     ofspcf << constraint << "\n";
+  }
+  if (!set_clks.empty()) {
+    for (auto constraint : set_clks) {
+      ofspcf << constraint << "\n";
+    }
   }
   ofspcf.close();
 
@@ -2005,6 +2017,14 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " free";
     } else {  // default behavior
       pincommand += " in_define_order";
+    }
+
+    std::string repack_constraints =
+        ProjManager()->projectName() + "_repack_constraints.xml";
+    if (!set_clks.empty()) {
+      pincommand +=
+          " --read_repack " + m_OpenFpgaRepackConstraintsFile.string();
+      pincommand += " --write_repack " + repack_constraints;
     }
 
     std::string pin_loc_constraint_file;
@@ -2557,8 +2577,17 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
-  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
-                      m_OpenFpgaRepackConstraintsFile.string());
+  std::string repack_constraints =
+      ProjManager()->projectName() + "_repack_constraints.xml"; 
+  const bool fpga_repack = FileUtils::FileExists(
+      std::filesystem::path(ProjManager()->projectPath()) / repack_constraints);
+  if (!fpga_repack) {
+    result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
+                        m_OpenFpgaRepackConstraintsFile.string());
+  } else {
+    result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
+                        repack_constraints);
+  }
   if (m_OpenFpgaFabricKeyFile == "") {
     result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
   } else {

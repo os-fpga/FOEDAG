@@ -296,6 +296,26 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("set_property", set_property, this, 0);
 
+  auto set_clock_pin = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    constraints->addConstraint(getConstraint(argc, argv));
+    for (int i = 0; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        if (std::string(argv[i]) != "{*}") constraints->addKeep(argv[i]);
+      }
+    }
+
+    return TCL_OK;
+  };
+  interp->registerCmd("set_clock_pin", set_clock_pin, this, 0);
+
   auto script_path = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
