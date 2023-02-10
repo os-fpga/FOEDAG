@@ -1461,10 +1461,10 @@ void MainWindow::updateViewMenu() {
 void MainWindow::updateTaskTable() {
   if (!m_taskManager) return;
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
-  m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
-  m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
-  m_taskManager->task(SIMULATE_RTL)->setEnable(!isPostSynthPure);
-  m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
+  m_taskManager->task(IP_GENERATE)->setValid(!isPostSynthPure);
+  m_taskManager->task(ANALYSIS)->setValid(!isPostSynthPure);
+  m_taskManager->task(SIMULATE_RTL)->setValid(!isPostSynthPure);
+  m_taskManager->task(SYNTHESIS)->setValid(!isPostSynthPure);
   if (m_taskView && m_taskModel) {
     for (auto taskId : {IP_GENERATE, ANALYSIS, ANALYSIS_CLEAN, SIMULATE_RTL,
                         SIMULATE_RTL_CLEAN, SIMULATE_RTL_SETTINGS, SYNTHESIS,
@@ -1478,10 +1478,10 @@ void MainWindow::updateTaskTable() {
       m_taskView->setRowHidden(row, true);
     }
   }
-  m_taskManager->task(SIMULATE_BITSTREAM)->setEnable(false);
-  m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setEnable(false);
-  m_taskManager->task(POWER)->setEnable(false);
-  m_taskManager->task(POWER_CLEAN)->setEnable(false);
+  m_taskManager->task(SIMULATE_BITSTREAM)->setValid(false);
+  m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
+  m_taskManager->task(POWER)->setValid(false);
+  m_taskManager->task(POWER_CLEAN)->setValid(false);
 }
 
 void MainWindow::slotTabChanged(int index) {

@@ -29,6 +29,7 @@ constexpr auto TASK_MAIN = "Tasks";
 constexpr auto TASK_NAME = "Task";
 constexpr auto TASK_ID = "ID";
 constexpr auto TASK_STATUS = "Status";
+constexpr auto TASK_ENABLE = "Enable";
 
 class TaskManagerComponent : public ProjectFileComponent {
  public:
