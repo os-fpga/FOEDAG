@@ -2578,7 +2578,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
   std::string repack_constraints =
-      ProjManager()->projectName() + "_repack_constraints.xml"; 
+      ProjManager()->projectName() + "_repack_constraints.xml";
   const bool fpga_repack = FileUtils::FileExists(
       std::filesystem::path(ProjManager()->projectPath()) / repack_constraints);
   if (!fpga_repack) {
