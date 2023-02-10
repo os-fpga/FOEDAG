@@ -1036,7 +1036,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       compiler->Message(
-          "Warning: global_placement is disabled in Jan'23 release");
+          "Warning: Global placement is disabled");
       return TCL_OK;
 
       for (int i = 1; i < argc; i++) {
@@ -1380,7 +1380,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                               const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       compiler->Message(
-          "Warning: global_placement is disabled in Jan'23 release");
+          "Warning: Global placement is disabled");
       return TCL_OK;
 
       for (int i = 1; i < argc; i++) {
