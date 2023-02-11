@@ -113,6 +113,12 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   set_channel_width <int>    : VPR Routing channel setting"
          << std::endl;
+  (*out) << "   set_limits <type> <int>    : Sets a user limit on object of "
+            "type <type>"
+         << std::endl;
+  (*out) << "                       <type> : dsp, bram" << std::endl;
+  (*out) << "                          dsp : Max usable DSPs" << std::endl;
+  (*out) << "                         bram : Max usable BRAMs" << std::endl;
   (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?"
          << std::endl;
   (*out) << "              Each invocation of the command compiles the "
@@ -502,6 +508,26 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("set_channel_width", set_channel_width, this, 0);
+
+  auto set_limits = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (argc != 3) {
+      compiler->ErrorMessage(
+          "Specify a limit type and a value ie: set_limits bram 20");
+      return TCL_ERROR;
+    }
+    std::string type = argv[1];
+    if (type == "dsp") {
+      compiler->MaxUserDSPCount(std::strtoul(argv[2], 0, 10));
+    } else if (type == "bram") {
+      compiler->MaxUserBRAMCount(std::strtoul(argv[2], 0, 10));
+    } else {
+      compiler->ErrorMessage("Unknown limit type");
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("set_limits", set_limits, this, 0);
 
   auto message_severity = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -2810,6 +2836,21 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
               } else {
                 ErrorMessage("Invalid device config type: " + file_type + "\n");
                 status = false;
+              }
+            } else if (n.nodeName() == "resource") {
+              std::string file_type =
+                  n.toElement().attribute("type").toStdString();
+              std::string num = n.toElement().attribute("num").toStdString();
+              if (file_type == "dsp") {
+                MaxDeviceDSPCount(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "bram") {
+                MaxDeviceBRAMCount(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "lut") {
+                MaxDeviceLUTCount(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "ff") {
+                MaxDeviceFFCount(std::strtoul(num.c_str(), nullptr, 10));
+              } else if (file_type == "io") {
+                MaxDeviceIOCount(std::strtoul(num.c_str(), nullptr, 10));
               }
             }
           }
