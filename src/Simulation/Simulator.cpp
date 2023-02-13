@@ -329,6 +329,8 @@ bool Simulator::Simulate(SimulationType action, SimulatorType type,
     m_waveType = WaveformType::VCD;
   } else if (m_waveFile.find(".fst") != std::string::npos) {
     m_waveType = WaveformType::FST;
+  } else if (m_waveFile.find(".ghw") != std::string::npos) {
+    m_waveType = WaveformType::GHW;
   }
   switch (action) {
     case SimulationType::RTL: {
@@ -498,6 +500,8 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
           break;
         case WaveformType::FST:
           options += "--trace-fst ";
+          break;
+        case WaveformType::GHW:
           break;
       }
       return options;
@@ -692,7 +696,17 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
         command += " " + GetSimulatorRuntimeOption(simulation, type);
       if (!m_waveFile.empty()) {
         command += " ";
-        command += (m_waveType == WaveformType::VCD) ? "--vcd=" : "--fst=";
+        switch (m_waveType) {
+          case WaveformType::VCD:
+            command += "--vcd=";
+            break;
+          case WaveformType::FST:
+            command += "--fst=";
+            break;
+          case WaveformType::GHW:
+            command += "--wave=";
+            break;
+        };
         command += m_waveFile;
       }
       return command;
