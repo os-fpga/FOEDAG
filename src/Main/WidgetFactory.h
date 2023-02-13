@@ -77,7 +77,8 @@ QWidget* createContainerWidget(QWidget* widget,
                                const QString& label = QString());
 QComboBox* createComboBox(
     const QString& objectName, const QStringList& options,
-    const QString& selectedValue = "", bool addUnset = addUnsetDefault,
+    const QStringList& lookup, const QString& selectedValue = "",
+    bool addUnset = addUnsetDefault,
     std::function<void(QComboBox*, const QString&)> onChange = nullptr);
 QLineEdit* createLineEdit(
     const QString& objectName, const QString& text = "",

@@ -206,7 +206,8 @@ void setVal(QTextEdit* ptr, const QString& userVal) {
   DBG_PRINT_VAL_SET(ptr, userVal);
 }
 void setVal(QComboBox* ptr, const QString& userVal) {
-  ptr->setCurrentText(userVal);
+  if (int index = ptr->findData(userVal); index != -1)
+    ptr->setCurrentIndex(index);
   DBG_PRINT_VAL_SET(ptr, userVal);
 }
 void setVal(QSpinBox* ptr, int userVal) {
@@ -998,7 +999,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           [arg, comboOptions, comboLookup, lookupStr](QComboBox* ptr,
                                                       const QString& val) {
             json changeJson;
-            QString userVal = ptr->currentText();
+            QString userVal = lookupStr(comboLookup, comboOptions,
+                                        ptr->currentData().toString());
             changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
 
@@ -1015,18 +1017,18 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       bool addUnset = widgetJsonObj.value("addUnset", addUnsetDefault);
 
       // Create Widget
-      auto ptr = createComboBox(objName, comboOptions, sysDefaultVal, addUnset,
-                                handleChange);
+      auto ptr = createComboBox(objName, comboOptions, comboLookup,
+                                sysDefaultVal, addUnset, handleChange);
       createdWidget = ptr;
 
       if (tclArgPassed) {
         // Do a reverse lookup to convert the tcl value to a display value
-        setVal(ptr, lookupStr(comboLookup, comboOptions, argVal));
+        setVal(ptr, lookupStr(comboOptions, comboLookup, argVal));
       } else if (widgetJsonObj.contains("userValue")) {
         // Load and set user value
         QString userVal = QString::fromStdString(
             widgetJsonObj["userValue"].get<std::string>());
-        setVal(ptr, userVal);
+        setVal(ptr, lookupStr(comboLookup, comboOptions, userVal));
       }
 
       targetObject = createdWidget;
@@ -1314,16 +1316,21 @@ QWidget* FOEDAG::createContainerWidget(QWidget* widget,
 
 QComboBox* FOEDAG::createComboBox(
     const QString& objectName, const QStringList& options,
-    const QString& selectedValue, bool addUnset,
+    const QStringList& lookup, const QString& selectedValue, bool addUnset,
     std::function<void(QComboBox*, const QString&)> onChange) {
   QComboBox* widget = new QComboBox();
   widget->setObjectName(objectName);
-  widget->insertItems(0, options);
+  for (int i = 0; i < options.count() && i < lookup.count(); i++) {
+    auto text = options.at(i);
+    if (lookup.at(i) == selectedValue) text += QString{" (default)"};
+    widget->addItem(text, lookup.at(i));
+  }
   if (addUnset) {
-    widget->addItem("<unset>");
+    widget->addItem("<unset>", "<unset>");
     widget->setCurrentText("<unset>");
   }
-  widget->setCurrentText(selectedValue);
+  if (int index{widget->findData(selectedValue)}; index != -1)
+    widget->setCurrentIndex(index);
 
   if (onChange != nullptr) {
     // onChange needs the widget so we capture that in a closure we
