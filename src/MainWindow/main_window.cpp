@@ -436,7 +436,8 @@ void MainWindow::forceStopCompilation() {
 }
 
 void MainWindow::showMessagesTab() {
-  auto newWidget = new MessagesTabWidget(*m_taskManager);
+  auto newWidget = new MessagesTabWidget(*m_taskManager,
+                                         GlobalSession->Context()->DataPath());
 
   auto oldWidget = m_messagesDockWidget->widget();
   if (oldWidget) {
