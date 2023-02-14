@@ -36,4 +36,10 @@ TaskReportManagerRegistry::getReportManager(uint type) const {
   return nullptr;
 }
 
+void TaskReportManagerRegistry::setSuppressList(const QStringList &s) {
+  for ([[maybe_unused]] auto &[id, report] : m_managers) {
+    report->setSuppressList(s);
+  }
+}
+
 }  // namespace FOEDAG

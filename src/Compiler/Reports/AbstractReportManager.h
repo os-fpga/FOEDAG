@@ -91,6 +91,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   bool isFileParsed() const;
   void setFileParsed(bool parsed);
 
+  bool isMessageSuppressed(const QString &message) const;
+
  signals:
   void reportCreated(QString reportName);
 

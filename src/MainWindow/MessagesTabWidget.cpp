@@ -8,6 +8,8 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
 
 namespace {
 static constexpr auto FilePathRole = Qt::UserRole + 1;
@@ -18,7 +20,8 @@ static constexpr auto LevelRole = Qt::UserRole + 4;
 
 namespace FOEDAG {
 
-MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
+MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
+                                     const std::filesystem::path &dataPath)
     : m_taskManager{taskManager},
       m_parsers{new VerificParser{}, new TimingAnalysisParser{}} {
   auto layout = new QGridLayout();
@@ -37,6 +40,7 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager)
     auto taskId = m_taskManager.taskId(task);
 
     if (auto reportManager = reports.getReportManager(taskId)) {
+      reportManager->setSuppressList(loadSuppressList(dataPath));
       auto filePath = task->logFileReadPath();
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
@@ -124,6 +128,32 @@ QTreeWidgetItem *MessagesTabWidget::createItem(const QString &message) {
 
 QString MessagesTabWidget::createLink(const QString &str) {
   return QString{"<a href=\"%1\">%1</a>"}.arg(str);
+}
+
+QStringList MessagesTabWidget::loadSuppressList(
+    const std::filesystem::path &dataPath) {
+  auto fullPath = dataPath / "etc" / "settings" / "messages" / "suppress.json";
+  QString fileName{QString::fromStdString(fullPath.string())};
+  QFile file{fileName};
+  if (file.exists()) {
+    if (!file.open(QFile::ReadOnly)) return {};
+
+    auto content = file.readAll();
+    json jsonObject;
+    try {
+      jsonObject = json::parse(content.toStdString());
+    } catch (...) {
+      return {};
+    }
+
+    QStringList results;
+    auto suppressList = jsonObject.at("suppress");
+    for (const auto &s : suppressList) {
+      results.push_back(QString::fromStdString(s));
+    }
+    return results;
+  }
+  return {};
 }
 
 void MessagesTabWidget::onMessageClicked(const QTreeWidgetItem *item, int col) {

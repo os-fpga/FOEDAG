@@ -195,7 +195,8 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
       }
     }
 
-    if (line.contains(WARNING_REGEXP)) {  // group warnings
+    if (line.contains(WARNING_REGEXP) &&
+        !isMessageSuppressed(line)) {  // group warnings
       warnings.emplace(lineNr, line.simplified());
       // Warning means errors group is finished and we can create an item
       if (!errors.empty()) {
@@ -296,6 +297,13 @@ IDataReport::TableData AbstractReportManager::parseHistogram(QTextStream &in,
 
 void AbstractReportManager::setFileParsed(bool parsed) {
   m_fileParsed = parsed;
+}
+
+bool AbstractReportManager::isMessageSuppressed(const QString &message) const {
+  const auto suppressList = this->suppressList();
+  for (const auto &sup : suppressList)
+    if (message.contains(sup)) return true;
+  return false;
 }
 
 bool AbstractReportManager::isFileParsed() const { return m_fileParsed; }
