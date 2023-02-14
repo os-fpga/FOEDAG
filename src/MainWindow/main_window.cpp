@@ -1228,6 +1228,9 @@ void MainWindow::reloadSettings() {
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
+
+    connect(settings, &Settings::sync, this, &MainWindow::saveSetting,
+            Qt::UniqueConnection);
   }
 }
 
@@ -1615,14 +1618,17 @@ void MainWindow::saveSettings() {
     const auto tasks = m_taskManager->tasks();
     for (const Task* const t : tasks) {
       if (!t->settingsKey().isEmpty()) {
-        auto d = FOEDAG::createTaskDialog(t->settingsKey());
-        if (d) {
-          QDialogButtonBox* btnBox =
-              d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
-          if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();
-        }
+        saveSetting(t->settingsKey());
       }
     }
+  }
+}
+
+void MainWindow::saveSetting(const QString& setting) {
+  auto d = FOEDAG::createTaskDialog(setting);
+  if (d) {
+    QDialogButtonBox* btnBox = d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
+    if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();
   }
 }
 

@@ -319,3 +319,14 @@ QString Settings::getTclArgString(json& jsonData) {
   traverseJson(jsonData, findCb);
   return argStr;
 }
+
+void Settings::syncWith(const QString& task) {
+  // use m_syncTasks vector to avoid cyclic dependencies, when two tasks try to
+  // sync each other
+  if (!m_syncTasks.contains(task)) {
+    m_syncTasks.push_back(task);
+    emit sync(task);
+    if (int index = m_syncTasks.indexOf(task); index != -1)
+      m_syncTasks.remove(index);
+  }
+}

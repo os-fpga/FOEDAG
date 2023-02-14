@@ -96,6 +96,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void pinPlannerPinName();
   void onDesignFilesChanged();
   void onDesignCreated();
+  void saveSetting(const QString& setting);
 
  public slots:
   void updateSourceTree();
