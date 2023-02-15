@@ -1320,10 +1320,18 @@ QComboBox* FOEDAG::createComboBox(
     std::function<void(QComboBox*, const QString&)> onChange) {
   QComboBox* widget = new QComboBox();
   widget->setObjectName(objectName);
-  for (int i = 0; i < options.count() && i < lookup.count(); i++) {
+
+  QStringList lookupValues = lookup;
+  if (lookupValues.isEmpty()) {
+    // if lookup values are not provided we will take as lookup values actual
+    // text. This is equivalent to search items by text.
+    lookupValues = options;
+  }
+
+  for (int i = 0; i < options.count() && i < lookupValues.count(); i++) {
     auto text = options.at(i);
-    if (lookup.at(i) == selectedValue) text += QString{" (default)"};
-    widget->addItem(text, lookup.at(i));
+    if (lookupValues.at(i) == selectedValue) text += QString{" (default)"};
+    widget->addItem(text, lookupValues.at(i));
   }
   if (addUnset) {
     widget->addItem("<unset>", "<unset>");
