@@ -303,6 +303,7 @@ void IpConfigWidget::CreateParamFields() {
             // Use Comboboxes if "options" field exists
             childJson["widgetType"] = "combobox";
             childJson["options"] = param->GetOptions();
+            childJson["optionsLookup"] = param->GetOptions();
             childJson["addUnset"] = false;
           } else if (param->GetRange().size() > 1) {
             // Use QLineedit w/ a validator if "range" field exists
