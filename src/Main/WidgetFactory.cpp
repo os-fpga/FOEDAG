@@ -1330,7 +1330,7 @@ QComboBox* FOEDAG::createComboBox(
 
   for (int i = 0; i < options.count() && i < lookupValues.count(); i++) {
     auto text = options.at(i);
-    if (lookupValues.at(i) == selectedValue) text += QString{" (default)"};
+    if (text == selectedValue) text += QString{" (default)"};
     widget->addItem(text, lookupValues.at(i));
   }
   if (addUnset) {
