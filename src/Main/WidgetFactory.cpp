@@ -986,6 +986,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       targetObject = createdWidget;
     } else if (type == "dropdown" || type == "combobox") {
       // QComboBox - "dropdown" or "combobox"
+      // default value should be in the options list
       QString sysDefaultVal =
           QString::fromStdString(getDefault<std::string>(widgetJsonObj));
 
@@ -1017,8 +1018,10 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       bool addUnset = widgetJsonObj.value("addUnset", addUnsetDefault);
 
       // Create Widget
+      QString sysDefaultValLookUp =
+          lookupStr(comboOptions, comboLookup, sysDefaultVal);
       auto ptr = createComboBox(objName, comboOptions, comboLookup,
-                                sysDefaultVal, addUnset, handleChange);
+                                sysDefaultValLookUp, addUnset, handleChange);
       createdWidget = ptr;
 
       if (tclArgPassed) {
@@ -1330,7 +1333,7 @@ QComboBox* FOEDAG::createComboBox(
 
   for (int i = 0; i < options.count() && i < lookupValues.count(); i++) {
     auto text = options.at(i);
-    if (text == selectedValue) text += QString{" (default)"};
+    if (lookupValues.at(i) == selectedValue) text += QString{" (default)"};
     widget->addItem(text, lookupValues.at(i));
   }
   if (addUnset) {
