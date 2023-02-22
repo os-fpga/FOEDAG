@@ -38,6 +38,7 @@ class Session;
 class TclInterpreter;
 class ProjectFileLoader;
 class DockWidget;
+struct ErrorInfo;
 /** Main window of the program */
 class MainWindow : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
@@ -96,6 +97,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onDesignFilesChanged();
   void onDesignCreated();
   void saveSetting(const QString& setting);
+  void openFileFromConsole(const FOEDAG::ErrorInfo& eInfo);
 
  public slots:
   void updateSourceTree();
