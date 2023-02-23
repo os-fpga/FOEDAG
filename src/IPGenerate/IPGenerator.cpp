@@ -528,12 +528,12 @@ bool IPGenerator::Generate() {
 
         if (newbuffer.str() == previousbuffer.str()) {
           m_compiler->Message("IP Generate, reusing IP " +
-                              inst->OutputFile().string());
+                              GetBuildDir(inst).string());
           continue;
         }
 
         m_compiler->Message("IP Generate, generating IP " +
-                            inst->OutputFile().string());
+                            GetBuildDir(inst).string());
         if (FileUtils::ExecuteSystemCommand(command, &help)) {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
