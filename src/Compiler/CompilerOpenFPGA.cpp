@@ -1877,6 +1877,7 @@ bool CompilerOpenFPGA::Placement() {
   ifspcf.close();
 
   bool userConstraint = false;
+  bool repackConstraint = false;
   std::vector<std::string> constraints;
   std::vector<std::string> set_clks;
   for (auto constraint : m_constraints->getConstraints()) {
@@ -1898,7 +1899,7 @@ bool CompilerOpenFPGA::Placement() {
       userConstraint = true;
     } else if (constraint.find("set_clock_pin") != std::string::npos) {
       set_clks.push_back(constraint);
-      userConstraint = true;
+      repackConstraint = true;
     } else {
       continue;
     }
@@ -1914,11 +1915,6 @@ bool CompilerOpenFPGA::Placement() {
   std::ofstream ofspcf(pcfOut);
   for (auto constraint : constraints) {
     ofspcf << constraint << "\n";
-  }
-  if (!set_clks.empty()) {
-    for (auto constraint : set_clks) {
-      ofspcf << constraint << "\n";
-    }
   }
   ofspcf.close();
 
@@ -2019,9 +2015,28 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " in_define_order";
     }
 
+    // user want to map its design clocks to fabric
+    // clocks. like gemini has 16 clocks clk[0],clk[1]....,clk[15].And user
+    // clocks are clk_a,clk_b and want to map clk_a with clk[15] like it in such
+    // case, we need to make sure a xml repack constraint file is properly
+    // generated to guide bitstream generation correctly.
+
     std::string repack_constraints =
         ProjManager()->projectName() + "_repack_constraints.xml";
-    if (!set_clks.empty()) {
+
+    if (!set_clks.empty() && repackConstraint) {
+      const std::string repack_out =
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + ".temp_file_clkmap"))
+              .string();
+      std::ofstream ofsclkmap(repack_out);
+
+      for (auto constraint : set_clks) {
+        ofsclkmap << constraint << "\n";
+      }
+      ofspcf.close();
+      pincommand += " --clk_map " + std::string(ProjManager()->projectName() +
+                                                ".temp_file_clkmap");
       pincommand +=
           " --read_repack " + m_OpenFpgaRepackConstraintsFile.string();
       pincommand += " --write_repack " + repack_constraints;
