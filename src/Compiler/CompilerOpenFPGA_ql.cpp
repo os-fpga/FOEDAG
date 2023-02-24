@@ -3969,11 +3969,13 @@ bool CompilerOpenFPGA_ql::Route() {
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
 
-  std::vector<double> power_estimate = PowerEstimator();
+  std::vector<long double> power_estimate = PowerEstimator();
 
-  Message("Dynamic Power = " + std::to_string(power_estimate[0]) + " mW");
-  Message("Leakage Power = " + std::to_string(power_estimate[1]) + " mW");
-  Message("Total Power = " + std::to_string(power_estimate[2]) + " mW");
+  if(power_estimate[0] != 0 && power_estimate[1] != 0 && power_estimate[2] != 0) {
+    Message("Dynamic Power = " + std::to_string(power_estimate[0]) + " mW");
+    Message("Leakage Power = " + std::to_string(power_estimate[1]) + " mW");
+    Message("Total Power = " + std::to_string(power_estimate[2]) + " mW");
+  }
 
   return true;
 }
@@ -5983,196 +5985,156 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
   return device_variants;
 }
 
-std::vector<double> CompilerOpenFPGA_ql::PowerEstimator() {
+std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
 
-  std::vector<double> power_estimates;
+  std::vector<long double> power_estimates;
 
-  double power_estimate_dynamic_mW = 0;
-  double power_estimate_leakge_mW = 0;
-  double power_estimate_total_mW = 0;
+  long double power_estimate_dynamic_mW = 0;
+  long double power_estimate_leakge_mW = 0;
+  long double power_estimate_total_mW = 0;
 
   // CONSTANTS
-  double dynamic_k5 = 0.0000003;
-  double dynamic_l5 = 0.0018;
-  double dynamic_m5 = 0.0581;
+  long double dynamic_k5 = 0.0000003;
+  long double dynamic_l5 = 0.0018;
+  long double dynamic_m5 = 0.0581;
   
-  double dynamic_k6 = 0.00000008;
-  double dynamic_l6 = 0.00006;
-  double dynamic_m6 = 0.00005;
+  long double dynamic_k6 = 0.00000008;
+  long double dynamic_l6 = 0.00006;
+  long double dynamic_m6 = 0.00005;
   
-  double dynamic_k7 = 0.0000003;
-  double dynamic_l7 = 0.0001;
-  double dynamic_m7 = 0.00002;
+  long double dynamic_k7 = 0.0000003;
+  long double dynamic_l7 = 0.0001;
+  long double dynamic_m7 = 0.00002;
   
-  double dynamic_k8 = 0.00000001;
-  double dynamic_l8 = 0.00007;
-  double dynamic_m8 = 0;
+  long double dynamic_k8 = 0.00000001;
+  long double dynamic_l8 = 0.00007;
+  long double dynamic_m8 = 0;
   
-  double dynamic_k9 = -0.0000003;
-  double dynamic_l9 = 0.00009;
-  double dynamic_m9 = 0.0007;
+  long double dynamic_k9 = -0.0000003;
+  long double dynamic_l9 = 0.00009;
+  long double dynamic_m9 = 0.0007;
   
-  double dynamic_k10 = 0.00000007;
-  double dynamic_l10 = 0.0001;
-  double dynamic_m10 = 0.0003;
+  long double dynamic_k10 = 0.00000007;
+  long double dynamic_l10 = 0.0001;
+  long double dynamic_m10 = 0.0003;
   
-  double dynamic_k12 = 0.000000003;
-  double dynamic_l12 = 0.00001;
-  double dynamic_m12 = 0.0004;
+  long double dynamic_k12 = 0.000000003;
+  long double dynamic_l12 = 0.00001;
+  long double dynamic_m12 = 0.0004;
   
-  double dynamic_k13 = -0.0000004;
-  double dynamic_l13 = 0.0001;
-  double dynamic_m13 = 0.0006;
+  long double dynamic_k13 = -0.0000004;
+  long double dynamic_l13 = 0.0001;
+  long double dynamic_m13 = 0.0006;
   
-  double dynamic_k14 = 0.00000002;
-  double dynamic_l14 = 0.0001;
-  double dynamic_m14 = 0.0004;
+  long double dynamic_k14 = 0.00000002;
+  long double dynamic_l14 = 0.0001;
+  long double dynamic_m14 = 0.0004;
   
-  double dynamic_k15 = 0.000000005;
-  double dynamic_l15 = 0.00003;
-  double dynamic_m15 = 0.0001;
+  long double dynamic_k15 = 0.000000005;
+  long double dynamic_l15 = 0.00003;
+  long double dynamic_m15 = 0.0001;
   
-  double dynamic_k16 = 0;
-  double dynamic_l16 = 0.0003;
-  double dynamic_m16 = 0.0001;
+  long double dynamic_k16 = 0;
+  long double dynamic_l16 = 0.0003;
+  long double dynamic_m16 = 0.0001;
   
-  double dynamic_k35 = 0.0000007;
-  double dynamic_l35 = 0.0002;
-  double dynamic_m35 = 0.0668;
+  long double dynamic_k35 = 0.0000007;
+  long double dynamic_l35 = 0.0002;
+  long double dynamic_m35 = 0.0668;
   
-  double dynamic_k36 = 0.0000008;
-  double dynamic_l36 = 0.0002;
-  double dynamic_m36 = 0.0714;
+  long double dynamic_k36 = 0.0000008;
+  long double dynamic_l36 = 0.0002;
+  long double dynamic_m36 = 0.0714;
   
-  double dynamic_k37 = 0.00000004;
-  double dynamic_l37 = 0.0002;
-  double dynamic_m37 = 0.0696;
+  long double dynamic_k37 = 0.00000004;
+  long double dynamic_l37 = 0.0002;
+  long double dynamic_m37 = 0.0696;
   
-  double dynamic_k38 = 0.0000001;
-  double dynamic_l38 = 0.0003;
-  double dynamic_m38 = 0.0695;
+  long double dynamic_k38 = 0.0000001;
+  long double dynamic_l38 = 0.0003;
+  long double dynamic_m38 = 0.0695;
 
   // LEAKAGE CONSTANTS
-  double leakage_g5 = 55.8446;
-  double leakage_g6 = 65.0463;
-  double leakage_g7 = 117.2489;
-  double leakage_g8 = 56.5525;
-  double leakage_g9 = 60.4654;
-  double leakage_g10 = 115.2604;
-  double leakage_g11 = 275.3894;
-  double leakage_g12 = 67.3532;
-  // double leakage_g13 = 67.3532;
-  double leakage_g14 = 67.3532;
-  double leakage_g15 = 67.3532;
-  double leakage_g16 = 170.2399;
-  double leakage_g17 = 149.288;
-  double leakage_g18 = 181.4737;
-  double leakage_g19 = 146.4159;
-  double leakage_g20 = 131.41;
-  double leakage_g21 = 150.1708;
-  double leakage_g22 = 171.1873;
-  double leakage_g23 = 154.9911;
-  // double leakage_g24 = 189.0511;
+  long double leakage_g5 = 55.8446;
+  long double leakage_g6 = 65.0463;
+  long double leakage_g7 = 117.2489;
+  long double leakage_g8 = 56.5525;
+  long double leakage_g9 = 60.4654;
+  long double leakage_g10 = 115.2604;
+  long double leakage_g11 = 275.3894;
+  long double leakage_g12 = 67.3532;
+  // long double leakage_g13 = 67.3532;
+  long double leakage_g14 = 67.3532;
+  long double leakage_g15 = 67.3532;
+  long double leakage_g16 = 170.2399;
+  long double leakage_g17 = 149.288;
+  long double leakage_g18 = 181.4737;
+  long double leakage_g19 = 146.4159;
+  long double leakage_g20 = 131.41;
+  long double leakage_g21 = 150.1708;
+  long double leakage_g22 = 171.1873;
+  long double leakage_g23 = 154.9911;
+  // long double leakage_g24 = 189.0511;
 
 
   // INPUTS
-  double array_x = 56; // JSON
-  double calculator_d6 = array_x;
+  long double array_x = 56; // JSON
+  long double calculator_d6 = array_x;
 
-  double array_y = 56; // JSON
-  double calculator_d7 = array_y;
+  long double array_y = 56; // JSON
+  long double calculator_d7 = array_y;
 
-  double input_num_used = 2; // JSON
-  double calculator_d10 = input_num_used;
-  double input_avg_freq_mhz = 2; // JSON
-  double calculator_e10 = input_avg_freq_mhz;
+  long double input_num_used = 2; // JSON
+  long double calculator_d10 = input_num_used;
+  long double input_avg_freq_mhz = 2; // JSON
+  long double calculator_e10 = input_avg_freq_mhz;
 
-  double input_ff_num_used = 0; // JSON
-  double calculator_d11 = input_ff_num_used;
-  double input_ff_avg_freq_mhz = 0; // JSON
-  double calculator_e11 = input_ff_avg_freq_mhz;
+  long double input_ff_num_used = 0; // JSON
+  long double calculator_d11 = input_ff_num_used;
+  long double input_ff_avg_freq_mhz = 0; // JSON
+  long double calculator_e11 = input_ff_avg_freq_mhz;
 
-  // double input_sb_num_used = 0; // JSON
-  // double calculator_d12 = input_sb_num_used;
-  double input_sb_avg_freq_mhz = 30; // JSON
-  double calculator_e12 = input_sb_avg_freq_mhz;
+  // long double input_sb_num_used = 0; // JSON
+  // long double calculator_d12 = input_sb_num_used;
+  long double input_sb_avg_freq_mhz = 30; // JSON
+  long double calculator_e12 = input_sb_avg_freq_mhz;
 
-  double output_num_used = 16; // JSON
-  double calculator_d15 = output_num_used;
-  double output_avg_freq_mhz = 1; // JSON
-  double calculator_e15 = output_avg_freq_mhz;
+  long double output_num_used = 16; // JSON
+  long double calculator_d15 = output_num_used;
+  long double output_avg_freq_mhz = 1; // JSON
+  long double calculator_e15 = output_avg_freq_mhz;
 
-  double output_ff_num_used = 0; // JSON
-  double calculator_d16 = output_ff_num_used;
-  double output_ff_avg_freq_mhz = 0; // JSON
-  double calculator_e16 = output_ff_avg_freq_mhz;
+  long double output_ff_num_used = 0; // JSON
+  long double calculator_d16 = output_ff_num_used;
+  long double output_ff_avg_freq_mhz = 0; // JSON
+  long double calculator_e16 = output_ff_avg_freq_mhz;
 
-  double total_sb_num_used = 16; // JSON
-  double calculator_d20 = total_sb_num_used;
-  double total_sb_avg_freq_mhz = 30; // JSON
-  double calculator_e20 = total_sb_avg_freq_mhz;
+  long double total_sb_num_used = 16; // JSON
+  long double calculator_d20 = total_sb_num_used;
+  long double total_sb_avg_freq_mhz = 30; // JSON
+  long double calculator_e20 = total_sb_avg_freq_mhz;
 
-  double total_lut_num_used = 16; // JSON
-  double calculator_d21 = total_lut_num_used;
-  double total_lut_avg_freq_mhz = 16; // JSON
-  double calculator_e21 = total_lut_avg_freq_mhz;
+  long double total_lut_num_used = 16; // JSON
+  long double calculator_d21 = total_lut_num_used;
+  long double total_lut_avg_freq_mhz = 16; // JSON
+  long double calculator_e21 = total_lut_avg_freq_mhz;
 
-  double lut6_num_used = 0; // JSON
-  double calculator_d23 = lut6_num_used;
-  double lut6_avg_freq_mhz = 0; // JSON
-  double calculator_e23 = lut6_avg_freq_mhz;
+  long double lut6_num_used = 0; // JSON
+  long double calculator_d23 = lut6_num_used;
+  long double lut6_avg_freq_mhz = 0; // JSON
+  long double calculator_e23 = lut6_avg_freq_mhz;
 
-  double avg_num_lut_input_num_used = 16; // JSON
-  double calculator_d26 = avg_num_lut_input_num_used;
+  long double avg_num_lut_input_num_used = 16; // JSON
+  long double calculator_d26 = avg_num_lut_input_num_used;
 
-  double clock_network_num_used = 1; // JSON
-  double calculator_d27 = clock_network_num_used;
-  double clock_network_avg_freq_mhz = 100; // JSON
-  double calculator_e27 = clock_network_avg_freq_mhz;
+  long double clock_network_num_used = 1; // JSON
+  long double calculator_d27 = clock_network_num_used;
+  long double clock_network_avg_freq_mhz = 100; // JSON
+  long double calculator_e27 = clock_network_avg_freq_mhz;
 
-  double voltage = 0.8; // JSON
-  double calculator_d8 = voltage;
+  long double voltage = 0.8; // JSON
+  long double calculator_d8 = voltage;
 
-  // automatic inputs which get values from other inputs
-  double input_cbx_cby_num_used = calculator_d21 * calculator_d26;
-  double calculator_d13 = input_cbx_cby_num_used;
-  double input_cbx_cby_avg_freq_mhz = calculator_e10;
-  double calculator_e13 = input_cbx_cby_avg_freq_mhz;
-
-  double input_xbar_num_used = calculator_d21 * calculator_d26;
-  double calculator_d14 = input_xbar_num_used;
-  double input_xbar_avg_freq_mhz = calculator_e10;
-  double calculator_e14 = input_xbar_avg_freq_mhz;
-
-  double output_clb_num_used = calculator_d15;
-  double calculator_d17 = output_clb_num_used;
-  double output_clb_avg_freq_mhz = calculator_e15;
-  double calculator_e17 = output_clb_avg_freq_mhz;
-
-  // double output_sb_num_used = 0;
-  // double calculator_d18 = output_sb_num_used;
-  double output_sb_avg_freq_mhz = calculator_e20;
-  double calculator_e18 = output_sb_avg_freq_mhz;
-  
-  double output_cbxy_num_used = calculator_d15;
-  double calculator_d19 = output_cbxy_num_used;
-  double output_cbxy_avg_freq_mhz = calculator_e15;
-  double calculator_e19 = output_cbxy_avg_freq_mhz;
-
-  // double lut5_ff_num_used = 0; //?
-  // double calculator_d22 = lut5_ff_num_used; //?
-  double lut5_ff_avg_freq_mhz = calculator_e21;
-  double calculator_e22 = lut5_ff_avg_freq_mhz;
-
-  // double lut6_ff_num_used = 0; //?
-  // double calculator_d24 = lut6_ff_num_used; //?
-  double lut6_ff_avg_freq_mhz = calculator_e23;
-  double calculator_e24 = lut6_ff_avg_freq_mhz;
-
-  double total_ff_only_num_used = 0; //?
-  double calculator_d25 = total_ff_only_num_used; //?
-  // double total_ff_only_avg_freq_mhz = calculator_e27/12.5;
-  // double calculator_e25 = total_ff_only_avg_freq_mhz;
 
   // read inputs from json, if available:  
   std::filesystem::path power_estimation_json_file;
@@ -6180,13 +6142,11 @@ std::vector<double> CompilerOpenFPGA_ql::PowerEstimator() {
   json power_estimation_json;
   
   power_estimation_json_file = std::filesystem::path(m_projManager->projectPath())/std::string("power_estimation.json");
-  Message("path1: " + power_estimation_json_file.string());
   if (FileUtils::FileExists(power_estimation_json_file)) {
     power_estimation_json_exists = true;
   }
   else {
     power_estimation_json_file = std::filesystem::path(m_projManager->projectPath())/std::filesystem::path("..")/std::string("power_estimation.json");
-    Message("path2: " + power_estimation_json_file.string());
     if (FileUtils::FileExists(power_estimation_json_file)) {
       power_estimation_json_exists = true;
     }
@@ -6262,24 +6222,79 @@ std::vector<double> CompilerOpenFPGA_ql::PowerEstimator() {
 
   calculator_d8 = voltage;
 
+  // automatic inputs which get values from other inputs
+  long double input_cbx_cby_num_used = calculator_d21 * calculator_d26;
+  long double calculator_d13 = input_cbx_cby_num_used;
+  long double input_cbx_cby_avg_freq_mhz = calculator_e10;
+  long double calculator_e13 = input_cbx_cby_avg_freq_mhz;
 
+  long double input_xbar_num_used = calculator_d21 * calculator_d26;
+  long double calculator_d14 = input_xbar_num_used;
+  long double input_xbar_avg_freq_mhz = calculator_e10;
+  long double calculator_e14 = input_xbar_avg_freq_mhz;
+
+  long double output_clb_num_used = calculator_d15;
+  long double calculator_d17 = output_clb_num_used;
+  long double output_clb_avg_freq_mhz = calculator_e15;
+  long double calculator_e17 = output_clb_avg_freq_mhz;
+
+  // long double output_sb_num_used = 0;
+  // long double calculator_d18 = output_sb_num_used;
+  long double output_sb_avg_freq_mhz = calculator_e20;
+  long double calculator_e18 = output_sb_avg_freq_mhz;
+  
+  long double output_cbxy_num_used = calculator_d15;
+  long double calculator_d19 = output_cbxy_num_used;
+  long double output_cbxy_avg_freq_mhz = calculator_e15;
+  long double calculator_e19 = output_cbxy_avg_freq_mhz;
+
+  // long double lut5_ff_num_used = 0; //?
+  // long double calculator_d22 = lut5_ff_num_used; //?
+  long double lut5_ff_avg_freq_mhz = calculator_e21;
+  long double calculator_e22 = lut5_ff_avg_freq_mhz;
+
+  // long double lut6_ff_num_used = 0; //?
+  // long double calculator_d24 = lut6_ff_num_used; //?
+  long double lut6_ff_avg_freq_mhz = calculator_e23;
+  long double calculator_e24 = lut6_ff_avg_freq_mhz;
+
+  long double total_ff_only_num_used = 0; //?
+  long double calculator_d25 = total_ff_only_num_used; //?
+  // long double total_ff_only_avg_freq_mhz = calculator_e27/12.5;
+  // long double calculator_e25 = total_ff_only_avg_freq_mhz;
 
   // calculate dynamic power
-  double dynamic_o5 = (dynamic_k5 * calculator_e27/2 * calculator_e27/2) + (dynamic_l5 * calculator_e27/2) + dynamic_m5;
-  double dynamic_o6 = (dynamic_k6 * calculator_e10 * calculator_e10) + (dynamic_l6* calculator_e10) + dynamic_m6;
-  double dynamic_o7 = (dynamic_k7 * calculator_e11 * calculator_e11) + (dynamic_l7 * calculator_e11) + dynamic_m7;
-  double dynamic_o8 = (dynamic_k8 * calculator_e12 * calculator_e12) + (dynamic_l8 * calculator_e12) + dynamic_m8;
-  double dynamic_o9 = (dynamic_k9 * calculator_e13 * calculator_e13) + (dynamic_l9 * calculator_e13) + dynamic_m9;
-  double  dynamic_o10 = (dynamic_k10 * calculator_e14 * calculator_e14) + (dynamic_l10 * calculator_e14) + dynamic_m10;
-  double dynamic_o12 = (dynamic_k12 * calculator_e15 * calculator_e15) + (dynamic_l12 * calculator_e15) + dynamic_m12;
-  double dynamic_o13 = (dynamic_k13 * calculator_e16 * calculator_e16) + (dynamic_l13 * calculator_e16) + dynamic_m13;
-  double dynamic_o14 = (dynamic_k14 * calculator_e18 * calculator_e18) + (dynamic_l14 * calculator_e18) + dynamic_m14;
-  double dynamic_o15 = (dynamic_k15 * calculator_e19 * calculator_e19) + (dynamic_l15 * calculator_e19) + dynamic_m15;
-  double dynamic_o16 = (dynamic_k16 * calculator_e17 * calculator_e17) + (dynamic_l16 * calculator_e17) + dynamic_m16;
-  double dynamic_o35 = (dynamic_k35 * calculator_e21 * calculator_e21) + (dynamic_l35 * calculator_e21) + dynamic_m35;
-  double dynamic_o36 = (dynamic_k36 * calculator_e22 * calculator_e22) + (dynamic_l36 * calculator_e22) + dynamic_m36;
-  double dynamic_o37 = (dynamic_k37 * calculator_e23 * calculator_e23) + (dynamic_l37 * calculator_e23) + dynamic_m37;
-  double dynamic_o38 = (dynamic_k38 * calculator_e24 * calculator_e24) + (dynamic_l38 * calculator_e24) + dynamic_m38;
+  long double dynamic_o5 = (dynamic_k5 * calculator_e27/2 * calculator_e27/2) + (dynamic_l5 * calculator_e27/2) + dynamic_m5;
+  long double dynamic_o6 = (dynamic_k6 * calculator_e10 * calculator_e10) + (dynamic_l6* calculator_e10) + dynamic_m6;
+  long double dynamic_o7 = (dynamic_k7 * calculator_e11 * calculator_e11) + (dynamic_l7 * calculator_e11) + dynamic_m7;
+  long double dynamic_o8 = (dynamic_k8 * calculator_e12 * calculator_e12) + (dynamic_l8 * calculator_e12) + dynamic_m8;
+  long double dynamic_o9 = (dynamic_k9 * calculator_e13 * calculator_e13) + (dynamic_l9 * calculator_e13) + dynamic_m9;
+  long double dynamic_o10 = (dynamic_k10 * calculator_e14 * calculator_e14) + (dynamic_l10 * calculator_e14) + dynamic_m10;
+  long double dynamic_o12 = (dynamic_k12 * calculator_e15 * calculator_e15) + (dynamic_l12 * calculator_e15) + dynamic_m12;
+  long double dynamic_o13 = (dynamic_k13 * calculator_e16 * calculator_e16) + (dynamic_l13 * calculator_e16) + dynamic_m13;
+  long double dynamic_o14 = (dynamic_k14 * calculator_e18 * calculator_e18) + (dynamic_l14 * calculator_e18) + dynamic_m14;
+  long double dynamic_o15 = (dynamic_k15 * calculator_e19 * calculator_e19) + (dynamic_l15 * calculator_e19) + dynamic_m15;
+  long double dynamic_o16 = (dynamic_k16 * calculator_e17 * calculator_e17) + (dynamic_l16 * calculator_e17) + dynamic_m16;
+  long double dynamic_o35 = (dynamic_k35 * calculator_e21 * calculator_e21) + (dynamic_l35 * calculator_e21) + dynamic_m35;
+  long double dynamic_o36 = (dynamic_k36 * calculator_e22 * calculator_e22) + (dynamic_l36 * calculator_e22) + dynamic_m36;
+  long double dynamic_o37 = (dynamic_k37 * calculator_e23 * calculator_e23) + (dynamic_l37 * calculator_e23) + dynamic_m37;
+  long double dynamic_o38 = (dynamic_k38 * calculator_e24 * calculator_e24) + (dynamic_l38 * calculator_e24) + dynamic_m38;
+
+  // Message("dynamic_o5: " + std::to_string(dynamic_o5));
+  // Message("dynamic_o6: " + std::to_string(dynamic_o6));
+  // Message("dynamic_o7: " + std::to_string(dynamic_o7));
+  // Message("dynamic_o8: " + std::to_string(dynamic_o8));
+  // Message("dynamic_o9: " + std::to_string(dynamic_o9));
+  // Message("dynamic_o10: " + std::to_string(dynamic_o10));
+  // Message("dynamic_o12: " + std::to_string(dynamic_o12));
+  // Message("dynamic_o13: " + std::to_string(dynamic_o13));
+  // Message("dynamic_o14: " + std::to_string(dynamic_o14));
+  // Message("dynamic_o15: " + std::to_string(dynamic_o15));
+  // Message("dynamic_o16: " + std::to_string(dynamic_o16));
+  // Message("dynamic_o35: " + std::to_string(dynamic_o35));
+  // Message("dynamic_o36: " + std::to_string(dynamic_o36));
+  // Message("dynamic_o37: " + std::to_string(dynamic_o37));
+  // Message("dynamic_o38: " + std::to_string(dynamic_o38));
 
 
   power_estimate_dynamic_mW = 
@@ -6308,26 +6323,26 @@ std::vector<double> CompilerOpenFPGA_ql::PowerEstimator() {
 
   // calculate leakage power
 
-  double leakage_k5 = leakage_g5 * calculator_d6;
-  double leakage_k6 = leakage_g6 * (calculator_d7 - 1) * calculator_d6;
-  double leakage_k7 = leakage_g7 * calculator_d6;
-  double leakage_k8 = leakage_g8 * calculator_d7;
-  double leakage_k9 = leakage_g9 * (calculator_d6 - 1) * calculator_d7;
-  double leakage_k10 = leakage_g10 * calculator_d6;
-  double leakage_k11 = leakage_g11 * calculator_d6 * calculator_d7;
-  double leakage_k12 = leakage_g12 * calculator_d6;
-  double leakage_k13 = leakage_g14 * calculator_d7;
-  double leakage_k14 = leakage_g14 * calculator_d7;
-  double leakage_k15 = leakage_g15 * calculator_d6;
-  double leakage_k16 = leakage_g16;
-  double leakage_k17 = leakage_g17 * (calculator_d7 - 1);
-  double leakage_k18 = leakage_g18;
-  double leakage_k19 = leakage_g19 * (calculator_d6 - 1);
-  double leakage_k20 = leakage_g20 * (calculator_d6 - 1) * (calculator_d7 - 1);
-  double leakage_k21 = leakage_g21 * (calculator_d6 - 1);
-  double leakage_k22 = leakage_g22;
-  double leakage_k23 = leakage_g23 * (calculator_d7 - 1);
-  double leakage_k24 = 0;
+  long double leakage_k5 = leakage_g5 * calculator_d6;
+  long double leakage_k6 = leakage_g6 * (calculator_d7 - 1) * calculator_d6;
+  long double leakage_k7 = leakage_g7 * calculator_d6;
+  long double leakage_k8 = leakage_g8 * calculator_d7;
+  long double leakage_k9 = leakage_g9 * (calculator_d6 - 1) * calculator_d7;
+  long double leakage_k10 = leakage_g10 * calculator_d6;
+  long double leakage_k11 = leakage_g11 * calculator_d6 * calculator_d7;
+  long double leakage_k12 = leakage_g12 * calculator_d6;
+  long double leakage_k13 = leakage_g14 * calculator_d7;
+  long double leakage_k14 = leakage_g14 * calculator_d7;
+  long double leakage_k15 = leakage_g15 * calculator_d6;
+  long double leakage_k16 = leakage_g16;
+  long double leakage_k17 = leakage_g17 * (calculator_d7 - 1);
+  long double leakage_k18 = leakage_g18;
+  long double leakage_k19 = leakage_g19 * (calculator_d6 - 1);
+  long double leakage_k20 = leakage_g20 * (calculator_d6 - 1) * (calculator_d7 - 1);
+  long double leakage_k21 = leakage_g21 * (calculator_d6 - 1);
+  long double leakage_k22 = leakage_g22;
+  long double leakage_k23 = leakage_g23 * (calculator_d7 - 1);
+  long double leakage_k24 = 0;
 
   power_estimate_leakge_mW = 
     (
