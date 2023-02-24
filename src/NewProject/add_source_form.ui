@@ -156,7 +156,11 @@
           <widget class="QLineEdit" name="lineEditTopModuleLib"/>
          </item>
          <item row="0" column="1" colspan="2">
-          <widget class="QLineEdit" name="lineEditTopModule"/>
+          <widget class="QLineEdit" name="lineEditTopModule">
+           <property name="placeholderText">
+            <string>&lt;auto-detect&gt;</string>
+           </property>
+          </widget>
          </item>
          <item row="4" column="1" colspan="2">
           <widget class="QLineEdit" name="lineEditLibraryExt"/>

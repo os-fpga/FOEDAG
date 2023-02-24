@@ -584,6 +584,7 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
     }
   }
   compiler->SetNetlistType(netlistVal);
+  GlobalSession->GetSettings()->syncWith(SYNTH_SETTING_KEY);
 }
 
 std::string FOEDAG::TclArgs_getPackingOptions() {

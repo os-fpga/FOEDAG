@@ -59,6 +59,14 @@ class ITaskReportManager {
       const QString &reportId) = 0;
   // Returns retrieved from a log file messages per line number.
   virtual const Messages &getMessages() = 0;
+
+  QStringList suppressList() const { return m_suppressList; }
+  void setSuppressList(const QStringList &newSuppressList) {
+    m_suppressList = newSuppressList;
+  }
+
+ private:
+  QStringList m_suppressList;
 };
 
 }  // namespace FOEDAG

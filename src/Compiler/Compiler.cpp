@@ -662,7 +662,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = fullPath.string();
     }
     std::filesystem::path the_path = expandedFile;
-    std::string origPathFileList = expandedFile;
     if (!the_path.is_absolute()) {
       const auto& path = std::filesystem::current_path();
       expandedFile = std::filesystem::path(path / expandedFile).string();
@@ -672,7 +671,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       expandedFile + std::string("\n"));
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-        {}, {}, origPathFileList.c_str(), language, out);
+        {}, {}, expandedFile.c_str(), language, out);
     if (!ok) {
       compiler->ErrorMessage(out.str());
       return TCL_ERROR;

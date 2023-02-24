@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QWidget>
+#include <filesystem>
 
 class QTreeWidgetItem;
 
@@ -32,7 +33,8 @@ class MessageItemParser;
 class MessagesTabWidget final : public QWidget {
   Q_OBJECT
  public:
-  MessagesTabWidget(const TaskManager &taskManager);
+  MessagesTabWidget(const TaskManager &taskManager,
+                    const std::filesystem::path &dataPath);
   ~MessagesTabWidget();
 
  private slots:
@@ -44,6 +46,8 @@ class MessagesTabWidget final : public QWidget {
                                          const QString &filePath);
   QTreeWidgetItem *createItem(const QString &message);
   static QString createLink(const QString &str);
+  static QStringList loadSuppressList(const std::filesystem::path &dataPath);
+
   const TaskManager &m_taskManager;
   QVector<QTreeWidgetItem *> m_convertToLabel;
   const QVector<MessageItemParser *> m_parsers;

@@ -45,7 +45,7 @@ class Simulator {
     BitstreamFrontDoor,
     BitstreamBackDoor
   };
-  enum class WaveformType { VCD, FST };
+  enum class WaveformType { VCD, FST, GHW };
   enum class SimulationOpt { None, Clean };
 
   static SimulationType ToSimulationType(const std::string& str, bool& ok);

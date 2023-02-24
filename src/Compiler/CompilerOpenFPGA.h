@@ -79,6 +79,24 @@ class CompilerOpenFPGA : public Compiler {
   }
   void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
+
+  void MaxDeviceDSPCount(uint32_t max_dsp) { m_maxDeviceDSPCount = max_dsp; }
+  void MaxDeviceBRAMCount(uint32_t max_bram) {
+    m_maxDeviceBRAMCount = max_bram;
+  }
+  void MaxDeviceLUTCount(uint32_t max_lut) { m_maxDeviceLUTCount = max_lut; }
+  void MaxDeviceFFCount(uint32_t max_ff) { m_maxDeviceFFCount = max_ff; }
+  void MaxDeviceIOCount(uint32_t max_io) { m_maxDeviceIOCount = max_io; }
+  uint32_t MaxDeviceDSPCount() { return m_maxDeviceDSPCount; }
+  uint32_t MaxDeviceBRAMCount() { return m_maxDeviceBRAMCount; }
+  uint32_t MaxDeviceLUTCount() { return m_maxDeviceLUTCount; }
+  uint32_t MaxDeviceFFCount() { return m_maxDeviceFFCount; }
+  uint32_t MaxDeviceIOCount() { return m_maxDeviceIOCount; }
+  void MaxUserDSPCount(uint32_t max_dsp) { m_maxUserDSPCount = max_dsp; }
+  void MaxUserBRAMCount(uint32_t max_bram) { m_maxUserBRAMCount = max_bram; }
+  uint32_t MaxUserDSPCount() { return m_maxUserDSPCount; }
+  uint32_t MaxUserBRAMCount() { return m_maxUserBRAMCount; }
+
   void Help(std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
@@ -170,7 +188,13 @@ class CompilerOpenFPGA : public Compiler {
   std::string m_yosysScript;
   std::string m_openFPGAScript;
   std::string m_pb_pin_fixup;
-
+  uint32_t m_maxDeviceDSPCount = 0;
+  uint32_t m_maxDeviceBRAMCount = 0;
+  uint32_t m_maxDeviceLUTCount = 0;
+  uint32_t m_maxDeviceFFCount = 0;
+  uint32_t m_maxDeviceIOCount = 0;
+  uint32_t m_maxUserDSPCount = 0;
+  uint32_t m_maxUserBRAMCount = 0;
   virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
