@@ -135,6 +135,7 @@ class CompilerOpenFPGA_ql : public Compiler {
                     std::string voltage_threshold,
                     std::string p_v_t_corner);
   bool DeviceExists(std::string device);
+  std::vector<double> PowerEstimator();
 
  protected:
   virtual bool IPGenerate();
