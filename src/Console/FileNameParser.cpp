@@ -29,7 +29,7 @@ LineParser::Result FileNameParser::handleLine(const QString &message,
                                               OutputFormat format) {
   // use static to fix use-static-qregularexpression clazy warning
   static const QRegularExpression fileWithLine{
-      "(\\S+[^\\.]\\.[a-zA-Z]+)([:]|[(]|\\s)(\\d+)"};
+      "(\\S+[^\\.]\\.[a-zA-Z]+)(?:[:]|[(]|\\s)(\\d+)"};
 
   auto regExpMatch = fileWithLine.match(message);
   if (regExpMatch.hasMatch()) {
@@ -39,7 +39,7 @@ LineParser::Result FileNameParser::handleLine(const QString &message,
     const QFileInfo fileInfo{file};
     const QString filePath =
         fileInfo.exists() ? fileInfo.absoluteFilePath() : file;
-    const QString line = regExpMatch.captured(3);
+    const QString line = regExpMatch.captured(2);
     LinkSpec link{regExpMatch.capturedStart(cap),
                   regExpMatch.capturedLength(cap),
                   addLinkSpecForAbsoluteFilePath(filePath, line)};
@@ -48,7 +48,7 @@ LineParser::Result FileNameParser::handleLine(const QString &message,
 
   // use static to fix use-static-qregularexpression clazy warning
   static const QRegularExpression all{
-      "((\\/?[a-zA-Z]+)\\/+\\S+[^\\.]\\.[a-zA-Z]+)"};
+      "((?:[\\.\\/\\[a-zA-Z]+)[\\/\\:]+\\S+[^\\.]\\.[a-zA-Z]+)"};
   regExpMatch = all.match(message);
   if (regExpMatch.hasMatch()) {
     QString file = regExpMatch.captured(1);
