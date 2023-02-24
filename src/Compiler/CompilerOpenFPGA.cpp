@@ -2485,11 +2485,11 @@ write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
 write_fabric_bitstream --format xml --file fabric_bitstream.xml
 
 write_full_testbench --file BIT_SIM \
-                     --bitstream fabric_bitstream.bit 
+                     --bitstream fabric_bitstream.bit --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
-write_preconfigured_fabric_wrapper --file BIT_SIM --embed_bitstream iverilog
+write_preconfigured_fabric_wrapper --file BIT_SIM --embed_bitstream iverilog --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
-write_preconfigured_testbench --file BIT_SIM
+write_preconfigured_testbench --file BIT_SIM --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
 write_io_mapping -f PinMapping.xml
 
@@ -2618,6 +2618,8 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
+  result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
+                      m_OpenFpgaPinConstraintXml.string());
   std::string repack_constraints =
       ProjManager()->projectName() + "_repack_constraints.xml";
   const bool fpga_repack = FileUtils::FileExists(
@@ -2825,6 +2827,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
+              } else if (file_type == "pcf_xml") {
+                OpenFpgaPinConstraintFile(fullPath.string());
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {

@@ -77,6 +77,9 @@ class CompilerOpenFPGA : public Compiler {
   void OpenFpgaPinmapXMLFile(const std::filesystem::path& path) {
     m_OpenFpgaPinMapXml = path;
   }
+  void OpenFpgaPinConstraintFile(const std::filesystem::path& path) {
+    m_OpenFpgaPinConstraintXml = path;
+  }
   void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
 
@@ -184,6 +187,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_OpenFpgaRepackConstraintsFile = "";
   std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
+  std::filesystem::path m_OpenFpgaPinConstraintXml = "";
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
