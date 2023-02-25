@@ -1629,7 +1629,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   for (auto keep : m_constraints->GetKeeps()) {
     keep = ReplaceAll(keep, "@", "[");
     keep = ReplaceAll(keep, "%", "]");
-    Message("Keep name: " + keep);
+    // Message("Keep name: " + keep);
     keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
