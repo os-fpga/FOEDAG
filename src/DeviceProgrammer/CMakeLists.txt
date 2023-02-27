@@ -64,7 +64,7 @@ add_library(${subsystem} STATIC
 )
 
 target_link_libraries(${subsystem} PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
-target_compile_definitions(${subsystem} PRIVATE DESIGNQUERY_LIBRARY)
+target_compile_definitions(${subsystem} PRIVATE DEVICEPROGRAMMER_LIBRARY)
 
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/../../lib/$<TARGET_FILE_NAME:${subsystem}>
