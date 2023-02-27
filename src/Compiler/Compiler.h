@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
 //#include "DesignQuery/DesignQuery.h"
+#include "DeviceProgrammer/DeviceProgrammer.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Simulation/Simulator.h"
@@ -332,6 +333,7 @@ class Compiler {
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
   // DesignQuery* m_DesignQuery = nullptr;
+  DeviceProgrammer* m_deviceProgrammer = nullptr;
 
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;

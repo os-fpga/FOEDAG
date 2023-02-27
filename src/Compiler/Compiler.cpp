@@ -420,12 +420,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   // if (m_DesignQuery == nullptr) {
   //   m_DesignQuery = new DesignQuery(this);
   // }
+  if (m_deviceProgrammer == nullptr) {
+    m_deviceProgrammer = new DeviceProgrammer(this);
+  }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   // m_DesignQuery->RegisterCommands(interp, batchMode);
+  m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
