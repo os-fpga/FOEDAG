@@ -14,6 +14,15 @@ namespace FOEDAG {
 class createFileDialog : public QDialog {
   Q_OBJECT
 
+  enum FileType {
+    Verilog,
+    SystemVerilog,
+    VHDL,
+    Cpp,
+    Pin,
+    Sdc,
+  };
+
  public:
   explicit createFileDialog(const QString &projectPath,
                             QWidget *parent = nullptr);

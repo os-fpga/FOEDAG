@@ -53,16 +53,17 @@ void createFileDialog::initialDialog(int type) {
         tr("Create a new source file and add it to your project."));
 
     ui->m_comboxFileType->clear();
-    ui->m_comboxFileType->addItem(tr("Verilog"));
-    ui->m_comboxFileType->addItem(tr("SystemVerilog"));
-    if (GT_SIM != m_type) ui->m_comboxFileType->addItem(tr("VHDL"));
+    ui->m_comboxFileType->addItem(tr("Verilog"), Verilog);
+    ui->m_comboxFileType->addItem(tr("SystemVerilog"), SystemVerilog);
+    if (GT_SIM != m_type) ui->m_comboxFileType->addItem(tr("VHDL"), VHDL);
+    if (GT_SIM == m_type) ui->m_comboxFileType->addItem(tr("CPP"), Cpp);
   } else if (GT_CONSTRAINTS == m_type) {
     setWindowTitle(tr("Create Constraints File"));
     ui->m_labelDetailed->setText(
         tr("Create a new Constraints file and add it to your project."));
     ui->m_comboxFileType->clear();
-    ui->m_comboxFileType->addItem(tr("sdc"));
-    ui->m_comboxFileType->addItem(tr("pin"));
+    ui->m_comboxFileType->addItem(tr("sdc"), Sdc);
+    ui->m_comboxFileType->addItem(tr("pin"), Pin);
   }
   // ui->m_comboxFileType->setStyleSheet("border: 1px solid gray;");
 }
@@ -79,18 +80,22 @@ void createFileDialog::on_m_pushBtnOK_clicked() {
   filedata fdata;
   fdata.m_isFolder = false;
   if (GT_SOURCE == m_type || GT_SIM == m_type) {
-    switch (ui->m_comboxFileType->currentIndex()) {
-      case 0:
+    switch (ui->m_comboxFileType->currentData().toInt()) {
+      case Verilog:
         fdata.m_fileName = AppendExtension(fileName, QString(".v"));
         fdata.m_fileType = QString("v");
         break;
-      case 1:
+      case SystemVerilog:
         fdata.m_fileName = AppendExtension(fileName, QString(".sv"));
         fdata.m_fileType = QString("sv");
         break;
-      case 2:
+      case VHDL:
         fdata.m_fileName = AppendExtension(fileName, QString(".vhd"));
         fdata.m_fileType = QString("vhd");
+        break;
+      case Cpp:
+        fdata.m_fileName = AppendExtension(fileName, QString(".cpp"));
+        fdata.m_fileType = QString("cpp");
         break;
       default:
         break;
