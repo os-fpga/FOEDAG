@@ -66,6 +66,7 @@ class Editor : public QWidget {
   void QScintillaTextChanged();
   void QscintillaSelectionChanged();
   void QscintillaModificationChanged(bool m);
+  void QscintillaLinesChanged();
 
  private:
   QString m_strFileName;
@@ -91,6 +92,9 @@ class Editor : public QWidget {
 
   void UpdateToolBarStates();
   QFileSystemWatcher* m_fileWatcher{nullptr};
+  static constexpr int MIN_MARGIN_WIDTH{4};
+  static constexpr int MARGIN_INDEX{0};
+  int m_marginWidth{MIN_MARGIN_WIDTH};
 };
 
 }  // namespace FOEDAG
