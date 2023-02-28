@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2023 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2023 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,5 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int main(int argc, char** argv) {
   // TODO implement me
+  std::cout << "TODO implement me\n";
   return 0;
 }
