@@ -1629,7 +1629,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   for (auto keep : m_constraints->GetKeeps()) {
     keep = ReplaceAll(keep, "@", "[");
     keep = ReplaceAll(keep, "%", "]");
-    Message("Keep name: " + keep);
+    // Message("Keep name: " + keep);
     keeps += "setattr -set keep 1 w:\\" + keep + "\n";
   }
   result = ReplaceAll(result, "${KEEP_NAMES}", keeps);
@@ -1790,6 +1790,9 @@ bool CompilerOpenFPGA::Packing() {
     if (constraint.find("set_property") != std::string::npos) {
       continue;
     }
+    if (constraint.find("set_clock_pin") != std::string::npos) {
+      continue;
+    }
     ofssdc << constraint << "\n";
   }
   ofssdc.close();
@@ -1900,7 +1903,9 @@ bool CompilerOpenFPGA::Placement() {
   ifspcf.close();
 
   bool userConstraint = false;
+  bool repackConstraint = false;
   std::vector<std::string> constraints;
+  std::vector<std::string> set_clks;
   for (auto constraint : m_constraints->getConstraints()) {
     constraint = ReplaceAll(constraint, "@", "[");
     constraint = ReplaceAll(constraint, "%", "]");
@@ -1918,6 +1923,9 @@ bool CompilerOpenFPGA::Placement() {
       constraint = ReplaceAll(constraint, "set_property", "set_mode");
       constraints.push_back(constraint);
       userConstraint = true;
+    } else if (constraint.find("set_clock_pin") != std::string::npos) {
+      set_clks.push_back(constraint);
+      repackConstraint = true;
     } else {
       continue;
     }
@@ -2031,6 +2039,33 @@ bool CompilerOpenFPGA::Placement() {
       pincommand += " free";
     } else {  // default behavior
       pincommand += " in_define_order";
+    }
+
+    // user want to map its design clocks to fabric
+    // clocks. like gemini has 16 clocks clk[0],clk[1]....,clk[15].And user
+    // clocks are clk_a,clk_b and want to map clk_a with clk[15] like it in such
+    // case, we need to make sure a xml repack constraint file is properly
+    // generated to guide bitstream generation correctly.
+
+    std::string repack_constraints =
+        ProjManager()->projectName() + "_repack_constraints.xml";
+
+    if (!set_clks.empty() && repackConstraint) {
+      const std::string repack_out =
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + ".temp_file_clkmap"))
+              .string();
+      std::ofstream ofsclkmap(repack_out);
+
+      for (auto constraint : set_clks) {
+        ofsclkmap << constraint << "\n";
+      }
+      ofspcf.close();
+      pincommand += " --clk_map " + std::string(ProjManager()->projectName() +
+                                                ".temp_file_clkmap");
+      pincommand +=
+          " --read_repack " + m_OpenFpgaRepackConstraintsFile.string();
+      pincommand += " --write_repack " + repack_constraints;
     }
 
     std::string pin_loc_constraint_file;
@@ -2450,11 +2485,11 @@ write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
 write_fabric_bitstream --format xml --file fabric_bitstream.xml
 
 write_full_testbench --file BIT_SIM \
-                     --bitstream fabric_bitstream.bit 
+                     --bitstream fabric_bitstream.bit --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
-write_preconfigured_fabric_wrapper --file BIT_SIM --embed_bitstream iverilog
+write_preconfigured_fabric_wrapper --file BIT_SIM --embed_bitstream iverilog --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
-write_preconfigured_testbench --file BIT_SIM
+write_preconfigured_testbench --file BIT_SIM --pin_constraints_file ${OPENFPGA_PIN_CONSTRAINTS}
 
 write_io_mapping -f PinMapping.xml
 
@@ -2583,8 +2618,19 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
-  result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
-                      m_OpenFpgaRepackConstraintsFile.string());
+  result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
+                      m_OpenFpgaPinConstraintXml.string());
+  std::string repack_constraints =
+      ProjManager()->projectName() + "_repack_constraints.xml";
+  const bool fpga_repack = FileUtils::FileExists(
+      std::filesystem::path(ProjManager()->projectPath()) / repack_constraints);
+  if (!fpga_repack) {
+    result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
+                        m_OpenFpgaRepackConstraintsFile.string());
+  } else {
+    result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
+                        repack_constraints);
+  }
   if (m_OpenFpgaFabricKeyFile == "") {
     result = ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}", "");
   } else {
@@ -2781,6 +2827,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 OpenFpgaFabricKeyFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
+              } else if (file_type == "pcf_xml") {
+                OpenFpgaPinConstraintFile(fullPath.string());
               } else if (file_type == "pb_pin_fixup") {
                 PbPinFixup(name);
               } else if (file_type == "pinmap_csv") {
