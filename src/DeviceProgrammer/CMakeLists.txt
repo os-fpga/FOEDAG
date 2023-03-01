@@ -80,5 +80,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(${subsystem}_bin
 	${PROJECT_SOURCE_DIR}/../DeviceProgrammer/Test/${subsystem}_main.cpp)
-target_link_libraries(${subsystem}_bin)
+target_link_libraries(${subsystem}_bin foedag foedagcore tcl_stubb tcl_static zlib compiler simulation)
 set_target_properties(${subsystem}_bin PROPERTIES OUTPUT_NAME ${subsystem}_test)

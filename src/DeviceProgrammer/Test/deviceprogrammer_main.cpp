@@ -19,10 +19,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include "Compiler/Compiler.h"
+#include "Compiler/WorkerThread.h"
+#include "Main/CommandLine.h"
+#include "Main/Foedag.h"
+#include "MainWindow/Session.h"
+#include "MainWindow/main_window.h"
+
+QWidget* mainWindowBuilder(FOEDAG::Session* session) {
+  return new FOEDAG::MainWindow{session};
+}
+
+void registerExampleCommands(QWidget* widget, FOEDAG::Session* session) {}
 
 int main(int argc, char** argv) {
-  // TODO implement me
-  std::cout << "TODO implement me\n";
-  return 0;
+  FOEDAG::CommandLine* cmd = new FOEDAG::CommandLine(argc, argv);
+  cmd->processArgs();
+
+  FOEDAG::Compiler* compiler = new FOEDAG::Compiler();
+
+  FOEDAG::GUI_TYPE guiType =
+      FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
+
+  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
+      cmd, mainWindowBuilder, registerExampleCommands, compiler);
+
+  return foedag->init(guiType);
 }
