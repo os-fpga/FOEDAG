@@ -337,6 +337,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             listFiles.clear();
             mapOption.clear();
             langList.clear();
+            libs.clear();
           }
         }
       }
