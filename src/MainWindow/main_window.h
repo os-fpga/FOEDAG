@@ -51,7 +51,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   ProjectInfo Info() const;
   void SetWindowTitle(const QString& filename, const QString& project,
                       QString& projectInfo);
-  void CloseOpenedTabs();
   void ProgressVisible(bool visible) override;
 
   void openProject(const QString& project, bool delayedOpen, bool run) override;
@@ -159,6 +158,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveSettings();
   void setEnableSaveButtons(bool enable);
   bool isEnableSaveButtons() const;
+  bool CloseOpenedTabs();
+  bool lastProjectClosed();
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.

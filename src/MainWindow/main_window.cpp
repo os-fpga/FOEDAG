@@ -193,11 +193,14 @@ void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
   }
 }
 
-void MainWindow::CloseOpenedTabs() {
+bool MainWindow::CloseOpenedTabs() {
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-  while (tabWidget->count() != 0) {
-    tabWidget->tabCloseRequested(tabWidget->currentIndex());
+  while (tabWidget && (tabWidget->count() != 0)) {
+    if (!TextEditorForm::Instance()->TabCloseRequested(
+            tabWidget->currentIndex()))
+      return false;
   }
+  return true;
 }
 
 void MainWindow::ProgressVisible(bool visible) {
@@ -228,11 +231,14 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  newProjdialog->Reset();
-  newProjdialog->open();
+  if (lastProjectClosed()) {
+    newProjdialog->Reset();
+    newProjdialog->open();
+  }
 }
 
 void MainWindow::openExampleProject() {
+  if (!lastProjectClosed()) return;
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
   auto fileName = QFileDialog::getOpenFileName(
@@ -276,6 +282,7 @@ void MainWindow::openExampleProject() {
 }
 
 void MainWindow::openProjectDialog(const QString& dir) {
+  if (!lastProjectClosed()) return;
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
@@ -283,12 +290,12 @@ void MainWindow::openProjectDialog(const QString& dir) {
 }
 
 void MainWindow::closeProject(bool force) {
+  if (!lastProjectClosed()) return;
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
@@ -1522,6 +1529,7 @@ void MainWindow::saveWelcomePageConfig() {
 }
 
 void MainWindow::recentProjectOpen() {
+  if (!lastProjectClosed()) return;
   auto action = qobject_cast<QAction*>(sender());
   auto project = std::find_if(m_recentProjectsActions.cbegin(),
                               m_recentProjectsActions.cend(),
@@ -1582,6 +1590,7 @@ bool MainWindow::confirmCloseProject() {
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }
 bool MainWindow::confirmExitProgram() {
+  if (!lastProjectClosed()) return false;
   return (QMessageBox::question(
               this, "Exit Program?",
               tr("Are you sure you want to exit the program?\n"),
@@ -1640,6 +1649,12 @@ void MainWindow::setEnableSaveButtons(bool enable) {
 bool MainWindow::isEnableSaveButtons() const {
   if (!m_saveButtons.isEmpty()) return m_saveButtons.first()->isEnabled();
   return false;
+}
+
+bool MainWindow::lastProjectClosed() {
+  if (!m_projectManager) return true;
+  if (m_projectManager && !m_projectManager->HasDesign()) return true;
+  return CloseOpenedTabs();
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

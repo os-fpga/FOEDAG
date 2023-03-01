@@ -22,6 +22,7 @@ class TextEditorForm : public QWidget {
   int OpenFileWithSelection(const QString &strFileName, int lineFrom,
                             int lineTo);
   QTabWidget *GetTabWidget() { return m_tab_editor; }
+  bool TabCloseRequested(int index);
 
  signals:
   void CurrentFileChanged(QString);
