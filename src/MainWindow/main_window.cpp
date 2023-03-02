@@ -720,7 +720,7 @@ void MainWindow::createRecentMenu() {
     QString project = m_settings.value(key).toString();
     if (!project.isEmpty()) {
       QFileInfo info{project};
-      auto projAction = new QAction(info.baseName());
+      auto projAction = new QAction(info.absoluteFilePath());
       connect(projAction, &QAction::triggered, this,
               &MainWindow::recentProjectOpen);
       recentMenu->addAction(projAction);
