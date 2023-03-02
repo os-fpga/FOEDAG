@@ -40,6 +40,7 @@ set (qscintilla2_qt_HDRS
  src/Qsci/qscidocument.h
  src/Qsci/qscilexer.h
  src/Qsci/qscilexertcl.h
+ src/Qsci/qscilexercpp.h
  src/Qsci/qscilexerverilog.h
  src/Qsci/qscilexervhdl.h
  src/Qsci/qscimacro.h
@@ -121,6 +122,7 @@ set ( qscintilla2_qt_SRCS
 	src/qscidocument.cpp
 	src/qscilexer.cpp
 	src/qscilexertcl.cpp
+	src/qscilexercpp.cpp
 	src/qscilexerverilog.cpp
 	src/qscilexervhdl.cpp
 	src/qscimacro.cpp
@@ -136,6 +138,7 @@ set ( qscintilla2_qt_SRCS
 	scintilla/lexers/LexTCL.cpp
 	scintilla/lexers/LexVHDL.cpp
 	scintilla/lexers/LexVerilog.cpp
+	scintilla/lexers/LexCPP.cpp
 	scintilla/lexlib/Accessor.cpp
 	scintilla/lexlib/CharacterCategory.cpp
 	scintilla/lexlib/CharacterSet.cpp
@@ -197,6 +200,7 @@ set (qscintilla2_qt_INCLUDE
  Qsci/qscilexertcl.h
  Qsci/qscilexerverilog.h
  Qsci/qscilexervhdl.h
+ Qsci/qscilexercpp.h
  Qsci/qscimacro.h
  Qsci/qscistyle.h
  Qsci/qscistyledtext.h
