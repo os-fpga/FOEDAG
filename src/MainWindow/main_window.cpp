@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TaskManager.h"
 #include "Compiler/TaskModel.h"
 #include "Console/DummyParser.h"
+#include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
 #include "Console/TclConsoleBuilder.h"
@@ -1096,11 +1097,10 @@ void MainWindow::ReShowWindow(QString strProject) {
                             buffer, nullptr, &console);
   consoleDocWidget->setWidget(w);
   connect(console, &TclConsoleWidget::linkActivated, this,
-          [textEditor](const ErrorInfo& eInfo) {
-            textEditor->SlotOpenFileWithLine(eInfo.file, eInfo.line.toInt());
-          });
+          &MainWindow::openFileFromConsole);
   console->addParser(new DummyParser{});
   console->addParser(new TclErrorParser{});
+  console->addParser(new FileNameParser{});
   m_console = console;
 
   m_compiler->SetInterpreter(m_interpreter);
@@ -1640,6 +1640,17 @@ void MainWindow::saveSetting(const QString& setting) {
     QDialogButtonBox* btnBox = d->findChild<QDialogButtonBox*>(DlgBtnBoxName);
     if (btnBox) btnBox->button(QDialogButtonBox::Ok)->click();
   }
+}
+
+void MainWindow::openFileFromConsole(const ErrorInfo& eInfo) {
+  QString file{eInfo.file};
+  QFileInfo info{eInfo.file};
+  if (!info.exists()) {  // try to search in the project folder
+    info.setFile(m_projectManager->getProjectPath(), file);
+    if (info.exists()) file = info.absoluteFilePath();
+  }
+  auto textEditor = findChild<TextEditor*>("textEditor");
+  if (textEditor) textEditor->SlotOpenFileWithLine(file, eInfo.line.toInt());
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

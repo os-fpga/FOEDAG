@@ -54,6 +54,7 @@ set (SRC_CPP_LIST
   OutputFormatter.cpp
   DummyParser.cpp
   TclErrorParser.cpp
+  FileNameParser.cpp
 )
 
 set (SRC_H_LIST
@@ -69,6 +70,7 @@ set (SRC_H_LIST
   OutputFormatter.h
   DummyParser.h
   TclErrorParser.h
+  FileNameParser.h
 )
 
 set (SRC_UI_LIST
