@@ -11,10 +11,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Qsci/qsciapis.h"
-#include "Qsci/qscilexertcl.h"
-#include "Qsci/qscilexerverilog.h"
-#include "Qsci/qscilexervhdl.h"
+class QsciScintilla;
 
 namespace FOEDAG {
 
@@ -22,6 +19,7 @@ enum FileType {
   FILE_TYPE_VERILOG,
   FILE_TYPE_VHDL,
   FILE_TYPE_TCL,
+  FILE_TYPE_CPP,
   FILE_TYPE_UNKOWN
 };
 
