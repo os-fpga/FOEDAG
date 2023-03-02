@@ -2730,7 +2730,14 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD}", std::string("plugin -i ql-qlf"));
 
+#if defined (AURORA_YOSYS_SYNTH_PASS_NAME)
+// https://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
+#define STRINGIZE2(s) #s
+#define STRINGIZE(s) STRINGIZE2(s)
+  yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string(STRINGIZE(AURORA_YOSYS_SYNTH_PASS_NAME)));
+#else
   yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
+#endif
 
 #if(AURORA_USE_TABBYCAD == 1)
 // check if the env variable: YOSYSHQ_LICENSE is defined
