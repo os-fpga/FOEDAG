@@ -326,7 +326,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   saveToRecentSettings(design);
   if (sourcesForm)
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
-  simulationMenu->setEnabled(!design.isEmpty());
+//   simulationMenu->setEnabled(!design.isEmpty());
   updateTaskTable();
 }
 
@@ -752,12 +752,12 @@ void MainWindow::createMenus() {
   fileMenu->addAction(exitAction);
 
   projectMenu = menuBar()->addMenu("Project");
-  simulationMenu = menuBar()->addMenu("Simulation");
-  simulationMenu->addAction(simRtlAction);
-  simulationMenu->addAction(simGateAction);
-  simulationMenu->addAction(simPnrAction);
-  simulationMenu->addAction(simBitstreamAction);
-  simulationMenu->setEnabled(false);
+//   simulationMenu = menuBar()->addMenu("Simulation");
+//   simulationMenu->addAction(simRtlAction);
+//   simulationMenu->addAction(simGateAction);
+//   simulationMenu->addAction(simPnrAction);
+//   simulationMenu->addAction(simBitstreamAction);
+//   simulationMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
   viewMenu->addAction(ipConfiguratorAction);
@@ -765,7 +765,7 @@ void MainWindow::createMenus() {
 
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
-  processMenu->addAction(startSimAction);
+//   processMenu->addAction(startSimAction);
   processMenu->addAction(stopAction);
 
   helpMenu = menuBar()->addMenu("&Help");
@@ -796,7 +796,7 @@ void MainWindow::createToolBars() {
 
   debugToolBar = addToolBar(tr("Debug"));
   debugToolBar->addAction(startAction);
-  debugToolBar->addAction(startSimAction);
+//   debugToolBar->addAction(startSimAction);
   debugToolBar->addAction(stopAction);
 }
 
