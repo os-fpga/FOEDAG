@@ -1,5 +1,7 @@
 #include "editor.h"
 
+#include <math.h>
+
 using namespace FOEDAG;
 
 #define ERROR_MARKER 4
@@ -22,6 +24,8 @@ Editor::Editor(QString strFileName, int iFileType, QWidget *parent)
           SLOT(QscintillaSelectionChanged()));
   connect(m_scintilla, SIGNAL(modificationChanged(bool)), this,
           SLOT(QscintillaModificationChanged(bool)));
+  connect(m_scintilla, SIGNAL(linesChanged()), this,
+          SLOT(QscintillaLinesChanged()));
 
   QBoxLayout *box = new QBoxLayout(QBoxLayout::TopToBottom);
   box->setContentsMargins(0, 0, 0, 0);
@@ -144,6 +148,19 @@ void Editor::QscintillaModificationChanged(bool m) {
   emit EditorModificationChanged(m);
 }
 
+void Editor::QscintillaLinesChanged() {
+  int lines = m_scintilla->lines();
+  int minWidth{MIN_MARGIN_WIDTH};
+  int newWidth = floor(log10(lines) + 1) + 1;
+
+  minWidth = std::max(minWidth, newWidth);
+  if (minWidth != m_marginWidth && minWidth >= MIN_MARGIN_WIDTH) {
+    m_marginWidth = minWidth;
+    m_scintilla->setMarginWidth(MARGIN_INDEX,
+                                QString{}.fill('0', m_marginWidth));
+  }
+}
+
 void Editor::QScintillaTextChanged() { UpdateToolBarStates(); }
 
 void Editor::InitToolBar() {
@@ -228,7 +245,7 @@ void Editor::InitToolBar() {
 void Editor::InitScintilla(int iFileType) {
   QFont font("Arial", 9, QFont::Normal);
   m_scintilla->setFont(font);
-  m_scintilla->setMarginWidth(0, 27 /*fontmetrics.width("0000")*/);
+  m_scintilla->setMarginWidth(MARGIN_INDEX, QString{}.fill('0', m_marginWidth));
 
   m_scintilla->setMarginType(0, QsciScintilla::NumberMargin);
   m_scintilla->setMarginLineNumbers(0, true);
@@ -280,6 +297,8 @@ void Editor::SetScintillaText(QString strFileName) {
   QApplication::restoreOverrideCursor();
 
   m_scintilla->setModified(false);
+  // update line numbers margin width
+  QscintillaLinesChanged();
 }
 
 void Editor::UpdateToolBarStates() {
