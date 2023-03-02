@@ -11,10 +11,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "Qsci/qsciapis.h"
-#include "Qsci/qscilexertcl.h"
-#include "Qsci/qscilexerverilog.h"
-#include "Qsci/qscilexervhdl.h"
+class QsciScintilla;
 
 namespace FOEDAG {
 
@@ -22,6 +19,7 @@ enum FileType {
   FILE_TYPE_VERILOG,
   FILE_TYPE_VHDL,
   FILE_TYPE_TCL,
+  FILE_TYPE_CPP,
   FILE_TYPE_UNKOWN
 };
 
@@ -66,6 +64,7 @@ class Editor : public QWidget {
   void QScintillaTextChanged();
   void QscintillaSelectionChanged();
   void QscintillaModificationChanged(bool m);
+  void QscintillaLinesChanged();
 
  private:
   QString m_strFileName;
@@ -91,6 +90,9 @@ class Editor : public QWidget {
 
   void UpdateToolBarStates();
   QFileSystemWatcher* m_fileWatcher{nullptr};
+  static constexpr int MIN_MARGIN_WIDTH{4};
+  static constexpr int MARGIN_INDEX{0};
+  int m_marginWidth{MIN_MARGIN_WIDTH};
 };
 
 }  // namespace FOEDAG
