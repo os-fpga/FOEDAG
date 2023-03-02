@@ -96,8 +96,8 @@ int Scintilla_LinkLexers() {
 //	LINK_LEXER(lmCOBOL);
 //	LINK_LEXER(lmCoffeeScript);
 //	LINK_LEXER(lmConf);
-//	LINK_LEXER(lmCPP);
-//	LINK_LEXER(lmCPPNoCase);
+LINK_LEXER(lmCPP);
+LINK_LEXER(lmCPPNoCase);
 //	LINK_LEXER(lmCsound);
 //	LINK_LEXER(lmCss);
 //	LINK_LEXER(lmD);
