@@ -1487,13 +1487,13 @@ void MainWindow::updateTaskTable() {
       m_taskView->setRowHidden(row, isPostSynthPure);
     }
     for (auto taskId : {SIMULATE_BITSTREAM, SIMULATE_BITSTREAM_CLEAN,
-                        SIMULATE_BITSTREAM_SETTINGS, POWER, POWER_CLEAN}) {
+                        SIMULATE_BITSTREAM_SETTINGS}) {
       int row = m_taskModel->ToRowIndex(taskId);
       m_taskView->setRowHidden(row, true);
     }
   }
   m_taskManager->task(SIMULATE_BITSTREAM)->setEnable(false);
-  m_taskManager->task(POWER)->setEnable(false);
+  //m_taskManager->task(POWER)->setEnable(false);
 }
 
 void MainWindow::updateBitstream() {
