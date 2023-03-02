@@ -48,13 +48,13 @@ if { $platform == "windows" } {
     set file_data [read $fp]
     close $fp
     # Error out if inst1 was generated
-    set found [regexp "rs_ips/inst1" $file_data]
+    set found [regexp "V1_0/inst1" $file_data]
     if { $found } {
         puts "TEST FAILED: ipgenerate -modules inst2 should not have generated inst1"
         exit 1
     }
     # Error out if inst2 wasn't generated
-    set found [regexp "rs_ips/inst2" $file_data]
+    set found [regexp "V1_0/inst2" $file_data]
     if { !$found } {
         puts "TEST FAILED: ipgenerate -modules inst2 should have generated inst2"
         exit 1
@@ -73,27 +73,27 @@ if { $platform == "windows" } {
     set file_data [read $fp]
     close $fp
     # Error out if inst1 was generated
-    set found [regexp "rs_ips/inst1" $file_data]
+    set found [regexp "V1_0/inst1" $file_data]
     if { $found } {
         puts "TEST FAILED: ipgenerate -modules {inst3 inst4} should not have generated inst1"
         exit 1
     }
     # Error out if inst2 was generated again
-    set found [regexp "rs_ips/inst2.*rs_ips/inst2" $file_data]
+    set found [regexp "rs_ips/inst2.*V1_0/inst2" $file_data]
     if { $found } {
         puts "TEST FAILED: ipgenerate -modules {inst3 inst4} should not have generated inst2 again"
         exit 1
     }
 
     # Error out if inst3 wasn't generated
-    set found [regexp "rs_ips/inst3" $file_data]
+    set found [regexp "V1_0/inst3" $file_data]
     if { !$found } {
         puts "TEST FAILED: ipgenerate -modules {inst3 inst4} should have generated inst3"
         exit 1
     }
 
     # Error out if inst4 wasn't generated
-    set found [regexp "rs_ips/inst4" $file_data]
+    set found [regexp "V1_0/inst4" $file_data]
     if { !$found } {
         puts "TEST FAILED: ipgenerate -modules {inst3 inst4} should have generated inst4"
         exit 1
