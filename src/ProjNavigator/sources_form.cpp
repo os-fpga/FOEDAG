@@ -17,6 +17,11 @@
 using namespace FOEDAG;
 static constexpr int SetFileDataRole{Qt::UserRole + 1};
 
+// CPP Changes to add JSON Files in Project Hierarchy with customization
+// Avoiding H Changes to keep the changeset localized.
+#define SRC_TREE_CONF_TOP_ITEM "conftopitem"
+#define SRC_TREE_CONF_FILE_ITEM "conffileitem"
+
 SourcesForm::SourcesForm(QWidget *parent)
     : QWidget(parent), ui(new Ui::SourcesForm) {
   ui->setupUi(this);
@@ -128,6 +133,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       // TODO RG-132 @volodymyrk
       // menu->addSeparator();
       // menu->addAction(m_actAddFile);
+    } else if(SRC_TREE_CONF_FILE_ITEM == strPropertyRole) {
+      menu->addAction(m_actOpenFile);
     } else if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole) {
       if (strName.contains(SRC_TREE_FLG_TARGET)) {
         menu->addAction(m_actOpenFile);
@@ -170,6 +177,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
 
     if (SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole ||
         SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
+        SRC_TREE_CONF_FILE_ITEM == strPropertyRole ||
         SRC_TREE_SIM_FILE_ITEM == strPropertyRole) {
       menu->addSeparator();
       menu->addAction(m_actProperties);
@@ -188,6 +196,7 @@ void SourcesForm::SlotItemDoubleClicked(QTreeWidgetItem *item, int column) {
   QString strPropertyRole =
       (item->data(0, Qt::WhatsThisPropertyRole)).toString();
   if (SRC_TREE_DESIGN_FILE_ITEM == strPropertyRole ||
+      SRC_TREE_CONF_FILE_ITEM == strPropertyRole ||
       SRC_TREE_SIM_FILE_ITEM == strPropertyRole ||
       SRC_TREE_CONSTR_FILE_ITEM == strPropertyRole ||
       SRC_TREE_IP_FILE_ITEM == strPropertyRole) {
@@ -624,6 +633,43 @@ void SourcesForm::CreateFolderHierachyTree() {
 
   // Initialize IP instances tree
   AddIpInstanceTree(topItem);
+
+
+  // Add JSON Configuration Files
+  int iFileSumConfFile = 0;
+  QStringList listConfFile;
+
+  std::filesystem::path settings_json_path = 
+    std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + ".json");
+  if(FileUtils::FileExists(settings_json_path)) {
+    listConfFile.append(QString::fromStdString(settings_json_path.string()));
+    iFileSumConfFile += 1;
+  }
+  
+  std::filesystem::path power_json_path = 
+    std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + "_power.json");
+  if(FileUtils::FileExists(power_json_path)) {
+    listConfFile.append(QString::fromStdString(power_json_path.string()));
+    iFileSumConfFile +=1;
+  }
+
+  QTreeWidgetItem *topitemConfS = new QTreeWidgetItem(topItem);
+  topitemConfS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONF_TOP_ITEM);
+
+  QTreeWidgetItem *parentItemConfS{topitemConfS};
+  for (auto &strfile : listConfFile) {
+    if (parentItemConfS) {
+      QString filename =
+          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
+      QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItemConfS);
+      itemf->setText(0, filename);
+      itemf->setData(0, Qt::UserRole, strfile);
+      itemf->setIcon(0, QIcon(":/img/file.png"));
+      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONF_FILE_ITEM);
+      itemf->setData(0, SetFileDataRole, "conf_files");
+    }
+  }
+  topitemConfS->setText(0, tr("Configuration Files") + QString("(%1)").arg(iFileSumConfFile));
 }
 
 void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
