@@ -3969,14 +3969,6 @@ bool CompilerOpenFPGA_ql::Route() {
   m_state = State::Routed;
   Message("Design " + ProjManager()->projectName() + " is routed");
 
-  std::vector<long double> power_estimate = PowerEstimator();
-
-  if(power_estimate[0] != 0 && power_estimate[1] != 0 && power_estimate[2] != 0) {
-    Message("Dynamic Power = " + std::to_string(power_estimate[0]) + " mW");
-    Message("Leakage Power = " + std::to_string(power_estimate[1]) + " mW");
-    Message("Total Power = " + std::to_string(power_estimate[2]) + " mW");
-  }
-
   return true;
 }
 
@@ -4352,6 +4344,19 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " power analysis failed");
     return false;
+  }
+
+  std::vector<long double> power_estimates = PowerEstimator();
+
+  if(power_estimates[0] != 0 && power_estimates[1] != 0 && power_estimates[2] != 0) {
+    Message("\n\n");
+    Message("##################################################");
+    Message("Power Estimation");
+    Message("##################################################");
+    Message("Dynamic Power = " + std::to_string(power_estimates[0]) + " mW");
+    Message("Leakage Power = " + std::to_string(power_estimates[1]) + " mW");
+    Message("Total Power = " + std::to_string(power_estimates[2]) + " mW");
+    Message("##################################################\n\n");
   }
 
   Message("Design " + ProjManager()->projectName() + " is power analysed");
@@ -6008,7 +6013,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   
   long double dynamic_k8 = 0.00000001;
   long double dynamic_l8 = 0.00007;
-  long double dynamic_m8 = 0;
+  long double dynamic_m8 = 0.0003;
   
   long double dynamic_k9 = -0.0000003;
   long double dynamic_l9 = 0.00009;
@@ -6034,7 +6039,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double dynamic_l15 = 0.00003;
   long double dynamic_m15 = 0.0001;
   
-  long double dynamic_k16 = 0;
+  long double dynamic_k16 = 0.0000002;
   long double dynamic_l16 = 0.0003;
   long double dynamic_m16 = 0.0001;
   
@@ -6054,6 +6059,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double dynamic_l38 = 0.0003;
   long double dynamic_m38 = 0.0695;
 
+
   // LEAKAGE CONSTANTS
   long double leakage_g5 = 55.8446;
   long double leakage_g6 = 65.0463;
@@ -6063,7 +6069,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double leakage_g10 = 115.2604;
   long double leakage_g11 = 275.3894;
   long double leakage_g12 = 67.3532;
-  // long double leakage_g13 = 67.3532;
+  long double leakage_g13 = 67.3532;
   long double leakage_g14 = 67.3532;
   long double leakage_g15 = 67.3532;
   long double leakage_g16 = 170.2399;
@@ -6074,79 +6080,145 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double leakage_g21 = 150.1708;
   long double leakage_g22 = 171.1873;
   long double leakage_g23 = 154.9911;
-  // long double leakage_g24 = 189.0511;
+  long double leakage_g24 = 189.0511;
 
 
-  // INPUTS
-  long double array_x = 56; // JSON
+  // CLOCK NETWORK CONSTANTS
+  long double clock_network_n97 = 0.75;   // = utilization_factor
+  long double clock_network_l90 = 48;     // = num_clock_buffers
+  long double clock_network_p95 = 16;     // = clock_buffer_reduction = (4*1) + (2+2) + (1*8)
+
+
+  // DESIGN INPUTS
+  long double array_x = 0;
   long double calculator_d6 = array_x;
 
-  long double array_y = 56; // JSON
+  long double array_y = 0;
   long double calculator_d7 = array_y;
 
-  long double input_num_used = 2; // JSON
-  long double calculator_d10 = input_num_used;
-  long double input_avg_freq_mhz = 2; // JSON
-  long double calculator_e10 = input_avg_freq_mhz;
+  long double input_num_used = 0;
+  long double calculator_d11 = input_num_used;
 
-  long double input_ff_num_used = 0; // JSON
-  long double calculator_d11 = input_ff_num_used;
-  long double input_ff_avg_freq_mhz = 0; // JSON
-  long double calculator_e11 = input_ff_avg_freq_mhz;
+  // ignored in calc currently
+  long double input_ff_num_used = 0;
+  long double calculator_d12 = input_ff_num_used;
 
-  // long double input_sb_num_used = 0; // JSON
-  // long double calculator_d12 = input_sb_num_used;
-  long double input_sb_avg_freq_mhz = 30; // JSON
-  long double calculator_e12 = input_sb_avg_freq_mhz;
+  // ignored in calc currently
+  // long double input_sb_num_used = 0;
+  // long double calculator_d13 = input_sb_num_used;
 
-  long double output_num_used = 16; // JSON
-  long double calculator_d15 = output_num_used;
-  long double output_avg_freq_mhz = 1; // JSON
-  long double calculator_e15 = output_avg_freq_mhz;
+  long double output_num_used = 0;
+  long double calculator_d16 = output_num_used;
 
-  long double output_ff_num_used = 0; // JSON
-  long double calculator_d16 = output_ff_num_used;
-  long double output_ff_avg_freq_mhz = 0; // JSON
-  long double calculator_e16 = output_ff_avg_freq_mhz;
+  // ignored in calc currently
+  long double output_ff_num_used = 0;
+  long double calculator_d17 = output_ff_num_used;
 
-  long double total_sb_num_used = 16; // JSON
-  long double calculator_d20 = total_sb_num_used;
-  long double total_sb_avg_freq_mhz = 30; // JSON
-  long double calculator_e20 = total_sb_avg_freq_mhz;
+  // ignored in calc currently
+  // long double output_sb_num_used = 0;
+  // long double calculator_d19 = input_sb_num_used;
 
-  long double total_lut_num_used = 16; // JSON
-  long double calculator_d21 = total_lut_num_used;
-  long double total_lut_avg_freq_mhz = 16; // JSON
-  long double calculator_e21 = total_lut_avg_freq_mhz;
+  long double total_sb_num_used = 0;
+  long double calculator_d21 = total_sb_num_used;
 
-  long double lut6_num_used = 0; // JSON
-  long double calculator_d23 = lut6_num_used;
-  long double lut6_avg_freq_mhz = 0; // JSON
-  long double calculator_e23 = lut6_avg_freq_mhz;
+  long double total_lut_num_used = 0;
+  long double calculator_d22 = total_lut_num_used;
 
-  long double avg_num_lut_input_num_used = 16; // JSON
-  long double calculator_d26 = avg_num_lut_input_num_used;
+  // ignored in calc currently
+  // long double total_lut5_ff_num_used = 0;
+  // long double calculator_d23 = total_lut5_ff_num_used;
 
-  long double clock_network_num_used = 1; // JSON
-  long double calculator_d27 = clock_network_num_used;
-  long double clock_network_avg_freq_mhz = 100; // JSON
-  long double calculator_e27 = clock_network_avg_freq_mhz;
+  // ignored in calc currently
+  // long double total_lut6_num_used = 0;
+  // long double calculator_d24 = total_lut6_num_used;
 
-  long double voltage = 0.8; // JSON
+  // long double total_lut6_ff_num_used = 0;
+  // long double calculator_d25 = total_lut6_ff_num_used;
+
+  long double total_ff_num_used = 0;
+  long double calculator_d26 = total_ff_num_used;
+
+  long double total_lut_inputs_used = 0;
+
+  long double clock_network_num_used = 0;
+  long double calculator_d28 = clock_network_num_used;
+
+
+  // USER INPUTS
+  long double voltage = 0; // JSON
   long double calculator_d8 = voltage;
 
+  long double system_frequency_mhz = 100; // JSON
+  long double calculator_e9 = system_frequency_mhz;
 
-  // read inputs from json, if available:  
+  long double input_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f11 = input_activity_factor;
+  long double calculator_e11 = (calculator_e9*calculator_f11);
+
+  long double input_ff_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f12 = input_ff_activity_factor;
+  long double calculator_e12 = (calculator_e9*calculator_f12);
+  
+  // not used, input_sb_freq = total_sb_freq.
+  // long double input_sb_activity_factor = 0; // JSON (fraction of system frequency)
+  // long double calculator_f13 = input_sb_activity_factor;
+  // long double calculator_e13 = (calculator_e9*calculator_f13);
+
+  long double output_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f16 = output_activity_factor;
+  long double calculator_e16 = (calculator_e9*calculator_f16);
+
+  long double output_ff_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f17 = output_ff_activity_factor;
+  long double calculator_e17 = (calculator_e9*calculator_f17);
+
+  long double output_clb_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f18 = output_clb_activity_factor;
+  long double calculator_e18 = (calculator_e9*calculator_f18);
+
+  // total sb activity factor == routing
+  long double routing_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f21 = routing_activity_factor;
+  long double calculator_e21 = (calculator_e9*calculator_f21);
+
+  long double lut_activity_factor = 0; // JSON (fraction of system frequency)
+  long double calculator_f22 = lut_activity_factor;
+  long double calculator_e22 = (calculator_e9*calculator_f22);
+
+  // LUT-5 not used
+
+  // LUT-6 not being used in calc sheet, but used in equations.
+  long double calculator_d24 = 0;
+  long double calculator_e24 = 0;
+
+  // LUT-6 FF not used
+
+  // long double total_ff_activity_factor = 0; // JSON (fraction of system frequency)
+  // long double calculator_f26 = total_ff_activity_factor;
+  // long double calculator_e26 = (calculator_e9*calculator_f26);
+
+  // not used in our calc, as we find actual num of LUT inputs from synth log
+  // long double avg_num_lut_input_num_used = 2;
+  // long double calculator_d27 = avg_num_lut_input_num_used;
+
+  long double clock_network_activity_factor = 1; // JSON (fraction of system frequency)
+  long double calculator_f28 = clock_network_activity_factor;
+  long double calculator_e28 = (calculator_e9*calculator_f28);
+
+
+  // Check and Parse Power Estimation JSON File for User Inputs
   std::filesystem::path power_estimation_json_file;
   bool power_estimation_json_exists = false;
   json power_estimation_json;
   
-  power_estimation_json_file = std::filesystem::path(m_projManager->projectPath())/std::string("power_estimation.json");
+  power_estimation_json_file = 
+    std::filesystem::path(m_projManager->projectPath())/std::string(m_projManager->projectName() + "_power.json");
   if (FileUtils::FileExists(power_estimation_json_file)) {
     power_estimation_json_exists = true;
   }
   else {
-    power_estimation_json_file = std::filesystem::path(m_projManager->projectPath())/std::filesystem::path("..")/std::string("power_estimation.json");
+    power_estimation_json_file = 
+      std::filesystem::path(m_projManager->projectPath())/std::filesystem::path("..")/std::string(m_projManager->projectName() + "_power.json");
     if (FileUtils::FileExists(power_estimation_json_file)) {
       power_estimation_json_exists = true;
     }
@@ -6164,161 +6236,443 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   std::ifstream power_estimation_json_f(power_estimation_json_file.string());
   power_estimation_json = json::parse(power_estimation_json_f);
 
-  array_x = power_estimation_json["power_inputs"]["array_x"];
-  array_y = power_estimation_json["power_inputs"]["array_y"];
-  input_num_used = power_estimation_json["power_inputs"]["input_num_used"];
-  input_avg_freq_mhz = power_estimation_json["power_inputs"]["input_avg_freq_mhz"];
-  input_ff_num_used = power_estimation_json["power_inputs"]["input_ff_num_used"];
-  input_ff_avg_freq_mhz = power_estimation_json["power_inputs"]["input_ff_avg_freq_mhz"];
-  // input_sb_num_used = power_estimation_json["power_inputs"]["input_sb_num_used"];
-  input_sb_avg_freq_mhz = power_estimation_json["power_inputs"]["input_sb_avg_freq_mhz"];
-  output_num_used = power_estimation_json["power_inputs"]["output_num_used"];
-  output_avg_freq_mhz = power_estimation_json["power_inputs"]["output_avg_freq_mhz"];
-  output_ff_num_used = power_estimation_json["power_inputs"]["output_ff_num_used"];
-  output_ff_avg_freq_mhz = power_estimation_json["power_inputs"]["output_ff_avg_freq_mhz"];
-  total_sb_num_used = power_estimation_json["power_inputs"]["total_sb_num_used"];
-  total_sb_avg_freq_mhz = power_estimation_json["power_inputs"]["total_sb_avg_freq_mhz"];
-  total_lut_num_used = power_estimation_json["power_inputs"]["total_lut_num_used"];
-  total_lut_avg_freq_mhz = power_estimation_json["power_inputs"]["total_lut_avg_freq_mhz"];
-  lut6_num_used = power_estimation_json["power_inputs"]["lut6_num_used"];
-  lut6_avg_freq_mhz = power_estimation_json["power_inputs"]["lut6_avg_freq_mhz"];
-  avg_num_lut_input_num_used = power_estimation_json["power_inputs"]["avg_num_lut_input_num_used"];
-  clock_network_num_used = power_estimation_json["power_inputs"]["clock_network_num_used"];
-  clock_network_avg_freq_mhz = power_estimation_json["power_inputs"]["clock_network_avg_freq_mhz"];
-  voltage = power_estimation_json["power_inputs"]["voltage"];
+  // debug prints?
+  bool power_estimation_dbg = false;
+  if( (power_estimation_json.contains("options")) &&
+      (power_estimation_json["options"].contains("debug")) &&
+      power_estimation_json["options"]["debug"].get<std::string>() == "enabled") {
 
+    power_estimation_dbg = true;
+  }
+
+
+  // Parse Log Files and Extract Design Inputs
+  std::string synthesis_rpt;
+  std::filesystem::path synthesis_rpt_filepath = std::filesystem::path(m_projManager->projectPath())/std::string("synthesis.rpt");
+  if (!FileUtils::FileExists(synthesis_rpt_filepath)) {
+    ErrorMessage("synthesis.rpt does not exist!");
+  }
+  else {
+    // get it into a ifstream
+    std::ifstream stream(synthesis_rpt_filepath.string());
+      
+    if (stream.good()) {
+      synthesis_rpt = 
+        std::string((std::istreambuf_iterator<char>(stream)),
+                      std::istreambuf_iterator<char>());
+        stream.close();
+    }
+  }
+
+  std::string routing_rpt;
+  std::filesystem::path routing_rpt_filepath = std::filesystem::path(m_projManager->projectPath())/std::string("routing.rpt");
+  if (!FileUtils::FileExists(routing_rpt_filepath)) {
+    ErrorMessage("routing.rpt does not exist!");
+  }
+  else {
+    // get it into a ifstream
+    std::ifstream stream(routing_rpt_filepath.string());
+      
+    if (stream.good()) {
+      routing_rpt = 
+        std::string((std::istreambuf_iterator<char>(stream)),
+                      std::istreambuf_iterator<char>());
+        stream.close();
+    }
+  }
+
+  // use regex for all matching
+  std::regex regex;
+  std::smatch smatches;
+  bool found;
+
+
+  // array_x, array_y
+  // from routing.rpt
+  // FPGA sized to 6 x 6: 36 grid tiles (4x4)
+  // (XxY)=(4x4)
+  regex = std::regex("FPGA sized to (\\d+) x (\\d+): (\\d+) grid tiles \\((\\d+)x(\\d+)\\)", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[4]) >> array_x;
+    std::stringstream(smatches[5]) >> array_y;
+  }
+  if(power_estimation_dbg) Message("array_x: " + std::to_string(array_x));
+  if(power_estimation_dbg) Message("array_y: " + std::to_string(array_y));
   calculator_d6 = array_x;
-
   calculator_d7 = array_y;
 
-  calculator_d10 = input_num_used;
-  calculator_e10 = input_avg_freq_mhz;
 
-  calculator_d11 = input_ff_num_used;
-  calculator_e11 = input_ff_avg_freq_mhz;
+  // input_num_used
+  // from routing.rpt
+  //    .input     :       3
+  regex = std::regex("\\.input\\s+:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> input_num_used;
+  }
+  if(power_estimation_dbg) Message("input_num_used: " + std::to_string(input_num_used));
+  calculator_d11 = input_num_used;
 
-  // calculator_d12 = input_sb_num_used;
-  calculator_e12 = input_sb_avg_freq_mhz;
 
-  calculator_d15 = output_num_used;
-  calculator_e15 = output_avg_freq_mhz;
+  // input_ff_num_used
+  // ignored in calc currently
 
-  calculator_d16 = output_ff_num_used;
-  calculator_e16 = output_ff_avg_freq_mhz;
 
-  calculator_d20 = total_sb_num_used;
-  calculator_e20 = total_sb_avg_freq_mhz;
+  // input_sb_num_used
+  // ignored in calc currently
 
-  calculator_d21 = total_lut_num_used;
-  calculator_e21 = total_lut_avg_freq_mhz;
 
-  calculator_d23 = lut6_num_used;
-  calculator_e23 = lut6_avg_freq_mhz;
+  // output_num_used
+  // from routing.rpt
+  //    .output    :      16
+  regex = std::regex("\\.output\\s+:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> output_num_used;
+  }
+  if(power_estimation_dbg) Message("output_num_used: " + std::to_string(output_num_used));
+  calculator_d16 = output_num_used;
 
-  calculator_d26 = avg_num_lut_input_num_used;
 
-  calculator_d27 = clock_network_num_used;
-  calculator_e27 = clock_network_avg_freq_mhz;
+  // output_ff_num_used
+  // ignored in calc currently
 
+
+  // total_sb_num_used = L1 + L4 used
+  // from routing.rpt
+  // Total wiring segments used: 139
+  regex = std::regex("Total wiring segments used:\\s+(\\d+)[\\s\\S]+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> total_sb_num_used;
+  }
+  if(power_estimation_dbg) Message("total_sb_num_used: " + std::to_string(total_sb_num_used));
+  calculator_d21 = total_sb_num_used;
+
+  // alternatively, with hotfix addition of LOGs in segment_stats.cpp:
+  // // from routing.rpt
+  // // Segment usage by type (index): name type utilization
+  // //  ---- ---- -----------
+  // //    L1    0      0.0792
+  // //    L4    1      0.0651
+  // // MODIFIED:
+  // // Segment usage by type (index): name type utilization
+  // //                              ---- ---- -----------
+  // //                                L1    0      0.0396
+  // //                              L1_O   57
+  // //                              L1_C 1440
+  // //                                L4    1      0.0325
+  // //                              L4_O   82
+  // //                              L4_C 2520
+  // int L1_occupied;
+  // int L1_capacity;
+  // int L4_occupied;
+  // int L4_capacity;
+  // regex = std::regex("L1_O\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  // found = std::regex_search ( routing_rpt, smatches, regex );
+  // if(found) {
+  //   std::stringstream(smatches[1]) >> L1_occupied;
+  // }
+  // Message("L1_occupied: " + std::to_string(L1_occupied));
+
+  // regex = std::regex("L1_C\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  // found = std::regex_search ( routing_rpt, smatches, regex );
+  // if(found) {
+  //   std::stringstream(smatches[1]) >> L1_capacity;
+  // }
+  // Message("L1_capacity: " + std::to_string(L1_capacity));
+
+  // regex = std::regex("L4_O\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  // found = std::regex_search ( routing_rpt, smatches, regex );
+  // if(found) {
+  //   std::stringstream(smatches[1]) >> L4_occupied;
+  // }
+  // Message("L4_occupied: " + std::to_string(L4_occupied));
+
+  // regex = std::regex("L4_C\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  // found = std::regex_search ( routing_rpt, smatches, regex );
+  // if(found) {
+  //   std::stringstream(smatches[1]) >> L4_capacity;
+  // }
+  // Message("L4_capacity: " + std::to_string(L4_capacity));
+  // total_sb_num_used = L1_occupied + L4_occupied;
+  // Message("total_sb_num_used: " + std::to_string(total_sb_num_used));
+  // calculator_d21 = total_sb_num_used;
+
+
+  // total_lut_num_used
+  // from: synthesis.rpt
+  // from: synthesis.rpt
+  // Combining LUTs.
+  // Number of LUTs:       18
+  regex = std::regex("Combining LUTs[\\s\\S]+Number of LUTs:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> total_lut_num_used;
+  }
+  if(power_estimation_dbg) Message("total_lut_num_used: " + std::to_string(total_lut_num_used));
+  calculator_d22 = total_lut_num_used;
+
+  // total_lut5_ff_num_used
+  // ignored in calc currently
+
+
+  // total_lut6_num_used
+  // ignored in calc currently
+
+
+  // total_lut6_ff_num_used
+  // ignored in calc currently
+
+
+  // total_ff_num_used
+  // from routing.rpt
+  //     dffsre     :      16
+  regex = std::regex("dffsre\\s+:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> total_ff_num_used;
+  }
+  if(power_estimation_dbg) Message("total_ff_num_used: " + std::to_string(total_ff_num_used));
+  calculator_d26 = total_ff_num_used;
+
+
+  // avg_num_lut_input_num_used
+  // from this we have: total_lut_inputs_used = total_lut_num_used*avg_num_lut_input_num_used
+  // **INSTEAD**, we get directly: total_lut_inputs_used
+  // total_lut_inputs_used= 1-LUTx1 + 2-LUTx2 + 3-LUTx3 + 4-LUTx4 + 5-LUTx5 + 6-LUTx6
+  // input_cbx_cby_num_used = input_xbar_num_used = total_lut_inputs_used
+  // from: synthesis.rpt
+  // Combining LUTs.
+  // Number of LUTs:       18
+  //   1-LUT                1
+  //   2-LUT               15
+  //   3-LUT                1
+  //   4-LUT                1
+  //   5-LUT                1
+  //   6-LUT                1
+  int used_1LUT = 0;
+  int used_2LUT = 0;
+  int used_3LUT = 0;
+  int used_4LUT = 0;
+  int used_5LUT = 0;
+  int used_6LUT = 0;
+  regex = std::regex("Combining LUTs[\\s\\S]+1-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_1LUT;
+  }
+  if(power_estimation_dbg) Message("used_1LUT: " + std::to_string(used_1LUT));
+
+  regex = std::regex("Combining LUTs[\\s\\S]+2-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_2LUT;
+  }
+  if(power_estimation_dbg) Message("used_2LUT: " + std::to_string(used_2LUT));
+
+  regex = std::regex("Combining LUTs[\\s\\S]+3-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_3LUT;
+  }
+  if(power_estimation_dbg) Message("used_3LUT: " + std::to_string(used_3LUT));
+
+  regex = std::regex("Combining LUTs[\\s\\S]+4-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_4LUT;
+  }
+  if(power_estimation_dbg) Message("used_4LUT: " + std::to_string(used_4LUT));
+
+  regex = std::regex("Combining LUTs[\\s\\S]+5-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_5LUT;
+  }
+  if(power_estimation_dbg) Message("used_5LUT: " + std::to_string(used_5LUT));
+
+  regex = std::regex("Combining LUTs[\\s\\S]+6-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( synthesis_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> used_6LUT;
+  }
+  if(power_estimation_dbg) Message("used_6LUT: " + std::to_string(used_6LUT));
+
+  total_lut_inputs_used = (used_1LUT*1) +
+                          (used_2LUT*2) +
+                          (used_3LUT*3) +
+                          (used_4LUT*4) +
+                          (used_5LUT*5) +
+                          (used_6LUT*6);
+
+  if(power_estimation_dbg) Message("total_lut_inputs_used: " + std::to_string(total_lut_inputs_used));
+
+  // clock_network_num_used
+  // from routing.rpt
+  // Netlist Clocks: 1
+  regex = std::regex("Netlist Clocks:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> clock_network_num_used;
+  }
+  if(power_estimation_dbg) Message("clock_network_num_used: " + std::to_string(clock_network_num_used));
+  calculator_d28 = clock_network_num_used;
+
+
+  // read inputs from power estimation json, if available:
+
+  voltage = power_estimation_json["power_inputs"]["voltage"];
   calculator_d8 = voltage;
 
+  system_frequency_mhz = power_estimation_json["power_inputs"]["system_frequency_mhz"];
+  calculator_e9 = system_frequency_mhz;
+
+  input_activity_factor = power_estimation_json["power_inputs"]["input_activity_factor"];
+  calculator_f11 = input_activity_factor;
+  calculator_e11 = (calculator_e9*calculator_f11);
+
+  // input_ff_activity_factor
+  // calculator_f12 = input_ff_activity_factor;
+  // calculator_e12 = (calculator_e9*calculator_f12);
+
+  output_activity_factor = power_estimation_json["power_inputs"]["output_activity_factor"];
+  calculator_f16 = output_activity_factor;
+  calculator_e16 = (calculator_e9*calculator_f16);
+
+  // output_ff_activity_factor
+  // calculator_f17 = output_ff_activity_factor;
+  // calculator_e17 = (calculator_e9*calculator_f17);
+
+  output_clb_activity_factor = power_estimation_json["power_inputs"]["output_clb_activity_factor"];
+  calculator_f18 = output_clb_activity_factor;
+  calculator_e18 = (calculator_e9*calculator_f18);
+
+  routing_activity_factor = power_estimation_json["power_inputs"]["routing_activity_factor"];
+  calculator_f21 = routing_activity_factor;
+  calculator_e21 = (calculator_e9*calculator_f21);
+
+  lut_activity_factor = power_estimation_json["power_inputs"]["lut_activity_factor"];
+  calculator_f22 = lut_activity_factor;
+  calculator_e22 = (calculator_e9*calculator_f22);
+
+  // total_ff_activity_factor = power_estimation_json["power_inputs"]["ff_activity_factor"];
+  // calculator_f26 = total_ff_activity_factor;
+  // calculator_e26 = (calculator_e9*calculator_f26);
+
+  clock_network_activity_factor = power_estimation_json["power_inputs"]["clock_network_activity_factor"];
+  calculator_f28 = clock_network_activity_factor;
+  calculator_e28 = (calculator_e9*calculator_f28);
+
+
   // automatic inputs which get values from other inputs
-  long double input_cbx_cby_num_used = calculator_d21 * calculator_d26;
-  long double calculator_d13 = input_cbx_cby_num_used;
-  long double input_cbx_cby_avg_freq_mhz = calculator_e10;
-  long double calculator_e13 = input_cbx_cby_avg_freq_mhz;
 
-  long double input_xbar_num_used = calculator_d21 * calculator_d26;
-  long double calculator_d14 = input_xbar_num_used;
-  long double input_xbar_avg_freq_mhz = calculator_e10;
-  long double calculator_e14 = input_xbar_avg_freq_mhz;
+  // input_sb_freq = total_sb_freq (routing_factor * sys_freq)
+  long double calculator_e13 = calculator_e21;
 
-  long double output_clb_num_used = calculator_d15;
-  long double calculator_d17 = output_clb_num_used;
-  long double output_clb_avg_freq_mhz = calculator_e15;
-  long double calculator_e17 = output_clb_avg_freq_mhz;
+  // long double input_cbx_cby_num_used = calculator_d21 * calculator_d26; // use total_lut_inputs_used instead
+  long double input_cbx_cby_num_used = total_lut_inputs_used;
+  long double calculator_d14 = input_cbx_cby_num_used;
+  long double input_cbx_cby_avg_freq_mhz = calculator_e11;
+  long double calculator_e14 = input_cbx_cby_avg_freq_mhz;
 
-  // long double output_sb_num_used = 0;
-  // long double calculator_d18 = output_sb_num_used;
-  long double output_sb_avg_freq_mhz = calculator_e20;
-  long double calculator_e18 = output_sb_avg_freq_mhz;
+  // long double input_xbar_num_used = calculator_d21 * calculator_d26; // use total_lut_inputs_used instead
+  long double input_xbar_num_used = total_lut_inputs_used;
+  long double calculator_d15 = input_xbar_num_used;
+  long double input_xbar_avg_freq_mhz = calculator_e11;
+  long double calculator_e15 = input_xbar_avg_freq_mhz;
+
+  long double output_clb_num_used = calculator_d22;
+  long double calculator_d18 = output_clb_num_used;
+
+  long double output_sb_avg_freq_mhz = calculator_e21;
+  long double calculator_e19 = output_sb_avg_freq_mhz;
   
-  long double output_cbxy_num_used = calculator_d15;
-  long double calculator_d19 = output_cbxy_num_used;
-  long double output_cbxy_avg_freq_mhz = calculator_e15;
-  long double calculator_e19 = output_cbxy_avg_freq_mhz;
+  long double output_cbx_cby_num_used = calculator_d16;
+  long double calculator_d20 = output_cbx_cby_num_used;
+  long double output_cbxy_avg_freq_mhz = calculator_e16;
+  long double calculator_e20 = output_cbxy_avg_freq_mhz;
 
-  // long double lut5_ff_num_used = 0; //?
-  // long double calculator_d22 = lut5_ff_num_used; //?
-  long double lut5_ff_avg_freq_mhz = calculator_e21;
-  long double calculator_e22 = lut5_ff_avg_freq_mhz;
+  long double lut5_ff_avg_freq_mhz = calculator_e22;
+  long double calculator_e23 = lut5_ff_avg_freq_mhz;
 
-  // long double lut6_ff_num_used = 0; //?
-  // long double calculator_d24 = lut6_ff_num_used; //?
-  long double lut6_ff_avg_freq_mhz = calculator_e23;
-  long double calculator_e24 = lut6_ff_avg_freq_mhz;
+  // long double lut6_ff_num_used = 0;
+  // long double calculator_d24 = lut6_ff_num_used;
 
-  long double total_ff_only_num_used = 0; //?
-  long double calculator_d25 = total_ff_only_num_used; //?
-  // long double total_ff_only_avg_freq_mhz = calculator_e27/12.5;
-  // long double calculator_e25 = total_ff_only_avg_freq_mhz;
+  long double lut6_ff_avg_freq_mhz = calculator_e24;
+  long double calculator_e25 = lut6_ff_avg_freq_mhz;
+
+  
 
   // calculate dynamic power
-  long double dynamic_o5 = (dynamic_k5 * calculator_e27/2 * calculator_e27/2) + (dynamic_l5 * calculator_e27/2) + dynamic_m5;
-  long double dynamic_o6 = (dynamic_k6 * calculator_e10 * calculator_e10) + (dynamic_l6* calculator_e10) + dynamic_m6;
-  long double dynamic_o7 = (dynamic_k7 * calculator_e11 * calculator_e11) + (dynamic_l7 * calculator_e11) + dynamic_m7;
-  long double dynamic_o8 = (dynamic_k8 * calculator_e12 * calculator_e12) + (dynamic_l8 * calculator_e12) + dynamic_m8;
-  long double dynamic_o9 = (dynamic_k9 * calculator_e13 * calculator_e13) + (dynamic_l9 * calculator_e13) + dynamic_m9;
-  long double dynamic_o10 = (dynamic_k10 * calculator_e14 * calculator_e14) + (dynamic_l10 * calculator_e14) + dynamic_m10;
-  long double dynamic_o12 = (dynamic_k12 * calculator_e15 * calculator_e15) + (dynamic_l12 * calculator_e15) + dynamic_m12;
-  long double dynamic_o13 = (dynamic_k13 * calculator_e16 * calculator_e16) + (dynamic_l13 * calculator_e16) + dynamic_m13;
-  long double dynamic_o14 = (dynamic_k14 * calculator_e18 * calculator_e18) + (dynamic_l14 * calculator_e18) + dynamic_m14;
-  long double dynamic_o15 = (dynamic_k15 * calculator_e19 * calculator_e19) + (dynamic_l15 * calculator_e19) + dynamic_m15;
-  long double dynamic_o16 = (dynamic_k16 * calculator_e17 * calculator_e17) + (dynamic_l16 * calculator_e17) + dynamic_m16;
-  long double dynamic_o35 = (dynamic_k35 * calculator_e21 * calculator_e21) + (dynamic_l35 * calculator_e21) + dynamic_m35;
-  long double dynamic_o36 = (dynamic_k36 * calculator_e22 * calculator_e22) + (dynamic_l36 * calculator_e22) + dynamic_m36;
-  long double dynamic_o37 = (dynamic_k37 * calculator_e23 * calculator_e23) + (dynamic_l37 * calculator_e23) + dynamic_m37;
-  long double dynamic_o38 = (dynamic_k38 * calculator_e24 * calculator_e24) + (dynamic_l38 * calculator_e24) + dynamic_m38;
+  long double dynamic_o5 = (dynamic_k5 * calculator_e28 * calculator_e28) + (dynamic_l5 * calculator_e28) + dynamic_m5;
+  long double dynamic_o6 = (dynamic_k6 * calculator_e11 * calculator_e11) + (dynamic_l6* calculator_e11) + dynamic_m6;
+  long double dynamic_o7 = (dynamic_k7 * calculator_e12 * calculator_e12) + (dynamic_l7 * calculator_e12) + dynamic_m7;
+  long double dynamic_o8 = (dynamic_k8 * calculator_e13 * calculator_e13) + (dynamic_l8 * calculator_e13) + dynamic_m8;
+  long double dynamic_o9 = (dynamic_k9 * calculator_e14 * calculator_e14) + (dynamic_l9 * calculator_e14) + dynamic_m9;
+  long double dynamic_o10 = (dynamic_k10 * calculator_e15 * calculator_e15) + (dynamic_l10 * calculator_e15) + dynamic_m10;
+  long double dynamic_o12 = (dynamic_k12 * calculator_e16 * calculator_e16) + (dynamic_l12 * calculator_e16) + dynamic_m12;
+  long double dynamic_o13 = (dynamic_k13 * calculator_e17 * calculator_e17) + (dynamic_l13 * calculator_e17) + dynamic_m13;
+  long double dynamic_o14 = (dynamic_k14 * calculator_e19 * calculator_e19) + (dynamic_l14 * calculator_e19) + dynamic_m14;
+  long double dynamic_o15 = (dynamic_k15 * calculator_e20 * calculator_e20) + (dynamic_l15 * calculator_e20) + dynamic_m15;
+  long double dynamic_o16 = (dynamic_k16 * calculator_e18 * calculator_e18) + (dynamic_l16 * calculator_e18) + dynamic_m16;
+  long double dynamic_o35 = (((dynamic_k35 * calculator_e22 * calculator_e22) + (dynamic_l35 * calculator_e22) + dynamic_m35)/2);
+  long double dynamic_o36 = (((dynamic_k36 * calculator_e23 * calculator_e23) + (dynamic_l36 * calculator_e23) + dynamic_m36)/2);
+  long double dynamic_o37 = (dynamic_k37 * calculator_e24 * calculator_e24) + (dynamic_l37 * calculator_e24) + dynamic_m37;
+  long double dynamic_o38 = (dynamic_k38 * calculator_e25 * calculator_e25) + (dynamic_l38 * calculator_e25) + dynamic_m38;
 
-  // Message("dynamic_o5: " + std::to_string(dynamic_o5));
-  // Message("dynamic_o6: " + std::to_string(dynamic_o6));
-  // Message("dynamic_o7: " + std::to_string(dynamic_o7));
-  // Message("dynamic_o8: " + std::to_string(dynamic_o8));
-  // Message("dynamic_o9: " + std::to_string(dynamic_o9));
-  // Message("dynamic_o10: " + std::to_string(dynamic_o10));
-  // Message("dynamic_o12: " + std::to_string(dynamic_o12));
-  // Message("dynamic_o13: " + std::to_string(dynamic_o13));
-  // Message("dynamic_o14: " + std::to_string(dynamic_o14));
-  // Message("dynamic_o15: " + std::to_string(dynamic_o15));
-  // Message("dynamic_o16: " + std::to_string(dynamic_o16));
-  // Message("dynamic_o35: " + std::to_string(dynamic_o35));
-  // Message("dynamic_o36: " + std::to_string(dynamic_o36));
-  // Message("dynamic_o37: " + std::to_string(dynamic_o37));
-  // Message("dynamic_o38: " + std::to_string(dynamic_o38));
+  if(power_estimation_dbg) {
+    Message("dynamic_o5: " + std::to_string(dynamic_o5));
+    Message("dynamic_o6: " + std::to_string(dynamic_o6));
+    Message("dynamic_o7: " + std::to_string(dynamic_o7));
+    Message("dynamic_o8: " + std::to_string(dynamic_o8));
+    Message("dynamic_o9: " + std::to_string(dynamic_o9));
+    Message("dynamic_o10: " + std::to_string(dynamic_o10));
+    Message("dynamic_o12: " + std::to_string(dynamic_o12));
+    Message("dynamic_o13: " + std::to_string(dynamic_o13));
+    Message("dynamic_o14: " + std::to_string(dynamic_o14));
+    Message("dynamic_o15: " + std::to_string(dynamic_o15));
+    Message("dynamic_o16: " + std::to_string(dynamic_o16));
+    Message("dynamic_o35: " + std::to_string(dynamic_o35));
+    Message("dynamic_o36: " + std::to_string(dynamic_o36));
+    Message("dynamic_o37: " + std::to_string(dynamic_o37));
+    Message("dynamic_o38: " + std::to_string(dynamic_o38));
+  }
+
+
+  // calculate clock network inputs
+  long double clock_network_n93 = dynamic_o5 / clock_network_l90;
+  long double clock_network_t96 = clock_network_n93 * clock_network_p95;
+
+  if(power_estimation_dbg) Message("clock_network_n93: " + std::to_string(clock_network_n93));
+  if(power_estimation_dbg) Message("clock_network_t96: " + std::to_string(clock_network_t96));
 
 
   power_estimate_dynamic_mW = 
     (
-    (calculator_d10 * dynamic_o6) +
-    (calculator_d11 * dynamic_o7) +
-    (calculator_d20 * (dynamic_o8 + dynamic_o14)/2) +
-    (calculator_d13 * dynamic_o9) +
-    (calculator_d14 * dynamic_o10)
+    (calculator_d11 * dynamic_o6) +
+    (calculator_d12 * dynamic_o7) +
+    (calculator_d21 * (dynamic_o8 + dynamic_o14)/2) +
+    (calculator_d14 * dynamic_o9) +
+    (calculator_d15 * dynamic_o10)
     +
-    (calculator_d15 * dynamic_o12) +
-    (calculator_d16 * dynamic_o13) +
-    (calculator_d19 * dynamic_o15) +
-    (calculator_d17 * dynamic_o16)
+    (calculator_d16 * dynamic_o12) +
+    (calculator_d17 * dynamic_o13) +
+    (calculator_d20 * dynamic_o15) +
+    (calculator_d18 * dynamic_o16)
     +
-    (calculator_d21 * dynamic_o35) +
-    (calculator_d23 * dynamic_o37)
+    (calculator_d22 * dynamic_o35) +
+    (calculator_d24 * dynamic_o37)
     +
-    (std::max((dynamic_o36 - dynamic_o35), (dynamic_o38 - dynamic_o37)) * calculator_d25)
+    (std::max((dynamic_o36 - dynamic_o35), (dynamic_o38 - dynamic_o37)) * calculator_d26)
     +
-    (calculator_d27 * dynamic_o5)
+    (calculator_d28 * (std::ceil(calculator_d26/(80*clock_network_n97)) * clock_network_t96 ))
     )
     /
-    (0.8 * 0.8 * calculator_d8 * calculator_d8);
+    (0.8 * 0.8)
+    * 
+    (calculator_d8 * calculator_d8);
 
 
   // calculate leakage power
@@ -6331,7 +6685,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double leakage_k10 = leakage_g10 * calculator_d6;
   long double leakage_k11 = leakage_g11 * calculator_d6 * calculator_d7;
   long double leakage_k12 = leakage_g12 * calculator_d6;
-  long double leakage_k13 = leakage_g14 * calculator_d7;
+  long double leakage_k13 = leakage_g13 * calculator_d7;
   long double leakage_k14 = leakage_g14 * calculator_d7;
   long double leakage_k15 = leakage_g15 * calculator_d6;
   long double leakage_k16 = leakage_g16;
@@ -6342,7 +6696,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double leakage_k21 = leakage_g21 * (calculator_d6 - 1);
   long double leakage_k22 = leakage_g22;
   long double leakage_k23 = leakage_g23 * (calculator_d7 - 1);
-  long double leakage_k24 = 0;
+  long double leakage_k24 = leakage_g24;
 
   power_estimate_leakge_mW = 
     (

@@ -55,9 +55,11 @@ set (SRC_CPP_LIST
   CompilerOpenFPGA_ql.cpp
   WorkerThread.cpp
   TaskTableView.cpp
-  TaskModel.cpp
+  #TaskModel.cpp
+  TaskModel_ql.cpp
   Task.cpp
-  TaskManager.cpp
+  #TaskManager.cpp
+  TaskManager_ql.cpp
   CompilerDefines.cpp
   Log.cpp
   Reports/AbstractReportManager.cpp
