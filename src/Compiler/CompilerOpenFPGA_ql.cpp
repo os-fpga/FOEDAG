@@ -4366,14 +4366,11 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   if(power_estimates[0] != 0 && power_estimates[1] != 0 && power_estimates[2] != 0) {
 
     // write power analysis to console
-    Message("\n\n");
-    Message("##################################################");
-    Message("Power Estimation");
-    Message("##################################################");
+    Message("");
     Message("Dynamic Power = " + std::to_string(power_estimates[0]) + " mW");
     Message("Leakage Power = " + std::to_string(power_estimates[1]) + " mW");
     Message("Total Power   = " + std::to_string(power_estimates[2]) + " mW");
-    Message("##################################################\n\n");
+    Message("");
 
     // write power analysis into file
     std::filesystem::path power_analysis_rpt_filepath = 
@@ -6267,13 +6264,26 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   std::ifstream power_estimation_json_f(power_estimation_json_file.string());
   power_estimation_json = json::parse(power_estimation_json_f);
 
-  // debug prints?
+  // enable debug prints if specified in JSON
   bool power_estimation_dbg = false;
-  if( (power_estimation_json.contains("options")) &&
-      (power_estimation_json["options"].contains("debug")) &&
-      power_estimation_json["options"]["debug"].get<std::string>() == "enabled") {
+  std::ofstream power_analysis_debug_rpt;
+  if( (power_estimation_json["power_inputs"].contains("debug")) &&
+      power_estimation_json["power_inputs"]["debug"].get<std::string>() == "enabled") {
 
     power_estimation_dbg = true;
+
+    // write power analysis debug prints into file
+    std::filesystem::path power_analysis_debug_rpt_filepath = 
+      std::filesystem::path(ProjManager()->projectPath()) / std::string("power_analysis_debug.rpt");
+
+    power_analysis_debug_rpt.open(power_analysis_debug_rpt_filepath);
+
+    if(!power_analysis_debug_rpt) {
+      ErrorMessage("File: " + power_analysis_debug_rpt_filepath.string() + " could not be opened");
+      return power_estimates;
+    }
+
+    power_analysis_debug_rpt << "Power Analysis Debug" << "\n\n";
   }
 
 
@@ -6329,7 +6339,9 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[5]) >> array_y;
   }
   if(power_estimation_dbg) Message("array_x: " + std::to_string(array_x));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "array_x: " << std::to_string(array_x) << "\n";
   if(power_estimation_dbg) Message("array_y: " + std::to_string(array_y));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "array_y: " << std::to_string(array_y) << "\n";
   calculator_d6 = array_x;
   calculator_d7 = array_y;
 
@@ -6343,6 +6355,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> input_num_used;
   }
   if(power_estimation_dbg) Message("input_num_used: " + std::to_string(input_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "input_num_used: " << std::to_string(input_num_used) << "\n";
   calculator_d11 = input_num_used;
 
 
@@ -6363,6 +6376,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> output_num_used;
   }
   if(power_estimation_dbg) Message("output_num_used: " + std::to_string(output_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "output_num_used: " << std::to_string(output_num_used) << "\n";
   calculator_d16 = output_num_used;
 
 
@@ -6379,6 +6393,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> total_sb_num_used;
   }
   if(power_estimation_dbg) Message("total_sb_num_used: " + std::to_string(total_sb_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "total_sb_num_used: " << std::to_string(total_sb_num_used) << "\n";
   calculator_d21 = total_sb_num_used;
 
   // alternatively, with hotfix addition of LOGs in segment_stats.cpp:
@@ -6443,6 +6458,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> total_lut_num_used;
   }
   if(power_estimation_dbg) Message("total_lut_num_used: " + std::to_string(total_lut_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "total_lut_num_used: " << std::to_string(total_lut_num_used) << "\n";
   calculator_d22 = total_lut_num_used;
 
   // total_lut5_ff_num_used
@@ -6466,6 +6482,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> total_ff_num_used;
   }
   if(power_estimation_dbg) Message("total_ff_num_used: " + std::to_string(total_ff_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "total_ff_num_used: " << std::to_string(total_ff_num_used) << "\n";
   calculator_d26 = total_ff_num_used;
 
 
@@ -6495,6 +6512,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_1LUT;
   }
   if(power_estimation_dbg) Message("used_1LUT: " + std::to_string(used_1LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_1LUT: " << std::to_string(used_1LUT) << "\n";
 
   regex = std::regex("Combining LUTs[\\s\\S]+2-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( synthesis_rpt, smatches, regex );
@@ -6502,6 +6520,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_2LUT;
   }
   if(power_estimation_dbg) Message("used_2LUT: " + std::to_string(used_2LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_2LUT: " << std::to_string(used_2LUT) << "\n";
 
   regex = std::regex("Combining LUTs[\\s\\S]+3-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( synthesis_rpt, smatches, regex );
@@ -6509,6 +6528,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_3LUT;
   }
   if(power_estimation_dbg) Message("used_3LUT: " + std::to_string(used_3LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_3LUT: " << std::to_string(used_3LUT) << "\n";
 
   regex = std::regex("Combining LUTs[\\s\\S]+4-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( synthesis_rpt, smatches, regex );
@@ -6516,6 +6536,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_4LUT;
   }
   if(power_estimation_dbg) Message("used_4LUT: " + std::to_string(used_4LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_4LUT: " << std::to_string(used_4LUT) << "\n";
 
   regex = std::regex("Combining LUTs[\\s\\S]+5-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( synthesis_rpt, smatches, regex );
@@ -6523,6 +6544,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_5LUT;
   }
   if(power_estimation_dbg) Message("used_5LUT: " + std::to_string(used_5LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_5LUT: " << std::to_string(used_5LUT) << "\n";
 
   regex = std::regex("Combining LUTs[\\s\\S]+6-LUT\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( synthesis_rpt, smatches, regex );
@@ -6530,6 +6552,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> used_6LUT;
   }
   if(power_estimation_dbg) Message("used_6LUT: " + std::to_string(used_6LUT));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "used_6LUT: " << std::to_string(used_6LUT) << "\n";
 
   total_lut_inputs_used = (used_1LUT*1) +
                           (used_2LUT*2) +
@@ -6539,6 +6562,14 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
                           (used_6LUT*6);
 
   if(power_estimation_dbg) Message("total_lut_inputs_used: " + std::to_string(total_lut_inputs_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "total_lut_inputs_used: " << std::to_string(total_lut_inputs_used) << "\n";
+
+  // only for reference spreadsheet
+  long double avg_num_lut_inputs = 0;
+  avg_num_lut_inputs = (total_lut_inputs_used / total_lut_num_used);
+  if(power_estimation_dbg) Message("avg_num_lut_inputs: " + std::to_string(avg_num_lut_inputs));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "avg_num_lut_inputs: " << std::to_string(avg_num_lut_inputs) << "\n";
+
 
   // clock_network_num_used
   // from routing.rpt
@@ -6549,6 +6580,7 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     std::stringstream(smatches[1]) >> clock_network_num_used;
   }
   if(power_estimation_dbg) Message("clock_network_num_used: " + std::to_string(clock_network_num_used));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "clock_network_num_used: " << std::to_string(clock_network_num_used) << "\n";
   calculator_d28 = clock_network_num_used;
 
 
@@ -6669,6 +6701,23 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     Message("dynamic_o36: " + std::to_string(dynamic_o36));
     Message("dynamic_o37: " + std::to_string(dynamic_o37));
     Message("dynamic_o38: " + std::to_string(dynamic_o38));
+
+    power_analysis_debug_rpt << "dynamic_o5: " << std::to_string(dynamic_o5) << "\n";
+    power_analysis_debug_rpt << "dynamic_o6: " << std::to_string(dynamic_o6) << "\n";
+    power_analysis_debug_rpt << "dynamic_o7: " << std::to_string(dynamic_o7) << "\n";
+    power_analysis_debug_rpt << "dynamic_o8: " << std::to_string(dynamic_o8) << "\n";
+    power_analysis_debug_rpt << "dynamic_o9: " << std::to_string(dynamic_o9) << "\n";
+    power_analysis_debug_rpt << "dynamic_o10: " << std::to_string(dynamic_o10) << "\n";
+    power_analysis_debug_rpt << "dynamic_o12: " << std::to_string(dynamic_o12) << "\n";
+    power_analysis_debug_rpt << "dynamic_o13: " << std::to_string(dynamic_o13) << "\n";
+    power_analysis_debug_rpt << "dynamic_o14: " << std::to_string(dynamic_o14) << "\n";
+    power_analysis_debug_rpt << "dynamic_o15: " << std::to_string(dynamic_o15) << "\n";
+    power_analysis_debug_rpt << "dynamic_o16: " << std::to_string(dynamic_o16) << "\n";
+    power_analysis_debug_rpt << "dynamic_o35: " << std::to_string(dynamic_o35) << "\n";
+    power_analysis_debug_rpt << "dynamic_o36: " << std::to_string(dynamic_o36) << "\n";
+    power_analysis_debug_rpt << "dynamic_o37: " << std::to_string(dynamic_o37) << "\n";
+    power_analysis_debug_rpt << "dynamic_o38: " << std::to_string(dynamic_o38) << "\n";
+
   }
 
 
@@ -6677,7 +6726,9 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   long double clock_network_t96 = clock_network_n93 * clock_network_p95;
 
   if(power_estimation_dbg) Message("clock_network_n93: " + std::to_string(clock_network_n93));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "clock_network_n93: " << std::to_string(clock_network_n93) << "\n";
   if(power_estimation_dbg) Message("clock_network_t96: " + std::to_string(clock_network_t96));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "clock_network_t96: " << std::to_string(clock_network_t96) << "\n";
 
 
   power_estimate_dynamic_mW = 
@@ -6762,6 +6813,9 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   power_estimates.push_back(power_estimate_dynamic_mW); // dynamic power in mW
   power_estimates.push_back(power_estimate_leakge_mW); // leakage power in mW
   power_estimates.push_back(power_estimate_total_mW); // total power in mW
+
+  // close debug report
+  if(power_estimation_dbg) power_analysis_debug_rpt.close();
 
   return power_estimates;
 }
