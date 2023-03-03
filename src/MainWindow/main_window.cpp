@@ -1370,8 +1370,8 @@ void MainWindow::ipConfiguratorActionTriggered() {
       m_ipCatalogTree = ipsWidgets[0];
 
       // Update the IP Config widget when the Available IPs selection changes
-      QObject::connect(m_ipCatalogTree, &IpCatalogTree::itemSelectionChanged,
-                       this, &MainWindow::handleIpTreeSelectionChanged);
+      QObject::connect(m_ipCatalogTree, &IpCatalogTree::ipReady, this,
+                       &MainWindow::handleIpTreeSelectionChanged);
     }
 
     // update the console for input incase the IP system printed any messages
