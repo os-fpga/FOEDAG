@@ -45,6 +45,7 @@
 #include <vector>
 #include <string>
 #include <locale>
+#include <fstream>
 
 #include "Compiler/CompilerOpenFPGA_ql.h"
 #include "Compiler/Constraints.h"
@@ -4210,10 +4211,13 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 bool CompilerOpenFPGA_ql::PowerAnalysis() {
   // Using a Scope Guard so this will fire even if we exit mid function
   // This will fire when the containing function goes out of scope
+  
+#if 0 // Disable VPR Power Analysis
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", POWER_ANALYSIS_LOG);
   });
+#endif // Disable VPR Power Analysis
 
   if (!ProjManager()->HasDesign()) {
     ErrorMessage("No design specified");
@@ -4268,6 +4272,8 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   Message("##################################################");
   Message("Power Analysis for design: " + ProjManager()->projectName());
   Message("##################################################");
+
+#if 0 // Disable VPR Power Analysis
 
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
@@ -4353,17 +4359,35 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
     return false;
   }
 
+#endif // Disable VPR Power Analysis
+
   std::vector<long double> power_estimates = PowerEstimator();
 
   if(power_estimates[0] != 0 && power_estimates[1] != 0 && power_estimates[2] != 0) {
+
+    // write power analysis to console
     Message("\n\n");
     Message("##################################################");
     Message("Power Estimation");
     Message("##################################################");
     Message("Dynamic Power = " + std::to_string(power_estimates[0]) + " mW");
     Message("Leakage Power = " + std::to_string(power_estimates[1]) + " mW");
-    Message("Total Power = " + std::to_string(power_estimates[2]) + " mW");
+    Message("Total Power   = " + std::to_string(power_estimates[2]) + " mW");
     Message("##################################################\n\n");
+
+    // write power analysis into file
+    std::filesystem::path power_analysis_rpt_filepath = 
+      std::filesystem::path(ProjManager()->projectPath()) / POWER_ANALYSIS_LOG;
+    std::ofstream power_analysis_rpt;
+    power_analysis_rpt.open(power_analysis_rpt_filepath);
+    if(!power_analysis_rpt) {
+      ErrorMessage("File: " + power_analysis_rpt_filepath.string() + " could not be opened");
+      return false;
+    }
+    power_analysis_rpt << "Dynamic Power = " << std::to_string(power_estimates[0]) << " mW" << "\n";
+    power_analysis_rpt << "Leakage Power = " << std::to_string(power_estimates[1]) << " mW" << "\n";
+    power_analysis_rpt << "Total Power   = " << std::to_string(power_estimates[2]) << " mW" << "\n";
+    power_analysis_rpt.close();
   }
 
   Message("Design " + ProjManager()->projectName() + " is power analysed");
