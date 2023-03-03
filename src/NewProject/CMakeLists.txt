@@ -20,7 +20,8 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
-  new_project_dialog.cpp
+  #new_project_dialog.cpp
+  new_project_dialog_ql.cpp
   location_form.cpp
   project_type_form.cpp
   add_source_form.cpp
