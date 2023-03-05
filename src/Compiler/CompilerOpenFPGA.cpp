@@ -656,6 +656,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       auto deviceData = compiler->deviceData();
       compiler->ProjManager()->setTargetDeviceData(
           deviceData.family, deviceData.series, deviceData.package);
+      compiler->Message("Target device: " + arg);
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
