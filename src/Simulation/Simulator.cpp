@@ -160,6 +160,21 @@ void Simulator::SetSimulatorRuntimeOption(const std::string& simulation,
   }
 }
 
+void Simulator::SetSimulatorSimulationOption(const std::string& simulation,
+                                             SimulatorType type,
+                                             const std::string& options) {
+  bool ok{false};
+  auto level = ToSimulationType(simulation, ok);
+  if (ok) {
+    m_simulatorSimulationOptionMap[level][type] = options;
+  } else {
+    for (auto level : {SimulationType::RTL, SimulationType::PNR,
+                       SimulationType::Gate, SimulationType::BitstreamBackDoor,
+                       SimulationType::BitstreamFrontDoor})
+      m_simulatorSimulationOptionMap[level][type] = options;
+  }
+}
+
 void Simulator::ResetGateSimulationModel() { m_gateSimulationModels.clear(); }
 
 bool Simulator::RegisterCommands(TclInterpreter* interp) {
@@ -175,8 +190,8 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
 
-  auto simulation_options = [](void* clientData, Tcl_Interp* interp, int argc,
-                               const char* argv[]) -> int {
+  auto options = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
     if (argc > 3) {
       std::string options;
@@ -226,7 +241,42 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
     }
     return TCL_ERROR;
   };
-  interp->registerCmd("simulation_options", simulation_options, this, 0);
+  interp->registerCmd("options", options, this, 0);
+
+  auto simulation_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+    Simulator* simulator = (Simulator*)clientData;
+    if (argc > 2) {
+      std::string options;
+      for (int i = 2; i < argc; i++) {
+        std::string arg{argv[i]};
+        // skip level if available
+        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+            arg == "bitstream_bd" || arg == "bitstream_fd") {
+          continue;
+        }
+        options += arg + " ";
+      }
+      std::string level;
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
+      for (int i = 1; i < 3; i++) {
+        std::string arg = argv[i];
+        bool ok{false};
+        auto tmp = Simulator::ToSimulatorType(arg, ok);
+        if (ok) sim_tool = tmp;
+        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+            arg == "bitstream_bd" || arg == "bitstream_fd") {
+          level = arg;
+        }
+      }
+      options = StringUtils::rtrim(options);
+      simulator->SetSimulatorSimulationOption(level, sim_tool, options);
+      return TCL_OK;
+    }
+    return TCL_ERROR;
+  };
+  interp->registerCmd("simulation_options", simulation_options, this, nullptr);
+
   return ok;
 }
 
@@ -277,6 +327,16 @@ std::string Simulator::GetSimulatorRuntimeOption(SimulationType simulation,
   if (m_simulatorRuntimeOptionMap.count(simulation) != 0) {
     auto itr = m_simulatorRuntimeOptionMap[simulation].find(type);
     if (itr != m_simulatorRuntimeOptionMap[simulation].end())
+      return (*itr).second;
+  }
+  return std::string{};
+}
+
+std::string Simulator::GetSimulatorSimulationOption(SimulationType simulation,
+                                                    SimulatorType type) {
+  if (m_simulatorSimulationOptionMap.count(simulation) != 0) {
+    auto itr = m_simulatorSimulationOptionMap[simulation].find(type);
+    if (itr != m_simulatorSimulationOptionMap[simulation].end())
       return (*itr).second;
   }
   return std::string{};
@@ -689,11 +749,11 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
     }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -r -fsynopsys";
+      if (!GetSimulatorRuntimeOption(simulation, type).empty())
+        command += " " + GetSimulatorRuntimeOption(simulation, type);
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
-      if (!GetSimulatorRuntimeOption(simulation, type).empty())
-        command += " " + GetSimulatorRuntimeOption(simulation, type);
       if (!m_waveFile.empty()) {
         command += " ";
         switch (m_waveType) {
@@ -709,6 +769,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
         };
         command += m_waveFile;
       }
+      if (!GetSimulatorSimulationOption(simulation, type).empty())
+        command += " " + GetSimulatorSimulationOption(simulation, type);
       return command;
     }
     case SimulatorType::Questa:
@@ -722,7 +784,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
 }
 
 std::string Simulator::SimulationFileList(SimulationType action,
-                                          SimulatorType type) {
+                                          SimulatorType type,
+                                          const std::string& designFiles) {
   std::string fileList;
   m_compiler->CustomSimulatorSetup(action);
   if (type != SimulatorType::GHDL) {
@@ -732,7 +795,14 @@ std::string Simulator::SimulationFileList(SimulationType action,
     }
   }
 
-  for (auto path : ProjManager()->includePathList()) {
+  // macroses
+  for (auto& macro_value : ProjManager()->macroList()) {
+    fileList += MacroDirective(type) + macro_value.first + "=" +
+                macro_value.second + " ";
+  }
+
+  // includes
+  for (const auto& path : ProjManager()->includePathList()) {
     fileList += IncludeDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
 
@@ -743,7 +813,7 @@ std::string Simulator::SimulationFileList(SimulationType action,
       const std::string& fileNames = lang_file.second;
       std::vector<std::string> files;
       StringUtils::tokenize(fileNames, " ", files);
-      for (auto file : files) {
+      for (const auto& file : files) {
         std::filesystem::path filePath = file;
         filePath = filePath.parent_path();
         const std::string& path = filePath.string();
@@ -760,7 +830,7 @@ std::string Simulator::SimulationFileList(SimulationType action,
       const std::string& fileNames = lang_file.second;
       std::vector<std::string> files;
       StringUtils::tokenize(fileNames, " ", files);
-      for (auto file : files) {
+      for (const auto& file : files) {
         std::filesystem::path filePath = file;
         filePath = filePath.parent_path();
         const std::string& path = filePath.string();
@@ -773,20 +843,28 @@ std::string Simulator::SimulationFileList(SimulationType action,
     }
   }
 
-  for (auto path : ProjManager()->libraryPathList()) {
+  // libraries
+  for (const auto& path : ProjManager()->libraryPathList()) {
     fileList += LibraryPathDirective(type) + FileUtils::AdjustPath(path) + " ";
   }
 
-  for (auto ext : ProjManager()->libraryExtensionList()) {
+  // extensions
+  for (const auto& ext : ProjManager()->libraryExtensionList()) {
     fileList += LibraryExtDirective(type) + ext + " ";
   }
 
-  for (auto& macro_value : ProjManager()->macroList()) {
-    fileList += MacroDirective(type) + macro_value.first + "=" +
-                macro_value.second + " ";
+  bool langDirective = false;
+  // design files
+  if (!designFiles.empty()) {
+    fileList += designFiles;
+    if (type == SimulatorType::GHDL) {
+      if (fileList.find("--std=") != std::string::npos) {
+        langDirective = true;
+      }
+    }
   }
 
-  bool langDirective = false;
+  // simulation files
   for (const auto& lang_file : ProjManager()->SimulationFiles()) {
     if (langDirective == false) {
       Design::Language language = (Design::Language)lang_file.first.language;
@@ -874,13 +952,8 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     return false;
   if (!m_compiler->HasTargetDevice()) return false;
 
-  std::string fileList = SimulationFileList(SimulationType::RTL, type);
+  std::string fileList{};
   bool langDirective = false;
-  if (type == SimulatorType::GHDL) {
-    if (fileList.find("--std=") != std::string::npos) {
-      langDirective = true;
-    }
-  }
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     if (langDirective == false) {
       std::string directive =
@@ -893,6 +966,7 @@ bool Simulator::SimulateRTL(SimulatorType type) {
     fileList += lang_file.second + " ";
   }
 
+  fileList = SimulationFileList(SimulationType::RTL, type, fileList);
   fileList = StringUtils::rtrim(fileList);
 
   PERF_LOG("RTL Simulation has started");

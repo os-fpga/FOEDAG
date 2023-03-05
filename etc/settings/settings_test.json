@@ -290,6 +290,12 @@
                 "default": "verilator",
                 "arg": "rtl_sim_type"
             },
+            "options_run": {
+                "label": "Runtime options:",
+                "widgetType": "textedit",
+                "default": "",
+                "arg": "run_rtl_opt"
+            },
             "options_sim": {
                 "label": "Simulation options:",
                 "widgetType": "textedit",
@@ -336,6 +342,12 @@
                 ],
                 "default": "verilator",
                 "arg": "gate_sim_type"
+            },
+            "options_run": {
+                "label": "Runtime options:",
+                "widgetType": "textedit",
+                "default": "",
+                "arg": "run_gate_opt"
             },
             "options_sim": {
                 "label": "Simulation options:",
@@ -384,6 +396,12 @@
                 "default": "verilator",
                 "arg": "pnr_sim_type"
             },
+            "options_run": {
+                "label": "Runtime options:",
+                "widgetType": "textedit",
+                "default": "",
+                "arg": "run_pnr_opt"
+            },
             "options_sim": {
                 "label": "Simulation options:",
                 "widgetType": "textedit",
@@ -430,6 +448,12 @@
                 ],
                 "default": "verilator",
                 "arg": "bitstream_sim_type"
+            },
+            "options_run": {
+                "label": "Runtime options:",
+                "widgetType": "textedit",
+                "default": "",
+                "arg": "run_bitstream_opt"
             },
             "options_sim": {
                 "label": "Simulation options:",
