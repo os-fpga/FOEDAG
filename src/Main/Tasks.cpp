@@ -422,7 +422,7 @@ void TclArgs_setSimulateOptions(const std::string& simTypeStr,
     };
 
     if (arg.compare("-run_" + simTypeStr + "_opt") == 0) {
-      applyOptions(value, &Simulator::SetSimulatorRuntimeOption, simTypeStr);
+      applyOptions(value, &Simulator::SetSimulatorExtraOption, simTypeStr);
     }
     if (arg.compare("-sim_" + simTypeStr + "_opt") == 0) {
       applyOptions(value, &Simulator::SetSimulatorSimulationOption, simTypeStr);
@@ -466,8 +466,7 @@ std::string TclArgs_getSimulateOptions(const std::string& simTypeStr,
     bool ok{false};
     auto simulatorType = Simulator::ToSimulatorType(simType, ok);
     if (ok) {
-      auto tmp =
-          simulator->GetSimulatorRuntimeOption(levelValue, simulatorType);
+      auto tmp = simulator->GetSimulatorExtraOption(levelValue, simulatorType);
       tmp = convertSpecialChars(tmp);
       if (!tmp.empty()) {
         argsList.push_back("-run_" + levelStr + "_opt");
