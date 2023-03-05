@@ -231,17 +231,14 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   set_top_testbench <module> : Sets the top-level testbench "
             "module/entity"
          << std::endl;
-  (*out) << "   options <simulator> <phase> ?<level>? <options>" << std::endl;
-  (*out) << "                                Sets the simulator specific "
-            "options for the speicifed phase"
+  (*out) << "   simulation_options <simulator> <phase> ?<level>? <options>"
          << std::endl;
-  (*out)
-      << "                      <phase> : compilation, elaboration, simulation"
-      << std::endl;
-  (*out)
-      << "   simulation_options <simulator> ?<level>? <options> : "
-         "Sets second simulator-specific options for the simulation task only"
-      << std::endl;
+  (*out) << "                                Sets the simulator specific "
+            "options for the speicfied phase"
+         << std::endl;
+  (*out) << "                      <phase> : compilation, elaboration, "
+            "simulation, extra_options"
+         << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 

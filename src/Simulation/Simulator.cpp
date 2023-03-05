@@ -145,18 +145,18 @@ void Simulator::SetSimulatorElaborationOption(const std::string& simulation,
   }
 }
 
-void Simulator::SetSimulatorRuntimeOption(const std::string& simulation,
-                                          SimulatorType type,
-                                          const std::string& options) {
+void Simulator::SetSimulatorExtraOption(const std::string& simulation,
+                                        SimulatorType type,
+                                        const std::string& options) {
   bool ok{false};
   auto level = ToSimulationType(simulation, ok);
   if (ok) {
-    m_simulatorRuntimeOptionMap[level][type] = options;
+    m_simulatorExtraOptionMap[level][type] = options;
   } else {
     for (auto level : {SimulationType::RTL, SimulationType::PNR,
                        SimulationType::Gate, SimulationType::BitstreamBackDoor,
                        SimulationType::BitstreamFrontDoor})
-      m_simulatorRuntimeOptionMap[level][type] = options;
+      m_simulatorExtraOptionMap[level][type] = options;
   }
 }
 
@@ -190,24 +190,15 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
   };
   interp->registerCmd("set_top_testbench", set_top_testbench, this, 0);
 
-  auto options = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
+  auto simulation_options = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
     Simulator* simulator = (Simulator*)clientData;
     if (argc > 3) {
       std::string options;
-      for (int i = 3; i < argc; i++) {
-        std::string arg{argv[i]};
-        // skip level if available
-        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
-            arg == "bitstream_bd" || arg == "bitstream_fd") {
-          continue;
-        }
-        options += arg + " ";
-      }
       std::string phase;
       std::string level;
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      for (int i = 1; i < 4; i++) {
+      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Icarus;
+      for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         bool ok{false};
         auto tmp = Simulator::ToSimulatorType(arg, ok);
@@ -224,9 +215,23 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
           phase = "simulation";
         } else if (arg == "simulation") {
           phase = "simulation";
+        } else if (arg == "extra_options") {
+          phase = "extra_options";
         } else if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
                    arg == "bitstream_bd" || arg == "bitstream_fd") {
           level = arg;
+        } else {
+          // skip level if present
+          if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
+              arg == "bitstream_bd" || arg == "bitstream_fd") {
+            continue;
+          }
+          // skip simulation name if present
+          if (arg == "verilator" || arg == "icarus" || arg == "ghdl" ||
+              arg == "vcs" || arg == "questa" || arg == "xcelium") {
+            continue;
+          }
+          options += arg + " ";
         }
       }
       options = StringUtils::rtrim(options);
@@ -235,47 +240,15 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
       } else if (phase == "elaboration") {
         simulator->SetSimulatorElaborationOption(level, sim_tool, options);
       } else if (phase == "simulation") {
-        simulator->SetSimulatorRuntimeOption(level, sim_tool, options);
+        simulator->SetSimulatorSimulationOption(level, sim_tool, options);
+      } else if (phase == "extra_options") {
+        simulator->SetSimulatorExtraOption(level, sim_tool, options);
       }
       return TCL_OK;
     }
     return TCL_ERROR;
   };
-  interp->registerCmd("options", options, this, 0);
-
-  auto simulation_options = [](void* clientData, Tcl_Interp* interp, int argc,
-                               const char* argv[]) -> int {
-    Simulator* simulator = (Simulator*)clientData;
-    if (argc > 2) {
-      std::string options;
-      for (int i = 2; i < argc; i++) {
-        std::string arg{argv[i]};
-        // skip level if available
-        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
-            arg == "bitstream_bd" || arg == "bitstream_fd") {
-          continue;
-        }
-        options += arg + " ";
-      }
-      std::string level;
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Verilator;
-      for (int i = 1; i < 3; i++) {
-        std::string arg = argv[i];
-        bool ok{false};
-        auto tmp = Simulator::ToSimulatorType(arg, ok);
-        if (ok) sim_tool = tmp;
-        if (arg == "rtl" || arg == "pnr" || arg == "gate" ||
-            arg == "bitstream_bd" || arg == "bitstream_fd") {
-          level = arg;
-        }
-      }
-      options = StringUtils::rtrim(options);
-      simulator->SetSimulatorSimulationOption(level, sim_tool, options);
-      return TCL_OK;
-    }
-    return TCL_ERROR;
-  };
-  interp->registerCmd("simulation_options", simulation_options, this, nullptr);
+  interp->registerCmd("simulation_options", simulation_options, this, 0);
 
   return ok;
 }
@@ -322,11 +295,11 @@ std::string Simulator::GetSimulatorElaborationOption(SimulationType simulation,
   return std::string{};
 }
 
-std::string Simulator::GetSimulatorRuntimeOption(SimulationType simulation,
-                                                 SimulatorType type) {
-  if (m_simulatorRuntimeOptionMap.count(simulation) != 0) {
-    auto itr = m_simulatorRuntimeOptionMap[simulation].find(type);
-    if (itr != m_simulatorRuntimeOptionMap[simulation].end())
+std::string Simulator::GetSimulatorExtraOption(SimulationType simulation,
+                                               SimulatorType type) {
+  if (m_simulatorExtraOptionMap.count(simulation) != 0) {
+    auto itr = m_simulatorExtraOptionMap[simulation].find(type);
+    if (itr != m_simulatorExtraOptionMap[simulation].end())
       return (*itr).second;
   }
   return std::string{};
@@ -734,8 +707,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
   switch (type) {
     case SimulatorType::Verilator: {
       std::string command = "obj_dir/V" + simulationTop;
-      if (!GetSimulatorRuntimeOption(simulation, type).empty())
-        command += " " + GetSimulatorRuntimeOption(simulation, type);
+      if (!GetSimulatorSimulationOption(simulation, type).empty())
+        command += " " + GetSimulatorSimulationOption(simulation, type);
       if (!m_waveFile.empty()) command += " " + m_waveFile;
       return command;
     }
@@ -749,8 +722,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
     }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -r -fsynopsys";
-      if (!GetSimulatorRuntimeOption(simulation, type).empty())
-        command += " " + GetSimulatorRuntimeOption(simulation, type);
+      if (!GetSimulatorExtraOption(simulation, type).empty())
+        command += " " + GetSimulatorExtraOption(simulation, type);
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
