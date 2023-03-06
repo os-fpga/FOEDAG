@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+using StringVector = std::vector<std::string>;
 class StringUtils final {
  public:
   // Splits the input string with respect to given separator.
@@ -39,6 +40,9 @@ class StringUtils final {
   static std::vector<std::string> tokenize(std::string_view str,
                                            std::string_view separator,
                                            bool skipEmpty = true);
+
+  // return true if 'strings' contains 'str' otherwise return false
+  static bool contains(const StringVector& strings, const std::string& str);
 
   // join strings with separator
   static std::string join(const std::vector<std::string>& strings,
@@ -113,6 +117,11 @@ class StringUtils final {
   static std::string toLower(const std::string& text);
   // Converts the input text to upper case
   static std::string toUpper(const std::string& text);
+
+  // append or modify argument 'arg' with value 'value' inside 'stringVector'
+  static void setArgumentValue(StringVector& stringVector,
+                               const std::string& arg,
+                               const std::string& value);
 
  private:
   StringUtils() = delete;
