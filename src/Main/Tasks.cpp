@@ -174,7 +174,8 @@ auto separateArg = [](const QString& argName,
     // Find the arg and remove it from the otherArgs
     auto argIdx = argString.indexOf(searchStr);
     if (argIdx != -1) {
-      targetArg = argString.mid(argIdx, argString.indexOf("-", argIdx + 1));
+      targetArg =
+          argString.mid(argIdx, argString.indexOf("-", argIdx + 1) - argIdx);
       otherArgs = otherArgs.replace(targetArg, "");
     }
   }
@@ -581,7 +582,7 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
       separateArg(PACKING_ARG, QString::fromStdString(argsStr));
 
   auto netlistVal = Compiler::NetlistType::Verilog;
-  QStringList tokens = netlistArg.split(" ");
+  const QStringList tokens = netlistArg.split(" ");
   if (tokens.size() > 1) {
     auto iter = std::find_if(
         netlistOptMap.begin(), netlistOptMap.end(),
@@ -593,6 +594,28 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
     }
   }
   compiler->SetNetlistType(netlistVal);
+
+  bool allow_unrelated_clustering{false};
+  bool balance_block_type_utilization{false};
+  const QStringList moreOptsList = moreOpts.split(" ");
+  for (const auto& t : moreOptsList) {
+    if (t == "-allow_unrelated_clustering") allow_unrelated_clustering = true;
+    if (t == "-balance_block_type_utilization")
+      balance_block_type_utilization = true;
+  }
+
+  auto pnrOptions = StringUtils::tokenize(compiler->PnROpt(), " ");
+  std::string value = allow_unrelated_clustering ? "on" : "off";
+  StringUtils::setArgumentValue(pnrOptions, "--allow_unrelated_clustering",
+                                value);
+
+  value = balance_block_type_utilization ? "on" : "off";
+  StringUtils::setArgumentValue(pnrOptions, "--balance_block_type_utilization",
+                                value);
+
+  auto str = StringUtils::join(pnrOptions, " ");
+  compiler->PnROpt(str);
+
   GlobalSession->GetSettings()->syncWith(SYNTH_SETTING_KEY);
 }
 
@@ -600,5 +623,20 @@ std::string FOEDAG::TclArgs_getPackingOptions() {
   QString tclOptions = QString{"-%1 %2"}.arg(
       PACKING_ARG, QString::fromStdString(netlistOptMap.at(
                        GlobalSession->GetCompiler()->GetNetlistType())));
+
+  auto pnrOptions = GlobalSession->GetCompiler()->PnROpt();
+  std::vector<std::string> optionsList =
+      StringUtils::tokenize(pnrOptions, " ", true);
+  for (int i = 0; (i + 1) < optionsList.size(); i++) {
+    if (optionsList.at(i) == "--allow_unrelated_clustering") {
+      tclOptions += " -allow_unrelated_clustering";
+      tclOptions += (optionsList.at(i + 1) == "on") ? QString{} : " false";
+    }
+    if (optionsList.at(i) == "--balance_block_type_utilization") {
+      tclOptions += " -balance_block_type_utilization";
+      tclOptions += (optionsList.at(i + 1) == "on") ? QString{} : " false";
+    }
+  }
+
   return tclOptions.toStdString();
 }

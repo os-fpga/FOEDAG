@@ -184,5 +184,37 @@ TEST(StringUtilsTest, joinFewElements) {
   EXPECT_EQ(res, "element1---element2");
 }
 
+TEST(StringUtilsTest, containsEmpty) {
+  StringVector empty{};
+  auto res = StringUtils::contains(empty, "any");
+  EXPECT_EQ(res, false);
+}
+
+TEST(StringUtilsTest, containsFound) {
+  StringVector test{"test1", "test2"};
+  auto res = StringUtils::contains(test, "test2");
+  EXPECT_EQ(res, true);
+}
+
+TEST(StringUtilsTest, containsNotFound) {
+  StringVector test{"test1", "test2"};
+  auto res = StringUtils::contains(test, "test3");
+  EXPECT_EQ(res, false);
+}
+
+TEST(StringUtilsTest, setArgumentValueEmpty) {
+  StringVector test{};
+  StringUtils::setArgumentValue(test, "arg", "value");
+  StringVector expected{"arg", "value"};
+  EXPECT_EQ(test, expected);
+}
+
+TEST(StringUtilsTest, setArgumentValueExists) {
+  StringVector test{"arg", "value"};
+  StringUtils::setArgumentValue(test, "arg", "value1");
+  StringVector expected{"arg", "value1"};
+  EXPECT_EQ(test, expected);
+}
+
 }  // namespace
 }  // namespace FOEDAG
