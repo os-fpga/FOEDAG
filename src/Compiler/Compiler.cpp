@@ -2210,6 +2210,8 @@ bool Compiler::RunCompileTask(Action action) {
       return GetSimulator()->Simulate(
           Simulator::SimulationType::BitstreamBackDoor,
           GetSimulator()->GetSimulatorType(), m_waveformFile);
+    case Action::ProgramDevice:
+      return ProgramDevice();
     default:
       break;
   }
@@ -2453,6 +2455,13 @@ bool Compiler::GenerateBitstream() {
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
   CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  return true;
+}
+
+bool Compiler::ProgramDevice() {
+  Message("Programming device for design: " + m_projManager->projectName() +
+          "...");
+  CreateDummyLog(m_projManager, PROGRAMDEVICE_LOG);
   return true;
 }
 

@@ -111,6 +111,7 @@ static constexpr const char *TIMING_ANALYSIS_LOG{"timing_analysis.rpt"};
 static constexpr const char *TA_TIMING_LOG{"post_ta_timing.rpt"};
 static constexpr const char *POWER_ANALYSIS_LOG{"power_analysis.rpt"};
 static constexpr const char *BITSTREAM_LOG{"bitstream.rpt"};
+static constexpr const char *PROGRAMDEVICE_LOG{"PROGRAMDEVICE.rpt"};
 
 static constexpr const char *SYNTH_SETTING_KEY{"Synthesis"};
 static constexpr const char *PLACE_SETTING_KEY{"Placement"};

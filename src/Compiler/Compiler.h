@@ -74,7 +74,8 @@ class Compiler {
     SimulateRTL,
     SimulateGate,
     SimulatePNR,
-    SimulateBitstream
+    SimulateBitstream,
+    ProgramDevice
   };
   enum class State {
     None,
@@ -245,6 +246,7 @@ class Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
+  virtual bool ProgramDevice();
 
   /*!
    * \brief CheckTargetDevice
