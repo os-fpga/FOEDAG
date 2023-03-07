@@ -58,6 +58,13 @@ std::vector<std::string> StringUtils::tokenize(std::string_view str,
   return result;
 }
 
+bool StringUtils::contains(const StringVector& strings,
+                           const std::string& str) {
+  auto end = strings.cend();
+  auto it = std::find(strings.cbegin(), end, str);
+  return it != end;
+}
+
 std::string StringUtils::join(const std::vector<std::string>& strings,
                               const std::string& separator) {
   std::string result;
@@ -267,6 +274,22 @@ std::string StringUtils::toUpper(const std::string& text) {
   std::transform(result.begin(), result.end(), result.begin(),
                  [](auto c) { return std::toupper(c); });
   return result;
+}
+
+void StringUtils::setArgumentValue(StringVector& stringVector,
+                                   const std::string& arg,
+                                   const std::string& value) {
+  if (!contains(stringVector, arg)) {
+    stringVector.push_back(arg);
+    stringVector.push_back(value);
+    return;
+  }
+  for (size_t i = 0; (i + 1) < stringVector.size(); i++) {
+    if (stringVector.at(i) == arg) {
+      stringVector[i + 1] = value;
+      return;
+    }
+  }
 }
 
 }  // namespace FOEDAG

@@ -105,5 +105,6 @@ class OutputFormatter {
   std::vector<LineParser *> m_parsers;
   std::vector<QTextCharFormat> m_formats{Count};
   QTextEdit *m_textEdit;
+  QString m_messageBuffer;
 };
 }  // namespace FOEDAG

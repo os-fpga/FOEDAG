@@ -61,23 +61,27 @@ int TextEditorForm::OpenFile(const QString &strFileName) {
     return ret;
   }
 
-  int filetype;
+  int filetype{FILE_TYPE_UNKOWN};
   QFileInfo fileInfo(strFileName);
   if (!fileInfo.exists()) return -1;
   QString filename = fileInfo.fileName();
   QString suffix = fileInfo.suffix();
-  if (suffix.compare(QString("v"), Qt::CaseInsensitive) == 0 ||
-      suffix.compare(QString("sv"), Qt::CaseInsensitive) == 0 ||
-      suffix.compare(QString("svi"), Qt::CaseInsensitive) == 0 ||
-      suffix.compare(QString("svh"), Qt::CaseInsensitive) == 0) {
-    filetype = FILE_TYPE_VERILOG;
-  } else if (suffix.compare(QString("vhd"), Qt::CaseInsensitive) == 0) {
-    filetype = FILE_TYPE_VHDL;
-  } else if (suffix.compare(QString("tcl"), Qt::CaseInsensitive) == 0) {
-    filetype = FILE_TYPE_TCL;
-  } else {
-    filetype = FILE_TYPE_UNKOWN;
-  }
+  static const std::map<FileType, QStringList> types{
+      {FILE_TYPE_CPP, {"c", "cpp", "cxx", "h", "hxx"}},
+      {FILE_TYPE_VERILOG, {"v", "sv", "svi", "svh"}},
+      {FILE_TYPE_VHDL, {"vhd"}},
+      {FILE_TYPE_TCL, {"tcl"}},
+  };
+  auto typeIter =
+      std::find_if(types.cbegin(), types.cend(),
+                   [&suffix](const std::pair<FileType, QStringList> &pair) {
+                     for (const auto &ext : pair.second) {
+                       if (suffix.compare(ext, Qt::CaseInsensitive) == 0)
+                         return true;
+                     }
+                     return false;
+                   });
+  if (typeIter != types.cend()) filetype = typeIter->first;
 
   FOEDAG::Editor *editor = new FOEDAG::Editor(strFileName, filetype, this);
   connect(editor, SIGNAL(EditorModificationChanged(bool)), this,
@@ -132,39 +136,7 @@ int TextEditorForm::OpenFileWithSelection(const QString &strFileName,
 }
 
 void TextEditorForm::SlotTabCloseRequested(int index) {
-  if (index == -1) {
-    return;
-  }
-
-  Editor *tabItem = qobject_cast<Editor *>(m_tab_editor->widget(index));
-  if (!tabItem) {
-    m_tab_editor->removeTab(index);
-    return;
-  }
-
-  QString strName = m_tab_editor->tabText(index);
-  if (tabItem->isModified()) {
-    int ret = QMessageBox::question(
-        this, tr(""), tr("Save changes in %1?").arg(strName), QMessageBox::Yes,
-        QMessageBox::No, QMessageBox::Cancel);
-    if (ret == QMessageBox::Yes) {
-      tabItem->Save();
-    } else if (ret == QMessageBox::Cancel) {
-      return;
-    }
-  }
-
-  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
-  if (iter != m_map_file_tabIndex_editor.end()) {
-    m_map_file_tabIndex_editor.erase(iter);
-    m_fileWatcher.removePath(iter.key());
-  }
-  // Removes the tab at position index from this stack of widgets.
-  // The page widget itself is not deleted.
-  m_tab_editor->removeTab(index);
-
-  delete (tabItem);
-  tabItem = nullptr;
+  TabCloseRequested(index);
 }
 
 void TextEditorForm::SlotCurrentChanged(int index) {
@@ -248,4 +220,39 @@ void TextEditorForm::fileModifiedOnDisk(const QString &path) {
     }
     editor->reload();
   }
+}
+
+bool TextEditorForm::TabCloseRequested(int index) {
+  if (index == -1) return false;
+
+  Editor *tabItem = qobject_cast<Editor *>(m_tab_editor->widget(index));
+  if (!tabItem) {
+    m_tab_editor->removeTab(index);
+    return true;
+  }
+
+  QString strName = m_tab_editor->tabText(index);
+  if (tabItem->isModified()) {
+    int ret = QMessageBox::question(
+        this, tr(""), tr("Save changes in %1?").arg(strName), QMessageBox::Yes,
+        QMessageBox::No, QMessageBox::Cancel);
+    if (ret == QMessageBox::Yes) {
+      tabItem->Save();
+    } else if (ret == QMessageBox::Cancel) {
+      return false;
+    }
+  }
+
+  auto iter = m_map_file_tabIndex_editor.find(tabItem->getFileName());
+  if (iter != m_map_file_tabIndex_editor.end()) {
+    m_map_file_tabIndex_editor.erase(iter);
+    m_fileWatcher.removePath(iter.key());
+  }
+  // Removes the tab at position index from this stack of widgets.
+  // The page widget itself is not deleted.
+  m_tab_editor->removeTab(index);
+
+  delete (tabItem);
+  tabItem = nullptr;
+  return true;
 }

@@ -38,21 +38,31 @@ void OutputFormatter::appendMessage(const QString &message,
   if (!textEdit()) return;
   if (format < 0 || format >= Count) return;
 
-  LineParser::Status status{LineParser::Status::NotHandled};
+  m_messageBuffer.append(message);
+  int index = m_messageBuffer.indexOf('\n', Qt::CaseInsensitive);
+  while (index != -1) {  // perform parsing line by line
+    auto line = m_messageBuffer.mid(0, index + 1);
 
-  for (auto parser : m_parsers) {
-    auto res = parser->handleLine(message, format);
-    if (res.status == LineParser::Status::Done) {
-      status = res.status;
-      auto outputFormats = parseResults(message, format, res.linkSpecs);
-      for (auto const &output : outputFormats) {
-        textEdit()->textCursor().insertText(output.text, output.format);
+    LineParser::Status status{LineParser::Status::NotHandled};
+    for (auto parser : m_parsers) {
+      auto res = parser->handleLine(line, format);
+      if (res.status == LineParser::Status::Done) {
+        status = res.status;
+        auto outputFormats = parseResults(line, format, res.linkSpecs);
+        for (auto const &output : outputFormats) {
+          textEdit()->textCursor().insertText(output.text, output.format);
+        }
+        break;  // break, when one of the parsers was success to parse line
       }
     }
-  }
 
-  if (status == LineParser::Status::NotHandled)
-    textEdit()->textCursor().insertText(message, m_formats[format]);
+    if (status == LineParser::Status::NotHandled) {
+      textEdit()->textCursor().insertText(line, m_formats[format]);
+    }
+
+    m_messageBuffer.remove(0, index + 1);
+    index = m_messageBuffer.indexOf('\n', Qt::CaseInsensitive);
+  }
 }
 
 const std::vector<LineParser *> &OutputFormatter::parsers() const {
@@ -96,11 +106,10 @@ OutputFormatter::FormattedTexts OutputFormatter::parseResults(
     QString linked = text.mid(link.startPos, link.length);
     texts.push_back(
         FormattedText{linked, linkedText(m_formats[format], link.href)});
-    totalLength += link.length + 1;
+    totalLength += link.length;
   }
   if (totalLength < text.length()) {
-    texts.push_back(
-        FormattedText{text.mid(totalLength - 1), m_formats[format]});
+    texts.push_back(FormattedText{text.mid(totalLength), m_formats[format]});
   }
   return texts;
 }
