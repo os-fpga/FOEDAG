@@ -32,7 +32,7 @@ bool DeviceProgrammer::RegisterCommands(TclInterpreter* interp,
   bool status{true};
 
   auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
-                    const char* argv[]) -> int {
+                           const char* argv[]) -> int {
     DeviceProgrammer* device_programmer = (DeviceProgrammer*)clientData;
     Compiler* compiler = device_programmer->GetCompiler();
     ProjectManager* projManager = compiler->ProjManager();
