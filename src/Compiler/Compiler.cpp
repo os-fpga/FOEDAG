@@ -2461,7 +2461,6 @@ bool Compiler::GenerateBitstream() {
 bool Compiler::ProgramDevice() {
   Message("Programming device for design: " + m_projManager->projectName() +
           "...");
-  CreateDummyLog(m_projManager, PROGRAMDEVICE_LOG);
   return true;
 }
 

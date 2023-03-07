@@ -28,5 +28,5 @@ route
 sta
 power
 bitstream
-program
+program_device
 exit

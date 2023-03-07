@@ -31,7 +31,7 @@ bool DeviceProgrammer::RegisterCommands(TclInterpreter* interp,
                                         bool batchMode) {
   bool status{true};
 
-  auto program = [](void* clientData, Tcl_Interp* interp, int argc,
+  auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     DeviceProgrammer* device_programmer = (DeviceProgrammer*)clientData;
     Compiler* compiler = device_programmer->GetCompiler();
@@ -48,6 +48,7 @@ bool DeviceProgrammer::RegisterCommands(TclInterpreter* interp,
       outStr << std::setw(3) << i << "% [";
       std::string s1(i / 10, '=');
       outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
+      outStr << " just for test";
       compiler->Message(outStr.str());
       std::this_thread::sleep_for(100ms);
     };
@@ -55,7 +56,7 @@ bool DeviceProgrammer::RegisterCommands(TclInterpreter* interp,
                       " Bitstream is programmed");
     return 0;
   };
-  interp->registerCmd("program", program, this, 0);
+  interp->registerCmd("program_device", program_device, this, 0);
 
   auto load_bitstream_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
