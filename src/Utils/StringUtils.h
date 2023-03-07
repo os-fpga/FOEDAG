@@ -123,6 +123,8 @@ class StringUtils final {
                                const std::string& arg,
                                const std::string& value);
 
+  static StringVector FromArgs(int argc, const char* argv[]);
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;

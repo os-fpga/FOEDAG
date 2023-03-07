@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void closeProject(bool force = false);
   void openFileSlot();
   void newDesignCreated(const QString& design);
+  void chatGpt(const QString &request, const QString& content);
   void reloadSettings();
   void updatePRViewButton(int state);
   bool saveActionTriggered();

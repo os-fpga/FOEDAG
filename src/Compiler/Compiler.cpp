@@ -444,6 +444,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     SetConstraints(new Constraints{this});
   }
 
+  auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
+                 const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    auto args = StringUtils::FromArgs(argc, argv);
+    if (args.size() > 2) {
+      if (args[1] == "send") {
+        compiler->sendChatGpt(args[2]);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("chatgpt", chatgpt, this, nullptr);
+
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -2490,6 +2503,30 @@ bool Compiler::ProgramDevice() {
   Message(projectName + " " + activeTargetDevice + " " +
           m_deviceProgrammer->GetBitstreamFilename() +
           " Bitstream is programmed");
+  return true;
+}
+
+bool Compiler::sendChatGpt(const std::string& message) {
+  std::filesystem::path pythonPath = FileUtils::LocateExecFile("python");
+  if (pythonPath.empty()) {
+    ErrorMessage(
+        "Unable to find python interpreter in local "
+        "environment.\n");
+    return false;
+  }
+
+  std::string command = pythonPath.string();
+  command += " --version";
+  std::ostringstream help;
+
+  if (FileUtils::ExecuteSystemCommand(command, &help)) {
+    ErrorMessage("ChatGPT, " + help.str());
+    return false;
+  }
+
+  // read content here from json
+  m_tclCmdIntegration->TclshowChatGpt(message, "hello world");
+
   return true;
 }
 

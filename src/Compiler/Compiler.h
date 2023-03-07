@@ -253,6 +253,8 @@ class Compiler {
   virtual bool GenerateBitstream();
   virtual bool ProgramDevice();
 
+  bool sendChatGpt(const std::string &message);
+
   /*!
    * \brief CheckTargetDevice
    * \return true if target device is set otherwise return false
