@@ -407,6 +407,7 @@ class ProjectManager : public QObject {
   int CreateSystemVerilogFile(QString strFile);
   int CreateVHDLFile(QString strFile);
   int CreateSDCFile(QString strFile);
+  int CreateCFile(const QString &strFile);
 
   int AddOrCreateFileToFileSet(const QString &strFileName,
                                bool isFileCopy = true);

@@ -2,6 +2,12 @@
 
 #include <math.h>
 
+#include "Qsci/qsciapis.h"
+#include "Qsci/qscilexercpp.h"
+#include "Qsci/qscilexertcl.h"
+#include "Qsci/qscilexerverilog.h"
+#include "Qsci/qscilexervhdl.h"
+
 using namespace FOEDAG;
 
 #define ERROR_MARKER 4
@@ -254,17 +260,18 @@ void Editor::InitScintilla(int iFileType) {
   m_scintilla->setIndentationGuides(QsciScintilla::SC_IV_LOOKBOTH);
   m_scintilla->setBraceMatching(QsciScintilla::SloppyBraceMatch);
 
-  QsciLexer *textLexer;
+  QsciLexer *textLexer{nullptr};
   if (FILE_TYPE_VERILOG == iFileType) {
     textLexer = new QsciLexerVerilog(m_scintilla);
   } else if (FILE_TYPE_VHDL == iFileType) {
     textLexer = new QsciLexerVHDL(m_scintilla);
   } else if (FILE_TYPE_TCL == iFileType) {
     textLexer = new QsciLexerTCL(m_scintilla);
+  } else if (FILE_TYPE_CPP == iFileType) {
+    textLexer = new QsciLexerCPP(m_scintilla);
   }
 
-  if (FILE_TYPE_VERILOG == iFileType || FILE_TYPE_VHDL == iFileType ||
-      FILE_TYPE_TCL == iFileType) {
+  if (textLexer) {
     m_scintilla->setLexer(textLexer);
 
     QsciAPIs *apis = new QsciAPIs(textLexer);
