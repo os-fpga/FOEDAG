@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TaskManager.h"
 #include "Compiler/TaskModel.h"
 #include "Console/DummyParser.h"
+#include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
 #include "Console/TclConsole.h"
 #include "Console/TclConsoleBuilder.h"
@@ -193,11 +194,14 @@ void MainWindow::SetWindowTitle(const QString& filename, const QString& project,
   }
 }
 
-void MainWindow::CloseOpenedTabs() {
+bool MainWindow::CloseOpenedTabs() {
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
-  while (tabWidget->count() != 0) {
-    tabWidget->tabCloseRequested(tabWidget->currentIndex());
+  while (tabWidget && (tabWidget->count() != 0)) {
+    if (!TextEditorForm::Instance()->TabCloseRequested(
+            tabWidget->currentIndex()))
+      return false;
   }
+  return true;
 }
 
 void MainWindow::ProgressVisible(bool visible) {
@@ -228,11 +232,14 @@ void MainWindow::newFile() {
 }
 
 void MainWindow::newProjectDlg() {
-  newProjdialog->Reset();
-  newProjdialog->open();
+  if (lastProjectClosed()) {
+    newProjdialog->Reset();
+    newProjdialog->open();
+  }
 }
 
 void MainWindow::openExampleProject() {
+  if (!lastProjectClosed()) return;
   auto currentDir = GlobalSession->Context()->DataPath();
   std::filesystem::path examplesPath = currentDir / "examples";
   auto fileName = QFileDialog::getOpenFileName(
@@ -276,6 +283,7 @@ void MainWindow::openExampleProject() {
 }
 
 void MainWindow::openProjectDialog(const QString& dir) {
+  if (!lastProjectClosed()) return;
   QString fileName;
   fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), dir,
                                           "FOEDAG Project File(*.ospr)");
@@ -283,12 +291,12 @@ void MainWindow::openProjectDialog(const QString& dir) {
 }
 
 void MainWindow::closeProject(bool force) {
+  if (!lastProjectClosed()) return;
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
-    CloseOpenedTabs();
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
@@ -713,7 +721,7 @@ void MainWindow::createRecentMenu() {
     QString project = m_settings.value(key).toString();
     if (!project.isEmpty()) {
       QFileInfo info{project};
-      auto projAction = new QAction(info.baseName());
+      auto projAction = new QAction(info.absoluteFilePath());
       connect(projAction, &QAction::triggered, this,
               &MainWindow::recentProjectOpen);
       recentMenu->addAction(projAction);
@@ -1089,11 +1097,10 @@ void MainWindow::ReShowWindow(QString strProject) {
                             buffer, nullptr, &console);
   consoleDocWidget->setWidget(w);
   connect(console, &TclConsoleWidget::linkActivated, this,
-          [textEditor](const ErrorInfo& eInfo) {
-            textEditor->SlotOpenFileWithLine(eInfo.file, eInfo.line.toInt());
-          });
+          &MainWindow::openFileFromConsole);
   console->addParser(new DummyParser{});
   console->addParser(new TclErrorParser{});
+  console->addParser(new FileNameParser{});
   m_console = console;
 
   m_compiler->SetInterpreter(m_interpreter);
@@ -1522,6 +1529,7 @@ void MainWindow::saveWelcomePageConfig() {
 }
 
 void MainWindow::recentProjectOpen() {
+  if (!lastProjectClosed()) return;
   auto action = qobject_cast<QAction*>(sender());
   auto project = std::find_if(m_recentProjectsActions.cbegin(),
                               m_recentProjectsActions.cend(),
@@ -1582,6 +1590,7 @@ bool MainWindow::confirmCloseProject() {
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }
 bool MainWindow::confirmExitProgram() {
+  if (!lastProjectClosed()) return false;
   return (QMessageBox::question(
               this, "Exit Program?",
               tr("Are you sure you want to exit the program?\n"),
@@ -1633,6 +1642,17 @@ void MainWindow::saveSetting(const QString& setting) {
   }
 }
 
+void MainWindow::openFileFromConsole(const ErrorInfo& eInfo) {
+  QString file{eInfo.file};
+  QFileInfo info{eInfo.file};
+  if (!info.exists()) {  // try to search in the project folder
+    info.setFile(m_projectManager->getProjectPath(), file);
+    if (info.exists()) file = info.absoluteFilePath();
+  }
+  auto textEditor = findChild<TextEditor*>("textEditor");
+  if (textEditor) textEditor->SlotOpenFileWithLine(file, eInfo.line.toInt());
+}
+
 void MainWindow::setEnableSaveButtons(bool enable) {
   for (const auto& b : m_saveButtons) b->setEnabled(enable);
 }
@@ -1640,6 +1660,12 @@ void MainWindow::setEnableSaveButtons(bool enable) {
 bool MainWindow::isEnableSaveButtons() const {
   if (!m_saveButtons.isEmpty()) return m_saveButtons.first()->isEnabled();
   return false;
+}
+
+bool MainWindow::lastProjectClosed() {
+  if (!m_projectManager) return true;
+  if (m_projectManager && !m_projectManager->HasDesign()) return true;
+  return CloseOpenedTabs();
 }
 
 void MainWindow::onShowWelcomePage(bool show) {

@@ -1630,6 +1630,17 @@ int ProjectManager::CreateSDCFile(QString strFile) {
   return ret;
 }
 
+int ProjectManager::CreateCFile(const QString& strFile) {
+  int ret = 0;
+  QFile file(strFile);
+  if (file.exists()) return ret;
+  if (!file.open(QFile::WriteOnly | QFile::Text)) {
+    return -1;
+  }
+  file.close();
+  return ret;
+}
+
 int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
                                              bool isFileCopy) {
   int ret = 0;
@@ -1796,6 +1807,9 @@ int ProjectManager::CreateAndAddFile(const QString& suffix,
     ret = CreateSDCFile(filename);
   } else if (!suffix.compare("pin", Qt::CaseInsensitive)) {
     ret = CreateSDCFile(filename);
+  } else if (suffix.compare("cpp", Qt::CaseInsensitive) == 0 ||
+             suffix.compare("c", Qt::CaseInsensitive) == 0) {
+    ret = CreateCFile(filename);
   }
   if (0 == ret) {
     ret = AddOrCreateFileToFileSet(filenameAdd, copyFile);

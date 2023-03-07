@@ -234,11 +234,11 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   simulation_options <simulator> <phase> ?<level>? <options>"
          << std::endl;
   (*out) << "                                Sets the simulator specific "
-            "options for the speicifed phase"
+            "options for the speicfied phase"
          << std::endl;
-  (*out)
-      << "                      <phase> : compilation, elaboration, simulation"
-      << std::endl;
+  (*out) << "                      <phase> : compilation, elaboration, "
+            "simulation, extra_options"
+         << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -653,6 +653,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       auto deviceData = compiler->deviceData();
       compiler->ProjManager()->setTargetDeviceData(
           deviceData.family, deviceData.series, deviceData.package);
+      compiler->Message("Target device: " + arg);
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;

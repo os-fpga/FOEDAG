@@ -91,16 +91,20 @@ class Simulator {
   void SetSimulatorElaborationOption(const std::string& simulation,
                                      SimulatorType type,
                                      const std::string& options);
-  void SetSimulatorRuntimeOption(const std::string& simulation,
-                                 SimulatorType type,
-                                 const std::string& options);
+  void SetSimulatorExtraOption(const std::string& simulation,
+                               SimulatorType type, const std::string& options);
+  void SetSimulatorSimulationOption(const std::string& simulation,
+                                    SimulatorType type,
+                                    const std::string& options);
 
   std::string GetSimulatorCompileOption(SimulationType simulation,
                                         SimulatorType type);
   std::string GetSimulatorElaborationOption(SimulationType simulation,
                                             SimulatorType type);
-  std::string GetSimulatorRuntimeOption(SimulationType simulation,
-                                        SimulatorType type);
+  std::string GetSimulatorExtraOption(SimulationType simulation,
+                                      SimulatorType type);
+  std::string GetSimulatorSimulationOption(SimulationType simulation,
+                                           SimulatorType type);
 
   void SimulationOption(SimulationOpt option);
   SimulationOpt SimulationOption() const;
@@ -128,8 +132,9 @@ class Simulator {
   virtual std::string TopModuleCmd(SimulatorType type);
   virtual std::string LanguageDirective(SimulatorType type,
                                         Design::Language lang);
-  virtual std::string SimulationFileList(SimulationType action,
-                                         SimulatorType type);
+  virtual std::string SimulationFileList(
+      SimulationType action, SimulatorType type,
+      const std::string& designFiles = std::string{});
   virtual int SimulationJob(SimulationType simulation, SimulatorType type,
                             const std::string& file_list);
   virtual std::string SimulatorRunCommand(SimulationType simulation,
@@ -153,7 +158,8 @@ class Simulator {
   using SimulationOptionMap = std::map<SimulatorType, std::string>;
   std::map<SimulationType, SimulationOptionMap> m_simulatorCompileOptionMap;
   std::map<SimulationType, SimulationOptionMap> m_simulatorElaborationOptionMap;
-  std::map<SimulationType, SimulationOptionMap> m_simulatorRuntimeOptionMap;
+  std::map<SimulationType, SimulationOptionMap> m_simulatorExtraOptionMap;
+  std::map<SimulationType, SimulationOptionMap> m_simulatorSimulationOptionMap;
   std::vector<std::filesystem::path> m_gateSimulationModels;
   std::string m_waveFile;
   WaveformType m_waveType = WaveformType::FST;
