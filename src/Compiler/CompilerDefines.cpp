@@ -145,6 +145,8 @@ uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
           Simulator::SimulationOpt::Clean)
         return SIMULATE_BITSTREAM_CLEAN;
       return SIMULATE_BITSTREAM;
+    case Compiler::Action::ProgramDevice:
+      return TaskManager::invalid_id;
   }
   return TaskManager::invalid_id;
 }

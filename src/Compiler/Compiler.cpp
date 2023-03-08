@@ -419,12 +419,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_DesignQuery == nullptr) {
     m_DesignQuery = new DesignQuery(this);
   }
+  if (m_deviceProgrammer == nullptr) {
+    m_deviceProgrammer = new DeviceProgrammer(this);
+  }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   m_DesignQuery->RegisterCommands(interp, batchMode);
+  m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
@@ -2205,6 +2209,8 @@ bool Compiler::RunCompileTask(Action action) {
       return GetSimulator()->Simulate(
           Simulator::SimulationType::BitstreamBackDoor,
           GetSimulator()->GetSimulatorType(), m_waveformFile);
+    case Action::ProgramDevice:
+      return ProgramDevice();
     default:
       break;
   }
@@ -2448,6 +2454,12 @@ bool Compiler::GenerateBitstream() {
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
   CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  return true;
+}
+
+bool Compiler::ProgramDevice() {
+  Message("Programming device for design: " + m_projManager->projectName() +
+          "...");
   return true;
 }
 

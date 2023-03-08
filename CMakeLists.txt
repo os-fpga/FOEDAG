@@ -59,7 +59,7 @@ if (PRODUCTION_BUILD)
   set (BUILD_TYPE_STRING Production)
 endif(PRODUCTION_BUILD)
 
-# Check system 
+# Check system
 message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
 # Find Qt packages and error out if not found
@@ -106,6 +106,7 @@ add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/DesignQuery)
+add_subdirectory(src/DeviceProgrammer)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -174,14 +175,14 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/include/)
 
-set(QRC_MAIN_WINDOW 
+set(QRC_MAIN_WINDOW
 	src/MainWindow/main_window_resource.qrc
 #        src/MainWindow/qml.qrc
 	${PROJECT_SOURCE_DIR}/src/NewProject/newproject.qrc)
 
 # Put source code here, files that are generated at build time in
 # foedag_generated_SRC
-set(foedag_SRC  
+set(foedag_SRC
   ${QRC_MAIN_WINDOW}
 )
 
@@ -217,10 +218,10 @@ else()
   set(TCL_STATIC_LIB libtcl8.6.so)
   set(TCL_STUBB_LIB libtclstub8.6.a)
   set(ZLIB_STATIC_LIB libz.a)
-  if(APPLE) 
+  if(APPLE)
     set(TCL_STATIC_LIB libtcl8.6.dylib)
   endif()
-  
+
   link_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/)
 
   if((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
@@ -237,14 +238,14 @@ else()
     message("LINUX MODE")
     get_filename_component(buildDirRelFilePath ${TCL_STATIC_LIB}
                          REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/lib)
-  
+
     add_library(tcl_static SHARED IMPORTED )
     find_library(tcl_static PATHS ${CMAKE_CURRENT_BINARY_DIR}/lib/)
     set_target_properties(tcl_static PROPERTIES
       IMPORTED_LOCATION ${buildDirRelFilePath} IMPORTED_NO_SONAME ON)
 
   endif()
-  
+
 endif()
 
 add_library(tcl_stubb STATIC IMPORTED )
@@ -271,12 +272,12 @@ if(MSVC)
 else()
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})       
+    IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB})
 endif()
 
 # Copy the init.tcl file from source to build directory
 add_custom_command(TARGET foedag POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy 
+  COMMAND ${CMAKE_COMMAND} -E copy
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
@@ -309,6 +310,7 @@ add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
 add_dependencies(designquery nlohmann_json)
+add_dependencies(deviceprogrammer tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -372,6 +374,7 @@ target_link_libraries(foedag  PUBLIC
   compiler
   ipgenerate
   designquery
+  deviceprogrammer
   simulation
   foedagutils
   console
@@ -463,7 +466,7 @@ install(
   TARGETS foedag-bin
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(
-  TARGETS foedag 
+  TARGETS foedag
   EXPORT Foedag
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag)
@@ -476,9 +479,9 @@ install (
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
 install (
   FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/${ZLIB_STATIC_LIB}
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)  
-  
-  
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/foedag/lib)
+
+
 if (WIN32 AND $<CONFIG:Debug>)
   if (FOEDAG_WITH_PYTHON)
     install(
@@ -541,13 +544,13 @@ install(
 
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
-else()    
+else()
 add_custom_target(link_target ALL
                   COMMAND ${CMAKE_COMMAND} -E create_symlink
                   build/compile_commands.json ../compile_commands.json)
 endif()
 
-                          
+
 add_custom_command(TARGET foedag-bin POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/IP_Catalog/
                   COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -573,6 +576,6 @@ add_custom_command(TARGET foedag-bin POST_BUILD
 
 add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory 
-        ${PROJECT_SOURCE_DIR}/tests/Arch  
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
