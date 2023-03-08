@@ -4,3 +4,6 @@
 [submodule "third_party/gtkwave"]
 	path = third_party/gtkwave
 	url = https://github.com/gtkwave/gtkwave.git
+[submodule "third_party/openocd"]
+	path = third_party/openocd
+	url = https://github.com/RapidSilicon/openocd.git
