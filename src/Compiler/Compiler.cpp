@@ -243,15 +243,13 @@ Compiler::~Compiler() {
 }
 
 std::string Compiler::GetMessagePrefix() const {
-  std::string prefix{};
-
+  if (!GetTaskManager()) return std::string{};
   auto task = GetTaskManager()->currentTask();
   // Leave prefix empty if no abbreviation was given
   if (task && task->abbreviation() != "") {
-    prefix = task->abbreviation().toStdString() + ": ";
+    return task->abbreviation().toStdString() + ": ";
   }
-
-  return prefix;
+  return std::string{};
 }
 
 void Compiler::Message(const std::string& message) const {
@@ -344,7 +342,8 @@ tcl_interp_clone
   return script;
 }
 
-bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
+bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath,
+                                   bool namesOnly) {
   if (m_IPGenerator == nullptr) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
@@ -353,8 +352,8 @@ bool Compiler::BuildLiteXIPCatalog(std::filesystem::path litexPath) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   IPCatalogBuilder builder(this);
-  bool result =
-      builder.buildLiteXCatalog(GetIPGenerator()->Catalog(), litexPath);
+  bool result = builder.buildLiteXCatalog(GetIPGenerator()->Catalog(),
+                                          litexPath, namesOnly);
   return result;
 }
 
@@ -417,9 +416,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     IPCatalog* catalog = new IPCatalog();
     m_IPGenerator = new IPGenerator(catalog, this);
   }
-  // if (m_DesignQuery == nullptr) {
-  //   m_DesignQuery = new DesignQuery(this);
-  // }
+  if (m_DesignQuery == nullptr) {
+    m_DesignQuery = new DesignQuery(this);
+  }
   if (m_deviceProgrammer == nullptr) {
     m_deviceProgrammer = new DeviceProgrammer(this);
   }
@@ -428,8 +427,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
-  // m_DesignQuery->RegisterCommands(interp, batchMode);
+  m_DesignQuery->RegisterCommands(interp, batchMode);
   m_deviceProgrammer->RegisterCommands(interp, batchMode);
+  m_DesignQuery->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }

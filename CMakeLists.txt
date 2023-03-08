@@ -105,7 +105,7 @@ add_subdirectory(src/Main)
 add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
-#add_subdirectory(src/DesignQuery)
+add_subdirectory(src/DesignQuery)
 add_subdirectory(src/DeviceProgrammer)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
@@ -308,8 +308,8 @@ add_dependencies(compiler nlohmann_json)
 add_dependencies(compiler tcl_stubb_build)
 add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
-#add_dependencies(designquery tcl_stubb_build)
-#add_dependencies(designquery nlohmann_json)
+add_dependencies(designquery tcl_stubb_build)
+add_dependencies(designquery nlohmann_json)
 add_dependencies(deviceprogrammer tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
@@ -373,7 +373,7 @@ target_link_libraries(foedag  PUBLIC
   qscintilla2_qt
   compiler
   ipgenerate
-#  designquery
+  designquery
   deviceprogrammer
   simulation
   foedagutils

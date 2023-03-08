@@ -74,7 +74,8 @@ void buildMockUpIPDef(IPCatalog* catalog) {
 }
 
 bool IPCatalogBuilder::buildLiteXCatalog(
-    IPCatalog* catalog, const std::filesystem::path& litexIPgenPath) {
+    IPCatalog* catalog, const std::filesystem::path& litexIPgenPath,
+    bool namesOnly) {
   bool result = true;
   if (FileUtils::FileExists(litexIPgenPath)) {
     int foundCount = 0;
@@ -92,7 +93,8 @@ bool IPCatalogBuilder::buildLiteXCatalog(
       if (exec_name.find("__init__.py") != std::string::npos) continue;
       if (exec_name.find("_gen.py") != std::string::npos) {
         foundCount++;
-        bool res = buildLiteXIPFromGenerator(catalog, entry);
+        bool res = namesOnly ? buildLiteXIPFromGeneratorInternal(catalog, entry)
+                             : buildLiteXIPFromGenerator(catalog, entry);
         if (res == false) {
           result = false;
         }
@@ -279,9 +281,45 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   // get default build_name which is used during ip configuration
   std::string build_name = jopts.value("build_name", "");
 
+  auto def = catalog->Definition(IPName);
+  if (def) {
+    def->apply(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
+               pythonConverterScript, connections, parameters);
+    def->Valid(true);
+  } else {
+    IPDefinition* def = new IPDefinition(
+        IPDefinition::IPType::LiteXGenerator, IPName, build_name,
+        pythonConverterScript, connections, parameters);
+    catalog->addIP(def);
+  }
+  return result;
+}
+
+bool IPCatalogBuilder::buildLiteXIPFromGeneratorInternal(
+    IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
+  bool result = true;
+
+  std::ostringstream help;
+  std::string command;
+
+  std::filesystem::path basepath = FileUtils::Basename(pythonConverterScript);
+  std::string basename = basepath.string();
+  std::string IPName = rtrim(basename, '.');
+
+  // Remove _gen from IPName
+  std::string suffix = "_gen";
+  if (StringUtils::endsWith(IPName, suffix)) {
+    IPName.erase(IPName.length() - suffix.length());
+  }
+
+  // Add version number to IPName
+  auto info = FOEDAG::getIpInfoFromPath(pythonConverterScript);
+  IPName += "_" + info.version;
+
   IPDefinition* def =
-      new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
-                       pythonConverterScript, connections, parameters);
+      new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName,
+                       std::string{}, pythonConverterScript, {}, {});
+  def->Valid(false);
   catalog->addIP(def);
   return result;
 }
