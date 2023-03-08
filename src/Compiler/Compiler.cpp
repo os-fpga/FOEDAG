@@ -429,7 +429,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   m_IPGenerator->RegisterCommands(interp, batchMode);
   m_DesignQuery->RegisterCommands(interp, batchMode);
   m_deviceProgrammer->RegisterCommands(interp, batchMode);
-  m_DesignQuery->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
