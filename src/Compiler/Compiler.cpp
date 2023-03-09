@@ -2507,7 +2507,11 @@ bool Compiler::ProgramDevice() {
 }
 
 bool Compiler::sendChatGpt(const std::string& message) {
-  std::filesystem::path pythonPath = FileUtils::LocateExecFile("python");
+  auto path = GlobalSession->Context()->DataPath();
+  path = path / "share" / "envs" / "chatGPT" / "bin";
+  path = path / "python";
+  std::filesystem::path pythonPath{path};
+//  std::filesystem::path pythonPath = FileUtils::LocateExecFile("python");
   if (pythonPath.empty()) {
     ErrorMessage(
         "Unable to find python interpreter in local "
@@ -2516,7 +2520,8 @@ bool Compiler::sendChatGpt(const std::string& message) {
   }
 
   std::string command = pythonPath.string();
-  command += " --version";
+  command += " -m chatgpt_raptor -p \'";
+  command += message + "\'";
   std::ostringstream help;
 
   if (FileUtils::ExecuteSystemCommand(command, &help)) {
