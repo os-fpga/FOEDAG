@@ -18,12 +18,23 @@ QWidget *createConsole(TclInterp *interp,
   QObject::connect(console, &TclConsoleWidget::searchEnable, search,
                    &SearchWidget::search);
 
+  QVBoxLayout *buttonsLayout = new QVBoxLayout;
+
   auto tool = new QToolButton{};
   tool->setToolTip(QString{"Clear console"});
   QObject::connect(tool, &QToolButton::clicked, console,
                    &TclConsoleWidget::clearText);
   tool->setIcon(QIcon{":/images/erase.png"});
-  layout->addWidget(tool, 0, 0, Qt::AlignTop);
+  buttonsLayout->addWidget(tool);
+
+  tool = new QToolButton{};
+  tool->setToolTip(QString{"Find..."});
+  QObject::connect(tool, &QToolButton::clicked, console,
+                   &TclConsoleWidget::searchEnable);
+  tool->setIcon(QIcon{":/images/search.png"});
+  buttonsLayout->addWidget(tool);
+  layout->addLayout(buttonsLayout, 0, 0, Qt::AlignTop);
+
   layout->addWidget(console, 0, 1);
   layout->addWidget(search, 1, 1);
   layout->setSpacing(1);
