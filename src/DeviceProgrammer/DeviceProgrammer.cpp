@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "DeviceProgrammer/DeviceProgrammer.h"
 
+#include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
 #include "NewProject/ProjectManager/project_manager.h"
@@ -35,49 +36,31 @@ bool DeviceProgrammer::RegisterCommands(TclInterpreter* interp,
                            const char* argv[]) -> int {
     DeviceProgrammer* device_programmer = (DeviceProgrammer*)clientData;
     Compiler* compiler = device_programmer->GetCompiler();
-    ProjectManager* projManager = compiler->ProjManager();
-    std::string projectName{"noname"};
-    std::string activeTargetDevice = projManager->getTargetDevice();
-    if (projManager->HasDesign()) {
-      projectName = projManager->projectName();
+    if (argc >= 2) {
+      device_programmer->m_bitstreamFilename = argv[1];
     }
-    constexpr int step{10};
-    constexpr int totalProgress{100};
-    for (int i = 0; i <= totalProgress; i = i + step) {
-      std::stringstream outStr;
-      outStr << std::setw(3) << i << "% [";
-      std::string s1(i / 10, '=');
-      outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
-      outStr << " just for test";
-      compiler->Message(outStr.str());
-      std::this_thread::sleep_for(100ms);
-    };
-    compiler->Message(projectName + " " + activeTargetDevice +
-                      " Bitstream is programmed");
-    return 0;
+    bool status = compiler->Compile(Compiler::Action::ProgramDevice);
+    return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("program_device", program_device, this, 0);
 
   auto load_bitstream_file = [](void* clientData, Tcl_Interp* interp, int argc,
                                 const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status = true;
     DeviceProgrammer* device_programmer = (DeviceProgrammer*)clientData;
     Compiler* compiler = device_programmer->GetCompiler();
-    compiler->Message("Pending Implementation:: load_bitstream_file");
-    return (status) ? TCL_OK : TCL_ERROR;
+    if (argc != 2) {
+      compiler->ErrorMessage("Please specify the bitstream file");
+      return TCL_ERROR;
+    }
+    device_programmer->m_bitstreamFilename = argv[1];
+    return TCL_OK;
   };
   interp->registerCmd("load_bitstream_file", load_bitstream_file, this, 0);
 
-  auto verify = [](void* clientData, Tcl_Interp* interp, int argc,
-                   const char* argv[]) -> int {
-    // TODO: Implement this API
-    bool status = true;
-    DeviceProgrammer* device_programmer = (DeviceProgrammer*)clientData;
-    Compiler* compiler = device_programmer->GetCompiler();
-    compiler->Message("Pending Implementation:: verify");
-    return (status) ? TCL_OK : TCL_ERROR;
-  };
-  interp->registerCmd("verify", verify, this, 0);
   return status;
+}
+
+std::string DeviceProgrammer::GetBitstreamFilename() const {
+  return m_bitstreamFilename;
 }

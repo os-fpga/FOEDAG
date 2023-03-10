@@ -2458,8 +2458,26 @@ bool Compiler::GenerateBitstream() {
 }
 
 bool Compiler::ProgramDevice() {
-  Message("Programming device for design: " + m_projManager->projectName() +
-          "...");
+  using namespace std::literals;
+  std::string projectName{"noname"};
+  std::string activeTargetDevice = m_projManager->getTargetDevice();
+  if (m_projManager->HasDesign()) {
+    projectName = m_projManager->projectName();
+  }
+  constexpr int step{10};
+  constexpr int totalProgress{100};
+  for (int i = 0; i <= totalProgress; i = i + step) {
+    std::stringstream outStr;
+    outStr << std::setw(3) << i << "% [";
+    std::string s1(i / 10, '=');
+    outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
+    outStr << " just for test";
+    Message(outStr.str());
+    std::this_thread::sleep_for(100ms);
+  };
+  Message(projectName + " " + activeTargetDevice + " " +
+          m_deviceProgrammer->GetBitstreamFilename() +
+          " Bitstream is programmed");
   return true;
 }
 
