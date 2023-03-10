@@ -6447,6 +6447,20 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   // calculator_d21 = total_sb_num_used;
 
 
+  // adder_carry_count
+  // from routing.rpt
+  //    adder_carry    :      64
+  long double adder_carry_count = 0;
+  regex = std::regex("adder_carry\\s*:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> adder_carry_count;
+  }
+  if(power_estimation_dbg) Message("adder_carry_count: " + std::to_string(adder_carry_count));
+  if(power_estimation_dbg) power_analysis_debug_rpt << "adder_carry_count: " << std::to_string(adder_carry_count) << "\n";
+  // NOTE: we consider adder_carry as 3-LUTs
+
+
   // total_lut_num_used
   // from: synthesis.rpt
   // from: synthesis.rpt
@@ -6457,6 +6471,10 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   if(found) {
     std::stringstream(smatches[1]) >> total_lut_num_used;
   }
+  
+  // NOTE: add the adder_carry_count to the total number of LUTs:
+  total_lut_num_used += adder_carry_count;
+
   if(power_estimation_dbg) Message("total_lut_num_used: " + std::to_string(total_lut_num_used));
   if(power_estimation_dbg) power_analysis_debug_rpt << "total_lut_num_used: " << std::to_string(total_lut_num_used) << "\n";
   calculator_d22 = total_lut_num_used;
@@ -6476,11 +6494,24 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   // total_ff_num_used
   // from routing.rpt
   //     dffsre     :      16
+  // AND
+  //     sh_dff     :      2160
+  long double dffsre_count = 0;
+  
   regex = std::regex("dffsre\\s+:\\s+(\\d+)\\s+", std::regex::ECMAScript);
   found = std::regex_search ( routing_rpt, smatches, regex );
   if(found) {
-    std::stringstream(smatches[1]) >> total_ff_num_used;
+    std::stringstream(smatches[1]) >> dffsre_count;
   }
+
+  long double sh_dff_count = 0;
+  regex = std::regex("sh_dff\\s+:\\s+(\\d+)\\s+", std::regex::ECMAScript);
+  found = std::regex_search ( routing_rpt, smatches, regex );
+  if(found) {
+    std::stringstream(smatches[1]) >> sh_dff_count;
+  }
+
+  total_ff_num_used = dffsre_count + sh_dff_count;
   if(power_estimation_dbg) Message("total_ff_num_used: " + std::to_string(total_ff_num_used));
   if(power_estimation_dbg) power_analysis_debug_rpt << "total_ff_num_used: " << std::to_string(total_ff_num_used) << "\n";
   calculator_d26 = total_ff_num_used;
@@ -6527,6 +6558,8 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
   if(found) {
     std::stringstream(smatches[1]) >> used_3LUT;
   }
+  // NOTE: we consider adder_carry as 3-LUTs
+  used_3LUT += adder_carry_count;
   if(power_estimation_dbg) Message("used_3LUT: " + std::to_string(used_3LUT));
   if(power_estimation_dbg) power_analysis_debug_rpt << "used_3LUT: " << std::to_string(used_3LUT) << "\n";
 
