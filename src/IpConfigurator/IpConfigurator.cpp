@@ -95,7 +95,7 @@ void IpConfigurator::ReloadIps() {
     // If the project path is valid and there are IP cmds
     if (!projPath.isEmpty() && cmds.size() > 0) {
       // Execute each configure/generate command
-      for (auto cmd : cmds) {
+      for (const auto& cmd : cmds) {
         GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
       }
     }

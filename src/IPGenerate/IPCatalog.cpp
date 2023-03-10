@@ -41,12 +41,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Log.h"
-#include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
 #include "MainWindow/Session.h"
 #include "Utils/FileUtils.h"
-#include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
