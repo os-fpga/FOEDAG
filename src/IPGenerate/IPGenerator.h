@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef IPGENERATOR_H
+#define IPGENERATOR_H
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -26,9 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 #include "IPGenerate/IPCatalog.h"
-
-#ifndef IPGENERATOR_H
-#define IPGENERATOR_H
 
 namespace FOEDAG {
 
