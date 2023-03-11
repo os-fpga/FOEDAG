@@ -36,8 +36,8 @@ class IpConfigWidget : public QWidget {
 
  public:
   explicit IpConfigWidget(QWidget* parent = nullptr,
-                          const QString& requestedIpName = "",
-                          const QString& moduleName = "",
+                          const QString& requestedIpName = QString{},
+                          const QString& moduleName = QString{},
                           const QStringList& instanceValueArgs = {});
 
  signals:
