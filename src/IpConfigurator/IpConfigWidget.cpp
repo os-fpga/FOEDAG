@@ -27,11 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QScrollArea>
 #include <QWidget>
 
+#include "IPGenerate/IPCatalogBuilder.h"
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
+#include "qdebug.h"
 
 using namespace FOEDAG;
 extern FOEDAG::Session* GlobalSession;
@@ -67,11 +69,12 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
                                const QString& requestedIpName /* "" */,
                                const QString& moduleName /* "" */,
                                const QStringList& instanceValueArgs /*{}*/)
-    : m_requestedIpName(requestedIpName),
+    : paramsBox{new QGroupBox{"Parameters", this}},
+      m_baseDirDefault{getUserProjectPath("IPs")},
+      m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
   this->setWindowTitle("Configure IP");
   this->setObjectName("IpConfigWidget");
-  m_baseDirDefault = getUserProjectPath("IPs");
 
   // Set the path related widgets' tooltips to whatever their text is so long
   // paths are easier to view
@@ -87,7 +90,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   // Create container widget and QScrollArea so this widget can shrink
   QWidget* containerWidget = new QWidget();
   containerWidget->setObjectName("ipConfigContainerWidget");
-  QVBoxLayout* containerLayout = new QVBoxLayout();
+  containerLayout = new QVBoxLayout();
   // layout must be set before adding to the scroll area
   // https://doc.qt.io/qt-6/qscrollarea.html#setWidget
   containerWidget->setLayout(containerLayout);
@@ -101,8 +104,8 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   containerLayout->addWidget(&metaLabel);
 
   // Fill and add Parameters box
-  CreateParamFields();
-  containerLayout->addWidget(&paramsBox);
+  CreateParamFields(true);
+  containerLayout->addWidget(paramsBox);
 
   // Add Output Box
   CreateOutputFields();
@@ -135,85 +138,8 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
 
   // Create our tcl command to generate the IP when the Generate IP button
   // is clicked
-  QObject::connect(&generateBtn, &QPushButton::clicked, this, [this]() {
-    // Find settings fields in the parameter box layout
-    QLayout* fieldsLayout = paramsBox.layout();
-    QList<QObject*> settingsObjs =
-        FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
-
-    // Build up a parameter string based off the current UI fields
-    QString params{};
-
-    bool invalidVals = false;
-    for (QObject* obj : settingsObjs) {
-      // Collect parameters of fields that haven't been disabled by dipendencies
-      QWidget* widget = qobject_cast<QWidget*>(obj);
-      if (widget && widget->isEnabled()) {
-        // Typically widgetFactory widgets can have their value introspected
-        // with ->property("tclArg") however the widget factory stores those
-        // values on change and some fields like comboboxes don't register a
-        // change if the first value is set as the requested value since nothing
-        // changes in that scenario. As a result we'll manually build the arg
-        // string to ensure all values of interest are captured
-
-        // Convert value to string based off widget type
-        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(widget);
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widget);
-        QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
-        QAbstractSpinBox* spinBox = qobject_cast<QAbstractSpinBox*>(widget);
-        QString val{};
-        // note: qobject_cast returns null on failed conversion so the above
-        // casts are basically a runtime type check
-        if (lineEdit) {
-          val = lineEdit->text();
-        } else if (checkBox) {
-          val = checkBox->isChecked() ? "1" : "0";
-        } else if (comboBox) {
-          val = comboBox->currentText();
-        } else if (spinBox) {
-          val = spinBox->text();
-        }
-
-        // convert spaces in value to WidgetFactory space tag so the arg list
-        // doesn't break
-        val.replace(" ", WF_SPACE);
-
-        // build arg string in the form of -P<paramName>=<value>
-        QString arg =
-            QString(" -P%1=%2").arg(obj->property("customId").toString(), val);
-        params += arg;
-
-        // check if any values are invalid
-        invalidVals |= obj->property("invalid").toBool();
-      }
-    }
-
-    // Alert the user if one or more of the field validators is invalid
-    if (invalidVals) {
-      QMessageBox::warning(
-          this, tr("Invalid Parameter Value"),
-          tr("Current parameters are invalid. IP Generation will be skipped."),
-          QMessageBox::Ok);
-    } else {
-      // If all enabled fields are valid, configure and generate IP
-      std::filesystem::path baseDir(m_baseDirDefault.toStdString());
-      std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
-      QString outFileStr =
-          QString::fromStdString(FileUtils::GetFullPath(outFile).string());
-
-      // Build up a cmd string to generate the IP
-      QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
-                    moduleEdit.text() + " -version " +
-                    QString::fromStdString(m_meta.version) + " " + params +
-                    " -out_file " + outFileStr;
-      cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
-
-      GlobalSession->TclInterp()->evalCmd(cmd.toStdString());
-
-      AddIpToProject(cmd);
-      emit ipInstancesUpdated();
-    }
-  });
+  QObject::connect(&generateBtn, &QPushButton::clicked, this,
+                   [this]() { Generate(true); });
 }
 
 void IpConfigWidget::AddIpToProject(const QString& cmd) {
@@ -254,7 +180,7 @@ void IpConfigWidget::AddIpToProject(const QString& cmd) {
   }
 }
 
-void IpConfigWidget::CreateParamFields() {
+void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
@@ -264,16 +190,18 @@ void IpConfigWidget::CreateParamFields() {
       // Store VLNV meta data for the requested IP
       m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
 
-      // set default module name to the BuildName provided by the generate
-      // script otherwise default to the to the VLNV name
-      std::string build_name = def->BuildName();
-      if (build_name.empty()) {
-        build_name = m_meta.name;
-      }
-      moduleEdit.setText(QString::fromStdString(build_name));
+      if (generateMetaLabel) {
+        // set default module name to the BuildName provided by the generate
+        // script otherwise default to the to the VLNV name
+        std::string build_name = def->BuildName();
+        if (build_name.empty()) {
+          build_name = m_meta.name;
+        }
+        moduleEdit.setText(QString::fromStdString(build_name));
 
-      // Update meta label now that vlnv and module info is updated
-      updateMetaLabel(m_meta);
+        // Update meta label now that vlnv and module info is updated
+        updateMetaLabel(m_meta);
+      }
 
       // Build widget factory json for each parameter
       for (auto paramVal : def->Parameters()) {
@@ -352,15 +280,20 @@ void IpConfigWidget::CreateParamFields() {
     tclArgList = m_instanceValueArgs;
   }
 
+  containerLayout->removeWidget(paramsBox);
+  paramsBox->deleteLater();
+  paramsBox = new QGroupBox{"Parameters", this};
+  containerLayout->insertWidget(1, paramsBox);
+
   if (parentJson.empty()) {
     // Add a note if no parameters were available
     QVBoxLayout* layout = new QVBoxLayout();
     layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
-    paramsBox.setLayout(layout);
+    paramsBox->setLayout(layout);
   } else {
     // Create and add the child widget to our parent container
     auto form = createWidgetFormLayout(parentJson, tclArgList);
-    paramsBox.setLayout(form);
+    paramsBox->setLayout(form);
   }
 
   // createWidgetFormLayout sequentially creates widgets from parentJson, which
@@ -372,11 +305,9 @@ void IpConfigWidget::CreateParamFields() {
   // after form creation
   checkDependencies();
 
-  // After the fields are set to valid init states, we can then use
-  // handleCheckBoxChanged to update any runtime dependency changes
   QObject::connect(WidgetFactoryDependencyNotifier::Instance(),
-                   &WidgetFactoryDependencyNotifier::checkboxChanged, this,
-                   &IpConfigWidget::handleCheckBoxChanged);
+                   &WidgetFactoryDependencyNotifier::editorChanged, this,
+                   &IpConfigWidget::handleEditorChanged, Qt::UniqueConnection);
 }
 
 void IpConfigWidget::CreateOutputFields() {
@@ -444,6 +375,177 @@ std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
   return defs;
 }
 
+QMap<QVariant, QVariant> IpConfigWidget::saveProperties() const {
+  QLayout* fieldsLayout = paramsBox->layout();
+  QList<QObject*> settingsObjs =
+      FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
+  QMap<QVariant, QVariant> properties{};
+
+  for (QObject* obj : settingsObjs) {
+    properties.insert(obj->property("customId"), obj->property("value"));
+  }
+  return properties;
+}
+
+std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
+  // generate ip instance
+  Generate(false);
+
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto generator = compiler->GetIPGenerator();
+  std::string newJson{};
+  std::filesystem::path executable{};
+
+  for (IPInstance* inst : generator->IPInstances()) {
+    if (inst->IPName() != m_requestedIpName.toStdString()) continue;
+
+    // Create output directory
+    const std::filesystem::path& out_path = inst->OutputFile();
+    if (!std::filesystem::exists(out_path)) {
+      std::filesystem::create_directories(out_path.parent_path());
+    }
+
+    const IPDefinition* def = inst->Definition();
+    switch (def->Type()) {
+      case IPDefinition::IPType::Other: {
+        break;
+      }
+      case IPDefinition::IPType::LiteXGenerator: {
+        executable = def->FilePath();
+        std::filesystem::path jsonFile = generator->GetCachePath(inst);
+        // Create directory path if it doesn't exist otherwise the following
+        // ofstream command will fail
+        FileUtils::MkDirs(jsonFile.parent_path());
+        std::ofstream jsonF(jsonFile);
+        jsonF << "{" << std::endl;
+        for (const auto& param : inst->Parameters()) {
+          std::string value;
+          // The configure_ip command loses type info because we go from full
+          // json meta data provided by the ip_catalog generators to a single
+          // -Pname=val argument in a tcl command line. As such, we'll use the
+          // ip catalog's definition for parameter type info
+          auto catalogParam = generator->GetCatalogParam(inst, param.Name());
+          if (catalogParam) {
+            switch (catalogParam->GetType()) {
+              case Value::Type::ParamIpVal: {
+                value = param.GetSValue();
+                auto type = ((IPParameter*)catalogParam)->GetParamType();
+                if (type == IPParameter::ParamType::FilePath ||
+                    type == IPParameter::ParamType::String) {
+                  value = "\"" + value + "\"";
+                }
+                break;
+              }
+              case Value::Type::ParamString:
+                value = param.GetSValue();
+                value = "\"" + value + "\"";
+                break;
+              case Value::Type::ParamInt:
+                value = param.GetSValue();
+                break;
+              case Value::Type::ConstInt:
+                value = param.GetSValue();
+            }
+          }
+          jsonF << "   \"" << param.Name() << "\": " << value << ","
+                << std::endl;
+        }
+        jsonF << "   \"build_dir\": " << inst->OutputFile().parent_path() << ","
+              << std::endl;
+        jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
+              << std::endl;
+        jsonF << "   \"build\": true," << std::endl;
+        jsonF << "   \"json\": \"" << jsonFile.filename().string() << "\","
+              << std::endl;
+        jsonF << "   \"json_template\": false" << std::endl;
+        jsonF << "}" << std::endl;
+        jsonF.close();
+
+        // Find path to litex enabled python interpreter
+        std::filesystem::path pythonPath = IPCatalog::getPythonPath();
+        if (pythonPath.empty()) {
+          std::filesystem::path python3Path =
+              FileUtils::LocateExecFile("python3");
+          if (python3Path.empty()) {
+            compiler->ErrorMessage(
+                "IP Generate, unable to find python interpreter in local "
+                "environment.\n");
+            return {};
+          } else {
+            pythonPath = python3Path;
+            compiler->ErrorMessage(
+                "IP Generate, unable to find python interpreter in local "
+                "environment, using system copy '" +
+                python3Path.string() +
+                "'. Some IP Catalog features might not work with this "
+                "interpreter.\n");
+          }
+        }
+
+        std::string command =
+            pythonPath.string() + " " + executable.string() + " --json " +
+            FileUtils::GetFullPath(jsonFile).string() + " --json-template";
+        std::ostringstream help;
+        auto exitStatus = FileUtils::ExecuteSystemCommand(command, &help);
+        if (exitStatus != 0) {
+          qWarning() << "Command failed: " << QString::fromStdString(command)
+                     << " with exit status " << exitStatus;
+          return {};
+        }
+        newJson = help.str();
+        break;
+      }
+    }
+  }
+  return {newJson, executable.string()};
+}
+
+void IpConfigWidget::genarateNewPanel(const std::string& newJson,
+                                      const std::string& filePath) {
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto generator = compiler->GetIPGenerator();
+  IPCatalogBuilder builder(compiler);
+  if (!builder.buildLiteXIPFromJson(generator->Catalog(), filePath, newJson)) {
+    qWarning() << "Failed to parse new json";
+    return;
+  }
+  CreateParamFields(false);
+}
+
+void IpConfigWidget::restoreProperties(
+    const QMap<QVariant, QVariant>& properties) {
+  QList<QObject*> paramObjects =
+      FOEDAG::getTargetObjectsFromLayout(paramsBox->layout());
+  for (auto obj : paramObjects) {
+    auto property = properties.value(obj->property("customId"), QVariant{});
+    if (property.isValid()) {
+      const QSignalBlocker blocker{obj};
+      QLineEdit* lineEdit = qobject_cast<QLineEdit*>(obj);
+      QCheckBox* checkBox = qobject_cast<QCheckBox*>(obj);
+      QComboBox* comboBox = qobject_cast<QComboBox*>(obj);
+      QSpinBox* spinBox = qobject_cast<QSpinBox*>(obj);
+      QDoubleSpinBox* spinBoxD = qobject_cast<QDoubleSpinBox*>(obj);
+      bool appltProperty{true};
+      if (lineEdit) {
+        lineEdit->setText(property.toString());
+      } else if (checkBox) {
+        checkBox->setChecked(property.toInt() == Qt::Checked);
+      } else if (comboBox) {
+        comboBox->setCurrentText(property.toString());
+      } else if (spinBox) {
+        spinBox->setValue(property.toInt());
+      } else if (spinBoxD) {
+        spinBoxD->setValue(property.toDouble());
+      } else {
+        appltProperty = false;
+      }
+      // this need to be done since signals blocked and 'value' property will be
+      // empty.
+      if (appltProperty) obj->setProperty("value", property);
+    }
+  }
+}
+
 void IpConfigWidget::updateOutputPath() {
   // Create and add vlnv path to base IPs directory
   std::filesystem::path baseDir(m_baseDirDefault.toStdString());
@@ -462,26 +564,30 @@ void IpConfigWidget::updateOutputPath() {
   generateBtn.setEnabled(!moduleEdit.text().isEmpty());
 }
 
-void IpConfigWidget::handleCheckBoxChanged(const QString& customId,
-                                           QCheckBox* checkbox) {
-  QList<QObject*> paramObjects =
-      FOEDAG::getTargetObjectsFromLayout(paramsBox.layout());
-  // Step through all fields
-  for (auto obj : paramObjects) {
-    // If this field depends on the checkbox that just toggled
-    if (obj->property("bool_dependency").toString() == customId) {
-      QWidget* widget = qobject_cast<QWidget*>(obj);
-      if (widget) {
-        // Update the dependent widget's enabled state
-        widget->setEnabled(checkbox->isChecked());
-      }
-    }
-  }
+void IpConfigWidget::handleEditorChanged(const QString& customId,
+                                         QWidget* widget) {
+  // block signal otherwice it will be cicled
+  const QSignalBlocker sBlocker{WidgetFactoryDependencyNotifier::Instance()};
+
+  // save currect values
+  QMap<QVariant, QVariant> properties = saveProperties();
+
+  // save currect values as json
+  const auto& [newJson, filePath] = generateNewJson();
+
+  // receive new json and rebuild gui
+  genarateNewPanel(newJson, filePath);
+
+  // restore values
+  restoreProperties(properties);
+
+  // update dependency widgets
+  checkDependencies();
 }
 
 void IpConfigWidget::checkDependencies() {
   QList<QObject*> paramObjects =
-      FOEDAG::getTargetObjectsFromLayout(paramsBox.layout());
+      FOEDAG::getTargetObjectsFromLayout(paramsBox->layout());
   // Step through all fields
   for (auto updateWidget : paramObjects) {
     // Check if this field depends on another field
@@ -506,6 +612,94 @@ void IpConfigWidget::checkDependencies() {
           break;
         }
       }
+    }
+  }
+}
+
+void IpConfigWidget::Generate(bool addToProject) {
+  // Find settings fields in the parameter box layout
+  QLayout* fieldsLayout = paramsBox->layout();
+  QList<QObject*> settingsObjs =
+      FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
+
+  // Build up a parameter string based off the current UI fields
+  QString params{};
+
+  bool invalidVals = false;
+  for (QObject* obj : settingsObjs) {
+    // Collect parameters of fields that haven't been disabled by dipendencies
+    QWidget* widget = qobject_cast<QWidget*>(obj);
+    if (widget && widget->isEnabled()) {
+      // Typically widgetFactory widgets can have their value introspected
+      // with ->property("tclArg") however the widget factory stores those
+      // values on change and some fields like comboboxes don't register a
+      // change if the first value is set as the requested value since nothing
+      // changes in that scenario. As a result we'll manually build the arg
+      // string to ensure all values of interest are captured
+
+      // Convert value to string based off widget type
+      QLineEdit* lineEdit = qobject_cast<QLineEdit*>(widget);
+      QCheckBox* checkBox = qobject_cast<QCheckBox*>(widget);
+      QComboBox* comboBox = qobject_cast<QComboBox*>(widget);
+      QAbstractSpinBox* spinBox = qobject_cast<QAbstractSpinBox*>(widget);
+      QString val{};
+      // note: qobject_cast returns null on failed conversion so the above
+      // casts are basically a runtime type check
+      if (lineEdit) {
+        val = lineEdit->text();
+      } else if (checkBox) {
+        val = checkBox->isChecked() ? "1" : "0";
+      } else if (comboBox) {
+        val = comboBox->currentText();
+      } else if (spinBox) {
+        val = spinBox->text();
+      }
+
+      // convert spaces in value to WidgetFactory space tag so the arg list
+      // doesn't break
+      val.replace(" ", WF_SPACE);
+
+      // build arg string in the form of -P<paramName>=<value>
+      QString arg =
+          QString(" -P%1=%2").arg(obj->property("customId").toString(), val);
+      params += arg;
+
+      // check if any values are invalid
+      invalidVals |= obj->property("invalid").toBool();
+    }
+  }
+
+  // Alert the user if one or more of the field validators is invalid
+  if (invalidVals) {
+    QMessageBox::warning(
+        this, tr("Invalid Parameter Value"),
+        tr("Current parameters are invalid. IP Generation will be skipped."),
+        QMessageBox::Ok);
+  } else {
+    // If all enabled fields are valid, configure and generate IP
+    std::filesystem::path baseDir(m_baseDirDefault.toStdString());
+    std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
+    QString outFileStr =
+        QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+
+    // Build up a cmd string to generate the IP
+    QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
+                  moduleEdit.text() + " -version " +
+                  QString::fromStdString(m_meta.version) + " " + params +
+                  " -out_file " + outFileStr;
+    if (addToProject)
+      cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
+
+    int returnVal{false};
+    auto resultStr =
+        GlobalSession->TclInterp()->evalCmd(cmd.toStdString(), &returnVal);
+    if (returnVal != TCL_OK) {
+      qWarning() << "Error: " << QString::fromStdString(resultStr);
+    }
+
+    if (addToProject) {
+      AddIpToProject(cmd);
+      emit ipInstancesUpdated();
     }
   }
 }

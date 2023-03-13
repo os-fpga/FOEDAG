@@ -141,8 +141,6 @@ std::vector<std::string> JsonArrayToStringVector(
 
 bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     IPCatalog* catalog, const std::filesystem::path& pythonConverterScript) {
-  bool result = true;
-
   // Find path to litex enabled python interpreter
   std::filesystem::path pythonPath = IPCatalog::getPythonPath();
   if (pythonPath.empty()) {
@@ -177,9 +175,16 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     return false;
   }
 
+  return buildLiteXIPFromJson(catalog, pythonConverterScript, help.str(),
+                              command);
+}
+
+bool IPCatalogBuilder::buildLiteXIPFromJson(
+    IPCatalog* catalog, const std::filesystem::path& pythonConverterScript,
+    const std::string& jsonStr, const std::string& command) {
   // Treat command's output as json and parse it
   std::stringstream buffer;
-  buffer << help.str();
+  buffer << jsonStr;
   json jopts;
   try {
     jopts = json::parse(buffer);
@@ -189,6 +194,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
                       "\tgenCmd: " + command + "\n" +
                       "\treturned json: " + buffer.str();
     m_compiler->ErrorMessage(msg);
+    return false;
   }
 
   // Error out if empty json was returned
@@ -290,7 +296,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
         pythonConverterScript, connections, parameters);
     catalog->addIP(def);
   }
-  return result;
+  return true;
 }
 
 bool IPCatalogBuilder::buildLiteXIPFromGeneratorInternal(

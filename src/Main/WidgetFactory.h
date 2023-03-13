@@ -109,9 +109,10 @@ class WidgetFactoryDependencyNotifier : public QObject {
 
  public:
   static WidgetFactoryDependencyNotifier* Instance();
+  void emitEditorChanged(QWidget* widget);
 
  signals:
-  void checkboxChanged(const QString& customId, QCheckBox* widget);
+  void editorChanged(const QString& customId, QWidget* widget);
 };
 
 }  // namespace FOEDAG
