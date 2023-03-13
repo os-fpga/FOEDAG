@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/WidgetFactory.h"
 #include "MainWindow/Session.h"
-#include "MainWindow/main_window.h"
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
@@ -40,10 +39,9 @@ extern FOEDAG::Session* GlobalSession;
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
 
-static QString SEPARATOR = QString::fromStdString(
-    std::string(1, std::filesystem::path::preferred_separator));
-
 QString getUserProjectPath(const QString& suffix) {
+  static QString SEPARATOR = QString::fromStdString(
+      std::string(1, std::filesystem::path::preferred_separator));
   QString path;
   QString projPath =
       GlobalSession->GetCompiler()->ProjManager()->getProjectPath();
@@ -51,7 +49,7 @@ QString getUserProjectPath(const QString& suffix) {
       GlobalSession->GetCompiler()->ProjManager()->getProjectName();
 
   // Only format for a suffix if one was provided
-  QString suffixStr = "";
+  QString suffixStr{};
   if (!suffix.isEmpty()) {
     suffixStr = "." + suffix;
   }
@@ -78,7 +76,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   // Set the path related widgets' tooltips to whatever their text is so long
   // paths are easier to view
   QObject::connect(
-      &outputPath, &QLineEdit::textChanged,
+      &outputPath, &QLineEdit::textChanged, this,
       [this](const QString& text) { outputPath.setToolTip(text); });
 
   // Main Layout
@@ -144,7 +142,7 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
         FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
 
     // Build up a parameter string based off the current UI fields
-    QString params = "";
+    QString params{};
 
     bool invalidVals = false;
     for (QObject* obj : settingsObjs) {
@@ -181,9 +179,8 @@ void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
         val.replace(" ", WF_SPACE);
 
         // build arg string in the form of -P<paramName>=<value>
-        QString arg = QString(" -P%1=%2")
-                          .arg(obj->property("customId").toString())
-                          .arg(val);
+        QString arg =
+            QString(" -P%1=%2").arg(obj->property("customId").toString(), val);
         params += arg;
 
         // check if any values are invalid
@@ -343,9 +340,8 @@ void IpConfigWidget::CreateParamFields() {
               QString::fromStdString(defaultValue).replace(" ", WF_SPACE);
 
           // Create a list of tcl defaults that will be passed to createWidget
-          tclArgList << QString("-P%1 %2")
-                            .arg(QString::fromStdString(param->Name()))
-                            .arg(valNoSpaces);
+          tclArgList << QString("-P%1 %2").arg(
+              QString::fromStdString(param->Name()), valNoSpaces);
         }
       }
     }
@@ -404,7 +400,7 @@ void IpConfigWidget::CreateOutputFields() {
       {"Module Name", &moduleEdit}, {"Output Dir", &outputPath}};
 
   // Loop through pairs and add them to layout
-  for (auto [labelName, widget] : pairs) {
+  for (const auto& [labelName, widget] : pairs) {
     form->addRow(QString::fromStdString(labelName), widget);
   }
 

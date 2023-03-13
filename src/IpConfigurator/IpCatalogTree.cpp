@@ -25,7 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IPGenerate/IPCatalog.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "MainWindow/Session.h"
-#include "Utils/FileUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -70,7 +69,7 @@ void IpCatalogTree::refresh() {
   if (ips != prevIpCatalogResults) {
     this->clear();
     // Add a tree entry for each IP name
-    for (auto ip : ips) {
+    for (const auto& ip : qAsConst(ips)) {
       QTreeWidgetItem* item = new QTreeWidgetItem();
       item->setText(0, ip);
       this->addTopLevelItem(item);

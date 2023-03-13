@@ -43,15 +43,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
-#include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
 #include "IPGenerate/IPGenerator.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
-#include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
-#include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
@@ -413,7 +410,7 @@ bool IPGenerator::Generate() {
     // Take a list of moduleNames and only generate those IPs
     std::vector<std::string> modules;
     StringUtils::tokenize(compiler->IPGenMoreOpt(), " ", modules);
-    for (auto moduleName : modules) {
+    for (const auto& moduleName : modules) {
       IPInstance* inst = GetIPInstance(moduleName);
       if (inst) {
         instances.push_back(inst);
@@ -451,7 +448,7 @@ bool IPGenerator::Generate() {
         FileUtils::MkDirs(jsonFile.parent_path());
         std::ofstream jsonF(jsonFile);
         jsonF << "{" << std::endl;
-        for (auto param : inst->Parameters()) {
+        for (const auto& param : inst->Parameters()) {
           std::string value;
           // The configure_ip command loses type info because we go from full
           // json meta data provided by the ip_catalog generators to a single
@@ -551,8 +548,8 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
   std::filesystem::path dir{};
 
   auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  ProjectManager* projManager = nullptr;
-  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+  if (m_compiler && m_compiler->ProjManager()) {
+    ProjectManager* projManager{m_compiler->ProjManager()};
     QString projName = projManager->getProjectName();
 
     // Build up the expected ip build path
@@ -568,8 +565,7 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
 std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
   std::filesystem::path dir{};
 
-  ProjectManager* projManager = nullptr;
-  if (m_compiler && (projManager = m_compiler->ProjManager())) {
+  if (m_compiler && m_compiler->ProjManager()) {
     std::filesystem::path ipPath = GetBuildDir(instance);
     auto def = instance->Definition();
     std::string ip_config_file =
