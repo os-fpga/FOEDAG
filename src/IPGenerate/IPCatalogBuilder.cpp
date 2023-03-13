@@ -42,12 +42,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Compiler/Log.h"
-#include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "MainWindow/Session.h"
 #include "Utils/FileUtils.h"
-#include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
 using json = nlohmann::ordered_json;
@@ -220,17 +218,17 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   std::vector<Connector*> connections;
 
   auto params = jopts.value("parameters", json::array());
-  for (auto param : params) {
-    auto paramName = param.value("parameter", "");
+  for (const auto& param : params) {
+    auto paramName = param.value("parameter", std::string{});
     auto title = param.value("title", paramName);
     auto options = param.value("options", json::array());
     auto range = param.value("range", json::array());
-    auto type = param.value("type", "");
-    auto description = param.value("description", "");
+    auto type = param.value("type", std::string{});
+    auto description = param.value("description", std::string{});
 
     std::string defaultVal{};
     try {
-      defaultVal = param.value("default", "");
+      defaultVal = param.value("default", std::string{});
     } catch (json::type_error& error) {
       // Default value has potential to be passed non-string values so we'll
       // check for it here
@@ -249,7 +247,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
     if (dependency.is_string()) {
       deps.push_back(dependency.get<std::string>());
     } else if (dependency.is_array()) {
-      for (auto dep : dependency) {
+      for (const auto& dep : dependency) {
         deps.push_back(dep.get<std::string>());
       }
     }
@@ -279,7 +277,7 @@ bool IPCatalogBuilder::buildLiteXIPFromGenerator(
   }
 
   // get default build_name which is used during ip configuration
-  std::string build_name = jopts.value("build_name", "");
+  std::string build_name = jopts.value("build_name", std::string{});
 
   auto def = catalog->Definition(IPName);
   if (def) {
