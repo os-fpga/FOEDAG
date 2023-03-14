@@ -32,13 +32,18 @@ class Compiler;
 
 class DeviceProgrammer {
  public:
-  DeviceProgrammer(Compiler* compiler) : m_compiler(compiler) {}
+  DeviceProgrammer(Compiler* compiler)
+      : m_compiler(compiler), m_bitstreamFilename("") {}
   virtual ~DeviceProgrammer() {}
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
+  std::string GetBitstreamFilename() const;
 
  protected:
   Compiler* m_compiler = nullptr;
+
+ private:
+  std::string m_bitstreamFilename;
 };
 
 }  // namespace FOEDAG
