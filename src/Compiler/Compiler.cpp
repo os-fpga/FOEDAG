@@ -670,8 +670,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = std::filesystem::path(path / expandedFile).string();
     }
 
-    compiler->Message(std::string("Reading ") + actualType + " " +
-                      expandedFile + std::string("\n"));
+    compiler->Message("Reading " + actualType + " " + expandedFile);
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
         {}, {}, expandedFile.c_str(), language, out);
@@ -817,8 +816,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       const auto& path = std::filesystem::current_path();
       expandedFile = std::filesystem::path(path / expandedFile).string();
     }
-    compiler->Message(std::string("Adding constraint file ") + expandedFile +
-                      std::string("\n"));
+    compiler->Message("Adding constraint file " + expandedFile);
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
         expandedFile.c_str(), out);
@@ -2775,8 +2773,7 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     }
   }
 
-  compiler->Message(std::string("Adding ") + actualType + " " + fileList +
-                    std::string("\n"));
+  compiler->Message("Adding " + actualType + " " + fileList);
   std::ostringstream out;
   bool ok{true};
   if (filesType == Design) {
