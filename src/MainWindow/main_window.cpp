@@ -79,7 +79,6 @@ namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
-const QString BITSTREAM_ENABLE_KEY{"bitstreamEnable"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
@@ -790,7 +789,6 @@ void MainWindow::createMenus() {
 #endif
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
-  preferencesMenu->addAction(bitstreamAction);
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
@@ -941,13 +939,6 @@ void MainWindow::createActions() {
   stopCompileMessageAction->setChecked(m_askStopCompilation);
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
-
-  bitstreamAction = new QAction(tr("Enable/Disable bitstream"), this);
-  bitstreamAction->setCheckable(true);
-  connect(bitstreamAction, &QAction::toggled, this,
-          &MainWindow::bitstreamEnable);
-  bitstreamAction->setChecked(
-      m_settings.value(BITSTREAM_ENABLE_KEY, false).toBool());
 
   simRtlAction = new QAction(tr("Simulate RTL"), this);
   connect(simRtlAction, &QAction::triggered, this, [this]() {
@@ -1192,7 +1183,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
   updateTaskTable();
-  updateBitstream();
 }
 
 void MainWindow::clearDockWidgets() {
@@ -1478,10 +1468,10 @@ void MainWindow::updateViewMenu() {
 void MainWindow::updateTaskTable() {
   if (!m_taskManager) return;
   const bool isPostSynthPure{m_projectManager->projectType() == PostSynth};
-  m_taskManager->task(IP_GENERATE)->setEnable(!isPostSynthPure);
-  m_taskManager->task(ANALYSIS)->setEnable(!isPostSynthPure);
-  m_taskManager->task(SIMULATE_RTL)->setEnable(!isPostSynthPure);
-  m_taskManager->task(SYNTHESIS)->setEnable(!isPostSynthPure);
+  m_taskManager->task(IP_GENERATE)->setValid(!isPostSynthPure);
+  m_taskManager->task(ANALYSIS)->setValid(!isPostSynthPure);
+  m_taskManager->task(SIMULATE_RTL)->setValid(!isPostSynthPure);
+  m_taskManager->task(SYNTHESIS)->setValid(!isPostSynthPure);
   if (m_taskView && m_taskModel) {
     for (auto taskId : {IP_GENERATE, ANALYSIS, ANALYSIS_CLEAN, SIMULATE_RTL,
                         SIMULATE_RTL_CLEAN, SIMULATE_RTL_SETTINGS, SYNTHESIS,
@@ -1495,14 +1485,10 @@ void MainWindow::updateTaskTable() {
       m_taskView->setRowHidden(row, true);
     }
   }
-  m_taskManager->task(SIMULATE_BITSTREAM)->setEnable(false);
-  m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setEnable(false);
-  m_taskManager->task(POWER)->setEnable(false);
-  m_taskManager->task(POWER_CLEAN)->setEnable(false);
-}
-
-void MainWindow::updateBitstream() {
-  bitstreamEnable(bitstreamAction->isChecked());
+  m_taskManager->task(SIMULATE_BITSTREAM)->setValid(false);
+  m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
+  m_taskManager->task(POWER)->setValid(false);
+  m_taskManager->task(POWER_CLEAN)->setValid(false);
 }
 
 void MainWindow::slotTabChanged(int index) {
@@ -1682,13 +1668,6 @@ void MainWindow::startProject(bool simulation) {
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
   m_askStopCompilation = showStopCompilationMsg;
   m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
-}
-
-void MainWindow::bitstreamEnable(bool enable) {
-  if (m_taskManager) {
-    m_taskManager->task(BITSTREAM)->setEnable(enable);
-  }
-  m_settings.setValue(BITSTREAM_ENABLE_KEY, enable);
 }
 
 void MainWindow::onShowLicenses() {

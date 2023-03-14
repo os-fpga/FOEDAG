@@ -105,7 +105,8 @@ class Task : public QObject {
   void setValid(bool newValid);
 
   bool isEnable() const;
-  void setEnable(bool newEnable);
+  bool isEnableDefault() const;
+  void setEnable(bool newEnable, bool enableDefault = true);
 
   Task *cleanTask() const;
   void setCleanTask(Task *newClean);
@@ -133,6 +134,7 @@ class Task : public QObject {
   bool m_valid{false};
   QString m_logFilePath{};
   bool m_enable{true};
+  bool m_enableDefault{true};
   CustomData m_customData{};
 };
 

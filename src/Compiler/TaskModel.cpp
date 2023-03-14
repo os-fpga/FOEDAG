@@ -53,10 +53,8 @@ Qt::ItemFlags TaskModel::flags(const QModelIndex &index) const {
   auto task = m_taskManager ? m_taskManager->task(taskId) : nullptr;
   auto flags = QAbstractItemModel::flags(index);
   if (task) {
-    if (task->isEnable())
-      flags |= Qt::ItemIsEnabled;
-    else
-      flags &= ~Qt::ItemIsEnabled;
+    if ((index.column() == TITLE_COL) && task->type() == TaskType::Action)
+      flags |= Qt::ItemIsUserCheckable;
   }
   return flags;
 }
@@ -86,6 +84,10 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
 
   auto task = m_taskManager->task(ToTaskId(index));
   if (!task) return QVariant();
+
+  if (index.column() == TITLE_COL && role == Qt::CheckStateRole &&
+      task->type() == TaskType::Action)
+    return task->isEnable() ? Qt::Checked : Qt::Unchecked;
 
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
     if (task->type() != TaskType::Settings) return task->title();
@@ -137,11 +139,11 @@ QVariant TaskModel::headerData(int section, Qt::Orientation orientation,
                                int role) const {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
     switch (section) {
-      case 0:
+      case STATUS_COL:
         return "Status";
-      case 1:
+      case TITLE_COL:
         return "Task";
-      case 2:
+      case TIMING_COL:
         return "Stats";
     }
   }
@@ -197,6 +199,11 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
 
 bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
+  if (role == Qt::CheckStateRole) {
+    m_taskManager->task(ToTaskId(index))
+        ->setEnable(value.toInt() == Qt::Checked);
+    return true;
+  }
   if (role == UserActionRole) {
     m_taskManager->startTask(ToTaskId(index));
     return true;
@@ -209,7 +216,7 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
     return true;
   } else if (role == ExpandAreaRole && hasChildren(index)) {
     auto task = m_taskManager->task(ToTaskId(index));
-    if (task && task->isEnable()) {
+    if (task && task->isValid()) {
       ExpandAreaAction act = value.value<ExpandAreaAction>();
       switch (act) {
         case ExpandAreaAction::Invert:

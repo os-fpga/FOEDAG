@@ -75,15 +75,22 @@ const QVector<Task *> &Task::subTask() const { return m_subTask; }
 
 bool Task::isValid() const { return m_valid; }
 
-void Task::setValid(bool newValid) { m_valid = newValid; }
+void Task::setValid(bool newValid) {
+  m_valid = newValid;
+  for (const auto &sub : qAsConst(m_subTask)) sub->setValid(newValid);
+}
 
 bool Task::isEnable() const { return m_enable; }
 
-void Task::setEnable(bool newEnable) {
+bool Task::isEnableDefault() const { return m_enableDefault; }
+
+void Task::setEnable(bool newEnable, bool enableDefault) {
+  m_enableDefault = enableDefault;
   if (m_enable != newEnable) {
     m_enable = newEnable;
     emit enableChanged();
-    for (const auto &sub : m_subTask) sub->setEnable(newEnable);
+    for (const auto &sub : qAsConst(m_subTask))
+      sub->setEnable(newEnable, enableDefault);
   }
 }
 

@@ -158,6 +158,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
     connect((*task), &Task::statusChanged, this, &TaskManager::runNext);
     connect((*task), &Task::statusChanged, this,
             &TaskManager::taskStateChanged);
+    connect((*task), &Task::enableChanged, this, &TaskManager::enableChanged);
   }
   m_taskQueue.append(m_tasks[IP_GENERATE]);
   m_taskQueue.append(m_tasks[ANALYSIS]);
@@ -187,6 +188,9 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_taskQueue.append(m_tasks[BITSTREAM_CLEAN]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM]);
   m_taskQueue.append(m_tasks[SIMULATE_BITSTREAM_CLEAN]);
+
+  // bitstream is disabled by default
+  m_tasks[BITSTREAM]->setEnable(false, false);
 
   auto synthesisReportManager = std::make_shared<SynthesisReportManager>(*this);
   connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
@@ -269,13 +273,17 @@ void TaskManager::startAll(bool simulation) {
   if (simulation) appendTask(m_tasks[SIMULATE_BITSTREAM]);
   m_taskCount = m_runStack.count();
   counter = 0;
-  emit started();
-  run();
+  if (m_taskCount != 0) {
+    emit started();
+    run();
+  } else {
+    emit done();
+  }
 }
 
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
-  if (!t->isValid() || !t->isEnable()) return;
+  if (!t->isValid()) return;
   if (t->type() == TaskType::Clean) {
     if (m_dialogProvider) {
       if (m_dialogProvider->question(
@@ -286,9 +294,10 @@ void TaskManager::startTask(Task *t) {
     }
     // put clean commands in the reverse order. Otherwise it will brake compiler
     // state machine
-    for (auto &clearTask : getDownstreamCleanTasks(t)) appendTask(clearTask);
+    for (auto &clearTask : getDownstreamCleanTasks(t))
+      if (clearTask->isValid()) m_runStack.append(clearTask);
   } else {
-    appendTask(t);
+    if (t->isValid()) m_runStack.append(t);
   }
   m_taskCount = m_runStack.count();
   counter = 0;
@@ -406,7 +415,7 @@ void TaskManager::setDialogProvider(const DialogProvider *const dProvider) {
 }
 
 void TaskManager::appendTask(Task *t) {
-  if (t->isEnable()) m_runStack.append(t);
+  if (t->isEnable() && t->isValid()) m_runStack.append(t);
 }
 
 QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
