@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "DesignQuery/DesignQuery.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
@@ -274,7 +275,7 @@ void Compiler::CleanFiles(Action action) {
                                    ProjManager()->DesignTopModule());
   for (const auto& fileName : removeFiles) {
     const std::filesystem::path p{base / fileName};
-    FileUtils::removeFile(p.string());
+    FileUtils::removeFile(p);
   }
 }
 

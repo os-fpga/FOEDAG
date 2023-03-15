@@ -835,7 +835,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
   std::vector<std::string> files;
   switch (action) {
     case Compiler::Action::Analyze:
-      files = {ANALYSIS_LOG, "port_info.json",
+      files = {ANALYSIS_LOG, "port_info.json", "hier_info.json",
                std::string{projectName + "_analyzer.cmd"}};
       break;
     case Compiler::Action::Synthesis:
@@ -872,6 +872,8 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           std::string{projectName + "_openfpga.pcf"},
           "check_rr_node_warnings.log",
           std::string{projectName + "_post_synth.place"},
+          std::string{projectName + "_pin_loc.cmd"},
+          std::string{projectName + "_pin_loc.place"},
           "vpr_stdout.log",
           "post_place_timing.rpt",
           PLACEMENT_LOG,
