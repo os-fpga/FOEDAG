@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IpConfigurator/IpConfigWidget.h"
 
+#include <QDebug>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QMessageBox>
@@ -33,7 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
-#include "qdebug.h"
 
 using namespace FOEDAG;
 extern FOEDAG::Session* GlobalSession;
@@ -527,7 +527,12 @@ void IpConfigWidget::restoreProperties(
       QDoubleSpinBox* spinBoxD = qobject_cast<QDoubleSpinBox*>(obj);
       bool appltProperty{true};
       if (lineEdit) {
+        auto defaultValue = lineEdit->text();
         lineEdit->setText(property.toString());
+        if (!lineEdit->hasAcceptableInput()) {
+          lineEdit->setText(defaultValue);
+          property = defaultValue;
+        }
       } else if (checkBox) {
         checkBox->setChecked(property.toInt() == Qt::Checked);
       } else if (comboBox) {
@@ -670,7 +675,7 @@ void IpConfigWidget::Generate(bool addToProject) {
   }
 
   // Alert the user if one or more of the field validators is invalid
-  if (invalidVals) {
+  if (invalidVals && addToProject) {
     QMessageBox::warning(
         this, tr("Invalid Parameter Value"),
         tr("Current parameters are invalid. IP Generation will be skipped."),

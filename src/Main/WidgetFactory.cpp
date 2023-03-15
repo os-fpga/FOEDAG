@@ -1382,11 +1382,10 @@ QLineEdit* FOEDAG::createLineEdit(
   if (onChange != nullptr) {
     // onChange needs the widget so we capture that in a closure we
     // can then pass to the normal qt handler
-    std::function<void(const QString&)> changeCb =
-        [onChange, widget](const QString& newText) {
-          onChange(widget, newText);
-        };
-    QObject::connect(widget, &QLineEdit::textChanged, changeCb);
+    std::function<void(void)> changeCb = [onChange, widget]() {
+      onChange(widget, widget->text());
+    };
+    QObject::connect(widget, &QLineEdit::editingFinished, changeCb);
   }
 
   return widget;
