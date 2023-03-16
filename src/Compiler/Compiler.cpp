@@ -445,15 +445,23 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
 
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
-                 const char* argv[]) -> int {
+                    const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     auto args = StringUtils::FromArgs(argc, argv);
     if (args.size() > 2) {
       if (args[1] == "send") {
-        compiler->sendChatGpt(args[2]);
+        WorkerThread* wthread =
+            new WorkerThread(args[2], Action::IPGen, compiler);
+        return wthread->start(std::bind(&Compiler::sendChatGpt, compiler,
+                                        std::placeholders::_1))
+                   ? TCL_OK
+                   : TCL_ERROR;
       }
+      compiler->ErrorMessage("Wrong arguments");
+      return TCL_ERROR;
     }
-    return TCL_OK;
+    compiler->ErrorMessage("Wrong number of arguments");
+    return TCL_ERROR;
   };
   interp->registerCmd("chatgpt", chatgpt, this, nullptr);
 

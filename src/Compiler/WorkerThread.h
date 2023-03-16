@@ -46,6 +46,7 @@ class WorkerThread {
   const std::string& Name() { return m_threadName; }
 
   bool start();
+  bool start(const std::function<bool(const std::string&)>& f);
   bool stop();
 
  private:
