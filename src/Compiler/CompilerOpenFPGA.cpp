@@ -1207,7 +1207,6 @@ bool CompilerOpenFPGA::Analyze() {
     Message("Analyze command: " + command);
     status = ExecuteAndMonitorSystemCommand(command, analyse_path.string());
   }
-  Message("");
   std::ifstream raptor_log(analyse_path.string());
   if (raptor_log.good()) {
     std::stringstream buffer;
