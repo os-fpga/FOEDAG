@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "DesignQuery/DesignQuery.h"
 #include "DeviceProgrammer/DeviceProgrammer.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
@@ -335,7 +334,7 @@ class Compiler {
   // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
-  DesignQuery* m_DesignQuery = nullptr;
+  class DesignQuery* m_DesignQuery = nullptr;
   DeviceProgrammer* m_deviceProgrammer = nullptr;
 
   // Error message severity

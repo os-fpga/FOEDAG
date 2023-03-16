@@ -264,6 +264,14 @@ bool Simulator::Clean(SimulationType action) {
         std::filesystem::path(ProjManager()->projectPath()) / LogFile(action);
     if (FileUtils::FileExists(logPath)) std::filesystem::remove(logPath);
   }
+  auto obj_dir =
+      std::filesystem::path(ProjManager()->projectPath()) / "obj_dir";
+  if (FileUtils::FileExists(obj_dir)) std::filesystem::remove_all(obj_dir);
+  for (auto& de :
+       std::filesystem::directory_iterator(ProjManager()->projectPath())) {
+    if ((de.path().extension() == ".cf") || de.path().extension() == ".out")
+      std::filesystem::remove(de.path());
+  }
   SimulationOption(SimulationOpt::None);
   return true;
 }
