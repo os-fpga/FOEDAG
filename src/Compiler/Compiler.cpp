@@ -2508,7 +2508,7 @@ bool Compiler::ProgramDevice() {
 
 bool Compiler::sendChatGpt(const std::string& message) {
   auto path = GlobalSession->Context()->DataPath();
-  path = path / "share" / "envs" / "chatGPT" / "bin";
+  path = path / ".." / "envs" / "chatGPT" / "bin";
   path = path / "python";
   std::filesystem::path pythonPath{path};
 //  std::filesystem::path pythonPath = FileUtils::LocateExecFile("python");
@@ -2519,18 +2519,46 @@ bool Compiler::sendChatGpt(const std::string& message) {
     return false;
   }
 
+  std::string file{"test.txt"};
+
   std::string command = pythonPath.string();
-  command += " -m chatgpt_raptor -p \'";
-  command += message + "\'";
+  std::vector<std::string> args;
+  args.push_back("-m");
+  args.push_back("chatgpt_raptor");
+  args.push_back("-o");
+  args.push_back(file);
+  args.push_back("-p");
+  args.push_back("\'" + message + "\'");
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(command, &help)) {
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
     ErrorMessage("ChatGPT, " + help.str());
     return false;
   }
 
+  std::ifstream stream{file};
+  if (!stream.good()) {
+    ErrorMessage("Can't open file: " + file);
+    return false;
+  }
+  std::stringstream buffer;
+  buffer << stream.rdbuf();
+  const std::string& buf = buffer.str();
+  stream.close();
+
+  json json{};
+  try {
+    json.update(json::parse(buf));
+  } catch (json::parse_error& e) {
+    // output exception information
+    std::cerr << "Json Error: " << e.what() << std::endl;
+    return false;
+  }
+
+  std::string responce = json["message"];
+
   // read content here from json
-  m_tclCmdIntegration->TclshowChatGpt(message, "hello world");
+  m_tclCmdIntegration->TclshowChatGpt(message, responce);
 
   return true;
 }

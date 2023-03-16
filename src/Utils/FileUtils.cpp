@@ -240,6 +240,38 @@ int FileUtils::ExecuteSystemCommand(const std::string& command,
   return (status == QProcess::NormalExit) ? exitCode : -1;
 }
 
+int FileUtils::ExecuteSystemCommand(const std::string& command,
+                                    const std::vector<std::string>& args,
+                                    std::ostream* result) {
+  QProcess* m_process = new QProcess;
+
+  QObject::connect(m_process, &QProcess::readyReadStandardOutput,
+                   [result, m_process]() {
+                     result->write(m_process->readAllStandardOutput(),
+                                   m_process->bytesAvailable());
+                   });
+
+  QObject::connect(m_process, &QProcess::readyReadStandardError,
+                   [result, m_process]() {
+                     QByteArray data = m_process->readAllStandardError();
+                     result->write(data, data.size());
+                   });
+
+  QString program = QString::fromStdString(command);
+  QStringList args_{};
+  for (const auto& ar : args) args_ << QString::fromStdString(ar);
+  m_process->start(program, args_);
+
+  m_process->waitForFinished(-1);
+
+  auto status = m_process->exitStatus();
+  auto exitCode = m_process->exitCode();
+  delete m_process;
+  m_process = nullptr;
+
+  return (status == QProcess::NormalExit) ? exitCode : -1;
+}
+
 time_t FileUtils::Mtime(const std::filesystem::path& path) {
   std::string cpath = path.string();
   struct stat statbuf;
