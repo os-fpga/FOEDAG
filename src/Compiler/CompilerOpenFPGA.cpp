@@ -201,6 +201,16 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
+  (*out) << "     clb_packing <directive>  : Performance optimization flags"
+         << std::endl;
+  (*out) << "                 <directive>  : auto, dense" << std::endl;
+  (*out) << "                        auto  : CLB packing automatically "
+            "determined to optimize performance"
+         << std::endl;
+  (*out)
+      << "                       dense  : Pack logic more densely into CLBs "
+         "resulting in fewer utilized CLBs however may negatively impact timing"
+      << std::endl;
   (*out)
       << "   pnr_netlist_lang <blif, eblif, edif, verilog> : Chooses vpr input "
          "netlist format"
@@ -683,6 +693,27 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("synthesis_type", synthesis_type, this, 0);
+  auto clb_packing = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify type: auto/dense");
+      return TCL_ERROR;
+    }
+    std::string type{argv[1]};
+    ClbPacking packing{ClbPacking::Auto};
+    if (type == "auto") {
+      packing = ClbPacking::Auto;
+    } else if (type == "dense") {
+      packing = ClbPacking::Dense;
+    } else {
+      compiler->ErrorMessage("Allowed types: auto/dense");
+      return TCL_ERROR;
+    }
+    compiler->ClbPackingOption(packing);
+    return TCL_OK;
+  };
+  interp->registerCmd("clb_packing", clb_packing, this, nullptr);
   return true;
 }
 
@@ -1688,6 +1719,14 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   std::string pnrOptions;
+  if (ClbPackingOption() == ClbPacking::Auto) {
+    pnrOptions +=
+        " --allow_unrelated_clustering off --balance_block_type_utilization "
+        "off";
+  } else {
+    pnrOptions +=
+        " --allow_unrelated_clustering on --balance_block_type_utilization on";
+  }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   std::string command =
@@ -2541,6 +2580,14 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       ProjManager()->projectName() + "_openfpga.sdc");
 
   std::string pnrOptions;
+  if (ClbPackingOption() == ClbPacking::Auto) {
+    pnrOptions +=
+        " --allow_unrelated_clustering off --balance_block_type_utilization "
+        "off";
+  } else {
+    pnrOptions +=
+        " --allow_unrelated_clustering on --balance_block_type_utilization on";
+  }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);

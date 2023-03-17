@@ -191,6 +191,16 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
+  (*out) << "     clb_packing <directive>  : Performance optimization flags"
+         << std::endl;
+  (*out) << "                 <directive>  : auto, dense" << std::endl;
+  (*out) << "                        auto  : CLB packing automatically "
+            "determined to optimize performance"
+         << std::endl;
+  (*out)
+      << "                       dense  : Pack logic more densely into CLBs "
+         "resulting in fewer utilized CLBs however may negatively impact timing"
+      << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
   // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
@@ -2011,6 +2021,12 @@ DeviceData Compiler::deviceData() const { return m_deviceData; }
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
   m_deviceData = newDeviceData;
 }
+
+void Compiler::ClbPackingOption(ClbPacking clbPacking) {
+  m_clbPacking = clbPacking;
+}
+
+ClbPacking Compiler::ClbPackingOption() const { return m_clbPacking; }
 
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
