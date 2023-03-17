@@ -74,6 +74,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
+  (*out) << "   --device <name>  : Overrides target_device command with the "
+            "device name"
+         << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
@@ -658,6 +661,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     std::string arg = argv[1];
+    if (!compiler->GetSession()->CmdLine()->Device().empty()) {
+      arg = compiler->GetSession()->CmdLine()->Device();
+    }
     if (compiler->LoadDeviceData(arg)) {
       compiler->ProjManager()->setTargetDevice(arg);
       auto deviceData = compiler->deviceData();
