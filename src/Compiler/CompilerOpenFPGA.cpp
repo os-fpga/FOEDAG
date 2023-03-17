@@ -701,7 +701,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     std::string type{argv[1]};
-    ClbPacking packing{ClbPacking::Auto};
+    ClbPacking packing{ClbPacking::Dense};
     if (type == "auto") {
       packing = ClbPacking::Auto;
     } else if (type == "dense") {
@@ -1720,12 +1720,9 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
 
   std::string pnrOptions;
   if (ClbPackingOption() == ClbPacking::Auto) {
-    pnrOptions +=
-        " --allow_unrelated_clustering off --balance_block_type_utilization "
-        "off";
+    pnrOptions += " --allow_unrelated_clustering off";
   } else {
-    pnrOptions +=
-        " --allow_unrelated_clustering on --balance_block_type_utilization on";
+    pnrOptions += " --allow_unrelated_clustering on";
   }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
@@ -2581,12 +2578,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   std::string pnrOptions;
   if (ClbPackingOption() == ClbPacking::Auto) {
-    pnrOptions +=
-        " --allow_unrelated_clustering off --balance_block_type_utilization "
-        "off";
+    pnrOptions += " --allow_unrelated_clustering off";
   } else {
-    pnrOptions +=
-        " --allow_unrelated_clustering on --balance_block_type_utilization on";
+    pnrOptions += " --allow_unrelated_clustering on";
   }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();

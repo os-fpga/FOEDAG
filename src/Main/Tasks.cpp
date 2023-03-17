@@ -595,7 +595,7 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
   }
   compiler->SetNetlistType(netlistVal);
 
-  ClbPacking clbPacking{ClbPacking::Auto};
+  ClbPacking clbPacking{ClbPacking::Dense};
   const QStringList moreOptsList = moreOpts.split(" ");
   if (moreOptsList.count() > 1) {
     if (moreOptsList.at(0) == "-clb_packing") {
