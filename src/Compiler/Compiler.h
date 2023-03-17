@@ -322,7 +322,7 @@ class Compiler {
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
   DeviceData m_deviceData;
-  ClbPacking m_clbPacking{ClbPacking::Auto};
+  ClbPacking m_clbPacking{ClbPacking::Dense};
 
   // Compiler specific options
   std::string m_pnrOpt;
