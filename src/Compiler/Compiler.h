@@ -52,6 +52,8 @@ struct DeviceData {
   std::string package;
 };
 
+enum class ClbPacking { Auto, Dense };
+
 class Compiler {
   friend Simulator;
 
@@ -234,6 +236,9 @@ class Compiler {
   DeviceData deviceData() const;
   void setDeviceData(const DeviceData& newDeviceData);
 
+  void ClbPackingOption(ClbPacking clbPacking);
+  ClbPacking ClbPackingOption() const;
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -317,6 +322,7 @@ class Compiler {
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
   DeviceData m_deviceData;
+  ClbPacking m_clbPacking{ClbPacking::Auto};
 
   // Compiler specific options
   std::string m_pnrOpt;

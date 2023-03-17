@@ -595,26 +595,18 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
   }
   compiler->SetNetlistType(netlistVal);
 
-  bool allow_unrelated_clustering{false};
-  bool balance_block_type_utilization{false};
+  ClbPacking clbPacking{ClbPacking::Auto};
   const QStringList moreOptsList = moreOpts.split(" ");
-  for (const auto& t : moreOptsList) {
-    if (t == "-allow_unrelated_clustering") allow_unrelated_clustering = true;
-    if (t == "-balance_block_type_utilization")
-      balance_block_type_utilization = true;
+  if (moreOptsList.count() > 1) {
+    if (moreOptsList.at(0) == "-clb_packing") {
+      if (moreOptsList.at(1) == "auto") {
+        clbPacking = ClbPacking::Auto;
+      } else if (moreOptsList.at(1) == "dense") {
+        clbPacking = ClbPacking::Dense;
+      }
+    }
   }
-
-  auto pnrOptions = StringUtils::tokenize(compiler->PnROpt(), " ");
-  std::string value = allow_unrelated_clustering ? "on" : "off";
-  StringUtils::setArgumentValue(pnrOptions, "--allow_unrelated_clustering",
-                                value);
-
-  value = balance_block_type_utilization ? "on" : "off";
-  StringUtils::setArgumentValue(pnrOptions, "--balance_block_type_utilization",
-                                value);
-
-  auto str = StringUtils::join(pnrOptions, " ");
-  compiler->PnROpt(str);
+  compiler->ClbPackingOption(clbPacking);
 
   GlobalSession->GetSettings()->syncWith(SYNTH_SETTING_KEY);
 }
@@ -624,18 +616,11 @@ std::string FOEDAG::TclArgs_getPackingOptions() {
       PACKING_ARG, QString::fromStdString(netlistOptMap.at(
                        GlobalSession->GetCompiler()->GetNetlistType())));
 
-  auto pnrOptions = GlobalSession->GetCompiler()->PnROpt();
-  std::vector<std::string> optionsList =
-      StringUtils::tokenize(pnrOptions, " ", true);
-  for (int i = 0; (i + 1) < optionsList.size(); i++) {
-    if (optionsList.at(i) == "--allow_unrelated_clustering") {
-      tclOptions += " -allow_unrelated_clustering";
-      tclOptions += (optionsList.at(i + 1) == "on") ? QString{} : " false";
-    }
-    if (optionsList.at(i) == "--balance_block_type_utilization") {
-      tclOptions += " -balance_block_type_utilization";
-      tclOptions += (optionsList.at(i + 1) == "on") ? QString{} : " false";
-    }
+  if (GlobalSession->GetCompiler()->ClbPackingOption() == ClbPacking::Auto) {
+    tclOptions += " -clb_packing auto";
+  } else if (GlobalSession->GetCompiler()->ClbPackingOption() ==
+             ClbPacking::Dense) {
+    tclOptions += " -clb_packing dense";
   }
 
   return tclOptions.toStdString();
