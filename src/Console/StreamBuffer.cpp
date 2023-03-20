@@ -41,25 +41,4 @@ std::streamsize StreamBuffer::xsputn(const char_type *s,
   return count;
 }
 
-FileLoggerBuffer::FileLoggerBuffer(Logger *logger, std::streambuf *out)
-    : m_logger(logger), m_stream(out) {}
-
-int FileLoggerBuffer::overflow(int c) {
-  char_type ch = static_cast<char_type>(c);
-  if (ch == traits_type::eof()) return ch;
-  m_stream.put(c);
-  return c;
-}
-
-int FileLoggerBuffer::sync() {
-  m_stream.flush();
-  return 0;
-}
-
-std::streamsize FileLoggerBuffer::xsputn(const char_type *s,
-                                         std::streamsize count) {
-  m_logger->appendLog(std::string{s});
-  return std::streambuf::xsputn(s, count);
-}
-
 }  // namespace FOEDAG
