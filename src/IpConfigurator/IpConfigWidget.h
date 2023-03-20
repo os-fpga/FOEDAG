@@ -58,10 +58,11 @@ class IpConfigWidget : public QWidget {
   std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
   QMap<QVariant, QVariant> saveProperties() const;
-  std::pair<std::string, std::string> generateNewJson();
+  std::pair<std::string, std::string> generateNewJson(bool& ok);
   void genarateNewPanel(const std::string& newJson,
                         const std::string& filePath);
   void restoreProperties(const QMap<QVariant, QVariant>& properties);
+  void showInvalidParametersWarning();
 
   QGroupBox* paramsBox{nullptr};
   QGroupBox outputBox{"Output", this};

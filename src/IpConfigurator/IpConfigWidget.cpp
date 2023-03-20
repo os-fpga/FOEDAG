@@ -387,7 +387,7 @@ QMap<QVariant, QVariant> IpConfigWidget::saveProperties() const {
   return properties;
 }
 
-std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
+std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
   // generate ip instance
   Generate(false);
 
@@ -419,7 +419,7 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
         std::ofstream jsonF(jsonFile);
         jsonF << "{" << std::endl;
         for (const auto& param : inst->Parameters()) {
-          std::string value;
+          std::string value{};
           // The configure_ip command loses type info because we go from full
           // json meta data provided by the ip_catalog generators to a single
           // -Pname=val argument in a tcl command line. As such, we'll use the
@@ -447,6 +447,10 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
                 value = param.GetSValue();
             }
           }
+          if (value.empty()) {
+            ok = false;
+            return {};
+          }
           jsonF << "   \"" << param.Name() << "\": " << value << ","
                 << std::endl;
         }
@@ -470,6 +474,7 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
             compiler->ErrorMessage(
                 "IP Generate, unable to find python interpreter in local "
                 "environment.\n");
+            ok = false;
             return {};
           } else {
             pythonPath = python3Path;
@@ -490,6 +495,7 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson() {
         if (exitStatus != 0) {
           qWarning() << "Command failed: " << QString::fromStdString(command)
                      << " with exit status " << exitStatus;
+          ok = false;
           return {};
         }
         newJson = help.str();
@@ -551,6 +557,13 @@ void IpConfigWidget::restoreProperties(
   }
 }
 
+void IpConfigWidget::showInvalidParametersWarning() {
+  QMessageBox::warning(
+      this, tr("Invalid Parameter Value"),
+      tr("Current parameters are invalid. IP Generation will be skipped."),
+      QMessageBox::Ok);
+}
+
 void IpConfigWidget::updateOutputPath() {
   // Create and add vlnv path to base IPs directory
   std::filesystem::path baseDir(m_baseDirDefault.toStdString());
@@ -578,7 +591,9 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
   QMap<QVariant, QVariant> properties = saveProperties();
 
   // save currect values as json
-  const auto& [newJson, filePath] = generateNewJson();
+  bool ok{true};
+  const auto& [newJson, filePath] = generateNewJson(ok);
+  if (!ok) showInvalidParametersWarning();
 
   // receive new json and rebuild gui
   genarateNewPanel(newJson, filePath);
@@ -676,10 +691,7 @@ void IpConfigWidget::Generate(bool addToProject) {
 
   // Alert the user if one or more of the field validators is invalid
   if (invalidVals && addToProject) {
-    QMessageBox::warning(
-        this, tr("Invalid Parameter Value"),
-        tr("Current parameters are invalid. IP Generation will be skipped."),
-        QMessageBox::Ok);
+    showInvalidParametersWarning();
   } else {
     // If all enabled fields are valid, configure and generate IP
     std::filesystem::path baseDir(m_baseDirDefault.toStdString());
