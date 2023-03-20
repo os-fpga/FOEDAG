@@ -396,12 +396,19 @@ bool Foedag::initBatch() {
   if (mute) {
     std::cout.rdbuf(nullptr);
   } else {
-    auto logger =
-        new FileLoggerBuffer{commands->OutLogger(), std::cout.rdbuf()};
-    std::cout.rdbuf(logger);
-    std::cerr.rdbuf(logger);
-    m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
-                                                std::cout, &std::cerr, true);
+    auto bufferHandler = [commands](const std::string& str) {
+      commands->OutLogger()->appendLog(str);
+    };
+    OutputBuffer* outBuffer = new OutputBuffer{bufferHandler};
+    auto tmp = std::cout.rdbuf(outBuffer);
+    outBuffer->getStream().rdbuf(tmp);
+
+    OutputBuffer* errBuffer = new OutputBuffer{bufferHandler};
+    tmp = std::cerr.rdbuf(errBuffer);
+    errBuffer->getStream().rdbuf(tmp);
+    m_tclChannelHandler =
+        new FOEDAG::TclWorker(interpreter->getInterp(), outBuffer->getStream(),
+                              &errBuffer->getStream(), false);
   }
 
   registerBasicBatchCommands(GlobalSession);
