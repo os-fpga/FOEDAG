@@ -41,4 +41,27 @@ std::streamsize StreamBuffer::xsputn(const char_type *s,
   return count;
 }
 
+OutputBuffer::OutputBuffer(const HandlerFunction &bufferHandler)
+    : m_stream(this), m_bufferHandler(bufferHandler) {}
+
+std::ostream &OutputBuffer::getStream() { return m_stream; }
+
+int OutputBuffer::overflow(int c) {
+  char_type ch = static_cast<char_type>(c);
+  if (ch == '\n') {
+    auto data = std::string{ch};
+    m_bufferHandler(data);
+    m_stream << data;
+  }
+  return ch;
+}
+
+std::streamsize OutputBuffer::xsputn(const char_type *s,
+                                     std::streamsize count) {
+  auto data = std::string{s, static_cast<std::string::size_type>(count)};
+  m_bufferHandler(data);
+  m_stream << data;
+  return count;
+}
+
 }  // namespace FOEDAG

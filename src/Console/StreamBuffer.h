@@ -43,4 +43,19 @@ class StreamBuffer : public QObject, public std::streambuf {
   std::ostream m_stream;
 };
 
+class OutputBuffer : public std::streambuf {
+ public:
+  using HandlerFunction = std::function<void(std::string)>;
+  explicit OutputBuffer(const HandlerFunction &bufferHandler);
+  std::ostream &getStream();
+
+ protected:
+  int overflow(int c) override;
+  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
+
+ private:
+  std::ostream m_stream;
+  HandlerFunction m_bufferHandler{};
+};
+
 }  // namespace FOEDAG
