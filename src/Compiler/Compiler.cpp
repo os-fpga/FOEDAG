@@ -263,13 +263,22 @@ std::string Compiler::GetMessagePrefix() const {
   return std::string{};
 }
 
-void Compiler::Message(const std::string& message) const {
-  if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
+void Compiler::Message(const std::string& message,
+                       const std::string& messagePrefix) const {
+  if (m_out) {
+    const std::string prefix =
+        messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
+    (*m_out) << "INFO: " << prefix << message << std::endl;
+  }
 }
 
-void Compiler::ErrorMessage(const std::string& message, bool append) const {
-  if (m_err)
-    (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
+void Compiler::ErrorMessage(const std::string& message, bool append,
+                            const std::string& messagePrefix) const {
+  if (m_err) {
+    const std::string prefix =
+        messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
+    (*m_err) << "ERROR: " << prefix << message << std::endl;
+  }
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
@@ -2471,6 +2480,7 @@ bool Compiler::GenerateBitstream() {
 
 bool Compiler::ProgramDevice() {
   using namespace std::literals;
+  const std::string prefix{"PDV: "};
   std::string projectName{"noname"};
   std::string activeTargetDevice = m_projManager->getTargetDevice();
   if (m_projManager->HasDesign()) {
@@ -2484,12 +2494,13 @@ bool Compiler::ProgramDevice() {
     std::string s1(i / 10, '=');
     outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
     outStr << " just for test";
-    Message(outStr.str());
+    Message(outStr.str(), prefix);
     std::this_thread::sleep_for(100ms);
   };
   Message(projectName + " " + activeTargetDevice + " " +
-          m_deviceProgrammer->GetBitstreamFilename() +
-          " Bitstream is programmed");
+              m_deviceProgrammer->GetBitstreamFilename().native() +
+              " Bitstream is programmed",
+          prefix);
   return true;
 }
 
