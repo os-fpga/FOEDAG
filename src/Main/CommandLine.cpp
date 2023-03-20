@@ -91,6 +91,9 @@ void CommandLine::processArgs() {
       m_version = true;
     } else if (token == "--mute") {
       m_mute = true;
+    } else if (token == "--device") {
+      i++;
+      m_device = m_argv[i];
     } else {
       std::cout << "ERROR Unknown command line option: " << m_argv[i]
                 << std::endl;

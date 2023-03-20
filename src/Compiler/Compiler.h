@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "DesignQuery/DesignQuery.h"
 #include "DeviceProgrammer/DeviceProgrammer.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
@@ -52,6 +51,8 @@ struct DeviceData {
   std::string series;
   std::string package;
 };
+
+enum class ClbPacking { Auto, Dense };
 
 class Compiler {
   friend Simulator;
@@ -235,6 +236,9 @@ class Compiler {
   DeviceData deviceData() const;
   void setDeviceData(const DeviceData& newDeviceData);
 
+  void ClbPackingOption(ClbPacking clbPacking);
+  ClbPacking ClbPackingOption() const;
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -318,6 +322,7 @@ class Compiler {
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
   DeviceData m_deviceData;
+  ClbPacking m_clbPacking{ClbPacking::Dense};
 
   // Compiler specific options
   std::string m_pnrOpt;
@@ -335,7 +340,7 @@ class Compiler {
   // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
-  DesignQuery* m_DesignQuery = nullptr;
+  class DesignQuery* m_DesignQuery = nullptr;
   DeviceProgrammer* m_deviceProgrammer = nullptr;
 
   // Error message severity

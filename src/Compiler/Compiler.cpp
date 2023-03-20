@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "DesignQuery/DesignQuery.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
@@ -190,6 +191,16 @@ void Compiler::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
   (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
+  (*out) << "     clb_packing <directive>  : Performance optimization flags"
+         << std::endl;
+  (*out) << "                 <directive>  : auto, dense" << std::endl;
+  (*out) << "                        auto  : CLB packing automatically "
+            "determined to optimize performance"
+         << std::endl;
+  (*out)
+      << "                       dense  : Pack logic more densely into CLBs "
+         "resulting in fewer utilized CLBs however may negatively impact timing"
+      << std::endl;
   (*out) << "   packing ?clean?" << std::endl;
   // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
@@ -274,7 +285,7 @@ void Compiler::CleanFiles(Action action) {
                                    ProjManager()->DesignTopModule());
   for (const auto& fileName : removeFiles) {
     const std::filesystem::path p{base / fileName};
-    FileUtils::removeFile(p.string());
+    FileUtils::removeFile(p);
   }
 }
 
@@ -670,8 +681,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       expandedFile = std::filesystem::path(path / expandedFile).string();
     }
 
-    compiler->Message(std::string("Reading ") + actualType + " " +
-                      expandedFile + std::string("\n"));
+    compiler->Message("Reading " + actualType + " " + expandedFile);
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
         {}, {}, expandedFile.c_str(), language, out);
@@ -817,8 +827,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       const auto& path = std::filesystem::current_path();
       expandedFile = std::filesystem::path(path / expandedFile).string();
     }
-    compiler->Message(std::string("Adding constraint file ") + expandedFile +
-                      std::string("\n"));
+    compiler->Message("Adding constraint file " + expandedFile);
     std::ostringstream out;
     bool ok = compiler->m_tclCmdIntegration->TclAddConstrFiles(
         expandedFile.c_str(), out);
@@ -2013,6 +2022,12 @@ void Compiler::setDeviceData(const DeviceData& newDeviceData) {
   m_deviceData = newDeviceData;
 }
 
+void Compiler::ClbPackingOption(ClbPacking clbPacking) {
+  m_clbPacking = clbPacking;
+}
+
+ClbPacking Compiler::ClbPackingOption() const { return m_clbPacking; }
+
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
   m_stop = false;
@@ -2042,7 +2057,7 @@ bool Compiler::Analyze() {
     AnalyzeOpt(DesignAnalysisOpt::None);
     return true;
   }
-  Message("Analyzing design: " + m_projManager->projectName() + "...");
+  Message("Analyzing design: " + m_projManager->projectName());
 
   auto currentPath = std::filesystem::current_path();
   auto it = std::filesystem::directory_iterator{currentPath};
@@ -2075,7 +2090,7 @@ bool Compiler::Synthesize() {
     SynthOpt(SynthesisOpt::None);
     return true;
   }
-  Message("Synthesizing design: " + m_projManager->projectName() + "...");
+  Message("Synthesizing design: " + m_projManager->projectName());
   for (auto constraint : m_constraints->getConstraints()) {
     Message("Constraint: " + constraint);
   }
@@ -2121,8 +2136,7 @@ bool Compiler::GlobalPlacement() {
     ErrorMessage("Design needs to be in packed state");
     return false;
   }
-  Message("Global Placement for design:" + m_projManager->projectName() +
-          "...");
+  Message("Global Placement for design:" + m_projManager->projectName());
   for (int i = 0; i < 100; i = i + 10) {
     std::stringstream outStr;
     outStr << std::setw(2) << i << "%";
@@ -2339,7 +2353,7 @@ bool Compiler::IPGenerate() {
     // No instances configured, no-op w/o error
     return true;
   }
-  Message("IP generation for design: " + m_projManager->projectName() + "...");
+  Message("IP generation for design: " + m_projManager->projectName());
   bool status = GetIPGenerator()->Generate();
   if (status) {
     Message("Design " + m_projManager->projectName() + " IPs are generated");
@@ -2367,7 +2381,7 @@ bool Compiler::Packing() {
     ErrorMessage("No design specified");
     return false;
   }
-  Message("Packing for design: " + m_projManager->projectName() + "...");
+  Message("Packing for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
@@ -2389,7 +2403,7 @@ bool Compiler::Placement() {
         std::string(ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
-  Message("Placement for design: " + m_projManager->projectName() + "...");
+  Message("Placement for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
@@ -2412,7 +2426,7 @@ bool Compiler::Route() {
     return true;
   }
 
-  Message("Routing for design: " + m_projManager->projectName() + "...");
+  Message("Routing for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
@@ -2425,8 +2439,7 @@ bool Compiler::TimingAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  Message("Timing analysis for design: " + m_projManager->projectName() +
-          "...");
+  Message("Timing analysis for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is analyzed");
   CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
   return true;
@@ -2437,7 +2450,7 @@ bool Compiler::PowerAnalysis() {
     ErrorMessage("No design specified");
     return false;
   }
-  Message("Power analysis for design: " + m_projManager->projectName() + "...");
+  Message("Power analysis for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is analyzed");
 
   CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
@@ -2449,8 +2462,7 @@ bool Compiler::GenerateBitstream() {
     ErrorMessage("No design specified");
     return false;
   }
-  Message("Bitstream generation for design: " + m_projManager->projectName() +
-          "...");
+  Message("Bitstream generation for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
   CreateDummyLog(m_projManager, BITSTREAM_LOG);
@@ -2525,7 +2537,6 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
     if (!ok) return false;
     std::string message{"Created design: " + name};
     if (!type.empty()) message += ". Project type: " + type;
-    message += "\n";
     Message(message);
   }
   return true;
@@ -2775,8 +2786,7 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     }
   }
 
-  compiler->Message(std::string("Adding ") + actualType + " " + fileList +
-                    std::string("\n"));
+  compiler->Message("Adding " + actualType + " " + fileList);
   std::ostringstream out;
   bool ok{true};
   if (filesType == Design) {

@@ -239,39 +239,43 @@
             }
         },
         "Packing": {
-	    "netlist_lang_dropdown": {
-		"label": "Pnr netlist language",
-		"widgetType": "dropdown",
-		"options": [
-		    "Blif",
-		    "Edif",
-		    "Verilog",
-		    "VHDL"
-		],
-		"optionsLookup": [
-		    "blif",
-		    "edif",
-		    "verilog",
-		    "vhdl"
-		],
-		"default": "Verilog",
-		"arg": "netlist_lang"
-	    },
-	    "allow_unrelated_clustering": {
-                "label": "Allow unrelated clustering",
-                "widgetType": "checkbox",
-                "arg": "allow_unrelated_clustering"
-            },
-	    "balance_block_type_utilization": {
-                "label": "Balance block type utilization",
-                "widgetType": "checkbox",
-                "arg": "balance_block_type_utilization"
-            },
-            "_META_": {
-                "hidden": false,
-                "isSetting": true,
-                "tclArgKey": "Tasks_packing"
-            }
+           "netlist_lang_dropdown": {
+              "label": "Pnr netlist language",
+              "widgetType": "dropdown",
+              "options": [
+                  "Blif",
+                  "Edif",
+                  "Verilog",
+                  "VHDL"
+              ],
+              "optionsLookup": [
+                  "blif",
+                  "edif",
+                  "verilog",
+                  "vhdl"
+              ],
+              "default": "Verilog",
+              "arg": "netlist_lang"
+          },
+          "clb_packing": {
+              "label": "Clb packing",
+              "options": [
+                  "Auto",
+                  "Dense"
+              ],
+              "optionsLookup": [
+                  "auto",
+                  "dense"
+              ],
+              "widgetType": "dropdown",
+              "default" : "Auto",
+              "arg": "clb_packing"
+           },
+           "_META_": {
+              "hidden": false,
+              "isSetting": true,
+              "tclArgKey": "Tasks_packing"
+           }
         },
         "Placement": {
             "pin_selection_radiobtn": {

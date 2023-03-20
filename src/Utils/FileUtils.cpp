@@ -303,7 +303,7 @@ bool FileUtils::removeFile(const std::string& file) noexcept {
 bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
   if (!FileExists(file)) return false;
   std::error_code ec;
-  std::filesystem::remove(file, ec);
+  std::filesystem::remove_all(file, ec);
   return ec.value() == 0;
 }
 

@@ -74,6 +74,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
   (*out) << "   --verific        : Uses Verific parser" << std::endl;
+  (*out) << "   --device <name>  : Overrides target_device command with the "
+            "device name"
+         << std::endl;
   (*out) << "Tcl commands:" << std::endl;
   (*out) << "   help                       : This help" << std::endl;
   (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
@@ -201,6 +204,16 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   synth_options <option list>: Yosys Options" << std::endl;
   (*out) << "   pnr_options <option list>  : VPR Options" << std::endl;
+  (*out) << "     clb_packing <directive>  : Performance optimization flags"
+         << std::endl;
+  (*out) << "                 <directive>  : auto, dense" << std::endl;
+  (*out) << "                        auto  : CLB packing automatically "
+            "determined to optimize performance"
+         << std::endl;
+  (*out)
+      << "                       dense  : Pack logic more densely into CLBs "
+         "resulting in fewer utilized CLBs however may negatively impact timing"
+      << std::endl;
   (*out)
       << "   pnr_netlist_lang <blif, eblif, edif, verilog> : Chooses vpr input "
          "netlist format"
@@ -648,6 +661,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     std::string arg = argv[1];
+    if (!compiler->GetSession()->CmdLine()->Device().empty()) {
+      arg = compiler->GetSession()->CmdLine()->Device();
+    }
     if (compiler->LoadDeviceData(arg)) {
       compiler->ProjManager()->setTargetDevice(arg);
       auto deviceData = compiler->deviceData();
@@ -683,6 +699,27 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
     return TCL_OK;
   };
   interp->registerCmd("synthesis_type", synthesis_type, this, 0);
+  auto clb_packing = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    CompilerOpenFPGA* compiler = (CompilerOpenFPGA*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify type: auto/dense");
+      return TCL_ERROR;
+    }
+    std::string type{argv[1]};
+    ClbPacking packing{ClbPacking::Dense};
+    if (type == "auto") {
+      packing = ClbPacking::Auto;
+    } else if (type == "dense") {
+      packing = ClbPacking::Dense;
+    } else {
+      compiler->ErrorMessage("Allowed types: auto/dense");
+      return TCL_ERROR;
+    }
+    compiler->ClbPackingOption(packing);
+    return TCL_OK;
+  };
+  interp->registerCmd("clb_packing", clb_packing, this, nullptr);
   return true;
 }
 
@@ -835,7 +872,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
   std::vector<std::string> files;
   switch (action) {
     case Compiler::Action::Analyze:
-      files = {ANALYSIS_LOG, "port_info.json",
+      files = {ANALYSIS_LOG, "port_info.json", "hier_info.json",
                std::string{projectName + "_analyzer.cmd"}};
       break;
     case Compiler::Action::Synthesis:
@@ -872,6 +909,8 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           std::string{projectName + "_openfpga.pcf"},
           "check_rr_node_warnings.log",
           std::string{projectName + "_post_synth.place"},
+          std::string{projectName + "_pin_loc.cmd"},
+          std::string{projectName + "_pin_loc.place"},
           "vpr_stdout.log",
           "post_place_timing.rpt",
           PLACEMENT_LOG,
@@ -1205,7 +1244,6 @@ bool CompilerOpenFPGA::Analyze() {
     Message("Analyze command: " + command);
     status = ExecuteAndMonitorSystemCommand(command, analyse_path.string());
   }
-  Message("");
   std::ifstream raptor_log(analyse_path.string());
   if (raptor_log.good()) {
     std::stringstream buffer;
@@ -1687,6 +1725,11 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   std::string pnrOptions;
+  if (ClbPackingOption() == ClbPacking::Auto) {
+    pnrOptions += " --allow_unrelated_clustering off";
+  } else {
+    pnrOptions += " --allow_unrelated_clustering on";
+  }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   std::string command =
@@ -2540,6 +2583,11 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       ProjManager()->projectName() + "_openfpga.sdc");
 
   std::string pnrOptions;
+  if (ClbPackingOption() == ClbPacking::Auto) {
+    pnrOptions += " --allow_unrelated_clustering off";
+  } else {
+    pnrOptions += " --allow_unrelated_clustering on";
+  }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
   result = ReplaceAll(result, "${PNR_OPTIONS}", pnrOptions);
