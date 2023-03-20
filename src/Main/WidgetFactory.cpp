@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFocusEvent>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -1375,7 +1376,7 @@ QComboBox* FOEDAG::createComboBox(
 QLineEdit* FOEDAG::createLineEdit(
     const QString& objectName, const QString& text,
     std::function<void(QLineEdit*, const QString&)> onChange) {
-  QLineEdit* widget = new QLineEdit();
+  QLineEdit* widget = new LineEdit();
   widget->setObjectName(objectName);
   widget->setText(text);
 
@@ -1536,4 +1537,18 @@ QString FOEDAG::convertAll(const QString& str) {
 
 QString FOEDAG::restoreAll(const QString& str) {
   return restoreSpaces(restoreNewLines(restoreDashes(str)));
+}
+
+LineEdit::LineEdit(QWidget* parent) : QLineEdit(parent) {}
+
+void LineEdit::focusOutEvent(QFocusEvent* e) {
+  QLineEdit::focusOutEvent(e);
+  Qt::FocusReason reason = e->reason();
+  if (reason != Qt::PopupFocusReason ||
+      !(QApplication::activePopupWidget() &&
+        QApplication::activePopupWidget()->parentWidget() == this)) {
+    if (!hasAcceptableInput()) {
+      emit editingFinished();
+    }
+  }
 }

@@ -46,6 +46,19 @@ using tclArgFnMap = std::map<std::string, tclArgFns>;
 #define WF_DASH "_TclArgDash_"
 
 namespace FOEDAG {
+
+/*!
+ * \brief The LineEdit class
+ * This class will emit editingFinished() even if input is not accepted.
+ */
+class LineEdit : public QLineEdit {
+ public:
+  LineEdit(QWidget* parent = nullptr);
+
+ protected:
+  void focusOutEvent(QFocusEvent* e) override;
+};
+
 constexpr bool addUnsetDefault{false};
 QString convertAll(const QString& str);
 QString restoreAll(const QString& str);
