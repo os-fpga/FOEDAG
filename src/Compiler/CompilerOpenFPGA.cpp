@@ -2818,7 +2818,7 @@ bool CompilerOpenFPGA::ProgramDevice() {
       m_deviceProgrammer->GetBitstreamFilename(), m_bitstreamFileSearchDir);
   if (bitstreamFile.empty()) {
     ErrorMessage("Cannot find bitstream file: " +
-                 m_deviceProgrammer->GetBitstreamFilename().native());
+                 m_deviceProgrammer->GetBitstreamFilename().string());
     return false;
   }
 
@@ -2826,7 +2826,7 @@ bool CompilerOpenFPGA::ProgramDevice() {
                                         m_configFileSearchDir);
   if (configFile.empty()) {
     ErrorMessage("Cannot find config file: " +
-                 m_deviceProgrammer->GetConfigFilename().native());
+                 m_deviceProgrammer->GetConfigFilename().string());
     return false;
   }
 

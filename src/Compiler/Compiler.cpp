@@ -2498,7 +2498,7 @@ bool Compiler::ProgramDevice() {
     std::this_thread::sleep_for(100ms);
   };
   Message(projectName + " " + activeTargetDevice + " " +
-              m_deviceProgrammer->GetBitstreamFilename().native() +
+              m_deviceProgrammer->GetBitstreamFilename().string() +
               " Bitstream is programmed",
           prefix);
   return true;
