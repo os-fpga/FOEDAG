@@ -39,7 +39,7 @@ std::string CFG_print(const char* format_string, ...) {
       memcpy((char*)(&string[0]), buf, n);
       break;
     }
-    delete buf;
+    delete[] buf;
     buf = nullptr;
     bufsize *= 2;
     if (bufsize > CFG_PRINT_MAXIMUM_SIZE) {
@@ -47,7 +47,7 @@ std::string CFG_print(const char* format_string, ...) {
     }
   }
   if (buf != nullptr) {
-    delete buf;
+    delete[] buf;
   }
   return string;
 }

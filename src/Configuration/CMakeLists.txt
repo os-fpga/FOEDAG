@@ -77,7 +77,7 @@ if(MSVC)
 		)
 		if (${subsystem_index} GREATER -1)
 			# Currently only ${POST-SUBSYSTEMS} has foedag_xxxx
-			set_property(TARGET raptor_${SUBSYSTEM} 
+			set_property(TARGET foedag_${SUBSYSTEM} 
 				PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 			)
 			set_property(TARGET raptor_${SUBSYSTEM}
