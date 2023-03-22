@@ -2837,7 +2837,7 @@ bool CompilerOpenFPGA::ProgramDevice() {
     // openocd -f gemini.cfg -c "pld load 0 hello.bit"
     // <TODO> This command is not working. Waiting for the implementation from
     // openocd executable
-    return m_openOcdExecutablePath.string() + "-f " + config_file +
+    return m_openOcdExecutablePath.string() + " -f " + config_file +
            " -c pld load " + std::to_string(pld_id) + " " + bitstream_file;
   };
 
