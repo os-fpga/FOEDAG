@@ -1,0 +1,59 @@
+{
+   "bitgen": {
+      "option" : [
+         
+      ],
+      "help" : [
+         "Configuration bitstream generation tool.",
+         "To use it:",
+         "  bitgenerator <{option}>s <input file .bitasm> <output file .cfgbit>"
+      ],
+      "arg" : [2, 2]
+   },
+   "dummy" : {
+      "option" : [
+         {
+            "name" : "debug", 
+            "short" : "d", 
+            "type" : "flag", 
+            "optional" : true,
+            "default" : true,
+            "_help" : "This is debug" 
+         },
+         {  
+            "name" : "index", 
+            "short" : "i", 
+            "type" : "int", 
+            "optional" : true, 
+            "multi" : true,
+            "default" : 3,
+            "_help" : "This is index" 
+         },
+         {  "name" : "cable", 
+            "short" : "c", 
+            "type" : "str", 
+            "optional" : true, 
+            "multi" : false,
+            "default" : "usb",
+            "_help" : "This is cable" 
+         },
+         {  
+            "name" : "operation", 
+            "short" : "o", 
+            "type" : "str", 
+            "optional" : true, 
+            "multi" : true,
+            "_help" : "This is operation"
+         },
+         {  
+            "name" : "target", 
+            "type" : "fpga|flash", 
+            "optional" : false, 
+            "multi" : false,
+            "_help" : "This is target"
+         }
+      ],
+     "help" : [ "This is Dummy ARG" ],
+     "arg"  : [1, 2]
+   }
+}
