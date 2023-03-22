@@ -79,9 +79,9 @@ int main(int argc, char** argv) {
     opcompiler->PinConvExecPath(pinConvPath);
     opcompiler->OpenOcdExecPath(openOcdPath);
 
-    // <TODO> confirm the path of the following files
-    std::filesystem::path bitstreamFileSearchDir = datapath / "bitstream";
-    std::filesystem::path configFileSearchDir = datapath / "scripts";
+    std::filesystem::path bitstreamFileSearchDir =
+        datapath / "configuration" / "bitstream";
+    std::filesystem::path configFileSearchDir = datapath / "configuration";
     opcompiler->SetBitstreamFileSearchDirectory(bitstreamFileSearchDir);
     opcompiler->SetConfigFileSearchDirectory(configFileSearchDir);
   }
