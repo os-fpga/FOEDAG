@@ -1303,6 +1303,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           targetObject->setProperty("bool_dependency", deps[0]);
         }
       }
+      bool disable = (getStr(widgetJsonObj, "disable").toLower() == "true");
+      createdWidget->setDisabled(disable);
     }
   }
 

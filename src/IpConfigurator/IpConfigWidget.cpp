@@ -215,6 +215,7 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
           childJson["label"] = param->GetTitle();
           childJson["tooltip"] = param->GetDescription();
           childJson["bool_dependencies"] = param->GetDependencies();
+          childJson["disable"] = param->Disabled();
           std::string defaultValue = param->GetSValue();
 
           // Determine what type of widget we need for this parameter
@@ -295,15 +296,6 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
     auto form = createWidgetFormLayout(parentJson, tclArgList);
     paramsBox->setLayout(form);
   }
-
-  // createWidgetFormLayout sequentially creates widgets from parentJson, which
-  // means that after first creation, a dependency might have been created and
-  // set before a dependent widget existed possibly leaving that dependent
-  // widget in an incorrect state (ex: a dependent widget might be enabled even
-  // tho the widget it depends on was false at initialization by created after)
-  // checkDepenencies manually updates the fields to capture the correct state
-  // after form creation
-  checkDependencies();
 
   QObject::connect(WidgetFactoryDependencyNotifier::Instance(),
                    &WidgetFactoryDependencyNotifier::editorChanged, this,
@@ -600,40 +592,6 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
 
   // restore values
   restoreProperties(properties);
-
-  // update dependency widgets
-  checkDependencies();
-}
-
-void IpConfigWidget::checkDependencies() {
-  QList<QObject*> paramObjects =
-      FOEDAG::getTargetObjectsFromLayout(paramsBox->layout());
-  // Step through all fields
-  for (auto updateWidget : paramObjects) {
-    // Check if this field depends on another field
-    auto targetId = updateWidget->property("bool_dependency").toString();
-    // don't bother searching if this field doesn't have a dependency
-    if (!targetId.isEmpty()) {
-      // Loop through the fields again to see if any of them are the target
-      // field
-      for (auto widget : paramObjects) {
-        auto customId = widget->property("customId").toString();
-        if (customId == targetId) {
-          // Update the enable state of the dependent field if we found the
-          // dependency match, currenlty we only support boolean dependencies so
-          // we assume the field we depend on is a QCheckBox
-          QWidget* dependentWidget = qobject_cast<QWidget*>(updateWidget);
-          QCheckBox* checkbox = qobject_cast<QCheckBox*>(widget);
-          if (dependentWidget && checkbox) {
-            dependentWidget->setEnabled(checkbox->isChecked());
-          }
-          // only depending on one widget currently so we can bail this loop on
-          // first successful result
-          break;
-        }
-      }
-    }
-  }
 }
 
 void IpConfigWidget::Generate(bool addToProject) {

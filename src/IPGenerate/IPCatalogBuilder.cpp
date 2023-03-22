@@ -231,6 +231,7 @@ bool IPCatalogBuilder::buildLiteXIPFromJson(
     auto range = param.value("range", json::array());
     auto type = param.value("type", std::string{});
     auto description = param.value("description", std::string{});
+    auto disable = param.value("disable", std::string{});
 
     std::string defaultVal{};
     try {
@@ -278,6 +279,7 @@ bool IPCatalogBuilder::buildLiteXIPFromJson(
     parameter->SetDependencies(JsonArrayToStringVector(deps));
     parameter->SetRange(JsonArrayToStringVector(range));
     parameter->SetDescription(description);
+    parameter->SetDisable(disable);
 
     parameters.push_back(parameter);
   }
