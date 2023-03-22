@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
     std::filesystem::path repackConstraintPath =
         datapath / "Arch" / "repack_design_constraint.xml";
     std::filesystem::path openOcdPath = binpath / "openocd";
+    std::filesystem::path openOcdPath = binpath / "openocd";
     opcompiler->AnalyzeExecPath(analyzePath);
     opcompiler->YosysExecPath(yosysPath);
     opcompiler->VprExecPath(vprPath);
