@@ -10,7 +10,7 @@
       ],
       "arg" : [2, 2]
    },
-   "dummy" : {
+   "utst" : {
       "option" : [
          {
             "name" : "debug", 

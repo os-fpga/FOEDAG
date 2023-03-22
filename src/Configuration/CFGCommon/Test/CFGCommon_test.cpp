@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 void test_arg() {
   CFG_POST_MSG("This is CFGArg unit test");
-  CFGArg_DUMMY arg;
+  CFGArg_UTST arg;
   CFG_ASSERT(arg.debug == true);
   CFG_ASSERT(arg.index.size() == 1);
   CFG_ASSERT(arg.index[0] == 3);
