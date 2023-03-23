@@ -2644,25 +2644,28 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   QString cmd{command.c_str()};
   QStringList args = cmd.split(" ");
   QStringList adjustedArgs;
-  
+
   QString program = args.first();
   args.pop_front();  // remove program
   QString current_arg;
   for (int i = 0; i < args.size(); i++) {
     QString arg = args[i];
-    if (args[i].front() == '\"' && args[i].back() != '\"') {// Starting single-quote
-      current_arg = arg.remove(0,1); // remove leading quote
-    } else if (args[i].front() != '\"' && args[i].back() == '\"') { // Ending single-quote
-      current_arg += " " + arg.chopped(1); // remove trailing quote
+    if (args[i].front() == '\"' &&
+        args[i].back() != '\"') {      // Starting single-quote
+      current_arg = arg.remove(0, 1);  // remove leading quote
+    } else if (args[i].front() != '\"' &&
+               args[i].back() == '\"') {    // Ending single-quote
+      current_arg += " " + arg.chopped(1);  // remove trailing quote
       adjustedArgs.push_back(current_arg);
       current_arg = "";
-    } else if (args[i].front() == '\"' && args[i].back() == '\"') { // Single-quoted argument
+    } else if (args[i].front() == '\"' &&
+               args[i].back() == '\"') {  // Single-quoted argument
       current_arg += " " + arg;
       adjustedArgs.push_back(current_arg);
       current_arg = "";
-    } else if (!current_arg.isEmpty()) { // Continuing single-quoted argument
+    } else if (!current_arg.isEmpty()) {  // Continuing single-quoted argument
       current_arg += " " + arg;
-    } else { // Non-quoted argument
+    } else {  // Non-quoted argument
       adjustedArgs.push_back(arg);
     }
   }
