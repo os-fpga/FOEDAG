@@ -2835,27 +2835,19 @@ bool CompilerOpenFPGA::ProgramDevice() {
                              int pld_id) -> std::string {
     // command to invoke openocd to program the bitstream
     // openocd -f gemini.cfg -c "pld load 0 hello.bit"
-    // <TODO> This command is not working. Waiting for the implementation from
-    // openocd executable
     return m_openOcdExecutablePath.string() + " -f " + config_file +
-           " -c pld load " + std::to_string(pld_id) + " " + bitstream_file;
+           " -c \"pld load " + std::to_string(pld_id) + " " + bitstream_file + "\"" +
+           " -c \"exit\"";
   };
 
   std::string command =
       buildCommand(configFile.string(), bitstreamFile.string(),
                    m_deviceProgrammer->GetPldId());
-  Message("Debug: Programming device with command: " +
-          command);  // debug message <TODO> remove this
-
-  // <TODO> This is a temporary to confirm openocd is working properly
-  // actual command is not is not working yet. Waiting for the implementation
-  // from openocd executable
-  command = m_openOcdExecutablePath.string() + " -v";
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitstream programming failed");
-    return false;
+   ErrorMessage("Design " + ProjManager()->projectName() +
+                " bitstream programming failed");
+   return false;
   }
   return true;
 }
