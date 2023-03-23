@@ -229,7 +229,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
         current_iter++;
       }
     } else {
-      CFG_ASSERT(type == 3 or type == 4);
+      CFG_ASSERT(type == 3 || type == 4);
       if (string.size() > 4) {
         size_t index = type == 3 ? string.find("<<") : string.find(">>");
         if (index > 0) {
