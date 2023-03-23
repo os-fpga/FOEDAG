@@ -80,10 +80,10 @@ if(MSVC)
 			set_property(TARGET foedag_${SUBSYSTEM} 
 				PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 			)
-			set_property(TARGET raptor_${SUBSYSTEM}
+			set_property(TARGET foedag_${SUBSYSTEM}
 				PROPERTY COMPILER_FLAGS /DSTATIC_BUILD
 			)
-			set_target_properties(raptor_${SUBSYSTEM} PROPERTIES
+			set_target_properties(foedag_${SUBSYSTEM} PROPERTIES
 				COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
 			)
 		endif()
