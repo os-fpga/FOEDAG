@@ -670,6 +670,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->ProjManager()->setTargetDeviceData(
           deviceData.family, deviceData.series, deviceData.package);
       compiler->Message("Target device: " + arg);
+      if (!compiler->DeviceTagVersion().empty())
+        compiler->Message("Device version: " + compiler->DeviceTagVersion());
     } else {
       compiler->ErrorMessage("Invalid target device: " + arg);
       return TCL_ERROR;
@@ -2857,16 +2859,36 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
   std::filesystem::path devicefile =
       datapath / std::string("etc") / std::string("device.xml");
-  QFile file(devicefile.string().c_str());
+  status = LoadDeviceData(deviceName, devicefile);
+  if (status) {
+    // Local (Usually temporary) device settings per device directory
+    // The HW team might want to try some options or settings before making them
+    // official
+    std::filesystem::path device_data_dir = m_architectureFile.parent_path();
+    std::filesystem::path local_device_settings =
+        device_data_dir / "device.xml";
+    if (std::filesystem::exists(local_device_settings)) {
+      status = LoadDeviceData(deviceName, local_device_settings);
+    }
+  }
+  return status;
+}
+
+bool CompilerOpenFPGA::LoadDeviceData(
+    const std::string& deviceName,
+    const std::filesystem::path& deviceListFile) {
+  bool status = true;
+  std::filesystem::path datapath = GetSession()->Context()->DataPath();
+  QFile file(deviceListFile.string().c_str());
   if (!file.open(QFile::ReadOnly)) {
-    ErrorMessage("Cannot open device file: " + devicefile.string());
+    ErrorMessage("Cannot open device file: " + deviceListFile.string());
     return false;
   }
 
   QDomDocument doc;
   if (!doc.setContent(&file)) {
     file.close();
-    ErrorMessage("Incorrect device file: " + devicefile.string());
+    ErrorMessage("Incorrect device file: " + deviceListFile.string());
     return false;
   }
   file.close();
@@ -2933,6 +2955,8 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
                 YosysPluginName(name);
               } else if (file_type == "technology") {
                 YosysMapTechnology(name);
+              } else if (file_type == "tag_version") {
+                DeviceTagVersion(name);
               } else if (file_type == "synth_type") {
                 if (name == "QL")
                   SynthType(SynthesisType::QL);
