@@ -407,7 +407,7 @@ bool Foedag::initBatch() {
     tmp = std::cerr.rdbuf(errBuffer);
     errBuffer->getStream().rdbuf(tmp);
     m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
-                                                std::cout, &std::cerr, false);
+                                                std::cout, &std::cerr, true);
   }
 
   registerBasicBatchCommands(GlobalSession);
