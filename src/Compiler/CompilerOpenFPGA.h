@@ -60,6 +60,9 @@ class CompilerOpenFPGA : public Compiler {
   void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
   }
+  void DeviceTagVersion(const std::string& version) {
+    m_deviceTagVersion = version;
+  }
   void YosysScript(const std::string& script) { m_yosysScript = script; }
   void OpenFPGAScript(const std::string& script) { m_openFPGAScript = script; }
   void OpenFpgaArchitectureFile(const std::filesystem::path& path) {
@@ -109,7 +112,7 @@ class CompilerOpenFPGA : public Compiler {
   const std::string& YosysPluginLibName() { return m_yosysPluginLib; }
   const std::string& YosysPluginName() { return m_yosysPlugin; }
   const std::string& YosysMapTechnology() { return m_mapToTechnology; }
-
+  const std::string& DeviceTagVersion() { return m_deviceTagVersion; }
   void YosysPluginLibName(const std::string& libname) {
     m_yosysPluginLib = libname;
   }
@@ -150,6 +153,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool GenerateBitstream();
   virtual bool ProgramDevice();
   virtual bool LoadDeviceData(const std::string& deviceName);
+  virtual bool LoadDeviceData(const std::string& deviceName,
+                              const std::filesystem::path& deviceListFile);
   virtual bool LicenseDevice(const std::string& deviceName);
   virtual bool DesignChanged(const std::string& synth_script,
                              const std::filesystem::path& synth_scrypt_path,
@@ -201,6 +206,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
   std::filesystem::path m_OpenFpgaPinConstraintXml = "";
+  std::string m_deviceTagVersion;
   std::string m_deviceSize;
   std::string m_yosysScript;
   std::string m_openFPGAScript;
