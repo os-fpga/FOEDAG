@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "DesignQuery/DesignQuery.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
@@ -451,6 +452,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
+  }
+  if (m_configuration == nullptr) {
+    SetConfiguration(new CFGCompiler(this));
+    GetConfiguration()->RegisterCommands(interp, batchMode);
   }
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -2234,6 +2239,8 @@ bool Compiler::RunCompileTask(Action action) {
           GetSimulator()->GetSimulatorType(), m_waveformFile);
     case Action::ProgramDevice:
       return ProgramDevice();
+    case Action::Configuration:
+      return GetConfiguration()->Configure();
     default:
       break;
   }

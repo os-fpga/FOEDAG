@@ -29,4 +29,5 @@ sta
 power
 bitstream
 program_device dummy.bit
+programmer
 exit

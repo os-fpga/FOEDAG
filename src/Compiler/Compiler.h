@@ -45,6 +45,7 @@ class Session;
 class DesignManager;
 class TclCommandIntegration;
 class Constraints;
+class CFGCompiler;
 
 struct DeviceData {
   std::string family;
@@ -76,7 +77,8 @@ class Compiler {
     SimulateGate,
     SimulatePNR,
     SimulateBitstream,
-    ProgramDevice
+    ProgramDevice,
+    Configuration
   };
   enum class State {
     None,
@@ -223,6 +225,9 @@ class Compiler {
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
   NetlistType GetNetlistType() { return m_netlistType; }
 
+  void SetConfiguration(CFGCompiler* c) { m_configuration = c; }
+  CFGCompiler* GetConfiguration() { return m_configuration; }
+
   void virtual CustomSimulatorSetup(Simulator::SimulationType action);
   void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
   const std::string& GetWavefromFile() { return m_waveformFile; }
@@ -343,7 +348,7 @@ class Compiler {
   Simulator* m_simulator = nullptr;
   class DesignQuery* m_DesignQuery = nullptr;
   DeviceProgrammer* m_deviceProgrammer = nullptr;
-
+  CFGCompiler* m_configuration = nullptr;
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
 
