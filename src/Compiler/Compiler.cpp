@@ -2595,8 +2595,9 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
   std::error_code ec;
-  auto path = std::filesystem::current_path();                  // getting path
-  std::filesystem::current_path(m_projManager->projectPath(), ec);  // setting path
+  auto path = std::filesystem::current_path();  // getting path
+  std::filesystem::current_path(m_projManager->projectPath(),
+                                ec);  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
