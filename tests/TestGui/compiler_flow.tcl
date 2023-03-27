@@ -28,5 +28,6 @@ route
 sta
 power
 bitstream
-program_device
+program_device dummy.bit
+programmer
 exit

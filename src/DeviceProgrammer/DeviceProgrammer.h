@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef DEVICEPROGRAMMER_H
 #define DEVICEPROGRAMMER_H
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -33,17 +34,25 @@ class Compiler;
 class DeviceProgrammer {
  public:
   DeviceProgrammer(Compiler* compiler)
-      : m_compiler(compiler), m_bitstreamFilename("") {}
+      : m_compiler(compiler),
+        m_bitstreamFile(""),
+        m_configFile(""),
+        m_pldId(0) {}
   virtual ~DeviceProgrammer() {}
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
-  std::string GetBitstreamFilename() const;
+
+  std::filesystem::path GetBitstreamFilename() const;
+  std::filesystem::path GetConfigFilename() const;
+  uint16_t GetPldId() const;
 
  protected:
   Compiler* m_compiler = nullptr;
 
  private:
-  std::string m_bitstreamFilename;
+  std::filesystem::path m_bitstreamFile;
+  std::filesystem::path m_configFile;
+  uint16_t m_pldId;
 };
 
 }  // namespace FOEDAG

@@ -45,6 +45,7 @@ class Session;
 class DesignManager;
 class TclCommandIntegration;
 class Constraints;
+class CFGCompiler;
 
 struct DeviceData {
   std::string family;
@@ -76,7 +77,8 @@ class Compiler {
     SimulateGate,
     SimulatePNR,
     SimulateBitstream,
-    ProgramDevice
+    ProgramDevice,
+    Configuration
   };
   enum class State {
     None,
@@ -138,9 +140,10 @@ class Compiler {
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
-  virtual void Message(const std::string& message) const;
-  virtual void ErrorMessage(const std::string& message,
-                            bool append = true) const;
+  virtual void Message(const std::string& message,
+                       const std::string& messagePrefix = "") const;
+  virtual void ErrorMessage(const std::string& message, bool append = true,
+                            const std::string& messagePrefix = "") const;
   virtual std::vector<std::string> GetCleanFiles(
       Action action, const std::string& projectName,
       const std::string& topModule) const;
@@ -221,6 +224,9 @@ class Compiler {
 
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
   NetlistType GetNetlistType() { return m_netlistType; }
+
+  void SetConfiguration(CFGCompiler* c) { m_configuration = c; }
+  CFGCompiler* GetConfiguration() { return m_configuration; }
 
   void virtual CustomSimulatorSetup(Simulator::SimulationType action);
   void SetWaveformFile(const std::string& wave) { m_waveformFile = wave; }
@@ -342,7 +348,7 @@ class Compiler {
   Simulator* m_simulator = nullptr;
   class DesignQuery* m_DesignQuery = nullptr;
   DeviceProgrammer* m_deviceProgrammer = nullptr;
-
+  CFGCompiler* m_configuration = nullptr;
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
 

@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 142)
+set(VERSION_PATCH 147)
 
 option(
   WITH_LIBCXX
@@ -111,6 +111,7 @@ add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
+add_subdirectory(src/Configuration)
 
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
@@ -385,6 +386,7 @@ target_link_libraries(foedag  PUBLIC
   ipconfigurator
   pinassignment
   scope_guard
+  cfgcompiler
 )
 #target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Quick)
 target_link_libraries(foedag  PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
