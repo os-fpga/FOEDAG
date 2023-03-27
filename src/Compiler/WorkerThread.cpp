@@ -58,7 +58,6 @@ bool WorkerThread::start() {
 }
 
 bool WorkerThread::start(const std::function<bool(const std::string&)>& f) {
-  bool result = true;
   m_compiler->start();
   QEventLoop* eventLoop{nullptr};
   const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
@@ -66,7 +65,6 @@ bool WorkerThread::start(const std::function<bool(const std::string&)>& f) {
   if (processEvents) eventLoop = new QEventLoop;
   m_thread = new std::thread([&, eventLoop] {
     f(m_threadName);
-    //      result = m_compiler->Compile(m_action);
     m_compiler->finish();
     if (eventLoop) eventLoop->quit();
   });
@@ -75,7 +73,7 @@ bool WorkerThread::start(const std::function<bool(const std::string&)>& f) {
   else
     m_thread->join();  // batch mode
   delete eventLoop;
-  return result;
+  return true;
 }
 
 bool WorkerThread::stop() {

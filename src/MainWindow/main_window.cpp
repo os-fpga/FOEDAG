@@ -462,6 +462,10 @@ void MainWindow::chatGpt(const QString &request, const QString &content)
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   for (int i = 0; i < tabWidget->count(); i++) {
     if (tabWidget->tabText(i) == reportName) {
+      if (request.isEmpty()) {
+        tabWidget->removeTab(i);
+        return;
+      }
       tabWidget->setCurrentIndex(i);
       QStandardItem *item = new QStandardItem();
       item->setData("Chat GPT",ListViewDelegate::HeaderRole);

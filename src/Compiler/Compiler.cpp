@@ -463,14 +463,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     auto args = StringUtils::FromArgs(argc, argv);
-    if (args.size() > 2) {
+    if (args.size() >= 2) {
       if (args[1] == "send") {
+        if (args.size() > 4) {
+          if (args[3] == "-c") compiler->chatgptConfig(args[4]);
+        }
         WorkerThread* wthread =
             new WorkerThread(args[2], Action::IPGen, compiler);
-        return wthread->start(std::bind(&Compiler::sendChatGpt, compiler,
-                                        std::placeholders::_1))
+        return wthread->start([compiler](const std::string& str) -> bool {
+          return compiler->sendChatGpt(str);
+        })
                    ? TCL_OK
                    : TCL_ERROR;
+      } else if (args[1] == "reset") {
+        WorkerThread* wthread =
+            new WorkerThread("reset", Action::IPGen, compiler);
+        return wthread->start([compiler](const std::string&) -> bool {
+          return compiler->resetChatGpt({});
+        })
+                   ? TCL_OK
+                   : TCL_ERROR;
+        return TCL_OK;
       }
       compiler->ErrorMessage("Wrong arguments");
       return TCL_ERROR;
@@ -2538,7 +2551,6 @@ bool Compiler::sendChatGpt(const std::string& message) {
   path = path / ".." / "envs" / "chatGPT" / "bin";
   path = path / "python";
   std::filesystem::path pythonPath{path};
-//  std::filesystem::path pythonPath = FileUtils::LocateExecFile("python");
   if (pythonPath.empty()) {
     ErrorMessage(
         "Unable to find python interpreter in local "
@@ -2546,7 +2558,7 @@ bool Compiler::sendChatGpt(const std::string& message) {
     return false;
   }
 
-  std::string file{"test.txt"};
+  const std::string file{"chatgpt"};
 
   std::string command = pythonPath.string();
   std::vector<std::string> args;
@@ -2556,6 +2568,10 @@ bool Compiler::sendChatGpt(const std::string& message) {
   args.push_back(file);
   args.push_back("-p");
   args.push_back("\'" + message + "\'");
+  if (!m_chatgptConfigFile.empty()) {
+    args.push_back("-c");
+    args.push_back(m_chatgptConfigFile);
+  }
   std::ostringstream help;
 
   if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
@@ -2588,6 +2604,38 @@ bool Compiler::sendChatGpt(const std::string& message) {
   m_tclCmdIntegration->TclshowChatGpt(message, responce);
 
   return true;
+}
+
+bool Compiler::resetChatGpt(const std::string&) {
+  auto path = GlobalSession->Context()->DataPath();
+  path = path / ".." / "envs" / "chatGPT" / "bin";
+  path = path / "python";
+  std::filesystem::path pythonPath{path};
+  if (pythonPath.empty()) {
+    ErrorMessage(
+        "Unable to find python interpreter in local "
+        "environment.\n");
+    return false;
+  }
+
+  std::string command = pythonPath.string();
+  std::vector<std::string> args;
+  args.push_back("-m");
+  args.push_back("chatgpt_raptor");
+  args.push_back("-n");
+  std::ostringstream help;
+
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
+    ErrorMessage("ChatGPT, " + help.str());
+    return false;
+  }
+
+  m_tclCmdIntegration->TclshowChatGpt({}, {});
+  return true;
+}
+
+void Compiler::chatgptConfig(const std::string& file) {
+  m_chatgptConfigFile = file;
 }
 
 bool Compiler::VerifyTargetDevice() const {

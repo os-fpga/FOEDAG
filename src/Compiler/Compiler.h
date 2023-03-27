@@ -260,6 +260,8 @@ class Compiler {
   virtual bool ProgramDevice();
 
   bool sendChatGpt(const std::string &message);
+  bool resetChatGpt(const std::string&);
+  void chatgptConfig(const std::string& file);
 
   /*!
    * \brief CheckTargetDevice
@@ -359,6 +361,7 @@ class Compiler {
   NetlistType m_netlistType = NetlistType::Blif;
 
   std::string m_waveformFile;
+  std::string m_chatgptConfigFile{};
 
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
