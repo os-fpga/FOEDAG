@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 QWidget* mainWindowBuilder(FOEDAG::Session* session) {
   FOEDAG::TclConsoleWidget* console{nullptr};
-  auto buffer = new FOEDAG::StreamBuffer;
+  auto buffer = new FOEDAG::TclConsoleBuffer;
   auto w = FOEDAG::createConsole(
       session->TclInterp()->getInterp(),
       std::make_unique<FOEDAG::TclConsole>(session->TclInterp()->getInterp(),
