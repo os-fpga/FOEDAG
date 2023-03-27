@@ -57,6 +57,7 @@ class LineEdit : public QLineEdit {
 
  protected:
   void focusOutEvent(QFocusEvent* e) override;
+  void keyPressEvent(QKeyEvent* event) override;
 };
 
 constexpr bool addUnsetDefault{false};

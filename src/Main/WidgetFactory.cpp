@@ -1554,3 +1554,13 @@ void LineEdit::focusOutEvent(QFocusEvent* e) {
     }
   }
 }
+
+void LineEdit::keyPressEvent(QKeyEvent* event) {
+  QLineEdit::keyPressEvent(event);
+  if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
+    if (!hasAcceptableInput()) {
+      emit editingFinished();
+      event->accept();
+    }
+  }
+}

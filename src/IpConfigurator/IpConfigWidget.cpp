@@ -585,13 +585,15 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
   // save currect values as json
   bool ok{true};
   const auto& [newJson, filePath] = generateNewJson(ok);
-  if (!ok) showInvalidParametersWarning();
+  if (ok) {
+    // receive new json and rebuild gui
+    genarateNewPanel(newJson, filePath);
 
-  // receive new json and rebuild gui
-  genarateNewPanel(newJson, filePath);
-
-  // restore values
-  restoreProperties(properties);
+    // restore values
+    restoreProperties(properties);
+  } else {
+    showInvalidParametersWarning();
+  }
 }
 
 void IpConfigWidget::Generate(bool addToProject) {
