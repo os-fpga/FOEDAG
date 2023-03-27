@@ -1078,7 +1078,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   consoleDocWidget->setObjectName("consoledocwidget");
   m_dockConsole = consoleDocWidget;
 
-  StreamBuffer* buffer = new StreamBuffer;
+  TclConsoleBuffer* buffer = new TclConsoleBuffer{};
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
       m_interpreter->getInterp(), buffer->getStream());
   FOEDAG::TclConsole* c = tclConsole.get();
