@@ -1,4 +1,4 @@
-# -*- mode:cmake -*-
+># -*- mode:cmake -*-
 
 # Copyright 2021-2022 The Foedag team
 
@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 145)
+set(VERSION_PATCH 147)
 
 option(
   WITH_LIBCXX
