@@ -26,36 +26,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class StreamBuffer : public QObject, public std::streambuf {
-  Q_OBJECT
+class StreamBuffer : public std::streambuf {
  public:
-  explicit StreamBuffer(QObject *parent = nullptr);
+  explicit StreamBuffer();
   std::ostream &getStream();
 
- signals:
-  void ready(const QString &);
+  virtual void output(const char_type *s, std::streamsize count) {}
 
  protected:
   int overflow(int c) override;
   std::streamsize xsputn(const char_type *s, std::streamsize count) override;
 
- private:
+ protected:
   std::ostream m_stream;
 };
 
-class OutputBuffer : public std::streambuf {
+class Logger;
+class BatchModeBuffer : public StreamBuffer {
  public:
-  using HandlerFunction = std::function<void(std::string)>;
-  explicit OutputBuffer(const HandlerFunction &bufferHandler);
-  std::ostream &getStream();
-
- protected:
-  int overflow(int c) override;
-  std::streamsize xsputn(const char_type *s, std::streamsize count) override;
+  explicit BatchModeBuffer(Logger *logger);
+  void output(const char_type *s, std::streamsize count) override;
 
  private:
-  std::ostream m_stream;
-  HandlerFunction m_bufferHandler{};
+  Logger *m_logger{};
+};
+
+class TclConsoleBuffer : public QObject, public StreamBuffer {
+  Q_OBJECT
+ public:
+  TclConsoleBuffer(QObject *parent = nullptr);
+  void output(const char_type *s, std::streamsize count) override;
+
+ signals:
+  void ready(const QString &str);
 };
 
 }  // namespace FOEDAG

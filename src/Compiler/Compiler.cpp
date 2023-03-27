@@ -62,6 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "scope_guard/scope_guard.hpp"
 
@@ -2651,7 +2652,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
                    [&utils, this]() { utils.Start(m_process->processId()); });
 
   QString cmd{command.c_str()};
-  QStringList args = cmd.split(" ");
+  QStringList args = QtUtils::StringSplit(cmd, ' ');
   QStringList adjustedArgs;
 
   QString program = args.first();
