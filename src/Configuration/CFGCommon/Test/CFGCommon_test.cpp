@@ -32,7 +32,7 @@ void test_arg() {
   CFG_ASSERT(arg.cable == "usb");
   CFG_ASSERT(arg.operation.size() == 0);
   CFG_ASSERT(arg.target == "fpga");
-  CFG_ASSERT(arg.args.size() == 0);
+  CFG_ASSERT(arg.Args.size() == 0);
   const char* argv[] = {"-d",          "in1",         "--index",
                         "-2x",         "in2",         "--cable=ethernet",
                         "-o",          "erase",       "-oprogram",
@@ -53,11 +53,11 @@ void test_arg() {
   CFG_ASSERT(arg.operation[2] == "verify");
   CFG_ASSERT(arg.operation[3] == "exam");
   CFG_ASSERT(arg.target == "flash");
-  CFG_ASSERT(arg.args.size() == 4);
-  CFG_ASSERT(arg.args[0] == "in1");
-  CFG_ASSERT(arg.args[1] == "in2");
-  CFG_ASSERT(arg.args[2] == "in3");
-  CFG_ASSERT(arg.args[3] == "in4");
+  CFG_ASSERT(arg.Args.size() == 4);
+  CFG_ASSERT(arg.Args[0] == "in1");
+  CFG_ASSERT(arg.Args[1] == "in2");
+  CFG_ASSERT(arg.Args[2] == "in3");
+  CFG_ASSERT(arg.Args[3] == "in4");
   CFG_ASSERT(errors.size() == 4);
   CFG_ASSERT(errors[0] ==
              "Fail to assign value -2x to option index because of invalid "

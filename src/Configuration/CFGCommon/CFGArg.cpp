@@ -4,18 +4,18 @@
 
 CFGArg::CFGArg(const std::string& n, int i, int a, std::vector<CFGArg_RULE> r,
                const char* h)
-    : name(n), min_arg(i), max_arg(a), rules(r), help_msg(h) {
-  CFG_ASSERT(name.size());
-  CFG_ASSERT(min_arg >= 0);
-  CFG_ASSERT(max_arg == -1 || max_arg >= min_arg);
-  CFG_ASSERT(help_msg != nullptr);
+    : Name(n), Min_arg(i), Max_arg(a), Rules(r), Help_msg(h) {
+  CFG_ASSERT(Name.size());
+  CFG_ASSERT(Min_arg >= 0);
+  CFG_ASSERT(Max_arg == -1 || Max_arg >= Min_arg);
+  CFG_ASSERT(Help_msg != nullptr);
 }
 
 bool CFGArg::parse(int argc, const char** argv,
                    std::vector<std::string>* errors) {
   bool status = true;
   CFGArg_RULE* ptr = nullptr;
-  help = false;
+  Help = false;
   for (int i = 0; i < argc; i++) {
     CFG_ASSERT(argv != nullptr);
     CFG_ASSERT(argv[i] != nullptr);
@@ -27,8 +27,8 @@ bool CFGArg::parse(int argc, const char** argv,
         ptr = nullptr;
       } else {
         if (str == "-h" || str == "--help") {
-          help = true;
-          CFG_POST_MSG(help_msg);
+          Help = true;
+          CFG_POST_MSG(Help_msg);
         } else if (str[0] == '-') {
           if (str.size() >= 2) {
             if (str[1] == '-') {
@@ -52,7 +52,7 @@ bool CFGArg::parse(int argc, const char** argv,
             status = false;
           }
         } else {
-          args.push_back(str);
+          Args.push_back(str);
         }
       }
     } else {
@@ -73,9 +73,9 @@ bool CFGArg::parse(int argc, const char** argv,
       status = false;
     }
   }
-  if (!help || count > 0 || errors != nullptr) {
+  if (!Help || Count > 0 || errors != nullptr) {
     if (status || errors != nullptr) {
-      for (auto& r : rules) {
+      for (auto& r : Rules) {
         if (!r.optional && r.count == 0) {
           post_error(CFG_print("Option %s is required", r.name.c_str()),
                      errors);
@@ -87,23 +87,23 @@ bool CFGArg::parse(int argc, const char** argv,
       }
     }
     if (status || errors != nullptr) {
-      if (min_arg > int(args.size())) {
+      if (Min_arg > int(Args.size())) {
         post_error(
             CFG_print(
                 "Minimum of %d argument(s) need to be specified, but found "
                 "%d argument(s) is specified",
-                min_arg, int(args.size())),
+                Min_arg, int(Args.size())),
             errors);
         status = false;
       }
     }
     if (status || errors != nullptr) {
-      if (max_arg != -1 && max_arg < int(args.size())) {
+      if (Max_arg != -1 && Max_arg < int(Args.size())) {
         post_error(
             CFG_print(
                 "Can only specify maximum of %d argument(s), but found %d "
                 "argument(s) is specified",
-                max_arg, int(args.size())),
+                Max_arg, int(Args.size())),
             errors);
         status = false;
       }
@@ -125,7 +125,7 @@ bool CFGArg::parse_long_option(const std::string& option, CFGArg_RULE** ptr,
   CFGArg_RULE* rule = nullptr;
   std::string value = "";
   (*ptr) = nullptr;
-  for (auto& r : rules) {
+  for (auto& r : Rules) {
     std::string keyword = CFG_print("--%s", r.name.c_str());
     if (keyword.size() <= option.size()) {
       if (option.find(keyword) == 0) {
@@ -152,7 +152,7 @@ bool CFGArg::parse_short_option(const std::string& option, CFGArg_RULE** ptr,
   CFGArg_RULE* rule = nullptr;
   std::string value = "";
   (*ptr) = nullptr;
-  for (auto& r : rules) {
+  for (auto& r : Rules) {
     if (r.short_name != char(0)) {
       std::string keyword = CFG_print("-%c", r.short_name);
       if (keyword.size() <= option.size()) {
@@ -191,7 +191,7 @@ bool CFGArg::check_option_value(CFGArg_RULE* rule, const std::string& value,
         bool* v_ptr = reinterpret_cast<bool*>(const_cast<void*>(rule->ptr));
         (*v_ptr) = !(*v_ptr);
         rule->count++;
-        count++;
+        Count++;
       }
     } else {
       post_error(
@@ -254,7 +254,7 @@ bool CFGArg::assign(CFGArg_RULE* rule, const std::string& value,
             (*v_ptr) = v;
           }
           rule->count++;
-          count++;
+          Count++;
         } else {
           post_error(
               CFG_print(
@@ -286,7 +286,7 @@ bool CFGArg::assign(CFGArg_RULE* rule, const std::string& value,
         (*v_ptr) = value;
       }
       rule->count++;
-      count++;
+      Count++;
     } else {
       CFG_ASSERT(rule->type == "enum");
       CFG_ASSERT(!rule->multiple);
@@ -297,7 +297,7 @@ bool CFGArg::assign(CFGArg_RULE* rule, const std::string& value,
               reinterpret_cast<std::string*>(const_cast<void*>(rule->ptr));
           (*v_ptr) = value;
           rule->count++;
-          count++;
+          Count++;
         } else {
           post_error(
               CFG_print("Option %s value %s does not match any supported enum",
@@ -320,7 +320,7 @@ bool CFGArg::assign(CFGArg_RULE* rule, const std::string& value,
 bool CFGArg::print_option(const std::string& option,
                           std::vector<std::string>* errors) {
   bool status = false;
-  for (auto& r : rules) {
+  for (auto& r : Rules) {
     if (option == r.name || (r.short_name != char(0) && option.size() == 1 &&
                              r.short_name == option[0])) {
       std::string message = CFG_print("\n\n%s\n", r.name.c_str());
@@ -337,7 +337,7 @@ bool CFGArg::print_option(const std::string& option,
       message = CFG_print("%s  Usage      : %s\n", message.c_str(), r.help);
       CFG_POST_MSG(message.c_str());
       status = true;
-      help = true;
+      Help = true;
       break;
     }
   }
@@ -350,10 +350,10 @@ bool CFGArg::print_option(const std::string& option,
 }
 
 void CFGArg::print() {
-  std::string message = CFG_print("\n\nARG: %s\n", name.c_str());
-  if (rules.size()) {
+  std::string message = CFG_print("\n\nARG: %s\n", Name.c_str());
+  if (Rules.size()) {
     message = CFG_print("%s  Option(s)\n", message.c_str());
-    for (auto& r : rules) {
+    for (auto& r : Rules) {
       message = CFG_print("%s    %s\n", message.c_str(), r.name.c_str());
       message =
           CFG_print("%s      Type: %s\n", message.c_str(), r.type_name.c_str());
@@ -394,11 +394,11 @@ void CFGArg::print() {
       }
     }
   }
-  if (args.size()) {
+  if (Args.size()) {
     message = CFG_print("%s  Argument(s)\n", message.c_str());
-    for (size_t i = 0; i < args.size(); i++) {
+    for (size_t i = 0; i < Args.size(); i++) {
       message =
-          CFG_print("%s    (%d) %s\n", message.c_str(), i, args[i].c_str());
+          CFG_print("%s    (%d) %s\n", message.c_str(), i, Args[i].c_str());
     }
   }
   CFG_POST_MSG(message.c_str());

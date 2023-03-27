@@ -8,7 +8,7 @@
 
 struct CFGArg_RULE {
   CFGArg_RULE(const std::string& n, char s, const std::string& t, bool o,
-              bool m, const void* p, const char* h,
+              bool m, bool hi, const void* p, const char* h,
               const std::vector<std::string> e)
       : name(n),
         short_name(s),
@@ -16,6 +16,7 @@ struct CFGArg_RULE {
         type_name(t == "int" ? "integer" : (t == "str" ? "string" : t)),
         optional(o),
         multiple(m),
+        hide(hi),
         ptr(p),
         help(h),
         enums(e) {
@@ -39,6 +40,7 @@ struct CFGArg_RULE {
   const std::string type_name;
   const bool optional;
   const bool multiple;
+  const bool hide;
   const void* ptr;
   const char* help;
   const std::vector<std::string> enums;
@@ -50,8 +52,9 @@ class CFGArg {
   CFGArg(const std::string& n, int i, int a, std::vector<CFGArg_RULE> r,
          const char* h);
   bool specified(const std::string& option);
-  std::vector<std::string> args;
-  bool help = false;
+  const std::string Name = "";
+  std::vector<std::string> Args;
+  bool Help = false;
 
  protected:
   bool parse(int argc, const char* argv[], std::vector<std::string>* errors);
@@ -70,12 +73,11 @@ class CFGArg {
               std::vector<std::string>* errors);
   bool print_option(const std::string& option,
                     std::vector<std::string>* errors);
-  const std::string name = "";
-  const int min_arg = 0;
-  const int max_arg = 0;
-  const std::vector<CFGArg_RULE> rules = {};
-  const char* help_msg = nullptr;
-  uint32_t count = 0;
+  const int Min_arg = 0;
+  const int Max_arg = 0;
+  const std::vector<CFGArg_RULE> Rules = {};
+  const char* Help_msg = nullptr;
+  uint32_t Count = 0;
 };
 
 #endif

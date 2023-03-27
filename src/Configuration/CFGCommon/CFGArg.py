@@ -27,7 +27,9 @@ class OPTION :
             args["multi"] = False
         if "default" not in args :
             args["default"] = None
-        assert "_help" in args
+        assert "help" in args
+        if "hide" not in args :
+            args["hide"] = False
         # grep
         n = args["name"]
         s = args["short"]
@@ -35,8 +37,9 @@ class OPTION :
         o = args["optional"]
         m = args["multi"]
         d = args["default"]
-        h = args["_help"]
-        assert len(args) == 7
+        h = args["help"]
+        hi = args["hide"]
+        assert len(args) == 8
         # Manipulate
         e = None
         if t.find("|") != -1 :
@@ -99,6 +102,7 @@ class OPTION :
                 assert isinstance(d, str)
             else :
                 assert d in e
+        assert isinstance(hi, bool)
         # Assign
         self.name = n
         self.short_name = s
@@ -108,6 +112,7 @@ class OPTION :
         self.default = d
         self.help = h
         self.enum = e
+        self.hide = hi
 
     def __str__(self) :
 
@@ -179,6 +184,14 @@ class database :
             for o in self.options :
                 if len(o.name) == length :
                     self.arrange_options.append(o)
+
+    def print_options_count(self) :
+
+        count = 0
+        for o in self.options :
+            if not o.hide :
+                count += 1
+        return count
         
 def write_arg(file, cfile, arg) :
 
@@ -188,18 +201,19 @@ def write_arg(file, cfile, arg) :
             cfile.write("%s\n" % h)
     else :
         cfile.write("%s\n" % arg.help)
-    if len(arg.options) != 0 :
+    if arg.print_options_count() != 0 :
         cfile.write("\n  Explantion:\n")
         cfile.write("    <> : option is required\n")
         cfile.write("    {} : option is optional\n")
         cfile.write("    s  : option can be specified more than once\n")
         cfile.write("\n  Usage:\n")
         for o in arg.options :
-            cfile.write("    %-*s : %s\n" % (arg.longest_option_name, o, o.help))
-            if o.type == "enum" :
-                cfile.write("    %-*s : Valid input is \"%s\"\n" % (arg.longest_option_name, \
-                                                                    " ",
-                                                                    "|".join(o.enum)))
+            if not o.hide :
+                cfile.write("    %-*s : %s\n" % (arg.longest_option_name, o, o.help))
+                if o.type == "enum" :
+                    cfile.write("    %-*s : Valid input is \"%s\"\n" % (arg.longest_option_name, \
+                                                                        " ",
+                                                                        "|".join(o.enum)))
         cfile.write("\n  Note: Use --help=option to show more detail of the option\n")
     cfile.write(")\"\"\"\";\n\n")
     file.write("class CFGArg_%s : public CFGArg\n" % arg.name.upper())
@@ -214,14 +228,15 @@ def write_arg(file, cfile, arg) :
         cfile.write("\n")
     arg.arrange()
     for i, o in enumerate(arg.arrange_options) :
-        cfile.write("    CFGArg_RULE(\"%s\", %s, \"%s\", %s, %s, &%s, \"%s\", %s)" % \
+        cfile.write("    CFGArg_RULE(\"%s\", %s, \"%s\", %s, %s, %s, &%s, \"%s\", %s)" % \
                                                 (o.name,\
-                                                 o.short_name,
+                                                 o.short_name,\
                                                  o.type,\
                                                  "true" if o.optional else "false",\
                                                  "true" if o.multiple else "false",\
-                                                 o.name,
-                                                 o.help,
+                                                 "true" if o.hide else "false",\
+                                                 o.name,\
+                                                 o.help,\
                                                  o.get_enum()))
         if i < (len(arg.options)-1) :
             cfile.write(",")
