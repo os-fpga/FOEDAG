@@ -83,6 +83,10 @@ class FileUtils final {
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);
 
+  static std::filesystem::path findFile(
+      const std::filesystem::path& filePath,
+      const std::filesystem::path& defaultDir);
+
  private:
   FileUtils() = delete;
   FileUtils(const FileUtils& orig) = delete;

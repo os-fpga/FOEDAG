@@ -36,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TclErrorParser.h"
 
 QWidget *mainWindowBuilder(FOEDAG::Session *session) {
-  auto buffer = new FOEDAG::StreamBuffer;
+  auto buffer = new FOEDAG::TclConsoleBuffer;
   auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
       session->TclInterp()->getInterp(), buffer->getStream());
   FOEDAG::TclConsole *c = tclConsole.get();

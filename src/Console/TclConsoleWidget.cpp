@@ -13,7 +13,6 @@
 
 #include "Compiler/Log.h"
 #include "ConsoleDefines.h"
-#include "FileInfo.h"
 #include "StreamBuffer.h"
 
 extern FOEDAG::Session *GlobalSession;
@@ -24,13 +23,13 @@ Q_GLOBAL_STATIC_WITH_ARGS(QString, linkSep, {"::"})
 
 TclConsoleWidget::TclConsoleWidget(TclInterp *interp,
                                    std::unique_ptr<ConsoleInterface> iConsole,
-                                   StreamBuffer *buffer, QWidget *parent)
+                                   TclConsoleBuffer *buffer, QWidget *parent)
     : QConsole(parent),
       m_console(std::move(iConsole)),
       m_buffer{buffer},
-      m_errorBuffer(new StreamBuffer) {
-  connect(m_buffer, &StreamBuffer::ready, this, &TclConsoleWidget::put);
-  connect(m_errorBuffer, &StreamBuffer::ready, this,
+      m_errorBuffer(new TclConsoleBuffer) {
+  connect(m_buffer, &TclConsoleBuffer::ready, this, &TclConsoleWidget::put);
+  connect(m_errorBuffer, &TclConsoleBuffer::ready, this,
           &TclConsoleWidget::putError);
   m_formatter.setTextEdit(this);
   if (m_console) {
@@ -54,9 +53,9 @@ bool TclConsoleWidget::isRunning() const {
 
 QString TclConsoleWidget::getPrompt() const { return prompt; }
 
-StreamBuffer *TclConsoleWidget::getBuffer() { return m_buffer; }
+TclConsoleBuffer *TclConsoleWidget::getBuffer() { return m_buffer; }
 
-StreamBuffer *TclConsoleWidget::getErrorBuffer() { return m_errorBuffer; }
+TclConsoleBuffer *TclConsoleWidget::getErrorBuffer() { return m_errorBuffer; }
 
 const char *TclConsoleWidget::consoleObjectName() { return "TclConsole"; }
 

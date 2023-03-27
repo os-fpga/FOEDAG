@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
         datapath / "Arch" / "fixed_sim_openfpga.xml";
     std::filesystem::path repackConstraintPath =
         datapath / "Arch" / "repack_design_constraint.xml";
+    std::filesystem::path openOcdPath = binpath / "openocd";
     opcompiler->AnalyzeExecPath(analyzePath);
     opcompiler->YosysExecPath(yosysPath);
     opcompiler->VprExecPath(vprPath);
@@ -76,6 +77,13 @@ int main(int argc, char** argv) {
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);
     opcompiler->PinConvExecPath(pinConvPath);
+    opcompiler->OpenOcdExecPath(openOcdPath);
+
+    std::filesystem::path bitstreamFileSearchDir =
+        datapath / "configuration" / "bitstream";
+    std::filesystem::path configFileSearchDir = datapath / "configuration";
+    opcompiler->SetBitstreamFileSearchDirectory(bitstreamFileSearchDir);
+    opcompiler->SetConfigFileSearchDirectory(configFileSearchDir);
   }
   return foedag->init(guiType);
 }

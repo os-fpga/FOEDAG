@@ -48,6 +48,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TclInterpreterHandler.h"
 #include "Compiler/WorkerThread.h"
 #include "CompilerDefines.h"
+#include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "DesignQuery/DesignQuery.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
@@ -61,6 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
 #include "Utils/ProcessUtils.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "scope_guard/scope_guard.hpp"
 
@@ -263,13 +265,22 @@ std::string Compiler::GetMessagePrefix() const {
   return std::string{};
 }
 
-void Compiler::Message(const std::string& message) const {
-  if (m_out) (*m_out) << "INFO: " << GetMessagePrefix() << message << std::endl;
+void Compiler::Message(const std::string& message,
+                       const std::string& messagePrefix) const {
+  if (m_out) {
+    const std::string prefix =
+        messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
+    (*m_out) << "INFO: " << prefix << message << std::endl;
+  }
 }
 
-void Compiler::ErrorMessage(const std::string& message, bool append) const {
-  if (m_err)
-    (*m_err) << "ERROR: " << GetMessagePrefix() << message << std::endl;
+void Compiler::ErrorMessage(const std::string& message, bool append,
+                            const std::string& messagePrefix) const {
+  if (m_err) {
+    const std::string prefix =
+        messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
+    (*m_err) << "ERROR: " << prefix << message << std::endl;
+  }
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
@@ -442,6 +453,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
+  }
+  if (m_configuration == nullptr) {
+    SetConfiguration(new CFGCompiler(this));
+    GetConfiguration()->RegisterCommands(interp, batchMode);
   }
 
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
@@ -2246,6 +2261,8 @@ bool Compiler::RunCompileTask(Action action) {
           GetSimulator()->GetSimulatorType(), m_waveformFile);
     case Action::ProgramDevice:
       return ProgramDevice();
+    case Action::Configuration:
+      return GetConfiguration()->Configure();
     default:
       break;
   }
@@ -2492,6 +2509,7 @@ bool Compiler::GenerateBitstream() {
 
 bool Compiler::ProgramDevice() {
   using namespace std::literals;
+  const std::string prefix{"PDV: "};
   std::string projectName{"noname"};
   std::string activeTargetDevice = m_projManager->getTargetDevice();
   if (m_projManager->HasDesign()) {
@@ -2505,12 +2523,13 @@ bool Compiler::ProgramDevice() {
     std::string s1(i / 10, '=');
     outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
     outStr << " just for test";
-    Message(outStr.str());
+    Message(outStr.str(), prefix);
     std::this_thread::sleep_for(100ms);
   };
   Message(projectName + " " + activeTargetDevice + " " +
-          m_deviceProgrammer->GetBitstreamFilename() +
-          " Bitstream is programmed");
+              m_deviceProgrammer->GetBitstreamFilename().string() +
+              " Bitstream is programmed",
+          prefix);
   return true;
 }
 
@@ -2661,8 +2680,10 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
-  auto path = std::filesystem::current_path();                  // getting path
-  std::filesystem::current_path(m_projManager->projectPath());  // setting path
+  std::error_code ec;
+  auto path = std::filesystem::current_path();  // getting path
+  std::filesystem::current_path(m_projManager->projectPath(),
+                                ec);  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
@@ -2709,10 +2730,35 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
                    [&utils, this]() { utils.Start(m_process->processId()); });
 
   QString cmd{command.c_str()};
-  QStringList args = cmd.split(" ");
+  QStringList args = QtUtils::StringSplit(cmd, ' ');
+  QStringList adjustedArgs;
+
   QString program = args.first();
   args.pop_front();  // remove program
-  m_process->start(program, args);
+  QString current_arg;
+  for (int i = 0; i < args.size(); i++) {
+    QString arg = args[i];
+    if (args[i].front() == '\"' &&
+        args[i].back() != '\"') {      // Starting single-quote
+      current_arg = arg.remove(0, 1);  // remove leading quote
+    } else if (args[i].front() != '\"' &&
+               args[i].back() == '\"') {    // Ending single-quote
+      current_arg += " " + arg.chopped(1);  // remove trailing quote
+      adjustedArgs.push_back(current_arg);
+      current_arg = "";
+    } else if (args[i].front() == '\"' &&
+               args[i].back() == '\"') {  // Single-quoted argument
+      current_arg += " " + arg;
+      adjustedArgs.push_back(current_arg);
+      current_arg = "";
+    } else if (!current_arg.isEmpty()) {  // Continuing single-quoted argument
+      current_arg += " " + arg;
+    } else {  // Non-quoted argument
+      adjustedArgs.push_back(arg);
+    }
+  }
+
+  m_process->start(program, adjustedArgs);
   std::filesystem::current_path(path);
   m_process->waitForFinished(-1);
   utils.Stop();

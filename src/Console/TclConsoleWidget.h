@@ -23,17 +23,18 @@ struct ErrorInfo {
   QString line;
 };
 
-class StreamBuffer;
+class TclConsoleBuffer;
 class TclConsoleWidget : public QConsole {
   Q_OBJECT
  public:
   explicit TclConsoleWidget(TclInterp *interp,
                             std::unique_ptr<ConsoleInterface> iConsole,
-                            StreamBuffer *buffer, QWidget *parent = nullptr);
+                            TclConsoleBuffer *buffer,
+                            QWidget *parent = nullptr);
   bool isRunning() const override;
   QString getPrompt() const;
-  StreamBuffer *getBuffer();
-  StreamBuffer *getErrorBuffer();
+  TclConsoleBuffer *getBuffer();
+  TclConsoleBuffer *getErrorBuffer();
   static const char *consoleObjectName();
 
   State state() const;
@@ -87,8 +88,8 @@ class TclConsoleWidget : public QConsole {
 
  private:
   std::unique_ptr<ConsoleInterface> m_console;
-  StreamBuffer *m_buffer;
-  StreamBuffer *m_errorBuffer;
+  TclConsoleBuffer *m_buffer;
+  TclConsoleBuffer *m_errorBuffer;
   State m_state = State::IDLE;
 
   bool m_linkActivated{true};

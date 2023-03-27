@@ -339,4 +339,21 @@ bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
   return ec.value() == 0;
 }
 
+std::filesystem::path FileUtils::findFile(
+    const std::filesystem::path& filePath,
+    const std::filesystem::path& defaultDir) {
+  if (std::filesystem::is_regular_file(
+          filePath)) {  // check if it is already a valid file path
+    return std::filesystem::absolute(filePath);
+  } else {
+    std::filesystem::path file_abs_path = defaultDir / filePath;
+    if (std::filesystem::is_regular_file(
+            file_abs_path)) {  // check if the file exists in default directory
+      return std::filesystem::absolute(file_abs_path);
+    } else {
+      return "";
+    }
+  }
+}
+
 }  // namespace FOEDAG

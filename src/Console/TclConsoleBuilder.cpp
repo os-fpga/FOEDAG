@@ -6,7 +6,7 @@ namespace FOEDAG {
 
 QWidget *createConsole(TclInterp *interp,
                        std::unique_ptr<ConsoleInterface> iConsole,
-                       StreamBuffer *buffer, QWidget *parent,
+                       TclConsoleBuffer *buffer, QWidget *parent,
                        TclConsoleWidget **consolePtr) {
   QWidget *w = new QWidget{parent};
   auto layout = new QGridLayout;
