@@ -323,20 +323,18 @@ void MainWindow::newDesignCreated(const QString& design) {
   updateTaskTable();
 }
 
-class ListViewDelegate : public QStyledItemDelegate
-{
+class ListViewDelegate : public QStyledItemDelegate {
  public:
-  enum datarole { HeaderRole = Qt::UserRole + 100, SubheaderRole};
+  enum datarole { HeaderRole = Qt::UserRole + 100, SubheaderRole };
 
   ListViewDelegate();
   ~ListViewDelegate();
 
-  void paint(QPainter *painter,
-             const QStyleOptionViewItem &option,
-             const QModelIndex &index) const;
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const;
 
-  QSize sizeHint(const QStyleOptionViewItem &option,
-                 const QModelIndex &index ) const;
+  QSize sizeHint(const QStyleOptionViewItem& option,
+                 const QModelIndex& index) const;
 
   static QSize iconSize;
   static int padding;
@@ -345,19 +343,13 @@ class ListViewDelegate : public QStyledItemDelegate
 QSize ListViewDelegate::iconSize = QSize(60, 60);
 int ListViewDelegate::padding = 5;
 
-ListViewDelegate::ListViewDelegate()
-{
-}
+ListViewDelegate::ListViewDelegate() {}
 
-ListViewDelegate::~ListViewDelegate()
-{
-}
+ListViewDelegate::~ListViewDelegate() {}
 
-QSize ListViewDelegate::sizeHint(const QStyleOptionViewItem &  option ,
-                                 const QModelIndex & index) const
-{
-  if(!index.isValid())
-    return QSize();
+QSize ListViewDelegate::sizeHint(const QStyleOptionViewItem& option,
+                                 const QModelIndex& index) const {
+  if (!index.isValid()) return QSize();
 
   QString headerText = index.data(HeaderRole).toString();
   QString subheaderText = index.data(SubheaderRole).toString();
@@ -373,30 +365,26 @@ QSize ListViewDelegate::sizeHint(const QStyleOptionViewItem &  option ,
    * the suitable height if the given geometry does not fit. And this is exactly
    * what we want.
    */
-  QRect headerRect = headerFm.boundingRect(0, 0,
-                                           option.rect.width() - iconSize.width(), 0,
-                                           Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap,
-                                           headerText);
-  QRect subheaderRect = subheaderFm.boundingRect(0, 0,
-                                                 option.rect.width() - iconSize.width(), 0,
-                                                 Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap,
-                                                 subheaderText);
+  QRect headerRect = headerFm.boundingRect(
+      0, 0, option.rect.width() - iconSize.width(), 0,
+      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
+  QRect subheaderRect = subheaderFm.boundingRect(
+      0, 0, option.rect.width() - iconSize.width(), 0,
+      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
 
-  QSize size(option.rect.width(), headerRect.height() + subheaderRect.height() +  3*padding);
+  QSize size(option.rect.width(),
+             headerRect.height() + subheaderRect.height() + 3 * padding);
 
   /* Keep the minimum height needed in mind. */
-  if(size.height()<iconSize.height())
-    size.setHeight(iconSize.height());
+  if (size.height() < iconSize.height()) size.setHeight(iconSize.height());
 
   return size;
 }
 
-void ListViewDelegate::paint(QPainter *painter,
-                             const QStyleOptionViewItem &option,
-                             const QModelIndex &index) const
-{
-  if(!index.isValid())
-    return;
+void ListViewDelegate::paint(QPainter* painter,
+                             const QStyleOptionViewItem& option,
+                             const QModelIndex& index) const {
+  if (!index.isValid()) return;
 
   painter->save();
 
@@ -417,30 +405,30 @@ void ListViewDelegate::paint(QPainter *painter,
   QFontMetrics subheaderFm(subheaderFont);
 
   /*
-   * The x,y coords are not (0,0) but values given by 'option'. So, calculate the
-   * rects again given the x,y,w.
-   * Note that the given height is 0. That is because boundingRect() will return
-   * the suitable height if the given geometry does not fit. And this is exactly
-   * what we want.
+   * The x,y coords are not (0,0) but values given by 'option'. So, calculate
+   * the rects again given the x,y,w. Note that the given height is 0. That is
+   * because boundingRect() will return the suitable height if the given
+   * geometry does not fit. And this is exactly what we want.
    */
-  QRect headerRect =
-      headerFm.boundingRect(option.rect.left() + iconSize.width(), option.rect.top() + padding,
-                            option.rect.width() - iconSize.width(), 0,
-                            Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap,
-                            headerText);
-  QRect subheaderRect =
-      subheaderFm.boundingRect(headerRect.left(), headerRect.bottom()+padding,
-                               option.rect.width() - iconSize.width(), 0,
-                               Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap,
-                               subheaderText);
+  QRect headerRect = headerFm.boundingRect(
+      option.rect.left() + iconSize.width(), option.rect.top() + padding,
+      option.rect.width() - iconSize.width(), 0,
+      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
+  QRect subheaderRect = subheaderFm.boundingRect(
+      headerRect.left(), headerRect.bottom() + padding,
+      option.rect.width() - iconSize.width(), 0,
+      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
 
   painter->setPen(Qt::black);
 
   painter->setFont(headerFont);
-  painter->drawText(headerRect, Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, headerText);
+  painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+                    headerText);
 
   painter->setFont(subheaderFont);
-  painter->drawText(subheaderRect, Qt::AlignLeft|Qt::AlignTop|Qt::TextWordWrap, subheaderText);
+  painter->drawText(subheaderRect,
+                    Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+                    subheaderText);
 
   QRect iconRect{option.rect.topLeft() + QPoint{padding, padding},
                  QSize{iconSize.width(), iconSize.width()} -
@@ -453,9 +441,8 @@ void ListViewDelegate::paint(QPainter *painter,
   painter->restore();
 }
 
-void MainWindow::chatGpt(const QString &request, const QString &content)
-{
-  static QStandardItemModel *model{nullptr};
+void MainWindow::chatGpt(const QString& request, const QString& content) {
+  static QStandardItemModel* model{nullptr};
   static QListView* listView{nullptr};
   auto reportName = "Chat GPT";
   bool newReport{true};
@@ -467,14 +454,14 @@ void MainWindow::chatGpt(const QString &request, const QString &content)
         return;
       }
       tabWidget->setCurrentIndex(i);
-      QStandardItem *item = new QStandardItem();
-      item->setData("Chat GPT",ListViewDelegate::HeaderRole);
-      item->setData(content,ListViewDelegate::SubheaderRole);
+      QStandardItem* item = new QStandardItem();
+      item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+      item->setData(content, ListViewDelegate::SubheaderRole);
       model->insertRow(0, item);
 
       item = new QStandardItem();
-      item->setData("User",ListViewDelegate::HeaderRole);
-      item->setData(request,ListViewDelegate::SubheaderRole);
+      item->setData("User", ListViewDelegate::HeaderRole);
+      item->setData(request, ListViewDelegate::SubheaderRole);
       model->insertRow(0, item);
       return;
     }
@@ -489,14 +476,14 @@ void MainWindow::chatGpt(const QString &request, const QString &content)
     listView->setModel(model);
     listView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
 
-    QStandardItem *item = new QStandardItem();
-    item->setData("User",ListViewDelegate::HeaderRole);
-    item->setData(request,ListViewDelegate::SubheaderRole);
+    QStandardItem* item = new QStandardItem();
+    item->setData("User", ListViewDelegate::HeaderRole);
+    item->setData(request, ListViewDelegate::SubheaderRole);
     model->appendRow(item);
 
     item = new QStandardItem();
-    item->setData("Chat GPT",ListViewDelegate::HeaderRole);
-    item->setData(content,ListViewDelegate::SubheaderRole);
+    item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+    item->setData(content, ListViewDelegate::SubheaderRole);
     model->appendRow(item);
 
     tabWidget->addTab(listView, reportName);
