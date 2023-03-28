@@ -1972,6 +1972,8 @@ bool CompilerOpenFPGA::Placement() {
     } else if (constraint.find("set_clock_pin") != std::string::npos) {
       set_clks.push_back(constraint);
       repackConstraint = true;
+      constraints.push_back("# " +
+                            constraint);  // so there is a diff if changed
     } else {
       continue;
     }
@@ -2038,7 +2040,7 @@ bool CompilerOpenFPGA::Placement() {
 
   std::string command = BaseVprCommand() + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
-  if (PinConstraintEnabled() && (PinAssignOpts() != PinAssignOpt::Free) &&
+  if ((PinAssignOpts() != PinAssignOpt::Free) &&
       FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
     if (!std::filesystem::is_regular_file(m_PinMapCSV)) {
       ErrorMessage(
@@ -2088,7 +2090,7 @@ bool CompilerOpenFPGA::Placement() {
     }
 
     // user want to map its design clocks to fabric
-    // clocks. like gemini has 16 clocks clk[0],clk[1]....,clk[15].And user
+    // clocks. Example clocks clk[0],clk[1]....,clk[15]. And user
     // clocks are clk_a,clk_b and want to map clk_a with clk[15] like it in such
     // case, we need to make sure a xml repack constraint file is properly
     // generated to guide bitstream generation correctly.
@@ -2133,7 +2135,8 @@ bool CompilerOpenFPGA::Placement() {
       pin_loc_constraint_file = pin_locFile;
     }
 
-    if (PinConstraintEnabled() && (!pin_loc_constraint_file.empty())) {
+    if ((PinAssignOpts() != PinAssignOpt::Free) && PinConstraintEnabled() &&
+        (!pin_loc_constraint_file.empty())) {
       command += " --fix_clusters " + pin_loc_constraint_file;
     }
   }
