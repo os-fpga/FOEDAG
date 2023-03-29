@@ -24,44 +24,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-StreamBuffer::StreamBuffer(QObject *parent) : QObject{parent}, m_stream(this) {}
+StreamBuffer::StreamBuffer() : m_stream(this) {}
 
 std::ostream &StreamBuffer::getStream() { return m_stream; }
 
 int StreamBuffer::overflow(int c) {
   char_type ch = static_cast<char_type>(c);
-  if (ch == '\n') emit ready(QString{ch});
+  if (ch == '\n') output(&ch, 1);
   return ch;
 }
 
 std::streamsize StreamBuffer::xsputn(const char_type *s,
                                      std::streamsize count) {
-  const QByteArray array = QByteArray::fromRawData(s, count);
-  emit ready(QString{array});
+  output(s, count);
   return count;
 }
 
-OutputBuffer::OutputBuffer(const HandlerFunction &bufferHandler)
-    : m_stream(this), m_bufferHandler(bufferHandler) {}
+BatchModeBuffer::BatchModeBuffer(Logger *logger) : m_logger(logger) {}
 
-std::ostream &OutputBuffer::getStream() { return m_stream; }
-
-int OutputBuffer::overflow(int c) {
-  char_type ch = static_cast<char_type>(c);
-  if (ch == '\n') {
-    auto data = std::string{ch};
-    m_bufferHandler(data);
-    m_stream << data;
-  }
-  return ch;
+void BatchModeBuffer::output(const char_type *s, std::streamsize count) {
+  std::string str{s, static_cast<std::string::size_type>(count)};
+  m_logger->appendLog(str);
+  m_stream << str;
 }
 
-std::streamsize OutputBuffer::xsputn(const char_type *s,
-                                     std::streamsize count) {
-  auto data = std::string{s, static_cast<std::string::size_type>(count)};
-  m_bufferHandler(data);
-  m_stream << data;
-  return count;
+TclConsoleBuffer::TclConsoleBuffer(QObject *parent) : QObject(parent) {}
+
+void TclConsoleBuffer::output(const char_type *s, std::streamsize count) {
+  QByteArray array = QByteArray::fromRawData(s, count);
+  emit ready(array);
 }
 
 }  // namespace FOEDAG
