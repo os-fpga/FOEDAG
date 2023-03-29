@@ -52,9 +52,9 @@ class CFGArg {
   CFGArg(const std::string& n, int i, int a, std::vector<CFGArg_RULE> r,
          const char* h);
   bool specified(const std::string& option);
-  const std::string Name = "";
-  std::vector<std::string> Args;
-  bool Help = false;
+  const std::string m_name = "";
+  std::vector<std::string> m_args;
+  bool m_help = false;
 
  protected:
   bool parse(int argc, const char* argv[], std::vector<std::string>* errors);
@@ -73,11 +73,11 @@ class CFGArg {
               std::vector<std::string>* errors);
   bool print_option(const std::string& option,
                     std::vector<std::string>* errors);
-  const int Min_arg = 0;
-  const int Max_arg = 0;
-  const std::vector<CFGArg_RULE> Rules = {};
-  const char* Help_msg = nullptr;
-  uint32_t Count = 0;
+  const int m_min_arg = 0;
+  const int m_max_arg = 0;
+  const std::vector<CFGArg_RULE> m_rules = {};
+  const char* m_help_msg = nullptr;
+  uint32_t m_count = 0;
 };
 
 #endif

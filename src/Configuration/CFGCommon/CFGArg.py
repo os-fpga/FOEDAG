@@ -49,6 +49,7 @@ class OPTION :
         assert isinstance(n, str)
         check_case(n, False)
         assert n != "help"
+        assert n.find("m_") != 0, "Option name cannot start with string \"m_\""
         assert n not in long_names
         long_names.append(n)
         assert s == None or (isinstance(s, str) and \
