@@ -57,7 +57,7 @@ class IpConfigWidget : public QWidget {
   void updateMetaLabel(VLNV info);
   std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
-  QMap<QVariant, QVariant> saveProperties() const;
+  QMap<QVariant, QVariant> saveProperties(bool& valid) const;
   std::pair<std::string, std::string> generateNewJson(bool& ok);
   void genarateNewPanel(const std::string& newJson,
                         const std::string& filePath);

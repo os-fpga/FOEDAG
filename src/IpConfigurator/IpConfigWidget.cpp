@@ -367,7 +367,7 @@ std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
   return defs;
 }
 
-QMap<QVariant, QVariant> IpConfigWidget::saveProperties() const {
+QMap<QVariant, QVariant> IpConfigWidget::saveProperties(bool& valid) const {
   QLayout* fieldsLayout = paramsBox->layout();
   QList<QObject*> settingsObjs =
       FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
@@ -375,6 +375,7 @@ QMap<QVariant, QVariant> IpConfigWidget::saveProperties() const {
 
   for (QObject* obj : settingsObjs) {
     properties.insert(obj->property("customId"), obj->property("value"));
+    if (obj->property("invalid").toBool()) valid = false;
   }
   return properties;
 }
@@ -580,7 +581,12 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
   const QSignalBlocker sBlocker{WidgetFactoryDependencyNotifier::Instance()};
 
   // save currect values
-  QMap<QVariant, QVariant> properties = saveProperties();
+  bool valid{true};
+  QMap<QVariant, QVariant> properties = saveProperties(valid);
+  if (!valid) {
+    showInvalidParametersWarning();
+    return;
+  }
 
   // save currect values as json
   bool ok{true};
@@ -650,7 +656,7 @@ void IpConfigWidget::Generate(bool addToProject) {
   }
 
   // Alert the user if one or more of the field validators is invalid
-  if (invalidVals && addToProject) {
+  if (invalidVals) {
     showInvalidParametersWarning();
   } else {
     // If all enabled fields are valid, configure and generate IP
