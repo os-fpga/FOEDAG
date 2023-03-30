@@ -98,6 +98,43 @@ void AbstractReportManager::parseResourceUsage(QTextStream &in, int &lineNr) {
   }
 }
 
+void AbstractReportManager::designStatistics() {
+  m_resourceColumns.clear();
+  m_resourceColumns.push_back(ReportColumn{"Design statistics"});
+  m_resourceColumns.push_back(ReportColumn{{}, Qt::AlignCenter});
+
+  m_resourceData.clear();
+  uint luts =
+      m_usedRes.logic.lut0 /*?*/ + m_usedRes.logic.lut5 + m_usedRes.logic.lut6;
+  // TODO need clearify calculation
+  uint result =
+      (m_usedRes.logic.clb == 0) ? 0 : luts / (m_usedRes.logic.clb * 8);
+  m_resourceData.push_back(
+      {"CLB LUT packing percentage", QString{"%1 %"}.arg(result)});
+  uint registers = m_usedRes.logic.dff + m_usedRes.logic.latch;
+  // TODO need clearify calculation
+  result =
+      (m_usedRes.logic.clb == 0) ? 0 : registers / (m_usedRes.logic.clb * 16);
+  m_resourceData.push_back(
+      {"CLB Register packing percentage", QString{"%1 %"}.arg(result)});
+  uint bram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
+  result = (bram == 0)
+               ? 0
+               : m_usedRes.bram.bram_36k + (2 * m_usedRes.bram.bram_18k) / bram;
+  m_resourceData.push_back(
+      {"BRAM packing percentage", QString{"%1 %"}.arg(result)});
+  m_resourceData.push_back({"Wires", QString{"%1"}.arg(m_usedRes.stat.wires)});
+  m_resourceData.push_back(
+      {"Max Fanout", QString{"%1"}.arg(m_usedRes.stat.maxFanout)});
+  m_resourceData.push_back(
+      {"Average Fanout", QString{"%1"}.arg(m_usedRes.stat.avgFanout)});
+
+  m_resourceData.push_back(
+      {"Maximum logic level", QString{"%1"}.arg(m_usedRes.stat.maxLogicLvel)});
+  m_resourceData.push_back(
+      {"Average logic level", QString{"%1"}.arg(m_usedRes.stat.avgLogicLvel)});
+}
+
 IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
                                                                 int &lineNr) {
   auto circuitData = IDataReport::TableData{};
@@ -129,6 +166,269 @@ IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
   }
 
   return circuitData;
+}
+
+IDataReport::TableData AbstractReportManager::CreateLogicData() const {
+  auto circuitData = IDataReport::TableData{};
+  uint result = (m_availRes.logic.clb == 0)
+                    ? 0
+                    : m_usedRes.logic.clb * 100 / m_availRes.logic.clb;
+  circuitData.push_back({"CLB", QString::number(m_usedRes.logic.clb),
+                         QString::number(m_availRes.logic.clb),
+                         QString::number(result)});
+
+  uint usedLuts =
+      m_usedRes.logic.lut5 + m_usedRes.logic.lut6 + m_usedRes.logic.lut0;
+
+  // TODO not clear how many of each type of LUTs
+  result =
+      (m_availRes.logic.lut6 == 0) ? 0 : usedLuts * 100 / m_availRes.logic.lut6;
+  circuitData.push_back({"LUT", QString::number(usedLuts),
+                         QString::number(m_availRes.logic.lut6),
+                         QString::number(result)});
+
+  result = (m_availRes.logic.lut5 == 0)
+               ? 0
+               : m_usedRes.logic.lut5 * 100 / m_availRes.logic.lut5;
+  circuitData.push_back({SPACE + "LUT5", QString::number(m_usedRes.logic.lut5),
+                         QString::number(m_availRes.logic.lut5),
+                         QString::number(result)});
+
+  result = (m_availRes.logic.lut6 == 0)
+               ? 0
+               : m_usedRes.logic.lut6 * 100 / m_availRes.logic.lut6;
+  circuitData.push_back({SPACE + "LUT6", QString::number(m_usedRes.logic.lut6),
+                         QString::number(m_availRes.logic.lut6),
+                         QString::number(result)});
+
+  result = (m_availRes.logic.lut0 == 0)
+               ? 0
+               : m_usedRes.logic.lut0 * 100 / m_availRes.logic.lut0;
+  circuitData.push_back(
+      {SPACE + "GND/VCC", QString::number(m_usedRes.logic.lut0),
+       QString::number(m_availRes.logic.lut0), QString::number(result)});
+
+  // TODO not clear how many of each type of Regs
+  uint usedRegs = m_usedRes.logic.dff + m_usedRes.logic.latch;
+  result =
+      (m_availRes.logic.dff == 0) ? 0 : usedRegs * 100 / m_availRes.logic.dff;
+  circuitData.push_back({"Ragisters", QString::number(usedRegs),
+                         QString::number(m_availRes.logic.dff),
+                         QString::number(result)});
+
+  result = (m_availRes.logic.dff == 0)
+               ? 0
+               : m_usedRes.logic.dff * 100 / m_availRes.logic.dff;
+  circuitData.push_back(
+      {SPACE + "Flip Flop", QString::number(m_usedRes.logic.dff),
+       QString::number(m_availRes.logic.dff), QString::number(result)});
+
+  result = (m_availRes.logic.latch == 0)
+               ? 0
+               : m_usedRes.logic.latch * 100 / m_availRes.logic.latch;
+  circuitData.push_back(
+      {SPACE + "Latch", QString::number(m_usedRes.logic.latch),
+       QString::number(m_availRes.logic.latch), QString::number(result)});
+
+  // TODO clearify how many of this
+  result = (m_availRes.logic.fa1Bits == 0)
+               ? 0
+               : m_usedRes.logic.fa1Bits * 100 / m_availRes.logic.fa1Bits;
+  circuitData.push_back(
+      {"Carry Chain1", QString::number(m_usedRes.logic.fa1Bits),
+       QString::number(m_availRes.logic.fa1Bits), QString::number(result)});
+
+  // TODO clearify how many of this
+  result = (m_availRes.logic.fa2Bits == 0)
+               ? 0
+               : m_usedRes.logic.fa2Bits * 100 / m_availRes.logic.fa2Bits;
+  circuitData.push_back(
+      {"Carry Chain2", QString::number(m_usedRes.logic.fa2Bits),
+       QString::number(m_availRes.logic.fa2Bits), QString::number(result)});
+  return circuitData;
+}
+
+IDataReport::TableData AbstractReportManager::CreateBramData() const {
+  auto bramData = IDataReport::TableData{};
+  // TODO not clear how many of each type of BRAM
+  uint usedBram = m_usedRes.bram.bram_18k + m_usedRes.bram.bram_36k;
+  uint availBram = m_availRes.bram.bram_18k + m_availRes.bram.bram_36k;
+  uint result = (availBram == 0) ? 0 : usedBram * 100 / availBram;
+  bramData.push_back({"BRAM", QString::number(usedBram),
+                      QString::number(availBram), QString::number(result)});
+
+  result = (m_availRes.bram.bram_18k == 0)
+               ? 0
+               : m_usedRes.bram.bram_18k * 100 / m_availRes.bram.bram_18k;
+  bramData.push_back({SPACE + "18k", QString::number(m_usedRes.bram.bram_18k),
+                      QString::number(m_availRes.bram.bram_18k),
+                      QString::number(result)});
+
+  result = (m_availRes.bram.bram_36k == 0)
+               ? 0
+               : m_usedRes.bram.bram_36k * 100 / m_availRes.bram.bram_36k;
+  bramData.push_back({SPACE + "36k", QString::number(m_usedRes.bram.bram_36k),
+                      QString::number(m_availRes.bram.bram_36k),
+                      QString::number(result)});
+
+  return bramData;
+}
+
+IDataReport::TableData AbstractReportManager::CreateDspData() const {
+  auto dspData = IDataReport::TableData{};
+  // TODO not clear how many of each type of DSP
+  uint usedDsp = m_usedRes.dsp.dsp_9_10 + m_usedRes.dsp.dsp_18_20;
+  uint availDsp = m_availRes.dsp.dsp_9_10 + m_availRes.dsp.dsp_18_20;
+  uint result = (availDsp == 0) ? 0 : usedDsp * 100 / availDsp;
+  dspData.push_back({"DSP Block", QString::number(usedDsp),
+                     QString::number(availDsp), QString::number(result)});
+
+  result = (m_availRes.dsp.dsp_9_10 == 0)
+               ? 0
+               : m_usedRes.dsp.dsp_9_10 * 100 / m_availRes.dsp.dsp_9_10;
+  dspData.push_back({SPACE + "9x10", QString::number(m_usedRes.dsp.dsp_9_10),
+                     QString::number(m_availRes.dsp.dsp_9_10),
+                     QString::number(result)});
+
+  result = (m_availRes.bram.bram_36k == 0)
+               ? 0
+               : m_usedRes.bram.bram_36k * 100 / m_availRes.bram.bram_36k;
+  dspData.push_back({SPACE + "18x20", QString::number(m_usedRes.bram.bram_36k),
+                     QString::number(m_availRes.bram.bram_36k),
+                     QString::number(result)});
+  return dspData;
+}
+
+void AbstractReportManager::parseLogLine(const QString &line) {
+  static const QRegularExpression clb{"^ +clb\\D+(\\d+)",
+                                      QRegularExpression::MultilineOption};
+  auto clbMatch = clb.match(line);
+  if (clbMatch.hasMatch()) {
+    m_usedRes.logic.clb = clbMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression lut5{"^ +lut5\\D+(\\d+)",
+                                       QRegularExpression::MultilineOption};
+  auto lut5Match = lut5.match(line);
+  if (lut5Match.hasMatch()) {
+    m_usedRes.logic.lut5 = lut5Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression lut6{"^ +lut6\\D+(\\d+)",
+                                       QRegularExpression::MultilineOption};
+  auto lut6Match = lut6.match(line);
+  if (lut6Match.hasMatch()) {
+    m_usedRes.logic.lut6 = lut6Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression lut6_{"^ +6-LUT\\D+(\\d+)",
+                                        QRegularExpression::MultilineOption};
+  auto lut6_Match = lut6_.match(line);
+  if (lut6_Match.hasMatch()) {
+    m_usedRes.logic.lut6 = lut6_Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression lut0{"^ +0-LUT\\D+(\\d+)",
+                                       QRegularExpression::MultilineOption};
+  auto lut0Match = lut0.match(line);
+  if (lut0Match.hasMatch()) {
+    m_usedRes.logic.lut0 = lut0Match.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression dff{
+      "^ +dff\\D+(\\d+)", QRegularExpression::MultilineOption |
+                              QRegularExpression::CaseInsensitiveOption};
+  auto dffMatch = dff.match(line);
+  if (dffMatch.hasMatch()) {
+    m_usedRes.logic.dff += dffMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression latch{
+      "^ +latch\\D+(\\d+)", QRegularExpression::MultilineOption |
+                                QRegularExpression::CaseInsensitiveOption};
+  auto latchMatch = latch.match(line);
+  if (latchMatch.hasMatch()) {
+    m_usedRes.logic.latch += latchMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression carry1{"^ +fa_1bit\\D+(\\d+)",
+                                         QRegularExpression::MultilineOption};
+  auto carry1Match = carry1.match(line);
+  if (carry1Match.hasMatch()) {
+    m_usedRes.logic.fa1Bits = carry1Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression carry2{"^ +fa_2bit\\D+(\\d+)",
+                                         QRegularExpression::MultilineOption};
+  auto carry2Match = carry2.match(line);
+  if (carry2Match.hasMatch()) {
+    m_usedRes.logic.fa2Bits = carry2Match.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression bram36k{"^ +RS_TDP36K\\D+(\\d+)",
+                                          QRegularExpression::MultilineOption};
+  auto bram36kMatch = bram36k.match(line);
+  if (bram36kMatch.hasMatch()) {
+    m_usedRes.bram.bram_36k = bram36kMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression bram18k{"^ +RS_TDP18K\\D+(\\d+)",
+                                          QRegularExpression::MultilineOption};
+  auto bram18kMatch = bram18k.match(line);
+  if (bram18kMatch.hasMatch()) {
+    m_usedRes.bram.bram_18k = bram18kMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression dsp_18_20{
+      "^ +RS_DSP_MULT\\D+(\\d+)", QRegularExpression::MultilineOption};
+  auto dsp_18_20Match = dsp_18_20.match(line);
+  if (dsp_18_20Match.hasMatch()) {
+    m_usedRes.dsp.dsp_18_20 = dsp_18_20Match.captured(1).toUInt();
+    return;
+  }
+  // TODO pattern TBD
+  //  static const QRegularExpression dsp_9_10{"^ +RS_DSP_MULT\\D+(\\d+)",
+  //                                            QRegularExpression::MultilineOption};
+  //  auto dsp_9_10Match = dsp_9_10.match(line);
+  //  if (dsp_9_10Match.hasMatch()) {
+  //    m_usedResources.dsp.dsp_9_10 = dsp_9_10Match.captured(1).toUInt();
+  //    return;
+  //  }
+  static const QRegularExpression nets{"^ +Nets\\D+(\\d+)",
+                                       QRegularExpression::MultilineOption};
+  auto netsMatch = nets.match(line);
+  if (netsMatch.hasMatch()) {
+    m_usedRes.stat.wires = netsMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression avgFanout{
+      "^ +Avg Fanout\\D+([+-]?[[0-9]*[.]]?[0-9]+)",
+      QRegularExpression::MultilineOption};
+  auto avgFanoutMatch = avgFanout.match(line);
+  if (avgFanoutMatch.hasMatch()) {
+    m_usedRes.stat.avgFanout = avgFanoutMatch.captured(1).toDouble();
+    return;
+  }
+  static const QRegularExpression maxFanout{
+      "^ +Max Fanout\\D+([+-]?[[0-9]*[.]]?[0-9]+)",
+      QRegularExpression::MultilineOption};
+  auto maxFanoutMatch = maxFanout.match(line);
+  if (maxFanoutMatch.hasMatch()) {
+    m_usedRes.stat.maxFanout = maxFanoutMatch.captured(1).toDouble();
+    return;
+  }
+
+  // TODO only synth report has this values
+  static const QRegularExpression findLvls{
+      "^DE:.*Max Lvl =\\s*(([0-9]*[.])?[0-9]+)\\s*Avg Lvl "
+      "=\\s*(([0-9]*[.])?[0-9]+)"};
+
+  auto match = findLvls.match(line);
+  if (match.hasMatch()) {
+    m_availRes.stat.maxLogicLvel = match.captured(1).toDouble();
+    m_availRes.stat.avgLogicLvel = match.captured(3).toDouble();
+  }
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(

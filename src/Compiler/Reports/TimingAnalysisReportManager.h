@@ -48,10 +48,14 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
                                                  int &lineNr) const;
 
   SectionKeys m_createDeviceKeys;
+  IDataReport::ColumnValues m_openSTATimingColumns;
 
   IDataReport::ColumnValues m_circuitColumns;
+  IDataReport::ColumnValues m_bramColumns;
+  IDataReport::ColumnValues m_dspColumns;
   IDataReport::TableData m_circuitData;
-  IDataReport::ColumnValues m_openSTATimingColumns;
+  IDataReport::TableData m_bramData;
+  IDataReport::TableData m_dspData;
 
   Compiler *m_compiler;
 };
