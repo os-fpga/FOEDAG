@@ -36,6 +36,13 @@ TaskReportManagerRegistry::getReportManager(uint type) const {
   return nullptr;
 }
 
+std::vector<uint> TaskReportManagerRegistry::ids() const {
+  std::vector<uint> id{};
+  for ([[maybe_unused]] const auto &[key, value] : m_managers)
+    id.push_back(key);
+  return id;
+}
+
 void TaskReportManagerRegistry::setSuppressList(const QStringList &s) {
   for ([[maybe_unused]] auto &[id, report] : m_managers) {
     report->setSuppressList(s);

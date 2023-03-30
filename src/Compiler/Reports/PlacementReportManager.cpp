@@ -32,9 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Post placement - Report Resource Utilization"};
-static constexpr const char *TIMING_REPORT_NAME{
-    "Post placement - Report Static Timing"};
+    "Post placement - Utilization report"};
+static constexpr const char *DESIGN_STAT_REPORT_NAME{
+    "Post placement - Design statistics"};
 
 // Messages regexps
 static const QRegExp FIND_PLACEMENT_TIMINGS{
@@ -72,10 +72,19 @@ PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
 
   m_placementKeys = {INIT_PLACEMENT_HISTOGRAM_REGEXP,
                      PLACEMENT_HISTOGRAM_REGEXP, PLACEMENT_RESOURCE_REGEXP};
+
+  m_circuitColumns = {ReportColumn{"Logic"},
+                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Available", Qt::AlignCenter},
+                      ReportColumn{"%", Qt::AlignCenter}};
+  m_bramColumns = m_circuitColumns;
+  m_bramColumns[0].m_name = "Block RAM";
+  m_dspColumns = m_circuitColumns;
+  m_dspColumns[0].m_name = "DSP";
 }
 
 QStringList PlacementReportManager::getAvailableReportIds() const {
-  return {QString(RESOURCE_REPORT_NAME), QString(TIMING_REPORT_NAME)};
+  return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
 }
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
@@ -84,15 +93,16 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
 
-  if (reportId == QString(RESOURCE_REPORT_NAME)) {
+  if (reportId == QString(DESIGN_STAT_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
         m_resourceColumns, m_resourceData, QString{}));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_timingColumns, m_timingData, QString{}));
-    for (auto &hgrm : m_histograms)
-      dataReports.push_back(std::make_unique<TableReport>(
-          m_histogramColumns, hgrm.second, hgrm.first));
+        m_circuitColumns, m_circuitData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -105,6 +115,9 @@ void PlacementReportManager::parseLogFile() {
   m_histograms.clear();
   m_resourceData.clear();
   m_timingData.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
 
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return;
@@ -115,9 +128,8 @@ void PlacementReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    if (FIND_RESOURCES.indexIn(line) != -1)
-      parseResourceUsage(in, lineNr);
-    else if (LOAD_PACKING_REGEXP.exactMatch(line))
+    parseLogLine(line);
+    if (LOAD_PACKING_REGEXP.exactMatch(line))
       m_messages.insert(lineNr, TaskMessage{lineNr,
                                             MessageSeverity::INFO_MESSAGE,
                                             line.remove('#').simplified(),
@@ -130,6 +142,11 @@ void PlacementReportManager::parseLogFile() {
                                         m_placementKeys);
     ++lineNr;
   }
+  m_circuitData = CreateLogicData();
+  m_bramData = CreateBramData();
+  m_dspData = CreateDspData();
+  designStatistics();
+
   logFile->close();
 
   setFileParsed(true);
