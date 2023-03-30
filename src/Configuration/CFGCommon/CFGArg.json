@@ -1,7 +1,22 @@
 {
    "bitgen": {
       "option" : [
-         
+         {  
+            "name" : "detail",
+            "short" : "d",
+            "type" : "flag", 
+            "optional" : true,
+            "hide" : true,
+            "help" : "Show information in detail"
+         },
+         {  
+            "name" : "operation",
+            "short" : "o",
+            "type" : "convert|parse", 
+            "optional" : true,
+            "hide" : true,
+            "help" : "File generation operation"
+         }
       ],
       "help" : [
          "Configuration bitstream generation tool.",
@@ -18,7 +33,7 @@
             "type" : "flag", 
             "optional" : true,
             "default" : true,
-            "_help" : "This is debug" 
+            "help" : "This is debug" 
          },
          {  
             "name" : "index", 
@@ -27,7 +42,7 @@
             "optional" : true, 
             "multi" : true,
             "default" : 3,
-            "_help" : "This is index" 
+            "help" : "This is index" 
          },
          {  "name" : "cable", 
             "short" : "c", 
@@ -35,7 +50,7 @@
             "optional" : true, 
             "multi" : false,
             "default" : "usb",
-            "_help" : "This is cable" 
+            "help" : "This is cable" 
          },
          {  
             "name" : "operation", 
@@ -43,14 +58,14 @@
             "type" : "str", 
             "optional" : true, 
             "multi" : true,
-            "_help" : "This is operation"
+            "help" : "This is operation"
          },
          {  
             "name" : "target", 
             "type" : "fpga|flash", 
             "optional" : false, 
             "multi" : false,
-            "_help" : "This is target"
+            "help" : "This is target"
          }
       ],
      "help" : [ "This is Dummy ARG" ],

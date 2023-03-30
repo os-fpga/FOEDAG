@@ -108,6 +108,9 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
 int CFG_find_string_in_vector(const std::vector<std::string>& vector,
                               const std::string element);
 
+int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
+                           const uint32_t element);
+
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
 
