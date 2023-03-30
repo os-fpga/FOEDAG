@@ -553,7 +553,7 @@ void IpConfigWidget::restoreProperties(
 void IpConfigWidget::showInvalidParametersWarning() {
   QMessageBox::warning(
       this, tr("Invalid Parameter Value"),
-      tr("Current parameters are invalid. IP Generation will be skipped."),
+      tr("Atleast one invalid (red) parameter value found. Reevaluate parameters before generating the IP."),
       QMessageBox::Ok);
 }
 
