@@ -581,3 +581,9 @@ add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
+
+add_custom_command(TARGET foedag-bin POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/configuration
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${PROJECT_SOURCE_DIR}/third_party/openocd/tcl/board/gemini.cfg
+        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/configuration/)

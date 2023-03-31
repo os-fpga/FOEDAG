@@ -295,3 +295,8 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
                               const std::string element) {
   return CFG_find_element_in_vector(vector, element);
 }
+
+int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
+                           const uint32_t element) {
+  return CFG_find_element_in_vector(vector, element);
+}
