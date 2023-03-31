@@ -31,9 +31,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 // Report strings
-static constexpr const char *REPORT_NAME{"Synthesis report"};
 static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
+
+static constexpr const char *RESOURCE_REPORT_NAME{
+    "Synthesis - Utilization report"};
+static constexpr const char *DESIGN_STAT_REPORT_NAME{
+    "Synthesis - Design statistics"};
 
 // Messages regexp
 static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
@@ -45,10 +49,19 @@ static const QRegExp VERIFIC_INFO_REGEXP{
 namespace FOEDAG {
 
 SynthesisReportManager::SynthesisReportManager(const TaskManager &taskManager)
-    : AbstractReportManager(taskManager) {}
+    : AbstractReportManager(taskManager) {
+  m_circuitColumns = {ReportColumn{"Logic"},
+                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Available", Qt::AlignCenter},
+                      ReportColumn{"%", Qt::AlignCenter}};
+  m_bramColumns = m_circuitColumns;
+  m_bramColumns[0].m_name = "Block RAM";
+  m_dspColumns = m_circuitColumns;
+  m_dspColumns[0].m_name = "DSP";
+}
 
 QStringList SynthesisReportManager::getAvailableReportIds() const {
-  return {QString(REPORT_NAME)};
+  return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
 }
 
 IDataReport::TableData SynthesisReportManager::getStatistics(
@@ -108,38 +121,37 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
     const QString &reportId) {
   if (!isFileParsed()) parseLogFile();
 
-  emit reportCreated(QString(REPORT_NAME));
-
-  IDataReport::ColumnValues cols;
-  cols.push_back(ReportColumn{"Statistics"});
-  cols.push_back(ReportColumn{"Value", Qt::AlignCenter});
-
   ITaskReport::DataReports dataReports;
-  dataReports.push_back(
-      std::make_unique<TableReport>(cols, m_resourceData, QString{}));
-  return std::make_unique<DefaultTaskReport>(std::move(dataReports),
-                                             "Synthesis report");
+
+  if (reportId == QString(DESIGN_STAT_REPORT_NAME)) {
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_resourceColumns, m_resourceData, QString{}));
+  } else {
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_circuitColumns, m_circuitData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+  }
+
+  emit reportCreated(reportId);
+
+  return std::make_unique<DefaultTaskReport>(std::move(dataReports), reportId);
 }
 
 void SynthesisReportManager::parseLogFile() {
   m_resourceData.clear();
   m_messages.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
 
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return;
 
   auto fileStr = QTextStream(logFile.get()).readAll();
   logFile->close();
-
-  auto findStats = QRegExp("Printing statistics.*\n\n===.*===\n\n.*[^\n{2}]+");
-
-  if (findStats.lastIndexIn(fileStr) != -1)
-    m_resourceData = getStatistics(findStats.cap());
-
-  auto findLvls = QRegExp{"DE:([^\n]+)"};
-  if (findLvls.lastIndexIn(fileStr) != -1) {
-    fillLevels(findLvls.cap(), m_resourceData);
-  }
 
   auto line = QString{};
   QTextStream in(fileStr.toLatin1());
@@ -159,6 +171,7 @@ void SynthesisReportManager::parseLogFile() {
   };
 
   while (in.readLineInto(&line)) {
+    parseLogLine(line);
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
@@ -184,6 +197,10 @@ void SynthesisReportManager::parseLogFile() {
     }
     ++lineNr;
   }
+  m_circuitData = CreateLogicData();
+  m_bramData = CreateBramData();
+  m_dspData = CreateDspData();
+  designStatistics();
 
   fillErrorsWarnings();
 

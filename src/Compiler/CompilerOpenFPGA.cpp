@@ -2877,10 +2877,15 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   if (m_taskManager) {
     // TODO load from devide.xml
     auto reports = m_taskManager->getReportManagerRegistry().ids();
+    Resources resources{};
+    resources.bram.bram_36k = MaxDeviceBRAMCount();
+    resources.dsp.dsp_18_20 = MaxDeviceDSPCount();
+    resources.logic.dff = MaxDeviceFFCount();
+    resources.logic.lut6 = MaxDeviceLUTCount();
     for (auto id : reports) {
       m_taskManager->getReportManagerRegistry()
           .getReportManager(id)
-          ->setAvailableResources(Resources{});
+          ->setAvailableResources(resources);
     }
   }
   return status;
