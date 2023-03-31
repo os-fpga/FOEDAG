@@ -360,19 +360,20 @@ QSize ListViewDelegate::sizeHint(const QStyleOptionViewItem& option,
   QFontMetrics headerFm(headerFont);
   QFontMetrics subheaderFm(subheaderFont);
 
+  auto widgetSize{option.widget->size() - QSize{padding, 0}};
   /* No need for x,y here. we only need to calculate the height given the width.
    * Note that the given height is 0. That is because boundingRect() will return
    * the suitable height if the given geometry does not fit. And this is exactly
    * what we want.
    */
   QRect headerRect = headerFm.boundingRect(
-      0, 0, option.rect.width() - iconSize.width(), 0,
+      0, 0, widgetSize.width() - iconSize.width(), option.rect.height(),
       Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
   QRect subheaderRect = subheaderFm.boundingRect(
-      0, 0, option.rect.width() - iconSize.width(), 0,
+      0, 0, widgetSize.width() - iconSize.width(), option.rect.height(),
       Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
 
-  QSize size(option.rect.width(),
+  QSize size(widgetSize.width(),
              headerRect.height() + subheaderRect.height() + 3 * padding);
 
   /* Keep the minimum height needed in mind. */
@@ -387,12 +388,14 @@ void ListViewDelegate::paint(QPainter* painter,
   if (!index.isValid()) return;
 
   painter->save();
+  QStyleOptionViewItem opt = option;
+  initStyleOption(&opt, index);
 
-  if (option.state & QStyle::State_Selected)
-    painter->fillRect(option.rect, option.palette.highlight());
+  if (opt.state & QStyle::State_Selected)
+    painter->fillRect(opt.rect, opt.palette.highlight());
 
   else if (index.row() % 2 == 1) {
-    painter->fillRect(option.rect, option.palette.alternateBase());
+    painter->fillRect(opt.rect, opt.palette.alternateBase());
   }
 
   QString headerText = index.data(HeaderRole).toString();
@@ -404,6 +407,7 @@ void ListViewDelegate::paint(QPainter* painter,
   QFontMetrics headerFm(headerFont);
   QFontMetrics subheaderFm(subheaderFont);
 
+  auto widgetSize{opt.widget->size() - QSize{padding, 0}};
   /*
    * The x,y coords are not (0,0) but values given by 'option'. So, calculate
    * the rects again given the x,y,w. Note that the given height is 0. That is
@@ -411,12 +415,12 @@ void ListViewDelegate::paint(QPainter* painter,
    * geometry does not fit. And this is exactly what we want.
    */
   QRect headerRect = headerFm.boundingRect(
-      option.rect.left() + iconSize.width(), option.rect.top() + padding,
-      option.rect.width() - iconSize.width(), 0,
+      opt.rect.left() + iconSize.width(), opt.rect.top() + padding,
+      widgetSize.width() - iconSize.width(), 0,
       Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
   QRect subheaderRect = subheaderFm.boundingRect(
       headerRect.left(), headerRect.bottom() + padding,
-      option.rect.width() - iconSize.width(), 0,
+      widgetSize.width() - iconSize.width(), 0,
       Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
 
   painter->setPen(Qt::black);
@@ -430,7 +434,7 @@ void ListViewDelegate::paint(QPainter* painter,
                     Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
                     subheaderText);
 
-  QRect iconRect{option.rect.topLeft() + QPoint{padding, padding},
+  QRect iconRect{opt.rect.topLeft() + QPoint{padding, padding},
                  QSize{iconSize.width(), iconSize.width()} -
                      QSize{padding * 2, padding * 2}};
   if (index.row() % 2 == 1)
@@ -445,7 +449,6 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
   static QStandardItemModel* model{nullptr};
   static QListView* listView{nullptr};
   auto reportName = "Chat GPT";
-  bool newReport{true};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   for (int i = 0; i < tabWidget->count(); i++) {
     if (tabWidget->tabText(i) == reportName) {
@@ -457,38 +460,46 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
       QStandardItem* item = new QStandardItem();
       item->setData("Chat GPT", ListViewDelegate::HeaderRole);
       item->setData(content, ListViewDelegate::SubheaderRole);
-      model->insertRow(0, item);
+      if (model) {
+        model->insertRow(0, item);
 
-      item = new QStandardItem();
-      item->setData("User", ListViewDelegate::HeaderRole);
-      item->setData(request, ListViewDelegate::SubheaderRole);
-      model->insertRow(0, item);
+        item = new QStandardItem();
+        item->setData("User", ListViewDelegate::HeaderRole);
+        item->setData(request, ListViewDelegate::SubheaderRole);
+        model->insertRow(0, item);
+      }
       return;
     }
   }
 
-  if (newReport) {
-    model = new QStandardItemModel();
+  // tab doesn't exist yet
+  model = new QStandardItemModel();
 
-    listView = new QListView;
-    listView->setFixedWidth(500);
-    listView->setItemDelegate(new ListViewDelegate{});
-    listView->setModel(model);
-    listView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+  listView = new QListView;
+  listView->setItemDelegate(new ListViewDelegate{});
+  listView->setModel(model);
+  listView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+  listView->setResizeMode(QListView::ResizeMode::Adjust);
+  listView->setVerticalScrollMode(QListView::ScrollPerPixel);
 
-    QStandardItem* item = new QStandardItem();
-    item->setData("User", ListViewDelegate::HeaderRole);
-    item->setData(request, ListViewDelegate::SubheaderRole);
-    model->appendRow(item);
+  QStandardItem* item = new QStandardItem();
+  item->setData("User", ListViewDelegate::HeaderRole);
+  item->setData(request, ListViewDelegate::SubheaderRole);
+  model->appendRow(item);
 
-    item = new QStandardItem();
-    item->setData("Chat GPT", ListViewDelegate::HeaderRole);
-    item->setData(content, ListViewDelegate::SubheaderRole);
-    model->appendRow(item);
+  item = new QStandardItem();
+  item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+  item->setData(content, ListViewDelegate::SubheaderRole);
+  model->appendRow(item);
 
-    tabWidget->addTab(listView, reportName);
-    tabWidget->setCurrentWidget(listView);
-  }
+  QWidget* w = new QWidget;
+  w->setLayout(new QVBoxLayout);
+  w->layout()->addWidget(listView);
+  tabWidget->addTab(w, reportName);
+  tabWidget->setCurrentWidget(listView);
+
+  connect(tabWidget, &TabWidget::resized, this,
+          [w](const QSize& s) { w->resize(s); });
 }
 
 void MainWindow::startStopButtonsState() {
