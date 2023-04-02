@@ -147,7 +147,7 @@ void IpConfigWidget::AddIpToProject(const QString& cmd) {
   ProjectManager* projManager = nullptr;
   if (GlobalSession && (compiler = GlobalSession->GetCompiler()) &&
       (projManager = compiler->ProjManager())) {
-    auto getUniqueString = [](const QString & ipConfigCmd)->QString {
+    auto getUniqueString = [](const QString& ipConfigCmd) -> QString {
       // Use the configure command's first half(ipName and module name) as a
       // unique id to determine if this IP configuration has already been stored
       QStringList cmdParts = ipConfigCmd.split("-version");
@@ -270,7 +270,7 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
 
           // Create a list of tcl defaults that will be passed to createWidget
           tclArgList << QString("-P%1 %2").arg(
-                            QString::fromStdString(param->Name()), valNoSpaces);
+              QString::fromStdString(param->Name()), valNoSpaces);
         }
       }
     }
@@ -312,15 +312,18 @@ void IpConfigWidget::CreateOutputFields() {
 
   // Make the output directory field read only
   outputPath.setReadOnly(true);
-  outputPath.setStyleSheet(QString("QLineEdit{ background-color: %1; }").arg(
-      QWidget::palette().color(QPalette::Disabled, QPalette::Base).name()));
+  outputPath.setStyleSheet(
+      QString("QLineEdit{ background-color: %1; }")
+          .arg(QWidget::palette()
+                   .color(QPalette::Disabled, QPalette::Base)
+                   .name()));
 
   // Create a list of label/widget pairs
   std::vector<std::pair<std::string, QWidget*>> pairs = {
       {"Module Name", &moduleEdit}, {"Output Dir", &outputPath}};
 
   // Loop through pairs and add them to layout
-  for (const auto & [ labelName, widget ] : pairs) {
+  for (const auto& [labelName, widget] : pairs) {
     form->addRow(QString::fromStdString(labelName), widget);
   }
 
@@ -397,7 +400,9 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
 
     const IPDefinition* def = inst->Definition();
     switch (def->Type()) {
-      case IPDefinition::IPType::Other: { break; }
+      case IPDefinition::IPType::Other: {
+        break;
+      }
       case IPDefinition::IPType::LiteXGenerator: {
         executable = def->FilePath();
         std::filesystem::path jsonFile = generator->GetCachePath(inst);
@@ -585,7 +590,7 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
 
   // save currect values as json
   bool ok{true};
-  const auto& [ newJson, filePath ] = generateNewJson(ok);
+  const auto& [newJson, filePath] = generateNewJson(ok);
   if (ok) {
     // receive new json and rebuild gui
     genarateNewPanel(newJson, filePath);
