@@ -79,6 +79,8 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
 
 void CFG_post_msg(const std::string& message);
 
+void CFG_post_warning(const std::string& message);
+
 void CFG_post_err(const std::string& message, bool append);
 
 std::string change_directory_to_linux_format(std::string path);
@@ -113,6 +115,9 @@ int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
+
+#define CFG_POST_WARNING(...) \
+  { CFG_post_warning(CFG_print(__VA_ARGS__)); }
 
 #define CFG_POST_ERR(...) \
   { CFG_post_err(CFG_print(__VA_ARGS__), true); }
