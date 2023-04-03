@@ -45,28 +45,37 @@ class IpConfigWidget : public QWidget {
 
  public slots:
   void updateOutputPath();
-  void handleCheckBoxChanged(const QString& customId, QCheckBox* widget);
-  void checkDependencies();
+  void handleEditorChanged(const QString& customId, QWidget* widget);
 
  private:
+  void checkDependencies();
+  void Generate(bool addToProject);
   void AddDialogControls(QBoxLayout* layout);
   void AddIpToProject(const QString& cmd);
-  void CreateParamFields();
+  void CreateParamFields(bool generateMetaLabel);
   void CreateOutputFields();
   void updateMetaLabel(VLNV info);
   std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
-  QGroupBox paramsBox{"Parameters", this};
+  QMap<QVariant, QVariant> saveProperties(bool& valid) const;
+  std::pair<std::string, std::string> generateNewJson(bool& ok);
+  void genarateNewPanel(const std::string& newJson,
+                        const std::string& filePath);
+  void restoreProperties(const QMap<QVariant, QVariant>& properties);
+  void showInvalidParametersWarning();
+
+  QGroupBox* paramsBox{nullptr};
   QGroupBox outputBox{"Output", this};
   QLabel metaLabel;
   QLineEdit moduleEdit;
   QLineEdit outputPath;
   QPushButton generateBtn;
 
-  QString m_baseDirDefault;
-  QString m_requestedIpName;
-  QStringList m_instanceValueArgs;
+  const QString m_baseDirDefault;
+  const QString m_requestedIpName;
+  const QStringList m_instanceValueArgs;
   VLNV m_meta;
+  QVBoxLayout* containerLayout{nullptr};
 };
 
 }  // namespace FOEDAG

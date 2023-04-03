@@ -209,6 +209,9 @@ class IPParameter : public Value {
   Type GetType() const { return Type::ParamIpVal; }
   ParamType GetParamType() const { return m_paramType; }
 
+  void SetDisable(const std::string& d) { m_disable = d; }
+  std::string Disabled() const { return m_disable; }
+
  private:
   // This type supports multiple types other than uint32_t and therefore uses
   // strings at all times, this getter is made private to make it less accesible
@@ -224,6 +227,7 @@ class IPParameter : public Value {
   std::vector<std::string> m_dependencies{};
   std::vector<std::string> m_options{};
   std::vector<std::string> m_range{};
+  std::string m_disable{false};
 };
 
 class IPDefinition {

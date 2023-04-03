@@ -1409,9 +1409,29 @@ void MainWindow::handleIpTreeSelectionChanged() {
 void MainWindow::handleIpReConfigRequested(const QString& ipName,
                                            const QString& moduleName,
                                            const QStringList& paramList) {
+  if (m_ipConfigDockWidget) {
+    // remove old config widget
+    auto oldWidget = m_ipConfigDockWidget->widget();
+    if (oldWidget) delete m_ipConfigDockWidget->widget();
+  }
   IpConfigWidget* configWidget =
       new IpConfigWidget(this, ipName, moduleName, paramList);
-  replaceIpConfigDockWidget(configWidget);
+
+  // Listen for IpInstance selection changes in the source tree
+  QObject::connect(configWidget, &IpConfigWidget::ipInstancesUpdated, this,
+                   &MainWindow::updateSourceTree);
+
+  // If dock widget has already been created
+  if (m_ipConfigDockWidget) {
+    // set new config widget
+    m_ipConfigDockWidget->setWidget(configWidget);
+    m_ipConfigDockWidget->show();
+  } else {  // If dock widget hasn't been created
+    // Create and place new dockwidget
+    m_ipConfigDockWidget =
+        PrepareTab(tr("Configure IP"), "configureIpsWidget", configWidget,
+                   nullptr, Qt::RightDockWidgetArea);
+  }
 }
 
 void MainWindow::handleRemoveIpRequested(const QString& moduleName) {
@@ -1540,33 +1560,6 @@ void MainWindow::recentProjectOpen() {
 void MainWindow::openProjectSettings() {
   newProjdialog->Reset(Mode::ProjectSettings);
   newProjdialog->open();
-}
-
-void MainWindow::replaceIpConfigDockWidget(QWidget* newWidget) {
-  IpConfigWidget* configWidget = qobject_cast<IpConfigWidget*>(newWidget);
-  if (configWidget) {
-    // Listen for IpInstance selection changes in the source tree
-    QObject::connect(configWidget, &IpConfigWidget::ipInstancesUpdated, this,
-                     &MainWindow::updateSourceTree);
-  }
-
-  // If dock widget has already been created
-  if (m_ipConfigDockWidget) {
-    // remove old config widget
-    auto oldWidget = m_ipConfigDockWidget->widget();
-    if (oldWidget) {
-      delete m_ipConfigDockWidget->widget();
-    }
-
-    // set new config widget
-    m_ipConfigDockWidget->setWidget(newWidget);
-    m_ipConfigDockWidget->show();
-  } else {  // If dock widget hasn't been created
-    // Create and place new dockwidget
-    m_ipConfigDockWidget =
-        PrepareTab(tr("Configure IP"), "configureIpsWidget", newWidget, nullptr,
-                   Qt::RightDockWidgetArea);
-  }
 }
 
 bool MainWindow::confirmCloseProject() {
