@@ -122,6 +122,9 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Update output path now that meta data has been loaded
   updateOutputPath();
+
+  // run with --json --json-template parameters to get default GUI
+  handleEditorChanged({}, nullptr);
 }
 
 void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
