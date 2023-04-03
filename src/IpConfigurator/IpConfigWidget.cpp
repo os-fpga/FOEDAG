@@ -124,7 +124,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   updateOutputPath();
 
   // run with --json --json-template parameters to get default GUI
-  handleEditorChanged({}, nullptr);
+  if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
 }
 
 void IpConfigWidget::AddDialogControls(QBoxLayout* layout) {
