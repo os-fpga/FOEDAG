@@ -68,7 +68,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
                                bool stopEmptyLine = false);
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
-  IDataReport::TableData CreateLogicData() const;
+  IDataReport::TableData CreateLogicData();
   IDataReport::TableData CreateBramData() const;
   IDataReport::TableData CreateDspData() const;
   void parseLogLine(const QString &line);
@@ -116,6 +116,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
  private:
   bool m_fileParsed{false};
   const QString SPACE{"     "};
+  uint m_dffr{0};
+  uint m_dffre{0};
 };
 
 }  // namespace FOEDAG
