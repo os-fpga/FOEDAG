@@ -47,7 +47,6 @@ struct Logic {
   uint lut0{};
   uint dff{};
   uint latch{};
-  uint fa1Bits{};
   uint fa2Bits{};
 };
 
