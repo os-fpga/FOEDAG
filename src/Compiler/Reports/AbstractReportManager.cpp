@@ -166,8 +166,9 @@ IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
   return circuitData;
 }
 
-IDataReport::TableData AbstractReportManager::CreateLogicData() const {
+IDataReport::TableData AbstractReportManager::CreateLogicData() {
   auto circuitData = IDataReport::TableData{};
+  m_usedRes.logic.dff = m_dffr + m_dffre;
   Logic uLogic = m_usedRes.logic;
   Logic aLogic = m_availRes.logic;
   uint result = (aLogic.clb == 0) ? 0 : uLogic.clb * 100 / aLogic.clb;
@@ -307,11 +308,19 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   }
 
   static const QRegularExpression dff{
-      "^ +dff\\D+(\\d+)", QRegularExpression::MultilineOption |
-                              QRegularExpression::CaseInsensitiveOption};
+      "^ +dffr \\D+(\\d+)", QRegularExpression::MultilineOption |
+                                QRegularExpression::CaseInsensitiveOption};
   auto dffMatch = dff.match(line);
   if (dffMatch.hasMatch()) {
-    m_usedRes.logic.dff += dffMatch.captured(1).toUInt();
+    m_dffr = dffMatch.captured(1).toUInt();
+    return;
+  }
+  static const QRegularExpression dffre{
+      "^ +dffre \\D+(\\d+)", QRegularExpression::MultilineOption |
+                                 QRegularExpression::CaseInsensitiveOption};
+  auto dffreMatch = dffre.match(line);
+  if (dffreMatch.hasMatch()) {
+    m_dffre = dffreMatch.captured(1).toUInt();
     return;
   }
   static const QRegularExpression latch{
