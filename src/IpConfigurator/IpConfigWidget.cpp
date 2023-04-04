@@ -454,7 +454,7 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
               << std::endl;
         jsonF << "   \"build_name\": " << inst->OutputFile().filename() << ","
               << std::endl;
-        jsonF << "   \"build\": true," << std::endl;
+        jsonF << "   \"build\": false," << std::endl;
         jsonF << "   \"json\": \"" << jsonFile.filename().string() << "\","
               << std::endl;
         jsonF << "   \"json_template\": false" << std::endl;
