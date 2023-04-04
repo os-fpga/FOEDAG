@@ -62,12 +62,16 @@ void CFG_assertion(const char* file, const char* func, size_t line,
                         : CFG_print("Assertion at %s (line: %d)",
                                     filepath.c_str(), (uint32_t)(line));
   CFG_POST_ERR(err.c_str());
-  printf("*************************************************\n");
-  printf("* %s\n", err.c_str());
+  if (m_err_function != nullptr) {
+    printf("*************************************************\n");
+    printf("* %s\n", err.c_str());
+  }
   err = CFG_print("   MSG: %s", msg.c_str());
   CFG_POST_ERR(err.c_str());
-  printf("* %s\n", err.c_str());
-  printf("*************************************************\n");
+  if (m_err_function != nullptr) {
+    printf("* %s\n", err.c_str());
+    printf("*************************************************\n");
+  }
   abort();
 }
 
@@ -102,11 +106,20 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
   m_msg_function = msg;
   m_err_function = err;
 }
+
 void CFG_post_msg(const std::string& message) {
   if (m_msg_function != nullptr) {
     m_msg_function(message);
   } else {
     printf("Info : %s\n", message.c_str());
+  }
+}
+
+void CFG_post_warning(const std::string& message) {
+  if (m_msg_function != nullptr) {
+    m_msg_function(message);
+  } else {
+    printf("Warn : %s\n", message.c_str());
   }
 }
 

@@ -150,7 +150,6 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   // Creates the new file in a working directory holding welcome page
   // configuration
   void saveWelcomePageConfig();
-  void replaceIpConfigDockWidget(QWidget* widget);
   bool confirmCloseProject();
   bool confirmExitProgram();
   void setVisibleRefreshButtons(bool visible);
