@@ -22,8 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROGRAMMER_H
 #define PROGRAMMER_H
 
+#include <iostream>
+
 #include "CFGCommon/CFGCommon.h"
 
-void programmer_entry(const CFGCommon_ARG* cmdarg);
+void programmer_entry(const CFGCommon_ARG* cmdarg, std::ostream* std_out,
+                      std::ostream* std_err);
 
 #endif

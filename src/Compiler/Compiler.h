@@ -245,6 +245,9 @@ class Compiler {
   void ClbPackingOption(ClbPacking clbPacking);
   ClbPacking ClbPackingOption() const;
 
+  void SetCompilerName(const std::string& name) { m_compilerName = name; }
+  const std::string& GetCompilerName() const { return m_compilerName; }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -360,6 +363,8 @@ class Compiler {
 
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
+
+  std::string m_compilerName;
 };
 
 }  // namespace FOEDAG

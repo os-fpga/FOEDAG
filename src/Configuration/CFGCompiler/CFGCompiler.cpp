@@ -15,8 +15,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CFGCompiler.h"
 
+#include <functional>
+
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
+#include "Configuration/CFGCommon/CFGArg_auto.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Programmer/Programmer.h"
 
@@ -30,14 +33,23 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // Each command has different checking rule
   // Set this argument in CFGCompiler
   // return if there is an error
-  bool status = true;
+  bool status{true};
+  std::vector<std::string> errors;
   cfgcompiler->m_cmdarg.command = "programmer";
+  cfgcompiler->m_cmdarg.compilerName =
+      cfgcompiler->GetCompiler()->GetCompilerName();
+  CFGArg_PROGRAM_DEVICE arg;
+  status = arg.parse(argc, argv, &errors);
+  cfgcompiler->m_cmdarg.arg = &arg;
   return status;
 }
 
 CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
   m_CFGCompiler = this;
   set_callback_message_function(Message, ErrorMessage);
+  // <TODO> this is invalid code
+  // set_callback_execute_and_monitor_system_command_function(
+  //    ExecuteSystemCommand);
 }
 
 Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
@@ -68,6 +80,7 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("programmer", program_device, this, 0);
   }
+
   RegisterCallbackFunction("programmer", programmer_entry);
   return status;
 }
@@ -122,6 +135,14 @@ void CFGCompiler::ErrorMessage(const std::string& message, bool append) {
 bool CFGCompiler::Configure() {
   CFG_ASSERT(m_callback_function_map.find(m_cmdarg.command) !=
              m_callback_function_map.end());
-  m_callback_function_map[m_cmdarg.command](&m_cmdarg);
+  m_callback_function_map[m_cmdarg.command](
+      &m_cmdarg, m_compiler->GetOutStream(), m_compiler->GetOutStream());
   return true;
+}
+
+int CFGCompiler::ExecuteSystemCommand(const std::string& command,
+                                      const std::string logFile,
+                                      bool appendLog) {
+  // <TODO>
+  return ExecuteAndMonitorSystemCommand(command, logFile, appendLog);
 }

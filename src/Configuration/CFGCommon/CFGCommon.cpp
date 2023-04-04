@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static cfg_callback_post_msg_function m_msg_function = nullptr;
 static cfg_callback_post_err_function m_err_function = nullptr;
+static cfg_callback_execute_and_monitor_system_command_function
+    m_execute_and_monitor_system_command_function = nullptr;
 
 std::string CFG_print(const char* format_string, ...) {
   char* buf = nullptr;
@@ -102,6 +104,13 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
   m_msg_function = msg;
   m_err_function = err;
 }
+
+void set_callback_execute_and_monitor_system_command_function(
+    cfg_callback_execute_and_monitor_system_command_function execute_func) {
+  CFG_ASSERT(execute_func != nullptr);
+  m_execute_and_monitor_system_command_function = execute_func;
+}
+
 void CFG_post_msg(const std::string& message) {
   if (m_msg_function != nullptr) {
     m_msg_function(message);
@@ -116,6 +125,20 @@ void CFG_post_err(const std::string& message, bool append) {
   } else {
     printf("Error: %s\n", message.c_str());
   }
+}
+
+int CFG_execute_and_monitor_system_command(const std::string& command,
+                                           const std::string log_file,
+                                           bool append) {
+  int status = -1;
+  if (m_execute_and_monitor_system_command_function != nullptr) {
+    status = m_execute_and_monitor_system_command_function(command, log_file,
+                                                           append);
+  } else {
+    printf("Error CFG_execute_and_monitor_system_command: %s\n",
+           command.c_str());
+  }
+  return status;
 }
 
 std::string change_directory_to_linux_format(std::string path) {

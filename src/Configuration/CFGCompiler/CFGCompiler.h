@@ -4,10 +4,14 @@
 #include <chrono>
 #include <map>
 #include <string>
+//#include <iostream>
 
+#include "Compiler/Compiler.h"
 #include "Configuration/CFGCommon/CFGCommon.h"
 
-typedef void (*cfg_callback_function)(const CFGCommon_ARG* cmdarg);
+typedef void (*cfg_callback_function)(const CFGCommon_ARG* cmdarg,
+                                      std::ostream* cfg_out,
+                                      std::ostream* cfg_err);
 typedef std::map<std::string, cfg_callback_function> cfg_callback_function_map;
 
 namespace FOEDAG {
@@ -15,7 +19,7 @@ namespace FOEDAG {
 class TclInterpreter;
 class Compiler;
 
-class CFGCompiler {
+class CFGCompiler : public Compiler {
  public:
   CFGCompiler(Compiler* compiler);
   virtual ~CFGCompiler() {}
@@ -29,6 +33,9 @@ class CFGCompiler {
   static int Compile(CFGCompiler* cfgcompiler, bool batchMode);
   static void Message(const std::string& message);
   static void ErrorMessage(const std::string& message, bool append);
+  // <TODO> use static? but it seems not valid
+  int ExecuteSystemCommand(const std::string& command,
+                           const std::string logFile, bool appendLog);
 
  public:
   CFGCommon_ARG m_cmdarg;

@@ -21,9 +21,12 @@ typedef std::chrono::high_resolution_clock::time_point CFG_TIME;
 typedef void (*cfg_callback_post_msg_function)(const std::string& message);
 typedef void (*cfg_callback_post_err_function)(const std::string& message,
                                                bool append);
+typedef int (*cfg_callback_execute_and_monitor_system_command_function)(
+    const std::string& command, const std::string logFile, bool appendLog);
 
 class CFGArg;
 struct CFGCommon_ARG {
+  std::string compilerName;
   std::string command;
   std::string device;
   std::string projectName;
@@ -77,9 +80,16 @@ float CFG_time_elapse(CFG_TIME begin);
 void set_callback_message_function(cfg_callback_post_msg_function msg,
                                    cfg_callback_post_err_function err);
 
+void set_callback_execute_and_monitor_system_command_function(
+    cfg_callback_execute_and_monitor_system_command_function execute_func);
+
 void CFG_post_msg(const std::string& message);
 
 void CFG_post_err(const std::string& message, bool append);
+
+int CFG_execute_and_monitor_system_command(
+    const std::string& command, const std::string logFile = std::string{},
+    bool appendLog = false);
 
 std::string change_directory_to_linux_format(std::string path);
 
