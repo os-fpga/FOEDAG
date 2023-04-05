@@ -48,10 +48,8 @@ int main(int argc, char** argv) {
     opcompiler = new FOEDAG::CompilerOpenFPGA();
     compiler = opcompiler;
     compiler->SetUseVerific(cmd->UseVerific());
-    compiler->SetCompilerName(cmd->CompilerName());
   } else {
     compiler = new FOEDAG::Compiler();
-    compiler->SetCompilerName("dummy");
   }
 
   FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
