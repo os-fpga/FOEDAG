@@ -384,34 +384,36 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       }
       i++;
       std::string expandedFile = argv[i];
-      bool use_orig_path = false;
-      if (FileUtils::FileExists(expandedFile)) {
-        use_orig_path = true;
-      }
+      if (!expandedFile.empty()) {
+        bool use_orig_path = false;
+        if (FileUtils::FileExists(expandedFile)) {
+          use_orig_path = true;
+        }
 
-      if ((!use_orig_path) &&
-          (!compiler->GetSession()->CmdLine()->Script().empty())) {
-        std::filesystem::path script =
-            compiler->GetSession()->CmdLine()->Script();
-        std::filesystem::path scriptPath = script.parent_path();
-        std::filesystem::path fullPath = scriptPath;
-        fullPath.append(argv[i]);
-        expandedFile = fullPath.string();
-      }
+        if ((!use_orig_path) &&
+            (!compiler->GetSession()->CmdLine()->Script().empty())) {
+          std::filesystem::path script =
+              compiler->GetSession()->CmdLine()->Script();
+          std::filesystem::path scriptPath = script.parent_path();
+          std::filesystem::path fullPath = scriptPath;
+          fullPath.append(argv[i]);
+          expandedFile = fullPath.string();
+        }
 
-      std::ifstream stream(expandedFile);
-      if (!stream.good()) {
-        compiler->ErrorMessage("Cannot find bitstream config file: " +
-                               std::string(expandedFile));
-        return TCL_ERROR;
+        std::ifstream stream(expandedFile);
+        if (!stream.good()) {
+          compiler->ErrorMessage("Cannot find bitstream config file: " +
+                                 std::string(expandedFile));
+          return TCL_ERROR;
+        }
+        std::filesystem::path the_path = expandedFile;
+        if (!the_path.is_absolute()) {
+          expandedFile =
+              std::filesystem::path(std::filesystem::path("..") / expandedFile)
+                  .string();
+        }
+        stream.close();
       }
-      std::filesystem::path the_path = expandedFile;
-      if (!the_path.is_absolute()) {
-        expandedFile =
-            std::filesystem::path(std::filesystem::path("..") / expandedFile)
-                .string();
-      }
-      stream.close();
       if (fileType == "bitstream") {
         compiler->OpenFpgaBitstreamSettingFile(expandedFile);
         compiler->Message("OpenFPGA Bitstream Setting file: " + expandedFile);
@@ -2456,7 +2458,7 @@ read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
 # Read OpenFPGA simulation settings
 read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
 
-read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+${OPENFPGA_BITSTREAM_SETTING_FILE}
 
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
@@ -2497,7 +2499,7 @@ read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
 # Read OpenFPGA simulation settings
 read_openfpga_simulation_setting -f ${OPENFPGA_SIM_SETTING_FILE}
 
-read_openfpga_bitstream_setting -f ${OPENFPGA_BITSTREAM_SETTING_FILE}
+${OPENFPGA_BITSTREAM_SETTING_FILE}
 
 # Annotate the OpenFPGA architecture to VPR data base
 # to debug use --verbose options
@@ -2670,6 +2672,13 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
+  if (m_OpenFpgaBitstreamSettingFile.string().empty()) {
+    result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}", "");
+  } else {
+    result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
+                        "read_openfpga_bitstream_setting -f " +
+                            m_OpenFpgaBitstreamSettingFile.string());
+  }
   result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}",
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
@@ -2921,16 +2930,18 @@ bool CompilerOpenFPGA::LoadDeviceData(
               std::string name = n.toElement().attribute("name").toStdString();
               std::string num = n.toElement().attribute("num").toStdString();
               std::filesystem::path fullPath;
-              if (FileUtils::FileExists(file)) {
-                fullPath = file;  // Absolute path
-              } else {
-                fullPath = datapath / std::string("etc") /
-                           std::string("devices") / file;
-              }
-              if (!FileUtils::FileExists(fullPath.string())) {
-                ErrorMessage(
-                    "Invalid device config file: " + fullPath.string() + "\n");
-                status = false;
+              if (!file.empty()) {
+                if (FileUtils::FileExists(file)) {
+                  fullPath = file;  // Absolute path
+                } else {
+                  fullPath = datapath / std::string("etc") /
+                             std::string("devices") / file;
+                }
+                if (!FileUtils::FileExists(fullPath.string())) {
+                  ErrorMessage("Invalid device config file: " +
+                               fullPath.string() + "\n");
+                  status = false;
+                }
               }
               if (file_type == "vpr_arch") {
                 ArchitectureFile(fullPath.string());
