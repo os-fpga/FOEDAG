@@ -639,6 +639,7 @@ void SourcesForm::AddIpInstanceTree(QTreeWidgetItem *topItem) {
       (ipGen = compiler->GetIPGenerator())) {
     QTreeWidgetItem *ipParentItem{topitemIpInstances};
     for (auto instance : ipGen->IPInstances()) {
+      if (!instance->Generated()) continue;
       QString ipName = QString::fromStdString(instance->IPName());
       QString moduleName = QString::fromStdString(instance->ModuleName());
 
