@@ -26,11 +26,11 @@ typedef int (*cfg_callback_execute_and_monitor_system_command_function)(
 
 class CFGArg;
 struct CFGCommon_ARG {
-  std::string compilerName;
   std::string command;
   std::string device;
   std::string projectName;
   std::string projectPath;
+  std::string compilerName;
   bool clean;
   CFGArg* arg;
 };
