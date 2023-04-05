@@ -144,6 +144,7 @@ class Compiler {
                        const std::string& messagePrefix = "") const;
   virtual void ErrorMessage(const std::string& message, bool append = true,
                             const std::string& messagePrefix = "") const;
+  virtual void reloadSettings() {}
   virtual std::vector<std::string> GetCleanFiles(
       Action action, const std::string& projectName,
       const std::string& topModule) const;

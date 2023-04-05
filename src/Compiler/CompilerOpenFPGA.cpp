@@ -41,6 +41,7 @@
 #include "Compiler/CompilerOpenFPGA.h"
 #include "Compiler/Constraints.h"
 #include "Log.h"
+#include "Main/Settings.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
@@ -868,6 +869,18 @@ bool CompilerOpenFPGA::DesignChanged(
   }
   std::filesystem::current_path(path);
   return result;
+}
+
+void CompilerOpenFPGA::reloadSettings() {
+  FOEDAG::Settings* settings = GlobalSession->GetSettings();
+  try {
+    settings->getJson()["Tasks"]["Synthesis"]["dsp_spinbox_ex"]["maxVal"] =
+        MaxDeviceDSPCount();
+    settings->getJson()["Tasks"]["Synthesis"]["bram_spinbox_ex"]["maxVal"] =
+        MaxDeviceBRAMCount();
+  } catch (std::exception& e) {
+    ErrorMessage(e.what());
+  }
 }
 
 std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
@@ -2883,6 +2896,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
       status = LoadDeviceData(deviceName, local_device_settings);
     }
   }
+  if (status) reloadSettings();
   return status;
 }
 
