@@ -1226,6 +1226,7 @@ void MainWindow::reloadSettings() {
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
+    if (m_compiler) m_compiler->reloadSettings();
 
     connect(settings, &Settings::sync, this, &MainWindow::saveSetting,
             Qt::UniqueConnection);
