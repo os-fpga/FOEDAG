@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <string>
 #include <thread>
 
 namespace FOEDAG {
@@ -50,14 +49,8 @@ class ProcessUtils {
   uint m_max_utiliation{0};
   uint m_frequency{10};
   bool m_stop{false};
-  std::thread* m_thread{nullptr};
+  std::thread *m_thread{nullptr};
   double m_vm{0};
 };
-
-int ExecuteAndMonitorSystemCommand(const std::string& command,
-                                   const std::string& projectPath,
-                                   std::ostream* std_out, std::ostream* std_err,
-                                   const std::string& logFile = std::string{},
-                                   bool appendLog = false);
 
 }  // namespace FOEDAG
