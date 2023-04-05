@@ -36,11 +36,12 @@ void programmer_entry(const CFGCommon_ARG* cmdarg, std::ostream* std_out,
                       std::ostream* std_err) {
   std::filesystem::path m_openOcdExecutablePath = "openocd";
   CFG_POST_MSG("This is Programmer entry");
-  if (cmdarg->compilerName == "dummy") {
+  const std::string compilerName = cmdarg->compilerName;
+  if (compilerName == "" || compilerName == "dummy") {
     CFG_POST_MSG("  ProjectName : %s", cmdarg->projectName.c_str());
     CFG_POST_MSG("  ProjectPath : %s", cmdarg->projectPath.c_str());
     CFG_POST_MSG("  Device      : %s", cmdarg->device.c_str());
-    CFG_POST_MSG("  command      : %s", cmdarg->command.c_str());
+    CFG_POST_MSG("  command     : %s", cmdarg->command.c_str());
     for (int i = 0; i < 5; i++) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       CFG_POST_MSG("Looping to test multithread - %d", i);

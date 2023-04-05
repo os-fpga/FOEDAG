@@ -15,7 +15,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CFGCompiler.h"
 
-#include <functional>
 
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
@@ -35,9 +34,10 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // return if there is an error
   bool status{true};
   std::vector<std::string> errors;
-  cfgcompiler->m_cmdarg.command = "programmer";
-  cfgcompiler->m_cmdarg.compilerName =
-      cfgcompiler->GetCompiler()->GetCompilerName();
+  cfgcompiler->m_cmdarg.command = "programmer";  
+  const std::string compilerName = 
+    cfgcompiler->GetCompiler()->GetSession()->CmdLine()->CompilerName();
+  cfgcompiler->m_cmdarg.compilerName = compilerName;
   CFGArg_PROGRAM_DEVICE arg;
   status = arg.parse(argc, argv, &errors);
   cfgcompiler->m_cmdarg.arg = &arg;
