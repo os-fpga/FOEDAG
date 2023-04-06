@@ -327,27 +327,44 @@ void MainWindow::newDesignCreated(const QString& design) {
 
 void MainWindow::chatGpt(const QString& request, const QString& content) {
   auto reportName = "Chat GPT";
+  const bool reset{request.isEmpty()};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  auto addItem = [this](const QString& request, const QString& content) {
+    QStandardItem* item = new QStandardItem();
+    item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+    item->setData(content, ListViewDelegate::SubheaderRole);
+    if (m_chatgptModel) {
+      m_chatgptModel->insertRow(0, item);
+      item = new QStandardItem();
+      item->setData("User", ListViewDelegate::HeaderRole);
+      item->setData(request, ListViewDelegate::SubheaderRole);
+      m_chatgptModel->insertRow(0, item);
+    }
+  };
+  if (reset) {
+    if (m_chatgptModel) {
+      m_chatgptModel->clear();
+    }
+  }
   for (int i = 0; i < tabWidget->count(); i++) {
     if (tabWidget->tabText(i) == reportName) {
-      if (request.isEmpty()) {
+      if (reset) {
         tabWidget->removeTab(i);
         return;
       }
       tabWidget->setCurrentIndex(i);
-      QStandardItem* item = new QStandardItem();
-      item->setData("Chat GPT", ListViewDelegate::HeaderRole);
-      item->setData(content, ListViewDelegate::SubheaderRole);
-      if (m_chatgptModel) {
-        m_chatgptModel->insertRow(0, item);
-
-        item = new QStandardItem();
-        item->setData("User", ListViewDelegate::HeaderRole);
-        item->setData(request, ListViewDelegate::SubheaderRole);
-        m_chatgptModel->insertRow(0, item);
-      }
+      addItem(request, content);
       return;
     }
+  }
+
+  if (reset) return;
+
+  if (m_chatGptListView) {
+    tabWidget->addTab(m_chatGptListView, reportName);
+    tabWidget->setCurrentWidget(m_chatGptListView);
+    addItem(request, content);
+    return;
   }
 
   // tab doesn't exist yet
@@ -389,14 +406,11 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
   item->setData(content, ListViewDelegate::SubheaderRole);
   m_chatgptModel->appendRow(item);
 
-  QWidget* w = new QWidget;
-  w->setLayout(new QVBoxLayout);
-  w->layout()->addWidget(m_chatGptListView);
-  tabWidget->addTab(w, reportName);
+  tabWidget->addTab(m_chatGptListView, reportName);
   tabWidget->setCurrentWidget(m_chatGptListView);
 
   connect(tabWidget, &TabWidget::resized, this,
-          [w](const QSize& s) { w->resize(s); });
+          [this](const QSize& s) { m_chatGptListView->resize(s); });
 }
 
 void MainWindow::startStopButtonsState() {
