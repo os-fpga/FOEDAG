@@ -375,7 +375,6 @@ target_link_libraries(foedag  PUBLIC
   compiler
   ipgenerate
   designquery
-  #deviceprogrammer
   simulation
   foedagutils
   console

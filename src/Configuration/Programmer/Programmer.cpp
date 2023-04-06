@@ -47,7 +47,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     auto buildCommand = [&openOcdExecPath](const std::string& config_file,
                                            const std::string& bitstream_file,
                                            int pld_id) -> std::string {
-      std::string openocd = openOcdExecPath;
+      std::string openocd = openOcdExecPath.string();
       return openocd + " -f " + config_file + " -c \"pld load " +
              std::to_string(pld_id) + " " + bitstream_file + "\"" +
              " -l /dev/stdout -c exit";

@@ -346,7 +346,8 @@ int CFG_execute_cmd(const std::string& cmd, std::string& output) {
     pclose(pipe);
     throw;
   }
-  exitcode = WEXITSTATUS(pclose(pipe));
+  int status = pclose(pipe);
+  exitcode = WEXITSTATUS(status);
   return exitcode;
 }
 
