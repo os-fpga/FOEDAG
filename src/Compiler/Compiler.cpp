@@ -2574,7 +2574,7 @@ bool Compiler::sendChatGpt(const std::string& message) {
   std::ostringstream help;
 
   if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
-    ErrorMessage("ChatGPT, " + help.str());
+    ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }
 
@@ -2625,7 +2625,7 @@ bool Compiler::resetChatGpt(const std::string&) {
   std::ostringstream help;
 
   if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
-    ErrorMessage("ChatGPT, " + help.str());
+    ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }
 
