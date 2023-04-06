@@ -30,8 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CFGCommon/CFGCommon.h"
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
-  const std::string compilerName = cmdarg->compilerName;
-  if (compilerName == "N6FOEDAG8CompilerE") {
+  if (cmdarg->compilerName == "dummy") {
     CFG_POST_MSG("  ProjectName : %s", cmdarg->projectName.c_str());
     CFG_POST_MSG("  ProjectPath : %s", cmdarg->projectPath.c_str());
     CFG_POST_MSG("  Device      : %s", cmdarg->device.c_str());
