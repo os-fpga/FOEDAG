@@ -279,11 +279,15 @@ void Compiler::Message(const std::string& message,
 }
 
 void Compiler::ErrorMessage(const std::string& message, bool append,
-                            const std::string& messagePrefix) const {
+                            const std::string& messagePrefix, bool raw) const {
   if (m_err) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_err) << "ERROR: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_err) << prefix << message;
+    } else {
+      (*m_err) << "ERROR: " << prefix << message << std::endl;
+    }
   }
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
