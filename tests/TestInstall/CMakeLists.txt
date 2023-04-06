@@ -160,7 +160,6 @@ target_link_libraries(test_hellofoedag
   simulation
   ipgenerate
   designquery
-  #deviceprogrammer
   foedagutils
   QConsole
   qscintilla2_qt
