@@ -36,7 +36,7 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // return if there is an error
   bool status{true};
   std::vector<std::string> errors;
-  cfgcompiler->m_cmdarg.command = "programmer";
+  cfgcompiler->m_cmdarg.command = "program_device";
   auto compiler = cfgcompiler->GetCompiler();
   const std::string compilerName =
       compiler->GetSession()->CmdLine()->CompilerName();
@@ -59,7 +59,6 @@ Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
 
 bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   bool status = true;
-  // This is for program_device
   if (batchMode) {
     auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -70,7 +69,7 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("programmer", program_device, this, 0);
+    interp->registerCmd("program_device", program_device, this, 0);
   } else {
     auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -81,10 +80,10 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("programmer", program_device, this, 0);
+    interp->registerCmd("program_device", program_device, this, 0);
   }
 
-  RegisterCallbackFunction("programmer", programmer_entry);
+  RegisterCallbackFunction("program_device", programmer_entry);
   return status;
 }
 
