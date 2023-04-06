@@ -74,13 +74,6 @@ std::string StringUtils::join(const std::vector<std::string>& strings,
   return result;
 }
 
-std::string StringUtils::to_string(double a_value, const int n) {
-  std::ostringstream out;
-  out.precision(n);
-  out << std::fixed << a_value;
-  return out.str();
-}
-
 std::string& StringUtils::trim(std::string& str) { return ltrim(rtrim(str)); }
 
 std::string& StringUtils::ltrim(std::string& str) {
