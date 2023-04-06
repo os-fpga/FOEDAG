@@ -469,20 +469,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
         WorkerThread* wthread =
             new WorkerThread(args[2], Action::IPGen, compiler);
-        return wthread->start([compiler](const std::string& str) -> bool {
-          return compiler->sendChatGpt(str);
-        })
-                   ? TCL_OK
-                   : TCL_ERROR;
+        auto exitSt = wthread->start(
+            [compiler](const std::string& str) -> bool {
+              return compiler->sendChatGpt(str);
+            },
+            args[2]);
+        return exitSt ? TCL_OK : TCL_ERROR;
       } else if (args[1] == "reset") {
         WorkerThread* wthread =
             new WorkerThread("reset", Action::IPGen, compiler);
-        return wthread->start([compiler](const std::string&) -> bool {
-          return compiler->resetChatGpt({});
-        })
-                   ? TCL_OK
-                   : TCL_ERROR;
-        return TCL_OK;
+        auto exitSt = wthread->start(
+            [compiler](const std::string&) -> bool {
+              return compiler->resetChatGpt({});
+            },
+            {});
+        return exitSt ? TCL_OK : TCL_ERROR;
       }
       compiler->ErrorMessage("Wrong arguments");
       return TCL_ERROR;

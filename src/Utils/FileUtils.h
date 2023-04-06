@@ -63,8 +63,6 @@ class FileUtils final {
       bool caseInsensitive);
 
   static int ExecuteSystemCommand(const std::string& command,
-                                  std::ostream* result);
-  static int ExecuteSystemCommand(const std::string& command,
                                   const std::vector<std::string>& args,
                                   std::ostream* result);
 

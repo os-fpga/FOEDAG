@@ -525,13 +525,12 @@ bool IPGenerator::Generate() {
           }
         }
 
-        std::string command = pythonPath.string() + " " + executable.string() +
-                              " --build --json " +
-                              FileUtils::GetFullPath(jsonFile).string();
+        StringVector args{executable.string(), "--build", "--json",
+                          FileUtils::GetFullPath(jsonFile).string()};
         std::ostringstream help;
         m_compiler->Message("IP Generate, generating IP " +
                             GetBuildDir(inst).string());
-        if (FileUtils::ExecuteSystemCommand(command, &help)) {
+        if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
