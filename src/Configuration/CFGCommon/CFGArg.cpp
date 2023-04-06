@@ -305,7 +305,6 @@ bool CFGArg::assign(CFGArg_RULE* rule, const std::string& value,
               errors);
           status = false;
         }
-
       } else {
         post_error(CFG_print("Option %s is an enum, value cannot be empty",
                              rule->name.c_str()),
@@ -326,7 +325,7 @@ bool CFGArg::print_option(const std::string& option,
       std::string message = CFG_print("\n\n%s\n", r.name.c_str());
       if (r.short_name != char(0)) {
         message =
-            CFG_print("%s  Short      : %c\n", message.c_str(), r.short_name);
+            CFG_print("%s  Short Name : %c\n", message.c_str(), r.short_name);
       }
       message = CFG_print("%s  Type       : %s\n", message.c_str(),
                           r.type_name.c_str());
@@ -334,7 +333,14 @@ bool CFGArg::print_option(const std::string& option,
                           r.optional ? "true" : "false");
       message = CFG_print("%s  Assignment : %s\n", message.c_str(),
                           r.multiple ? "multiple" : "single");
-      message = CFG_print("%s  Usage      : %s\n", message.c_str(), r.help);
+      message = CFG_print("%s  Usage      : %s\n", message.c_str(),
+                          r.help[0].c_str());
+      if (r.help.size() > 1) {
+        for (size_t i = 1; i < r.help.size(); i++) {
+          message = CFG_print("%s               %s\n", message.c_str(),
+                              r.help[i].c_str());
+        }
+      }
       CFG_POST_MSG(message.c_str());
       status = true;
       m_help = true;

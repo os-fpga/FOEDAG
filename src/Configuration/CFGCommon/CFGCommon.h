@@ -91,6 +91,8 @@ void CFG_post_msg(const std::string& message,
                   const std::string pre_msg = "INFO: ",
                   const bool new_line = true);
 
+void CFG_post_warning(const std::string& message);
+
 void CFG_post_err(const std::string& message, bool append);
 
 int CFG_execute_and_monitor_system_command(
@@ -138,6 +140,9 @@ std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
+
+#define CFG_POST_WARNING(...) \
+  { CFG_post_warning(CFG_print(__VA_ARGS__)); }
 
 #define CFG_POST_ERR(...) \
   { CFG_post_err(CFG_print(__VA_ARGS__), true); }
