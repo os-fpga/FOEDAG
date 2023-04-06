@@ -324,7 +324,7 @@ int CFG_execute_cmd(const std::string& cmd, std::string& output) {
   char buffer[513];
   std::string temp_string = "";
   output = "";
-#if defined(_MSC_VER)
+#if (defined(_MSC_VER) || defined(__MINGW32__))
 #define popen _popen
 #define pclose _pclose
 #define WEXITSTATUS
