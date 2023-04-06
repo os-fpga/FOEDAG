@@ -77,12 +77,9 @@ int main(int argc, char** argv) {
     opcompiler->OpenFpgaSimSettingFile(simSettingPath);
     opcompiler->OpenFpgaRepackConstraintsFile(repackConstraintPath);
     opcompiler->PinConvExecPath(pinConvPath);
-    opcompiler->OpenOcdExecPath(openOcdPath);
+    opcompiler->ProgrammerToolExecPath(openOcdPath);
 
-    std::filesystem::path bitstreamFileSearchDir =
-        datapath / "configuration" / "bitstream";
     std::filesystem::path configFileSearchDir = datapath / "configuration";
-    opcompiler->SetBitstreamFileSearchDirectory(bitstreamFileSearchDir);
     opcompiler->SetConfigFileSearchDirectory(configFileSearchDir);
   }
   return foedag->init(guiType);

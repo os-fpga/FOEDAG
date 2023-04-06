@@ -22,8 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static cfg_callback_post_msg_function m_msg_function = nullptr;
 static cfg_callback_post_err_function m_err_function = nullptr;
-static cfg_callback_execute_and_monitor_system_command_function
-    m_execute_and_monitor_system_command_function = nullptr;
+static cfg_callback_execute_command m_execute_cmd_function = nullptr;
 
 std::string CFG_print(const char* format_string, ...) {
   char* buf = nullptr;
@@ -98,24 +97,24 @@ float CFG_time_elapse(CFG_TIME begin) {
 }
 
 void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err) {
+                                   cfg_callback_post_err_function err,
+                                   cfg_callback_execute_command exec) {
   CFG_ASSERT(msg != nullptr);
   CFG_ASSERT(err != nullptr);
+  CFG_ASSERT(exec != nullptr);
   m_msg_function = msg;
   m_err_function = err;
+  m_execute_cmd_function = exec;
 }
 
-void set_callback_execute_and_monitor_system_command_function(
-    cfg_callback_execute_and_monitor_system_command_function execute_func) {
-  CFG_ASSERT(execute_func != nullptr);
-  m_execute_and_monitor_system_command_function = execute_func;
-}
-
-void CFG_post_msg(const std::string& message) {
+void CFG_post_msg(const std::string& message, const std::string pre_msg,
+                  const bool new_line) {
   if (m_msg_function != nullptr) {
-    m_msg_function(message);
+    m_msg_function(message, pre_msg.size() == 0 && !new_line);
   } else {
-    printf("Info : %s\n", message.c_str());
+    std::string termination = new_line ? "\n" : "";
+    printf("%s%s%s", pre_msg.c_str(), message.c_str(), termination.c_str());
+    fflush(stdout);
   }
 }
 
@@ -123,22 +122,8 @@ void CFG_post_err(const std::string& message, bool append) {
   if (m_err_function != nullptr) {
     m_err_function(message, append);
   } else {
-    printf("Error: %s\n", message.c_str());
+    printf("ERROR: %s\n", message.c_str());
   }
-}
-
-int CFG_execute_and_monitor_system_command(const std::string& command,
-                                           const std::string log_file,
-                                           bool append) {
-  int status = -1;
-  if (m_execute_and_monitor_system_command_function != nullptr) {
-    status = m_execute_and_monitor_system_command_function(command, log_file,
-                                                           append);
-  } else {
-    printf("Error CFG_execute_and_monitor_system_command: %s\n",
-           command.c_str());
-  }
-  return status;
 }
 
 std::string change_directory_to_linux_format(std::string path) {
@@ -322,4 +307,61 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
 int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
                            const uint32_t element) {
   return CFG_find_element_in_vector(vector, element);
+}
+
+int CFG_compiler_execute_cmd(const std::string& command,
+                             const std::string logFile, bool appendLog) {
+  if (m_execute_cmd_function != nullptr) {
+    return m_execute_cmd_function(command, logFile, appendLog);
+  } else {
+    std::string output = "";
+    return CFG_execute_cmd(command, output);
+  }
+}
+
+int CFG_execute_cmd(const std::string& cmd, std::string& output) {
+  int exitcode = 255;
+  char buffer[513];
+  std::string temp_string = "";
+  output = "";
+#if defined(_MSC_VER)
+#define popen _popen
+#define pclose _pclose
+#define WEXITSTATUS
+#endif
+  CFG_POST_MSG("Command: %s", cmd.c_str());
+  std::string command = CFG_print("%s 2>&1", cmd.c_str());
+  FILE* pipe = popen(command.c_str(), "r");
+  if (pipe == nullptr) {
+    throw std::runtime_error("popen() failed!");
+  }
+  try {
+    memset(buffer, 0, sizeof(buffer));
+    while (fgets(buffer, sizeof(buffer) - 1, pipe) != nullptr) {
+      temp_string = std::string(buffer);
+      CFG_post_msg(temp_string, "", false);
+      output += temp_string;
+    }
+  } catch (...) {
+    pclose(pipe);
+    throw;
+  }
+  exitcode = WEXITSTATUS(pclose(pipe));
+  return exitcode;
+}
+
+std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
+                                    const std::filesystem::path& defaultDir) {
+  if (std::filesystem::is_regular_file(
+          filePath)) {  // check if it is already a valid file path
+    return std::filesystem::absolute(filePath);
+  } else {
+    std::filesystem::path file_abs_path = defaultDir / filePath;
+    if (std::filesystem::is_regular_file(
+            file_abs_path)) {  // check if the file exists in default directory
+      return std::filesystem::absolute(file_abs_path);
+    } else {
+      return "";
+    }
+  }
 }

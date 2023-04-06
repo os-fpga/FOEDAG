@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CFGCompiler.h"
 
+#include <filesystem>
+#include <memory>
 
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
@@ -34,22 +36,23 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // return if there is an error
   bool status{true};
   std::vector<std::string> errors;
-  cfgcompiler->m_cmdarg.command = "programmer";  
-  const std::string compilerName = 
-    cfgcompiler->GetCompiler()->GetSession()->CmdLine()->CompilerName();
+  cfgcompiler->m_cmdarg.command = "programmer";
+  auto compiler = cfgcompiler->GetCompiler();
+  const std::string compilerName =
+      compiler->GetSession()->CmdLine()->CompilerName();
   cfgcompiler->m_cmdarg.compilerName = compilerName;
-  CFGArg_PROGRAM_DEVICE arg;
-  status = arg.parse(argc, argv, &errors);
-  cfgcompiler->m_cmdarg.arg = &arg;
+  auto arg = std::make_shared<CFGArg_PROGRAM_DEVICE>();
+  status = arg->parse(argc, argv, &errors);
+  cfgcompiler->m_cmdarg.arg = arg;
+  cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
+  cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
   return status;
 }
 
 CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
   m_CFGCompiler = this;
-  set_callback_message_function(Message, ErrorMessage);
-  // <TODO> this is invalid code
-  // set_callback_execute_and_monitor_system_command_function(
-  //    ExecuteSystemCommand);
+  set_callback_message_function(Message, ErrorMessage,
+                                ExecuteAndMonitorSystemCommand);
 }
 
 Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
@@ -116,11 +119,16 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   return TCL_OK;
 }
 
-void CFGCompiler::Message(const std::string& message) {
+void CFGCompiler::Message(const std::string& message, const bool raw) {
   if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
-    m_CFGCompiler->GetCompiler()->Message(message);
+    m_CFGCompiler->GetCompiler()->Message(message, "", raw);
   } else {
-    printf("Info : %s\n", message.c_str());
+    if (raw) {
+      printf("%s", message.c_str());
+    } else {
+      printf("INFO : %s\n", message.c_str());
+    }
+    fflush(stdout);
   }
 }
 
@@ -128,21 +136,26 @@ void CFGCompiler::ErrorMessage(const std::string& message, bool append) {
   if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
     m_CFGCompiler->GetCompiler()->ErrorMessage(message, append);
   } else {
-    printf("Error: %s\n", message.c_str());
+    printf("ERROR: %s\n", message.c_str());
+    fflush(stdout);
+  }
+}
+
+int CFGCompiler::ExecuteAndMonitorSystemCommand(const std::string& command,
+                                                const std::string logFile,
+                                                bool appendLog) {
+  if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
+    return m_CFGCompiler->GetCompiler()->ExecuteAndMonitorSystemCommand(
+        command, logFile, appendLog);
+  } else {
+    std::string output = "";
+    return CFG_execute_cmd(command, output);
   }
 }
 
 bool CFGCompiler::Configure() {
   CFG_ASSERT(m_callback_function_map.find(m_cmdarg.command) !=
              m_callback_function_map.end());
-  m_callback_function_map[m_cmdarg.command](
-      &m_cmdarg, m_compiler->GetOutStream(), m_compiler->GetOutStream());
+  m_callback_function_map[m_cmdarg.command](&m_cmdarg);
   return true;
-}
-
-int CFGCompiler::ExecuteSystemCommand(const std::string& command,
-                                      const std::string logFile,
-                                      bool appendLog) {
-  // <TODO>
-  return ExecuteAndMonitorSystemCommand(command, logFile, appendLog);
 }

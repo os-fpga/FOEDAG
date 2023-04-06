@@ -266,11 +266,15 @@ std::string Compiler::GetMessagePrefix() const {
 }
 
 void Compiler::Message(const std::string& message,
-                       const std::string& messagePrefix) const {
+                       const std::string& messagePrefix, const bool raw) const {
   if (m_out) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_out) << "INFO: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_out) << prefix << message;
+    } else {
+      (*m_out) << "INFO: " << prefix << message << std::endl;
+    }
   }
 }
 
@@ -441,16 +445,16 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_DesignQuery == nullptr) {
     m_DesignQuery = new DesignQuery(this);
   }
-  if (m_deviceProgrammer == nullptr) {
-    m_deviceProgrammer = new DeviceProgrammer(this);
-  }
+  // if (m_deviceProgrammer == nullptr) {
+  //   m_deviceProgrammer = new DeviceProgrammer(this);
+  // }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   m_DesignQuery->RegisterCommands(interp, batchMode);
-  m_deviceProgrammer->RegisterCommands(interp, batchMode);
+  // m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
@@ -2238,8 +2242,8 @@ bool Compiler::RunCompileTask(Action action) {
       return GetSimulator()->Simulate(
           Simulator::SimulationType::BitstreamBackDoor,
           GetSimulator()->GetSimulatorType(), m_waveformFile);
-    case Action::ProgramDevice:
-      return ProgramDevice();
+    // case Action::ProgramDevice:
+    //   return ProgramDevice();
     case Action::Configuration:
       return GetConfiguration()->Configure();
     default:
@@ -2486,31 +2490,31 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
-bool Compiler::ProgramDevice() {
-  using namespace std::literals;
-  const std::string prefix{"PDV: "};
-  std::string projectName{"noname"};
-  std::string activeTargetDevice = m_projManager->getTargetDevice();
-  if (m_projManager->HasDesign()) {
-    projectName = m_projManager->projectName();
-  }
-  constexpr int step{10};
-  constexpr int totalProgress{100};
-  for (int i = 0; i <= totalProgress; i = i + step) {
-    std::stringstream outStr;
-    outStr << std::setw(3) << i << "% [";
-    std::string s1(i / 10, '=');
-    outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
-    outStr << " just for test";
-    Message(outStr.str(), prefix);
-    std::this_thread::sleep_for(100ms);
-  };
-  Message(projectName + " " + activeTargetDevice + " " +
-              m_deviceProgrammer->GetBitstreamFilename().string() +
-              " Bitstream is programmed",
-          prefix);
-  return true;
-}
+// bool Compiler::ProgramDevice() {
+//   using namespace std::literals;
+//   const std::string prefix{"PDV: "};
+//   std::string projectName{"noname"};
+//   std::string activeTargetDevice = m_projManager->getTargetDevice();
+//   if (m_projManager->HasDesign()) {
+//     projectName = m_projManager->projectName();
+//   }
+//   constexpr int step{10};
+//   constexpr int totalProgress{100};
+//   for (int i = 0; i <= totalProgress; i = i + step) {
+//     std::stringstream outStr;
+//     outStr << std::setw(3) << i << "% [";
+//     std::string s1(i / 10, '=');
+//     outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
+//     outStr << " just for test";
+//     Message(outStr.str(), prefix);
+//     std::this_thread::sleep_for(100ms);
+//   };
+//   Message(projectName + " " + activeTargetDevice + " " +
+//               m_deviceProgrammer->GetBitstreamFilename().string() +
+//               " Bitstream is programmed",
+//           prefix);
+//   return true;
+// }
 
 bool Compiler::VerifyTargetDevice() const {
   return !ProjManager()->getTargetDevice().empty();

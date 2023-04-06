@@ -58,7 +58,6 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
 )
-target_link_libraries(${subsystem} PRIVATE foedagutils pthread)
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library

@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command/Command.h"
 #include "Command/CommandStack.h"
-#include "DeviceProgrammer/DeviceProgrammer.h"
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Simulation/Simulator.h"
@@ -141,7 +140,8 @@ class Compiler {
   virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message,
-                       const std::string& messagePrefix = "") const;
+                       const std::string& messagePrefix = "",
+                       const bool raw = false) const;
   virtual void ErrorMessage(const std::string& message, bool append = true,
                             const std::string& messagePrefix = "") const;
   virtual std::vector<std::string> GetCleanFiles(
@@ -245,6 +245,26 @@ class Compiler {
   void ClbPackingOption(ClbPacking clbPacking);
   ClbPacking ClbPackingOption() const;
 
+  virtual int ExecuteAndMonitorSystemCommand(
+      const std::string& command, const std::string logFile = std::string{},
+      bool appendLog = false);
+
+  void ProgrammerToolExecPath(const std::filesystem::path& path) {
+    m_programmerToolExecutablePath = path;
+  }
+
+  std::filesystem::path GetProgrammerToolExecPath() const {
+    return m_programmerToolExecutablePath;
+  }
+
+  void SetConfigFileSearchDirectory(const std::filesystem::path& path) {
+    m_configFileSearchDir = path;
+  }
+
+  std::filesystem::path GetConfigFileSearchDirectory() const {
+    return m_configFileSearchDir;
+  }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -257,7 +277,6 @@ class Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-  virtual bool ProgramDevice();
 
   /*!
    * \brief CheckTargetDevice
@@ -275,9 +294,6 @@ class Compiler {
 
   void SetEnvironmentVariable(const std::string variable,
                               const std::string value);
-  virtual int ExecuteAndMonitorSystemCommand(
-      const std::string& command, const std::string logFile = std::string{},
-      bool appendLog = false);
   std::string ReplaceAll(std::string_view str, std::string_view from,
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
@@ -347,7 +363,6 @@ class Compiler {
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
   class DesignQuery* m_DesignQuery = nullptr;
-  DeviceProgrammer* m_deviceProgrammer = nullptr;
   CFGCompiler* m_configuration = nullptr;
   // Error message severity
   std::map<std::string, MsgSeverity> m_severityMap;
@@ -361,6 +376,8 @@ class Compiler {
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
 
+  std::filesystem::path m_programmerToolExecutablePath = "";
+  std::filesystem::path m_configFileSearchDir = "";
 };
 
 }  // namespace FOEDAG

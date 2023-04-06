@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -18,11 +20,13 @@
 #define CFG_PRINT_MAXIMUM_SIZE (8192)
 typedef std::chrono::high_resolution_clock::time_point CFG_TIME;
 
-typedef void (*cfg_callback_post_msg_function)(const std::string& message);
+typedef void (*cfg_callback_post_msg_function)(const std::string& message,
+                                               const bool raw);
 typedef void (*cfg_callback_post_err_function)(const std::string& message,
                                                bool append);
-typedef int (*cfg_callback_execute_and_monitor_system_command_function)(
-    const std::string& command, const std::string logFile, bool appendLog);
+typedef int (*cfg_callback_execute_command)(const std::string& command,
+                                            const std::string logFile,
+                                            bool appendLog);
 
 class CFGArg;
 struct CFGCommon_ARG {
@@ -31,8 +35,10 @@ struct CFGCommon_ARG {
   std::string projectName;
   std::string projectPath;
   std::string compilerName;
+  std::filesystem::path toolPath;    // for any tool path
+  std::filesystem::path searchPath;  // for any search path
   bool clean;
-  CFGArg* arg;
+  std::shared_ptr<CFGArg> arg;
 };
 
 std::string CFG_print(const char* format_string, ...);
@@ -78,12 +84,12 @@ uint64_t CFG_nano_time_elapse(CFG_TIME begin);
 float CFG_time_elapse(CFG_TIME begin);
 
 void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err);
+                                   cfg_callback_post_err_function err,
+                                   cfg_callback_execute_command exec);
 
-void set_callback_execute_and_monitor_system_command_function(
-    cfg_callback_execute_and_monitor_system_command_function execute_func);
-
-void CFG_post_msg(const std::string& message);
+void CFG_post_msg(const std::string& message,
+                  const std::string pre_msg = "INFO: ",
+                  const bool new_line = true);
 
 void CFG_post_err(const std::string& message, bool append);
 
@@ -120,6 +126,15 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
 
 int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
                            const uint32_t element);
+
+int CFG_compiler_execute_cmd(const std::string& command,
+                             const std::string logFile = std::string{},
+                             bool appendLog = false);
+
+int CFG_execute_cmd(const std::string& cmd, std::string& output);
+
+std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
+                                    const std::filesystem::path& defaultDir);
 
 #define CFG_POST_MSG(...) \
   { CFG_post_msg(CFG_print(__VA_ARGS__)); }
