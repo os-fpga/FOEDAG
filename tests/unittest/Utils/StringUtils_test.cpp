@@ -137,7 +137,15 @@ TEST(StringUtilsTest, LeafTest) {
 
 TEST(StringUtilsTest, toStringTest) {
   const auto dbl_str = std::string("3.000");
-  ASSERT_EQ(StringUtils::to_string(3.0), dbl_str);
+  auto res{StringUtils::to_string(3.0, 3)};
+  ASSERT_EQ(res, dbl_str);
+}
+
+TEST(StringUtilsTest, toNumberTest) {
+  const auto str = std::string("337");
+  auto [num, ok]{StringUtils::to_number<int>(str)};
+  ASSERT_EQ(ok, true);
+  ASSERT_EQ(num, 337);
 }
 
 TEST(StringUtilsTest, removeCommentsTest) {

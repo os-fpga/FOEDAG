@@ -44,6 +44,11 @@ class IPCatalogBuilder {
   bool buildLiteXIPFromGenerator(
       IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);
 
+  bool buildLiteXIPFromJson(IPCatalog* catalog,
+                            const std::filesystem::path& pythonConverterScript,
+                            const std::string& jsonStr,
+                            const std::string& command = std::string{});
+
  protected:
   bool buildLiteXIPFromGeneratorInternal(
       IPCatalog* catalog, const std::filesystem::path& pythonConverterScript);

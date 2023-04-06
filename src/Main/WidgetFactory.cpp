@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFocusEvent>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -48,6 +49,10 @@ using nlohmann::json_pointer;
 Q_GLOBAL_STATIC(WidgetFactoryDependencyNotifier, factoryNotifier)
 WidgetFactoryDependencyNotifier* WidgetFactoryDependencyNotifier::Instance() {
   return factoryNotifier();
+}
+
+void WidgetFactoryDependencyNotifier::emitEditorChanged(QWidget* widget) {
+  emit editorChanged(widget->property("customId").toString(), widget);
 }
 
 static tclArgFnMap TclArgFnLookup;
@@ -818,6 +823,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       std::function<void(QLineEdit*, const QString&)> handleChange =
           [arg](QLineEdit* ptr, const QString& val) {
             QString userVal = ptr->text();
+            ptr->setProperty("value", userVal);
             json changeJson;
             changeJson["userValue"] = userVal.toStdString();
             storeJsonPatch(ptr, changeJson);
@@ -829,6 +835,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Create our widget
@@ -952,6 +959,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       std::function<void(QTextEdit*, const QString&)> handleChange =
           [arg](QTextEdit* ptr, const QString& val) {
             QString userVal = ptr->toPlainText();
+            ptr->setProperty("value", userVal);
 
             json changeJson;
             changeJson["userValue"] = userVal.toStdString();
@@ -964,6 +972,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               QString argStr = "-" + arg + " " + userVal;
               storeTclArg(ptr, argStr);
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Create our widget
@@ -1003,6 +1012,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             QString userVal = lookupStr(comboLookup, comboOptions,
                                         ptr->currentData().toString());
             changeJson["userValue"] = userVal.toStdString();
+            ptr->setProperty("value", ptr->currentText());
             storeJsonPatch(ptr, changeJson);
 
             ptr->setProperty("tclArg", {});  // clear previous vals
@@ -1012,6 +1022,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
                                lookupStr(comboOptions, comboLookup, userVal);
               storeTclArg(ptr, argStr);
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Determine if this combobox should add <unset> option
@@ -1049,6 +1060,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             json changeJson;
             changeJson["userValue"] = ptr->value();
             storeJsonPatch(ptr, changeJson);
+            ptr->setProperty("value", ptr->value());
 
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
@@ -1056,6 +1068,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               QString argStr = "-" + arg + " " + QString::number(ptr->value());
               storeTclArg(ptr, argStr);
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Create Widget
@@ -1090,6 +1103,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             json changeJson;
             changeJson["userValue"] = ptr->value();
             storeJsonPatch(ptr, changeJson);
+            ptr->setProperty("value", ptr->value());
 
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a tcl arg/value string if an arg was provided
@@ -1097,6 +1111,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               QString argStr = "-" + arg + " " + QString::number(ptr->value());
               storeTclArg(ptr, argStr);
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Create Widget
@@ -1145,6 +1160,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               WIDGET_DBG_PRINT("radiobutton handleChange - Storing Tcl Arg:  " +
                                argStr.toStdString() + "\n");
             }
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(
+                btnPtr);
           };
 
       // Create radiobuttons in a QButtonGroup
@@ -1218,6 +1235,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
             changeJson["userValue"] =
                 QMetaEnum::fromType<Qt::CheckState>().valueToKey(val);
             storeJsonPatch(ptr, changeJson);
+            ptr->setProperty("value", ptr->checkState());
 
             ptr->setProperty("tclArg", {});  // clear previous vals
             // store a switch style tcl arg if this is checked
@@ -1226,8 +1244,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
               WIDGET_DBG_PRINT("checkbox handleChange - Storing Tcl Arg:  -" +
                                arg.toStdString() + "\n");
             }
-            emit WidgetFactoryDependencyNotifier::Instance()->checkboxChanged(
-                ptr->property("customId").toString(), ptr);
+            WidgetFactoryDependencyNotifier::Instance()->emitEditorChanged(ptr);
           };
 
       // Create Widget
@@ -1286,6 +1303,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           targetObject->setProperty("bool_dependency", deps[0]);
         }
       }
+      bool disable = (getStr(widgetJsonObj, "disable").toLower() == "true");
+      createdWidget->setDisabled(disable);
     }
   }
 
@@ -1359,18 +1378,17 @@ QComboBox* FOEDAG::createComboBox(
 QLineEdit* FOEDAG::createLineEdit(
     const QString& objectName, const QString& text,
     std::function<void(QLineEdit*, const QString&)> onChange) {
-  QLineEdit* widget = new QLineEdit();
+  QLineEdit* widget = new LineEdit();
   widget->setObjectName(objectName);
   widget->setText(text);
 
   if (onChange != nullptr) {
     // onChange needs the widget so we capture that in a closure we
     // can then pass to the normal qt handler
-    std::function<void(const QString&)> changeCb =
-        [onChange, widget](const QString& newText) {
-          onChange(widget, newText);
-        };
-    QObject::connect(widget, &QLineEdit::textChanged, changeCb);
+    std::function<void(void)> changeCb = [onChange, widget]() {
+      onChange(widget, widget->text());
+    };
+    QObject::connect(widget, &QLineEdit::editingFinished, changeCb);
   }
 
   return widget;
@@ -1521,4 +1539,28 @@ QString FOEDAG::convertAll(const QString& str) {
 
 QString FOEDAG::restoreAll(const QString& str) {
   return restoreSpaces(restoreNewLines(restoreDashes(str)));
+}
+
+LineEdit::LineEdit(QWidget* parent) : QLineEdit(parent) {}
+
+void LineEdit::focusOutEvent(QFocusEvent* e) {
+  QLineEdit::focusOutEvent(e);
+  Qt::FocusReason reason = e->reason();
+  if (reason != Qt::PopupFocusReason ||
+      !(QApplication::activePopupWidget() &&
+        QApplication::activePopupWidget()->parentWidget() == this)) {
+    if (!hasAcceptableInput()) {
+      emit editingFinished();
+    }
+  }
+}
+
+void LineEdit::keyPressEvent(QKeyEvent* event) {
+  QLineEdit::keyPressEvent(event);
+  if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
+    if (!hasAcceptableInput()) {
+      emit editingFinished();
+      event->accept();
+    }
+  }
 }

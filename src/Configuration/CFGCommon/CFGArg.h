@@ -8,7 +8,7 @@
 
 struct CFGArg_RULE {
   CFGArg_RULE(const std::string& n, char s, const std::string& t, bool o,
-              bool m, bool hi, const void* p, const char* h,
+              bool m, bool hi, const void* p, const std::vector<std::string> h,
               const std::vector<std::string> e)
       : name(n),
         short_name(s),
@@ -27,7 +27,10 @@ struct CFGArg_RULE {
     if (type == "flag" || type == "enum") {
       CFG_ASSERT(!multiple);
     }
-    CFG_ASSERT(help != nullptr);
+    CFG_ASSERT(help.size());
+    for (auto& hl : help) {
+      CFG_ASSERT(hl.size());
+    }
     if (type == "enum") {
       CFG_ASSERT(enums.size());
     } else {
@@ -42,7 +45,7 @@ struct CFGArg_RULE {
   const bool multiple;
   const bool hide;
   const void* ptr;
-  const char* help;
+  const std::vector<std::string> help;
   const std::vector<std::string> enums;
   uint32_t count = 0;
 };

@@ -1,30 +1,4 @@
 {
-   "bitgen": {
-      "option" : [
-         {  
-            "name" : "detail",
-            "short" : "d",
-            "type" : "flag", 
-            "optional" : true,
-            "hide" : true,
-            "help" : "Show information in detail"
-         },
-         {  
-            "name" : "operation",
-            "short" : "o",
-            "type" : "convert|parse", 
-            "optional" : true,
-            "hide" : true,
-            "help" : "File generation operation"
-         }
-      ],
-      "help" : [
-         "Configuration bitstream generation tool.",
-         "To use it:",
-         "  bitgenerator <{option}>s <input file .bitasm> <output file .cfgbit>"
-      ],
-      "arg" : [2, 2]
-   },
    "utst" : {
       "option" : [
          {

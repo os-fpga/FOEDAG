@@ -21,8 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef FOEDAG_STRINGUTILS_H
 #define FOEDAG_STRINGUTILS_H
-#pragma once
 
+#include <array>
+#include <charconv>
 #include <map>
 #include <sstream>
 #include <string>
@@ -88,9 +89,6 @@ class StringUtils final {
   // not be included.
   static std::vector<std::string_view> splitLines(std::string_view text);
 
-  // Convert double number with given amount of precision.
-  static std::string to_string(double a_value, const int n = 3);
-
   // Remove '//' and '#'-style end-of-line comments
   static std::string removeComments(std::string_view text);
 
@@ -123,16 +121,37 @@ class StringUtils final {
                                const std::string& arg,
                                const std::string& value);
 
+  // convert string into any numeric value
+  template <typename NumberType>
+  static std::pair<NumberType, bool> to_number(const std::string& str) {
+    static_assert(!std::is_floating_point<NumberType>::value, "Not supported");
+    NumberType number;
+    [[maybe_unused]] auto [ptr, ec]{
+        std::from_chars(str.data(), str.data() + str.size(), number)};
+    return std::make_pair(number, ec == std::errc());
+  }
+
+  // Convert any kind of numbers
+  template <typename NumberType, typename... Args>
+  static std::string to_string(NumberType number, Args... format_args) {
+    std::ostringstream out;
+    if constexpr (std::is_floating_point<NumberType>::value) {
+      out.precision(format_args...);
+      out << std::fixed << number;
+    } else {
+      out << number;
+    }
+    return out.str();
+  }
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;
   ~StringUtils() = delete;
 
   static std::map<std::string, std::string> envVars;
-
- private:
 };
 
-};  // namespace FOEDAG
+}  // namespace FOEDAG
 
 #endif /* FOEDAG_STRINGUTILS_H */
