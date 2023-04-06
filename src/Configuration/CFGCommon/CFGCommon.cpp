@@ -111,7 +111,6 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
   m_execute_cmd_function = exec;
 }
 
-
 void CFG_post_msg(const std::string& message, const std::string pre_msg,
                   const bool new_line) {
   if (m_msg_function != nullptr) {
