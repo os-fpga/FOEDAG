@@ -471,7 +471,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             new WorkerThread(args[2], Action::IPGen, compiler);
         auto exitSt = wthread->start(
             [compiler](const std::string& str) -> bool {
-              return compiler->sendChatGpt(str);
+              return compiler->chatGpt(str);
             },
             args[2]);
         return exitSt ? TCL_OK : TCL_ERROR;
@@ -480,7 +480,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             new WorkerThread("reset", Action::IPGen, compiler);
         auto exitSt = wthread->start(
             [compiler](const std::string&) -> bool {
-              return compiler->resetChatGpt({});
+              return compiler->chatGpt({});
             },
             {});
         return exitSt ? TCL_OK : TCL_ERROR;
@@ -2546,6 +2546,18 @@ bool Compiler::ProgramDevice() {
   return true;
 }
 
+bool Compiler::chatGpt(const std::string& message) {
+  emit m_tclCmdIntegration->chatGptStatus(InProgress);
+  bool result{true};
+  if (message.empty()) {
+    result = resetChatGpt();
+  } else {
+    result = sendChatGpt(message);
+  }
+  if (!result) emit m_tclCmdIntegration->chatGptStatus(Failed);
+  return result;
+}
+
 bool Compiler::sendChatGpt(const std::string& message) {
   auto path = GlobalSession->Context()->DataPath();
   path = path / ".." / "envs" / "chatGPT" / "bin";
@@ -2606,7 +2618,7 @@ bool Compiler::sendChatGpt(const std::string& message) {
   return true;
 }
 
-bool Compiler::resetChatGpt(const std::string&) {
+bool Compiler::resetChatGpt() {
   auto path = GlobalSession->Context()->DataPath();
   path = path / ".." / "envs" / "chatGPT" / "bin";
   path = path / "python";

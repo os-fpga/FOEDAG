@@ -260,8 +260,9 @@ class Compiler {
   virtual bool GenerateBitstream();
   virtual bool ProgramDevice();
 
+  bool chatGpt(const std::string& message);
   bool sendChatGpt(const std::string& message);
-  bool resetChatGpt(const std::string&);
+  bool resetChatGpt();
   void chatgptConfig(const std::string& file);
 
   /*!

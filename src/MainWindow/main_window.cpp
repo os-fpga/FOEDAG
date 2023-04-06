@@ -326,6 +326,8 @@ void MainWindow::newDesignCreated(const QString& design) {
 }
 
 void MainWindow::chatGpt(const QString& request, const QString& content) {
+  if (!m_progressVisible) m_progressBar->hide();
+  setStatusAndProgressText("ChatGPT: done");
   auto reportName = "Chat GPT";
   const bool reset{request.isEmpty()};
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
@@ -411,6 +413,18 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
 
   connect(tabWidget, &TabWidget::resized, this,
           [this](const QSize& s) { m_chatGptListView->resize(s); });
+}
+
+void MainWindow::chatGptStatus(ChatGptStatus status) {
+  if (status == InProgress) {
+    m_progressBar->setMaximum(0);
+    m_progressBar->setValue(0);
+    m_progressBar->show();
+    setStatusAndProgressText("ChatGPT: pending response");
+  } else if (status == Failed) {
+    if (!m_progressVisible) m_progressBar->hide();
+    setStatusAndProgressText("ChatGPT: failed");
+  }
 }
 
 void MainWindow::startStopButtonsState() {
@@ -1196,6 +1210,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::newDesignCreated);
   connect(tclCommandIntegration, &TclCommandIntegration::showChatGpt, this,
           &MainWindow::chatGpt);
+  connect(tclCommandIntegration, &TclCommandIntegration::chatGptStatus, this,
+          &MainWindow::chatGptStatus);
   connect(tclCommandIntegration, &TclCommandIntegration::closeDesign, this,
           [this]() { closeProject(true); });
 

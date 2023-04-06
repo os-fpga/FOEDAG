@@ -27,6 +27,9 @@ namespace FOEDAG {
 
 class ProjectManager;
 class SourcesForm;
+
+enum ChatGptStatus { InProgress, Failed };
+
 class TclCommandIntegration : public QObject {
   Q_OBJECT
  public:
@@ -60,6 +63,7 @@ class TclCommandIntegration : public QObject {
   void newDesign(const QString &);
   void closeDesign();
   void showChatGpt(const QString &r, const QString &data);
+  void chatGptStatus(FOEDAG::ChatGptStatus);
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);
