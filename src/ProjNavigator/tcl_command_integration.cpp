@@ -34,7 +34,6 @@ namespace FOEDAG {
 TclCommandIntegration::TclCommandIntegration(ProjectManager *projManager,
                                              SourcesForm *form)
     : m_projManager(projManager), m_form(form) {
-  qRegisterMetaType<FOEDAG::ChatGptStatus>("FOEDAG::ChatGptStatus");
 }
 
 bool TclCommandIntegration::TclSetTopModule(int argc, const char *argv[],

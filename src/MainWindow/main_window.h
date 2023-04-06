@@ -27,7 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
-#include "ProjNavigator/tcl_command_integration.h"
 #include "TopLevelInterface.h"
 class QAction;
 class QLabel;
@@ -72,7 +71,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openFileSlot();
   void newDesignCreated(const QString& design);
   void chatGpt(const QString& request, const QString& content);
-  void chatGptStatus(FOEDAG::ChatGptStatus status);
+  void chatGptStatus(bool status);
   void reloadSettings();
   void updatePRViewButton(int state);
   bool saveActionTriggered();

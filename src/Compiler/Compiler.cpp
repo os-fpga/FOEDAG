@@ -2547,14 +2547,14 @@ bool Compiler::ProgramDevice() {
 }
 
 bool Compiler::chatGpt(const std::string& message) {
-  emit m_tclCmdIntegration->chatGptStatus(InProgress);
+  emit m_tclCmdIntegration->chatGptStatus(true);
   bool result{true};
   if (message.empty()) {
     result = resetChatGpt();
   } else {
     result = sendChatGpt(message);
   }
-  if (!result) emit m_tclCmdIntegration->chatGptStatus(Failed);
+  if (!result) emit m_tclCmdIntegration->chatGptStatus(false);
   return result;
 }
 

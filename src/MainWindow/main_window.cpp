@@ -415,13 +415,13 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
           [this](const QSize& s) { m_chatGptListView->resize(s); });
 }
 
-void MainWindow::chatGptStatus(ChatGptStatus status) {
-  if (status == InProgress) {
+void MainWindow::chatGptStatus(bool status) {
+  if (status) {
     m_progressBar->setMaximum(0);
     m_progressBar->setValue(0);
     m_progressBar->show();
     setStatusAndProgressText("ChatGPT: pending response");
-  } else if (status == Failed) {
+  } else {
     if (!m_progressVisible) m_progressBar->hide();
     setStatusAndProgressText("ChatGPT: failed");
   }
