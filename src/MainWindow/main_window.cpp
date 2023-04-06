@@ -21,10 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "main_window.h"
 
 #include <QLabel>
+#include <QListView>
 #include <QTextStream>
 #include <QtWidgets>
 #include <fstream>
 
+#include "ChatGptWidget.h"
 #include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/Constraints.h"
@@ -323,131 +325,7 @@ void MainWindow::newDesignCreated(const QString& design) {
   updateTaskTable();
 }
 
-class ListViewDelegate : public QStyledItemDelegate {
- public:
-  enum datarole { HeaderRole = Qt::UserRole + 100, SubheaderRole };
-
-  ListViewDelegate();
-  ~ListViewDelegate();
-
-  void paint(QPainter* painter, const QStyleOptionViewItem& option,
-             const QModelIndex& index) const;
-
-  QSize sizeHint(const QStyleOptionViewItem& option,
-                 const QModelIndex& index) const;
-
-  static QSize iconSize;
-  static int padding;
-};
-
-QSize ListViewDelegate::iconSize = QSize(60, 60);
-int ListViewDelegate::padding = 5;
-
-ListViewDelegate::ListViewDelegate() {}
-
-ListViewDelegate::~ListViewDelegate() {}
-
-QSize ListViewDelegate::sizeHint(const QStyleOptionViewItem& option,
-                                 const QModelIndex& index) const {
-  if (!index.isValid()) return QSize();
-
-  QString headerText = index.data(HeaderRole).toString();
-  QString subheaderText = index.data(SubheaderRole).toString();
-
-  QFont headerFont = QApplication::font();
-  headerFont.setBold(true);
-  QFont subheaderFont = QApplication::font();
-  QFontMetrics headerFm(headerFont);
-  QFontMetrics subheaderFm(subheaderFont);
-
-  auto widgetSize{option.widget->size() - QSize{padding, 0}};
-  /* No need for x,y here. we only need to calculate the height given the width.
-   * Note that the given height is 0. That is because boundingRect() will return
-   * the suitable height if the given geometry does not fit. And this is exactly
-   * what we want.
-   */
-  QRect headerRect = headerFm.boundingRect(
-      0, 0, widgetSize.width() - iconSize.width(), option.rect.height(),
-      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
-  QRect subheaderRect = subheaderFm.boundingRect(
-      0, 0, widgetSize.width() - iconSize.width(), option.rect.height(),
-      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
-
-  QSize size(widgetSize.width(),
-             headerRect.height() + subheaderRect.height() + 3 * padding);
-
-  /* Keep the minimum height needed in mind. */
-  if (size.height() < iconSize.height()) size.setHeight(iconSize.height());
-
-  return size;
-}
-
-void ListViewDelegate::paint(QPainter* painter,
-                             const QStyleOptionViewItem& option,
-                             const QModelIndex& index) const {
-  if (!index.isValid()) return;
-
-  painter->save();
-  QStyleOptionViewItem opt = option;
-  initStyleOption(&opt, index);
-
-  if (opt.state & QStyle::State_Selected)
-    painter->fillRect(opt.rect, opt.palette.highlight());
-
-  else if (index.row() % 2 == 1) {
-    painter->fillRect(opt.rect, opt.palette.alternateBase());
-  }
-
-  QString headerText = index.data(HeaderRole).toString();
-  QString subheaderText = index.data(SubheaderRole).toString();
-
-  QFont headerFont = QApplication::font();
-  headerFont.setBold(true);
-  QFont subheaderFont = QApplication::font();
-  QFontMetrics headerFm(headerFont);
-  QFontMetrics subheaderFm(subheaderFont);
-
-  auto widgetSize{opt.widget->size() - QSize{padding, 0}};
-  /*
-   * The x,y coords are not (0,0) but values given by 'option'. So, calculate
-   * the rects again given the x,y,w. Note that the given height is 0. That is
-   * because boundingRect() will return the suitable height if the given
-   * geometry does not fit. And this is exactly what we want.
-   */
-  QRect headerRect = headerFm.boundingRect(
-      opt.rect.left() + iconSize.width(), opt.rect.top() + padding,
-      widgetSize.width() - iconSize.width(), 0,
-      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, headerText);
-  QRect subheaderRect = subheaderFm.boundingRect(
-      headerRect.left(), headerRect.bottom() + padding,
-      widgetSize.width() - iconSize.width(), 0,
-      Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, subheaderText);
-
-  painter->setPen(Qt::black);
-
-  painter->setFont(headerFont);
-  painter->drawText(headerRect, Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
-                    headerText);
-
-  painter->setFont(subheaderFont);
-  painter->drawText(subheaderRect,
-                    Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
-                    subheaderText);
-
-  QRect iconRect{opt.rect.topLeft() + QPoint{padding, padding},
-                 QSize{iconSize.width(), iconSize.width()} -
-                     QSize{padding * 2, padding * 2}};
-  if (index.row() % 2 == 1)
-    painter->drawImage(iconRect, QImage{":/images/chat-bubble-check.png"});
-  else
-    painter->drawImage(iconRect, QImage{":/images/profile-circle.png"});
-
-  painter->restore();
-}
-
 void MainWindow::chatGpt(const QString& request, const QString& content) {
-  static QStandardItemModel* model{nullptr};
-  static QListView* listView{nullptr};
   auto reportName = "Chat GPT";
   auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
   for (int i = 0; i < tabWidget->count(); i++) {
@@ -460,43 +338,62 @@ void MainWindow::chatGpt(const QString& request, const QString& content) {
       QStandardItem* item = new QStandardItem();
       item->setData("Chat GPT", ListViewDelegate::HeaderRole);
       item->setData(content, ListViewDelegate::SubheaderRole);
-      if (model) {
-        model->insertRow(0, item);
+      if (m_chatgptModel) {
+        m_chatgptModel->insertRow(0, item);
 
         item = new QStandardItem();
         item->setData("User", ListViewDelegate::HeaderRole);
         item->setData(request, ListViewDelegate::SubheaderRole);
-        model->insertRow(0, item);
+        m_chatgptModel->insertRow(0, item);
       }
       return;
     }
   }
 
   // tab doesn't exist yet
-  model = new QStandardItemModel();
+  m_chatgptModel = new QStandardItemModel();
 
-  listView = new QListView;
-  listView->setItemDelegate(new ListViewDelegate{});
-  listView->setModel(model);
-  listView->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
-  listView->setResizeMode(QListView::ResizeMode::Adjust);
-  listView->setVerticalScrollMode(QListView::ScrollPerPixel);
+  m_chatGptListView = new QListView;
+  m_chatGptListView->setItemDelegate(new ListViewDelegate{});
+  m_chatGptListView->setModel(m_chatgptModel);
+  m_chatGptListView->setEditTriggers(
+      QAbstractItemView::EditTrigger::NoEditTriggers);
+  m_chatGptListView->setResizeMode(QListView::ResizeMode::Adjust);
+  m_chatGptListView->setVerticalScrollMode(QListView::ScrollPerPixel);
+  m_chatGptListView->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_chatGptListView, &QListView::customContextMenuRequested, this,
+          [this](const QPoint& pos) {
+            QMenu menu{m_chatGptListView};
+            auto copy = new QAction{"Copy"};
+            connect(copy, &QAction::triggered, m_chatGptListView,
+                    [this, pos]() {
+                      auto index = m_chatGptListView->indexAt(pos);
+                      if (index.isValid()) {
+                        auto data = m_chatGptListView->model()->data(
+                            index, ListViewDelegate::SubheaderRole);
+                        QClipboard* clipboard = QGuiApplication::clipboard();
+                        clipboard->setText(data.toString());
+                      }
+                    });
+            menu.addAction(copy);
+            menu.exec(m_chatGptListView->mapToGlobal(pos));
+          });
 
   QStandardItem* item = new QStandardItem();
   item->setData("User", ListViewDelegate::HeaderRole);
   item->setData(request, ListViewDelegate::SubheaderRole);
-  model->appendRow(item);
+  m_chatgptModel->appendRow(item);
 
   item = new QStandardItem();
   item->setData("Chat GPT", ListViewDelegate::HeaderRole);
   item->setData(content, ListViewDelegate::SubheaderRole);
-  model->appendRow(item);
+  m_chatgptModel->appendRow(item);
 
   QWidget* w = new QWidget;
   w->setLayout(new QVBoxLayout);
-  w->layout()->addWidget(listView);
+  w->layout()->addWidget(m_chatGptListView);
   tabWidget->addTab(w, reportName);
-  tabWidget->setCurrentWidget(listView);
+  tabWidget->setCurrentWidget(m_chatGptListView);
 
   connect(tabWidget, &TabWidget::resized, this,
           [w](const QSize& s) { w->resize(s); });

@@ -68,6 +68,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/DialogProvider.cpp
   ../MainWindow/MessageItemParser.cpp
   ../MainWindow/DockWidget.cpp
+  ../MainWindow/ChatGptWidget.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -101,6 +102,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/DialogProvider.h
   ../MainWindow/MessageItemParser.h
   ../MainWindow/DockWidget.h
+  ../MainWindow/ChatGptWidget.h
 )
 
 set (SRC_UI_LIST "")

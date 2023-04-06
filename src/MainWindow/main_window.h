@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class QAction;
 class QLabel;
 class QProgressBar;
+class QListView;
 
 namespace FOEDAG {
 
@@ -235,6 +236,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
   QVector<QPushButton*> m_saveButtons;
+  QStandardItemModel* m_chatgptModel{nullptr};
+  QListView* m_chatGptListView{nullptr};
 };
 
 }  // namespace FOEDAG
