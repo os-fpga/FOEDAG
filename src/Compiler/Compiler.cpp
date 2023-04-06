@@ -239,6 +239,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  m_name = "dummy";
 }
 
 void Compiler::SetTclInterpreterHandler(
