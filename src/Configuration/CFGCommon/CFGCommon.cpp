@@ -123,11 +123,7 @@ void CFG_post_msg(const std::string& message, const std::string pre_msg,
 }
 
 void CFG_post_warning(const std::string& message) {
-  if (m_msg_function != nullptr) {
-    m_msg_function(message);
-  } else {
-    printf("Warn : %s\n", message.c_str());
-  }
+  CFG_post_msg(message, "WARNING: ");
 }
 
 void CFG_post_err(const std::string& message, bool append) {
