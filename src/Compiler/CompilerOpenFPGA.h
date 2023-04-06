@@ -34,7 +34,7 @@ enum class SynthesisType { Yosys, QL, RS };
 
 class CompilerOpenFPGA : public Compiler {
  public:
-  CompilerOpenFPGA() = default;
+  CompilerOpenFPGA() { m_name = "openfpga"; };
   ~CompilerOpenFPGA() = default;
   void AnalyzeExecPath(const std::filesystem::path& path) {
     m_analyzeExecutablePath = path;

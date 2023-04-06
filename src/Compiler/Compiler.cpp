@@ -265,7 +265,7 @@ std::string Compiler::GetMessagePrefix() const {
 }
 
 void Compiler::Message(const std::string& message,
-                       const std::string& messagePrefix, const bool raw) const {
+                       const std::string& messagePrefix, bool raw) const {
   if (m_out) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;

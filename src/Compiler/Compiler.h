@@ -107,7 +107,7 @@ class Compiler {
   enum class STAEngineOpt { Tatum, Opensta };
 
   // Most common use case, create the compiler in your main
-  Compiler() = default;
+  Compiler() { m_name = "dummy"; };
   Compiler(TclInterpreter* interp, std::ostream* out,
            TclInterpreterHandler* tclInterpreterHandler = nullptr);
   void SetInterpreter(TclInterpreter* interp) { m_interp = interp; }
@@ -141,7 +141,7 @@ class Compiler {
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message,
                        const std::string& messagePrefix = "",
-                       const bool raw = false) const;
+                       bool raw = false) const;
   virtual void ErrorMessage(const std::string& message, bool append = true,
                             const std::string& messagePrefix = "") const;
   virtual void reloadSettings() {}
@@ -266,6 +266,8 @@ class Compiler {
     return m_configFileSearchDir;
   }
 
+  std::string Name() const { return m_name; }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -377,8 +379,9 @@ class Compiler {
   // GTKWave
   QProcess* m_gtkwave_process = nullptr;
 
-  std::filesystem::path m_programmerToolExecutablePath = "";
-  std::filesystem::path m_configFileSearchDir = "";
+  std::filesystem::path m_programmerToolExecutablePath{};
+  std::filesystem::path m_configFileSearchDir{};
+  std::string m_name;
 };
 
 }  // namespace FOEDAG

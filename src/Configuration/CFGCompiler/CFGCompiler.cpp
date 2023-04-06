@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <filesystem>
 #include <memory>
-#include <typeinfo>
 
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
@@ -39,9 +38,8 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   std::vector<std::string> errors;
   cfgcompiler->m_cmdarg.command = "program_device";
   auto compiler = cfgcompiler->GetCompiler();
-  const std::type_info& compilerType = typeid(*compiler);
 
-  cfgcompiler->m_cmdarg.compilerName = compilerType.name();
+  cfgcompiler->m_cmdarg.compilerName = compiler->Name();
   auto arg = std::make_shared<CFGArg_PROGRAM_DEVICE>();
   status = arg->parse(argc, argv, &errors);
   cfgcompiler->m_cmdarg.arg = arg;
