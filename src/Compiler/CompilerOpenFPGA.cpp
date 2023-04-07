@@ -1859,16 +1859,6 @@ bool CompilerOpenFPGA::Packing() {
   }
   ofssdc.close();
 
-  if (FileUtils::IsUptoDate(
-          GetNetlistPath(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.net"))
-              .string()) &&
-      (PackOpt() != PackingOpt::Debug)) {
-    m_state = State::Packed;
-    Message("Design " + ProjManager()->projectName() + " packing reused");
-    return true;
-  }
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);
 
@@ -1878,6 +1868,17 @@ bool CompilerOpenFPGA::Packing() {
                         .string());
   ofs << command << std::endl;
   ofs.close();
+
+  if (FileUtils::IsUptoDate(
+          GetNetlistPath(),
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_post_synth.net"))
+              .string()) &&
+      (prevOpt != PackingOpt::Debug)) {
+    m_state = State::Packed;
+    Message("Design " + ProjManager()->projectName() + " packing reused");
+    return true;
+  }
 
   PackOpt(prevOpt);
   int status = ExecuteAndMonitorSystemCommand(command);
