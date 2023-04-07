@@ -1879,12 +1879,11 @@ bool CompilerOpenFPGA::Packing() {
   ofs << command << std::endl;
   ofs.close();
 
+  PackOpt(prevOpt);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
-
-    if (prevOpt == PackingOpt::Debug) {
-      PackOpt(prevOpt);
+    if (PackOpt() == PackingOpt::Debug) {
       std::string command = BaseVprCommand() + " --pack";
       std::ofstream ofs(
           (std::filesystem::path(ProjManager()->projectPath()) /

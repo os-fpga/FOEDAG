@@ -2224,13 +2224,8 @@ bool Compiler::RunCompileTask(Action action) {
       return Analyze();
     case Action::Synthesis:
       return Synthesize();
-    case Action::Pack: {
-      auto res = Packing();
-      if (PackOpt() == PackingOpt::Debug) {
-        PackOpt(PackingOpt::None);
-      }
-      return res;
-    }
+    case Action::Pack:
+      return Packing();
     // case Action::Global:
     //   return GlobalPlacement();
     case Action::Detailed:
