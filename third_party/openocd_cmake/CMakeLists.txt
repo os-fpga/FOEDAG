@@ -41,7 +41,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     # <TODO>
     #set(rs_openocd_tar "rs_openocd-win.zip")
 else()
-    set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz1")
+    set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz")
 endif()
 
 set(download_path "https://github.com/RapidSilicon/openocd/releases/download/latest/${rs_openocd_tar}")
