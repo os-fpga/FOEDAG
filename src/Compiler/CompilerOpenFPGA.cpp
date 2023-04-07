@@ -1700,9 +1700,9 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
 
 std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string device_size = "";
-  if (!m_deviceSize.empty()) {
-    device_size = " --device " + m_deviceSize;
-  }
+  if (PackOpt() == Compiler::PackingOpt::Debug) {
+    device_size = " --device auto";
+  } else if (!m_deviceSize.empty()) {
   std::string netlistFile;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
