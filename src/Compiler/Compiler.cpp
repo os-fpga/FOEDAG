@@ -2523,32 +2523,6 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
-bool Compiler::ProgramDevice() {
-  using namespace std::literals;
-  const std::string prefix{"PDV: "};
-  std::string projectName{"noname"};
-  std::string activeTargetDevice = m_projManager->getTargetDevice();
-  if (m_projManager->HasDesign()) {
-    projectName = m_projManager->projectName();
-  }
-  constexpr int step{10};
-  constexpr int totalProgress{100};
-  for (int i = 0; i <= totalProgress; i = i + step) {
-    std::stringstream outStr;
-    outStr << std::setw(3) << i << "% [";
-    std::string s1(i / 10, '=');
-    outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
-    outStr << " just for test";
-    Message(outStr.str(), prefix);
-    std::this_thread::sleep_for(100ms);
-  };
-  Message(projectName + " " + activeTargetDevice + " " +
-              m_deviceProgrammer->GetBitstreamFilename().string() +
-              " Bitstream is programmed",
-          prefix);
-  return true;
-}
-
 bool Compiler::chatGpt(const std::string& message) {
   emit m_tclCmdIntegration->chatGptStatus(true);
   bool result{true};
