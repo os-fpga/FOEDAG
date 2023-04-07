@@ -1765,7 +1765,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       const std::string arg{argv[i]};
       if (arg == "packer") {
         int res = Tcl_Eval(interp, "packing");
-        if (res == TCL_OK) {
+        if (res != TCL_OK) {
           Tcl_Eval(interp, "packing debug");
         }
       }
