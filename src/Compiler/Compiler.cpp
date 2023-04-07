@@ -202,7 +202,7 @@ void Compiler::Help(std::ostream* out) {
       << "                       dense  : Pack logic more densely into CLBs "
          "resulting in fewer utilized CLBs however may negatively impact timing"
       << std::endl;
-  (*out) << "   packing ?clean?" << std::endl;
+  (*out) << "   packing ?clean? ?debug?" << std::endl;
   // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
   (*out) << "   route ?clean?" << std::endl;
@@ -223,6 +223,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
@@ -1054,6 +1055,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PackOpt(Compiler::PackingOpt::Clean);
+        } else if (arg == "debug") {
+          compiler->PackOpt(Compiler::PackingOpt::Debug);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1395,6 +1398,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PackOpt(Compiler::PackingOpt::Clean);
+        } else if (arg == "debug") {
+          compiler->PackOpt(Compiler::PackingOpt::Debug);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1753,6 +1758,21 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("wave_refresh", wave_refresh, this, nullptr);
+
+  auto diagnostic = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    for (int i = 1; i < argc; i++) {
+      const std::string arg{argv[i]};
+      if (arg == "packer") {
+        int res = Tcl_Eval(interp, "packing");
+        if (res == TCL_OK) {
+          Tcl_Eval(interp, "packing debug");
+        }
+      }
+    }
+    return TCL_ERROR;
+  };
+  interp->registerCmd("diagnostic", diagnostic, this, nullptr);
 
   return true;
 }
@@ -2210,8 +2230,13 @@ bool Compiler::RunCompileTask(Action action) {
       return Analyze();
     case Action::Synthesis:
       return Synthesize();
-    case Action::Pack:
-      return Packing();
+    case Action::Pack: {
+      auto res = Packing();
+      if (PackOpt() == PackingOpt::Debug) {
+        PackOpt(PackingOpt::None);
+      }
+      return res;
+    }
     // case Action::Global:
     //   return GlobalPlacement();
     case Action::Detailed:

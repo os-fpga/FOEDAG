@@ -219,7 +219,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "   pnr_netlist_lang <blif, eblif, edif, verilog> : Chooses vpr input "
          "netlist format"
       << std::endl;
-  (*out) << "   packing ?clean?            : Packing" << std::endl;
+  (*out) << "   packing ?clean? ?debug?    : Packing" << std::endl;
   // (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
   (*out) << "   route ?clean?              : Router" << std::endl;
@@ -253,6 +253,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                      <phase> : compilation, elaboration, "
             "simulation, extra_options"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -1869,7 +1870,8 @@ bool CompilerOpenFPGA::Packing() {
           GetNetlistPath(),
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string(ProjManager()->projectName() + "_post_synth.net"))
-              .string())) {
+              .string()) &&
+      (PackOpt() != PackingOpt::Debug)) {
     m_state = State::Packed;
     Message("Design " + ProjManager()->projectName() + " packing reused");
     return true;
