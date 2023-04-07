@@ -239,6 +239,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  m_name = "dummy";
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -265,20 +266,28 @@ std::string Compiler::GetMessagePrefix() const {
 }
 
 void Compiler::Message(const std::string& message,
-                       const std::string& messagePrefix) const {
+                       const std::string& messagePrefix, bool raw) const {
   if (m_out) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_out) << "INFO: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_out) << prefix << message;
+    } else {
+      (*m_out) << "INFO: " << prefix << message << std::endl;
+    }
   }
 }
 
 void Compiler::ErrorMessage(const std::string& message, bool append,
-                            const std::string& messagePrefix) const {
+                            const std::string& messagePrefix, bool raw) const {
   if (m_err) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_err) << "ERROR: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_err) << prefix << message;
+    } else {
+      (*m_err) << "ERROR: " << prefix << message << std::endl;
+    }
   }
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
@@ -440,16 +449,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_DesignQuery == nullptr) {
     m_DesignQuery = new DesignQuery(this);
   }
-  if (m_deviceProgrammer == nullptr) {
-    m_deviceProgrammer = new DeviceProgrammer(this);
-  }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   m_DesignQuery->RegisterCommands(interp, batchMode);
-  m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
@@ -2272,8 +2277,6 @@ bool Compiler::RunCompileTask(Action action) {
       return GetSimulator()->Simulate(
           Simulator::SimulationType::BitstreamBackDoor,
           GetSimulator()->GetSimulatorType(), m_waveformFile);
-    case Action::ProgramDevice:
-      return ProgramDevice();
     case Action::Configuration:
       return GetConfiguration()->Configure();
     default:
