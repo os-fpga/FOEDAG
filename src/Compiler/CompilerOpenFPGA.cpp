@@ -253,6 +253,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                      <phase> : compilation, elaboration, "
             "simulation, extra_options"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -1699,7 +1700,9 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
 
 std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string device_size = "";
-  if (!m_deviceSize.empty()) {
+  if (PackOpt() == Compiler::PackingOpt::Debug) {
+    device_size = " --device auto";
+  } else if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
   std::string netlistFile;
@@ -1858,6 +1861,9 @@ bool CompilerOpenFPGA::Packing() {
   }
   ofssdc.close();
 
+  auto prevOpt = PackOpt();
+  PackOpt(PackingOpt::None);
+
   std::string command = BaseVprCommand() + " --pack";
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_pack.cmd"))
@@ -1869,15 +1875,28 @@ bool CompilerOpenFPGA::Packing() {
           GetNetlistPath(),
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string(ProjManager()->projectName() + "_post_synth.net"))
-              .string())) {
+              .string()) &&
+      (prevOpt != PackingOpt::Debug)) {
     m_state = State::Packed;
     Message("Design " + ProjManager()->projectName() + " packing reused");
     return true;
   }
 
+  PackOpt(prevOpt);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
+    if (PackOpt() == PackingOpt::Debug) {
+      std::string command = BaseVprCommand() + " --pack";
+      std::ofstream ofs(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_pack.cmd"))
+              .string());
+      ofs << command << std::endl;
+      ofs.close();
+
+      ExecuteAndMonitorSystemCommand(command);
+    }
     return false;
   }
   m_state = State::Packed;
