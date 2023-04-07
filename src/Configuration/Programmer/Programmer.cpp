@@ -73,7 +73,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       return;
     }
 
-    std::string command = buildCommand(arg->config, arg->bitstream, arg->index);
+    std::string command = buildCommand(configFile, arg->bitstream, arg->index);
 
     int return_code = CFG_compiler_execute_cmd(command, "", false);
     if (return_code) {
