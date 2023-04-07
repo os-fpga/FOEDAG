@@ -1703,6 +1703,8 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   if (PackOpt() == Compiler::PackingOpt::Debug) {
     device_size = " --device auto";
   } else if (!m_deviceSize.empty()) {
+    device_size = " --device " + m_deviceSize;
+  }
   std::string netlistFile;
   switch (GetNetlistType()) {
     case NetlistType::Verilog:
