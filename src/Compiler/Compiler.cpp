@@ -1767,10 +1767,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         int res = Tcl_Eval(interp, "packing");
         if (res != TCL_OK) {
           Tcl_Eval(interp, "packing debug");
+          return TCL_ERROR;
         }
       }
     }
-    return TCL_ERROR;
+    return TCL_OK;
   };
   interp->registerCmd("diagnostic", diagnostic, this, nullptr);
 
