@@ -223,6 +223,7 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
@@ -1788,6 +1789,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("wave_refresh", wave_refresh, this, nullptr);
+
+  auto diagnostic = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    for (int i = 1; i < argc; i++) {
+      const std::string arg{argv[i]};
+      if (arg == "packer") {
+        compiler->PackOpt(Compiler::PackingOpt::Debug);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("diagnostic", diagnostic, this, nullptr);
 
   return true;
 }

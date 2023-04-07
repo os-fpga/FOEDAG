@@ -96,7 +96,7 @@ class Compiler {
   enum class IPGenerateOpt { None, Clean, List };
   enum class DesignAnalysisOpt { None, Clean };
   enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
-  enum class PackingOpt { None, Clean };
+  enum class PackingOpt { None, Clean, Debug };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
   enum class PinAssignOpt { Random, In_Define_Order, Free };
