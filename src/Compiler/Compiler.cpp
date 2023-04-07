@@ -202,7 +202,7 @@ void Compiler::Help(std::ostream* out) {
       << "                       dense  : Pack logic more densely into CLBs "
          "resulting in fewer utilized CLBs however may negatively impact timing"
       << std::endl;
-  (*out) << "   packing ?clean? ?debug?" << std::endl;
+  (*out) << "   packing ?clean?" << std::endl;
   // (*out) << "   global_placement ?clean?" << std::endl;
   (*out) << "   place ?clean?" << std::endl;
   (*out) << "   route ?clean?" << std::endl;
@@ -1055,8 +1055,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PackOpt(Compiler::PackingOpt::Clean);
-        } else if (arg == "debug") {
-          compiler->PackOpt(Compiler::PackingOpt::Debug);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1398,8 +1396,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         std::string arg = argv[i];
         if (arg == "clean") {
           compiler->PackOpt(Compiler::PackingOpt::Clean);
-        } else if (arg == "debug") {
-          compiler->PackOpt(Compiler::PackingOpt::Debug);
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1761,14 +1757,11 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto diagnostic = [](void* clientData, Tcl_Interp* interp, int argc,
                        const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
     for (int i = 1; i < argc; i++) {
       const std::string arg{argv[i]};
       if (arg == "packer") {
-        int res = Tcl_Eval(interp, "packing");
-        if (res != TCL_OK) {
-          Tcl_Eval(interp, "packing debug");
-          return TCL_ERROR;
-        }
+        compiler->PackOpt(Compiler::PackingOpt::Debug);
       }
     }
     return TCL_OK;
