@@ -2834,51 +2834,6 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   return true;
 }
 
-bool CompilerOpenFPGA::ProgramDevice() {
-  auto projectName = ProjManager()->projectName();
-  if (!FileUtils::FileExists(m_openOcdExecutablePath)) {
-    ErrorMessage("Cannot find executable: " + m_openOcdExecutablePath.string());
-    return false;
-  }
-
-  auto bitstreamFile = FileUtils::findFile(
-      m_deviceProgrammer->GetBitstreamFilename(), m_bitstreamFileSearchDir);
-  if (bitstreamFile.empty()) {
-    ErrorMessage("Cannot find bitstream file: " +
-                 m_deviceProgrammer->GetBitstreamFilename().string());
-    return false;
-  }
-
-  auto configFile = FileUtils::findFile(m_deviceProgrammer->GetConfigFilename(),
-                                        m_configFileSearchDir);
-  if (configFile.empty()) {
-    ErrorMessage("Cannot find config file: " +
-                 m_deviceProgrammer->GetConfigFilename().string());
-    return false;
-  }
-
-  auto buildCommand = [this](std::string config_file,
-                             std::string bitstream_file,
-                             int pld_id) -> std::string {
-    // command to invoke openocd to program the bitstream
-    // openocd -f gemini.cfg -c "pld load 0 hello.bit"
-    return m_openOcdExecutablePath.string() + " -f " + config_file +
-           " -c \"pld load " + std::to_string(pld_id) + " " + bitstream_file +
-           "\"" + " -c \"exit\"";
-  };
-
-  std::string command =
-      buildCommand(configFile.string(), bitstreamFile.string(),
-                   m_deviceProgrammer->GetPldId());
-  int status = ExecuteAndMonitorSystemCommand(command);
-  if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitstream programming failed");
-    return false;
-  }
-  return true;
-}
-
 bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   bool status = true;
   std::filesystem::path datapath = GetSession()->Context()->DataPath();

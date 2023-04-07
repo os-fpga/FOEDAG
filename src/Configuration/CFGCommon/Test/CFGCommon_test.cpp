@@ -70,8 +70,28 @@ void test_arg() {
   arg.print();
 }
 
+void test_program_device_arg() {
+  CFG_POST_MSG("test_program_device_arg unit test");
+  CFGArg_PROGRAM_DEVICE arg;
+  std::vector<std::string> errors;
+  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.index == 0);
+  CFG_ASSERT(arg.bitstream == "");
+  CFG_ASSERT(arg.m_args.size() == 0);
+  const char* argv[] = {
+      "programmer", "-b", "test.bit", "-c", "gemini.cfg", "--index", "2",
+  };
+  bool status = arg.parse(int(sizeof(argv) / sizeof(argv[0])), argv, &errors);
+  CFG_ASSERT(status);
+  CFG_ASSERT(arg.config == "gemini.cfg");
+  CFG_ASSERT(arg.index == 2);
+  CFG_ASSERT(arg.bitstream == "test.bit");
+  arg.print();
+}
+
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is CFGCommon unit test");
   test_arg();
+  test_program_device_arg();
   return 0;
 }

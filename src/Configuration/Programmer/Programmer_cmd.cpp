@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is Programmer cmd");
   CFGCommon_ARG cmdarg;
-  programmer_entry(&cmdarg);
+  //<TODO> to add the test code here
+  // programmer_entry(&cmdarg);
   return 0;
 }

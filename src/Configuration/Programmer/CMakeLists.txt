@@ -58,7 +58,6 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
 )
-
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library

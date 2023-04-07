@@ -44,5 +44,39 @@
       ],
      "help" : [ "This is Dummy ARG" ],
      "arg"  : [1, 2]
+   },
+   "program_device" : {
+      "option" : [
+         {
+            "name" : "config",
+            "short": "c",
+            "type" : "str", 
+            "multi" : false,
+            "optional" : false,
+            "help" : "Configuration file for the device programming"
+         },
+         {
+            "name" : "index",
+            "short": "n",
+            "type" : "int", 
+            "multi" : false,
+            "optional" : true,
+            "default" : 0,
+            "help" : "Index of the device to program"
+         },
+         {
+            "name" : "bitstream",
+            "short": "b",
+            "type" : "str", 
+            "multi" : false,
+            "optional" : false,
+            "help" : "Bitstream file to program"
+         }
+      ],
+     "help" : [ 
+      "Configuration bitstream programming tool.", 
+      "To use it:",
+      "  program_device <{option}>s <input file .bitasm> <output file .cfgbit>" ],
+      "arg" : [1,1]
    }
 }

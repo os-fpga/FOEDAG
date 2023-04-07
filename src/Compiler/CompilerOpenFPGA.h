@@ -34,7 +34,7 @@ enum class SynthesisType { Yosys, QL, RS };
 
 class CompilerOpenFPGA : public Compiler {
  public:
-  CompilerOpenFPGA() = default;
+  CompilerOpenFPGA() { m_name = "openfpga"; };
   ~CompilerOpenFPGA() = default;
   void AnalyzeExecPath(const std::filesystem::path& path) {
     m_analyzeExecutablePath = path;
@@ -53,9 +53,6 @@ class CompilerOpenFPGA : public Compiler {
   }
   void PinConvExecPath(const std::filesystem::path& path) {
     m_pinConvExecutablePath = path;
-  }
-  void OpenOcdExecPath(const std::filesystem::path& path) {
-    m_openOcdExecutablePath = path;
   }
   void ArchitectureFile(const std::filesystem::path& path) {
     m_architectureFile = path;
@@ -131,14 +128,6 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
-  void SetBitstreamFileSearchDirectory(const std::filesystem::path& path) {
-    m_bitstreamFileSearchDir = path;
-  }
-
-  void SetConfigFileSearchDirectory(const std::filesystem::path& path) {
-    m_configFileSearchDir = path;
-  }
-
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
@@ -151,7 +140,6 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool TimingAnalysis();
   virtual bool PowerAnalysis();
   virtual bool GenerateBitstream();
-  virtual bool ProgramDevice();
   virtual bool LoadDeviceData(const std::string& deviceName);
   virtual bool LoadDeviceData(const std::string& deviceName,
                               const std::filesystem::path& deviceListFile);
@@ -189,7 +177,6 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_vprExecutablePath = "vpr";
   std::filesystem::path m_staExecutablePath = "sta";
   std::filesystem::path m_pinConvExecutablePath = "pin_c";
-  std::filesystem::path m_openOcdExecutablePath = "openocd";
   /*!
    * \brief m_architectureFile
    * We required from user explicitly specify architecture file.
@@ -226,8 +213,6 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdfFileName,
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
-  std::filesystem::path m_bitstreamFileSearchDir = "";
-  std::filesystem::path m_configFileSearchDir = "";
 };
 
 }  // namespace FOEDAG
