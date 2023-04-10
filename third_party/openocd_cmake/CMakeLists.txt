@@ -31,9 +31,6 @@ else()
     endif()
 endif()
 
-
-Message("#################### root_dir: ${root_dir}")
-
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(build_dir ${root_dir}/dbuild)
 else ()
@@ -56,13 +53,6 @@ else()
         set(Destination_Dir ${build_dir}/share/raptor/configuration)
         set(root_dir ${PROJECT_SOURCE_DIR}/../../..)
     endif()
-    # if(FOEDAG)
-    #     MESSAGE("#################### FOEDAG")
-    #     set(Destination_Dir ${build_dir}/share/foedag/configuration)
-    # else()
-    #     MESSAGE("#################### NOT FOEDAG")
-    #     set(Destination_Dir ${build_dir}/share/raptor/configuration)
-    # endif()
 endif()
 
 set(download_path "https://github.com/RapidSilicon/openocd/releases/download/latest/${rs_openocd_tar}")
@@ -76,13 +66,11 @@ set(install_path ${build_dir}/bin)
 set(rs_openocd_path ${install_path}/openocd)
 
 if(NOT EXISTS ${temp_path})
-    message(STATUS "#################### Downloading openocd from ${download_path}")
     file(DOWNLOAD ${download_path} ${temp_path})
 endif()
 
 add_library(rs_openocd)
 
-message(STATUS "#################### Creating directory install path: ${install_path}")
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${install_path}
 )
@@ -92,33 +80,9 @@ file(MAKE_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR})
 
 set(files_to_extract 
     "opt/openocd/bin/openocd" 
-    "opt/openocd/share/openocd/scripts/board/gemini.cfg")
+    "opt/openocd/share/openocd/scripts/board/gemini.cfg"
+)
 
-message(STATUS "#################### Extracting ${rs_openocd_tar} to ${install_path}")
-message(STATUS "#################### Destination_Dir: ${Destination_Dir}")
-# execute_process(
-#     COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path} ${files_to_extract}
-#     WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
-# )
-
-# execute_process(
-#     COMMAND ${CMAKE_COMMAND} -E make_directory ${install_path}/openocd
-# )
-
-# execute_process(
-#     COMMAND ${CMAKE_COMMAND} -E copy_directory
-#         ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd
-#         ${install_path}/openocd
-# )
-
-# execute_process(
-#     COMMAND ${CMAKE_COMMAND} -E make_directory ${Destination_Dir}
-# )
-
-# add_custom_target(rs_openocd_install
-#     COMMAND echo "####^^^^^^^^^^######## Running my custom command"
-#     COMMENT "#######^^^^^^^^^^###### Running my custom command with dependency"
-# )
 add_custom_target(rs_openocd_install ALL
     COMMENT "####^^^^^^^^^^######## Copying gemini.cfg and openocd to ${install_path}"
     DEPENDS ${temp_path}
@@ -130,7 +94,4 @@ add_custom_target(rs_openocd_install ALL
     COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "No temp dir to remove"
 )
 
-# if(EXISTS ${EXTRACTED_FILE_TEMP_DIR})
-#     file(REMOVE_RECURSE ${EXTRACTED_FILE_TEMP_DIR})
-# endif()
 
