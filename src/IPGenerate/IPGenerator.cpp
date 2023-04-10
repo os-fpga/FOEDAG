@@ -598,8 +598,8 @@ std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
 
   std::string command = "make";
   std::ostringstream help;
-  if (FileUtils::ExecuteSystemCommand(command, {}, m_compiler->GetOutStream()/*,
-                                      path.string()*/)) {
+  if (FileUtils::ExecuteSystemCommand(command, {}, m_compiler->GetOutStream(),
+                                      -1, path.string())) {
     return {false, "Simulate IP, " + help.str()};
   }
   return {true, std::string{}};

@@ -210,10 +210,11 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
 
 int FileUtils::ExecuteSystemCommand(const std::string& command,
                                     const std::vector<std::string>& args,
-                                    std::ostream* result, int timeout_ms) {
+                                    std::ostream* result, int timeout_ms,
+                                    const std::string& workingDir) {
   QProcess* m_process = new QProcess;
-//  if (!workingDir.empty())
-//    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
+  if (!workingDir.empty())
+    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
 
   QObject::connect(m_process, &QProcess::readyReadStandardOutput,
                    [result, m_process]() {
