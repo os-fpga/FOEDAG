@@ -62,8 +62,8 @@ if(WIN32)
 else()
     set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/openocd-7f5a821-linux86_64.tar.gz)
 endif()
-set(install_path ${build_dir}/bin)
-set(rs_openocd_path ${install_path}/openocd)
+
+set(bin_path ${build_dir}/bin)
 
 if(NOT EXISTS ${temp_path})
     file(DOWNLOAD ${download_path} ${temp_path})
@@ -72,7 +72,7 @@ endif()
 add_library(rs_openocd)
 
 execute_process(
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${install_path}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${bin_path}
 )
 
 set(EXTRACTED_FILE_TEMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/temp_dir)
@@ -83,14 +83,14 @@ set(files_to_extract
     "opt/openocd/share/openocd/scripts/board/gemini.cfg"
 )
 
-add_custom_target(rs_openocd_install ALL
-    COMMENT "####^^^^^^^^^^######## Copying gemini.cfg and openocd to ${install_path}"
+add_custom_target(rs_openocd_extract_config_and_openocd ALL
+    COMMENT "Extract openocd to ${bin_path} and move gemini.cfg to ${Destination_Dir}"
     DEPENDS ${temp_path}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${Destination_Dir}
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path} ${files_to_extract}
     WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
-    COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${install_path}
+    COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${bin_path}
     COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "No temp dir to remove"
 )
 
