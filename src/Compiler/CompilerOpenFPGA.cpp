@@ -255,13 +255,13 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
   (*out) << "   chatgpt <command> \"<message>\" ?-c <path>?: Send message to "
-            "chatGPT"
+            "ChatGPT"
          << std::endl;
   (*out)
       << "                    <command> : Support two commands: send and reset"
       << std::endl;
   (*out) << "                         send : Send message" << std::endl;
-  (*out) << "                        reset : Reset context for chatGPT"
+  (*out) << "                        reset : Reset context for ChatGPT"
          << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
