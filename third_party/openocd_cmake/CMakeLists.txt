@@ -51,7 +51,6 @@ else()
         set(Destination_Dir ${build_dir}/share/foedag/configuration)
     else()
         set(Destination_Dir ${build_dir}/share/raptor/configuration)
-        set(root_dir ${PROJECT_SOURCE_DIR}/../../..)
     endif()
 endif()
 
@@ -68,8 +67,6 @@ set(bin_path ${build_dir}/bin)
 if(NOT EXISTS ${temp_path})
     file(DOWNLOAD ${download_path} ${temp_path})
 endif()
-
-add_library(rs_openocd)
 
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${bin_path}
