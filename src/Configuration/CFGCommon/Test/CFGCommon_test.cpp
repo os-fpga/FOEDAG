@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2023 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2023 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,18 +21,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CFGCommon.h"
 
-#include "CFGArg_auto.h"
+#include <gtest/gtest.h>
 
-void test_arg() {
-  CFG_POST_MSG("This is CFGArg unit test");
+#include "CFGArg_auto.h"
+#include "gmock/gmock.h"
+
+namespace {
+TEST(CFGCommon, test_arg_default) {
   CFGArg_UTST arg;
-  CFG_ASSERT(arg.debug == true);
-  CFG_ASSERT(arg.index.size() == 1);
-  CFG_ASSERT(arg.index[0] == 3);
-  CFG_ASSERT(arg.cable == "usb");
-  CFG_ASSERT(arg.operation.size() == 0);
-  CFG_ASSERT(arg.target == "fpga");
-  CFG_ASSERT(arg.m_args.size() == 0);
+  EXPECT_TRUE(arg.debug);
+  EXPECT_EQ(arg.index.size(), 1);
+  EXPECT_EQ(arg.index[0], 3);
+  EXPECT_EQ(arg.cable, "usb");
+  EXPECT_EQ(arg.operation.size(), 0);
+  EXPECT_EQ(arg.target, "fpga");
+  EXPECT_EQ(arg.m_args.size(), 0);
+}
+
+TEST(CFGCommon, test_arg_with_dummy_args) {
+  CFGArg_UTST arg;
   const char* argv[] = {"-d",          "in1",         "--index",
                         "-2x",         "in2",         "--cable=ethernet",
                         "-o",          "erase",       "-oprogram",
@@ -42,56 +49,55 @@ void test_arg() {
                         "--help",      "--help=many", "-i"};
   std::vector<std::string> errors;
   bool status = arg.parse(int(sizeof(argv) / sizeof(argv[0])), argv, &errors);
-  CFG_ASSERT(!status);
-  CFG_ASSERT(arg.debug == false);
-  CFG_ASSERT(arg.index.size() == 1);
-  CFG_ASSERT(arg.index[0] == 3);
-  CFG_ASSERT(arg.cable == "ethernet");
-  CFG_ASSERT(arg.operation.size() == 4);
-  CFG_ASSERT(arg.operation[0] == "erase");
-  CFG_ASSERT(arg.operation[1] == "program");
-  CFG_ASSERT(arg.operation[2] == "verify");
-  CFG_ASSERT(arg.operation[3] == "exam");
-  CFG_ASSERT(arg.target == "flash");
-  CFG_ASSERT(arg.m_args.size() == 4);
-  CFG_ASSERT(arg.m_args[0] == "in1");
-  CFG_ASSERT(arg.m_args[1] == "in2");
-  CFG_ASSERT(arg.m_args[2] == "in3");
-  CFG_ASSERT(arg.m_args[3] == "in4");
-  CFG_ASSERT(errors.size() == 4);
-  CFG_ASSERT(errors[0] ==
-             "Fail to assign value -2x to option index because of invalid "
-             "integer conversion");
-  CFG_ASSERT(errors[1] == "Not able to print help for invalid option many");
-  CFG_ASSERT(errors[2] == "Not enough input to assign option index");
-  CFG_ASSERT(errors[3] ==
-             "Can only specify maximum of 2 argument(s), but found 4 "
-             "argument(s) is specified");
-  arg.print();
+  EXPECT_FALSE(status);
+  EXPECT_FALSE(arg.debug);
+  EXPECT_EQ(arg.index.size(), 1);
+  EXPECT_EQ(arg.index[0], 3);
+  EXPECT_EQ(arg.cable, "ethernet");
+  EXPECT_EQ(arg.operation.size(), 4);
+  EXPECT_EQ(arg.operation[0], "erase");
+  EXPECT_EQ(arg.operation[1], "program");
+  EXPECT_EQ(arg.operation[2], "verify");
+  EXPECT_EQ(arg.operation[3], "exam");
+  EXPECT_EQ(arg.target, "flash");
+  EXPECT_EQ(arg.m_args.size(), 4);
+  EXPECT_EQ(arg.m_args[0], "in1");
+  EXPECT_EQ(arg.m_args[1], "in2");
+  EXPECT_EQ(arg.m_args[2], "in3");
+  EXPECT_EQ(arg.m_args[3], "in4");
+  EXPECT_EQ(errors.size(), 4);
+  EXPECT_EQ(errors[0],
+            "Fail to assign value -2x to option index because of invalid "
+            "integer conversion");
+  EXPECT_EQ(errors[1], "Not able to print help for invalid option many");
+  EXPECT_EQ(errors[2], "Not enough input to assign option index");
+  EXPECT_EQ(errors[3],
+            "Can only specify maximum of 2 argument(s), but found 4 "
+            "argument(s) is specified");
 }
 
-void test_program_device_arg() {
-  CFG_POST_MSG("test_program_device_arg unit test");
+TEST(CFGCommon, test_program_device_arg) {
   CFGArg_PROGRAM_DEVICE arg;
   std::vector<std::string> errors;
-  CFG_ASSERT(arg.config == "");
-  CFG_ASSERT(arg.index == 0);
-  CFG_ASSERT(arg.bitstream == "");
-  CFG_ASSERT(arg.m_args.size() == 0);
+
   const char* argv[] = {
       "programmer", "-b", "test.bit", "-c", "gemini.cfg", "--index", "2",
   };
   bool status = arg.parse(int(sizeof(argv) / sizeof(argv[0])), argv, &errors);
-  CFG_ASSERT(status);
-  CFG_ASSERT(arg.config == "gemini.cfg");
-  CFG_ASSERT(arg.index == 2);
-  CFG_ASSERT(arg.bitstream == "test.bit");
-  arg.print();
+  EXPECT_TRUE(status);
+  EXPECT_EQ(arg.config, "gemini.cfg");
+  EXPECT_EQ(arg.index, 2);
+  EXPECT_EQ(arg.bitstream, "test.bit");
 }
 
-int main(int argc, const char** argv) {
-  CFG_POST_MSG("This is CFGCommon unit test");
-  test_arg();
-  test_program_device_arg();
-  return 0;
+TEST(CFGCommon, test_program_device_arg_default) {
+  CFGArg_PROGRAM_DEVICE arg;
+  EXPECT_EQ(arg.config, "");
+  EXPECT_EQ(arg.index, 0);
+  EXPECT_EQ(arg.bitstream, "");
+  EXPECT_EQ(arg.m_args.size(), 0);
 }
+
+// <TODO> Add more tests
+
+}  // end of anonymous namespace

@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2023 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2023 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,7 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CFGCompiler.h"
 
-int main(int argc, const char** argv) {
+#include "gmock/gmock.h"
+
+namespace {
+
+TEST(CFGCommon, test_arg_default) {
   CFG_POST_MSG("This is CFGCompiler unit test");
-  return 0;
+  EXPECT_EQ(1, 1);  // dummy tests to make sure it is built and run
 }
+
+}  // end anonymous namespace

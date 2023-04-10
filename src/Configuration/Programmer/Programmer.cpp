@@ -36,7 +36,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     CFG_POST_MSG("  Device      : %s", cmdarg->device.c_str());
     CFG_POST_MSG("  command     : %s", cmdarg->command.c_str());
     for (int i = 0; i < 5; i++) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       CFG_POST_MSG("Looping to test multithread - %d", i);
     }
   } else {

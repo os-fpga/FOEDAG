@@ -67,7 +67,7 @@ add_executable(
   ${test_bin}
   Test/CFGCompiler_test.cpp
 )
-target_link_libraries(${test_bin} ${subsystem})
+target_link_libraries(${test_bin} gtest gmock gtest_main ${subsystem})
 
 ###################
 #
