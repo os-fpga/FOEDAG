@@ -56,27 +56,6 @@ bool WorkerThread::start() {
   return result;
 }
 
-bool WorkerThread::start(const std::function<bool(const std::string&)>& f,
-                         const std::string& arg) {
-  bool result = true;
-  m_compiler->start();
-  QEventLoop* eventLoop{nullptr};
-  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
-                             m_compiler->GetSession()->CmdLine()->WithQml();
-  if (processEvents) eventLoop = new QEventLoop;
-  m_thread = new std::thread([&, eventLoop] {
-    result = f(arg);
-    m_compiler->finish();
-    if (eventLoop) eventLoop->quit();
-  });
-  if (eventLoop)
-    eventLoop->exec();
-  else
-    m_thread->join();  // batch mode
-  delete eventLoop;
-  return result;
-}
-
 bool WorkerThread::stop() {
   m_compiler->Stop();
   delete m_thread;

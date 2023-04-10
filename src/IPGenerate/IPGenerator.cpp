@@ -566,7 +566,7 @@ bool IPGenerator::Generate() {
   return status;
 }
 
-std::pair<bool, std::string> IPGenerator::simulateIpSupported(
+std::pair<bool, std::string> IPGenerator::IsSimulateIpSupported(
     const std::string& name) const {
   auto it =
       std::find_if(m_instances.begin(), m_instances.end(),
@@ -575,7 +575,7 @@ std::pair<bool, std::string> IPGenerator::simulateIpSupported(
     return {false, "No IP generated with name " + name};
 
   IPInstance* inst{*it};
-  auto path = GetBuildDir(inst) / "sim";
+  auto path = GetSimDir(inst);
 
   if (!FileUtils::FileExists(path / "Makefile"))
     return {false, "Simulation not available for " + name};
@@ -591,9 +591,9 @@ std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
     return {false, "No IP generated with name " + name};
 
   IPInstance* inst{*it};
-  auto path = GetBuildDir(inst) / "sim";
+  auto path = GetSimDir(inst);
 
-  auto [supported, message] = simulateIpSupported(name);
+  auto [supported, message] = IsSimulateIpSupported(name);
   if (!supported) return {supported, message};
 
   std::string command = "make";
@@ -630,6 +630,10 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
           meta.version / instance->ModuleName();
   }
   return dir;
+}
+
+std::filesystem::path IPGenerator::GetSimDir(IPInstance* instance) const {
+  return GetBuildDir(instance) / "sim";
 }
 
 // This will return the path to this instance's cached json file

@@ -186,6 +186,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
             "ip_configure"
          << std::endl;
+  (*out) << "   simulate_ip  <module name> : Simulate IP with module name "
+            "<module name>"
+         << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : "

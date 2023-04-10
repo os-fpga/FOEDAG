@@ -47,8 +47,6 @@ class WorkerThread {
   const std::string& Name() { return m_threadName; }
 
   bool start();
-  bool start(const std::function<bool(const std::string&)>& f,
-             const std::string& arg);
   bool stop();
 
   /*!
@@ -66,7 +64,7 @@ class WorkerThread {
     const bool processEvents = isGui();
     if (processEvents) eventLoop = new QEventLoop;
     m_thread =
-        // pack args as tuple for captiring
+        // pack args as tuple for capturing
         new std::thread([&, args = std::make_tuple(std::forward<Args>(args)...),
                          eventLoop, this]() mutable {
           // pass arguments to callback
