@@ -224,6 +224,15 @@ void Compiler::Help(std::ostream* out) {
             "xcelium"
          << std::endl;
   (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
+  (*out) << "   chatgpt <command> \"<message>\" ?-c <path>?: Send message to "
+            "chatGPT"
+         << std::endl;
+  (*out)
+      << "                    <command> : Support two commands: send and reset"
+      << std::endl;
+  (*out) << "                         send : Send message" << std::endl;
+  (*out) << "                        reset : Reset context for chatGPT"
+         << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
@@ -2577,7 +2586,8 @@ bool Compiler::sendChatGpt(const std::string& message) {
   }
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
+      0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }
@@ -2628,7 +2638,8 @@ bool Compiler::resetChatGpt() {
   args.push_back("-n");
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
+      0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }

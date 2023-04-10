@@ -64,7 +64,7 @@ class FileUtils final {
 
   static int ExecuteSystemCommand(const std::string& command,
                                   const std::vector<std::string>& args,
-                                  std::ostream* result);
+                                  std::ostream* result, int timeout_ms = -1);
 
   static time_t Mtime(const std::filesystem::path& path);
 
