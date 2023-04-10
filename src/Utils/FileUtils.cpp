@@ -212,6 +212,8 @@ int FileUtils::ExecuteSystemCommand(const std::string& command,
                                     const std::vector<std::string>& args,
                                     std::ostream* result, int timeout_ms) {
   QProcess* m_process = new QProcess;
+//  if (!workingDir.empty())
+//    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
 
   QObject::connect(m_process, &QProcess::readyReadStandardOutput,
                    [result, m_process]() {

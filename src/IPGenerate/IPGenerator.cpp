@@ -238,6 +238,29 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("delete_ip", delete_ip, this, 0);
 
+  auto simulate_ip = [](void* clientData, Tcl_Interp* interp, int argc,
+                        const char* argv[]) -> int {
+    IPGenerator* generator = (IPGenerator*)clientData;
+    if (argc < 2) {
+      Tcl_AppendResult(interp, "Wrong arguments. Please read simulate_ip help",
+                       nullptr);
+      return TCL_ERROR;
+    }
+    const std::string ipName{argv[1]};
+    WorkerThread* thread = new WorkerThread{
+        {}, Compiler::Action::Analyze, generator->GetCompiler()};
+    std::string message{};
+    auto fn = [generator, &message](const std::string& ipName) -> bool {
+      auto [ok, res] = generator->SimulateIp(ipName);
+      if (!ok) message = res;
+      return ok;
+    };
+    bool res = thread->Start(fn, ipName);
+    if (!res) Tcl_AppendResult(interp, message.c_str(), nullptr);
+    return res ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("simulate_ip", simulate_ip, this, nullptr);
+
   return true;
 }
 
@@ -541,6 +564,28 @@ bool IPGenerator::Generate() {
     }
   }
   return status;
+}
+
+std::pair<bool, std::string> IPGenerator::SimulateIp(const std::string& name) {
+  auto it =
+      std::find_if(m_instances.begin(), m_instances.end(),
+                   [name](IPInstance* i) { return name == i->ModuleName(); });
+  if (it == m_instances.end())
+    return {false, "No IP generated with name " + name};
+
+  IPInstance* inst{*it};
+  auto path = GetBuildDir(inst) / "sim";
+
+  if (!FileUtils::FileExists(path / "Makefile"))
+    return {false, "Simulation not supported for this IP"};
+
+  std::string command = "make";
+  std::ostringstream help;
+  if (FileUtils::ExecuteSystemCommand(command, {}, m_compiler->GetOutStream()/*,
+                                      path.string()*/)) {
+    return {false, "Simulate IP, " + help.str()};
+  }
+  return {true, std::string{}};
 }
 
 // This will return the expected VLNV path for the given instance
