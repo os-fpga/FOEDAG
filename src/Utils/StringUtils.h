@@ -144,6 +144,8 @@ class StringUtils final {
     return out.str();
   }
 
+  static StringVector FromArgs(int argc, const char* argv[]);
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;

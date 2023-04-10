@@ -27,6 +27,7 @@ namespace FOEDAG {
 
 class ProjectManager;
 class SourcesForm;
+
 class TclCommandIntegration : public QObject {
   Q_OBJECT
  public:
@@ -52,11 +53,15 @@ class TclCommandIntegration : public QObject {
   bool TclCloseProject();
   bool TclClearSimulationFiles(std::ostream &out);
 
+  bool TclshowChatGpt(const std::string &request, const std::string &content);
+
   ProjectManager *GetProjectManager();
 
  signals:
   void newDesign(const QString &);
   void closeDesign();
+  void showChatGpt(const QString &r, const QString &data);
+  void chatGptStatus(bool);
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);

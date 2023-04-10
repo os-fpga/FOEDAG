@@ -63,7 +63,8 @@ class FileUtils final {
       bool caseInsensitive);
 
   static int ExecuteSystemCommand(const std::string& command,
-                                  std::ostream* result);
+                                  const std::vector<std::string>& args,
+                                  std::ostream* result, int timeout_ms = -1);
 
   static time_t Mtime(const std::filesystem::path& path);
 

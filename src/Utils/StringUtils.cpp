@@ -262,6 +262,12 @@ std::string StringUtils::toLower(const std::string& text) {
   return result;
 }
 
+StringVector StringUtils::FromArgs(int argc, const char* argv[]) {
+  StringVector res{};
+  for (int i = 0; i < argc; i++) res.push_back(std::string{argv[i]});
+  return res;
+}
+
 std::string StringUtils::toUpper(const std::string& text) {
   auto result = text;
   std::transform(result.begin(), result.end(), result.begin(),

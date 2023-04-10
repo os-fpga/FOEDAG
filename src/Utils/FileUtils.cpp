@@ -209,7 +209,8 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
 }
 
 int FileUtils::ExecuteSystemCommand(const std::string& command,
-                                    std::ostream* result) {
+                                    const std::vector<std::string>& args,
+                                    std::ostream* result, int timeout_ms) {
   QProcess* m_process = new QProcess;
 
   QObject::connect(m_process, &QProcess::readyReadStandardOutput,
@@ -224,20 +225,26 @@ int FileUtils::ExecuteSystemCommand(const std::string& command,
                      result->write(data, data.size());
                    });
 
-  QString cmd{command.c_str()};
-  QStringList args = cmd.split(" ");
-  QString program = args.first();
-  args.pop_front();  // remove program
-  m_process->start(program, args);
+  QString program = QString::fromStdString(command);
+  QStringList args_{};
+  for (const auto& ar : args) args_ << QString::fromStdString(ar);
+  m_process->start(program, args_);
 
-  m_process->waitForFinished(-1);
+  bool finished = m_process->waitForFinished(timeout_ms);
+
+  if (!finished) {
+    QString error{"Timeout"};
+    result->write(error.toStdString().c_str(), error.size());
+  }
 
   auto status = m_process->exitStatus();
   auto exitCode = m_process->exitCode();
+  int returnStatus =
+      finished ? (status == QProcess::NormalExit) ? exitCode : -1 : -1;
+
   delete m_process;
   m_process = nullptr;
-
-  return (status == QProcess::NormalExit) ? exitCode : -1;
+  return returnStatus;
 }
 
 time_t FileUtils::Mtime(const std::filesystem::path& path) {

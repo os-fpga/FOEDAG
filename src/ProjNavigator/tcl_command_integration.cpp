@@ -335,6 +335,13 @@ bool TclCommandIntegration::TclClearSimulationFiles(std::ostream &out) {
   return true;
 }
 
+bool TclCommandIntegration::TclshowChatGpt(const std::string &request,
+                                           const std::string &content) {
+  emit showChatGpt(QString::fromStdString(request),
+                   QString::fromStdString(content));
+  return true;
+}
+
 ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
