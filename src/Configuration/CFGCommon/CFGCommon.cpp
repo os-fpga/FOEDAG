@@ -327,6 +327,14 @@ int CFG_compiler_execute_cmd(const std::string& command,
   }
 }
 
+// Summary: This function executes a command and captures its output. It takes
+//          a string `cmd` representing the command to be excuted and a
+//          reference string `output` hold the output of the command.
+// Return:  The exit code of the command is returned to indicate whether the
+//          command is executed successfully or not.
+// Note: 1) This function throw runtime exceptions. Make sure to catch them.
+//       2) This function is used by Programmer_cmd.cpp, it is a
+//          standalone programmer commandline tool.
 int CFG_execute_cmd(const std::string& cmd, std::string& output) {
   int exitcode = 255;
   char buffer[513];
