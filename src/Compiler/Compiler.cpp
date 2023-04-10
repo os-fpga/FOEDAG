@@ -478,10 +478,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     auto args = StringUtils::FromArgs(argc, argv);
     if (args.size() >= 2) {
+      if (args.size() > 4) {
+        if (args[3] == "-c") compiler->chatgptConfig(args[4]);
+      }
       if (args[1] == "send") {
-        if (args.size() > 4) {
-          if (args[3] == "-c") compiler->chatgptConfig(args[4]);
-        }
         WorkerThread* wthread =
             new WorkerThread(args[2], Action::IPGen, compiler);
         auto exitSt = wthread->start(
@@ -2636,6 +2636,10 @@ bool Compiler::resetChatGpt() {
   args.push_back("-m");
   args.push_back("chatgpt_raptor");
   args.push_back("-n");
+  if (!m_chatgptConfigFile.empty()) {
+    args.push_back("-c");
+    args.push_back(m_chatgptConfigFile);
+  }
   std::ostringstream help;
 
   if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
