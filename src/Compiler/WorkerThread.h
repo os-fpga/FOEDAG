@@ -61,16 +61,21 @@ class WorkerThread {
   template <typename Func, typename... Args>
   bool Start(const Func& fn, Args&&... args) {
     bool result = true;
+    m_compiler->start();
     QEventLoop* eventLoop{nullptr};
     const bool processEvents = isGui();
     if (processEvents) eventLoop = new QEventLoop;
     m_thread =
         // pack args as tuple for captiring
         new std::thread([&, args = std::make_tuple(std::forward<Args>(args)...),
-                         eventLoop]() mutable {
+                         eventLoop, this]() mutable {
           // pass arguments to callback
-          std::apply([&result, fn](auto&&... args) { result = fn(args...); },
-                     std::move(args));
+          std::apply(
+              [&result, this, fn](auto&&... args) {
+                result = fn(args...);
+                m_compiler->finish();
+              },
+              std::move(args));
           if (eventLoop) eventLoop->quit();
         });
     if (eventLoop)

@@ -251,7 +251,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         {}, Compiler::Action::Analyze, generator->GetCompiler()};
     std::string message{};
     auto fn = [generator, &message](const std::string& ipName) -> bool {
-      auto [ok, res] = generator->SimulateIp(ipName);
+      auto [ok, res] = generator->SimulateIpTcl(ipName);
       if (!ok) message = res;
       return ok;
     };
@@ -566,7 +566,8 @@ bool IPGenerator::Generate() {
   return status;
 }
 
-std::pair<bool, std::string> IPGenerator::SimulateIp(const std::string& name) {
+std::pair<bool, std::string> IPGenerator::simulateIpSupported(
+    const std::string& name) const {
   auto it =
       std::find_if(m_instances.begin(), m_instances.end(),
                    [name](IPInstance* i) { return name == i->ModuleName(); });
@@ -577,7 +578,23 @@ std::pair<bool, std::string> IPGenerator::SimulateIp(const std::string& name) {
   auto path = GetBuildDir(inst) / "sim";
 
   if (!FileUtils::FileExists(path / "Makefile"))
-    return {false, "Simulation not supported for this IP"};
+    return {false, "Simulation not available for " + name};
+  return {true, {}};
+}
+
+std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
+    const std::string& name) {
+  auto it =
+      std::find_if(m_instances.begin(), m_instances.end(),
+                   [name](IPInstance* i) { return name == i->ModuleName(); });
+  if (it == m_instances.end())
+    return {false, "No IP generated with name " + name};
+
+  IPInstance* inst{*it};
+  auto path = GetBuildDir(inst) / "sim";
+
+  auto [supported, message] = simulateIpSupported(name);
+  if (!supported) return {supported, message};
 
   std::string command = "make";
   std::ostringstream help;
@@ -586,6 +603,15 @@ std::pair<bool, std::string> IPGenerator::SimulateIp(const std::string& name) {
     return {false, "Simulate IP, " + help.str()};
   }
   return {true, std::string{}};
+}
+
+void IPGenerator::SimulateIp(const std::string& name) {
+  int returnVal{};
+  auto resultStr =
+      GlobalSession->TclInterp()->evalCmd("simulate_ip " + name, &returnVal);
+  if (returnVal != TCL_OK) {
+    qWarning() << "Error: " << QString::fromStdString(resultStr);
+  }
 }
 
 // This will return the expected VLNV path for the given instance

@@ -57,10 +57,15 @@ class IPGenerator {
     m_instances.erase(m_instances.begin(), m_instances.end());
   }
   bool Generate();
-  std::pair<bool, std::string> SimulateIp(const std::string& name);
+  std::pair<bool, std::string> simulateIpSupported(
+      const std::string& name) const;
+  void SimulateIp(const std::string& name);
   std::filesystem::path GetBuildDir(IPInstance* instance) const;
   std::filesystem::path GetCachePath(IPInstance* instance) const;
   std::vector<std::filesystem::path> GetDesignFiles(IPInstance* instance);
+
+ protected:
+  std::pair<bool, std::string> SimulateIpTcl(const std::string& name);
 
  protected:
   IPCatalog* m_catalog = nullptr;

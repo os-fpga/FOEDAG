@@ -56,6 +56,7 @@ class SourcesForm : public QWidget {
                            const QStringList& paramList);
   void IpRemoveRequested(const QString& moduleName);
   void IpDeleteRequested(const QString& moduleName);
+  void IpSimulationRequested(const QString& moduleName);
   void OpenProjectSettings();
 
  private slots:
@@ -77,6 +78,7 @@ class SourcesForm : public QWidget {
   void SlotReConfigureIp();
   void SlotRemoveIp();
   void SlotDeleteIp();
+  void SlotSimulateIp();
 
  private:
   Ui::SourcesForm* ui;
@@ -96,6 +98,7 @@ class SourcesForm : public QWidget {
   QAction* m_actReconfigureIp;
   QAction* m_actRemoveIp;
   QAction* m_actDeleteIp;
+  QAction* m_simulateIp;
   QAction* m_actProjectSettings;
 
   ProjectManager* m_projManager;
