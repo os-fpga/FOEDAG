@@ -400,6 +400,12 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_availRes.stat.maxLogicLvel = match.captured(1).toDouble();
     m_availRes.stat.avgLogicLvel = match.captured(3).toDouble();
   }
+
+  static const QRegularExpression fmax{"^.+Fmax:\\D+([+-]?[[0-9]*[.]]?[0-9]+)"};
+  auto fmaxMatch = fmax.match(line);
+  if (fmaxMatch.hasMatch()) {
+    m_availRes.stat.fmax = fmaxMatch.captured(1).toDouble();
+  }
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile(

@@ -66,6 +66,7 @@ struct Statistic {
   double maxFanout{};
   double avgLogicLvel{};
   double maxLogicLvel{};
+  double fmax{};
 };
 
 struct Resources {
