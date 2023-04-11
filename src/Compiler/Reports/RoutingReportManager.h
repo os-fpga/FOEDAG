@@ -47,7 +47,11 @@ class RoutingReportManager final : public AbstractReportManager {
   void reset();
 
   IDataReport::ColumnValues m_circuitColumns;
+  IDataReport::ColumnValues m_bramColumns;
+  IDataReport::ColumnValues m_dspColumns;
   IDataReport::TableData m_circuitData;
+  IDataReport::TableData m_bramData;
+  IDataReport::TableData m_dspData;
 
   SectionKeys m_routingKeys;
 };

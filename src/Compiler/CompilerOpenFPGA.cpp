@@ -2880,6 +2880,26 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     }
   }
   if (status) reloadSettings();
+  if (m_taskManager) {
+    auto reports = m_taskManager->getReportManagerRegistry().ids();
+    Resources resources{};
+    resources.bram.bram_36k = MaxDeviceBRAMCount();
+    resources.bram.bram_18k = MaxDeviceBRAMCount() * 2;
+    resources.dsp.dsp_9_10 = MaxDeviceDSPCount();
+    resources.dsp.dsp_18_20 = MaxDeviceDSPCount() * 2;
+    resources.logic.dff = MaxDeviceFFCount();
+    resources.logic.latch = MaxDeviceFFCount();
+    resources.logic.clb = MaxDeviceLUTCount() / 8;
+    resources.logic.fa2Bits = MaxDeviceLUTCount() / 8;
+    resources.logic.lut6 = MaxDeviceLUTCount();
+    resources.logic.lut5 = MaxDeviceLUTCount() * 2;
+    resources.logic.lut0 = MaxDeviceLUTCount() * 2;
+    for (auto id : reports) {
+      m_taskManager->getReportManagerRegistry()
+          .getReportManager(id)
+          ->setAvailableResources(resources);
+    }
+  }
   return status;
 }
 
