@@ -41,32 +41,10 @@ bool WorkerThread::start() {
   bool result = true;
   m_compiler->start();
   QEventLoop* eventLoop{nullptr};
-  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
-                             m_compiler->GetSession()->CmdLine()->WithQml();
+  const bool processEvents = isGui();
   if (processEvents) eventLoop = new QEventLoop;
   m_thread = new std::thread([&, eventLoop] {
     result = m_compiler->Compile(m_action);
-    m_compiler->finish();
-    if (eventLoop) eventLoop->quit();
-  });
-  if (eventLoop)
-    eventLoop->exec();
-  else
-    m_thread->join();  // batch mode
-  delete eventLoop;
-  return result;
-}
-
-bool WorkerThread::start(const std::function<bool(const std::string&)>& f,
-                         const std::string& arg) {
-  bool result = true;
-  m_compiler->start();
-  QEventLoop* eventLoop{nullptr};
-  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
-                             m_compiler->GetSession()->CmdLine()->WithQml();
-  if (processEvents) eventLoop = new QEventLoop;
-  m_thread = new std::thread([&, eventLoop] {
-    result = f(arg);
     m_compiler->finish();
     if (eventLoop) eventLoop->quit();
   });
@@ -83,4 +61,10 @@ bool WorkerThread::stop() {
   delete m_thread;
   m_thread = nullptr;
   return true;
+}
+
+bool WorkerThread::isGui() const {
+  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
+                             m_compiler->GetSession()->CmdLine()->WithQml();
+  return processEvents;
 }

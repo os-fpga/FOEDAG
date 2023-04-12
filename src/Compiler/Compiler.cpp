@@ -182,6 +182,9 @@ void Compiler::Help(std::ostream* out) {
             "Generates all IP instances set by "
             "ip_configure. -modules limits which IPs are generated."
          << std::endl;
+  (*out) << "   simulate_ip  <module name> : Simulate IP with module name "
+            "<module name>"
+         << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
@@ -484,20 +487,18 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       if (args[1] == "send") {
         WorkerThread* wthread =
             new WorkerThread(args[2], Action::IPGen, compiler);
-        auto exitSt = wthread->start(
-            [compiler](const std::string& str) -> bool {
-              return compiler->chatGpt(str);
-            },
-            args[2]);
+        auto fn = [compiler](const std::string& str) -> bool {
+          return compiler->chatGpt(str);
+        };
+        auto exitSt = wthread->Start(fn, args[2]);
         return exitSt ? TCL_OK : TCL_ERROR;
       } else if (args[1] == "reset") {
         WorkerThread* wthread =
             new WorkerThread("reset", Action::IPGen, compiler);
-        auto exitSt = wthread->start(
-            [compiler](const std::string&) -> bool {
-              return compiler->chatGpt({});
-            },
-            {});
+        auto fn = [compiler](const std::string&) -> bool {
+          return compiler->chatGpt({});
+        };
+        auto exitSt = wthread->Start(fn, std::string{});
         return exitSt ? TCL_OK : TCL_ERROR;
       }
       compiler->ErrorMessage("Wrong arguments");

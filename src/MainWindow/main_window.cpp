@@ -1155,6 +1155,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::handleRemoveIpRequested);
   connect(sourcesForm, &SourcesForm::IpDeleteRequested, this,
           &MainWindow::handleDeleteIpRequested);
+  connect(sourcesForm, &SourcesForm::IpSimulationRequested, this,
+          &MainWindow::handleSimulationIpRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -1565,6 +1567,24 @@ void MainWindow::handleDeleteIpRequested(const QString& moduleName) {
     ipGen->DeleteIPInstance(moduleName.toStdString());
   }
 
+  updateSourceTree();
+}
+
+void MainWindow::handleSimulationIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    auto module = moduleName.toStdString();
+    auto [supported, message] = ipGen->IsSimulateIpSupported(module);
+    if (!supported) {
+      QMessageBox::critical(this, "IP Simulation",
+                            QString::fromStdString(message));
+      return;
+    }
+    ipGen->SimulateIp(module);
+  }
   updateSourceTree();
 }
 

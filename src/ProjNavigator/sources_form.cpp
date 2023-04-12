@@ -153,6 +153,8 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
     } else if (SRC_TREE_IP_INST_ITEM == strPropertyRole) {
       menu->addAction(m_actRefresh);
       menu->addSeparator();
+      menu->addAction(m_simulateIp);
+      menu->addSeparator();
       menu->addAction(m_actReconfigureIp);
       menu->addAction(m_actRemoveIp);
       menu->addAction(m_actDeleteIp);
@@ -453,6 +455,12 @@ void SourcesForm::SlotDeleteIp() {
   }
 }
 
+void SourcesForm::SlotSimulateIp() {
+  for (auto moduleName : SelectedIpModules()) {
+    emit IpSimulationRequested(moduleName);
+  }
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -513,6 +521,11 @@ void SourcesForm::CreateActions() {
       "Remove the selectd IP instance from the project and delete its build "
       "files.");
   connect(m_actDeleteIp, &QAction::triggered, this, &SourcesForm::SlotDeleteIp);
+
+  m_simulateIp = new QAction{tr("Simulate IP"), m_treeSrcHierachy};
+  m_simulateIp->setToolTip("Start simulation of selected IP");
+  connect(m_simulateIp, &QAction::triggered, this,
+          &SourcesForm::SlotSimulateIp);
 
   m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
   connect(m_actProjectSettings, &QAction::triggered, this,
