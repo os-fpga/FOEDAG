@@ -623,7 +623,7 @@ void IpConfigWidget::Generate(bool addToProject) {
   for (QObject* obj : settingsObjs) {
     // Collect parameters of fields that haven't been disabled by dipendencies
     QWidget* widget = qobject_cast<QWidget*>(obj);
-    if (widget && widget->isEnabled()) {
+    if (widget) {
       // Typically widgetFactory widgets can have their value introspected
       // with ->property("tclArg") however the widget factory stores those
       // values on change and some fields like comboboxes don't register a
