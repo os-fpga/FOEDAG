@@ -264,8 +264,12 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
       << "                    <command> : Support two commands: send and reset"
       << std::endl;
   (*out) << "                         send : Send message" << std::endl;
-  (*out) << "                        reset : Reset context for ChatGPT"
+  (*out) << "                        reset : Reset history" << std::endl;
+  (*out) << "                    -c <path> : Specify ini file path with API "
+            "key. The key needs to be set only once for a session"
          << std::endl;
+  (*out) << "                                [OpenAI]" << std::endl;
+  (*out) << "                                API_KEY: <api key>" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
