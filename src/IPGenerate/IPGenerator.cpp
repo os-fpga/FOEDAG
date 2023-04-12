@@ -596,9 +596,15 @@ std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
   auto [supported, message] = IsSimulateIpSupported(name);
   if (!supported) return {supported, message};
 
+  auto artifactsPath{GetSimArtifactsDir(inst)};
+  if (!FileUtils::MkDirs(artifactsPath)) {
+    return {false, "Failed to create folder " + artifactsPath.string()};
+  }
+
   std::string command = "make";
+  StringVector args{"OUT_DIR=" + artifactsPath.string()};
   std::ostringstream help;
-  if (FileUtils::ExecuteSystemCommand(command, {}, m_compiler->GetOutStream(),
+  if (FileUtils::ExecuteSystemCommand(command, args, m_compiler->GetOutStream(),
                                       -1, path.string())) {
     return {false, "Simulate IP, " + help.str()};
   }
@@ -634,6 +640,23 @@ std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
 
 std::filesystem::path IPGenerator::GetSimDir(IPInstance* instance) const {
   return GetBuildDir(instance) / "sim";
+}
+
+std::filesystem::path IPGenerator::GetSimArtifactsDir(
+    IPInstance* instance) const {
+  std::filesystem::path dir{};
+  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
+  if (m_compiler && m_compiler->ProjManager()) {
+    ProjectManager* projManager{m_compiler->ProjManager()};
+    QString projName = projManager->getProjectName();
+
+    // Build up the expected ip build path
+    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
+    std::string projIpDir = projName.toStdString() + ".IPs";
+    dir = baseDir / projIpDir / "simulation" / meta.vendor / meta.library /
+          meta.name / meta.version / instance->ModuleName();
+  }
+  return dir;
 }
 
 // This will return the path to this instance's cached json file
