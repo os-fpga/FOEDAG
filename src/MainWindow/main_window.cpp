@@ -1049,8 +1049,7 @@ void MainWindow::createActions() {
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
 
-  showMessageOnExitAction =
-      new QAction(tr("Show message on exit program"), this);
+  showMessageOnExitAction = new QAction(tr("Show message on exit"), this);
   showMessageOnExitAction->setCheckable(true);
   showMessageOnExitAction->setChecked(m_askShowMessageOnExit);
   connect(showMessageOnExitAction, &QAction::toggled, this,
@@ -1713,8 +1712,7 @@ bool MainWindow::confirmExitProgram() {
   if (!lastProjectClosed()) return false;
   if (!m_askShowMessageOnExit) return true;
   return (QMessageBox::question(
-              this, "Exit Program?",
-              tr("Are you sure you want to exit the program?\n"),
+              this, "Exit Program?", tr("Are you sure you want to exit?\n"),
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }
 
