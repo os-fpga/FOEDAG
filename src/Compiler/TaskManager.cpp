@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerDefines.h"
 #include "Main/DialogProvider.h"
+#include "Reports/BitstreamReportManager.h"
 #include "Reports/PackingReportManager.h"
 #include "Reports/PlacementReportManager.h"
 #include "Reports/RoutingReportManager.h"
@@ -219,6 +220,11 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PACKING, std::move(packingReportManager));
+  auto bitstreamReportManager = std::make_shared<BitstreamReportManager>(*this);
+  connect(bitstreamReportManager.get(), &AbstractReportManager::reportCreated,
+          this, &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(
+      BITSTREAM, std::move(bitstreamReportManager));
   initCleanTasks();
 }
 

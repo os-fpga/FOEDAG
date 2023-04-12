@@ -89,6 +89,16 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       task->type() == TaskType::Action)
     return task->isEnable() ? Qt::Checked : Qt::Unchecked;
 
+  if (role == Qt::DisplayRole && index.column() == TIMING_COL) {
+    auto registry = m_taskManager->getReportManagerRegistry().getReportManager(
+        ToTaskId(index));
+    if (registry) {
+      if (registry->availableResources().stat.fmax != 0)
+        return QString::number(registry->availableResources().stat.fmax);
+    }
+    return QVariant{};
+  }
+
   if (role == Qt::DisplayRole && index.column() == TITLE_COL) {
     if (task->type() != TaskType::Settings) return task->title();
     return QVariant();
@@ -144,7 +154,7 @@ QVariant TaskModel::headerData(int section, Qt::Orientation orientation,
       case TITLE_COL:
         return "Task";
       case TIMING_COL:
-        return "Stats";
+        return "Fmax, MHz";
     }
   }
   return QAbstractTableModel::headerData(section, orientation, role);
