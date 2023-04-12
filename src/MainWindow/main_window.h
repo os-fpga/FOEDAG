@@ -87,6 +87,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onRunProjectRequested(const QString& project);
   void startProject(bool simulation);
   void onShowStopMessage(bool showStopCompilationMsg);
+  void onShowMessageOnExit(bool showMessage);
   void onShowLicenses();
   void stopCompilation();
   void forceStopCompilation();
@@ -201,6 +202,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* ipConfiguratorAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
   QAction* stopCompileMessageAction = nullptr;
+  QAction* showMessageOnExitAction = nullptr;
   QAction* simRtlAction = nullptr;
   QAction* simGateAction = nullptr;
   QAction* simPnrAction = nullptr;
@@ -234,6 +236,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QSettings m_settings;
   bool m_progressVisible{false};
   bool m_askStopCompilation{true};
+  bool m_askShowMessageOnExit{true};
   bool m_blockRefereshEn{false};
   QTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
