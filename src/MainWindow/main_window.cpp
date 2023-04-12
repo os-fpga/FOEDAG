@@ -82,6 +82,7 @@ namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
+const QString SHOW_MESSAGE_ON_EXIT_KEY{"showMessageOnExit"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
@@ -110,6 +111,8 @@ MainWindow::MainWindow(Session* session)
   m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
   m_askStopCompilation =
       m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
+  m_askShowMessageOnExit =
+      m_settings.value(SHOW_MESSAGE_ON_EXIT_KEY, true).toBool();
 
   centerWidget(*this);
 
@@ -894,6 +897,7 @@ void MainWindow::createMenus() {
 #endif
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
+  preferencesMenu->addAction(showMessageOnExitAction);
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
@@ -1044,6 +1048,13 @@ void MainWindow::createActions() {
   stopCompileMessageAction->setChecked(m_askStopCompilation);
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
+
+  showMessageOnExitAction =
+      new QAction(tr("Show message on exit program"), this);
+  showMessageOnExitAction->setCheckable(true);
+  showMessageOnExitAction->setChecked(m_askShowMessageOnExit);
+  connect(showMessageOnExitAction, &QAction::toggled, this,
+          &MainWindow::onShowMessageOnExit);
 
   simRtlAction = new QAction(tr("Simulate RTL"), this);
   connect(simRtlAction, &QAction::triggered, this, [this]() {
@@ -1700,6 +1711,7 @@ bool MainWindow::confirmCloseProject() {
 }
 bool MainWindow::confirmExitProgram() {
   if (!lastProjectClosed()) return false;
+  if (!m_askShowMessageOnExit) return true;
   return (QMessageBox::question(
               this, "Exit Program?",
               tr("Are you sure you want to exit the program?\n"),
@@ -1791,6 +1803,11 @@ void MainWindow::startProject(bool simulation) {
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
   m_askStopCompilation = showStopCompilationMsg;
   m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
+}
+
+void MainWindow::onShowMessageOnExit(bool showMessage) {
+  m_askShowMessageOnExit = showMessage;
+  m_settings.setValue(SHOW_MESSAGE_ON_EXIT_KEY, m_askShowMessageOnExit);
 }
 
 void MainWindow::onShowLicenses() {
