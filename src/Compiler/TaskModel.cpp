@@ -94,7 +94,7 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
         ToTaskId(index));
     if (registry) {
       if (registry->availableResources().stat.fmax != 0)
-        return registry->availableResources().stat.fmax;
+        return QString::number(registry->availableResources().stat.fmax);
     }
     return QVariant{};
   }
