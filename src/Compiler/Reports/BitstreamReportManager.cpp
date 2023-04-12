@@ -1,0 +1,76 @@
+/*
+Copyright 2022 The Foedag team
+
+GPL License
+
+Copyright (c) 2022 The Open-Source FPGA Foundation
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include "BitstreamReportManager.h"
+
+#include <QFile>
+#include <QTextStream>
+#include <memory>
+
+#include "CompilerDefines.h"
+#include "DefaultTaskReport.h"
+
+namespace FOEDAG {
+
+BitstreamReportManager::BitstreamReportManager(const TaskManager &taskManager)
+    : AbstractReportManager(taskManager) {}
+
+QStringList BitstreamReportManager::getAvailableReportIds() const { return {}; }
+
+std::unique_ptr<ITaskReport> BitstreamReportManager::createReport(
+    const QString &reportId) {
+  return nullptr;
+}
+
+QString BitstreamReportManager::getTimingLogFileName() const {
+  return QString{};
+}
+
+bool BitstreamReportManager::isStatisticalTimingLine(const QString &line) {
+  return false;
+}
+
+bool BitstreamReportManager::isStatisticalTimingHistogram(const QString &line) {
+  return false;
+}
+
+void BitstreamReportManager::splitTimingData(const QString &timingStr) {}
+
+void BitstreamReportManager::parseLogFile() {
+  auto logFile = createLogFile(QString(BITSTREAM_LOG));
+  if (!logFile) return;
+
+  auto in = QTextStream(logFile.get());
+  if (in.atEnd()) return;
+
+  QString line;
+  while (in.readLineInto(&line)) {
+    parseLogLine(line);
+  }
+  CreateLogicData();
+  CreateBramData();
+  CreateDspData();
+  designStatistics();
+
+  logFile->close();
+
+  setFileParsed(true);
+}
+}  // namespace FOEDAG
