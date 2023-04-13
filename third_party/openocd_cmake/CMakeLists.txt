@@ -38,8 +38,8 @@ else ()
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    # <TODO>
-    #set(rs_openocd_tar "rs_openocd-win.zip")
+    # <TODO> - set rs_openocd_tar to rs_openocd zip file when windows build available
+    set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz")
 else()
     set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz")
 endif()
@@ -57,7 +57,7 @@ endif()
 set(download_path "https://github.com/RapidSilicon/openocd/releases/download/latest/${rs_openocd_tar}")
 if(WIN32)
     # <TODO> - set temp_path to rs_openocd zip file when windows build available
-    # set(temp_path "${CMAKE_CURRENT_SOURCE_DIR}/rs_openocd-win.zip")
+    set(temp_path "${CMAKE_CURRENT_SOURCE_DIR}/openocd-7f5a821-linux86_64.tar.gz")
 else()
     set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/openocd-7f5a821-linux86_64.tar.gz)
 endif()
