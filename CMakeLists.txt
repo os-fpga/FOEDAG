@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 151)
+set(VERSION_PATCH 154)
 
 option(
   WITH_LIBCXX
@@ -107,7 +107,6 @@ add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/DesignQuery)
-add_subdirectory(src/DeviceProgrammer)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -312,7 +311,6 @@ add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
 add_dependencies(designquery nlohmann_json)
-add_dependencies(deviceprogrammer tcl_stubb_build)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)
@@ -376,7 +374,6 @@ target_link_libraries(foedag  PUBLIC
   compiler
   ipgenerate
   designquery
-  deviceprogrammer
   simulation
   foedagutils
   console

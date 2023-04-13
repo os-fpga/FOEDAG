@@ -209,8 +209,12 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
 }
 
 int FileUtils::ExecuteSystemCommand(const std::string& command,
-                                    std::ostream* result) {
+                                    const std::vector<std::string>& args,
+                                    std::ostream* result, int timeout_ms,
+                                    const std::string& workingDir) {
   QProcess* m_process = new QProcess;
+  if (!workingDir.empty())
+    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
 
   QObject::connect(m_process, &QProcess::readyReadStandardOutput,
                    [result, m_process]() {
@@ -224,20 +228,26 @@ int FileUtils::ExecuteSystemCommand(const std::string& command,
                      result->write(data, data.size());
                    });
 
-  QString cmd{command.c_str()};
-  QStringList args = cmd.split(" ");
-  QString program = args.first();
-  args.pop_front();  // remove program
-  m_process->start(program, args);
+  QString program = QString::fromStdString(command);
+  QStringList args_{};
+  for (const auto& ar : args) args_ << QString::fromStdString(ar);
+  m_process->start(program, args_);
 
-  m_process->waitForFinished(-1);
+  bool finished = m_process->waitForFinished(timeout_ms);
+
+  if (!finished) {
+    QString error{"Timeout"};
+    result->write(error.toStdString().c_str(), error.size());
+  }
 
   auto status = m_process->exitStatus();
   auto exitCode = m_process->exitCode();
+  int returnStatus =
+      finished ? (status == QProcess::NormalExit) ? exitCode : -1 : -1;
+
   delete m_process;
   m_process = nullptr;
-
-  return (status == QProcess::NormalExit) ? exitCode : -1;
+  return returnStatus;
 }
 
 time_t FileUtils::Mtime(const std::filesystem::path& path) {
@@ -305,23 +315,6 @@ bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
   std::error_code ec;
   std::filesystem::remove_all(file, ec);
   return ec.value() == 0;
-}
-
-std::filesystem::path FileUtils::findFile(
-    const std::filesystem::path& filePath,
-    const std::filesystem::path& defaultDir) {
-  if (std::filesystem::is_regular_file(
-          filePath)) {  // check if it is already a valid file path
-    return std::filesystem::absolute(filePath);
-  } else {
-    std::filesystem::path file_abs_path = defaultDir / filePath;
-    if (std::filesystem::is_regular_file(
-            file_abs_path)) {  // check if the file exists in default directory
-      return std::filesystem::absolute(file_abs_path);
-    } else {
-      return "";
-    }
-  }
 }
 
 }  // namespace FOEDAG

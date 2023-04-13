@@ -67,6 +67,7 @@ set (SRC_CPP_LIST
   Reports/TaskReportManagerRegistry.cpp
   Reports/SynthesisReportManager.cpp
   Reports/TimingAnalysisReportManager.cpp
+  Reports/BitstreamReportManager.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -92,6 +93,7 @@ set (SRC_H_INSTALL_LIST
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
   Reports/TimingAnalysisReportManager.h
+  Reports/BitstreamReportManager.h
   TaskGlobal.h
 )
 
@@ -127,6 +129,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(compiler_bin
 	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
-target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate designquery simulation deviceprogrammer)
+target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate designquery simulation)
 set_target_properties(compiler_bin PROPERTIES OUTPUT_NAME compiler_test)
 

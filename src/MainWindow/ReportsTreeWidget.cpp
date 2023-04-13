@@ -27,7 +27,7 @@ ReportsTreeWidget::ReportsTreeWidget(Compiler *compiler,
   for (auto task : m_taskManager.tasks()) {
     auto taskId = m_taskManager.taskId(task);
     auto reportManager = reportManagers.getReportManager(taskId);
-    if (reportManager) {
+    if (reportManager && !reportManager->getAvailableReportIds().isEmpty()) {
       auto taskItem = new QTreeWidgetItem({task->title()});
       for (auto reportId : reportManager->getAvailableReportIds()) {
         auto reportItem = new QTreeWidgetItem({reportId});

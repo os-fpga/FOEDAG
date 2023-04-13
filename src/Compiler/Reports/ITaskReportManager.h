@@ -40,6 +40,42 @@ struct TaskMessage {
   QMap<int, TaskMessage> m_childMessages;
 };
 
+struct Logic {
+  uint clb{};
+  uint lut5{};
+  uint lut6{};
+  uint lut0{};
+  uint dff{};
+  uint latch{};
+  uint fa2Bits{};
+};
+
+struct Bram {
+  uint bram_18k{};
+  uint bram_36k{};
+};
+
+struct DSP {
+  uint dsp_9_10{};
+  uint dsp_18_20{};
+};
+
+struct Statistic {
+  uint wires{};
+  double avgFanout{};
+  double maxFanout{};
+  double avgLogicLvel{};
+  double maxLogicLvel{};
+  double fmax{};
+};
+
+struct Resources {
+  Logic logic{};
+  Bram bram{};
+  DSP dsp{};
+  Statistic stat{};
+};
+
 class ITaskReport;
 
 /* Manager for task reports. It has to be implemented per compilation
@@ -64,6 +100,14 @@ class ITaskReportManager {
   void setSuppressList(const QStringList &newSuppressList) {
     m_suppressList = newSuppressList;
   }
+
+  Resources usedResources() const { return m_usedRes; }
+  Resources availableResources() const { return m_availRes; }
+  void setAvailableResources(const Resources &res) { m_availRes = res; }
+
+ protected:
+  Resources m_usedRes{};
+  Resources m_availRes{};
 
  private:
   QStringList m_suppressList;

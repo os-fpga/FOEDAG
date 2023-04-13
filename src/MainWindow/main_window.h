@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class QAction;
 class QLabel;
 class QProgressBar;
+class QListView;
 
 namespace FOEDAG {
 
@@ -69,6 +70,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void closeProject(bool force = false);
   void openFileSlot();
   void newDesignCreated(const QString& design);
+  void chatGpt(const QString& request, const QString& content);
+  void chatGptStatus(bool status);
   void reloadSettings();
   void updatePRViewButton(int state);
   bool saveActionTriggered();
@@ -84,6 +87,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onRunProjectRequested(const QString& project);
   void startProject(bool simulation);
   void onShowStopMessage(bool showStopCompilationMsg);
+  void onShowMessageOnExit(bool showMessage);
   void onShowLicenses();
   void stopCompilation();
   void forceStopCompilation();
@@ -106,6 +110,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
                                  const QStringList& paramList);
   void handleRemoveIpRequested(const QString& moduleName);
   void handleDeleteIpRequested(const QString& moduleName);
+  void handleSimulationIpRequested(const QString& moduleName);
   void resetIps();
 
  signals:
@@ -197,6 +202,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* ipConfiguratorAction = nullptr;
   QAction* showWelcomePageAction = nullptr;
   QAction* stopCompileMessageAction = nullptr;
+  QAction* showMessageOnExitAction = nullptr;
   QAction* simRtlAction = nullptr;
   QAction* simGateAction = nullptr;
   QAction* simPnrAction = nullptr;
@@ -230,10 +236,13 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QSettings m_settings;
   bool m_progressVisible{false};
   bool m_askStopCompilation{true};
+  bool m_askShowMessageOnExit{true};
   bool m_blockRefereshEn{false};
   QTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
   QVector<QPushButton*> m_saveButtons;
+  QStandardItemModel* m_chatgptModel{nullptr};
+  QListView* m_chatGptListView{nullptr};
 };
 
 }  // namespace FOEDAG

@@ -20,30 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include <qnamespace.h>
-
-#include <memory>
-#include <unordered_map>
-
-#include "ITaskReportManager.h"
+#include <QStyledItemDelegate>
 
 namespace FOEDAG {
 
-class TaskReportManagerRegistry final {
+class ListViewDelegate : public QStyledItemDelegate {
  public:
-  using ReportManagerPtr = std::shared_ptr<ITaskReportManager>;
+  enum datarole { HeaderRole = Qt::UserRole + 100, SubheaderRole };
 
-  // Register given manager under the task type. Retuns false if manager has
-  // been registered before
-  bool registerReportManager(uint type, ReportManagerPtr manager);
-  // Returns report manager the task type.
-  ReportManagerPtr getReportManager(uint type) const;
-  std::vector<uint> ids() const;
+  ListViewDelegate();
+  ~ListViewDelegate();
 
-  void setSuppressList(const QStringList &s);
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const;
 
- private:
-  std::unordered_map<uint, ReportManagerPtr> m_managers;
+  QSize sizeHint(const QStyleOptionViewItem& option,
+                 const QModelIndex& index) const;
+
+  static QSize iconSize;
+  static int padding;
 };
-
 }  // namespace FOEDAG

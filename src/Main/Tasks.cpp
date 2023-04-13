@@ -57,6 +57,7 @@ QLabel* createTitleLabel(const QString& text) {
 }
 
 void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
+  QVector<QTableWidget*> views{};
   for (auto& dataReport : report.getDataReports()) {
     auto dataReportName = dataReport->getName();
     if (!dataReportName.isEmpty())
@@ -69,6 +70,7 @@ void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
       continue;
     }
     auto reportsView = new QTableWidget();
+    reportsView->verticalHeader()->hide();
     // Fill columns
     auto columns = dataReport->getColumns();
     reportsView->setColumnCount(columns.size());
@@ -98,6 +100,19 @@ void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
     reportsView->horizontalHeader()->resizeSections(
         QHeaderView::ResizeToContents);
     reportLayout->addWidget(reportsView);
+    views.push_back(reportsView);
+  }
+  if (reportLayout->count() != 0) {
+    // add spacer item at the end of the layout
+    reportLayout->addStretch(20);
+  }
+  // align first column for all tables
+  int maxWidth{0};
+  for (auto view : views) {
+    maxWidth = std::max(maxWidth, view->columnWidth(0));
+  }
+  for (auto view : views) {
+    view->setColumnWidth(0, maxWidth);
   }
 }
 

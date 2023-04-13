@@ -20,10 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "main_window.h"
 
+#include <QLabel>
+#include <QListView>
 #include <QTextStream>
 #include <QtWidgets>
 #include <fstream>
 
+#include "ChatGptWidget.h"
 #include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
 #include "Compiler/Constraints.h"
@@ -79,6 +82,7 @@ namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
+const QString SHOW_MESSAGE_ON_EXIT_KEY{"showMessageOnExit"};
 constexpr uint RECENT_PROJECT_COUNT{10};
 constexpr uint RECENT_PROJECT_COUNT_WP{5};
 constexpr const char* WELCOME_PAGE_MENU_PROP{"showOnWelcomePage"};
@@ -107,6 +111,8 @@ MainWindow::MainWindow(Session* session)
   m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
   m_askStopCompilation =
       m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
+  m_askShowMessageOnExit =
+      m_settings.value(SHOW_MESSAGE_ON_EXIT_KEY, true).toBool();
 
   centerWidget(*this);
 
@@ -320,6 +326,108 @@ void MainWindow::newDesignCreated(const QString& design) {
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
   simulationMenu->setEnabled(!design.isEmpty());
   updateTaskTable();
+}
+
+void MainWindow::chatGpt(const QString& request, const QString& content) {
+  if (!m_progressVisible) m_progressBar->hide();
+  setStatusAndProgressText("ChatGPT: done");
+  auto reportName = "Chat GPT";
+  const bool reset{request.isEmpty()};
+  auto tabWidget = TextEditorForm::Instance()->GetTabWidget();
+  auto addItem = [this](const QString& request, const QString& content) {
+    QStandardItem* item = new QStandardItem();
+    item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+    item->setData(content, ListViewDelegate::SubheaderRole);
+    if (m_chatgptModel) {
+      m_chatgptModel->insertRow(0, item);
+      item = new QStandardItem();
+      item->setData("User", ListViewDelegate::HeaderRole);
+      item->setData(request, ListViewDelegate::SubheaderRole);
+      m_chatgptModel->insertRow(0, item);
+    }
+  };
+  if (reset) {
+    if (m_chatgptModel) {
+      m_chatgptModel->clear();
+    }
+  }
+  for (int i = 0; i < tabWidget->count(); i++) {
+    if (tabWidget->tabText(i) == reportName) {
+      if (reset) {
+        tabWidget->removeTab(i);
+        return;
+      }
+      tabWidget->setCurrentIndex(i);
+      addItem(request, content);
+      return;
+    }
+  }
+
+  if (reset) return;
+
+  if (m_chatGptListView) {
+    tabWidget->addTab(m_chatGptListView, reportName);
+    tabWidget->setCurrentWidget(m_chatGptListView);
+    addItem(request, content);
+    return;
+  }
+
+  // tab doesn't exist yet
+  m_chatgptModel = new QStandardItemModel();
+
+  m_chatGptListView = new QListView;
+  m_chatGptListView->setItemDelegate(new ListViewDelegate{});
+  m_chatGptListView->setModel(m_chatgptModel);
+  m_chatGptListView->setEditTriggers(
+      QAbstractItemView::EditTrigger::NoEditTriggers);
+  m_chatGptListView->setResizeMode(QListView::ResizeMode::Adjust);
+  m_chatGptListView->setVerticalScrollMode(QListView::ScrollPerPixel);
+  m_chatGptListView->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_chatGptListView, &QListView::customContextMenuRequested, this,
+          [this](const QPoint& pos) {
+            QMenu menu{m_chatGptListView};
+            auto copy = new QAction{"Copy"};
+            connect(copy, &QAction::triggered, m_chatGptListView,
+                    [this, pos]() {
+                      auto index = m_chatGptListView->indexAt(pos);
+                      if (index.isValid()) {
+                        auto data = m_chatGptListView->model()->data(
+                            index, ListViewDelegate::SubheaderRole);
+                        QClipboard* clipboard = QGuiApplication::clipboard();
+                        clipboard->setText(data.toString());
+                      }
+                    });
+            menu.addAction(copy);
+            menu.exec(m_chatGptListView->mapToGlobal(pos));
+          });
+
+  QStandardItem* item = new QStandardItem();
+  item->setData("User", ListViewDelegate::HeaderRole);
+  item->setData(request, ListViewDelegate::SubheaderRole);
+  m_chatgptModel->appendRow(item);
+
+  item = new QStandardItem();
+  item->setData("Chat GPT", ListViewDelegate::HeaderRole);
+  item->setData(content, ListViewDelegate::SubheaderRole);
+  m_chatgptModel->appendRow(item);
+
+  tabWidget->addTab(m_chatGptListView, reportName);
+  tabWidget->setCurrentWidget(m_chatGptListView);
+
+  connect(tabWidget, &TabWidget::resized, this,
+          [this](const QSize& s) { m_chatGptListView->resize(s); });
+}
+
+void MainWindow::chatGptStatus(bool status) {
+  if (status) {
+    m_progressBar->setMaximum(0);
+    m_progressBar->setValue(0);
+    m_progressBar->show();
+    setStatusAndProgressText("ChatGPT: pending response");
+  } else {
+    if (!m_progressVisible) m_progressBar->hide();
+    setStatusAndProgressText("ChatGPT: failed");
+  }
 }
 
 void MainWindow::startStopButtonsState() {
@@ -789,6 +897,7 @@ void MainWindow::createMenus() {
 #endif
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
+  preferencesMenu->addAction(showMessageOnExitAction);
 
   helpMenu->menuAction()->setProperty(WELCOME_PAGE_MENU_PROP,
                                       WelcomePageActionVisibility::FULL);
@@ -940,6 +1049,12 @@ void MainWindow::createActions() {
   connect(stopCompileMessageAction, &QAction::toggled, this,
           &MainWindow::onShowStopMessage);
 
+  showMessageOnExitAction = new QAction(tr("Show message on exit"), this);
+  showMessageOnExitAction->setCheckable(true);
+  showMessageOnExitAction->setChecked(m_askShowMessageOnExit);
+  connect(showMessageOnExitAction, &QAction::toggled, this,
+          &MainWindow::onShowMessageOnExit);
+
   simRtlAction = new QAction(tr("Simulate RTL"), this);
   connect(simRtlAction, &QAction::triggered, this, [this]() {
     GlobalSession->CmdStack()->push_and_exec(new Command("simulate rtl"));
@@ -1050,6 +1165,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::handleRemoveIpRequested);
   connect(sourcesForm, &SourcesForm::IpDeleteRequested, this,
           &MainWindow::handleDeleteIpRequested);
+  connect(sourcesForm, &SourcesForm::IpSimulationRequested, this,
+          &MainWindow::handleSimulationIpRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -1103,6 +1220,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_compiler->setGuiTclSync(tclCommandIntegration);
   connect(tclCommandIntegration, &TclCommandIntegration::newDesign, this,
           &MainWindow::newDesignCreated);
+  connect(tclCommandIntegration, &TclCommandIntegration::showChatGpt, this,
+          &MainWindow::chatGpt);
+  connect(tclCommandIntegration, &TclCommandIntegration::chatGptStatus, this,
+          &MainWindow::chatGptStatus);
   connect(tclCommandIntegration, &TclCommandIntegration::closeDesign, this,
           [this]() { closeProject(true); });
 
@@ -1459,6 +1580,24 @@ void MainWindow::handleDeleteIpRequested(const QString& moduleName) {
   updateSourceTree();
 }
 
+void MainWindow::handleSimulationIpRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    auto module = moduleName.toStdString();
+    auto [supported, message] = ipGen->IsSimulateIpSupported(module);
+    if (!supported) {
+      QMessageBox::critical(this, "IP Simulation",
+                            QString::fromStdString(message));
+      return;
+    }
+    ipGen->SimulateIp(module);
+  }
+  updateSourceTree();
+}
+
 void MainWindow::resetIps() {
   Compiler* compiler{};
   IPGenerator* ipGen{};
@@ -1571,9 +1710,9 @@ bool MainWindow::confirmCloseProject() {
 }
 bool MainWindow::confirmExitProgram() {
   if (!lastProjectClosed()) return false;
+  if (!m_askShowMessageOnExit) return true;
   return (QMessageBox::question(
-              this, "Exit Program?",
-              tr("Are you sure you want to exit the program?\n"),
+              this, "Exit Program?", tr("Are you sure you want to exit?\n"),
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
 }
 
@@ -1662,6 +1801,11 @@ void MainWindow::startProject(bool simulation) {
 void MainWindow::onShowStopMessage(bool showStopCompilationMsg) {
   m_askStopCompilation = showStopCompilationMsg;
   m_settings.setValue(SHOW_STOP_COMPILATION_MESSAGE_KEY, m_askStopCompilation);
+}
+
+void MainWindow::onShowMessageOnExit(bool showMessage) {
+  m_askShowMessageOnExit = showMessage;
+  m_settings.setValue(SHOW_MESSAGE_ON_EXIT_KEY, m_askShowMessageOnExit);
 }
 
 void MainWindow::onShowLicenses() {

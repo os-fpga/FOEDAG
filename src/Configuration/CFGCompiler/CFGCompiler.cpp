@@ -15,8 +15,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CFGCompiler.h"
 
+#include <filesystem>
+#include <memory>
+
 #include "Compiler/Log.h"
 #include "Compiler/TclInterpreterHandler.h"
+#include "Configuration/CFGCommon/CFGArg_auto.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Programmer/Programmer.h"
 
@@ -30,21 +34,30 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // Each command has different checking rule
   // Set this argument in CFGCompiler
   // return if there is an error
-  bool status = true;
-  cfgcompiler->m_cmdarg.command = "programmer";
+  bool status{true};
+  std::vector<std::string> errors;
+  cfgcompiler->m_cmdarg.command = "program_device";
+  auto compiler = cfgcompiler->GetCompiler();
+
+  cfgcompiler->m_cmdarg.compilerName = compiler->Name();
+  auto arg = std::make_shared<CFGArg_PROGRAM_DEVICE>();
+  status = arg->parse(argc, argv, &errors);
+  cfgcompiler->m_cmdarg.arg = arg;
+  cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
+  cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
   return status;
 }
 
 CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
   m_CFGCompiler = this;
-  set_callback_message_function(Message, ErrorMessage);
+  set_callback_message_function(Message, ErrorMessage,
+                                ExecuteAndMonitorSystemCommand);
 }
 
 Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
 
 bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   bool status = true;
-  // This is for program_device
   if (batchMode) {
     auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -55,7 +68,7 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("programmer", program_device, this, 0);
+    interp->registerCmd("program_device", program_device, this, 0);
   } else {
     auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
@@ -66,9 +79,10 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("programmer", program_device, this, 0);
+    interp->registerCmd("program_device", program_device, this, 0);
   }
-  RegisterCallbackFunction("programmer", programmer_entry);
+
+  RegisterCallbackFunction("program_device", programmer_entry);
   return status;
 }
 
@@ -103,11 +117,16 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   return TCL_OK;
 }
 
-void CFGCompiler::Message(const std::string& message) {
+void CFGCompiler::Message(const std::string& message, const bool raw) {
   if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
-    m_CFGCompiler->GetCompiler()->Message(message);
+    m_CFGCompiler->GetCompiler()->Message(message, "", raw);
   } else {
-    printf("Info : %s\n", message.c_str());
+    if (raw) {
+      printf("%s", message.c_str());
+    } else {
+      printf("INFO : %s\n", message.c_str());
+    }
+    fflush(stdout);
   }
 }
 
@@ -115,7 +134,20 @@ void CFGCompiler::ErrorMessage(const std::string& message, bool append) {
   if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
     m_CFGCompiler->GetCompiler()->ErrorMessage(message, append);
   } else {
-    printf("Error: %s\n", message.c_str());
+    printf("ERROR: %s\n", message.c_str());
+    fflush(stdout);
+  }
+}
+
+int CFGCompiler::ExecuteAndMonitorSystemCommand(const std::string& command,
+                                                const std::string logFile,
+                                                bool appendLog) {
+  if (m_CFGCompiler != nullptr && m_CFGCompiler->GetCompiler() != nullptr) {
+    return m_CFGCompiler->GetCompiler()->ExecuteAndMonitorSystemCommand(
+        command, logFile, appendLog);
+  } else {
+    std::string output = "";
+    return CFG_execute_cmd(command, output);
   }
 }
 

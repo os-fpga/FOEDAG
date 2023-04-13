@@ -2,13 +2,25 @@
 #define TEXT_EDITOR_FORM_H
 
 #include <QFileSystemWatcher>
+#include <QResizeEvent>
 #include <QTabWidget>
-#include <QWidget>
 
 #include "editor.h"
 #include "search_dialog.h"
 
 namespace FOEDAG {
+
+class TabWidget : public QTabWidget {
+  Q_OBJECT
+ public:
+  explicit TabWidget(QWidget *parent = nullptr);
+
+ signals:
+  void resized(const QSize &newSize);
+
+ protected:
+  void resizeEvent(QResizeEvent *event) override;
+};
 
 class TextEditorForm : public QWidget {
   Q_OBJECT
@@ -21,7 +33,7 @@ class TextEditorForm : public QWidget {
   int OpenFileWithLine(const QString &strFileName, int line, bool error = true);
   int OpenFileWithSelection(const QString &strFileName, int lineFrom,
                             int lineTo);
-  QTabWidget *GetTabWidget() { return m_tab_editor; }
+  TabWidget *GetTabWidget() { return m_tab_editor; }
   bool TabCloseRequested(int index);
 
  signals:
@@ -45,7 +57,7 @@ class TextEditorForm : public QWidget {
   void fileModifiedOnDisk(const QString &path);
 
  private:
-  QTabWidget *m_tab_editor;
+  TabWidget *m_tab_editor;
   QMap<QString, QPair<int, Editor *>> m_map_file_tabIndex_editor;
 
   SearchDialog *m_searchDialog;

@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/DesignFileWatcher.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
+#include "Utils/StringUtils.h"
 
 using namespace FOEDAG;
 extern FOEDAG::Session* GlobalSession;
@@ -483,14 +484,18 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
           }
         }
 
-        std::string command =
-            pythonPath.string() + " " + executable.string() + " --json " +
-            FileUtils::GetFullPath(jsonFile).string() + " --json-template";
+        StringVector args{executable.string(), "--json",
+                          FileUtils::GetFullPath(jsonFile).string(),
+                          "--json-template"};
         std::ostringstream help;
-        auto exitStatus = FileUtils::ExecuteSystemCommand(command, &help);
+        auto exitStatus =
+            FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help);
         if (exitStatus != 0) {
-          qWarning() << "Command failed: " << QString::fromStdString(command)
-                     << " with exit status " << exitStatus;
+          qWarning()
+              << QString{"Command failed: %1 %2 with exit status %3"}.arg(
+                     QString::fromStdString(pythonPath.string()),
+                     QString::fromStdString(StringUtils::join(args, " ")),
+                     QString::number(exitStatus));
           ok = false;
           return {};
         }
@@ -618,7 +623,7 @@ void IpConfigWidget::Generate(bool addToProject) {
   for (QObject* obj : settingsObjs) {
     // Collect parameters of fields that haven't been disabled by dipendencies
     QWidget* widget = qobject_cast<QWidget*>(obj);
-    if (widget && widget->isEnabled()) {
+    if (widget) {
       // Typically widgetFactory widgets can have their value introspected
       // with ->property("tclArg") however the widget factory stores those
       // values on change and some fields like comboboxes don't register a

@@ -41,8 +41,7 @@ bool WorkerThread::start() {
   bool result = true;
   m_compiler->start();
   QEventLoop* eventLoop{nullptr};
-  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
-                             m_compiler->GetSession()->CmdLine()->WithQml();
+  const bool processEvents = isGui();
   if (processEvents) eventLoop = new QEventLoop;
   m_thread = new std::thread([&, eventLoop] {
     result = m_compiler->Compile(m_action);
@@ -62,4 +61,10 @@ bool WorkerThread::stop() {
   delete m_thread;
   m_thread = nullptr;
   return true;
+}
+
+bool WorkerThread::isGui() const {
+  const bool processEvents = m_compiler->GetSession()->CmdLine()->WithQt() ||
+                             m_compiler->GetSession()->CmdLine()->WithQml();
+  return processEvents;
 }

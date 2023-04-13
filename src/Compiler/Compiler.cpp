@@ -182,6 +182,9 @@ void Compiler::Help(std::ostream* out) {
             "Generates all IP instances set by "
             "ip_configure. -modules limits which IPs are generated."
          << std::endl;
+  (*out) << "   simulate_ip  <module name> : Simulate IP with module name "
+            "<module name>"
+         << std::endl;
   (*out)
       << "   synthesize <optimization> ?clean? : Optional optimization (area, "
          "delay, mixed, none)"
@@ -223,6 +226,20 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
             "xcelium"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
+  (*out) << "   chatgpt <command> \"<message>\" ?-c <path>?: Send message to "
+            "ChatGPT"
+         << std::endl;
+  (*out)
+      << "                    <command> : Support two commands: send and reset"
+      << std::endl;
+  (*out) << "                         send : Send message" << std::endl;
+  (*out) << "                        reset : Reset history" << std::endl;
+  (*out) << "                    -c <path> : Specify ini file path with API "
+            "key. The key needs to be set only once for a session"
+         << std::endl;
+  (*out) << "                                [OpenAI]" << std::endl;
+  (*out) << "                                API_KEY: <api key>" << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
@@ -239,6 +256,7 @@ Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
   IPCatalog* catalog = new IPCatalog();
   m_IPGenerator = new IPGenerator(catalog, this);
   m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
+  m_name = "dummy";
 }
 
 void Compiler::SetTclInterpreterHandler(
@@ -265,20 +283,28 @@ std::string Compiler::GetMessagePrefix() const {
 }
 
 void Compiler::Message(const std::string& message,
-                       const std::string& messagePrefix) const {
+                       const std::string& messagePrefix, bool raw) const {
   if (m_out) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_out) << "INFO: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_out) << prefix << message;
+    } else {
+      (*m_out) << "INFO: " << prefix << message << std::endl;
+    }
   }
 }
 
 void Compiler::ErrorMessage(const std::string& message, bool append,
-                            const std::string& messagePrefix) const {
+                            const std::string& messagePrefix, bool raw) const {
   if (m_err) {
     const std::string prefix =
         messagePrefix.empty() ? GetMessagePrefix() : messagePrefix;
-    (*m_err) << "ERROR: " << prefix << message << std::endl;
+    if (raw) {
+      (*m_err) << prefix << message;
+    } else {
+      (*m_err) << "ERROR: " << prefix << message << std::endl;
+    }
   }
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
@@ -440,16 +466,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   if (m_DesignQuery == nullptr) {
     m_DesignQuery = new DesignQuery(this);
   }
-  if (m_deviceProgrammer == nullptr) {
-    m_deviceProgrammer = new DeviceProgrammer(this);
-  }
   if (m_simulator == nullptr) {
     m_simulator = new Simulator(m_interp, this, m_out, m_tclInterpreterHandler);
   }
   m_simulator->RegisterCommands(m_interp);
   m_IPGenerator->RegisterCommands(interp, batchMode);
   m_DesignQuery->RegisterCommands(interp, batchMode);
-  m_deviceProgrammer->RegisterCommands(interp, batchMode);
   if (m_constraints == nullptr) {
     SetConstraints(new Constraints{this});
   }
@@ -457,6 +479,39 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     SetConfiguration(new CFGCompiler(this));
     GetConfiguration()->RegisterCommands(interp, batchMode);
   }
+
+  auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
+                    const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    auto args = StringUtils::FromArgs(argc, argv);
+    if (args.size() >= 2) {
+      if (args.size() > 4) {
+        if (args[3] == "-c") compiler->chatgptConfig(args[4]);
+      }
+      if (args[1] == "send") {
+        WorkerThread* wthread =
+            new WorkerThread(args[2], Action::IPGen, compiler);
+        auto fn = [compiler](const std::string& str) -> bool {
+          return compiler->chatGpt(str);
+        };
+        auto exitSt = wthread->Start(fn, args[2]);
+        return exitSt ? TCL_OK : TCL_ERROR;
+      } else if (args[1] == "reset") {
+        WorkerThread* wthread =
+            new WorkerThread("reset", Action::IPGen, compiler);
+        auto fn = [compiler](const std::string&) -> bool {
+          return compiler->chatGpt({});
+        };
+        auto exitSt = wthread->Start(fn, std::string{});
+        return exitSt ? TCL_OK : TCL_ERROR;
+      }
+      compiler->ErrorMessage("Wrong arguments");
+      return TCL_ERROR;
+    }
+    compiler->ErrorMessage("Wrong number of arguments");
+    return TCL_ERROR;
+  };
+  interp->registerCmd("chatgpt", chatgpt, this, nullptr);
 
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
@@ -1749,6 +1804,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("wave_refresh", wave_refresh, this, nullptr);
 
+  auto diagnostic = [](void* clientData, Tcl_Interp* interp, int argc,
+                       const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    for (int i = 1; i < argc; i++) {
+      const std::string arg{argv[i]};
+      if (arg == "packer") {
+        compiler->PackOpt(Compiler::PackingOpt::Debug);
+      }
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("diagnostic", diagnostic, this, nullptr);
+
   return true;
 }
 
@@ -2237,8 +2305,6 @@ bool Compiler::RunCompileTask(Action action) {
       return GetSimulator()->Simulate(
           Simulator::SimulationType::BitstreamBackDoor,
           GetSimulator()->GetSimulatorType(), m_waveformFile);
-    case Action::ProgramDevice:
-      return ProgramDevice();
     case Action::Configuration:
       return GetConfiguration()->Configure();
     default:
@@ -2485,30 +2551,114 @@ bool Compiler::GenerateBitstream() {
   return true;
 }
 
-bool Compiler::ProgramDevice() {
-  using namespace std::literals;
-  const std::string prefix{"PDV: "};
-  std::string projectName{"noname"};
-  std::string activeTargetDevice = m_projManager->getTargetDevice();
-  if (m_projManager->HasDesign()) {
-    projectName = m_projManager->projectName();
+bool Compiler::chatGpt(const std::string& message) {
+  emit m_tclCmdIntegration->chatGptStatus(true);
+  bool result{true};
+  if (message.empty()) {
+    result = resetChatGpt();
+  } else {
+    result = sendChatGpt(message);
   }
-  constexpr int step{10};
-  constexpr int totalProgress{100};
-  for (int i = 0; i <= totalProgress; i = i + step) {
-    std::stringstream outStr;
-    outStr << std::setw(3) << i << "% [";
-    std::string s1(i / 10, '=');
-    outStr << s1 << ">" << std::setw(step + 1 - i / (step)) << "]";
-    outStr << " just for test";
-    Message(outStr.str(), prefix);
-    std::this_thread::sleep_for(100ms);
-  };
-  Message(projectName + " " + activeTargetDevice + " " +
-              m_deviceProgrammer->GetBitstreamFilename().string() +
-              " Bitstream is programmed",
-          prefix);
+  if (!result) emit m_tclCmdIntegration->chatGptStatus(false);
+  return result;
+}
+
+bool Compiler::sendChatGpt(const std::string& message) {
+  auto path = GlobalSession->Context()->DataPath();
+  path = path / ".." / "envs" / "chatGPT" / "bin";
+  path = path / "python";
+  std::filesystem::path pythonPath{path};
+  if (pythonPath.empty()) {
+    ErrorMessage(
+        "Unable to find python interpreter in local "
+        "environment.\n");
+    return false;
+  }
+
+  const std::string file{"chatgpt"};
+
+  std::string command = pythonPath.string();
+  std::vector<std::string> args;
+  args.push_back("-m");
+  args.push_back("chatgpt_raptor");
+  args.push_back("-o");
+  args.push_back(file);
+  args.push_back("-p");
+  args.push_back("\'" + message + "\'");
+  if (!m_chatgptConfigFile.empty()) {
+    args.push_back("-c");
+    args.push_back(m_chatgptConfigFile);
+  }
+  std::ostringstream help;
+
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
+      0) {
+    ErrorMessage("ChatGPT, " + help.str(), false);
+    return false;
+  }
+
+  std::ifstream stream{file};
+  if (!stream.good()) {
+    ErrorMessage("Can't open file: " + file);
+    return false;
+  }
+  std::stringstream buffer;
+  buffer << stream.rdbuf();
+  const std::string& buf = buffer.str();
+  stream.close();
+
+  json json{};
+  try {
+    json.update(json::parse(buf));
+  } catch (json::parse_error& e) {
+    // output exception information
+    std::cerr << "Json Error: " << e.what() << std::endl;
+    return false;
+  }
+
+  std::string responce = json["message"];
+
+  // read content here from json
+  m_tclCmdIntegration->TclshowChatGpt(message, responce);
+
   return true;
+}
+
+bool Compiler::resetChatGpt() {
+  auto path = GlobalSession->Context()->DataPath();
+  path = path / ".." / "envs" / "chatGPT" / "bin";
+  path = path / "python";
+  std::filesystem::path pythonPath{path};
+  if (pythonPath.empty()) {
+    ErrorMessage(
+        "Unable to find python interpreter in local "
+        "environment.\n");
+    return false;
+  }
+
+  std::string command = pythonPath.string();
+  std::vector<std::string> args;
+  args.push_back("-m");
+  args.push_back("chatgpt_raptor");
+  args.push_back("-n");
+  if (!m_chatgptConfigFile.empty()) {
+    args.push_back("-c");
+    args.push_back(m_chatgptConfigFile);
+  }
+  std::ostringstream help;
+
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
+      0) {
+    ErrorMessage("ChatGPT, " + help.str(), false);
+    return false;
+  }
+
+  m_tclCmdIntegration->TclshowChatGpt({}, {});
+  return true;
+}
+
+void Compiler::chatgptConfig(const std::string& file) {
+  m_chatgptConfigFile = file;
 }
 
 bool Compiler::VerifyTargetDevice() const {

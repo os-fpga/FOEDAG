@@ -10,10 +10,10 @@
 
 namespace {
 // report names
-static constexpr const char *CIRCUIT_REPORT_NAME{
-    "Packing - Circuit Statistics Report"};
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Packing - Report Resource Utilization"};
+    "Packing - Utilization Report"};
+static constexpr const char *DESIGN_STAT_REPORT_NAME{
+    "Packing - Design statistics"};
 
 // Messages
 static const QRegExp VPR_ROUTING_OPT{
@@ -31,12 +31,18 @@ namespace FOEDAG {
 
 PackingReportManager::PackingReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {
-  m_circuitColumns = {ReportColumn{"Block type"},
-                      ReportColumn{"Number of blocks", Qt::AlignCenter}};
+  m_circuitColumns = {ReportColumn{"Logic"},
+                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Available", Qt::AlignCenter},
+                      ReportColumn{"%", Qt::AlignCenter}};
+  m_bramColumns = m_circuitColumns;
+  m_bramColumns[0].m_name = "Block RAM";
+  m_dspColumns = m_circuitColumns;
+  m_dspColumns[0].m_name = "DSP";
 }
 
 QStringList PackingReportManager::getAvailableReportIds() const {
-  return {CIRCUIT_REPORT_NAME, RESOURCE_REPORT_NAME};
+  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME};
 }
 
 std::unique_ptr<ITaskReport> PackingReportManager::createReport(
@@ -45,12 +51,16 @@ std::unique_ptr<ITaskReport> PackingReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
 
-  if (reportId == QString(RESOURCE_REPORT_NAME)) {
+  if (reportId == QString(DESIGN_STAT_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
         m_resourceColumns, m_resourceData, QString{}));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
         m_circuitColumns, m_circuitData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -81,6 +91,8 @@ void PackingReportManager::parseLogFile() {
   m_messages.clear();
   m_resourceData.clear();
   m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
 
   auto logFile = createLogFile(QString(PACKING_LOG));
   if (!logFile) return;
@@ -91,6 +103,7 @@ void PackingReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
+    parseLogLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
     else if (VPR_ROUTING_OPT.indexIn(line) != -1)
@@ -103,8 +116,6 @@ void PackingReportManager::parseLogFile() {
           parseErrorWarningSection(in, lineNr, BLOCK_GRAPH_BUILD_SECTION, {});
     else if (line.startsWith(LOAD_CIRCUIT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_CIRCUIT_SECTION, {});
-    else if (FIND_CIRCUIT_STAT.indexIn(line) != -1)
-      m_circuitData = parseCircuitStats(in, lineNr);
     else if (line.endsWith(BUILD_TIM_GRAPH))
       m_messages.insert(
           lineNr,
@@ -116,11 +127,13 @@ void PackingReportManager::parseLogFile() {
       lineNr =
           parseErrorWarningSection(in, lineNr, PACKING_SECTION,
                                    {QRegExp("Final Clustering Statistics")});
-    else if (FIND_RESOURCES.indexIn(line) != -1)
-      parseResourceUsage(in, lineNr);
 
     ++lineNr;
   }
+  m_circuitData = CreateLogicData();
+  m_bramData = CreateBramData();
+  m_dspData = CreateDspData();
+  designStatistics();
 
   logFile->close();
 

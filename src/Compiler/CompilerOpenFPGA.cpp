@@ -186,6 +186,9 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   ipgenerate ?clean?         : Generates all IP instances set by "
             "ip_configure"
          << std::endl;
+  (*out) << "   simulate_ip  <module name> : Simulate IP with module name "
+            "<module name>"
+         << std::endl;
   (*out) << "   verific_parser <on/off>    : Turns on/off Verific parser"
          << std::endl;
   (*out) << "   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : "
@@ -253,6 +256,20 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "                      <phase> : compilation, elaboration, "
             "simulation, extra_options"
          << std::endl;
+  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
+  (*out) << "   chatgpt <command> \"<message>\" ?-c <path>?: Send message to "
+            "ChatGPT"
+         << std::endl;
+  (*out)
+      << "                    <command> : Support two commands: send and reset"
+      << std::endl;
+  (*out) << "                         send : Send message" << std::endl;
+  (*out) << "                        reset : Reset history" << std::endl;
+  (*out) << "                    -c <path> : Specify ini file path with API "
+            "key. The key needs to be set only once for a session"
+         << std::endl;
+  (*out) << "                                [OpenAI]" << std::endl;
+  (*out) << "                                API_KEY: <api key>" << std::endl;
   (*out) << "----------------------------------" << std::endl;
 }
 
@@ -1699,7 +1716,9 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
 
 std::string CompilerOpenFPGA::BaseVprCommand() {
   std::string device_size = "";
-  if (!m_deviceSize.empty()) {
+  if (PackOpt() == Compiler::PackingOpt::Debug) {
+    device_size = " --device auto";
+  } else if (!m_deviceSize.empty()) {
     device_size = " --device " + m_deviceSize;
   }
   std::string netlistFile;
@@ -1858,6 +1877,9 @@ bool CompilerOpenFPGA::Packing() {
   }
   ofssdc.close();
 
+  auto prevOpt = PackOpt();
+  PackOpt(PackingOpt::None);
+
   std::string command = BaseVprCommand() + " --pack";
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_pack.cmd"))
@@ -1869,15 +1891,28 @@ bool CompilerOpenFPGA::Packing() {
           GetNetlistPath(),
           (std::filesystem::path(ProjManager()->projectPath()) /
            std::string(ProjManager()->projectName() + "_post_synth.net"))
-              .string())) {
+              .string()) &&
+      (prevOpt != PackingOpt::Debug)) {
     m_state = State::Packed;
     Message("Design " + ProjManager()->projectName() + " packing reused");
     return true;
   }
 
+  PackOpt(prevOpt);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
+    if (PackOpt() == PackingOpt::Debug) {
+      std::string command = BaseVprCommand() + " --pack";
+      std::ofstream ofs(
+          (std::filesystem::path(ProjManager()->projectPath()) /
+           std::string(ProjManager()->projectName() + "_pack.cmd"))
+              .string());
+      ofs << command << std::endl;
+      ofs.close();
+
+      ExecuteAndMonitorSystemCommand(command);
+    }
     return false;
   }
   m_state = State::Packed;
@@ -2834,51 +2869,6 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   return true;
 }
 
-bool CompilerOpenFPGA::ProgramDevice() {
-  auto projectName = ProjManager()->projectName();
-  if (!FileUtils::FileExists(m_openOcdExecutablePath)) {
-    ErrorMessage("Cannot find executable: " + m_openOcdExecutablePath.string());
-    return false;
-  }
-
-  auto bitstreamFile = FileUtils::findFile(
-      m_deviceProgrammer->GetBitstreamFilename(), m_bitstreamFileSearchDir);
-  if (bitstreamFile.empty()) {
-    ErrorMessage("Cannot find bitstream file: " +
-                 m_deviceProgrammer->GetBitstreamFilename().string());
-    return false;
-  }
-
-  auto configFile = FileUtils::findFile(m_deviceProgrammer->GetConfigFilename(),
-                                        m_configFileSearchDir);
-  if (configFile.empty()) {
-    ErrorMessage("Cannot find config file: " +
-                 m_deviceProgrammer->GetConfigFilename().string());
-    return false;
-  }
-
-  auto buildCommand = [this](std::string config_file,
-                             std::string bitstream_file,
-                             int pld_id) -> std::string {
-    // command to invoke openocd to program the bitstream
-    // openocd -f gemini.cfg -c "pld load 0 hello.bit"
-    return m_openOcdExecutablePath.string() + " -f " + config_file +
-           " -c \"pld load " + std::to_string(pld_id) + " " + bitstream_file +
-           "\"" + " -c \"exit\"";
-  };
-
-  std::string command =
-      buildCommand(configFile.string(), bitstreamFile.string(),
-                   m_deviceProgrammer->GetPldId());
-  int status = ExecuteAndMonitorSystemCommand(command);
-  if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " bitstream programming failed");
-    return false;
-  }
-  return true;
-}
-
 bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
   bool status = true;
   std::filesystem::path datapath = GetSession()->Context()->DataPath();
@@ -2897,6 +2887,26 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     }
   }
   if (status) reloadSettings();
+  if (m_taskManager) {
+    auto reports = m_taskManager->getReportManagerRegistry().ids();
+    Resources resources{};
+    resources.bram.bram_36k = MaxDeviceBRAMCount();
+    resources.bram.bram_18k = MaxDeviceBRAMCount() * 2;
+    resources.dsp.dsp_9_10 = MaxDeviceDSPCount();
+    resources.dsp.dsp_18_20 = MaxDeviceDSPCount() * 2;
+    resources.logic.dff = MaxDeviceFFCount();
+    resources.logic.latch = MaxDeviceFFCount();
+    resources.logic.clb = MaxDeviceLUTCount() / 8;
+    resources.logic.fa2Bits = MaxDeviceLUTCount() / 8;
+    resources.logic.lut6 = MaxDeviceLUTCount();
+    resources.logic.lut5 = MaxDeviceLUTCount() * 2;
+    resources.logic.lut0 = MaxDeviceLUTCount() * 2;
+    for (auto id : reports) {
+      m_taskManager->getReportManagerRegistry()
+          .getReportManager(id)
+          ->setAvailableResources(resources);
+    }
+  }
   return status;
 }
 

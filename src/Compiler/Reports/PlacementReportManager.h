@@ -44,6 +44,13 @@ class PlacementReportManager final : public AbstractReportManager {
 
   SectionKeys m_createDeviceKeys;
   SectionKeys m_placementKeys;
+
+  IDataReport::ColumnValues m_circuitColumns;
+  IDataReport::ColumnValues m_bramColumns;
+  IDataReport::ColumnValues m_dspColumns;
+  IDataReport::TableData m_circuitData;
+  IDataReport::TableData m_bramData;
+  IDataReport::TableData m_dspData;
 };
 
 }  // namespace FOEDAG

@@ -57,6 +57,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   // Parses in stream line by line till empty one occurs and creates table data.
   // Fills parsed data into 'm_resourceColumns' and 'm_resourceData'
   void parseResourceUsage(QTextStream &in, int &lineNr);
+  void designStatistics();
 
   // Creates and opens log file instance. returns nullptr if file doesn't exist.
   std::unique_ptr<QFile> createLogFile(const QString &fileName) const;
@@ -67,6 +68,10 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
                                bool stopEmptyLine = false);
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
+  IDataReport::TableData CreateLogicData();
+  IDataReport::TableData CreateBramData() const;
+  IDataReport::TableData CreateDspData() const;
+  void parseLogLine(const QString &line);
 
   using MessagesLines = std::map<int, QString>;
   // Creates parent item for either warnings or messages. Clears msgs
@@ -110,6 +115,9 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
  private:
   bool m_fileParsed{false};
+  const QString SPACE{"     "};
+  uint m_dffr{0};
+  uint m_dffre{0};
 };
 
 }  // namespace FOEDAG

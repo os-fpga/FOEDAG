@@ -23,16 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "AbstractReportManager.h"
 
 namespace FOEDAG {
-class Compiler;
 
-/* Report manager for timing analysis. It works with 'timing_analysis.rpt' log
- * file. As there are two timing engines supported: Tatum (Default) and OpenSTA,
- * this manager is responsible for recognizing messages of both.
- */
-class TimingAnalysisReportManager final : public AbstractReportManager {
+class BitstreamReportManager final : public AbstractReportManager {
  public:
-  TimingAnalysisReportManager(const TaskManager &taskManager,
-                              Compiler *compiler);
+  BitstreamReportManager(const TaskManager &taskManager);
 
  private:
   QStringList getAvailableReportIds() const override;
@@ -42,22 +36,6 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
   void parseLogFile() override;
-
-  void parseOpenSTALog();
-  IDataReport::TableData parseOpenSTATimingTable(QTextStream &in,
-                                                 int &lineNr) const;
-
-  SectionKeys m_createDeviceKeys;
-  IDataReport::ColumnValues m_openSTATimingColumns;
-
-  IDataReport::ColumnValues m_circuitColumns;
-  IDataReport::ColumnValues m_bramColumns;
-  IDataReport::ColumnValues m_dspColumns;
-  IDataReport::TableData m_circuitData;
-  IDataReport::TableData m_bramData;
-  IDataReport::TableData m_dspData;
-
-  Compiler *m_compiler;
 };
 
 }  // namespace FOEDAG

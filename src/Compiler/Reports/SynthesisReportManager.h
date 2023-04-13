@@ -56,6 +56,13 @@ class SynthesisReportManager final : public AbstractReportManager {
   void fillLevels(const QString &line, IDataReport::TableData &stats) const;
   // Parses input stream and gets all statistics with their values
   IDataReport::TableData getStatistics(const QString &statsStr) const;
+
+  IDataReport::ColumnValues m_circuitColumns;
+  IDataReport::ColumnValues m_bramColumns;
+  IDataReport::ColumnValues m_dspColumns;
+  IDataReport::TableData m_circuitData;
+  IDataReport::TableData m_bramData;
+  IDataReport::TableData m_dspData;
 };
 
 }  // namespace FOEDAG

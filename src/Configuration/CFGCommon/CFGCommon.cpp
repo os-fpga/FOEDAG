@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static cfg_callback_post_msg_function m_msg_function = nullptr;
 static cfg_callback_post_err_function m_err_function = nullptr;
+static cfg_callback_execute_command m_execute_cmd_function = nullptr;
 
 std::string CFG_print(const char* format_string, ...) {
   char* buf = nullptr;
@@ -100,34 +101,36 @@ float CFG_time_elapse(CFG_TIME begin) {
 }
 
 void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err) {
+                                   cfg_callback_post_err_function err,
+                                   cfg_callback_execute_command exec) {
   CFG_ASSERT(msg != nullptr);
   CFG_ASSERT(err != nullptr);
+  CFG_ASSERT(exec != nullptr);
   m_msg_function = msg;
   m_err_function = err;
+  m_execute_cmd_function = exec;
 }
 
-void CFG_post_msg(const std::string& message) {
+void CFG_post_msg(const std::string& message, const std::string pre_msg,
+                  const bool new_line) {
   if (m_msg_function != nullptr) {
-    m_msg_function(message);
+    m_msg_function(message, pre_msg.size() == 0 && !new_line);
   } else {
-    printf("Info : %s\n", message.c_str());
+    std::string termination = new_line ? "\n" : "";
+    printf("%s%s%s", pre_msg.c_str(), message.c_str(), termination.c_str());
+    fflush(stdout);
   }
 }
 
 void CFG_post_warning(const std::string& message) {
-  if (m_msg_function != nullptr) {
-    m_msg_function(message);
-  } else {
-    printf("Warn : %s\n", message.c_str());
-  }
+  CFG_post_msg(message, "WARNING: ");
 }
 
 void CFG_post_err(const std::string& message, bool append) {
   if (m_err_function != nullptr) {
     m_err_function(message, append);
   } else {
-    printf("Error: %s\n", message.c_str());
+    printf("ERROR: %s\n", message.c_str());
   }
 }
 
@@ -312,4 +315,70 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
 int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
                            const uint32_t element) {
   return CFG_find_element_in_vector(vector, element);
+}
+
+int CFG_compiler_execute_cmd(const std::string& command,
+                             const std::string logFile, bool appendLog) {
+  if (m_execute_cmd_function != nullptr) {
+    return m_execute_cmd_function(command, logFile, appendLog);
+  } else {
+    std::string output = "";
+    return CFG_execute_cmd(command, output);
+  }
+}
+
+// Summary: This function executes a command and captures its output. It takes
+//          a string `cmd` representing the command to be excuted and a
+//          reference string `output` hold the output of the command.
+// Return:  The exit code of the command is returned to indicate whether the
+//          command is executed successfully or not.
+// Note: 1) This function throw runtime exceptions. Make sure to catch them.
+//       2) This function is used by Programmer_cmd.cpp, it is a
+//          standalone programmer commandline tool.
+int CFG_execute_cmd(const std::string& cmd, std::string& output) {
+  int exitcode = 255;
+  char buffer[513];
+  std::string temp_string = "";
+  output = "";
+#if (defined(_MSC_VER) || defined(__MINGW32__))
+#define popen _popen
+#define pclose _pclose
+#define WEXITSTATUS
+#endif
+  CFG_POST_MSG("Command: %s", cmd.c_str());
+  std::string command = CFG_print("%s 2>&1", cmd.c_str());
+  FILE* pipe = popen(command.c_str(), "r");
+  if (pipe == nullptr) {
+    throw std::runtime_error("popen() failed!");
+  }
+  try {
+    memset(buffer, 0, sizeof(buffer));
+    while (fgets(buffer, sizeof(buffer) - 1, pipe) != nullptr) {
+      temp_string = std::string(buffer);
+      CFG_post_msg(temp_string, "", false);
+      output += temp_string;
+    }
+  } catch (...) {
+    pclose(pipe);
+    throw;
+  }
+  int status = pclose(pipe);
+  exitcode = WEXITSTATUS(status);
+  return exitcode;
+}
+
+std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
+                                    const std::filesystem::path& defaultDir) {
+  if (std::filesystem::is_regular_file(
+          filePath)) {  // check if it is already a valid file path
+    return std::filesystem::absolute(filePath);
+  } else {
+    std::filesystem::path file_abs_path = defaultDir / filePath;
+    if (std::filesystem::is_regular_file(
+            file_abs_path)) {  // check if the file exists in default directory
+      return std::filesystem::absolute(file_abs_path);
+    } else {
+      return "";
+    }
+  }
 }

@@ -18,12 +18,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef WORKER_THREAD_H
+#define WORKER_THREAD_H
 
+#include <QEventLoop>
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <vector>
 
 #include "Command/Command.h"
@@ -31,9 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Compiler.h"
 #include "Main/CommandLine.h"
 #include "Tcl/TclInterpreter.h"
-
-#ifndef WORKER_THREAD_H
-#define WORKER_THREAD_H
 
 namespace FOEDAG {
 
@@ -47,6 +48,44 @@ class WorkerThread {
 
   bool start();
   bool stop();
+
+  /*!
+   * \brief Start
+   * Run any callback in thread
+   * \param fn - callback function
+   * \param args - callback arguments
+   * \return value from the callback
+   */
+  template <typename Func, typename... Args>
+  bool Start(const Func& fn, Args&&... args) {
+    bool result = true;
+    m_compiler->start();
+    QEventLoop* eventLoop{nullptr};
+    const bool processEvents = isGui();
+    if (processEvents) eventLoop = new QEventLoop;
+    m_thread =
+        // pack args as tuple for capturing
+        new std::thread([&, args = std::make_tuple(std::forward<Args>(args)...),
+                         eventLoop, this]() mutable {
+          // pass arguments to callback
+          std::apply(
+              [&result, this, fn](auto&&... args) {
+                result = fn(args...);
+                m_compiler->finish();
+              },
+              std::move(args));
+          if (eventLoop) eventLoop->quit();
+        });
+    if (eventLoop)
+      eventLoop->exec();
+    else
+      m_thread->join();  // batch mode
+    delete eventLoop;
+    return result;
+  }
+
+ private:
+  bool isGui() const;
 
  private:
   std::string m_threadName;
