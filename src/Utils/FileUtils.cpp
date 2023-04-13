@@ -40,6 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Utils/StringUtils.h"
 
+std::vector<QProcess*> FOEDAG::FileUtils::m_processes{};
+
 namespace FOEDAG {
 
 bool FileUtils::FileExists(const std::filesystem::path& name) {
@@ -208,46 +210,50 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
   return results;
 }
 
-int FileUtils::ExecuteSystemCommand(const std::string& command,
-                                    const std::vector<std::string>& args,
-                                    std::ostream* result, int timeout_ms,
-                                    const std::string& workingDir) {
-  QProcess* m_process = new QProcess;
+Return FileUtils::ExecuteSystemCommand(const std::string& command,
+                                       const std::vector<std::string>& args,
+                                       std::ostream* out, int timeout_ms,
+                                       const std::string& workingDir,
+                                       std::ostream* err) {
+  QProcess process;
   if (!workingDir.empty())
-    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
+    process.setWorkingDirectory(QString::fromStdString(workingDir));
 
-  QObject::connect(m_process, &QProcess::readyReadStandardOutput,
-                   [result, m_process]() {
-                     result->write(m_process->readAllStandardOutput(),
-                                   m_process->bytesAvailable());
-                   });
+  std::ostream* errStream = err ? err : out;
 
-  QObject::connect(m_process, &QProcess::readyReadStandardError,
-                   [result, m_process]() {
-                     QByteArray data = m_process->readAllStandardError();
-                     result->write(data, data.size());
+  QObject::connect(
+      &process, &QProcess::readyReadStandardOutput, [out, &process]() {
+        out->write(process.readAllStandardOutput(), process.bytesAvailable());
+      });
+
+  QObject::connect(&process, &QProcess::readyReadStandardError,
+                   [errStream, &process]() {
+                     QByteArray data = process.readAllStandardError();
+                     errStream->write(data, data.size());
                    });
 
   QString program = QString::fromStdString(command);
   QStringList args_{};
   for (const auto& ar : args) args_ << QString::fromStdString(ar);
-  m_process->start(program, args_);
+  m_processes.push_back(&process);
+  process.start(program, args_);
 
-  bool finished = m_process->waitForFinished(timeout_ms);
+  bool finished = process.waitForFinished(timeout_ms);
+  auto it = std::find(m_processes.begin(), m_processes.end(), &process);
+  if (it != m_processes.end()) m_processes.erase(it);
 
+  std::string message{};
   if (!finished) {
-    QString error{"Timeout"};
-    result->write(error.toStdString().c_str(), error.size());
+    message = process.errorString().toStdString();
+    (*errStream) << message << std::endl;
   }
 
-  auto status = m_process->exitStatus();
-  auto exitCode = m_process->exitCode();
+  auto status = process.exitStatus();
+  auto exitCode = process.exitCode();
   int returnStatus =
       finished ? (status == QProcess::NormalExit) ? exitCode : -1 : -1;
 
-  delete m_process;
-  m_process = nullptr;
-  return returnStatus;
+  return {returnStatus, {message}};
 }
 
 time_t FileUtils::Mtime(const std::filesystem::path& path) {
@@ -303,6 +309,10 @@ void FileUtils::printArgs(int argc, const char* argv[]) {
   std::string res{};
   for (int i = 0; i < argc; i++) res += std::string{argv[i]} + " ";
   qDebug() << res.c_str();
+}
+
+void FileUtils::terminateSystemCommand() {
+  for (auto pr : m_processes) pr->terminate();
 }
 
 bool FileUtils::removeFile(const std::string& file) noexcept {

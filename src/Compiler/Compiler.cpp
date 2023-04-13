@@ -2127,8 +2127,9 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
-  ErrorMessage("Compilation was interrupted by user");
+  ErrorMessage("Interrupted by user");
   if (m_process) m_process->terminate();
+  FileUtils::terminateSystemCommand();
 }
 
 bool Compiler::Analyze() {
@@ -2591,8 +2592,8 @@ bool Compiler::sendChatGpt(const std::string& message) {
   }
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
-      0) {
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000)
+          .code != 0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }
@@ -2647,8 +2648,8 @@ bool Compiler::resetChatGpt() {
   }
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000) !=
-      0) {
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000)
+          .code != 0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
   }

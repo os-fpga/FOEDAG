@@ -238,7 +238,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool m_askStopCompilation{true};
   bool m_askShowMessageOnExit{true};
   bool m_blockRefereshEn{false};
-  QTableView* m_taskView{nullptr};
+  class TaskTableView* m_taskView{nullptr};
   class TaskModel* m_taskModel{nullptr};
   QVector<QPushButton*> m_saveButtons;
   QStandardItemModel* m_chatgptModel{nullptr};

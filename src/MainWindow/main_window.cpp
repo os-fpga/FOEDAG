@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Constraints.h"
 #include "Compiler/TaskManager.h"
 #include "Compiler/TaskModel.h"
+#include "Compiler/TaskTableView.h"
 #include "Console/DummyParser.h"
 #include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
@@ -437,6 +438,7 @@ void MainWindow::startStopButtonsState() {
   startSimAction->setEnabled(startEn);
   // Enable Stop action when there is something to stop
   stopAction->setEnabled(isRunning());
+  if (m_taskView) m_taskView->setViewDisabled(isRunning());
 }
 
 DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,

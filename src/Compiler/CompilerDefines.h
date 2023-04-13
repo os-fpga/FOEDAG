@@ -129,8 +129,8 @@ static constexpr const char *SIM_BITSTREAM_SETTING_KEY{"Simulate Bitstream"};
  * \param taskManager - output parameter to receive pointer to task manager.
  * \return widget with compiler task view
  */
-QTableView *prepareCompilerView(Compiler *compiler,
-                                TaskManager **taskManager = nullptr);
+class TaskTableView *prepareCompilerView(Compiler *compiler,
+                                         TaskManager **taskManager = nullptr);
 
 uint toTaskId(int action, Compiler *const compiler);
 

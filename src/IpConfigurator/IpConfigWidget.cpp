@@ -489,7 +489,8 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
                           "--json-template"};
         std::ostringstream help;
         auto exitStatus =
-            FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help);
+            FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)
+                .code;
         if (exitStatus != 0) {
           qWarning()
               << QString{"Command failed: %1 %2 with exit status %3"}.arg(

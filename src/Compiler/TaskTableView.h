@@ -41,6 +41,7 @@ class TaskTableView : public QTableView {
  public:
   explicit TaskTableView(TaskManager *tManager, QWidget *parent = nullptr);
   void setModel(QAbstractItemModel *model) override;
+  void setViewDisabled(bool disabled);
 
  protected:
   void mousePressEvent(QMouseEvent *event) override;
