@@ -88,7 +88,5 @@ add_custom_target(rs_openocd_extract_config_and_openocd ALL
     WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
     COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${bin_path}
-    COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "No temp dir to remove"
+    COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
 )
-
-
