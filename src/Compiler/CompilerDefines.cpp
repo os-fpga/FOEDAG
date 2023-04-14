@@ -37,8 +37,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern FOEDAG::Session *GlobalSession;
 
-QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
-                                        TaskManager **taskManager) {
+namespace FOEDAG {
+
+TaskTableView *prepareCompilerView(Compiler *compiler,
+                                   TaskManager **taskManager) {
   TaskManager *tManager = new TaskManager(compiler);
   TaskModel *model = new TaskModel{tManager};
   TaskTableView *view = new TaskTableView{tManager};
@@ -80,7 +82,7 @@ QTableView *FOEDAG::prepareCompilerView(Compiler *compiler,
   return view;
 }
 
-uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
+uint toTaskId(int action, Compiler *const compiler) {
   switch (static_cast<Compiler::Action>(action)) {
     case Compiler::Action::Analyze:
       if (compiler->AnalyzeOpt() == Compiler::DesignAnalysisOpt::Clean)
@@ -153,8 +155,7 @@ uint FOEDAG::toTaskId(int action, Compiler *const compiler) {
   return TaskManager::invalid_id;
 }
 
-FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
-                                              bool postSynth) {
+FOEDAG::Design::Language FromFileType(const QString &type, bool postSynth) {
   if (QtUtils::IsEqual(type, "v")) {
     if (postSynth) return Design::Language::VERILOG_NETLIST;
     return Design::Language::VERILOG_2001;
@@ -170,7 +171,7 @@ FOEDAG::Design::Language FOEDAG::FromFileType(const QString &type,
                    : Design::Language::VERILOG_2001;
 }
 
-int FOEDAG::read_sdc(const QString &file) {
+int read_sdc(const QString &file) {
   QString f = file;
   f.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
   int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
@@ -178,8 +179,10 @@ int FOEDAG::read_sdc(const QString &file) {
   return (res == TCL_OK) ? 0 : -1;
 }
 
-bool FOEDAG::target_device(const QString &target) {
+bool target_device(const QString &target) {
   const int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
                            qPrintable(QString("target_device %1").arg(target)));
   return (res == TCL_OK);
 }
+
+}  // namespace FOEDAG

@@ -553,7 +553,8 @@ bool IPGenerator::Generate() {
         std::ostringstream help;
         m_compiler->Message("IP Generate, generating IP " +
                             GetBuildDir(inst).string());
-        if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)) {
+        if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)
+                .code) {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
@@ -603,10 +604,11 @@ std::pair<bool, std::string> IPGenerator::SimulateIpTcl(
 
   std::string command = "make";
   StringVector args{"OUT_DIR=" + artifactsPath.string()};
-  std::ostringstream help;
-  if (FileUtils::ExecuteSystemCommand(command, args, m_compiler->GetOutStream(),
-                                      -1, path.string())) {
-    return {false, "Simulate IP, " + help.str()};
+  if (auto ret = FileUtils::ExecuteSystemCommand(
+          command, args, m_compiler->GetOutStream(), -1, path.string(),
+          m_compiler->GetErrStream());
+      ret.code != 0) {
+    return {false, ret.message};
   }
   return {true, std::string{}};
 }
@@ -616,7 +618,7 @@ void IPGenerator::SimulateIp(const std::string& name) {
   auto resultStr =
       GlobalSession->TclInterp()->evalCmd("simulate_ip " + name, &returnVal);
   if (returnVal != TCL_OK) {
-    qWarning() << "Error: " << QString::fromStdString(resultStr);
+    if (m_compiler) m_compiler->ErrorMessage(resultStr);
   }
 }
 

@@ -114,6 +114,7 @@ class Compiler {
   void SetOutStream(std::ostream* out) { m_out = out; };
   void SetErrStream(std::ostream* err) { m_err = err; };
   std::ostream* GetOutStream() { return m_out; }
+  std::ostream* GetErrStream() { return m_err; }
   void SetTclInterpreterHandler(TclInterpreterHandler* tclInterpreterHandler);
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() const { return m_session; }
