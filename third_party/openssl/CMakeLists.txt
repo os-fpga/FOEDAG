@@ -34,9 +34,7 @@ else()
 add_custom_target(
   openssl_build ALL
   COMMAND echo "**** Start of OpenSSL custom build ***"
-  COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND sh config
-  COMMAND make
+  COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && sh config && make
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${CRYPTO_LIB} ${BUILD_DIR}/lib/libopenssl_crypto_1.1.1t.${LIB_EXT}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${SSL_LIB} ${BUILD_DIR}/lib/libopenssl_ssl_1.1.1t.${LIB_EXT}
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/openssl ${BUILD_DIR}/include/openssl
