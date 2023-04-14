@@ -38,10 +38,9 @@ else ()
 endif()
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    # <TODO> - set rs_openocd_tar to rs_openocd zip file when windows build available
-    set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz")
+    set(rs_openocd_tar "openocd-i686-w64-mingw32.tar.gz")
 else()
-    set(rs_openocd_tar "openocd-7f5a821-linux86_64.tar.gz")
+    set(rs_openocd_tar "openocd-linux86_64.tar.gz")
 endif()
 
 if(RAPTOR)
@@ -56,10 +55,15 @@ endif()
 
 set(download_path "https://github.com/RapidSilicon/openocd/releases/download/latest/${rs_openocd_tar}")
 if(WIN32)
-    # <TODO> - set temp_path to rs_openocd zip file when windows build available
-    set(temp_path "${CMAKE_CURRENT_SOURCE_DIR}/openocd-7f5a821-linux86_64.tar.gz")
+    set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/openocd-i686-w64-mingw32.tar.gz)
+    set(files_to_extract 
+        "bin/openocd.exe" 
+        "share/openocd/scripts/board/gemini.cfg")
 else()
-    set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/openocd-7f5a821-linux86_64.tar.gz)
+    set(temp_path ${CMAKE_CURRENT_SOURCE_DIR}/openocd-linux86_64.tar.gz)
+    set(files_to_extract 
+        "opt/openocd/bin/openocd" 
+        "opt/openocd/share/openocd/scripts/board/gemini.cfg")
 endif()
 
 set(bin_path ${build_dir}/bin)
@@ -75,18 +79,27 @@ execute_process(
 set(EXTRACTED_FILE_TEMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/temp_dir)
 file(MAKE_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR})
 
-set(files_to_extract 
-    "opt/openocd/bin/openocd" 
-    "opt/openocd/share/openocd/scripts/board/gemini.cfg"
-)
+if(WIN32)
+    add_custom_target(rs_openocd_extract_config_and_openocd ALL
+        COMMENT "Extract openocd to ${bin_path} and move gemini.cfg to ${Destination_Dir}"
+        DEPENDS ${temp_path}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${Destination_Dir}
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path} ${files_to_extract}
+        WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
+        COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/bin/openocd.exe ${bin_path}
+        COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
+    )
+else()
+    add_custom_target(rs_openocd_extract_config_and_openocd ALL
+        COMMENT "Extract openocd to ${bin_path} and move gemini.cfg to ${Destination_Dir}"
+        DEPENDS ${temp_path}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${Destination_Dir}
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path} ${files_to_extract}
+        WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
+        COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${bin_path}
+        COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
+    )
+endif()
 
-add_custom_target(rs_openocd_extract_config_and_openocd ALL
-    COMMENT "Extract openocd to ${bin_path} and move gemini.cfg to ${Destination_Dir}"
-    DEPENDS ${temp_path}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${Destination_Dir}
-    COMMAND ${CMAKE_COMMAND} -E tar xzf ${temp_path} ${files_to_extract}
-    WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
-    COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
-    COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${bin_path}
-    COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
-)
