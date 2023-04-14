@@ -1,5 +1,7 @@
 {
 	"general" : {
-		"license-path" : "$HOME/.local/FOEDAG/"
+		"license-path" : "$HOME/.local/FOEDAG/",
+		"user-guide" : "",
+		"release-notes" : ""
 	}
 }

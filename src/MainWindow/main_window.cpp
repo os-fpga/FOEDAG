@@ -1005,10 +1005,13 @@ void MainWindow::createActions() {
     w.exec();
   });
 
-  documentationAction = new QAction(tr("Documentation"), this);
+  documentationAction = new QAction(tr("User Guide"), this);
+  connect(documentationAction, &QAction::triggered, this,
+          &MainWindow::documentationClicked);
   releaseNotesAction = new QAction(tr("Release Notes"), this);
+  connect(releaseNotesAction, &QAction::triggered, this,
+          &MainWindow::releaseNodesClicked);
   licensesAction = new QAction(tr("Licenses"), this);
-
   connect(licensesAction, &QAction::triggered, this,
           &MainWindow::onShowLicenses);
 
@@ -1785,6 +1788,18 @@ void MainWindow::manageLicense() {
   auto licPath{Settings::Config(path, "general", "license-path")};
   LicenseManagerWidget license{licPath, this};
   license.exec();
+}
+
+void MainWindow::documentationClicked() {
+  auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
+  auto userGuide{Settings::Config(path, "general", "user-guide")};
+  if (!userGuide.isEmpty()) QDesktopServices::openUrl(userGuide);
+}
+
+void MainWindow::releaseNodesClicked() {
+  auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
+  auto releaseNotes{Settings::Config(path, "general", "release-notes")};
+  if (!releaseNotes.isEmpty()) QDesktopServices::openUrl(releaseNotes);
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {
