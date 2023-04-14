@@ -107,12 +107,7 @@ void LicenseManagerWidget::updateLabel() {
 
 QString LicenseManagerWidget::solveSystemVars(const QString &p,
                                               QWidget *parent) {
-#ifdef _WIN32
-  static const QRegularExpression env{"(\\%[^\\%]+)\\%?"};
-#else
   static const QRegularExpression env{"(\\$[^\\/]+)\\/?"};
-#endif
-
   QString path{p};
   auto match = env.match(p);
   while (match.hasMatch()) {
@@ -124,13 +119,8 @@ QString LicenseManagerWidget::solveSystemVars(const QString &p,
           QString{"System environment variable %1 is empty"}.arg(envVar));
       return {};
     }
-#ifdef _WIN32
-    path.replace(envVar + "%", envValue);
-    match = env.match(p, match.capturedEnd(1) + 1);
-#else
     path.replace(envVar, envValue);
     match = env.match(p, match.capturedEnd(1));
-#endif
   }
   return path;
 }
