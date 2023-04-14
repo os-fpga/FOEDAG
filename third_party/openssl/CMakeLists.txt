@@ -19,6 +19,17 @@ else()
   set(LIST_FILE ls)
 endif()
 
+if(MSVC)
+add_custom_target(
+  openssl_build ALL
+  COMMAND echo "**** Start of OpenSSL custom build (just copy) ***"
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${CRYPTO_LIB} ${BUILD_DIR}/lib/libopenssl_crypto_1.1.1t.${LIB_EXT}
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${SSL_LIB} ${BUILD_DIR}/lib/libopenssl_ssl_1.1.1t.${LIB_EXT}
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/include/openssl ${BUILD_DIR}/include/openssl
+  COMMAND echo "**** End of OpenSSL custom build ***"
+  COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
+)
+else()
 add_custom_target(
   openssl_build ALL
   COMMAND echo "**** Start of OpenSSL custom build ***"
@@ -29,4 +40,5 @@ add_custom_target(
   COMMAND echo "**** End of OpenSSL custom build ***"
   COMMAND ${LIST_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/*.${LIB_EXT}
 )
+endif()
 
