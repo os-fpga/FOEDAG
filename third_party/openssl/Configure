@@ -2549,8 +2549,7 @@ unless (caller) {
     use Getopt::Long;
     use File::Spec::Functions;
     use File::Basename;
-    use Pod::Usage;
-
+    
     my $here = dirname($0);
 
     my $dump = undef;
@@ -2585,7 +2584,9 @@ For more information, do '$0 --help'
 _____
         exit(2);
     }
-
+    if ($help || $man) {
+        use Pod::Usage;
+    }
     if ($help) {
         pod2usage(-exitval => 0,
                   -verbose => 1);
