@@ -50,10 +50,6 @@ TaskTableView::TaskTableView(TaskManager *tManager, QWidget *parent)
           SLOT(customMenuRequested(const QPoint &)));
   setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectItems);
   setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
-  connect(m_taskManager, &TaskManager::taskStateChanged, this, [this]() {
-    m_viewDisabled = m_taskManager->status() == TaskStatus::InProgress;
-    viewport()->setEnabled(!m_viewDisabled);
-  });
   initializeResources();
 }
 
@@ -104,6 +100,11 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
       setIndexWidget(index, button);
     }
   }
+}
+
+void TaskTableView::setViewDisabled(bool disabled) {
+  m_viewDisabled = disabled;
+  viewport()->setEnabled(!m_viewDisabled);
 }
 
 void TaskTableView::customMenuRequested(const QPoint &pos) {
