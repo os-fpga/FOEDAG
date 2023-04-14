@@ -101,6 +101,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void onDesignCreated();
   void saveSetting(const QString& setting);
   void openFileFromConsole(const FOEDAG::ErrorInfo& eInfo);
+  void manageLicense();
 
  public slots:
   void updateSourceTree();
@@ -209,6 +210,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* simBitstreamAction = nullptr;
   QAction* defualtProjectPathAction = nullptr;
   QAction* pinPlannerPinNameAction = nullptr;
+  QAction* manageLicenseAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

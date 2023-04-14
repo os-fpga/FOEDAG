@@ -46,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpConfigurator.h"
 #include "IpConfigurator/IpConfiguratorCreator.h"
+#include "LicenseManagerWidget.h"
 #include "Main/CompilerNotifier.h"
 #include "Main/DialogProvider.h"
 #include "Main/Foedag.h"
@@ -891,6 +892,7 @@ void MainWindow::createMenus() {
   helpMenu->addAction(documentationAction);
   helpMenu->addAction(releaseNotesAction);
   helpMenu->addSeparator();
+  helpMenu->addAction(manageLicenseAction);
   helpMenu->addAction(licensesAction);
 
   preferencesMenu->addAction(defualtProjectPathAction);
@@ -1009,6 +1011,10 @@ void MainWindow::createActions() {
 
   connect(licensesAction, &QAction::triggered, this,
           &MainWindow::onShowLicenses);
+
+  manageLicenseAction = new QAction{tr("Manage license..."), this};
+  connect(manageLicenseAction, &QAction::triggered, this,
+          &MainWindow::manageLicense);
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
@@ -1772,6 +1778,13 @@ void MainWindow::openFileFromConsole(const ErrorInfo& eInfo) {
   }
   auto textEditor = findChild<TextEditor*>("textEditor");
   if (textEditor) textEditor->SlotOpenFileWithLine(file, eInfo.line.toInt());
+}
+
+void MainWindow::manageLicense() {
+  auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
+  auto licPath{Settings::Config(path, "general", "license-path")};
+  LicenseManagerWidget license{licPath, this};
+  license.exec();
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {
