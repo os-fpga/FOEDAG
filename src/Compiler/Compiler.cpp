@@ -69,6 +69,7 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
+static const int CHATGPT_TIMEOUT{180000};
 
 auto CreateDummyLog =
     [](ProjectManager* projManager,
@@ -2592,7 +2593,8 @@ bool Compiler::sendChatGpt(const std::string& message) {
   }
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000)
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help,
+                                      CHATGPT_TIMEOUT)
           .code != 0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;
@@ -2648,7 +2650,8 @@ bool Compiler::resetChatGpt() {
   }
   std::ostringstream help;
 
-  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help, 3000)
+  if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help,
+                                      CHATGPT_TIMEOUT)
           .code != 0) {
     ErrorMessage("ChatGPT, " + help.str(), false);
     return false;

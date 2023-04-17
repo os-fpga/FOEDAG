@@ -94,7 +94,9 @@ add_subdirectory(third_party/QConsole)
 add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
+add_subdirectory(third_party/openocd_cmake)
 add_subdirectory(third_party/openssl)
+
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -543,6 +545,14 @@ install(
     USE_SOURCE_PERMISSIONS
 )
 
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/configuration DESTINATION  ${CMAKE_INSTALL_DATAROOTDIR}/foedag)
+
+install(
+    PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/openocd${CMAKE_EXECUTABLE_SUFFIX} 
+    DESTINATION  ${CMAKE_INSTALL_BINDIR} 
+)
+
 if ((DEFINED ENV{MSYSTEM}) AND ("$ENV{MSYSTEM}" STREQUAL "MINGW64"))
 # permission problems in windows at this point.
 else()
@@ -580,9 +590,3 @@ add_custom_command(TARGET foedag-bin POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_DIR}/tests/Arch
         ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/Arch/)
-
-add_custom_command(TARGET foedag-bin POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/configuration
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/third_party/openocd/tcl/board/gemini.cfg
-        ${CMAKE_CURRENT_BINARY_DIR}/share/foedag/configuration/)
