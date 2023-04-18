@@ -330,3 +330,33 @@ void Settings::syncWith(const QString& task) {
       m_syncTasks.remove(index);
   }
 }
+
+QString Settings::Config(const std::filesystem::path& path,
+                         const QString& group, const QString& key) {
+  QFile jsonFile;
+  jsonFile.setFileName(QString::fromStdString(path.string()));
+  if (jsonFile.exists() &&
+      jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    // Read/parse json from file and update the passed jsonObject w/ new vals
+    QString jsonStr = jsonFile.readAll();
+
+    json jsonObject{};
+    try {
+      // Merge the json
+      jsonObject.update(json::parse(jsonStr.toStdString()), true);
+      return QString::fromStdString(
+          jsonObject[group.toStdString()][key.toStdString()]);
+    } catch (json::parse_error& e) {
+      // output exception information
+      std::cerr << "Json Error: " << e.what() << '\n'
+                << "filePath: " << path.string() << "\n"
+                << "byte position of error: " << e.byte << std::endl;
+    } catch (std::exception& e) {
+      std::cerr << "Json Error: " << e.what() << std::endl;
+    }
+  } else {
+    std::cerr << "ERROR - Settings::loadJsonFile - Failed to read \""
+              << path.string() << "\"\n";
+  }
+  return QString{};
+}
