@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 156)
+set(VERSION_PATCH 157)
 
 option(
   WITH_LIBCXX
@@ -313,6 +313,7 @@ add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
 add_dependencies(designquery nlohmann_json)
+add_dependencies(projnavigator nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
 add_dependencies(console tcl_static)

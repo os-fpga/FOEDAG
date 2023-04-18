@@ -18,6 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef FOEDAG_H
+#define FOEDAG_H
+
 #include "Main/Settings.h"
 #include "Main/ToolContext.h"
 #include "MainWindow/Session.h"
@@ -32,9 +35,6 @@ class TextEditor;
 void registerBasicGuiCommands(FOEDAG::Session* session);
 void registerBasicBatchCommands(FOEDAG::Session* session);
 void registerAllFoedagCommands(QWidget* widget, FOEDAG::Session* session);
-
-#ifndef FOEDAG_H
-#define FOEDAG_H
 
 namespace FOEDAG {
 
