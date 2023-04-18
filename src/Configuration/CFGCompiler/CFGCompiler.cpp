@@ -124,7 +124,7 @@ void CFGCompiler::Message(const std::string& message, const bool raw) {
     if (raw) {
       printf("%s", message.c_str());
     } else {
-      printf("INFO : %s\n", message.c_str());
+      printf("INFO: %s\n", message.c_str());
     }
     fflush(stdout);
   }

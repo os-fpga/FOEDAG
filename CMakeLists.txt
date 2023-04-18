@@ -36,7 +36,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 155)
+set(VERSION_PATCH 156)
 
 option(
   WITH_LIBCXX
@@ -95,6 +95,8 @@ add_subdirectory(third_party/nlohmann_json)
 add_subdirectory(third_party/gtkwave_cmake)
 add_subdirectory(third_party/scope_guard)
 add_subdirectory(third_party/openocd_cmake)
+add_subdirectory(third_party/openssl)
+
 add_subdirectory(tests/tclutils)
 add_subdirectory(tests/unittest)
 add_subdirectory(src/NewProject)
@@ -337,6 +339,7 @@ add_dependencies(ipconfigurator tcl_stubb_build)
 add_dependencies(ipconfigurator_bin tcl_stubb_build)
 add_dependencies(pinassignment tcl_stubb_build)
 add_dependencies(projnavigator tcl_build)
+add_dependencies(configuration openssl_build)
 
 if (APPLE)
   # In macOS, it is necessary to add the correct @rpath to the executable for
