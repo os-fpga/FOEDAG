@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef SESSION_H
+#define SESSION_H
 
 #include <QMainWindow>
 #include <fstream>
@@ -32,9 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/ToolContext.h"
 #include "MainWindow/mainwindowmodel.h"
 #include "Tcl/TclInterpreter.h"
-
-#ifndef SESSION_H
-#define SESSION_H
 
 namespace FOEDAG {
 
