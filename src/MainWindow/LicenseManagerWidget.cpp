@@ -69,11 +69,9 @@ void LicenseManagerWidget::selectFile() {
   if (path.isEmpty()) return;
 
   QFileInfo info{path};
-  auto fileName = info.fileName();
-  if (fileName.isEmpty()) fileName = "*.lic";
-  auto file = QFileDialog::getOpenFileName(
-      this, "Select license file", QDir::homePath(),
-      QString{"License file (%1)"}.arg(fileName));
+  auto file = QFileDialog::getOpenFileName(this, "Select license file",
+                                           QDir::homePath(),
+                                           QString{"License file (*.lic)"});
   if (!file.isEmpty()) {
     QDir dir{info.path()};
     if (!dir.exists()) {
@@ -99,10 +97,11 @@ void LicenseManagerWidget::selectFile() {
 }
 
 void LicenseManagerWidget::updateLabel() {
+  const QFileInfo info{m_path};
   m_label->setText(
       QString{"Click 'Copy license' to copy a license file (*.lic) into the %1 "
               "directory"}
-          .arg(m_path));
+          .arg(info.path()));
 }
 
 QString LicenseManagerWidget::solveSystemVars(const QString &p,
