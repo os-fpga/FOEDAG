@@ -102,6 +102,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveSetting(const QString& setting);
   void openFileFromConsole(const FOEDAG::ErrorInfo& eInfo);
   void manageLicense();
+  void documentationClicked();
+  void releaseNodesClicked();
 
  public slots:
   void updateSourceTree();
