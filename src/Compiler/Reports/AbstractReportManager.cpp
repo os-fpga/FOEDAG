@@ -202,7 +202,7 @@ IDataReport::TableData AbstractReportManager::CreateLogicData() {
 
   uint usedRegs = uLogic.dff + uLogic.latch;
   result = (aLogic.dff == 0) ? 0 : usedRegs * 100 / aLogic.dff;
-  circuitData.push_back({"Ragisters", QString::number(usedRegs),
+  circuitData.push_back({"Registers", QString::number(usedRegs),
                          QString::number(aLogic.dff), QString::number(result)});
 
   result = (aLogic.dff == 0) ? 0 : uLogic.dff * 100 / aLogic.dff;
