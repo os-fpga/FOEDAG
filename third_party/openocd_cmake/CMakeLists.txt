@@ -76,7 +76,7 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} -E make_directory ${bin_path}
 )
 
-set(EXTRACTED_FILE_TEMP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/temp_dir)
+set(EXTRACTED_FILE_TEMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/temp_dir)
 file(MAKE_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR})
 
 if(WIN32)
@@ -88,7 +88,6 @@ if(WIN32)
         WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/bin/openocd.exe ${bin_path}
-        COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
     )
 else()
     add_custom_target(rs_openocd_extract_config_and_openocd ALL
@@ -99,7 +98,6 @@ else()
         WORKING_DIRECTORY ${EXTRACTED_FILE_TEMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/share/openocd/scripts/board/gemini.cfg ${Destination_Dir}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXTRACTED_FILE_TEMP_DIR}/opt/openocd/bin/openocd ${bin_path}
-        COMMAND test -e ${EXTRACTED_FILE_TEMP_DIR} && rm -rf ${EXTRACTED_FILE_TEMP_DIR} || echo "Warning: No temp dir to remove"
     )
 endif()
 
