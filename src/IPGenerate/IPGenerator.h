@@ -60,6 +60,7 @@ class IPGenerator {
   std::pair<bool, std::string> IsSimulateIpSupported(
       const std::string& name) const;
   void SimulateIp(const std::string& name);
+  std::pair<bool, std::string> OpenWaveForm(const std::string& name);
   std::filesystem::path GetBuildDir(IPInstance* instance) const;
   std::filesystem::path GetSimDir(IPInstance* instance) const;
   std::filesystem::path GetSimArtifactsDir(IPInstance* instance) const;

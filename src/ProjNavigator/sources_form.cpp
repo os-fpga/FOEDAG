@@ -154,6 +154,7 @@ void SourcesForm::SlotItempressed(QTreeWidgetItem *item, int column) {
       menu->addAction(m_actRefresh);
       menu->addSeparator();
       menu->addAction(m_simulateIp);
+      menu->addAction(m_waveFormView);
       menu->addSeparator();
       menu->addAction(m_actReconfigureIp);
       menu->addAction(m_actRemoveIp);
@@ -461,6 +462,13 @@ void SourcesForm::SlotSimulateIp() {
   }
 }
 
+void SourcesForm::SlotWaveForm() {
+  const auto selectedIpModules{SelectedIpModules()};
+  for (const auto &moduleName : selectedIpModules) {
+    emit IpWaveFormRequest(moduleName);
+  }
+}
+
 void SourcesForm::CreateActions() {
   m_actRefresh = new QAction(tr("Refresh Hierarchy"), m_treeSrcHierachy);
   connect(m_actRefresh, SIGNAL(triggered()), this,
@@ -526,6 +534,11 @@ void SourcesForm::CreateActions() {
   m_simulateIp->setToolTip("Start simulation of selected IP");
   connect(m_simulateIp, &QAction::triggered, this,
           &SourcesForm::SlotSimulateIp);
+
+  m_waveFormView = new QAction{tr("View waveform"), m_treeSrcHierachy};
+  m_waveFormView->setToolTip("View waveform");
+  connect(m_waveFormView, &QAction::triggered, this,
+          &SourcesForm::SlotWaveForm);
 
   m_actProjectSettings = new QAction(tr("Project settings"), m_treeSrcHierachy);
   connect(m_actProjectSettings, &QAction::triggered, this,
