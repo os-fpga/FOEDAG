@@ -165,6 +165,7 @@ jobs:
         repo: ${{ github.repository }}
         #run_number: 3912
         branch: main
+        name: buildqt5-centos7-gcc
         skip_unpack: true
 
     - name: Install dependencies and build QT
