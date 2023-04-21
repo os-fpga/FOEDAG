@@ -182,7 +182,6 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (arg == "-out_file") {
         i++;
         out_file = argv[i];
-        qDebug() << "-out_file: " << out_file.c_str();
       } else if (arg == "-version") {
         i++;
         version = argv[i];
@@ -448,7 +447,6 @@ bool IPGenerator::Generate() {
   for (IPInstance* inst : instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
-    qDebug() << "inst->OutputFile(): " << out_path.string().c_str();
     if (!std::filesystem::exists(out_path)) {
       std::filesystem::create_directories(out_path.parent_path());
     }
@@ -521,6 +519,11 @@ bool IPGenerator::Generate() {
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
+        if (newbuffer.str() == previousbuffer.str()) {
+          m_compiler->Message("IP Generate, reusing IP " +
+                              GetBuildDir(inst).string());
+          continue;
+        }
 
         // Find path to litex enabled python interpreter
         std::filesystem::path pythonPath = IPCatalog::getPythonPath();
@@ -546,13 +549,6 @@ bool IPGenerator::Generate() {
         StringVector args{executable.string(), "--build", "--json",
                           FileUtils::GetFullPath(jsonFile).string()};
         std::ostringstream help;
-
-        if (newbuffer.str() == previousbuffer.str()) {
-          m_compiler->Message("IP Generate, reusing IP " +
-                              GetBuildDir(inst).string());
-          continue;
-        }
-
         m_compiler->Message("IP Generate, generating IP " +
                             GetBuildDir(inst).string());
         if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)
@@ -712,17 +708,15 @@ std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
     std::filesystem::path ipPath{};
 
     auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-    if (m_compiler && m_compiler->ProjManager()) {
-      ProjectManager* projManager{m_compiler->ProjManager()};
-      QString projName = projManager->getProjectName();
 
-      // Build up the expected ip build path
-      std::filesystem::path baseDir(
-          projManager->getProjectPath().toStdString());
-      std::string projIpDir = projName.toStdString() + ".IPs";
-      ipPath = baseDir / projIpDir / "tmp" / meta.vendor / meta.library /
-               meta.name / meta.version / instance->ModuleName();
-    }
+    ProjectManager* projManager{m_compiler->ProjManager()};
+    QString projName = projManager->getProjectName();
+
+    // Build up the expected ip build path
+    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
+    std::string projIpDir = projName.toStdString() + ".IPs";
+    ipPath = baseDir / projIpDir / "tmp" / meta.vendor / meta.library /
+             meta.name / meta.version / instance->ModuleName();
 
     auto def = instance->Definition();
     std::string ip_config_file =

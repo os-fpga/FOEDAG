@@ -681,9 +681,6 @@ void IpConfigWidget::Generate(bool addToProject, const QString& outputPath) {
             ? QString::fromStdString(FileUtils::GetFullPath(outFile).string())
             : outputPath;
 
-    qDebug() << QString::fromStdString(
-        FileUtils::GetFullPath(outFile).string());
-    qDebug() << outputPath;
     // Build up a cmd string to generate the IP
     QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
                   moduleEdit.text() + " -version " +
