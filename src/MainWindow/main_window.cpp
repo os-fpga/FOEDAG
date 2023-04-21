@@ -1178,6 +1178,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::handleDeleteIpRequested);
   connect(sourcesForm, &SourcesForm::IpSimulationRequested, this,
           &MainWindow::handleSimulationIpRequested);
+  connect(sourcesForm, &SourcesForm::IpWaveFormRequest, this,
+          &MainWindow::handlewaveFormRequested);
 
   TextEditor* textEditor = new TextEditor(this);
   textEditor->RegisterCommands(GlobalSession);
@@ -1607,6 +1609,24 @@ void MainWindow::handleSimulationIpRequested(const QString& moduleName) {
     ipGen->SimulateIp(module);
   }
   updateSourceTree();
+}
+
+void MainWindow::handlewaveFormRequested(const QString& moduleName) {
+  Compiler* compiler{};
+  IPGenerator* ipGen{};
+
+  if ((compiler = GlobalSession->GetCompiler()) &&
+      (ipGen = compiler->GetIPGenerator())) {
+    auto module = moduleName.toStdString();
+    auto [supported, message] = ipGen->IsSimulateIpSupported(module);
+    const QString title{"View waveform"};
+    if (!supported) {
+      QMessageBox::critical(this, title, QString::fromStdString(message));
+      return;
+    }
+    auto [ok, mes] = ipGen->OpenWaveForm(module);
+    if (!ok) QMessageBox::critical(this, title, QString::fromStdString(mes));
+  }
 }
 
 void MainWindow::resetIps() {

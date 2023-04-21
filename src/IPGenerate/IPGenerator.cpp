@@ -622,6 +622,30 @@ void IPGenerator::SimulateIp(const std::string& name) {
   }
 }
 
+std::pair<bool, std::string> IPGenerator::OpenWaveForm(
+    const std::string& name) {
+  auto it =
+      std::find_if(m_instances.begin(), m_instances.end(),
+                   [name](IPInstance* i) { return name == i->ModuleName(); });
+  if (it == m_instances.end())
+    return {false, "No IP generated with name " + name};
+
+  IPInstance* inst{*it};
+  auto path = GetSimDir(inst);
+
+  auto [supported, message] = IsSimulateIpSupported(name);
+  if (!supported) return {supported, message};
+
+  auto artifactsPath{GetSimArtifactsDir(inst)};
+  artifactsPath = artifactsPath / std::string{name + ".fst"};
+  if (!FileUtils::FileExists(artifactsPath))
+    return {false, "File " + artifactsPath.string() + " does not exist."};
+
+  std::string cmd = "wave_open " + artifactsPath.string();
+  bool ok = GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+  return {ok, "Command \'" + cmd + "\' failed."};
+}
+
 // This will return the expected VLNV path for the given instance
 std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
   std::filesystem::path dir{};

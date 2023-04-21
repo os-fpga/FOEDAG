@@ -45,11 +45,10 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
       filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
 
       const bool fileExists{FileUtils::FileExists(filePath.toStdString())};
-      if (!fileExists)
-        filePath = tr("log file not found");
-      else
-        filePath = createLink(filePath);
-      auto itemName = QString("%1 (%2)").arg(task->title(), filePath);
+      if (!fileExists) filePath = tr("log file not found");
+
+      const QString hyperLink = fileExists ? createLink(filePath) : filePath;
+      auto itemName = QString("%1 (%2)").arg(task->title(), hyperLink);
       auto taskItem = new QTreeWidgetItem({itemName});
       if (fileExists) m_convertToLabel.push_back(taskItem);
 
