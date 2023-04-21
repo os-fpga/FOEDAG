@@ -182,6 +182,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (arg == "-out_file") {
         i++;
         out_file = argv[i];
+        qDebug() << "-out_file: " << out_file.c_str();
       } else if (arg == "-version") {
         i++;
         version = argv[i];
@@ -449,6 +450,7 @@ bool IPGenerator::Generate() {
   for (IPInstance* inst : instances) {
     // Create output directory
     const std::filesystem::path& out_path = inst->OutputFile();
+    qDebug() << "inst->OutputFile(): " << out_path.string().c_str();
     if (!std::filesystem::exists(out_path)) {
       std::filesystem::create_directories(out_path.parent_path());
     }
@@ -696,6 +698,33 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   if (m_compiler && m_compiler->ProjManager()) {
     std::filesystem::path ipPath = GetBuildDir(instance);
+    auto def = instance->Definition();
+    std::string ip_config_file =
+        def->Name() + "_" + instance->ModuleName() + ".json";
+    dir = ipPath / ip_config_file;
+  }
+
+  return dir;
+}
+
+std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
+  std::filesystem::path dir{};
+  if (m_compiler && m_compiler->ProjManager()) {
+    std::filesystem::path ipPath{};
+
+    auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
+    if (m_compiler && m_compiler->ProjManager()) {
+      ProjectManager* projManager{m_compiler->ProjManager()};
+      QString projName = projManager->getProjectName();
+
+      // Build up the expected ip build path
+      std::filesystem::path baseDir(
+          projManager->getProjectPath().toStdString());
+      std::string projIpDir = projName.toStdString() + ".IPs";
+      ipPath = baseDir / projIpDir / "tmp" / meta.vendor / meta.library /
+               meta.name / meta.version / instance->ModuleName();
+    }
+
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";

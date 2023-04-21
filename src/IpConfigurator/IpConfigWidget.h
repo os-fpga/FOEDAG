@@ -49,7 +49,7 @@ class IpConfigWidget : public QWidget {
 
  private:
   void checkDependencies();
-  void Generate(bool addToProject);
+  void Generate(bool addToProject, const QString& outputPath = {});
   void AddDialogControls(QBoxLayout* layout);
   void AddIpToProject(const QString& cmd);
   void CreateParamFields(bool generateMetaLabel);
