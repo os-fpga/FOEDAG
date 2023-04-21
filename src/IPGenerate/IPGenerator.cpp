@@ -637,13 +637,15 @@ std::pair<bool, std::string> IPGenerator::OpenWaveForm(
   if (!supported) return {supported, message};
 
   auto artifactsPath{GetSimArtifactsDir(inst)};
-  artifactsPath = artifactsPath / std::string{name + ".fst"};
-  if (!FileUtils::FileExists(artifactsPath))
-    return {false, "File " + artifactsPath.string() + " does not exist."};
-
-  std::string cmd = "wave_open " + artifactsPath.string();
-  bool ok = GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
-  return {ok, "Command \'" + cmd + "\' failed."};
+  for (auto ext : {".fst", ".vcd"}) {
+    auto file = FileUtils::FindFileByExtension(artifactsPath, ext);
+    if (!file.empty()) {
+      const std::string cmd = "wave_open " + file.string();
+      bool ok = GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
+      return {ok, "Command \'" + cmd + "\' failed."};
+    }
+  }
+  return {false, "Waveform file does not exist."};
 }
 
 // This will return the expected VLNV path for the given instance
