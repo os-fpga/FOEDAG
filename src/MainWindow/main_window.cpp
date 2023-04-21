@@ -1145,6 +1145,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::openProjectSettings);
   sourceDockWidget->setWidget(sourcesForm);
   addDockWidget(Qt::LeftDockWidgetArea, sourceDockWidget);
+  // make fixed max width, because dock widgets layout breaks after file open
+  sourceDockWidget->setMaximumWidth(350);
   m_projectManager = sourcesForm->ProjManager();
   projectMenu->clear();
   sourcesForm->ProjectSettingsActions()->setEnabled(!strProject.isEmpty());
