@@ -273,11 +273,9 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   auto isMatch = [instance](IPInstance* targetInstance) {
     return targetInstance->ModuleName() == instance->ModuleName();
   };
-  auto it = std::find_if(m_instances.begin(), m_instances.end(), isMatch);
-  if (it != m_instances.end()) {
-    instance->Generated((*it)->Generated());
-    m_instances.erase(it);
-  }
+  m_instances.erase(
+      std::remove_if(m_instances.begin(), m_instances.end(), isMatch),
+      m_instances.end());
 
   // Check parameters
   std::set<std::string> legalParams;
@@ -523,11 +521,6 @@ bool IPGenerator::Generate() {
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
-        if ((newbuffer.str() == previousbuffer.str()) && inst->Generated()) {
-          m_compiler->Message("IP Generate, reusing IP " +
-                              GetBuildDir(inst).string());
-          continue;
-        }
 
         // Find path to litex enabled python interpreter
         std::filesystem::path pythonPath = IPCatalog::getPythonPath();
@@ -553,6 +546,13 @@ bool IPGenerator::Generate() {
         StringVector args{executable.string(), "--build", "--json",
                           FileUtils::GetFullPath(jsonFile).string()};
         std::ostringstream help;
+
+        if (newbuffer.str() == previousbuffer.str()) {
+          m_compiler->Message("IP Generate, reusing IP " +
+                              GetBuildDir(inst).string());
+          continue;
+        }
+
         m_compiler->Message("IP Generate, generating IP " +
                             GetBuildDir(inst).string());
         if (FileUtils::ExecuteSystemCommand(pythonPath.string(), args, &help)
@@ -560,7 +560,6 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
-        inst->Generated(true);
 
         break;
       }

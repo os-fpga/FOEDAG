@@ -296,9 +296,6 @@ class IPInstance {
   const std::string& ModuleName() { return m_moduleName; }
   const std::filesystem::path OutputFile() { return m_outputFile; }
 
-  bool Generated() const { return m_generated; }
-  void Generated(bool generated) { m_generated = generated; }
-
  private:
   std::string m_ipname;
   std::string m_version;
@@ -306,7 +303,6 @@ class IPInstance {
   std::vector<SParameter> m_parameters;
   std::string m_moduleName;
   std::filesystem::path m_outputFile;
-  bool m_generated{false};
 };
 
 class IPCatalog {
