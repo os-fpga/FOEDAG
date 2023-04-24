@@ -16,7 +16,7 @@ ReportsTreeWidget::ReportsTreeWidget(Compiler *compiler,
   auto treeWidget = new QTreeWidget();
 
   layout->addWidget(treeWidget);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
 
   const auto reportManagers = m_taskManager.getReportManagerRegistry();

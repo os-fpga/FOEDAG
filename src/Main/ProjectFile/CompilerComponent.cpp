@@ -42,7 +42,7 @@ ErrorCode CompilerComponent::Load(QXmlStreamReader *reader) {
   while (!reader->atEnd()) {
     QXmlStreamReader::TokenType type = reader->readNext();
     if (type == QXmlStreamReader::StartElement &&
-        reader->name() == CompilerMainTag) {
+        reader->name().toString() == CompilerMainTag) {
       int state = reader->attributes().value(CompilerState).toInt();
       m_compiler->CompilerState(static_cast<Compiler::State>(state));
       break;

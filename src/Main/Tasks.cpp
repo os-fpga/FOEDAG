@@ -124,7 +124,7 @@ auto separateArg = [](const QString& argName,
 
   if (!searchStr.isEmpty()) {
     // prepend - if one doesn't exist
-    if (searchStr[0] != "-") {
+    if (searchStr[0] != '-') {
       searchStr = "-" + searchStr;
     }
     // Find the arg and remove it from the otherArgs

@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDebug>
+#include <QFile>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -290,7 +291,7 @@ void TaskTableView::TasksDelegate::paint(QPainter *painter,
     auto label = qobject_cast<QLabel *>(m_view.indexWidget(index));
     if (!label) return;
     // QTableView can't paint animations. Do it manually via QLabel.
-    if (statusData.type() == QVariant::Bool) {
+    if (statusData.typeId() == QVariant::Bool) {
       label->setMovie(m_inProgressMovie);
       // Place the animation to cells left side, similar to other decorations
       label->move(m_view.visualRect(index).center() -

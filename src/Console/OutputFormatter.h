@@ -44,10 +44,10 @@ class LineParser {
   enum class Status { Done, NotHandled };
   class LinkSpec {
    public:
-    LinkSpec(int sp, int l, const QString &hr)
+    LinkSpec(long sp, long l, const QString &hr)
         : startPos(sp), length(l), href(hr) {}
-    int startPos = -1;
-    int length = -1;
+    long startPos = -1;
+    long length = -1;
     QString href;
   };
   using LinkSpecs = std::vector<LinkSpec>;

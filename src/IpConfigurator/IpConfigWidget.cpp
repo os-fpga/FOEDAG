@@ -294,14 +294,15 @@ std::vector<FOEDAG::IPDefinition*> IpConfigWidget::getDefinitions() {
   return defs;
 }
 
-QMap<QVariant, QVariant> IpConfigWidget::saveProperties(bool& valid) const {
+sequential_map<QVariant, QVariant> IpConfigWidget::saveProperties(
+    bool& valid) const {
   QLayout* fieldsLayout = paramsBox->layout();
   QList<QObject*> settingsObjs =
       FOEDAG::getTargetObjectsFromLayout(fieldsLayout);
-  QMap<QVariant, QVariant> properties{};
+  sequential_map<QVariant, QVariant> properties{};
 
   for (QObject* obj : settingsObjs) {
-    properties.insert(obj->property("customId"), obj->property("value"));
+    properties.push_back({obj->property("customId"), obj->property("value")});
     if (obj->property("invalid").toBool()) valid = false;
   }
   return properties;
@@ -447,7 +448,7 @@ void IpConfigWidget::genarateNewPanel(const std::string& newJson,
 }
 
 void IpConfigWidget::restoreProperties(
-    const QMap<QVariant, QVariant>& properties) {
+    const sequential_map<QVariant, QVariant>& properties) {
   QList<QObject*> paramObjects =
       FOEDAG::getTargetObjectsFromLayout(paramsBox->layout());
   for (auto obj : paramObjects) {
@@ -520,7 +521,7 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
 
   // save currect values
   bool valid{true};
-  QMap<QVariant, QVariant> properties = saveProperties(valid);
+  sequential_map<QVariant, QVariant> properties = saveProperties(valid);
   if (!valid) {
     showInvalidParametersWarning();
     return;

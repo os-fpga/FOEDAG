@@ -29,7 +29,7 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
   auto treeWidget = new QTreeWidget();
 
   layout->addWidget(treeWidget);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
 
   treeWidget->setColumnCount(1);

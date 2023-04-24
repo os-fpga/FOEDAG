@@ -42,9 +42,9 @@ static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Synthesis - Design statistics"};
 
 // Messages regexp
-static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
-static const QRegExp VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
-static const QRegExp VERIFIC_INFO_REGEXP{
+static const QRegularExpression VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
+static const QRegularExpression VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
+static const QRegularExpression VERIFIC_INFO_REGEXP{
     "Executing synth_rs pass.*|Executing RS_DSP_MACC.*"};
 static const QString STATISTIC_SECTION{"Number of wires"};
 }  // namespace
@@ -87,11 +87,12 @@ IDataReport::TableData SynthesisReportManager::getStatistics(
   auto dataLine = QString{};    // Simplified line
   auto parentItem = QString{};  // Parent item for lines starting with tab
 
-  auto statTable =
-      QRegExp("Number.*");  // Drop the beginning and start with stats
-  if (statTable.indexIn(statsStr) == -1) return res;
+  auto statTable = QRegularExpression(
+      "Number.*");  // Drop the beginning and start with stats
+  auto match = statTable.match(statsStr);
+  if (!match.hasMatch()) return res;
 
-  QTextStream in(statTable.cap().toLatin1());
+  QTextStream in(match.captured().toLatin1());
 
   while (in.readLineInto(&line)) {
     if (line.startsWith("     ") && parentItem.isEmpty())
@@ -187,22 +188,21 @@ void SynthesisReportManager::parseLogFile() {
 
   while (in.readLineInto(&line)) {
     parseStatisticLine(line);
-    if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
-      m_messages.insert(lineNr,
-                        TaskMessage{lineNr,
-                                    MessageSeverity::INFO_MESSAGE,
-                                    VERIFIC_INFO_REGEXP.cap().simplified(),
-                                    {}});
+    if (auto match = VERIFIC_INFO_REGEXP.match(line); match.hasMatch()) {
+      m_messages.insert(lineNr, TaskMessage{lineNr,
+                                            MessageSeverity::INFO_MESSAGE,
+                                            match.captured().simplified(),
+                                            {}});
       fillErrorsWarnings();
-    } else if (VERIFIC_ERR_REGEXP.indexIn(line) != -1) {
-      errors.emplace(lineNr, VERIFIC_ERR_REGEXP.cap().simplified());
+    } else if (auto match = VERIFIC_ERR_REGEXP.match(line); match.hasMatch()) {
+      errors.emplace(lineNr, match.captured().simplified());
       if (!warnings.empty()) {
         auto warningsItem =
             createWarningErrorItem(MessageSeverity::WARNING_MESSAGE, warnings);
         m_messages.insert(warningsItem.m_lineNr, warningsItem);
       }
-    } else if (VERIFIC_WARN_REGEXP.indexIn(line) != -1) {
-      warnings.emplace(lineNr, VERIFIC_WARN_REGEXP.cap().simplified());
+    } else if (auto match = VERIFIC_WARN_REGEXP.match(line); match.hasMatch()) {
+      warnings.emplace(lineNr, match.captured().simplified());
 
       if (!errors.empty()) {
         auto errorsItem =

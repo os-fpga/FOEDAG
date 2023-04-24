@@ -112,7 +112,7 @@ add_library(compiler STATIC
   ${res_LIST}
 )
 
-target_link_libraries(compiler PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(compiler PUBLIC Qt6::Widgets Qt6::Core Qt6::Gui Qt6::Xml)
 target_compile_definitions(compiler PRIVATE COMPILER_LIBRARY)
 
 install (

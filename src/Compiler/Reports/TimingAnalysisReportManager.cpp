@@ -53,14 +53,14 @@ static const QString INTRA_DOMAIN_SETUP_SLACK_SECTION{
 static const QString INTER_DOMAIN_SETUP_SLACK_SECTION{
     "Final inter-domain worst setup slacks per constraint:"};
 
-static const QRegExp VPR_ROUTING_OPT{
+static const QRegularExpression VPR_ROUTING_OPT{
     "VPR was run with the following options.*"};
 
 static const QString BUILD_TIM_GRAPH{"Build Timing Graph"};
 static const QString LOAD_PACKING{"Load packing"};
 
-static const QRegExp FIND_TA_TIMING{"Final.*(Slack|MHz).*"};
-static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
+static const QRegularExpression FIND_TA_TIMING{"Final.*(Slack|MHz).*"};
+static const QRegularExpression FIND_HISTOGRAM{"Final.*histogram:"};
 
 static const QRegularExpression SPLIT_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
@@ -113,8 +113,9 @@ TimingAnalysisReportManager::TimingAnalysisReportManager(
                             ReportColumn{"Time", Qt::AlignCenter},
                             ReportColumn{"Description"}};
 
-  m_createDeviceKeys = {QRegExp("Device Utilization.*"),
-                        QRegExp{"Build tileable routing resource graph"}};
+  m_createDeviceKeys = {
+      QRegularExpression("Device Utilization.*"),
+      QRegularExpression{"Build tileable routing resource graph"}};
 }
 
 bool TimingAnalysisReportManager::isOpensta() const {
@@ -211,12 +212,12 @@ bool TimingAnalysisReportManager::isStatisticalTimingLine(const QString &line) {
       m_compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Opensta)
     return line.contains("wns") || line.contains("tns");
 
-  return FIND_TA_TIMING.indexIn(line) != -1;
+  return FIND_TA_TIMING.match(line).hasMatch();
 }
 
 bool TimingAnalysisReportManager::isStatisticalTimingHistogram(
     const QString &line) {
-  return FIND_HISTOGRAM.indexIn(line) != -1;
+  return FIND_HISTOGRAM.match(line).hasMatch();
 }
 
 void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
@@ -264,11 +265,11 @@ void TimingAnalysisReportManager::parseLogFile() {
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_CIRCUIT_SECTION, {});
     else if (line.startsWith(LOAD_TIM_CONSTR))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_TIM_CONSTR, {});
-    else if (VPR_ROUTING_OPT.indexIn(line) != -1)
-      m_messages.insert(lineNr, TaskMessage{lineNr,
-                                            MessageSeverity::INFO_MESSAGE,
-                                            VPR_ROUTING_OPT.cap(),
-                                            {}});
+    else if (auto match = VPR_ROUTING_OPT.match(line); match.hasMatch())
+      m_messages.insert(
+          lineNr,
+          TaskMessage{
+              lineNr, MessageSeverity::INFO_MESSAGE, match.captured(), {}});
     else if (line.endsWith(BUILD_TIM_GRAPH))
       m_messages.insert(
           lineNr,
@@ -412,9 +413,10 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
     if (line.contains(READ_IN_DATA))
-      lineNr = parseErrorWarningSection(
-          in, lineNr, READ_IN_DATA,
-          {QRegExp("Startpoint:.*"), QRegExp("Endpoint:.*")}, true);
+      lineNr = parseErrorWarningSection(in, lineNr, READ_IN_DATA,
+                                        {QRegularExpression("Startpoint:.*"),
+                                         QRegularExpression("Endpoint:.*")},
+                                        true);
     else if (isStatisticalTimingLine(line))
       timings << line + "\n";
     else if (line.contains(OPENSTA_TIMING))

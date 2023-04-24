@@ -18,7 +18,7 @@ static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Packing - Design statistics"};
 
 // Messages
-static const QRegExp VPR_ROUTING_OPT{
+static const QRegularExpression VPR_ROUTING_OPT{
     "VPR was run with the following options.*"};
 static const QString BLOCK_GRAPH_BUILD_SECTION{
     "# Building complex block graph"};
@@ -109,11 +109,12 @@ void PackingReportManager::parseLogFile() {
     parseStatisticLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
-    else if (VPR_ROUTING_OPT.indexIn(line) != -1)
-      m_messages.insert(lineNr, TaskMessage{lineNr,
-                                            MessageSeverity::INFO_MESSAGE,
-                                            VPR_ROUTING_OPT.cap(),
-                                            {}});
+    else if (VPR_ROUTING_OPT.match(line).hasMatch())
+      m_messages.insert(lineNr,
+                        TaskMessage{lineNr,
+                                    MessageSeverity::INFO_MESSAGE,
+                                    VPR_ROUTING_OPT.match(line).captured(),
+                                    {}});
     else if (line.startsWith(BLOCK_GRAPH_BUILD_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, BLOCK_GRAPH_BUILD_SECTION, {});

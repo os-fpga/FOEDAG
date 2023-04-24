@@ -1,7 +1,5 @@
 #include "add_file_dialog.h"
 
-#include <QDesktopWidget>
-
 #include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
 #include "MainWindow/Session.h"
