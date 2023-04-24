@@ -69,6 +69,9 @@ class FileUtils final {
       const std::vector<std::filesystem::path>& searchPaths,
       bool caseInsensitive);
 
+  static std::filesystem::path FindFileByExtension(
+      const std::filesystem::path& path, const std::string& extension);
+
   static Return ExecuteSystemCommand(const std::string& command,
                                      const std::vector<std::string>& args,
                                      std::ostream* out, int timeout_ms = -1,

@@ -210,6 +210,21 @@ std::vector<std::filesystem::path> FileUtils::FindFileInDirs(
   return results;
 }
 
+std::filesystem::path FileUtils::FindFileByExtension(
+    const std::filesystem::path& path, const std::string& extension) {
+  if (FileUtils::FileExists(path)) {
+    for (const std::filesystem::path& entry :
+         std::filesystem::directory_iterator(path)) {
+      if (FileUtils::FileIsRegular(entry)) {
+        if (StringUtils::toLower(entry.extension().string()) ==
+            StringUtils::toLower(extension))
+          return entry;
+      }
+    }
+  }
+  return {};
+}
+
 Return FileUtils::ExecuteSystemCommand(const std::string& command,
                                        const std::vector<std::string>& args,
                                        std::ostream* out, int timeout_ms,
