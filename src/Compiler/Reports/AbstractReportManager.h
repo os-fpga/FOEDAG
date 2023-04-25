@@ -115,7 +115,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
  private:
   bool m_fileParsed{false};
-  const QString SPACE{"     "};
+  const QString SPACE{"       "};
+  const QString D_SPACE{"              "};
   uint m_dffr{0};
   uint m_dffre{0};
 };

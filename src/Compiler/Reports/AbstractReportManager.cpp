@@ -181,41 +181,37 @@ IDataReport::TableData AbstractReportManager::CreateLogicData() {
                ? 0
                : ((uLogic.lut5 / 2) + uLogic.lut6 + (uLogic.lut0 / 2)) * 100 /
                      aLogic.lut6;
-  circuitData.push_back({"LUT", QString::number(usedLuts),
+  circuitData.push_back({SPACE + "LUT", QString::number(usedLuts),
                          QString::number(aLogic.lut6),
                          QString::number(result)});
 
   result = (aLogic.lut5 == 0) ? 0 : uLogic.lut5 * 100 / aLogic.lut5;
-  circuitData.push_back({SPACE + "LUT5", QString::number(uLogic.lut5),
+  circuitData.push_back({D_SPACE + "LUT5", QString::number(uLogic.lut5),
                          QString::number(aLogic.lut5),
                          QString::number(result)});
 
   result = (aLogic.lut6 == 0) ? 0 : uLogic.lut6 * 100 / aLogic.lut6;
-  circuitData.push_back({SPACE + "LUT6", QString::number(uLogic.lut6),
+  circuitData.push_back({D_SPACE + "LUT6", QString::number(uLogic.lut6),
                          QString::number(aLogic.lut6),
-                         QString::number(result)});
-
-  result = (aLogic.lut0 == 0) ? 0 : uLogic.lut0 * 100 / aLogic.lut0;
-  circuitData.push_back({SPACE + "GND/VCC", QString::number(uLogic.lut0),
-                         QString::number(aLogic.lut0),
                          QString::number(result)});
 
   uint usedRegs = uLogic.dff + uLogic.latch;
   result = (aLogic.dff == 0) ? 0 : usedRegs * 100 / aLogic.dff;
-  circuitData.push_back({"Registers", QString::number(usedRegs),
+  circuitData.push_back({SPACE + "Registers", QString::number(usedRegs),
                          QString::number(aLogic.dff), QString::number(result)});
 
   result = (aLogic.dff == 0) ? 0 : uLogic.dff * 100 / aLogic.dff;
-  circuitData.push_back({SPACE + "Flip Flop", QString::number(uLogic.dff),
+  circuitData.push_back({D_SPACE + "Flip Flop", QString::number(uLogic.dff),
                          QString::number(aLogic.dff), QString::number(result)});
 
-  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
-  circuitData.push_back({SPACE + "Latch", QString::number(uLogic.latch),
-                         QString::number(aLogic.latch),
-                         QString::number(result)});
+  // NOTE temporary removed since latches removed from arch but may be added
+//  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
+//  circuitData.push_back({D_SPACE + "Latch", QString::number(uLogic.latch),
+//                         QString::number(aLogic.latch),
+//                         QString::number(result)});
 
   result = (aLogic.fa2Bits == 0) ? 0 : uLogic.fa2Bits * 100 / aLogic.fa2Bits;
-  circuitData.push_back({"Carry Chain", QString::number(uLogic.fa2Bits),
+  circuitData.push_back({SPACE + "Carry Chain", QString::number(uLogic.fa2Bits),
                          QString::number(aLogic.fa2Bits),
                          QString::number(result)});
   return circuitData;
