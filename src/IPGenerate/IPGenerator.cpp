@@ -86,9 +86,13 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       const auto& path = std::filesystem::current_path();
       expandedFile = path / expandedFile;
     }
-    bool status =
-        compiler->BuildLiteXIPCatalog(expandedFile.lexically_normal());
-    return (status) ? TCL_OK : TCL_ERROR;
+    auto fn = [compiler, expandedFile]() -> bool {
+      return compiler->BuildLiteXIPCatalog(expandedFile.lexically_normal());
+    };
+    WorkerThread* thread = new WorkerThread{
+        {}, Compiler::Action::NoAction, generator->GetCompiler()};
+    bool res = thread->Start(fn);
+    return res ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("add_litex_ip_catalog", add_litex_ip_catalog, this, 0);
 
