@@ -63,6 +63,7 @@ void BitstreamReportManager::parseLogFile() {
 
   QString line;
   while (in.readLineInto(&line)) {
+    parseStatisticLine(line);
     if (line.startsWith(STATISTIC_SECTION)) parseStatistics(in, -1);
   }
   CreateLogicData();

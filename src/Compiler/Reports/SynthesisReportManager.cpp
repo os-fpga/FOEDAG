@@ -178,6 +178,7 @@ void SynthesisReportManager::parseLogFile() {
   };
 
   while (in.readLineInto(&line)) {
+    parseStatisticLine(line);
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,

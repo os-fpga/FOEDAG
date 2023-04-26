@@ -187,6 +187,7 @@ void TimingAnalysisReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
+    parseStatisticLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
     else if (line.startsWith(BLOCK_GRAPH_BUILD_SECTION))

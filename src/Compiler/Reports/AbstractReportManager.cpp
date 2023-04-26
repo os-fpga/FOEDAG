@@ -38,8 +38,8 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
   m_ioColumns = {ReportColumn{"I/O"}, ReportColumn{"Used", Qt::AlignCenter},
                  ReportColumn{"Available", Qt::AlignCenter},
                  ReportColumn{"%", Qt::AlignCenter}};
-  m_clockColumns = m_ioColumns;
-  m_clockColumns[0].m_name = "Clock";
+  m_clockColumns = {ReportColumn{"Clock"},
+                    ReportColumn{"Used", Qt::AlignCenter}};
 }
 
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
@@ -288,13 +288,7 @@ IDataReport::TableData AbstractReportManager::CreateIOData() const {
 
 IDataReport::TableData AbstractReportManager::CreateClockData() const {
   auto clockData = IDataReport::TableData{};
-  uint res =
-      (m_availRes.clocks.clock_num == 0)
-          ? 0
-          : m_usedRes.clocks.clock_num * 100 / m_availRes.clocks.clock_num;
-  clockData.push_back({"Clock", QString::number(m_usedRes.clocks.clock_num),
-                       QString::number(m_availRes.clocks.clock_num),
-                       QString::number(res)});
+  clockData.push_back({"Clock", QString::number(m_usedRes.clocks.clock_num)});
   return clockData;
 }
 
@@ -382,6 +376,30 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   //    m_usedResources.dsp.dsp_9_10 = dsp_9_10Match.captured(1).toUInt();
   //    return;
   //  }
+
+  static const QRegularExpression io{"^ +io \\D+(\\d+)"};
+  auto ioMatch = io.match(line);
+  if (ioMatch.hasMatch()) {
+    m_usedRes.inouts.io = ioMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression inpad{"^ +inpad \\D+(\\d+)"};
+  auto inpadMatch = inpad.match(line);
+  if (inpadMatch.hasMatch()) {
+    m_usedRes.inouts.inputs = inpadMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression outpad{"^ +outpad \\D+(\\d+)"};
+  auto outpadMatch = outpad.match(line);
+  if (outpadMatch.hasMatch()) {
+    m_usedRes.inouts.outputs = outpadMatch.captured(1).toUInt();
+    return;
+  }
+}
+
+void AbstractReportManager::parseStatisticLine(const QString &line) {
   static const QRegularExpression nets{"^ +Nets\\D+(\\d+)",
                                        QRegularExpression::MultilineOption};
   auto netsMatch = nets.match(line);
@@ -423,28 +441,6 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.stat.fmax = fmaxMatch.captured(1).toDouble();
     return;
   }
-
-  static const QRegularExpression io{"^ +io \\D+(\\d+)"};
-  auto ioMatch = io.match(line);
-  if (ioMatch.hasMatch()) {
-    m_usedRes.inouts.io = ioMatch.captured(1).toUInt();
-    return;
-  }
-
-  static const QRegularExpression inpad{"^ +inpad \\D+(\\d+)"};
-  auto inpadMatch = inpad.match(line);
-  if (inpadMatch.hasMatch()) {
-    m_usedRes.inouts.inputs = inpadMatch.captured(1).toUInt();
-    return;
-  }
-
-  static const QRegularExpression outpad{"^ +outpad \\D+(\\d+)"};
-  auto outpadMatch = outpad.match(line);
-  if (outpadMatch.hasMatch()) {
-    m_usedRes.inouts.outputs = outpadMatch.captured(1).toUInt();
-    return;
-  }
-
   static const QRegularExpression clock{"^ +Netlist Clocks\\D+(\\d+)"};
   auto clockMatch = clock.match(line);
   if (clockMatch.hasMatch()) {
