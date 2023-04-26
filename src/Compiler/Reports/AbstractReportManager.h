@@ -71,6 +71,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
   IDataReport::TableData CreateLogicData();
   IDataReport::TableData CreateBramData() const;
   IDataReport::TableData CreateDspData() const;
+  IDataReport::TableData CreateIOData() const;
   void parseLogLine(const QString &line);
 
   using MessagesLines = std::map<int, QString>;
@@ -110,6 +111,8 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   IDataReport::ColumnValues m_histogramColumns;
   QVector<QPair<QString, IDataReport::TableData>> m_histograms;
+  IDataReport::TableData m_ioData;
+  IDataReport::ColumnValues m_ioColumns;
 
   Messages m_messages;
 

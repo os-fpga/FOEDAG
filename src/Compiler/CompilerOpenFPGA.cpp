@@ -2900,6 +2900,9 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     resources.logic.fa2Bits = MaxDeviceLUTCount() / 8;
     resources.logic.lut6 = MaxDeviceLUTCount();
     resources.logic.lut5 = MaxDeviceLUTCount() * 2;
+    resources.inouts.io = MaxDeviceIOCount();
+    resources.inouts.inputs = MaxDeviceIOCount();
+    resources.inouts.outputs = MaxDeviceIOCount();
     for (auto id : reports) {
       m_taskManager->getReportManagerRegistry()
           .getReportManager(id)

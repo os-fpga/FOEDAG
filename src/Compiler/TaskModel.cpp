@@ -93,8 +93,8 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     auto registry = m_taskManager->getReportManagerRegistry().getReportManager(
         ToTaskId(index));
     if (registry) {
-      if (registry->availableResources().stat.fmax != 0)
-        return QString::number(registry->availableResources().stat.fmax);
+      if (registry->usedResources().stat.fmax != 0)
+        return QString::number(registry->usedResources().stat.fmax);
     }
     return QVariant{};
   }

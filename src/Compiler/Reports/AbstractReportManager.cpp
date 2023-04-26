@@ -35,6 +35,9 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
                         ReportColumn{"Value", Qt::AlignCenter},
                         ReportColumn{"%", Qt::AlignCenter},
                         ReportColumn{"Histogram"}};
+  m_ioColumns = {ReportColumn{"I/O"}, ReportColumn{"Usage", Qt::AlignCenter},
+                 ReportColumn{"Available", Qt::AlignCenter},
+                 ReportColumn{"%", Qt::AlignCenter}};
 }
 
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
@@ -264,6 +267,24 @@ IDataReport::TableData AbstractReportManager::CreateDspData() const {
   return dspData;
 }
 
+IDataReport::TableData AbstractReportManager::CreateIOData() const {
+  auto ioData = IDataReport::TableData{};
+  IO uIO = m_usedRes.inouts;
+  IO aIO = m_availRes.inouts;
+  uint result = (aIO.io == 0) ? 0 : uIO.io * 100 / aIO.io;
+  ioData.push_back({"I/O", QString::number(uIO.io), QString::number(aIO.io),
+                    QString::number(result)});
+
+  result = (aIO.inputs == 0) ? 0 : uIO.inputs * 100 / aIO.inputs;
+  ioData.push_back({SPACE + "Inputs", QString::number(uIO.inputs),
+                    QString::number(aIO.inputs), QString::number(result)});
+
+  result = (aIO.outputs == 0) ? 0 : uIO.outputs * 100 / aIO.outputs;
+  ioData.push_back({SPACE + "Outputs", QString::number(uIO.outputs),
+                    QString::number(aIO.outputs), QString::number(result)});
+  return ioData;
+}
+
 void AbstractReportManager::parseLogLine(const QString &line) {
   static const QRegularExpression clb{"^ +clb\\D+(\\d+)",
                                       QRegularExpression::MultilineOption};
@@ -384,14 +405,37 @@ void AbstractReportManager::parseLogLine(const QString &line) {
 
   auto match = findLvls.match(line);
   if (match.hasMatch()) {
-    m_availRes.stat.maxLogicLvel = match.captured(1).toDouble();
-    m_availRes.stat.avgLogicLvel = match.captured(3).toDouble();
+    m_usedRes.stat.maxLogicLvel = match.captured(1).toDouble();
+    m_usedRes.stat.avgLogicLvel = match.captured(3).toDouble();
+    return;
   }
 
   static const QRegularExpression fmax{"^.+Fmax:\\D+([+-]?[[0-9]*[.]]?[0-9]+)"};
   auto fmaxMatch = fmax.match(line);
   if (fmaxMatch.hasMatch()) {
-    m_availRes.stat.fmax = fmaxMatch.captured(1).toDouble();
+    m_usedRes.stat.fmax = fmaxMatch.captured(1).toDouble();
+    return;
+  }
+
+  static const QRegularExpression io{"^ +io \\D+(\\d+)"};
+  auto ioMatch = io.match(line);
+  if (ioMatch.hasMatch()) {
+    m_usedRes.inouts.io = ioMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression inpad{"^ +inpad \\D+(\\d+)"};
+  auto inpadMatch = inpad.match(line);
+  if (inpadMatch.hasMatch()) {
+    m_usedRes.inouts.inputs = inpadMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression outpad{"^ +outpad \\D+(\\d+)"};
+  auto outpadMatch = outpad.match(line);
+  if (outpadMatch.hasMatch()) {
+    m_usedRes.inouts.outputs = outpadMatch.captured(1).toUInt();
+    return;
   }
 }
 

@@ -133,6 +133,8 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
         std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -146,6 +148,7 @@ void SynthesisReportManager::parseLogFile() {
   m_circuitData.clear();
   m_bramData.clear();
   m_dspData.clear();
+  m_ioData.clear();
 
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return;
@@ -200,6 +203,7 @@ void SynthesisReportManager::parseLogFile() {
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
+  m_ioData = CreateIOData();
   designStatistics();
 
   fillErrorsWarnings();

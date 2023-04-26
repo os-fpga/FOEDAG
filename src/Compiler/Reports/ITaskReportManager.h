@@ -59,6 +59,12 @@ struct DSP {
   uint dsp_18_20{};
 };
 
+struct IO {
+  uint io{};
+  uint inputs{};
+  uint outputs{};
+};
+
 struct Statistic {
   uint wires{};
   double avgFanout{};
@@ -73,6 +79,7 @@ struct Resources {
   Bram bram{};
   DSP dsp{};
   Statistic stat{};
+  IO inouts{};
 };
 
 class ITaskReport;

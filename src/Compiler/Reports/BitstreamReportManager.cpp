@@ -67,6 +67,7 @@ void BitstreamReportManager::parseLogFile() {
   CreateLogicData();
   CreateBramData();
   CreateDspData();
+  CreateIOData();
   designStatistics();
 
   logFile->close();
