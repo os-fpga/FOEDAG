@@ -705,18 +705,10 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
   std::filesystem::path dir{};
   if (m_compiler && m_compiler->ProjManager()) {
-    std::filesystem::path ipPath{};
-
     auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-
-    ProjectManager* projManager{m_compiler->ProjManager()};
-    QString projName = projManager->getProjectName();
-
-    // Build up the expected ip build path
-    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
-    std::string projIpDir = projName.toStdString() + ".IPs";
-    ipPath = baseDir / projIpDir / "tmp" / meta.vendor / meta.library /
-             meta.name / meta.version / instance->ModuleName();
+    auto ipPath = std::filesystem::temp_directory_path() / meta.vendor /
+                  meta.library / meta.name / meta.version /
+                  instance->ModuleName();
 
     auto def = instance->Definition();
     std::string ip_config_file =
