@@ -272,9 +272,11 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   auto isMatch = [instance](IPInstance* targetInstance) {
     return targetInstance->ModuleName() == instance->ModuleName();
   };
-  m_instances.erase(
-      std::remove_if(m_instances.begin(), m_instances.end(), isMatch),
-      m_instances.end());
+  auto it = std::find_if(m_instances.begin(), m_instances.end(), isMatch);
+  if (it != m_instances.end()) {
+    instance->Generated((*it)->Generated());
+    m_instances.erase(it);
+  }
 
   // Check parameters
   std::set<std::string> legalParams;
@@ -556,6 +558,7 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
+        inst->Generated(true);
 
         break;
       }
