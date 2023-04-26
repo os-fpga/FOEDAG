@@ -104,8 +104,7 @@ void AbstractReportManager::designStatistics() {
   m_resourceColumns.push_back(ReportColumn{{}, Qt::AlignCenter});
 
   m_resourceData.clear();
-  uint luts =
-      m_usedRes.logic.lut0 + m_usedRes.logic.lut5 + m_usedRes.logic.lut6;
+  uint luts = m_usedRes.logic.lut5 + m_usedRes.logic.lut6;
   uint result =
       (m_usedRes.logic.clb == 0) ? 0 : luts / (m_usedRes.logic.clb * 8);
   m_resourceData.push_back(
@@ -175,12 +174,11 @@ IDataReport::TableData AbstractReportManager::CreateLogicData() {
   circuitData.push_back({"CLB", QString::number(uLogic.clb),
                          QString::number(aLogic.clb), QString::number(result)});
 
-  uint usedLuts = uLogic.lut5 + uLogic.lut6 + uLogic.lut0;
+  uint usedLuts = uLogic.lut5 + uLogic.lut6;
 
   result = (aLogic.lut6 == 0)
                ? 0
-               : ((uLogic.lut5 / 2) + uLogic.lut6 + (uLogic.lut0 / 2)) * 100 /
-                     aLogic.lut6;
+               : ((uLogic.lut5 / 2) + uLogic.lut6) * 100 / aLogic.lut6;
   circuitData.push_back({SPACE + "LUT", QString::number(usedLuts),
                          QString::number(aLogic.lut6),
                          QString::number(result)});
@@ -293,13 +291,6 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   auto lut6_Match = lut6_.match(line);
   if (lut6_Match.hasMatch()) {
     m_usedRes.logic.lut6 = lut6_Match.captured(1).toUInt();
-    return;
-  }
-  static const QRegularExpression lut0{"^ +0-LUT\\D+(\\d+)",
-                                       QRegularExpression::MultilineOption};
-  auto lut0Match = lut0.match(line);
-  if (lut0Match.hasMatch()) {
-    m_usedRes.logic.lut0 = lut0Match.captured(1).toUInt();
     return;
   }
 

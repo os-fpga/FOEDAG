@@ -44,7 +44,6 @@ struct Logic {
   uint clb{};
   uint lut5{};
   uint lut6{};
-  uint lut0{};
   uint dff{};
   uint latch{};
   uint fa2Bits{};
