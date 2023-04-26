@@ -32,7 +32,7 @@ namespace FOEDAG {
 PackingReportManager::PackingReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {
   m_circuitColumns = {ReportColumn{"Logic"},
-                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Used", Qt::AlignCenter},
                       ReportColumn{"Available", Qt::AlignCenter},
                       ReportColumn{"%", Qt::AlignCenter}};
   m_bramColumns = m_circuitColumns;
@@ -63,6 +63,8 @@ std::unique_ptr<ITaskReport> PackingReportManager::createReport(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -96,6 +98,7 @@ void PackingReportManager::parseLogFile() {
   m_bramData.clear();
   m_dspData.clear();
   m_ioData.clear();
+  m_clockData.clear();
 
   auto logFile = createLogFile(QString(PACKING_LOG));
   if (!logFile) return;
@@ -137,6 +140,7 @@ void PackingReportManager::parseLogFile() {
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
   m_ioData = CreateIOData();
+  m_clockData = CreateClockData();
   designStatistics();
 
   logFile->close();

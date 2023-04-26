@@ -65,6 +65,10 @@ struct IO {
   uint outputs{};
 };
 
+struct Clock {
+  uint clock_num{};
+};
+
 struct Statistic {
   uint wires{};
   double avgFanout{};
@@ -80,6 +84,7 @@ struct Resources {
   DSP dsp{};
   Statistic stat{};
   IO inouts{};
+  Clock clocks{};
 };
 
 class ITaskReport;

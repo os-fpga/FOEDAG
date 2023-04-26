@@ -35,9 +35,11 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
                         ReportColumn{"Value", Qt::AlignCenter},
                         ReportColumn{"%", Qt::AlignCenter},
                         ReportColumn{"Histogram"}};
-  m_ioColumns = {ReportColumn{"I/O"}, ReportColumn{"Usage", Qt::AlignCenter},
+  m_ioColumns = {ReportColumn{"I/O"}, ReportColumn{"Used", Qt::AlignCenter},
                  ReportColumn{"Available", Qt::AlignCenter},
                  ReportColumn{"%", Qt::AlignCenter}};
+  m_clockColumns = m_ioColumns;
+  m_clockColumns[0].m_name = "Clock";
 }
 
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
@@ -285,6 +287,18 @@ IDataReport::TableData AbstractReportManager::CreateIOData() const {
   return ioData;
 }
 
+IDataReport::TableData AbstractReportManager::CreateClockData() const {
+  auto clockData = IDataReport::TableData{};
+  uint res =
+      (m_availRes.clocks.clock_num == 0)
+          ? 0
+          : m_usedRes.clocks.clock_num * 100 / m_availRes.clocks.clock_num;
+  clockData.push_back({"Clock", QString::number(m_usedRes.clocks.clock_num),
+                       QString::number(m_availRes.clocks.clock_num),
+                       QString::number(res)});
+  return clockData;
+}
+
 void AbstractReportManager::parseLogLine(const QString &line) {
   static const QRegularExpression clb{"^ +clb\\D+(\\d+)",
                                       QRegularExpression::MultilineOption};
@@ -435,6 +449,13 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   auto outpadMatch = outpad.match(line);
   if (outpadMatch.hasMatch()) {
     m_usedRes.inouts.outputs = outpadMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression clock{"^ +Netlist Clocks\\D+(\\d+)"};
+  auto clockMatch = clock.match(line);
+  if (clockMatch.hasMatch()) {
+    m_usedRes.clocks.clock_num = clockMatch.captured(1).toUInt();
     return;
   }
 }
