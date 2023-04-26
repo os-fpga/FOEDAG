@@ -208,10 +208,10 @@ IDataReport::TableData AbstractReportManager::CreateLogicData() {
                          QString::number(aLogic.dff), QString::number(result)});
 
   // NOTE temporary removed since latches removed from arch but may be added
-//  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
-//  circuitData.push_back({D_SPACE + "Latch", QString::number(uLogic.latch),
-//                         QString::number(aLogic.latch),
-//                         QString::number(result)});
+  //  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
+  //  circuitData.push_back({D_SPACE + "Latch", QString::number(uLogic.latch),
+  //                         QString::number(aLogic.latch),
+  //                         QString::number(result)});
 
   result = (aLogic.fa2Bits == 0) ? 0 : uLogic.fa2Bits * 100 / aLogic.fa2Bits;
   circuitData.push_back({SPACE + "Carry Chain", QString::number(uLogic.fa2Bits),
