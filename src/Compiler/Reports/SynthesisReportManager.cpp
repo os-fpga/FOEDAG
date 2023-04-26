@@ -204,7 +204,7 @@ void SynthesisReportManager::parseLogFile() {
     } else if (line.contains(STATISTIC_SECTION)) {
       m_usedRes.dsp = DSP{};
       m_usedRes.logic.dff = 0;
-      lineNr = parseStatistics(in, lineNr);
+      lineNr = parseStatisticsSection(in, lineNr);
     }
     ++lineNr;
   }

@@ -131,7 +131,7 @@ void PackingReportManager::parseLogFile() {
     else if (line.startsWith(LOAD_TIM_CONSTR))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_TIM_CONSTR, {});
     else if (line.startsWith(STATISTIC_SECTION))
-      lineNr = parseStatistics(in, lineNr);
+      lineNr = parseStatisticsSection(in, lineNr);
     else if (line.startsWith(PACKING_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, PACKING_SECTION,

@@ -124,7 +124,7 @@ void RoutingReportManager::parseLogFile() {
           TaskMessage{
               lineNr, MessageSeverity::INFO_MESSAGE, TIMING_INFO.cap(), {}});
     else if (line.startsWith(STATISTIC_SECTION))
-      lineNr = parseStatistics(in, lineNr);
+      lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);

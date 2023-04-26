@@ -67,7 +67,7 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
                                const QString &sectionLine, SectionKeys keys,
                                bool stopEmptyLine = false);
 
-  int parseStatistics(QTextStream &in, int lineNr);
+  int parseStatisticsSection(QTextStream &in, int lineNr);
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
   IDataReport::TableData CreateLogicData();

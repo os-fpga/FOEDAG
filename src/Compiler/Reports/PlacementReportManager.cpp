@@ -148,7 +148,7 @@ void PlacementReportManager::parseLogFile() {
       lineNr = parseErrorWarningSection(in, lineNr, PLACEMENT_SECTION,
                                         m_placementKeys);
     else if (line.startsWith(STATISTIC_SECTION))
-      lineNr = parseStatistics(in, lineNr);
+      lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
   m_circuitData = CreateLogicData();

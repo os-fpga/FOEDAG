@@ -223,7 +223,7 @@ void TimingAnalysisReportManager::parseLogFile() {
     else if (isStatisticalTimingHistogram(line))
       m_histograms.push_back(qMakePair(line, parseHistogram(in, lineNr)));
     else if (line.startsWith(STATISTIC_SECTION))
-      lineNr = parseStatistics(in, lineNr);
+      lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);

@@ -546,7 +546,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
   return lineNr;
 }
 
-int AbstractReportManager::parseStatistics(QTextStream &in, int lineNr) {
+int AbstractReportManager::parseStatisticsSection(QTextStream &in, int lineNr) {
   QString line{};
   while (in.readLineInto(&line)) {
     ++lineNr;
