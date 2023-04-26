@@ -386,7 +386,11 @@ QMap<QVariant, QVariant> IpConfigWidget::saveProperties(bool& valid) const {
 
 std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
   // generate ip instance
-  Generate(false);
+  std::filesystem::path baseDir(std::filesystem::temp_directory_path());
+  std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
+  QString outFileStr =
+      QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+  Generate(false, outFileStr);
 
   Compiler* compiler = GlobalSession->GetCompiler();
   auto generator = compiler->GetIPGenerator();
@@ -409,7 +413,7 @@ std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
       }
       case IPDefinition::IPType::LiteXGenerator: {
         executable = def->FilePath();
-        std::filesystem::path jsonFile = generator->GetCachePath(inst);
+        std::filesystem::path jsonFile = generator->GetTmpCachePath(inst);
         // Create directory path if it doesn't exist otherwise the following
         // ofstream command will fail
         FileUtils::MkDirs(jsonFile.parent_path());
@@ -611,7 +615,7 @@ void IpConfigWidget::handleEditorChanged(const QString& customId,
   }
 }
 
-void IpConfigWidget::Generate(bool addToProject) {
+void IpConfigWidget::Generate(bool addToProject, const QString& outputPath) {
   // Find settings fields in the parameter box layout
   QLayout* fieldsLayout = paramsBox->layout();
   QList<QObject*> settingsObjs =
@@ -672,7 +676,9 @@ void IpConfigWidget::Generate(bool addToProject) {
     std::filesystem::path baseDir(m_baseDirDefault.toStdString());
     std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
     QString outFileStr =
-        QString::fromStdString(FileUtils::GetFullPath(outFile).string());
+        outputPath.isEmpty()
+            ? QString::fromStdString(FileUtils::GetFullPath(outFile).string())
+            : outputPath;
 
     // Build up a cmd string to generate the IP
     QString cmd = "configure_ip " + this->m_requestedIpName + " -mod_name " +
@@ -681,6 +687,8 @@ void IpConfigWidget::Generate(bool addToProject) {
                   " -out_file " + outFileStr;
     if (addToProject)
       cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
+    else
+      cmd += " -template";
 
     int returnVal{false};
     auto resultStr =

@@ -172,6 +172,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     std::string out_file;
     std::string version;
     std::vector<SParameter> parameters;
+    bool generated{true};
     for (int i = 1; i < argc; i++) {
       std::string arg = argv[i];
       if (i == 1) {
@@ -185,6 +186,8 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       } else if (arg == "-version") {
         i++;
         version = argv[i];
+      } else if (arg == "-template") {
+        generated = false;
       } else if (arg.find("-P") == 0) {
         std::string def;
         std::string value;
@@ -209,6 +212,7 @@ bool IPGenerator::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     }
     IPInstance* instance =
         new IPInstance(ip_name, version, def, parameters, mod_name, out_file);
+    instance->Generated(generated);
     if (!generator->AddIPInstance(instance)) {
       ok = false;
     }
@@ -274,7 +278,6 @@ bool IPGenerator::AddIPInstance(IPInstance* instance) {
   };
   auto it = std::find_if(m_instances.begin(), m_instances.end(), isMatch);
   if (it != m_instances.end()) {
-    instance->Generated((*it)->Generated());
     m_instances.erase(it);
   }
 
@@ -521,7 +524,7 @@ bool IPGenerator::Generate() {
           std::stringstream buffer;
           newbuffer << newfile.rdbuf();
         }
-        if ((newbuffer.str() == previousbuffer.str()) && inst->Generated()) {
+        if (newbuffer.str() == previousbuffer.str()) {
           m_compiler->Message("IP Generate, reusing IP " +
                               GetBuildDir(inst).string());
           continue;
@@ -558,7 +561,6 @@ bool IPGenerator::Generate() {
           m_compiler->ErrorMessage("IP Generate, " + help.str());
           return false;
         }
-        inst->Generated(true);
 
         break;
       }
@@ -696,6 +698,23 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 
   if (m_compiler && m_compiler->ProjManager()) {
     std::filesystem::path ipPath = GetBuildDir(instance);
+    auto def = instance->Definition();
+    std::string ip_config_file =
+        def->Name() + "_" + instance->ModuleName() + ".json";
+    dir = ipPath / ip_config_file;
+  }
+
+  return dir;
+}
+
+std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
+  std::filesystem::path dir{};
+  if (m_compiler && m_compiler->ProjManager()) {
+    auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
+    auto ipPath = std::filesystem::temp_directory_path() / meta.vendor /
+                  meta.library / meta.name / meta.version /
+                  instance->ModuleName();
+
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
