@@ -67,11 +67,16 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
                                const QString &sectionLine, SectionKeys keys,
                                bool stopEmptyLine = false);
 
+  int parseStatisticsSection(QTextStream &in, int lineNr);
+
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
   IDataReport::TableData CreateLogicData();
   IDataReport::TableData CreateBramData() const;
   IDataReport::TableData CreateDspData() const;
+  IDataReport::TableData CreateIOData() const;
+  IDataReport::TableData CreateClockData() const;
   void parseLogLine(const QString &line);
+  void parseStatisticLine(const QString &line);
 
   using MessagesLines = std::map<int, QString>;
   // Creates parent item for either warnings or messages. Clears msgs
@@ -110,14 +115,17 @@ class AbstractReportManager : public QObject, public ITaskReportManager {
 
   IDataReport::ColumnValues m_histogramColumns;
   QVector<QPair<QString, IDataReport::TableData>> m_histograms;
+  IDataReport::TableData m_ioData;
+  IDataReport::ColumnValues m_ioColumns;
+  IDataReport::TableData m_clockData;
+  IDataReport::ColumnValues m_clockColumns;
 
   Messages m_messages;
 
  private:
   bool m_fileParsed{false};
-  const QString SPACE{"     "};
-  uint m_dffr{0};
-  uint m_dffre{0};
+  const QString SPACE{"       "};
+  const QString D_SPACE{"              "};
 };
 
 }  // namespace FOEDAG

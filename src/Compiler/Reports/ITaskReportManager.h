@@ -44,7 +44,6 @@ struct Logic {
   uint clb{};
   uint lut5{};
   uint lut6{};
-  uint lut0{};
   uint dff{};
   uint latch{};
   uint fa2Bits{};
@@ -58,6 +57,16 @@ struct Bram {
 struct DSP {
   uint dsp_9_10{};
   uint dsp_18_20{};
+};
+
+struct IO {
+  uint io{};
+  uint inputs{};
+  uint outputs{};
+};
+
+struct Clock {
+  uint clock_num{};
 };
 
 struct Statistic {
@@ -74,6 +83,8 @@ struct Resources {
   Bram bram{};
   DSP dsp{};
   Statistic stat{};
+  IO inouts{};
+  Clock clocks{};
 };
 
 class ITaskReport;

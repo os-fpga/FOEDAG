@@ -25,6 +25,7 @@ static const QString LOAD_ARCH_SECTION{"# Loading Architecture Description"};
 static const QString BUILD_TIM_GRAPH{"Build Timing Graph"};
 static const QString LOAD_TIM_CONSTR{"# Load Timing Constraints"};
 static const QString PACKING_SECTION{"# Packing"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 }  // namespace
 
 namespace FOEDAG {
@@ -32,7 +33,7 @@ namespace FOEDAG {
 PackingReportManager::PackingReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {
   m_circuitColumns = {ReportColumn{"Logic"},
-                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Used", Qt::AlignCenter},
                       ReportColumn{"Available", Qt::AlignCenter},
                       ReportColumn{"%", Qt::AlignCenter}};
   m_bramColumns = m_circuitColumns;
@@ -61,6 +62,10 @@ std::unique_ptr<ITaskReport> PackingReportManager::createReport(
         std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -93,6 +98,8 @@ void PackingReportManager::parseLogFile() {
   m_circuitData.clear();
   m_bramData.clear();
   m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 
   auto logFile = createLogFile(QString(PACKING_LOG));
   if (!logFile) return;
@@ -103,7 +110,7 @@ void PackingReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
+    parseStatisticLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
     else if (VPR_ROUTING_OPT.indexIn(line) != -1)
@@ -123,6 +130,8 @@ void PackingReportManager::parseLogFile() {
               lineNr, MessageSeverity::INFO_MESSAGE, BUILD_TIM_GRAPH, {}});
     else if (line.startsWith(LOAD_TIM_CONSTR))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_TIM_CONSTR, {});
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatisticsSection(in, lineNr);
     else if (line.startsWith(PACKING_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, PACKING_SECTION,
@@ -133,6 +142,8 @@ void PackingReportManager::parseLogFile() {
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
+  m_ioData = CreateIOData();
+  m_clockData = CreateClockData();
   designStatistics();
 
   logFile->close();

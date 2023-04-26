@@ -54,6 +54,7 @@ static const QString PLACEMENT_SECTION{"# Placement"};
 
 static const QRegularExpression FIND_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
                                        "FMax",
@@ -74,7 +75,7 @@ PlacementReportManager::PlacementReportManager(const TaskManager &taskManager)
                      PLACEMENT_HISTOGRAM_REGEXP, PLACEMENT_RESOURCE_REGEXP};
 
   m_circuitColumns = {ReportColumn{"Logic"},
-                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Used", Qt::AlignCenter},
                       ReportColumn{"Available", Qt::AlignCenter},
                       ReportColumn{"%", Qt::AlignCenter}};
   m_bramColumns = m_circuitColumns;
@@ -103,6 +104,10 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
         std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -118,6 +123,8 @@ void PlacementReportManager::parseLogFile() {
   m_circuitData.clear();
   m_bramData.clear();
   m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 
   auto logFile = createLogFile(QString(PLACEMENT_LOG));
   if (!logFile) return;
@@ -128,7 +135,7 @@ void PlacementReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
+    parseStatisticLine(line);
     if (LOAD_PACKING_REGEXP.exactMatch(line))
       m_messages.insert(lineNr, TaskMessage{lineNr,
                                             MessageSeverity::INFO_MESSAGE,
@@ -140,11 +147,15 @@ void PlacementReportManager::parseLogFile() {
     else if (line.startsWith(PLACEMENT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, PLACEMENT_SECTION,
                                         m_placementKeys);
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
+  m_ioData = CreateIOData();
+  m_clockData = CreateClockData();
   designStatistics();
 
   logFile->close();

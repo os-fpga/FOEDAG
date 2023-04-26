@@ -30,6 +30,7 @@ static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
 
 static const QRegularExpression SPLIT_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 static const QStringList TIMING_FIELDS{"Hold WNS",
                                        "Hold TNS",
@@ -46,7 +47,7 @@ namespace FOEDAG {
 RoutingReportManager::RoutingReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {
   m_circuitColumns = {ReportColumn{"Logic"},
-                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Used", Qt::AlignCenter},
                       ReportColumn{"Available", Qt::AlignCenter},
                       ReportColumn{"%", Qt::AlignCenter}};
   m_bramColumns = m_circuitColumns;
@@ -78,6 +79,10 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
         std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   }
   emit reportCreated(reportId);
 
@@ -96,7 +101,7 @@ void RoutingReportManager::parseLogFile() {
   auto lineNr = 0;
   QString line;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
+    parseStatisticLine(line);
     if (line.startsWith(LOAD_PLACEMENT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_PLACEMENT_SECTION, {});
     else if (line.startsWith(COMPUT_ROUTER_SECTION))
@@ -118,12 +123,16 @@ void RoutingReportManager::parseLogFile() {
           lineNr,
           TaskMessage{
               lineNr, MessageSeverity::INFO_MESSAGE, TIMING_INFO.cap(), {}});
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
+  m_ioData = CreateIOData();
+  m_clockData = CreateClockData();
   designStatistics();
 
   logFile->close();
@@ -142,6 +151,8 @@ void RoutingReportManager::reset() {
   m_timingData.clear();
   m_bramData.clear();
   m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 }
 
 bool RoutingReportManager::isStatisticalTimingHistogram(const QString &line) {

@@ -44,6 +44,7 @@ static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
 static const QRegExp VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
 static const QRegExp VERIFIC_INFO_REGEXP{
     "Executing synth_rs pass.*|Executing RS_DSP_MACC.*"};
+static const QString STATISTIC_SECTION{"Number of wires"};
 }  // namespace
 
 namespace FOEDAG {
@@ -51,7 +52,7 @@ namespace FOEDAG {
 SynthesisReportManager::SynthesisReportManager(const TaskManager &taskManager)
     : AbstractReportManager(taskManager) {
   m_circuitColumns = {ReportColumn{"Logic"},
-                      ReportColumn{"Usage", Qt::AlignCenter},
+                      ReportColumn{"Used", Qt::AlignCenter},
                       ReportColumn{"Available", Qt::AlignCenter},
                       ReportColumn{"%", Qt::AlignCenter}};
   m_bramColumns = m_circuitColumns;
@@ -133,6 +134,10 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
         std::make_unique<TableReport>(m_bramColumns, m_bramData, QString{}));
     dataReports.push_back(
         std::make_unique<TableReport>(m_dspColumns, m_dspData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_ioColumns, m_ioData, QString{}));
+    dataReports.push_back(
+        std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   }
 
   emit reportCreated(reportId);
@@ -146,6 +151,8 @@ void SynthesisReportManager::parseLogFile() {
   m_circuitData.clear();
   m_bramData.clear();
   m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 
   auto logFile = createLogFile(QString(SYNTHESIS_LOG));
   if (!logFile) return;
@@ -171,7 +178,7 @@ void SynthesisReportManager::parseLogFile() {
   };
 
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
+    parseStatisticLine(line);
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
@@ -194,12 +201,18 @@ void SynthesisReportManager::parseLogFile() {
             createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
         m_messages.insert(errorsItem.m_lineNr, errorsItem);
       }
+    } else if (line.contains(STATISTIC_SECTION)) {
+      m_usedRes.dsp = DSP{};
+      m_usedRes.logic.dff = 0;
+      lineNr = parseStatisticsSection(in, lineNr);
     }
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
+  m_ioData = CreateIOData();
+  m_clockData = CreateClockData();
   designStatistics();
 
   fillErrorsWarnings();

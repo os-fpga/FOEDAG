@@ -35,6 +35,11 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
                         ReportColumn{"Value", Qt::AlignCenter},
                         ReportColumn{"%", Qt::AlignCenter},
                         ReportColumn{"Histogram"}};
+  m_ioColumns = {ReportColumn{"I/O"}, ReportColumn{"Used", Qt::AlignCenter},
+                 ReportColumn{"Available", Qt::AlignCenter},
+                 ReportColumn{"%", Qt::AlignCenter}};
+  m_clockColumns = {ReportColumn{"Clock"},
+                    ReportColumn{"Used", Qt::AlignCenter}};
 }
 
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
@@ -104,8 +109,7 @@ void AbstractReportManager::designStatistics() {
   m_resourceColumns.push_back(ReportColumn{{}, Qt::AlignCenter});
 
   m_resourceData.clear();
-  uint luts =
-      m_usedRes.logic.lut0 + m_usedRes.logic.lut5 + m_usedRes.logic.lut6;
+  uint luts = m_usedRes.logic.lut5 + m_usedRes.logic.lut6;
   uint result =
       (m_usedRes.logic.clb == 0) ? 0 : luts / (m_usedRes.logic.clb * 8);
   m_resourceData.push_back(
@@ -168,54 +172,48 @@ IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
 
 IDataReport::TableData AbstractReportManager::CreateLogicData() {
   auto circuitData = IDataReport::TableData{};
-  m_usedRes.logic.dff = m_dffr + m_dffre;
   Logic uLogic = m_usedRes.logic;
   Logic aLogic = m_availRes.logic;
   uint result = (aLogic.clb == 0) ? 0 : uLogic.clb * 100 / aLogic.clb;
   circuitData.push_back({"CLB", QString::number(uLogic.clb),
                          QString::number(aLogic.clb), QString::number(result)});
 
-  uint usedLuts = uLogic.lut5 + uLogic.lut6 + uLogic.lut0;
+  uint usedLuts = uLogic.lut5 + uLogic.lut6;
 
   result = (aLogic.lut6 == 0)
                ? 0
-               : ((uLogic.lut5 / 2) + uLogic.lut6 + (uLogic.lut0 / 2)) * 100 /
-                     aLogic.lut6;
-  circuitData.push_back({"LUT", QString::number(usedLuts),
+               : ((uLogic.lut5 / 2) + uLogic.lut6) * 100 / aLogic.lut6;
+  circuitData.push_back({SPACE + "LUT", QString::number(usedLuts),
                          QString::number(aLogic.lut6),
                          QString::number(result)});
 
   result = (aLogic.lut5 == 0) ? 0 : uLogic.lut5 * 100 / aLogic.lut5;
-  circuitData.push_back({SPACE + "LUT5", QString::number(uLogic.lut5),
+  circuitData.push_back({D_SPACE + "LUT5", QString::number(uLogic.lut5),
                          QString::number(aLogic.lut5),
                          QString::number(result)});
 
   result = (aLogic.lut6 == 0) ? 0 : uLogic.lut6 * 100 / aLogic.lut6;
-  circuitData.push_back({SPACE + "LUT6", QString::number(uLogic.lut6),
+  circuitData.push_back({D_SPACE + "LUT6", QString::number(uLogic.lut6),
                          QString::number(aLogic.lut6),
-                         QString::number(result)});
-
-  result = (aLogic.lut0 == 0) ? 0 : uLogic.lut0 * 100 / aLogic.lut0;
-  circuitData.push_back({SPACE + "GND/VCC", QString::number(uLogic.lut0),
-                         QString::number(aLogic.lut0),
                          QString::number(result)});
 
   uint usedRegs = uLogic.dff + uLogic.latch;
   result = (aLogic.dff == 0) ? 0 : usedRegs * 100 / aLogic.dff;
-  circuitData.push_back({"Registers", QString::number(usedRegs),
+  circuitData.push_back({SPACE + "Registers", QString::number(usedRegs),
                          QString::number(aLogic.dff), QString::number(result)});
 
   result = (aLogic.dff == 0) ? 0 : uLogic.dff * 100 / aLogic.dff;
-  circuitData.push_back({SPACE + "Flip Flop", QString::number(uLogic.dff),
+  circuitData.push_back({D_SPACE + "Flip Flop", QString::number(uLogic.dff),
                          QString::number(aLogic.dff), QString::number(result)});
 
-  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
-  circuitData.push_back({SPACE + "Latch", QString::number(uLogic.latch),
-                         QString::number(aLogic.latch),
-                         QString::number(result)});
+  // NOTE temporary removed since latches removed from arch but may be added
+  //  result = (aLogic.latch == 0) ? 0 : uLogic.latch * 100 / aLogic.latch;
+  //  circuitData.push_back({D_SPACE + "Latch", QString::number(uLogic.latch),
+  //                         QString::number(aLogic.latch),
+  //                         QString::number(result)});
 
   result = (aLogic.fa2Bits == 0) ? 0 : uLogic.fa2Bits * 100 / aLogic.fa2Bits;
-  circuitData.push_back({"Carry Chain", QString::number(uLogic.fa2Bits),
+  circuitData.push_back({SPACE + "Carry Chain", QString::number(uLogic.fa2Bits),
                          QString::number(aLogic.fa2Bits),
                          QString::number(result)});
   return circuitData;
@@ -270,6 +268,30 @@ IDataReport::TableData AbstractReportManager::CreateDspData() const {
   return dspData;
 }
 
+IDataReport::TableData AbstractReportManager::CreateIOData() const {
+  auto ioData = IDataReport::TableData{};
+  IO uIO = m_usedRes.inouts;
+  IO aIO = m_availRes.inouts;
+  uint result = (aIO.io == 0) ? 0 : uIO.io * 100 / aIO.io;
+  ioData.push_back({"I/O", QString::number(uIO.io), QString::number(aIO.io),
+                    QString::number(result)});
+
+  result = (aIO.inputs == 0) ? 0 : uIO.inputs * 100 / aIO.inputs;
+  ioData.push_back({SPACE + "Inputs", QString::number(uIO.inputs),
+                    QString::number(aIO.inputs), QString::number(result)});
+
+  result = (aIO.outputs == 0) ? 0 : uIO.outputs * 100 / aIO.outputs;
+  ioData.push_back({SPACE + "Outputs", QString::number(uIO.outputs),
+                    QString::number(aIO.outputs), QString::number(result)});
+  return ioData;
+}
+
+IDataReport::TableData AbstractReportManager::CreateClockData() const {
+  auto clockData = IDataReport::TableData{};
+  clockData.push_back({"Clock", QString::number(m_usedRes.clocks.clock_num)});
+  return clockData;
+}
+
 void AbstractReportManager::parseLogLine(const QString &line) {
   static const QRegularExpression clb{"^ +clb\\D+(\\d+)",
                                       QRegularExpression::MultilineOption};
@@ -299,28 +321,15 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.lut6 = lut6_Match.captured(1).toUInt();
     return;
   }
-  static const QRegularExpression lut0{"^ +0-LUT\\D+(\\d+)",
-                                       QRegularExpression::MultilineOption};
-  auto lut0Match = lut0.match(line);
-  if (lut0Match.hasMatch()) {
-    m_usedRes.logic.lut0 = lut0Match.captured(1).toUInt();
-    return;
-  }
 
   static const QRegularExpression dff{
-      "^ +dffr \\D+(\\d+)", QRegularExpression::MultilineOption |
-                                QRegularExpression::CaseInsensitiveOption};
+      "^ +(\\S*dff\\S*)\\D+(\\d+)",
+      QRegularExpression::MultilineOption |
+          QRegularExpression::CaseInsensitiveOption};
   auto dffMatch = dff.match(line);
   if (dffMatch.hasMatch()) {
-    m_dffr = dffMatch.captured(1).toUInt();
-    return;
-  }
-  static const QRegularExpression dffre{
-      "^ +dffre \\D+(\\d+)", QRegularExpression::MultilineOption |
-                                 QRegularExpression::CaseInsensitiveOption};
-  auto dffreMatch = dffre.match(line);
-  if (dffreMatch.hasMatch()) {
-    m_dffre = dffreMatch.captured(1).toUInt();
+    if (!dffMatch.captured(1).contains("SDFFRE", Qt::CaseInsensitive))
+      m_usedRes.logic.dff += dffMatch.captured(2).toUInt();
     return;
   }
   static const QRegularExpression latch{
@@ -356,7 +365,7 @@ void AbstractReportManager::parseLogLine(const QString &line) {
       "^ +RS_DSP_MULT\\D+(\\d+)", QRegularExpression::MultilineOption};
   auto dsp_18_20Match = dsp_18_20.match(line);
   if (dsp_18_20Match.hasMatch()) {
-    m_usedRes.dsp.dsp_18_20 = dsp_18_20Match.captured(1).toUInt();
+    m_usedRes.dsp.dsp_18_20 += dsp_18_20Match.captured(1).toUInt();
     return;
   }
   // TODO pattern TBD
@@ -367,6 +376,30 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   //    m_usedResources.dsp.dsp_9_10 = dsp_9_10Match.captured(1).toUInt();
   //    return;
   //  }
+
+  static const QRegularExpression io{"^ +io \\D+(\\d+)"};
+  auto ioMatch = io.match(line);
+  if (ioMatch.hasMatch()) {
+    m_usedRes.inouts.io = ioMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression inpad{"^ +inpad \\D+(\\d+)"};
+  auto inpadMatch = inpad.match(line);
+  if (inpadMatch.hasMatch()) {
+    m_usedRes.inouts.inputs = inpadMatch.captured(1).toUInt();
+    return;
+  }
+
+  static const QRegularExpression outpad{"^ +outpad \\D+(\\d+)"};
+  auto outpadMatch = outpad.match(line);
+  if (outpadMatch.hasMatch()) {
+    m_usedRes.inouts.outputs = outpadMatch.captured(1).toUInt();
+    return;
+  }
+}
+
+void AbstractReportManager::parseStatisticLine(const QString &line) {
   static const QRegularExpression nets{"^ +Nets\\D+(\\d+)",
                                        QRegularExpression::MultilineOption};
   auto netsMatch = nets.match(line);
@@ -397,14 +430,22 @@ void AbstractReportManager::parseLogLine(const QString &line) {
 
   auto match = findLvls.match(line);
   if (match.hasMatch()) {
-    m_availRes.stat.maxLogicLvel = match.captured(1).toDouble();
-    m_availRes.stat.avgLogicLvel = match.captured(3).toDouble();
+    m_usedRes.stat.maxLogicLvel = match.captured(1).toDouble();
+    m_usedRes.stat.avgLogicLvel = match.captured(3).toDouble();
+    return;
   }
 
   static const QRegularExpression fmax{"^.+Fmax:\\D+([+-]?[[0-9]*[.]]?[0-9]+)"};
   auto fmaxMatch = fmax.match(line);
   if (fmaxMatch.hasMatch()) {
-    m_availRes.stat.fmax = fmaxMatch.captured(1).toDouble();
+    m_usedRes.stat.fmax = fmaxMatch.captured(1).toDouble();
+    return;
+  }
+  static const QRegularExpression clock{"^ +Netlist Clocks\\D+(\\d+)"};
+  auto clockMatch = clock.match(line);
+  if (clockMatch.hasMatch()) {
+    m_usedRes.clocks.clock_num = clockMatch.captured(1).toUInt();
+    return;
   }
 }
 
@@ -503,7 +544,17 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
   m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
   return lineNr;
-}  // namespace FOEDAG
+}
+
+int AbstractReportManager::parseStatisticsSection(QTextStream &in, int lineNr) {
+  QString line{};
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.isEmpty()) break;  // end of section
+    parseLogLine(line);
+  }
+  return lineNr;
+}
 
 TaskMessage AbstractReportManager::createWarningErrorItem(
     MessageSeverity severity, MessagesLines &msgs) const {

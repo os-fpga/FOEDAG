@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 namespace FOEDAG {
 
@@ -62,11 +63,13 @@ void BitstreamReportManager::parseLogFile() {
 
   QString line;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
+    parseStatisticLine(line);
+    if (line.startsWith(STATISTIC_SECTION)) parseStatisticsSection(in, -1);
   }
   CreateLogicData();
   CreateBramData();
   CreateDspData();
+  CreateIOData();
   designStatistics();
 
   logFile->close();
