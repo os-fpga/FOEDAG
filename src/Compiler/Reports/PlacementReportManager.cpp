@@ -54,6 +54,7 @@ static const QString PLACEMENT_SECTION{"# Placement"};
 
 static const QRegularExpression FIND_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 static const QStringList TIMING_FIELDS{"Critical path delay (least slack)",
                                        "FMax",
@@ -134,7 +135,6 @@ void PlacementReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
     if (LOAD_PACKING_REGEXP.exactMatch(line))
       m_messages.insert(lineNr, TaskMessage{lineNr,
                                             MessageSeverity::INFO_MESSAGE,
@@ -146,6 +146,8 @@ void PlacementReportManager::parseLogFile() {
     else if (line.startsWith(PLACEMENT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, PLACEMENT_SECTION,
                                         m_placementKeys);
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatistics(in, lineNr);
     ++lineNr;
   }
   m_circuitData = CreateLogicData();

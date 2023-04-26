@@ -172,7 +172,6 @@ IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
 
 IDataReport::TableData AbstractReportManager::CreateLogicData() {
   auto circuitData = IDataReport::TableData{};
-  m_usedRes.logic.dff = m_dffr + m_dffre;
   Logic uLogic = m_usedRes.logic;
   Logic aLogic = m_availRes.logic;
   uint result = (aLogic.clb == 0) ? 0 : uLogic.clb * 100 / aLogic.clb;
@@ -330,19 +329,13 @@ void AbstractReportManager::parseLogLine(const QString &line) {
   }
 
   static const QRegularExpression dff{
-      "^ +dffr \\D+(\\d+)", QRegularExpression::MultilineOption |
-                                QRegularExpression::CaseInsensitiveOption};
+      "^ +(\\S*dff\\S*)\\D+(\\d+)",
+      QRegularExpression::MultilineOption |
+          QRegularExpression::CaseInsensitiveOption};
   auto dffMatch = dff.match(line);
   if (dffMatch.hasMatch()) {
-    m_dffr = dffMatch.captured(1).toUInt();
-    return;
-  }
-  static const QRegularExpression dffre{
-      "^ +dffre \\D+(\\d+)", QRegularExpression::MultilineOption |
-                                 QRegularExpression::CaseInsensitiveOption};
-  auto dffreMatch = dffre.match(line);
-  if (dffreMatch.hasMatch()) {
-    m_dffre = dffreMatch.captured(1).toUInt();
+    if (!dffMatch.captured(1).contains("SDFFRE", Qt::CaseInsensitive))
+      m_usedRes.logic.dff += dffMatch.captured(2).toUInt();
     return;
   }
   static const QRegularExpression latch{
@@ -378,7 +371,7 @@ void AbstractReportManager::parseLogLine(const QString &line) {
       "^ +RS_DSP_MULT\\D+(\\d+)", QRegularExpression::MultilineOption};
   auto dsp_18_20Match = dsp_18_20.match(line);
   if (dsp_18_20Match.hasMatch()) {
-    m_usedRes.dsp.dsp_18_20 = dsp_18_20Match.captured(1).toUInt();
+    m_usedRes.dsp.dsp_18_20 += dsp_18_20Match.captured(1).toUInt();
     return;
   }
   // TODO pattern TBD
@@ -555,7 +548,17 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
   m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
   return lineNr;
-}  // namespace FOEDAG
+}
+
+int AbstractReportManager::parseStatistics(QTextStream &in, int lineNr) {
+  QString line{};
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.isEmpty()) break;  // end of section
+    parseLogLine(line);
+  }
+  return lineNr;
+}
 
 TaskMessage AbstractReportManager::createWarningErrorItem(
     MessageSeverity severity, MessagesLines &msgs) const {

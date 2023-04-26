@@ -54,6 +54,7 @@ static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
 
 static const QRegularExpression SPLIT_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 static const QStringList TIMING_FIELDS{"Hold WNS",
                                        "Hold TNS",
@@ -186,7 +187,6 @@ void TimingAnalysisReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
     else if (line.startsWith(BLOCK_GRAPH_BUILD_SECTION))
@@ -221,6 +221,8 @@ void TimingAnalysisReportManager::parseLogFile() {
       timings << line + "\n";
     else if (isStatisticalTimingHistogram(line))
       m_histograms.push_back(qMakePair(line, parseHistogram(in, lineNr)));
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatistics(in, lineNr);
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);

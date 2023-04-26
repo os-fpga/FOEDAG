@@ -44,6 +44,7 @@ static const QRegExp VERIFIC_ERR_REGEXP{"VERIFIC-ERROR.*"};
 static const QRegExp VERIFIC_WARN_REGEXP{"VERIFIC-WARNING.*"};
 static const QRegExp VERIFIC_INFO_REGEXP{
     "Executing synth_rs pass.*|Executing RS_DSP_MACC.*"};
+static const QString STATISTIC_SECTION{"Number of wires"};
 }  // namespace
 
 namespace FOEDAG {
@@ -177,7 +178,6 @@ void SynthesisReportManager::parseLogFile() {
   };
 
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
     if (VERIFIC_INFO_REGEXP.indexIn(line) != -1) {
       m_messages.insert(lineNr,
                         TaskMessage{lineNr,
@@ -200,6 +200,10 @@ void SynthesisReportManager::parseLogFile() {
             createWarningErrorItem(MessageSeverity::ERROR_MESSAGE, errors);
         m_messages.insert(errorsItem.m_lineNr, errorsItem);
       }
+    } else if (line.contains(STATISTIC_SECTION)) {
+      m_usedRes.dsp = DSP{};
+      m_usedRes.logic.dff = 0;
+      lineNr = parseStatistics(in, lineNr);
     }
     ++lineNr;
   }

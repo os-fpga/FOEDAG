@@ -25,6 +25,7 @@ static const QString LOAD_ARCH_SECTION{"# Loading Architecture Description"};
 static const QString BUILD_TIM_GRAPH{"Build Timing Graph"};
 static const QString LOAD_TIM_CONSTR{"# Load Timing Constraints"};
 static const QString PACKING_SECTION{"# Packing"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 }  // namespace
 
 namespace FOEDAG {
@@ -109,7 +110,6 @@ void PackingReportManager::parseLogFile() {
   QString line;
   auto lineNr = 0;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
     if (line.startsWith(LOAD_ARCH_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_ARCH_SECTION, {});
     else if (VPR_ROUTING_OPT.indexIn(line) != -1)
@@ -129,6 +129,8 @@ void PackingReportManager::parseLogFile() {
               lineNr, MessageSeverity::INFO_MESSAGE, BUILD_TIM_GRAPH, {}});
     else if (line.startsWith(LOAD_TIM_CONSTR))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_TIM_CONSTR, {});
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatistics(in, lineNr);
     else if (line.startsWith(PACKING_SECTION))
       lineNr =
           parseErrorWarningSection(in, lineNr, PACKING_SECTION,

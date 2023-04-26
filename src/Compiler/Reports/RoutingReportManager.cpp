@@ -30,6 +30,7 @@ static const QRegExp FIND_HISTOGRAM{"Final.*histogram:"};
 
 static const QRegularExpression SPLIT_STAT_TIMING{
     "([-]?(([0-9]*[.])?[0-9]+) (ns?(?=,)|.*|MHz))"};
+static const QString STATISTIC_SECTION{"Pb types usage..."};
 
 static const QStringList TIMING_FIELDS{"Hold WNS",
                                        "Hold TNS",
@@ -100,7 +101,6 @@ void RoutingReportManager::parseLogFile() {
   auto lineNr = 0;
   QString line;
   while (in.readLineInto(&line)) {
-    parseLogLine(line);
     if (line.startsWith(LOAD_PLACEMENT_SECTION))
       lineNr = parseErrorWarningSection(in, lineNr, LOAD_PLACEMENT_SECTION, {});
     else if (line.startsWith(COMPUT_ROUTER_SECTION))
@@ -122,6 +122,8 @@ void RoutingReportManager::parseLogFile() {
           lineNr,
           TaskMessage{
               lineNr, MessageSeverity::INFO_MESSAGE, TIMING_INFO.cap(), {}});
+    else if (line.startsWith(STATISTIC_SECTION))
+      lineNr = parseStatistics(in, lineNr);
     ++lineNr;
   }
   if (!timings.isEmpty()) fillTimingData(timings);
