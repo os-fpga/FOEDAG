@@ -687,6 +687,8 @@ void IpConfigWidget::Generate(bool addToProject, const QString& outputPath) {
                   " -out_file " + outFileStr;
     if (addToProject)
       cmd += "\nipgenerate -modules " + moduleEdit.text() + "\n";
+    else
+      cmd += " -template";
 
     int returnVal{false};
     auto resultStr =
