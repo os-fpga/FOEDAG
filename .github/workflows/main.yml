@@ -156,16 +156,33 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    
-    - name: Show space before Qt install
-      run: df -h
-      
+
+#    - name: Download workflow artifact
+#      if: matrix.mode == 'test'
+#      uses: dawidd6/action-download-artifact@v2.24.0
+#      with:
+#        workflow: main.yml
+#        repo: ${{ github.repository }}
+#        #run_number: 3912
+#        branch: main
+#        name: buildqt6-x86_64-gcc
+#        skip_unpack: true
+
     - name: Install dependencies and build QT
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh
 
-    - name: show space after Qt install
-      run: du -sch * && df -h
+    - name: Prepare QT build artifacts
+      if: matrix.mode == 'test'
+      run: |
+        tar czvfp buildqt6-x86_64-gcc.tgz buildqt6
+
+    - name: Archive QT build artifacts
+      if: matrix.mode == 'test'
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: buildqt6-x86_64-gcc
+        path: buildqt6-x86_64-gcc.tgz
 
     - name: Show shell configuration
       run: |
@@ -179,7 +196,7 @@ jobs:
         source /opt/rh/devtoolset-11/enable
         echo 'CC=/opt/rh/devtoolset-11/root/usr/bin/gcc' >> $GITHUB_ENV
         echo 'CXX=/opt/rh/devtoolset-11/root/usr/bin/g++' >> $GITHUB_ENV
-        echo 'PATH=/usr/local/Qt-5.15.4/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
+        echo 'PATH=/usr/local/Qt-6.5.0/bin:/usr/lib/ccache:'"$PATH" >> $GITHUB_ENV
         echo 'PREFIX=/tmp/foedag-install' >> $GITHUB_ENV
         echo "$PREFIX" >> $GITHUB_PATH
         echo "ADDITIONAL_CMAKE_OPTIONS='-DMY_CXX_WARNING_FLAGS="-W -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Werror -UNDEBUG"'" >> $GITHUB_ENV
