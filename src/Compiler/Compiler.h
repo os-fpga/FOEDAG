@@ -190,10 +190,15 @@ class Compiler {
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
   STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
   void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
-
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
+
   // Compiler specific opt
+  const std::string& BistreamMoreOpt() { return m_bitstreamMoreOpt; }
+  void BitstreamMoreOpt(const std::string& opt) {
+    m_bitstreamMoreOpt += opt + " ";
+  }
+
   const std::string& SynthMoreOpt() { return m_synthMoreOpt; }
   void SynthMoreOpt(const std::string& opt) { m_synthMoreOpt = opt; }
 
@@ -358,6 +363,7 @@ class Compiler {
 
   // Compiler specific options
   std::string m_pnrOpt;
+  std::string m_bitstreamMoreOpt;
   std::string m_synthMoreOpt;
   std::string m_placeMoreOpt;
   std::string m_ipGenMoreOpt;
