@@ -55,7 +55,7 @@ else
   mkdir buildqt6
   cd buildqt6
   source /opt/rh/devtoolset-11/enable
-  ../qt-everywhere-src-6.5.0/configure -static -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -nomake examples
+  ../qt-everywhere-src-6.5.0/configure -opensource -confirm-license -xcb -xcb-xlib -bundled-xcb-xinput -nomake examples
   make -j 2
   echo "Installing QT..."
   make install
