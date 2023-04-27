@@ -212,7 +212,9 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "   route ?clean?" << std::endl;
   (*out) << "   sta ?clean?" << std::endl;
   (*out) << "   power ?clean?" << std::endl;
-  (*out) << "   bitstream ?clean? ?enable_simulation?" << std::endl;
+  (*out) << "   bitstream ?clean? ?enable_simulation? ?write_xml? "
+            "?write_fabric_independent? ?pb_pin_fixup?"
+         << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
             "and testbench"
          << std::endl;
@@ -1241,6 +1243,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else if (arg == "enable_simulation") {
           compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
+        } else if (arg == "write_xml") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "write_fabric_independent") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "pb_pin_fixup") {
+          compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -1593,6 +1601,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitsOpt(Compiler::BitstreamOpt::Clean);
         } else if (arg == "enable_simulation") {
           compiler->BitsOpt(Compiler::BitstreamOpt::EnableSimulation);
+        } else if (arg == "write_xml") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "write_fabric_independent") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "pb_pin_fixup") {
+          compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }

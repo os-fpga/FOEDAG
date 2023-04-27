@@ -229,7 +229,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   (*out) << "   sta ?clean?                : Statistical Timing Analysis"
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
-  (*out) << "   bitstream ?clean? ?enable_simulation?  : Bitstream generation"
+  (*out) << "   bitstream ?clean? ?enable_simulation? ?write_xml? "
+            "?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation"
          << std::endl;
   (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
             "and testbench"
@@ -2527,10 +2528,11 @@ build_fabric --frame_view --compress_routing --duplicate_grid_pin ${OPENFPGA_BUI
 # Strongly recommend it is done after all the fix-up have been applied
 repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
-build_architecture_bitstream
+build_architecture_bitstream ${BUILD_ARCHITECTURE_BITSTREAM_OPTIONS}
 
 build_fabric_bitstream
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+${WRITE_FABRIC_BITSTREAM_XML}
 write_io_mapping -f PinMapping.xml
 
 # Finish and exit OpenFPGA
@@ -2719,6 +2721,8 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
 
   result = ReplaceAll(result, "${OPENFPGA_SIM_SETTING_FILE}",
                       m_OpenFpgaSimSettingFile.string());
+  if (m_bitstreamMoreOpt.find("pb_pin_fixup") != std::string::npos)
+    m_pb_pin_fixup = "pb_pin_fixup";
   result = ReplaceAll(result, "${PB_PIN_FIXUP}", m_pb_pin_fixup);
   if (m_OpenFpgaBitstreamSettingFile.string().empty()) {
     result = ReplaceAll(result, "${OPENFPGA_BITSTREAM_SETTING_FILE}", "");
@@ -2749,6 +2753,18 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
         ReplaceAll(result, "${OPENFPGA_BUILD_FABRIC_OPTION}",
                    "--load_fabric_key " + m_OpenFpgaFabricKeyFile.string());
   }
+  if (m_bitstreamMoreOpt.find("write_fabric_independent") != std::string::npos)
+    result = ReplaceAll(result, "${BUILD_ARCHITECTURE_BITSTREAM_OPTIONS}",
+                        "--write_file fabric_independent_bitstream.xml");
+  else
+    result = ReplaceAll(result, "${BUILD_ARCHITECTURE_BITSTREAM_OPTIONS}", "");
+  if (m_bitstreamMoreOpt.find("write_xml") != std::string::npos)
+    result = ReplaceAll(
+        result, "${WRITE_FABRIC_BITSTREAM_XML}",
+        "write_fabric_bitstream --format xml --file fabric_bitstream.xml");
+  else
+    result = ReplaceAll(result, "${WRITE_FABRIC_BITSTREAM_XML}", "");
+
   return result;
 }
 
