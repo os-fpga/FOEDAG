@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Compiler/Task.h"
 #include "Foedag.h"
+#include "ReportGenerator.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
@@ -47,74 +48,6 @@ using namespace FOEDAG;
 #define TASKS_DEBUG false
 
 namespace {
-QLabel* createTitleLabel(const QString& text) {
-  auto titleLabel = new QLabel(text);
-  auto font = titleLabel->font();
-  font.setBold(true);
-  titleLabel->setFont(font);
-
-  return titleLabel;
-}
-
-void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
-  QVector<QTableWidget*> views{};
-  for (auto& dataReport : report.getDataReports()) {
-    auto dataReportName = dataReport->getName();
-    if (!dataReportName.isEmpty())
-      reportLayout->addWidget(createTitleLabel(dataReportName));
-
-    if (dataReport->isEmpty()) {
-      reportLayout->addWidget(
-          new QLabel("No statistics data found to generate report."), 1,
-          Qt::AlignTop);
-      continue;
-    }
-    auto reportsView = new QTableWidget();
-    reportsView->verticalHeader()->hide();
-    // Fill columns
-    auto columns = dataReport->getColumns();
-    reportsView->setColumnCount(columns.size());
-    auto colIndex = 0;
-    for (auto& col : columns) {
-      auto columnItem = new QTableWidgetItem(col.m_name);
-      reportsView->setHorizontalHeaderItem(colIndex, columnItem);
-      ++colIndex;
-    }
-
-    // Fill table
-    auto rowIndex = 0;
-    for (auto& lineData : dataReport->getData()) {
-      reportsView->insertRow(rowIndex);
-      auto colIndex = 0;
-      for (auto& lineValue : lineData) {
-        auto item = new QTableWidgetItem(lineValue);
-        item->setTextAlignment(columns[colIndex].m_alignment);
-        reportsView->setItem(rowIndex, colIndex, item);
-        ++colIndex;
-      }
-      ++rowIndex;
-    }
-    // Initialize the view itself
-    reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    reportsView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    reportsView->horizontalHeader()->resizeSections(
-        QHeaderView::ResizeToContents);
-    reportLayout->addWidget(reportsView);
-    views.push_back(reportsView);
-  }
-  if (reportLayout->count() != 0) {
-    // add spacer item at the end of the layout
-    reportLayout->addStretch(20);
-  }
-  // align first column for all tables
-  int maxWidth{0};
-  for (auto view : views) {
-    maxWidth = std::max(maxWidth, view->columnWidth(0));
-  }
-  for (auto view : views) {
-    view->setColumnWidth(0, maxWidth);
-  }
-}
 
 void openReportView(Compiler* compiler, const Task* task,
                     const ITaskReport& report) {
@@ -134,7 +67,9 @@ void openReportView(Compiler* compiler, const Task* task,
         delete item;
       }
 
-      generateReport(report, reportLayout);
+      auto reportGenerator =
+          CreateReportGenerator<TableReportGenerator>(report, reportLayout);
+      reportGenerator->Generate();
 
       newReport = false;
       break;
@@ -146,7 +81,10 @@ void openReportView(Compiler* compiler, const Task* task,
     auto reportLayout = new QVBoxLayout;
     reportLayout->setContentsMargins(0, 0, 0, 0);
 
-    generateReport(report, reportLayout);
+    auto reportGenerator =
+        CreateReportGenerator<TableReportGenerator>(report, reportLayout);
+    reportGenerator->Generate();
+
     reportsWidget->setLayout(reportLayout);
 
     tabWidget->addTab(reportsWidget, reportName);

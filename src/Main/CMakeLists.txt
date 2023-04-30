@@ -70,6 +70,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/DockWidget.cpp
   ../MainWindow/ChatGptWidget.cpp
   ../MainWindow/LicenseManagerWidget.cpp
+  ../Main/ReportGenerator.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -105,6 +106,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/DockWidget.h
   ../MainWindow/ChatGptWidget.h
   ../MainWindow/LicenseManagerWidget.h
+  ../Main/ReportGenerator.h
 )
 
 set (SRC_UI_LIST "")
