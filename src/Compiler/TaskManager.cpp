@@ -160,10 +160,6 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
     connect((*task), &Task::statusChanged, this,
             &TaskManager::taskStateChanged);
     connect((*task), &Task::enableChanged, this, &TaskManager::enableChanged);
-    connect((*task), &Task::statusChanged, this,
-            [this, task](TaskStatus status) {
-              if (status == TaskStatus::Success) emit taskFinished(*task);
-            });
   }
   m_taskQueue.append(m_tasks[IP_GENERATE]);
   m_taskQueue.append(m_tasks[ANALYSIS]);

@@ -2136,6 +2136,9 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
+    if (res)
+      handleJsonReportGeneration(m_taskManager->task(task), m_taskManager,
+                                 m_projManager->getProjectPath());
   }
   return res;
 }

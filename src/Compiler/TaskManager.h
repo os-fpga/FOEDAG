@@ -120,7 +120,6 @@ class TaskManager : public QObject {
 
   void taskReportCreated(QString reportName);
   void enableChanged();
-  void taskFinished(FOEDAG::Task *t);
 
  private slots:
   void runNext(FOEDAG::TaskStatus status);

@@ -50,7 +50,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/CompilerNotifier.h"
 #include "Main/DialogProvider.h"
 #include "Main/Foedag.h"
-#include "Main/JsonReportGenerator.h"
 #include "Main/ProjectFile/ProjectFileLoader.h"
 #include "Main/licenseviewer.h"
 #include "MainWindow/Session.h"
@@ -1299,8 +1298,6 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this](auto taskName) {
             statusBar()->showMessage(tr("%1 generated").arg(taskName));
           });
-  connect(m_taskManager, &TaskManager::taskFinished, this,
-          &MainWindow::taskFinished);
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
@@ -1825,37 +1822,6 @@ void MainWindow::releaseNodesClicked() {
   auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
   auto releaseNotes{Settings::Config(path, "general", "release-notes")};
   if (!releaseNotes.isEmpty()) QDesktopServices::openUrl(releaseNotes);
-}
-
-void MainWindow::taskFinished(Task* t) {
-  auto id = m_taskManager->taskId(t);
-  auto reportManager =
-      m_taskManager->getReportManagerRegistry().getReportManager(id);
-  if (reportManager && reportManager->getAvailableReportIds().size() >= 2) {
-    QString taskName{};
-    if (id == SYNTHESIS)
-      taskName = "synth";
-    else if (id == ROUTING)
-      taskName = "route";
-    else if (id == TIMING_SIGN_OFF)
-      taskName = "sta";
-    else if (id == PLACEMENT)
-      taskName = "place";
-    else if (id == PACKING)
-      taskName = "packing";
-    const QSignalBlocker blocker{*reportManager};
-    auto report = reportManager->createReport(
-        reportManager->getAvailableReportIds().first());
-    auto jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
-        *report, taskName + "_utilization", m_projectManager->getProjectPath());
-    if (jsonGenerator) jsonGenerator->Generate();
-
-    report = reportManager->createReport(
-        reportManager->getAvailableReportIds().last());
-    jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
-        *report, taskName + "_design_stat", m_projectManager->getProjectPath());
-    if (jsonGenerator) jsonGenerator->Generate();
-  }
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

@@ -51,7 +51,7 @@ void JsonReportGenerator::Generate() {
     for (const auto &tableLine : report->getData()) {
       StringVector line;
       for (const auto &cell : tableLine) {
-        line.push_back(cell.simplified().toStdString());
+        line.push_back(cell.toStdString());
       }
       data.push_back(line);
     }

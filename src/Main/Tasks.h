@@ -29,6 +29,7 @@ namespace FOEDAG {
 class Compiler;
 class ITaskReportManager;
 class Task;
+class TaskManager;
 
 QDialog* createTaskDialog(const QString& taskName);
 void handleTaskDialogRequested(const QString& category);
@@ -36,6 +37,8 @@ void handleViewFileRequested(const QString& filePath);
 void handleViewReportRequested(Compiler* compiler, const Task* task,
                                const QString& reportId,
                                ITaskReportManager& reportManager);
+void handleJsonReportGeneration(Task* t, TaskManager* tManager,
+                                const QString& projectPath);
 
 // Setters/Getters for tclArgs
 void TclArgs_setSynthesisOptions(const std::string& argsStr);
