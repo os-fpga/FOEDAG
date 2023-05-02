@@ -285,7 +285,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
     } else if (type == 2) {
       value = std::strtoull(string.c_str(), NULL, 16);
     } else {
-      CFG_ASSERT(type == 3);
+      CFG_ASSERT(type == 3 || type == 4);
       // value had been converted
     }
     if (neg) {
