@@ -104,6 +104,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void manageLicense();
   void documentationClicked();
   void releaseNodesClicked();
+  void taskFinished(class Task* t);
 
  public slots:
   void updateSourceTree();
