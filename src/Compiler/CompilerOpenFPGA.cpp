@@ -226,7 +226,7 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
   // (*out) << "   global_placement ?clean?   : Analytical placer" << std::endl;
   (*out) << "   place ?clean?              : Detailed placer" << std::endl;
   (*out) << "   route ?clean?              : Router" << std::endl;
-  (*out) << "   sta ?clean?                : Statistical Timing Analysis"
+  (*out) << "   sta ?clean?                : Static Timing Analysis"
          << std::endl;
   (*out) << "   power ?clean?              : Power estimator" << std::endl;
   (*out) << "   bitstream ?clean? ?enable_simulation? ?write_xml? "
