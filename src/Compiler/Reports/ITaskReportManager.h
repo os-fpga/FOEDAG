@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QMap>
+#include <QObject>
 #include <QStringList>
 #include <memory>
 
@@ -93,7 +94,8 @@ class ITaskReport;
  * task, as reports are task-specific. It knows how many reports are
  * available per task and can create reports.
  */
-class ITaskReportManager {
+class ITaskReportManager : public QObject {
+  Q_OBJECT
  public:
   virtual ~ITaskReportManager() = default;
 
