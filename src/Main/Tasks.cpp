@@ -273,9 +273,17 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
 };
 
 void FOEDAG::handleTaskDialogRequested(const QString& category) {
+  QVector<QString> dependencies{SYNTH_SETTING_KEY, PACKING_SETTING_KEY};
+  const bool sync{dependencies.contains(category)};
+  dependencies.removeAll(category);
   QDialog* dlg = createTaskDialog(category);
   if (dlg) {
     dlg->exec();
+  }
+
+  if (sync) {
+    for (const auto& setting : dependencies)
+      GlobalSession->GetSettings()->syncWith(setting);
   }
 }
 
@@ -562,8 +570,6 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
     }
   }
   compiler->ClbPackingOption(clbPacking);
-
-  GlobalSession->GetSettings()->syncWith(SYNTH_SETTING_KEY);
 }
 
 std::string FOEDAG::TclArgs_getPackingOptions() {

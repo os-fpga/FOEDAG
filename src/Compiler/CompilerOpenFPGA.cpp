@@ -3074,8 +3074,10 @@ bool CompilerOpenFPGA::LoadDeviceData(
               std::string num = n.toElement().attribute("num").toStdString();
               if (file_type == "dsp") {
                 MaxDeviceDSPCount(std::strtoul(num.c_str(), nullptr, 10));
+                MaxUserDSPCount(MaxDeviceDSPCount());
               } else if (file_type == "bram") {
                 MaxDeviceBRAMCount(std::strtoul(num.c_str(), nullptr, 10));
+                MaxUserBRAMCount(MaxDeviceBRAMCount());
               } else if (file_type == "lut") {
                 MaxDeviceLUTCount(std::strtoul(num.c_str(), nullptr, 10));
               } else if (file_type == "ff") {
