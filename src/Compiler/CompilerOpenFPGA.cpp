@@ -904,6 +904,7 @@ void CompilerOpenFPGA::reloadSettings() {
 std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
     Action action, const std::string& projectName,
     const std::string& topModule) const {
+  namespace fs = std::filesystem;
   std::vector<std::string> files;
   switch (action) {
     case Compiler::Action::Analyze:
@@ -920,7 +921,8 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           std::string{projectName + ".ys"},
           std::string{projectName + "_synth.log"},
           SYNTHESIS_LOG,
-      };
+          fs::path{fs::path{"reports"} / "synth_utilization.json"}.string(),
+          fs::path{fs::path{"reports"} / "synth_design_stat.json"}.string()};
       break;
     case Compiler::Action::Pack:
       files = {
@@ -933,7 +935,8 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           std::string{projectName + "_post_synth_ports.json"},
           "vpr_stdout.log",
           PACKING_LOG,
-      };
+          fs::path{fs::path{"reports"} / "packing_utilization.json"}.string(),
+          fs::path{fs::path{"reports"} / "packing_design_stat.json"}.string()};
       break;
     case Compiler::Action::Detailed:
       files = {
@@ -949,26 +952,30 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           "vpr_stdout.log",
           "post_place_timing.rpt",
           PLACEMENT_LOG,
-      };
+          fs::path{fs::path{"reports"} / "place_utilization.json"}.string(),
+          fs::path{fs::path{"reports"} / "place_design_stat.json"}.string()};
       break;
     case Compiler::Action::Routing:
-      files = {"check_rr_node_warnings.log",
-               std::string{topModule + "_post_synthesis.blif"},
-               std::string{topModule + "_post_synthesis.eblif"},
-               std::string{topModule + "_post_synthesis.sdf"},
-               std::string{topModule + "_post_synthesis.v"},
-               std::string{projectName + "_post_synth_ports.json"},
-               std::string{projectName + "_route.cmd"},
-               std::string{projectName + "_post_synth.route"},
-               "packing_pin_util.rpt",
-               "post_place_timing.rpt",
-               "post_route_timing.rpt",
-               "report_timing.hold.rpt",
-               "report_timing.setup.rpt",
-               "report_unconstrained_timing.hold.rpt",
-               "report_unconstrained_timing.setup.rpt",
-               ROUTING_LOG,
-               "vpr_stdout.log"};
+      files = {
+          "check_rr_node_warnings.log",
+          std::string{topModule + "_post_synthesis.blif"},
+          std::string{topModule + "_post_synthesis.eblif"},
+          std::string{topModule + "_post_synthesis.sdf"},
+          std::string{topModule + "_post_synthesis.v"},
+          std::string{projectName + "_post_synth_ports.json"},
+          std::string{projectName + "_route.cmd"},
+          std::string{projectName + "_post_synth.route"},
+          "packing_pin_util.rpt",
+          "post_place_timing.rpt",
+          "post_route_timing.rpt",
+          "report_timing.hold.rpt",
+          "report_timing.setup.rpt",
+          "report_unconstrained_timing.hold.rpt",
+          "report_unconstrained_timing.setup.rpt",
+          ROUTING_LOG,
+          "vpr_stdout.log",
+          fs::path{fs::path{"reports"} / "route_utilization.json"}.string(),
+          fs::path{fs::path{"reports"} / "route_design_stat.json"}.string()};
       break;
     case Compiler::Action::STA:
       files = {"check_rr_node_warnings.log",
@@ -987,7 +994,9 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
                "report_unconstrained_timing.hold.rpt",
                "report_unconstrained_timing.setup.rpt",
                TIMING_ANALYSIS_LOG,
-               "vpr_stdout.log"};
+               "vpr_stdout.log",
+               fs::path{fs::path{"reports"} / "sta_utilization.json"}.string(),
+               fs::path{fs::path{"reports"} / "sta_design_stat.json"}.string()};
       break;
     case Compiler::Action::Power:
       files = {"post_place_timing.rpt", "post_route_timing.rpt",
@@ -3065,8 +3074,10 @@ bool CompilerOpenFPGA::LoadDeviceData(
               std::string num = n.toElement().attribute("num").toStdString();
               if (file_type == "dsp") {
                 MaxDeviceDSPCount(std::strtoul(num.c_str(), nullptr, 10));
+                MaxUserDSPCount(MaxDeviceDSPCount());
               } else if (file_type == "bram") {
                 MaxDeviceBRAMCount(std::strtoul(num.c_str(), nullptr, 10));
+                MaxUserBRAMCount(MaxDeviceBRAMCount());
               } else if (file_type == "lut") {
                 MaxDeviceLUTCount(std::strtoul(num.c_str(), nullptr, 10));
               } else if (file_type == "ff") {

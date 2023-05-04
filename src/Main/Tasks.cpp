@@ -30,7 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Reports/ITaskReport.h"
 #include "Compiler/Reports/ITaskReportManager.h"
 #include "Compiler/Task.h"
+#include "Compiler/TaskManager.h"
 #include "Foedag.h"
+#include "Main/JsonReportGenerator.h"
 #include "ReportGenerator.h"
 #include "TextEditor/text_editor_form.h"
 #include "Utils/StringUtils.h"
@@ -271,9 +273,17 @@ QDialog* FOEDAG::createTaskDialog(const QString& taskName) {
 };
 
 void FOEDAG::handleTaskDialogRequested(const QString& category) {
+  QVector<QString> dependencies{SYNTH_SETTING_KEY, PACKING_SETTING_KEY};
+  const bool sync{dependencies.contains(category)};
+  dependencies.removeAll(category);
   QDialog* dlg = createTaskDialog(category);
   if (dlg) {
     dlg->exec();
+  }
+
+  if (sync) {
+    for (const auto& setting : dependencies)
+      GlobalSession->GetSettings()->syncWith(setting);
   }
 }
 
@@ -560,8 +570,6 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
     }
   }
   compiler->ClbPackingOption(clbPacking);
-
-  GlobalSession->GetSettings()->syncWith(SYNTH_SETTING_KEY);
 }
 
 std::string FOEDAG::TclArgs_getPackingOptions() {
@@ -577,4 +585,36 @@ std::string FOEDAG::TclArgs_getPackingOptions() {
   }
 
   return tclOptions.toStdString();
+}
+
+void FOEDAG::handleJsonReportGeneration(Task* t, TaskManager* tManager,
+                                        const QString& projectPath) {
+  auto id = tManager->taskId(t);
+  auto reportManager =
+      tManager->getReportManagerRegistry().getReportManager(id);
+  if (reportManager && reportManager->getAvailableReportIds().size() >= 2) {
+    QString taskName{};
+    if (id == SYNTHESIS)
+      taskName = "synth";
+    else if (id == ROUTING)
+      taskName = "route";
+    else if (id == TIMING_SIGN_OFF)
+      taskName = "sta";
+    else if (id == PLACEMENT)
+      taskName = "place";
+    else if (id == PACKING)
+      taskName = "packing";
+    const QSignalBlocker blocker{*reportManager};
+    auto report = reportManager->createReport(
+        reportManager->getAvailableReportIds().first());
+    auto jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
+        *report, taskName + "_utilization", projectPath);
+    if (jsonGenerator) jsonGenerator->Generate();
+
+    report = reportManager->createReport(
+        reportManager->getAvailableReportIds().last());
+    jsonGenerator = CreateReportGenerator<JsonReportGenerator>(
+        *report, taskName + "_design_stat", projectPath);
+    if (jsonGenerator) jsonGenerator->Generate();
+  }
 }
