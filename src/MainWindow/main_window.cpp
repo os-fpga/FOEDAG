@@ -507,6 +507,9 @@ void MainWindow::openProject(const QString& project, bool delayedOpen,
 
   ReShowWindow(project);
   loadFile(project);
+  // need load settings again in case we have settings depends on the selected
+  // device. E.g. DSP or BRAM
+  reloadSettings();
   emit projectOpened();
 
   // this should be first in order to keep console visible.
