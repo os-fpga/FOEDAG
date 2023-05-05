@@ -184,6 +184,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+bibtex_bibfiles = ["z_reference.bib"]
 
 # -- Options for Epub output -------------------------------------------------
 
