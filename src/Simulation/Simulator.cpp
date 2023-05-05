@@ -483,7 +483,7 @@ std::string Simulator::LibraryFileDirective(SimulatorType type) {
     case SimulatorType::Verilator:
       return "-v ";
     case SimulatorType::Icarus:
-      return "-v ";
+      return "-l ";
     case SimulatorType::GHDL:
       return "";
     case SimulatorType::Questa:
@@ -501,7 +501,7 @@ std::string Simulator::LibraryExtDirective(SimulatorType type) {
     case SimulatorType::Verilator:
       return "+libext+";
     case SimulatorType::Icarus:
-      return "+libext+";
+      return "-Y ";
     case SimulatorType::GHDL:
       return "Invalid";
     case SimulatorType::Questa:
@@ -549,7 +549,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       break;
     }
     case SimulatorType::Icarus:
-      return "-gno-specify -v";
+      return "-gno-specify -DIVERILOG=1 -v";
     case SimulatorType::GHDL:
       return "-a -fsynopsys";
     case SimulatorType::Questa:
