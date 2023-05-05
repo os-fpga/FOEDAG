@@ -730,11 +730,13 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       return TCL_ERROR;
     }
     std::string type{argv[1]};
-    ClbPacking packing{ClbPacking::Dense};
+    ClbPacking packing{ClbPacking::Auto};
     if (type == "auto") {
       packing = ClbPacking::Auto;
     } else if (type == "dense") {
       packing = ClbPacking::Dense;
+    } else if (type == "timing_driven") {
+      packing = ClbPacking::Timing_driven;
     } else {
       compiler->ErrorMessage("Allowed types: auto/dense");
       return TCL_ERROR;
@@ -1771,7 +1773,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
 
   std::string pnrOptions;
-  if (ClbPackingOption() == ClbPacking::Auto) {
+  if (ClbPackingOption() == ClbPacking::Timing_driven) {
     pnrOptions += " --allow_unrelated_clustering off";
   } else {
     pnrOptions += " --allow_unrelated_clustering on";
@@ -2649,7 +2651,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       ProjManager()->projectName() + "_openfpga.sdc");
 
   std::string pnrOptions;
-  if (ClbPackingOption() == ClbPacking::Auto) {
+  if (ClbPackingOption() == ClbPacking::Timing_driven) {
     pnrOptions += " --allow_unrelated_clustering off";
   } else {
     pnrOptions += " --allow_unrelated_clustering on";

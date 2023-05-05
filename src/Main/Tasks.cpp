@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Main/JsonReportGenerator.h"
 #include "ReportGenerator.h"
 #include "TextEditor/text_editor_form.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 
@@ -558,17 +559,19 @@ void FOEDAG::TclArgs_setPackingOptions(const std::string& argsStr) {
   }
   compiler->SetNetlistType(netlistVal);
 
-  ClbPacking clbPacking{ClbPacking::Dense};
-  const QStringList moreOptsList = moreOpts.split(" ");
-  if (moreOptsList.count() > 1) {
-    if (moreOptsList.at(0) == "-clb_packing") {
-      if (moreOptsList.at(1) == "auto") {
+  ClbPacking clbPacking{ClbPacking::Auto};
+  const QStringList moreOptsList = QtUtils::StringSplit(moreOpts, ' ');
+  for (int i = 0; i < (moreOpts.size() - 1); i++)
+    if (moreOptsList.at(i) == "-clb_packing") {
+      if (moreOptsList.at(i + 1) == "auto") {
         clbPacking = ClbPacking::Auto;
-      } else if (moreOptsList.at(1) == "dense") {
+      } else if (moreOptsList.at(i + 1) == "dense") {
         clbPacking = ClbPacking::Dense;
+      } else if (moreOptsList.at(i + 1) == "timing_driven") {
+        clbPacking = ClbPacking::Timing_driven;
       }
+      break;
     }
-  }
   compiler->ClbPackingOption(clbPacking);
 }
 
@@ -582,6 +585,9 @@ std::string FOEDAG::TclArgs_getPackingOptions() {
   } else if (GlobalSession->GetCompiler()->ClbPackingOption() ==
              ClbPacking::Dense) {
     tclOptions += " -clb_packing dense";
+  } else if (GlobalSession->GetCompiler()->ClbPackingOption() ==
+             ClbPacking::Timing_driven) {
+    tclOptions += " -clb_packing timing_driven";
   }
 
   return tclOptions.toStdString();

@@ -52,7 +52,7 @@ struct DeviceData {
   std::string package;
 };
 
-enum class ClbPacking { Auto, Dense };
+enum class ClbPacking { Auto, Dense, Timing_driven };
 
 class Compiler {
   friend Simulator;
@@ -359,7 +359,7 @@ class Compiler {
   BitstreamOpt m_bitstreamOpt = BitstreamOpt::DefaultBitsOpt;
   std::filesystem::path m_PinMapCSV{};
   DeviceData m_deviceData;
-  ClbPacking m_clbPacking{ClbPacking::Dense};
+  ClbPacking m_clbPacking{ClbPacking::Auto};
 
   // Compiler specific options
   std::string m_pnrOpt;
