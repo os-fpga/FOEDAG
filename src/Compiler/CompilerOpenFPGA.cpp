@@ -271,6 +271,8 @@ void CompilerOpenFPGA::Help(std::ostream* out) {
          << std::endl;
   (*out) << "                                [OpenAI]" << std::endl;
   (*out) << "                                API_KEY: <api key>" << std::endl;
+  writeProgramDeviceHelp(out, 3,
+                         77);  // 77 is the col count of the : in the line above
   (*out) << "----------------------------------" << std::endl;
 }
 

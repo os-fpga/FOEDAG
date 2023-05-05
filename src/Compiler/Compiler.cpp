@@ -244,6 +244,8 @@ void Compiler::Help(std::ostream* out) {
   (*out) << "                                [OpenAI]" << std::endl;
   (*out) << "                                API_KEY: <api key>" << std::endl;
   writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
+  writeProgramDeviceHelp(out, 3,
+                         77);  // 77 is the col count of the : in the line above
   (*out) << "-------------------------" << std::endl;
 }
 
@@ -2067,6 +2069,29 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
       {"wave_time <time>",
        "Set the primary marker to <time>. Time units can be specified, without "
        "a space. Ex: wave_time 100ps."}};
+
+  writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
+}
+
+void Compiler::writeProgramDeviceHelp(std::ostream* out, int frontSpacePadCount,
+                                      int descColumn) {
+  std::vector<std::pair<std::string, std::string>> helpEntries = {
+      {"program_device <-b> \"<bitstream_file>\" <-c> \"<config_file>\" <-n> "
+       "\"<index>\"",
+       "Perform device programming."},
+      {"                                                                       "
+       " "
+       "-b: <bitstream_file>",
+       "Specify bitstream file path to program. Ex: -b "
+       "/home/user/mybitstream.bit"},
+      {"                                                                       "
+       " "
+       "-c: <config_file>",
+       "Specify config file. Ex: -c gemini.cfg"},
+      {"                                                                       "
+       " "
+       "-n: <index>",
+       "Optional. Default value is 0. Specify index of the device. Ex. -n 0"}};
 
   writeHelp(out, helpEntries, frontSpacePadCount, descColumn);
 }

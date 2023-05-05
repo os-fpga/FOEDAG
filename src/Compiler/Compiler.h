@@ -324,6 +324,8 @@ class Compiler {
       const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
+  void writeProgramDeviceHelp(std::ostream* out, int frontSpacePadCount,
+                              int descColumn);
   void AddHeadersToLogs();
   void AddErrorLink(const class Task* const current);
   bool HasInternalError() const;
