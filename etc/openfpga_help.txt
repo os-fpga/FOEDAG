@@ -1,0 +1,99 @@
+----------------------------------
+-----  FOEDAG OpenFPGA HELP  -----
+----------------------------------
+Options:
+   --help           : This help
+   --version        : Version
+   --batch          : Tcl only, no GUI
+   --replay <script>: Replay GUI test
+   --script <script>: Execute a Tcl script
+   --project <project file>: Open a project
+   --compiler <name>: Compiler name {openfpga...}, default is a dummy compiler
+   --mute           : Mutes stdout in batch mode
+   --verific        : Uses Verific parser
+   --device <name>  : Overrides target_device command with the device name
+Tcl commands:
+   help                       : This help
+   create_design <name> ?-type <project type>? : Creates a design with <name> name
+   close_design     : Close current design
+               <project type> : rtl, gate-level
+   open_project <file>        : Opens a project in started upfront GUI
+   run_project <file>         : Opens and immediately runs the project
+   target_device <name>       : Targets a device with <name> name
+   architecture <vpr_file.xml> ?<openfpga_file.xml>? :
+                                Uses the architecture file and optional openfpga arch file (For bitstream generation)
+   bitstream_config_files -bitstream <bitstream_setting.xml> -sim <sim_setting.xml> -repack <repack_setting.xml> -key <fabric_key.xml>
+                              : Uses alternate bitstream generation configuration files
+   set_device_size XxY        : Device fabric size selection
+   custom_synth_script <file> : Uses a custom Yosys templatized script
+   custom_openfpga_script <file> : Uses a custom OpenFPGA templatized script
+   set_channel_width <int>    : VPR Routing channel setting
+   set_limits <type> <int>    : Sets a user limit on object of type <type>
+                       <type> : dsp, bram
+                          dsp : Max usable DSPs
+                         bram : Max usable BRAMs
+   add_design_file <file list> ?type?   ?-work <libName>?
+              Each invocation of the command compiles the file list into a compilation unit 
+                       <type> : -VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, -V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> 
+              -work <libName> : Compiles the compilation unit into library <libName>, default is "work"
+   add_simulation_file <file list> ?type?   ?-work <libName>?
+              Each invocation of the command compiles the file list into a compilation unit 
+                       <type> : -VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -V_1995, -V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP> 
+              -work <libName> : Compiles the compilation unit into library <libName>, default is "work"
+   clear_simulation_files     : Remove all simulation files
+   read_netlist <file>        : Read a netlist instead of an RTL design (Skip Synthesis)
+   add_include_path <path1>...: As in +incdir+
+   add_library_path <path1>...: As in +libdir+
+   add_library_ext <.v> <.sv> ...: As in +libext+
+   set_macro <name>=<value>...: As in -D<macro>=<value>
+   set_top_module <top> ?-work <libName>? : Sets the top module
+   add_constraint_file <file> : Sets SDC + location constraints
+                                Constraints: set_pin_loc, set_property mode, set_region_loc, all SDC commands
+   script_path                : path of the Tcl script passed with --script
+   keep <signal list> OR all_signals : Keeps the list of signals or all signals through Synthesis unchanged (unoptimized in certain cases)
+   add_litex_ip_catalog <directory> : Browses directory for LiteX IP generators, adds the IP(s) to the IP Catalog
+   ip_catalog ?<ip_name>?     : Lists all available IPs, and their parameters if <ip_name> is given 
+   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> -version <ver_name> -P<param>="<value>"...
+                              : Configures an IP <IP_NAME> and generates the corresponding file with module name
+   ipgenerate ?clean?         : Generates all IP instances set by ip_configure
+   simulate_ip  <module name> : Simulate IP with module name <module name>
+   verific_parser <on/off>    : Turns on/off Verific parser
+   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : Upgrade/downgrade RTL compilation message severity
+   synthesis_type Yosys/QL/RS : Selects Synthesis type
+   analyze ?clean?            : Analyzes the RTL design, generates top-level, pin and hierarchy information
+   synthesize <optimization> ?clean? : Optional optimization (area, delay, mixed, none)
+   pin_loc_assign_method <Method>: (in_define_order(Default)/random/free)
+   synth_options <option list>: Yosys Options
+   pnr_options <option list>  : VPR Options
+     clb_packing <directive>  : Performance optimization flags
+                 <directive>  : auto, dense
+                        auto  : CLB packing automatically determined to optimize performance
+                       dense  : Pack logic more densely into CLBs resulting in fewer utilized CLBs however may negatively impact timing
+   pnr_netlist_lang <blif, eblif, edif, verilog> : Chooses vpr input netlist format
+   packing ?clean?            : Packing
+   place ?clean?              : Detailed placer
+   route ?clean?              : Router
+   sta ?clean?                : Static Timing Analysis
+   power ?clean?              : Power estimator
+   bitstream ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation
+   simulate <level> ?<simulator>? ?clean? : Simulates the design and testbench
+             <level>: rtl, gate, pnr, bitstream_bd, bitstream_fd.
+                 rtl: RTL simulation,
+                gate: post-synthesis simulation,
+                 pnr: post-pnr simulation,
+        bitstream_bd: Back-door bitstream simulation
+        bitstream_fd: Front-door bitstream simulation
+        <simulator> : verilator, vcs, questa, icarus, ghdl, xcelium
+   set_top_testbench <module> : Sets the top-level testbench module/entity
+   simulation_options <simulator> <phase> ?<level>? <options>
+                                Sets the simulator specific options for the speicfied phase
+                      <phase> : compilation, elaboration, simulation, extra_options
+   diagnostic <type>: Debug mode. Types: packer
+   chatgpt <command> "<message>" ?-c <path>?: Send message to ChatGPT
+                    <command> : Support two commands: send and reset
+                         send : Send message
+                        reset : Reset history
+                    -c <path> : Specify ini file path with API key. The key needs to be set only once for a session
+                                [OpenAI]
+                                API_KEY: <api key>
+----------------------------------

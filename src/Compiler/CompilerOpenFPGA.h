@@ -103,7 +103,7 @@ class CompilerOpenFPGA : public Compiler {
   uint32_t MaxUserDSPCount() { return m_maxUserDSPCount; }
   uint32_t MaxUserBRAMCount() { return m_maxUserBRAMCount; }
 
-  void Help(std::ostream* out);
+  void Help(ToolContext* context, std::ostream* out);
   void Version(std::ostream* out);
   void KeepAllSignals(bool on) { m_keepAllSignals = on; }
   const std::string& YosysPluginLibName() { return m_yosysPluginLib; }

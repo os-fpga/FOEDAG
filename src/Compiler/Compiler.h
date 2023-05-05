@@ -45,6 +45,7 @@ class DesignManager;
 class TclCommandIntegration;
 class Constraints;
 class CFGCompiler;
+class ToolContext;
 
 struct DeviceData {
   std::string family;
@@ -138,7 +139,7 @@ class Compiler {
   TaskManager* GetTaskManager() const;
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
-  virtual void Help(std::ostream* out);
+  virtual void Help(ToolContext* context, std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message,
                        const std::string& messagePrefix = "",
