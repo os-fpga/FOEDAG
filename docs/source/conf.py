@@ -26,7 +26,7 @@ import sphinx_rtd_theme
 # For bibtex support
 import sphinxcontrib.bibtex
 # For embedded youtube
-import sphinxcontrib.yt
+import sphinxcontrib.youtube
 # For converting SVG to PNG using rsvg
 import sphinxcontrib.rsvgconverter
 
@@ -57,7 +57,7 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinxcontrib.bibtex',
     'sphinx.ext.autosectionlabel',
-    'sphinxcontrib.yt',
+    'sphinxcontrib.youtube',
     'sphinxcontrib.rsvgconverter',
     'm2r2',
 ]
@@ -184,6 +184,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+bibtex_bibfiles = ["z_reference.bib"]
 
 # -- Options for Epub output -------------------------------------------------
 
