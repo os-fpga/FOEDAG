@@ -267,11 +267,13 @@
               "label": "CLB packing",
               "options": [
                   "Auto",
-                  "Dense"
+                  "Dense",
+                  "Timing Driven"
               ],
               "optionsLookup": [
                   "auto",
-                  "dense"
+                  "dense",
+                  "timing_driven"
               ],
               "widgetType": "dropdown",
               "default" : "Auto",
