@@ -28,9 +28,13 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 ---------------
 --- Project ---
 ---------------
+   create_design <name> ?-type <project type>? : Creates a design with <name> name
+     <project type>           : rtl (Default), gate-level
+   close_design               : Close current design
    open_project <file>        : Opens a project
    run_project <file>         : Opens and immediately runs the project
    target_device <name>       : Targets a device with <name>
+   set_device_size XxY        : Device fabric size selection
    add_design_file <file list> ?type?   ?-work <libName>?   ?-L <libName>? 
        <type>                 : -VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -VHDL_2019, -V_1995, -V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, default auto-detect 
        -work <libName>        : Compiles the compilation unit into library <libName>, default is "work"
@@ -49,12 +53,18 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    set_top_testbench <module> : Sets the top-level testbench module/entity for simulation
    clear_simulation_files     : Remove all simulation files
    script_path                : Returns the path of the Tcl script passed with --script
+   verific_parser <on/off>    : Turns on/off Verific Parser
+   architecture <vpr_file.xml> ?<openfpga_file.xml>?
+                              : Uses the architecture file and optional openfpga arch file (For bitstream generation)
+   custom_openfpga_script <file> : Uses a custom OpenFPGA templatized script
 
 -------------------
 --- Constraints ---
 -------------------
    keep <signal list> OR all_signals : Keeps the list of signals or all signals through Synthesis unchanged (unoptimized in certain cases)
    message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : Upgrade/downgrade message severity
+   set_pin_loc <design_io_name> <device_io_name> ?<internal_pinname>?: Constraints pin location (Use in constraint.pin file)
+   set_property mode <io_mode_name> <device_io_name> : Constraints pin mode (Use in constraint.pin file)
 
 ----------
 --- IP ---
@@ -98,6 +108,8 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        area                   : Optimize for reduce resource area 
        delay                  : Optimize for performance
        mixed                  : Optimize for area and performance (default)
+   synthesis_type Yosys/QL/RS : Selects Synthesis type
+   custom_synth_script <file> : Uses a custom Yosys templatized script
 
 ---------------
 --- Packing ---
@@ -119,11 +131,13 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        random                 : Random pin assignment
        free                   : No automatic pin assignment
    place ?clean?              : Placer, clean removes related files
+   pnr_options <option list>  : VPR Options
 
 -------------
 --- Route ---
 -------------
    route ?clean?              : Router, clean removes related files
+   set_channel_width <int>    : VPR Routing channel setting
 
 ------------------------------
 --- Static Timing Analysis ---
@@ -134,26 +148,12 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 --- Bitstream ---
 -----------------
    bitstream ?force? ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation, clean removes related files
-
------------------
---- Internal  ---
------------------
-   create_design <name> ?-type <project type>? : Creates a design with <name> name
-     <project type>           : rtl (Default), gate-level
-   close_design               : Close current design
-   set_pin_loc <design_io_name> <device_io_name> ?<internal_pinname>?: Constraints pin location (Use in constraint.pin file)
-   set_property mode <io_mode_name> <device_io_name> : Constraints pin mode (Use in constraint.pin file)
-   verific_parser <on/off>    : Turns on/off Verific Parser
-   synthesis_type Yosys/QL/RS : Selects Synthesis type
-   custom_synth_script <file> : Uses a custom Yosys templatized script
-   set_channel_width <int>    : VPR Routing channel setting
-   architecture <vpr_file.xml> ?<openfpga_file.xml>?
-                              : Uses the architecture file and optional openfpga arch file (For bitstream generation)
-   custom_openfpga_script <file> : Uses a custom OpenFPGA templatized script
    bitstream_config_files -bitstream <bitstream_setting.xml> -sim <sim_setting.xml> -repack <repack_setting.xml> -key <fabric_key.xml>
                               : Uses alternate bitstream generation configuration files
-   set_device_size XxY        : Device fabric size selection
+
+--------------
+--- Debug  ---
+--------------
    diagnostic <type>          : Debug mode. Types: packer
-   pnr_options <option list>  : VPR Options
    
 -----------------------------------------------

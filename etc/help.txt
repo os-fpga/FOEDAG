@@ -26,6 +26,9 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 ---------------
 --- Project ---
 ---------------
+   create_design <name> ?-type <project type>? : Creates a design with <name> name
+     <project type>           : rtl (Default), gate-level
+   close_design               : Close current design
    open_project <file>        : Opens a project
    run_project <file>         : Opens and immediately runs the project
    add_design_file <file list> ?type?   ?-work <libName>?   ?-L <libName>? 
@@ -45,6 +48,14 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        -L <libName>           : Import the library <libName> needed to compile the compilation unit, default is "work"
    clear_simulation_files     : Remove all simulation files
    script_path                : Returns the path of the Tcl script passed with --script
+   architecture <vpr_file.xml> ?<openfpga_file.xml>?
+                              : Uses the architecture file and optional openfpga arch file (For bitstream generation)
+   
+-------------------
+--- Constraints ---
+-------------------
+   set_pin_loc <design_io_name> <device_io_name> ?<internal_pinname>?: Constraints pin location (Use in constraint.pin file)
+   set_property mode <io_mode_name> <device_io_name> : Constraints pin mode (Use in constraint.pin file)
 
 ----------
 --- IP ---
@@ -100,6 +111,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        random                 : Random pin assignment
        free                   : No automatic pin assignment
    place ?clean?              : Placer, clean removes related files
+   pnr_options <option list>  : PnR Options
 
 -------------
 --- Route ---
@@ -116,17 +128,9 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 -----------------
    bitstream ?force? ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation, clean removes related files
 
------------------
---- Internal  ---
------------------
-   create_design <name> ?-type <project type>? : Creates a design with <name> name
-     <project type>           : rtl (Default), gate-level
-   close_design               : Close current design
-   set_pin_loc <design_io_name> <device_io_name> ?<internal_pinname>?: Constraints pin location (Use in constraint.pin file)
-   set_property mode <io_mode_name> <device_io_name> : Constraints pin mode (Use in constraint.pin file)
-   architecture <vpr_file.xml> ?<openfpga_file.xml>?
-                              : Uses the architecture file and optional openfpga arch file (For bitstream generation)
+--------------
+--- Debug  ---
+--------------
    diagnostic <type>          : Debug mode. Types: packer
-   pnr_options <option list>  : PnR Options
    
 -----------------------------------------------
