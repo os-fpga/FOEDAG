@@ -346,6 +346,8 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
   return m_projManager;
 }
 
+void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
+
 void TclCommandIntegration::createNewDesign(const QString &projName,
                                             int projectType) {
   ProjectOptions opt{projName,
