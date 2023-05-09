@@ -1244,6 +1244,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::chatGptStatus);
   connect(tclCommandIntegration, &TclCommandIntegration::closeDesign, this,
           [this]() { closeProject(true); });
+  connect(tclCommandIntegration, &TclCommandIntegration::saveSettingsSignal,
+          this, [this]() { saveSettings(); });
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 

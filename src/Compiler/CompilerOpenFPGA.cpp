@@ -43,6 +43,7 @@
 #include "Log.h"
 #include "Main/Settings.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
 #include "Utils/StringUtils.h"
@@ -558,7 +559,9 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->MaxUserBRAMCount(std::strtoul(argv[2], 0, 10));
     } else {
       compiler->ErrorMessage("Unknown limit type");
+      return TCL_ERROR;
     }
+    if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
     return TCL_OK;
   };
   interp->registerCmd("set_limits", set_limits, this, 0);
@@ -651,6 +654,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
           "Invalid arg to netlist_type (verilog or blif), was: " + arg);
       return TCL_ERROR;
     }
+    if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
     return TCL_OK;
   };
   interp->registerCmd("pnr_netlist_lang", pnr_netlist_lang, this, 0);
@@ -742,6 +746,7 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
             return TCL_ERROR;
           }
           compiler->ClbPackingOption(packing);
+          if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
           i++;
         } else {
           compiler->ErrorMessage("-clb_packing argument is missing");

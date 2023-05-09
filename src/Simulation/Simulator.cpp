@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Compiler.h"
 #include "Compiler/Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "ProjNavigator/tcl_command_integration.h"
 #include "Simulator.h"
 #include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
@@ -244,6 +245,8 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
       } else if (phase == "extra_options") {
         simulator->SetSimulatorExtraOption(level, sim_tool, options);
       }
+      if (simulator->m_compiler->GuiTclSync())
+        simulator->m_compiler->GuiTclSync()->saveSettings();
       return TCL_OK;
     }
     return TCL_ERROR;
