@@ -1,6 +1,13 @@
+<foedag>
 =-=-=-=-=-=-=-=-=-=-=
 =-= FOEDAG HELP   =-=
 =-=-=-=-=-=-=-=-=-=-=
+</foedag>
+<openfpga>
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+=-= FOEDAG OpenFPGA HELP  =-=
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+</openfpga>
 Command-line Options:
    --help           : This help
    --version        : Version
@@ -10,6 +17,10 @@ Command-line Options:
    --project <project file>: Open a project
    --compiler <name>: Compiler name {openfpga...}, default is a dummy compiler
    --mute           : Mutes stdout in batch mode
+<openfpga>
+   --verific        : Uses Verific parser
+   --device <name>  : Overrides target_device command with the device name
+</openfpga>
 
 Tcl commands (Available in GUI or Batch console or Batch script):
 ---------------
@@ -31,6 +42,10 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    close_design               : Close current design
    open_project <file>        : Opens a project
    run_project <file>         : Opens and immediately runs the project
+<openfpga>
+   target_device <name>       : Targets a device with <name>
+   set_device_size XxY        : Device fabric size selection
+</openfpga>
    add_design_file <file list> ?type?   ?-work <libName>?   ?-L <libName>? 
        <type>                 : -VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -VHDL_2019, -V_1995, -V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, default auto-detect 
        -work <libName>        : Compiles the compilation unit into library <libName>, default is "work"
@@ -50,10 +65,19 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    script_path                : Returns the path of the Tcl script passed with --script
    architecture <vpr_file.xml> ?<openfpga_file.xml>?
                               : Uses the architecture file and optional openfpga arch file (For bitstream generation)
-   
+<openfpga>
+   set_top_testbench <module> : Sets the top-level testbench module/entity for simulation
+   verific_parser <on/off>    : Turns on/off Verific Parser
+   custom_openfpga_script <file> : Uses a custom OpenFPGA templatized script
+</openfpga>
+
 -------------------
 --- Constraints ---
 -------------------
+<openfpga>
+   keep <signal list> OR all_signals : Keeps the list of signals or all signals through Synthesis unchanged (unoptimized in certain cases)
+   message_severity <message_id> <ERROR/WARNING/INFO/IGNORE> : Upgrade/downgrade message severity
+</openfpga>
    set_pin_loc <design_io_name> <device_io_name> ?<internal_pinname>?: Constraints pin location (Use in constraint.pin file)
    set_property mode <io_mode_name> <device_io_name> : Constraints pin mode (Use in constraint.pin file)
 
@@ -96,11 +120,26 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        area                   : Optimize for reduce resource area 
        delay                  : Optimize for performance
        mixed                  : Optimize for area and performance (default)
+<openfpga>
+   set_limits <type> <int>    : Sets a user limit on object of type (dsp, bram), specify 0 to disable block inferrence
+       dsp                    : Maximum number of usable DSPs
+       bram                   : Maximum number of usable BRAMs
+   synthesis_type Yosys/QL/RS : Selects Synthesis type
+   custom_synth_script <file> : Uses a custom Yosys templatized script
+</openfpga>
 
 ---------------
 --- Packing ---
 ---------------
    packing ?clean?            : Packing, clean removes related files
+<openfpga>
+   pnr_netlist_lang <format>  : Chooses post-synthesis netlist format, (blif, edif, verilog, vhdl)
+   packing_options <option list>: Packing options
+     -clb_packing <directive> : Performance optimization flags (auto, dense, timing_driven)
+       auto                   : CLB packing automatically determined (default)
+       dense                  : Pack logic more densely into CLBs resulting in fewer utilized CLBs however may negatively impact timing
+       timing_driven          : Pack logic to optimize timing
+</openfpga>
 
 
 -------------
@@ -117,6 +156,9 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 --- Route ---
 -------------
    route ?clean?              : Router, clean removes related files
+<openfpga>
+   set_channel_width <int>    : VPR Routing channel setting
+</openfpga>
 
 ------------------------------
 --- Static Timing Analysis ---
@@ -127,6 +169,10 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 --- Bitstream ---
 -----------------
    bitstream ?force? ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation, clean removes related files
+<openfpga>
+   bitstream_config_files -bitstream <bitstream_setting.xml> -sim <sim_setting.xml> -repack <repack_setting.xml> -key <fabric_key.xml>
+                              : Uses alternate bitstream generation configuration files
+</openfpga>
 
 --------------
 --- Debug  ---

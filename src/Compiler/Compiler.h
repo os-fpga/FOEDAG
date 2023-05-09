@@ -139,6 +139,7 @@ class Compiler {
   TaskManager* GetTaskManager() const;
   Constraints* getConstraints() { return m_constraints; }
   void setGuiTclSync(TclCommandIntegration* tclCommands);
+  virtual std::vector<std::string> helpTags() const;
   virtual void Help(ToolContext* context, std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message,

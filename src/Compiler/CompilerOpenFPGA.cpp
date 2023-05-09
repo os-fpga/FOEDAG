@@ -45,6 +45,7 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"
 #include "Utils/LogUtils.h"
+#include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "nlohmann_json/json.hpp"
 #include "scope_guard/scope_guard.hpp"
@@ -59,16 +60,8 @@ void CompilerOpenFPGA::Version(std::ostream* out) {
   LogUtils::PrintVersion(out);
 }
 
-void CompilerOpenFPGA::Help(ToolContext* context, std::ostream* out) {
-  auto dataPath = context->DataPath();
-  dataPath = dataPath / "etc" / "openfpga_help.txt";
-  std::ifstream stream(dataPath);
-  if (stream.good()) {
-    std::string helpContent((std::istreambuf_iterator<char>(stream)),
-                            std::istreambuf_iterator<char>());
-    (*out) << helpContent;
-  }
-  stream.close();
+std::vector<std::string> CompilerOpenFPGA::helpTags() const {
+  return {"openfpga"};
 }
 
 // https://github.com/lnis-uofu/OpenFPGA/blob/master/openfpga_flow/misc/ys_tmpl_yosys_vpr_flow.ys

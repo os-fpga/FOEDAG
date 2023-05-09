@@ -103,7 +103,7 @@ void Compiler::Help(ToolContext* context, std::ostream* out) {
   if (stream.good()) {
     std::string helpContent((std::istreambuf_iterator<char>(stream)),
                             std::istreambuf_iterator<char>());
-    (*out) << helpContent;
+    (*out) << QtUtils::replaceTags(helpContent, helpTags());
   }
   stream.close();
 }
@@ -2308,6 +2308,8 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   if (m_tclCmdIntegration)
     m_projManager = m_tclCmdIntegration->GetProjectManager();
 }
+
+std::vector<std::string> Compiler::helpTags() const { return {"foedag"}; }
 
 bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
