@@ -227,6 +227,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 
 void MainWindow::ScriptFinished() {
   ProgressVisible(false);
+  const QSignalBlocker signalBlocker{DesignFileWatcher::Instance()};
   DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
   saveSettings();
 }
