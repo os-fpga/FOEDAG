@@ -73,10 +73,10 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       return;
     }
 
-    std::string cmd =
+    std::string command =
         buildCommand(configFile.string(), arg->bitstream, arg->index);
 
-    int return_code = CFG_compiler_execute_cmd(cmd, "", false);
+    int return_code = CFG_compiler_execute_cmd(command, "", false);
     if (return_code) {
       CFG_POST_ERR("Bitstream programming failed. Error code: %d", return_code);
     }
