@@ -56,12 +56,14 @@ class TclCommandIntegration : public QObject {
   bool TclshowChatGpt(const std::string &request, const std::string &content);
 
   ProjectManager *GetProjectManager();
+  void saveSettings();
 
  signals:
   void newDesign(const QString &);
   void closeDesign();
   void showChatGpt(const QString &r, const QString &data);
   void chatGptStatus(bool);
+  void saveSettingsSignal();
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);

@@ -141,6 +141,8 @@ class Compiler {
   void setGuiTclSync(TclCommandIntegration* tclCommands);
   virtual std::vector<std::string> helpTags() const;
   virtual void Help(ToolContext* context, std::ostream* out);
+  TclCommandIntegration* GuiTclSync() const;
+  virtual void Help(std::ostream* out);
   virtual void Version(std::ostream* out);
   virtual void Message(const std::string& message,
                        const std::string& messagePrefix = "",

@@ -956,6 +956,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown optimization option: " + arg);
         }
       }
+      if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
       return compiler->Compile(Action::Synthesis) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
@@ -1037,6 +1038,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
             "No Argument passed: type random/in_define_order/free");
         return TCL_ERROR;
       }
+      if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
       return TCL_OK;
     };
     interp->registerCmd("pin_loc_assign_method", pin_loc_assign_method, this,
@@ -1074,6 +1076,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
+      if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
       return compiler->Compile(Action::STA) ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
@@ -1301,6 +1304,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           setSynthOption(lookupVal.toStdString());
         }
       }
+      if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
       WorkerThread* wthread =
           new WorkerThread("synth_th", Action::Synthesis, compiler);
       return wthread->start() ? TCL_OK : TCL_ERROR;
@@ -1429,6 +1433,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
+      if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
       WorkerThread* wthread = new WorkerThread("sta_th", Action::STA, compiler);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
@@ -2310,6 +2315,10 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
 }
 
 std::vector<std::string> Compiler::helpTags() const { return {"foedag"}; }
+
+TclCommandIntegration* Compiler::GuiTclSync() const {
+  return m_tclCmdIntegration;
+}
 
 bool Compiler::IPGenerate() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;

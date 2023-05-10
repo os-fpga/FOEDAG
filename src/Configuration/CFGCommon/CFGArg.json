@@ -76,7 +76,7 @@
      "help" : [ 
       "Configuration bitstream programming tool.", 
       "To use it:",
-      "  program_device <{option}>s <input file .bitasm> <output file .cfgbit>" ],
+      "  program_device -b <bitstream> -c <config_file> -n <index>" ],
       "arg" : [1,1]
    }
 }
