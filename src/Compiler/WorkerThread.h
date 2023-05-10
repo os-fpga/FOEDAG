@@ -41,7 +41,8 @@ namespace FOEDAG {
 class WorkerThread {
  public:
   WorkerThread(const std::string& threadName, Compiler::Action action,
-               Compiler* compiler);
+               Compiler* compiler,
+               const std::function<void(int)>& postRunTask = {});
   ~WorkerThread();
 
   const std::string& Name() { return m_threadName; }
@@ -92,6 +93,7 @@ class WorkerThread {
   Compiler::Action m_action = Compiler::Action::NoAction;
   std::thread* m_thread = nullptr;
   Compiler* m_compiler = nullptr;
+  const std::function<void(int)>& m_postRunTask{};
 };
 
 class ThreadPool {
