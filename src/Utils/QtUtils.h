@@ -35,6 +35,10 @@ class QtUtils {
   // return true if str is equal to s with Qt::CaseInsensitive
   static bool IsEqual(const QString &str, const QString &s);
 
+  static QString replaceTags(QString &data, const QStringList &tags);
+  static std::string replaceTags(const std::string &data,
+                                 const std::vector<std::string> &tags);
+
   template <class Functor>
   static void AppendToEventQueue(Functor functor) {
     QTimer::singleShot(1, functor);

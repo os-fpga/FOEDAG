@@ -56,7 +56,7 @@ set found [regexp "\nINFO: ANL: Design log_header is analyzed" $file_data]
 if { !$found } { puts "ERROR: foedag.log's Analyze messages don't have INFO: ANL: in front"; exit 1 }
 
 # Verify help message doesn't have an abbreviation in front of it
-set found [regexp "\n-----  FOEDAG HELP  -----" $file_data]
+set found [regexp "\n=-= FOEDAG HELP   =-=" $file_data]
 if { !$found } { puts "ERROR: foedag.log's help message has an abbreviation before it or wasn't printed"; exit 1 }
 
 # Verify that the fake.rpt file now has copyright info because we now dynamically add the header to all *.rpt's in a project folder

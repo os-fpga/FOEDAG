@@ -96,155 +96,16 @@ void Compiler::Version(std::ostream* out) {
   LogUtils::PrintVersion(out);
 }
 
-void Compiler::Help(std::ostream* out) {
-  (*out) << "-------------------------" << std::endl;
-  (*out) << "-----  FOEDAG HELP  -----" << std::endl;
-  (*out) << "-------------------------" << std::endl;
-  (*out) << "Options:" << std::endl;
-  (*out) << "   --help           : This help" << std::endl;
-  (*out) << "   --version        : Version" << std::endl;
-  (*out) << "   --batch          : Tcl only, no GUI" << std::endl;
-  (*out) << "   --replay <script>: Replay GUI test" << std::endl;
-  (*out) << "   --script <script>: Execute a Tcl script" << std::endl;
-  (*out) << "   --project <project file>: Open a project" << std::endl;
-  (*out) << "   --compiler <name>: Compiler name {openfpga...}, default is "
-            "a dummy compiler"
-         << std::endl;
-  (*out) << "   --mute           : Mutes stdout in batch mode" << std::endl;
-  (*out) << "Tcl commands:" << std::endl;
-  (*out) << "   help                       : This help" << std::endl;
-  (*out) << "   create_design <name> ?-type <project type>? : Creates a design "
-            "with <name> name"
-         << std::endl;
-  (*out) << "   close_design     : Close current design" << std::endl;
-  (*out) << "               <project type> : rtl, gate-level" << std::endl;
-  (*out) << "   open_project <file>        : Opens a project in started "
-            "upfront GUI"
-         << std::endl;
-  (*out) << "   run_project <file>         : Opens and immediately runs the "
-            "project"
-         << std::endl;
-  (*out) << "   add_design_file <file list> ?type?   ?-work <libName>?  "
-         << std::endl;
-  (*out) << "              Each invocation of the command compiles the "
-            "file list into a compilation unit "
-         << std::endl;
-  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017> "
-         << std::endl;
-  (*out) << "              -work <libName> : Compiles the compilation unit "
-            "into library <libName>, default is \"work\""
-         << std::endl;
-  (*out) << "   add_simulation_file <file list> ?type?   ?-work <libName>?  "
-         << std::endl;
-  (*out) << "              Each invocation of the command compiles the "
-            "file list into a compilation unit "
-         << std::endl;
-  (*out) << "                       <type> : -VHDL_1987, -VHDL_1993, "
-            "-VHDL_2000, -VHDL_2008, -V_1995, "
-            "-V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP> "
-         << std::endl;
-  (*out) << "              -work <libName> : Compiles the compilation unit "
-            "into library <libName>, default is \"work\""
-         << std::endl;
-  (*out) << "   clear_simulation_files     : Remove all simulation files"
-         << std::endl;
-  (*out) << "   read_netlist <file>        : Read a netlist instead of an RTL "
-            "design (Skip Synthesis)"
-         << std::endl;
-  (*out) << "   add_include_path <path1>...: As in +incdir+" << std::endl;
-  (*out) << "   add_library_path <path1>...: As in +libdir+" << std::endl;
-  (*out) << "   add_library_ext <.v> <.sv> ...: As in +libext+" << std::endl;
-  (*out) << "   set_macro <name>=<value>...: As in -D<macro>=<value>"
-         << std::endl;
-  (*out) << "   set_top_module <top> ?-work <libName>? : Sets the top module"
-         << std::endl;
-  (*out) << "   add_constraint_file <file> : Sets SDC + location constraints"
-         << std::endl;
-  (*out) << "     Constraints: set_pin_loc, set_region_loc, all SDC commands"
-         << std::endl;
-  (*out) << "   script_path                : path of the Tcl script passed "
-            "with --script"
-         << std::endl;
-  (*out) << "   add_litex_ip_catalog <directory> : Browses directory for LiteX "
-            "IP generators, adds the IP(s) to the IP Catalog"
-         << std::endl;
-  (*out) << "   ip_catalog ?<ip_name>?     : Lists all available IPs, and "
-            "their parameters if <ip_name> is given "
-         << std::endl;
-  (*out) << "   ip_configure <IP_NAME> -mod_name <name> -out_file <filename> "
-            "-version <ver_name> -P<param>=\"<value>\"..."
-         << std::endl;
-  (*out) << "                              : Configures an IP <IP_NAME> and "
-            "generates the corresponding file with module name"
-         << std::endl;
-  (*out) << "   ipgenerate ?clean? ?-modules {moduleName1 moduleName2} : "
-            "Generates all IP instances set by "
-            "ip_configure. -modules limits which IPs are generated."
-         << std::endl;
-  (*out) << "   simulate_ip  <module name> : Simulate IP with module name "
-            "<module name>"
-         << std::endl;
-  (*out)
-      << "   synthesize <optimization> ?clean? : Optional optimization (area, "
-         "delay, mixed, none)"
-      << std::endl;
-  (*out) << "   place ?clean" << std::endl;
-  (*out) << "   pin_loc_assign_method <Method>: "
-            "(in_define_order(Default)/random/free)"
-         << std::endl;
-  (*out) << "   synth_options <option list>: Synthesis Options" << std::endl;
-  (*out) << "   pnr_options <option list>  : PnR Options" << std::endl;
-  (*out) << "     clb_packing <directive>  : Performance optimization flags"
-         << std::endl;
-  (*out) << "                 <directive>  : auto, dense" << std::endl;
-  (*out) << "                        auto  : CLB packing automatically "
-            "determined to optimize performance"
-         << std::endl;
-  (*out)
-      << "                       dense  : Pack logic more densely into CLBs "
-         "resulting in fewer utilized CLBs however may negatively impact timing"
-      << std::endl;
-  (*out) << "   packing ?clean?" << std::endl;
-  // (*out) << "   global_placement ?clean?" << std::endl;
-  (*out) << "   place ?clean?" << std::endl;
-  (*out) << "   route ?clean?" << std::endl;
-  (*out) << "   sta ?clean?" << std::endl;
-  (*out) << "   power ?clean?" << std::endl;
-  (*out) << "   bitstream ?clean? ?enable_simulation? ?write_xml? "
-            "?write_fabric_independent? ?pb_pin_fixup?"
-         << std::endl;
-  (*out) << "   simulate <level> ?<simulator>? ?clean? : Simulates the design "
-            "and testbench"
-         << std::endl;
-  (*out) << "             <level>: rtl, gate, pnr, bitstream_bd, bitstream_fd."
-         << std::endl;
-  (*out) << "                 rtl: RTL simulation," << std::endl;
-  (*out) << "                gate: post-synthesis simulation," << std::endl;
-  (*out) << "                 pnr: post-pnr simulation," << std::endl;
-  (*out) << "        bitstream_bd: Back-door bitstream simulation" << std::endl;
-  (*out) << "        bitstream_fd: Front-door bitstream simulation"
-         << std::endl;
-  (*out) << "        <simulator> : verilator, vcs, questa, icarus, ghdl, "
-            "xcelium"
-         << std::endl;
-  (*out) << "   diagnostic <type>: Debug mode. Types: packer" << std::endl;
-  (*out) << "   chatgpt <command> \"<message>\" ?-c <path>?: Send message to "
-            "ChatGPT"
-         << std::endl;
-  (*out)
-      << "                    <command> : Support two commands: send and reset"
-      << std::endl;
-  (*out) << "                         send : Send message" << std::endl;
-  (*out) << "                        reset : Reset history" << std::endl;
-  (*out) << "                    -c <path> : Specify ini file path with API "
-            "key. The key needs to be set only once for a session"
-         << std::endl;
-  (*out) << "                                [OpenAI]" << std::endl;
-  (*out) << "                                API_KEY: <api key>" << std::endl;
-  writeWaveHelp(out, 3, 24);  // 24 is the col count of the : in the line above
-  (*out) << "-------------------------" << std::endl;
+void Compiler::Help(ToolContext* context, std::ostream* out) {
+  auto dataPath = context->DataPath();
+  dataPath = dataPath / "etc" / "help.txt";
+  std::ifstream stream(dataPath);
+  if (stream.good()) {
+    std::string helpContent((std::istreambuf_iterator<char>(stream)),
+                            std::istreambuf_iterator<char>());
+    (*out) << QtUtils::replaceTags(helpContent, helpTags());
+  }
+  stream.close();
 }
 
 void Compiler::CustomSimulatorSetup(Simulator::SimulationType action) {}
@@ -519,7 +380,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto help = [](void* clientData, Tcl_Interp* interp, int argc,
                  const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
-    compiler->Help(compiler->GetOutStream());
+    compiler->Help(GlobalSession->Context(), compiler->GetOutStream());
     return TCL_OK;
   };
   interp->registerCmd("help", help, this, 0);
@@ -2452,6 +2313,8 @@ void Compiler::setGuiTclSync(TclCommandIntegration* tclCommands) {
   if (m_tclCmdIntegration)
     m_projManager = m_tclCmdIntegration->GetProjectManager();
 }
+
+std::vector<std::string> Compiler::helpTags() const { return {"foedag"}; }
 
 TclCommandIntegration* Compiler::GuiTclSync() const {
   return m_tclCmdIntegration;
