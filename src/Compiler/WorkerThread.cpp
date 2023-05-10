@@ -30,8 +30,12 @@ using namespace FOEDAG;
 std::set<WorkerThread*> ThreadPool::threads;
 
 WorkerThread::WorkerThread(const std::string& threadName,
-                           Compiler::Action action, Compiler* compiler)
-    : m_threadName(threadName), m_action(action), m_compiler(compiler) {
+                           Compiler::Action action, Compiler* compiler,
+                           const std::function<void(int)>& postRunTask)
+    : m_threadName(threadName),
+      m_action(action),
+      m_compiler(compiler),
+      m_postRunTask(postRunTask) {
   ThreadPool::threads.insert(this);
 }
 
@@ -53,6 +57,7 @@ bool WorkerThread::start() {
   else
     m_thread->join();  // batch mode
   delete eventLoop;
+  if (m_postRunTask && result) m_postRunTask(static_cast<int>(m_action));
   return result;
 }
 

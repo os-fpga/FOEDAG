@@ -125,6 +125,7 @@ class Compiler {
   State CompilerState() const { return m_state; }
   void CompilerState(State st) { m_state = st; }
   bool Compile(Action action);
+  void GenerateReport(int action);
   void Stop();
   TclInterpreter* TclInterp() { return m_interp; }
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);

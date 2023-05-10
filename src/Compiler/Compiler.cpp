@@ -39,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <ctime>
 #include <filesystem>
+#include <functional>
 #include <sstream>
 #include <thread>
 
@@ -1155,8 +1156,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
       WorkerThread* wthread =
-          new WorkerThread("ip_th", Action::IPGen, compiler);
+          new WorkerThread("ip_th", Action::IPGen, compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("ipgenerate", ipgenerate, this, 0);
@@ -1172,8 +1175,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown analysis option: " + arg);
         }
       }
-      WorkerThread* wthread =
-          new WorkerThread("analyze_th", Action::Analyze, compiler);
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
+      WorkerThread* wthread = new WorkerThread("analyze_th", Action::Analyze,
+                                               compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("analyze", analyze, this, 0);
@@ -1305,8 +1310,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
       if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
-      WorkerThread* wthread =
-          new WorkerThread("synth_th", Action::Synthesis, compiler);
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
+      WorkerThread* wthread = new WorkerThread("synth_th", Action::Synthesis,
+                                               compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("synthesize", synthesize, this, 0);
@@ -1323,8 +1330,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
       WorkerThread* wthread =
-          new WorkerThread("pack_th", Action::Pack, compiler);
+          new WorkerThread("pack_th", Action::Pack, compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("packing", packing, this, 0);
@@ -1361,8 +1370,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
-      WorkerThread* wthread =
-          new WorkerThread("place_th", Action::Detailed, compiler);
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
+      WorkerThread* wthread = new WorkerThread("place_th", Action::Detailed,
+                                               compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("detailed_placement", placement, this, 0);
@@ -1410,8 +1421,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
       }
-      WorkerThread* wthread =
-          new WorkerThread("route_th", Action::Routing, compiler);
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
+      WorkerThread* wthread = new WorkerThread("route_th", Action::Routing,
+                                               compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("route", route, this, 0);
@@ -1434,7 +1447,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         }
       }
       if (compiler->GuiTclSync()) compiler->GuiTclSync()->saveSettings();
-      WorkerThread* wthread = new WorkerThread("sta_th", Action::STA, compiler);
+      std::function<void(int)> generateReport =
+          std::bind(&Compiler::GenerateReport, compiler, std::placeholders::_1);
+      WorkerThread* wthread =
+          new WorkerThread("sta_th", Action::STA, compiler, generateReport);
       return wthread->start() ? TCL_OK : TCL_ERROR;
     };
     interp->registerCmd("sta", sta, this, 0);
@@ -2002,11 +2018,13 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
-    if (res)
-      handleJsonReportGeneration(m_taskManager->task(task), m_taskManager,
-                                 m_projManager->getProjectPath());
   }
   return res;
+}
+
+void Compiler::GenerateReport(int action) {
+  handleJsonReportGeneration(m_taskManager->task(toTaskId(action, this)),
+                             m_taskManager, m_projManager->getProjectPath());
 }
 
 void Compiler::Stop() {
