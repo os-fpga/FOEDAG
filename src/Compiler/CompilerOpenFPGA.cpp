@@ -651,6 +651,16 @@ bool CompilerOpenFPGA::DesignChanged(
       }
     }
   }
+  for (auto file : ProjManager()->getConstrFiles()) {
+    file = StringUtils::trim(file);
+    if (file.size()) {
+      time_t tf = FileUtils::Mtime(file);
+      if ((tf > time_netlist) || (tf == -1)) {
+        result = true;
+        break;
+      }
+    }
+  }
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
     StringUtils::tokenize(FileUtils::AdjustPath(path), " ", tokens);
