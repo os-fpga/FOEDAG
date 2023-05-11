@@ -65,6 +65,10 @@
 #include <QStackedWidget>
 #include <QListWidget>
 #include <QTabWidget>
+#include <QLineEdit>
+#include <QLabel>
+
+#include "QLDeviceManager.h"
 
 extern const char* foedag_version_number;
 extern const char* foedag_build_date;
@@ -768,6 +772,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
     for (auto [subcategoryId, subcategoryJson] : categoryJson.items()) {
 
+
       // container widget for each 'subcategory'  -> 'page' widget inside the category QTabWidget
       // the container widget will contain all the 'parameters' of this subcategory -> hence a simple QWidget will do.
       // this should become a ScrollArea.
@@ -776,14 +781,28 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       subcategoryWidgetlayout->setAlignment(Qt::AlignTop);
       subcategoryWidget->setLayout(subcategoryWidgetlayout);
 
-      for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
+      if(categoryId == "general" && subcategoryId == "device") {
+          QLDeviceManager *devicemanager = new QLDeviceManager(compiler);
+          QWidget* deviceSelectionWidget = devicemanager->createDeviceSelectionWidget();
+          subcategoryWidgetlayout->addWidget(deviceSelectionWidget);
+      }
+      else {
 
-        // finally, each parameter becomes a widget according the type and properties.
-        QWidget* subWidget =
-            FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
-        
-        // the parameter widget is added into the 'subcategory widget' layout.
-        subcategoryWidgetlayout->addWidget(subWidget);
+        for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
+
+            // finally, each parameter becomes a widget according the type and properties.
+            QHBoxLayout* subWidgetHBoxLayout = new QHBoxLayout();
+            QLabel* subWidgetLabel = new QLabel(QString::fromStdString(widgetId));
+            QWidget* subWidget =
+                FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
+            
+            subWidgetHBoxLayout->addWidget(subWidgetLabel);
+            subWidgetHBoxLayout->addStretch();
+            subWidgetHBoxLayout->addWidget(subWidget);
+            
+            // the parameter widget is added into the 'subcategory widget' layout.
+            subcategoryWidgetlayout->addLayout(subWidgetHBoxLayout);
+        }
       }
 
       // subcategory widget ready -> this is a 'page' or 'tab' in QTabWidget, so add to the QTabWidget directly (no layout)
@@ -792,10 +811,70 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
     // category widget is ready -> this is a 'page' in the 'container' QStackedWidget
     stackedWidget->addWidget(categoryWidget);
-    
+
     // correspondingly, add the category 'name' into the QListWidget
     new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
   }
+
+
+    // Power JSON Settings also should be added into the Settings Menu
+    // Check and Parse Power Estimation JSON File for User Inputs
+    std::filesystem::path power_estimation_json_file;
+    bool power_estimation_json_exists = false;
+    json power_estimation_json;
+  
+    power_estimation_json_file = 
+        std::filesystem::path(compiler->m_projManager->projectPath())/std::string(compiler->m_projManager->projectName() + "_power.json");
+    if (FileUtils::FileExists(power_estimation_json_file)) {
+        power_estimation_json_exists = true;
+    }
+    else {
+        power_estimation_json_file = 
+        std::filesystem::path(compiler->m_projManager->projectPath())/std::filesystem::path("..")/std::string(compiler->m_projManager->projectName() + "_power.json");
+        if (FileUtils::FileExists(power_estimation_json_file)) {
+        power_estimation_json_exists = true;
+        }
+    }
+
+    if(power_estimation_json_exists == true) {
+        std::ifstream power_estimation_json_f(power_estimation_json_file.string());
+        power_estimation_json = json::parse(power_estimation_json_f);
+
+        QTabWidget* categoryWidget = new QTabWidget(); // power
+
+        QWidget* subcategoryWidget = new QWidget(); // power_inputs
+        QVBoxLayout* subcategoryWidgetlayout = new QVBoxLayout();
+        subcategoryWidgetlayout->setAlignment(Qt::AlignTop);
+        subcategoryWidget->setLayout(subcategoryWidgetlayout);
+
+        for ( auto it: power_estimation_json["power_inputs"].items() ) {
+            std::cout << it.key() << " | " << it.value() << "\n";
+
+            QHBoxLayout* power_input_line_layout = new QHBoxLayout();
+            QLabel* label = new QLabel(QString::fromStdString(it.key()));
+            std::string valuestring = std::to_string(power_estimation_json["power_inputs"][it.key()].get<double>());
+            QLineEdit* lineEdit = new QLineEdit(QString::fromStdString(valuestring));
+
+            power_input_line_layout->addWidget(label);
+            power_input_line_layout->addStretch();
+            power_input_line_layout->addWidget(lineEdit);
+
+            subcategoryWidgetlayout->addLayout(power_input_line_layout);
+        }
+
+        categoryWidget->addTab(subcategoryWidget, QString::fromStdString("power_inputs"));
+        stackedWidget->addWidget(categoryWidget);
+        new QListWidgetItem(QString::fromStdString("power"), listWidget);
+    }
+
+
+
+
+
+
+
+
+
 
   // when a 'category' in the QListView is selected, corresponding 'page' widget in the QStackedWidget should be shown.
   QObject::connect(listWidget, QOverload<int>::of(&QListWidget::currentRowChanged),
@@ -806,7 +885,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   dlg_widgetslayout->addWidget(stackedWidget);
 
   // show vpr by default first, test only.
-  listWidget->setCurrentRow(2);
+  listWidget->setCurrentRow(0);
 
   // make the buttons for the actions in the settings dialog
   QPushButton *button_loadfromjson = new QPushButton("Reload");
@@ -1731,6 +1810,8 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
 
     CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
 
+    compiler->test_listing_all();
+#if 0
     std::vector<std::string> device_list = compiler->ListDevices();
 
     // save std::ios settings.
@@ -1753,7 +1834,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
       index++;
     }
     std::cout << std::endl;
-
+#endif
     return TCL_OK;
   };
   interp->registerCmd("list_devices", list_devices, this, 0);
@@ -6017,6 +6098,226 @@ std::vector<std::string> CompilerOpenFPGA_ql::list_device_variants(
 
   return device_variants;
 }
+
+
+void CompilerOpenFPGA_ql::test_listing_all() {
+  std::vector<std::string> empty_list_of_devices = {};
+  std::vector<std::string> list_of_devices = {};
+
+  std::string family;
+  std::string foundry;
+  std::string node;
+
+  std::error_code ec;
+
+  // get to the device_data dir path of the installation
+  std::filesystem::path root_device_data_dir_path = 
+      GetSession()->Context()->DataPath();
+
+  device_list.clear();
+
+  // each dir in the device_data is a family
+  //    for each family, check for foundry dirs
+  //        for each foundry, check for node 
+  //            for each family-foundry-node dir, check the device_variants
+  
+  // look at the directories inside the device_data_dir_path for 'family' entries
+  for (const std::filesystem::directory_entry& dir_entry_family : 
+                    std::filesystem::directory_iterator(root_device_data_dir_path)) {
+    
+    if(dir_entry_family.is_directory()) {
+      
+      // we would see family at this level
+      family = dir_entry_family.path().filename().string();
+
+      // look at the directories inside the 'family' dir for 'foundry' entries
+      for (const std::filesystem::directory_entry& dir_entry_foundry : 
+                    std::filesystem::directory_iterator(dir_entry_family.path())) {
+
+        if(dir_entry_foundry.is_directory()) {
+      
+          // we would see foundry at this level
+          foundry = dir_entry_foundry.path().filename().string();
+
+          // look at the directories inside the 'foundry' dir for 'node' entries
+          for (const std::filesystem::directory_entry& dir_entry_node : 
+                          std::filesystem::directory_iterator(dir_entry_foundry.path())) {
+
+            if(dir_entry_node.is_directory()) {
+            
+              // we would see devices at this level
+              node = dir_entry_node.path().filename().string();
+
+              // get all the device_variants for this device:
+              std::vector<std::string> device_variants;
+
+              device_variants = list_device_variants(family,
+                                                     foundry,
+                                                     node,
+                                                     dir_entry_node.path());
+              if(device_variants.empty()) {
+                // display error, but continue with other devices.
+                Message("error in parsing variants for device\n");
+              }
+              else {
+
+                QLDevice device;
+                device.family = family;
+                device.foundry = foundry;
+                device.node = node;
+
+                for (std::string device_variant: device_variants) {
+                    QLDeviceVariant variant;
+                    std::vector<std::string> tokens;
+                    StringUtils::tokenize(device_variant, ",", tokens);
+                    variant.family = tokens[0];
+                    variant.foundry = tokens[1];
+                    variant.node = tokens[2];
+                    if(tokens.size() == 5) {
+                      variant.voltage_threshold = tokens[3];
+                      variant.p_v_t_corner = tokens[4];
+                    }
+                    variant.device_variant_layouts = ListLayouts(variant.family,
+                                                                  variant.foundry,
+                                                                  variant.node,
+                                                                  variant.voltage_threshold,
+                                                                  variant.p_v_t_corner);
+
+                    device.device_variants.push_back(variant);
+                }
+
+                device_list.push_back(device);
+                
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (QLDevice device: device_list) {
+      Message("Device: " + device.family + " " + device.foundry + " " + device.node);
+      for (QLDeviceVariant variant: device.device_variants) {
+        Message("  Variant: " + variant.family + " " + variant.foundry + " " + variant.node + " " + variant.voltage_threshold + " " + variant.p_v_t_corner);
+        for (std::string layout: variant.device_variant_layouts) {
+          Message("    " + layout);
+        }
+      }
+      Message("\n");
+  }
+
+//   QLDeviceManager *devicemanager = new QLDeviceManager(this);
+//   devicemanager->showSelectionDialog(this->device_list);
+//   Message("done");
+}
+
+
+std::vector<std::string> CompilerOpenFPGA_ql::ListLayouts(std::string family,
+                                                          std::string foundry,
+                                                          std::string node,
+                                                          std::string voltage_threshold,
+                                                          std::string p_v_t_corner) {
+  std::vector<std::string> device_variant_layouts = {};
+  
+  std::filesystem::path root_device_data_dir_path = 
+      GetSession()->Context()->DataPath();
+  
+  std::filesystem::path device_data_dir_path;
+  std::filesystem::path device_variant_dir;
+  std::filesystem::path source_vpr_xml_filepath;
+  std::filesystem::path vpr_xml_filepath;
+
+  device_data_dir_path = root_device_data_dir_path / family / foundry / node;
+
+  if( !voltage_threshold.empty() && !p_v_t_corner.empty() ) {
+    device_variant_dir = root_device_data_dir_path / family / foundry / node / voltage_threshold / p_v_t_corner;
+  }
+  else {
+    device_variant_dir = root_device_data_dir_path / family / foundry / node;
+  }
+
+  source_vpr_xml_filepath = device_variant_dir / "vpr.xml";
+  if (!FileUtils::FileExists(source_vpr_xml_filepath)) {
+    source_vpr_xml_filepath = device_variant_dir / "vpr.xml.en";
+    if (!FileUtils::FileExists(source_vpr_xml_filepath)) {
+      Message("vpr xml: " + source_vpr_xml_filepath.string());
+      ErrorMessage("vpr xml not found!");
+      CleanTempFiles();
+      return device_variant_layouts;
+    }
+  }
+  // if file exists, else:
+  
+
+  // if the file is encrypted, we need to decrypt it first
+  if(source_vpr_xml_filepath.filename() == "vpr.xml.en") {
+    vpr_xml_filepath = GenerateTempFilePath();
+
+    std::filesystem::path m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_data_dir_path.string(),
+                                                          family + "_" + foundry + "_" + node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      ErrorMessage("load cryptdb failed!");
+      CleanTempFiles();
+      return device_variant_layouts;
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(source_vpr_xml_filepath, vpr_xml_filepath)) {
+      ErrorMessage("decryption failed!");
+      CleanTempFiles();
+      return device_variant_layouts;
+    }
+  }
+  else if(source_vpr_xml_filepath.filename() == "vpr.xml") {
+    vpr_xml_filepath = source_vpr_xml_filepath;
+  }
+  else {
+    // should never get here.
+    CleanTempFiles();
+    return device_variant_layouts;
+  }
+
+  // open file with Qt
+  // qDebug() << "vpr xml" << QString::fromStdString(vpr_xml_filepath.string());
+  QFile file(vpr_xml_filepath.string().c_str());
+  if (!file.open(QFile::ReadOnly)) {
+    ErrorMessage("Cannot open file: " + vpr_xml_filepath.string());
+    CleanTempFiles();
+    return device_variant_layouts;
+  }
+
+  // parse as XML with Qt
+  QDomDocument doc;
+  if (!doc.setContent(&file)) {
+    file.close();
+    ErrorMessage("Incorrect file: " + vpr_xml_filepath.string());
+    CleanTempFiles();
+    return device_variant_layouts;
+  }
+  file.close();
+  CleanTempFiles(); // the file is not needed anymore.
+
+  // get all "fixed_layout" tag elements
+  QStringList listOfFixedLayout;
+  QDomNodeList nodes = doc.elementsByTagName("fixed_layout");
+  for(int i = 0; i < nodes.count(); i++) {
+      QDomNode node = nodes.at(i);
+      if(node.isElement()) {
+          // get the "name" attribute for the "fixed_layout" tag element
+          QString fixed_layout_value = node.toElement().attribute("name", "notfound");
+          listOfFixedLayout.append(fixed_layout_value);
+      }
+  }
+
+  for(QString layout_name: listOfFixedLayout) {
+    device_variant_layouts.push_back(layout_name.toStdString());
+  }
+
+  return device_variant_layouts;
+}
+
 
 std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
 

@@ -71,6 +71,7 @@ set (SRC_CPP_LIST
   Reports/TaskReportManagerRegistry.cpp
   Reports/SynthesisReportManager.cpp
   Reports/TimingAnalysisReportManager.cpp
+  QLDeviceManager.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -98,6 +99,7 @@ set (SRC_H_INSTALL_LIST
   Reports/SynthesisReportManager.h
   Reports/TimingAnalysisReportManager.h
   TaskGlobal.h
+  QLDeviceManager.h
 )
 
 set (SRC_H_LIST
