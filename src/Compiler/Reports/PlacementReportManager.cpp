@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Post placement - Utilization report"};
+    "Post placement - Utilization Report"};
 static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Post placement - Design statistics"};
 
