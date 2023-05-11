@@ -441,6 +441,9 @@ void MainWindow::startStopButtonsState() {
   // Enable Stop action when there is something to stop
   stopAction->setEnabled(isRunning());
   if (m_taskView) m_taskView->setViewDisabled(isRunning());
+  for (auto action :
+       {simGateAction, simBitstreamAction, simPnrAction, simRtlAction})
+    action->setDisabled(isRunning());
 }
 
 DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
