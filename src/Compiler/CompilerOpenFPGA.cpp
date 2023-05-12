@@ -347,6 +347,8 @@ bool CompilerOpenFPGA::RegisterCommands(TclInterpreter* interp,
       compiler->MaxUserDSPCount(std::strtoul(argv[2], 0, 10));
     } else if (type == "bram") {
       compiler->MaxUserBRAMCount(std::strtoul(argv[2], 0, 10));
+    } else if (type == "carry_length") {
+      compiler->MaxUserCarryLength(std::strtoul(argv[2], 0, 10));
     } else {
       compiler->ErrorMessage("Unknown limit type");
       return TCL_ERROR;
@@ -2900,6 +2902,9 @@ bool CompilerOpenFPGA::LoadDeviceData(
               } else if (file_type == "bram") {
                 MaxDeviceBRAMCount(std::strtoul(num.c_str(), nullptr, 10));
                 MaxUserBRAMCount(MaxDeviceBRAMCount());
+              } else if (file_type == "carry_length") {
+                MaxDeviceCarryLength(std::strtoul(num.c_str(), nullptr, 10));
+                MaxUserCarryLength(MaxDeviceCarryLength());
               } else if (file_type == "lut") {
                 MaxDeviceLUTCount(std::strtoul(num.c_str(), nullptr, 10));
               } else if (file_type == "ff") {
