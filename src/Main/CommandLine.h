@@ -67,7 +67,6 @@ class CommandLine {
   char** Argv() { return m_argv; }
 
   void ErrorAndExit(const std::string& message);
-  bool FileExists(const std::filesystem::path& name);
   bool Mute() const { return m_mute; }
 
  protected:
