@@ -107,9 +107,9 @@ class CompilerOpenFPGA : public Compiler {
   void MaxUserCarryLength(uint32_t max_carry_length) {
     m_maxUserCarryLength = max_carry_length;
   }
-  uint32_t MaxUserDSPCount() { return m_maxUserDSPCount; }
-  uint32_t MaxUserBRAMCount() { return m_maxUserBRAMCount; }
-  uint32_t MaxUserCarryLength() { return m_maxUserCarryLength; }
+  int32_t MaxUserDSPCount() { return m_maxUserDSPCount; }
+  int32_t MaxUserBRAMCount() { return m_maxUserBRAMCount; }
+  int32_t MaxUserCarryLength() { return m_maxUserCarryLength; }
 
   std::vector<std::string> helpTags() const;
   void Version(std::ostream* out);
@@ -213,9 +213,9 @@ class CompilerOpenFPGA : public Compiler {
   uint32_t m_maxDeviceFFCount = 0;
   uint32_t m_maxDeviceIOCount = 0;
   uint32_t m_maxDeviceCarryLength = 0;
-  uint32_t m_maxUserDSPCount = 0;
-  uint32_t m_maxUserBRAMCount = 0;
-  uint32_t m_maxUserCarryLength = 0;
+  int32_t m_maxUserDSPCount = -1;
+  int32_t m_maxUserBRAMCount = -1;
+  int32_t m_maxUserCarryLength = -1;
   virtual std::string BaseVprCommand();
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
