@@ -441,9 +441,14 @@ void MainWindow::startStopButtonsState() {
   // Enable Stop action when there is something to stop
   stopAction->setEnabled(isRunning());
   if (m_taskView) m_taskView->setViewDisabled(isRunning());
-  for (auto action :
-       {simGateAction, simBitstreamAction, simPnrAction, simRtlAction})
-    action->setDisabled(isRunning());
+  const QList<QAction*> actions =
+      QList<QAction*>{} << simulationMenu->actions() << projectMenu->actions()
+                        << QList<QAction*>{
+                               newProjectAction,     openProjectAction,
+                               openExampleAction,    closeProjectAction,
+                               ipConfiguratorAction, pinAssignmentAction};
+  for (auto action : actions) action->setDisabled(isRunning());
+  recentMenu->setDisabled(isRunning());
 }
 
 DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
