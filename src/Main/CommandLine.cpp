@@ -21,16 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CommandLine.h"
 
+#include "Utils/FileUtils.h"
+
 using namespace FOEDAG;
 
 void CommandLine::ErrorAndExit(const std::string& message) {
   std::cerr << "ERROR: " << message << std::endl;
   exit(1);
-}
-
-bool CommandLine::FileExists(const std::filesystem::path& name) {
-  std::error_code ec;
-  return std::filesystem::exists(name, ec);
 }
 
 void CommandLine::processArgs() {
@@ -51,7 +48,7 @@ void CommandLine::processArgs() {
       i++;
       if (i < m_argc) {
         m_runGuiTest = m_argv[i];
-        if (!FileExists(m_runGuiTest)) {
+        if (!FileUtils::FileExists(m_runGuiTest)) {
           ErrorAndExit("Cannot open replay file: " + m_runGuiTest);
         }
       } else
@@ -64,7 +61,7 @@ void CommandLine::processArgs() {
       i++;
       if (i < m_argc) {
         m_runScript = m_argv[i];
-        if (!FileExists(m_runScript)) {
+        if (!FileUtils::FileExists(m_runScript)) {
           ErrorAndExit("Cannot open script file: " + m_runScript);
         }
       } else
@@ -74,11 +71,20 @@ void CommandLine::processArgs() {
         ErrorAndExit("--script and --project can't be used at the same time!");
       i++;
       if (i < m_argc) {
-        m_projectFile = m_argv[i];
-        if (!FileExists(m_projectFile))
-          ErrorAndExit("Cannot open project file: " + m_projectFile);
-      } else
+        std::string arg{m_argv[i]};
+        if (std::filesystem::is_directory(arg)) {
+          auto file = FileUtils::FindFileByExtension(arg, ".ospr");
+          m_projectFile = file.string();
+          if (file.empty())
+            ErrorAndExit("Cannot find project file *.ospr in " + arg);
+        } else {
+          m_projectFile = arg;
+          if (!FileUtils::FileExists(m_projectFile))
+            ErrorAndExit("Cannot open project file: " + m_projectFile);
+        }
+      } else {
         ErrorAndExit("Specify a project file!");
+      }
     } else if (token == "--cmd") {
       i++;
       if (i < m_argc) {
