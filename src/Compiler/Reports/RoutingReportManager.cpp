@@ -18,7 +18,7 @@ static const QRegExp ROUTING_SUMMARY{"Circuit successfully routed.*"};
 static const QRegExp TIMING_INFO{"Final hold Worst Negative Slack.*"};
 
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Post routing - Utilization Report"};
+    "Post routing - Utilization report"};
 static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Post routing - Design statistics"};
 
