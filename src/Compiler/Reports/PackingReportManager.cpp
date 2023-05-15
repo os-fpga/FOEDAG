@@ -11,7 +11,7 @@
 namespace {
 // report names
 static constexpr const char *RESOURCE_REPORT_NAME{
-    "Packing - Utilization Report"};
+    "Packing - Utilization report"};
 static constexpr const char *DESIGN_STAT_REPORT_NAME{
     "Packing - Design statistics"};
 
