@@ -2100,7 +2100,7 @@ bool CompilerOpenFPGA::Route() {
     CleanFiles(Action::Routing);
     return true;
   }
-  if (m_state != State::Placed) {
+  if (m_state != State::Placed && m_state != State::Routed) {
     ErrorMessage("Design needs to be in placed state");
     return false;
   }
