@@ -183,7 +183,7 @@ IDataReport::TableData AbstractReportManager::CreateLogicData(bool lut5_6) {
   result = (aLogic.lut6 == 0)
                ? 0
                : ((uLogic.lut5 / 2) + uLogic.lut6) * 100 / aLogic.lut6;
-  circuitData.push_back({SPACE + "LUT", QString::number(usedLuts),
+  circuitData.push_back({SPACE + "LUTs", QString::number(usedLuts),
                          QString::number(aLogic.lut6),
                          QString::number(result)});
 
