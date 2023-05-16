@@ -170,7 +170,7 @@ IDataReport::TableData AbstractReportManager::parseCircuitStats(QTextStream &in,
   return circuitData;
 }
 
-IDataReport::TableData AbstractReportManager::CreateLogicData() {
+IDataReport::TableData AbstractReportManager::CreateLogicData(bool lut5_6) {
   auto circuitData = IDataReport::TableData{};
   Logic uLogic = m_usedRes.logic;
   Logic aLogic = m_availRes.logic;
@@ -183,19 +183,21 @@ IDataReport::TableData AbstractReportManager::CreateLogicData() {
   result = (aLogic.lut6 == 0)
                ? 0
                : ((uLogic.lut5 / 2) + uLogic.lut6) * 100 / aLogic.lut6;
-  circuitData.push_back({SPACE + "LUT", QString::number(usedLuts),
+  circuitData.push_back({SPACE + "LUTs", QString::number(usedLuts),
                          QString::number(aLogic.lut6),
                          QString::number(result)});
 
-  result = (aLogic.lut5 == 0) ? 0 : uLogic.lut5 * 100 / aLogic.lut5;
-  circuitData.push_back({D_SPACE + "LUT5", QString::number(uLogic.lut5),
-                         QString::number(aLogic.lut5),
-                         QString::number(result)});
+  if (lut5_6) {
+    result = (aLogic.lut5 == 0) ? 0 : uLogic.lut5 * 100 / aLogic.lut5;
+    circuitData.push_back({D_SPACE + "LUT5", QString::number(uLogic.lut5),
+                           QString::number(aLogic.lut5),
+                           QString::number(result)});
 
-  result = (aLogic.lut6 == 0) ? 0 : uLogic.lut6 * 100 / aLogic.lut6;
-  circuitData.push_back({D_SPACE + "LUT6", QString::number(uLogic.lut6),
-                         QString::number(aLogic.lut6),
-                         QString::number(result)});
+    result = (aLogic.lut6 == 0) ? 0 : uLogic.lut6 * 100 / aLogic.lut6;
+    circuitData.push_back({D_SPACE + "LUT6", QString::number(uLogic.lut6),
+                           QString::number(aLogic.lut6),
+                           QString::number(result)});
+  }
 
   uint usedRegs = uLogic.dff + uLogic.latch;
   result = (aLogic.dff == 0) ? 0 : usedRegs * 100 / aLogic.dff;

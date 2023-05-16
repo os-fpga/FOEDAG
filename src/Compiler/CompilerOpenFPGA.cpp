@@ -708,10 +708,10 @@ bool CompilerOpenFPGA::DesignChanged(
 void CompilerOpenFPGA::reloadSettings() {
   FOEDAG::Settings* settings = GlobalSession->GetSettings();
   try {
-    settings->getJson()["Tasks"]["Synthesis"]["dsp_spinbox_ex"]["maxVal"] =
-        MaxDeviceDSPCount();
-    settings->getJson()["Tasks"]["Synthesis"]["bram_spinbox_ex"]["maxVal"] =
-        MaxDeviceBRAMCount();
+    auto& synth = settings->getJson()["Tasks"]["Synthesis"];
+    synth["dsp_spinbox_ex"]["maxVal"] = MaxDeviceDSPCount();
+    synth["bram_spinbox_ex"]["maxVal"] = MaxDeviceBRAMCount();
+    synth["carry_chain_spinbox_ex"]["maxVal"] = MaxDeviceCarryLength();
   } catch (std::exception& e) {
     ErrorMessage(e.what());
   }
