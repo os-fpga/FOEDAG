@@ -69,12 +69,12 @@ class AbstractReportManager : public ITaskReportManager {
   int parseStatisticsSection(QTextStream &in, int lineNr);
 
   IDataReport::TableData parseCircuitStats(QTextStream &in, int &lineNr);
-  IDataReport::TableData CreateLogicData();
+  IDataReport::TableData CreateLogicData(bool lut5_6 = true);
   IDataReport::TableData CreateBramData() const;
   IDataReport::TableData CreateDspData() const;
   IDataReport::TableData CreateIOData() const;
   IDataReport::TableData CreateClockData() const;
-  void parseLogLine(const QString &line);
+  virtual void parseLogLine(const QString &line);
   void parseStatisticLine(const QString &line);
 
   using MessagesLines = std::map<int, QString>;

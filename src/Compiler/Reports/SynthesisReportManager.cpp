@@ -61,6 +61,18 @@ SynthesisReportManager::SynthesisReportManager(const TaskManager &taskManager)
   m_dspColumns[0].m_name = "DSP";
 }
 
+void SynthesisReportManager::parseLogLine(const QString &line) {
+  AbstractReportManager::parseLogLine(line);
+  static const QRegularExpression lut{"\\$lut +(\\d+)",
+                                      QRegularExpression::MultilineOption};
+  auto lutMatch = lut.match(line);
+  if (lutMatch.hasMatch()) {
+    m_usedRes.logic.lut5 = m_usedRes.logic.lut6 = 0;
+    m_usedRes.logic.lut5 = lutMatch.captured(1).toUInt();
+    return;
+  }
+}
+
 QStringList SynthesisReportManager::getAvailableReportIds() const {
   return {QString(RESOURCE_REPORT_NAME), QString(DESIGN_STAT_REPORT_NAME)};
 }
@@ -208,7 +220,7 @@ void SynthesisReportManager::parseLogFile() {
     }
     ++lineNr;
   }
-  m_circuitData = CreateLogicData();
+  m_circuitData = CreateLogicData(false);
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
   m_ioData = CreateIOData();
