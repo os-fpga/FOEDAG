@@ -98,7 +98,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    simulation_options <simulator> <phase> ?<level>? <options> : Sets the simulator specific options for the specified phase
                       <phase> : compilation, elaboration, simulation, extra_options
    simulate <level> ?<simulator>? ?clean? : Simulates the design and testbench
-     <level>                  : rtl, gate, pnr, bitstream_bd, bitstream_fd.
+     <level>                  : rtl, gate, pnr, bitstream_bd, bitstream_fd
        rtl                    : RTL simulation,
        gate                   : post-synthesis simulation,
        pnr                    : post-pnr simulation,
@@ -106,20 +106,20 @@ Tcl commands (Available in GUI or Batch console or Batch script):
        bitstream_fd           : Front-door bitstream simulation
      <simulator>              : verilator, vcs, questa, icarus, ghdl, xcelium
      clean                    : Deletes files generated from this task
-   wave_*                     : All wave commands will launch a GTKWave process if one hasn't been launched already. Subsequent commands will be sent to the launched process.
-   wave_cmd ...               : Sends given tcl commands to GTKWave process. See GTKWave docs for gtkwave:: commands.
-   wave_open <filename>       : Load given file in current GTKWave process.
+   wave_*                     : All wave commands will launch a GTKWave process if one hasn't been launched already. Subsequent commands will be sent to the launched process
+   wave_cmd ...               : Sends given tcl commands to GTKWave process. See GTKWave docs for gtkwave:: commands
+   wave_open <filename>       : Load given file in current GTKWave process
    wave_refresh               : Reloads the current active wave file
-   wave_show <signal>         : Add the given signal to the GTKWave window and highlight it.
-   wave_time <time>           : Set the primary marker to <time>. Time units can be specified, without a space. Ex: wave_time 100ps.
+   wave_show <signal>         : Add the given signal to the GTKWave window and highlight it
+   wave_time <time>           : Set the primary marker to <time>. Time units can be specified, without a space. Ex: wave_time 100ps
 
 -----------------
 --- Synthesis ---
 -----------------
    synth_options <option list>: Yosys Options
-   analyze ?clean?            : Analyzes the RTL design, generates top-level, pin and hierarchy information.
+   analyze ?clean?            : Analyzes the RTL design, generates top-level, pin and hierarchy information
      clean                    : Deletes files generated from this task
-   synthesize <optimization>  ?clean? : RTL Synthesis, optional opt. (area, delay, mixed).
+   synthesize <optimization>  ?clean? : RTL Synthesis, optional opt. (area, delay, mixed)
      <optimization>           : area, delay, mixed
        area                   : Optimize for reduce resource area 
        delay                  : Optimize for performance
@@ -172,13 +172,13 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 ------------------------------
 --- Static Timing Analysis ---
 ------------------------------
-   sta ?clean?                : Statistical Timing Analysis.
+   sta ?clean?                : Statistical Timing Analysis
      clean                    : Deletes files generated from this task
 
 -----------------
 --- Bitstream ---
 -----------------
-   bitstream ?force? ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation.
+   bitstream ?force? ?clean? ?enable_simulation? ?write_xml? ?write_fabric_independent? ?pb_pin_fixup? : Bitstream generation
      clean                    : Deletes files generated from this task
 <openfpga>
    bitstream_config_files -bitstream <bitstream_setting.xml> -sim <sim_setting.xml> -repack <repack_setting.xml> -key <fabric_key.xml>
