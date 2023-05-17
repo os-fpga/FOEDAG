@@ -1115,7 +1115,7 @@ bool CompilerOpenFPGA::Analyze() {
       while (buf.find("instantiating unknown module ", pos) !=
              std::string::npos) {
         pos = buf.find("instantiating unknown module ", pos) +
-              29;  //the searched line size
+              29;  // the searched line size
         std::string tmp = " ";
         while (buf[pos] != ' ') {
           tmp += buf[pos];
