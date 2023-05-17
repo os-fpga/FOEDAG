@@ -538,13 +538,16 @@ void IpConfigWidget::restoreProperties(
       QComboBox* comboBox = qobject_cast<QComboBox*>(obj);
       QSpinBox* spinBox = qobject_cast<QSpinBox*>(obj);
       QDoubleSpinBox* spinBoxD = qobject_cast<QDoubleSpinBox*>(obj);
-      bool appltProperty{true};
+      bool applyProperty{true};
       if (lineEdit) {
-        auto defaultValue = lineEdit->text();
+        auto prevValue = lineEdit->text();
         lineEdit->setText(property.toString());
         if (!lineEdit->hasAcceptableInput()) {
-          lineEdit->setText(defaultValue);
-          property = defaultValue;
+          lineEdit->setText(prevValue);
+          property = prevValue;
+        }
+        if (prevValue != lineEdit->text()) {  // text changed
+          FOEDAG::validateLineEdit(lineEdit);
         }
       } else if (checkBox) {
         checkBox->setChecked(property.toInt() == Qt::Checked);
@@ -555,11 +558,11 @@ void IpConfigWidget::restoreProperties(
       } else if (spinBoxD) {
         spinBoxD->setValue(property.toDouble());
       } else {
-        appltProperty = false;
+        applyProperty = false;
       }
       // this need to be done since signals blocked and 'value' property will be
       // empty.
-      if (appltProperty) obj->setProperty("value", property);
+      if (applyProperty) obj->setProperty("value", property);
     }
   }
 }

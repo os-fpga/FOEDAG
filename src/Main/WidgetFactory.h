@@ -97,6 +97,7 @@ QComboBox* createComboBox(
 QLineEdit* createLineEdit(
     const QString& objectName, const QString& text = "",
     std::function<void(QLineEdit*, const QString&)> onChange = nullptr);
+void validateLineEdit(QLineEdit* lineEdit);
 QTextEdit* createTextEdit(
     const QString& objectName, const QString& text = "",
     std::function<void(QTextEdit*, const QString&)> onChange = nullptr);

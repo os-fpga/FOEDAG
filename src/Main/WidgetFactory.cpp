@@ -872,20 +872,8 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
       }
 
       // Update field look based off validator results
-      QObject::connect(ptr, &QLineEdit::textChanged, [ptr]() {
-        QPalette palette;
-        // assume property is valid until we find otherwise
-        ptr->setProperty("invalid", {});
-        // Change text to red if the input is invalid
-        if (ptr->hasAcceptableInput()) {
-          palette.setColor(QPalette::Text, Qt::black);
-        } else {
-          palette.setColor(QPalette::Text, Qt::red);
-          // Mark field as invalid for downstream logic
-          ptr->setProperty("invalid", true);
-        }
-        ptr->setPalette(palette);
-      });
+      QObject::connect(ptr, &QLineEdit::textChanged,
+                       [ptr]() { validateLineEdit(ptr); });
 
       if (tclArgPassed) {
         // convert any spaces to a replaceable tag so the arg is 1 token
@@ -1392,6 +1380,21 @@ QLineEdit* FOEDAG::createLineEdit(
   }
 
   return widget;
+}
+
+void FOEDAG::validateLineEdit(QLineEdit* lineEdit) {
+  QPalette palette;
+  // assume property is valid until we find otherwise
+  lineEdit->setProperty("invalid", {});
+  // Change text to red if the input is invalid
+  if (lineEdit->hasAcceptableInput()) {
+    palette.setColor(QPalette::Text, Qt::black);
+  } else {
+    palette.setColor(QPalette::Text, Qt::red);
+    // Mark field as invalid for downstream logic
+    lineEdit->setProperty("invalid", true);
+  }
+  lineEdit->setPalette(palette);
 }
 
 QTextEdit* FOEDAG::createTextEdit(
