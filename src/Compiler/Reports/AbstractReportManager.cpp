@@ -233,10 +233,12 @@ IDataReport::TableData AbstractReportManager::CreateBramData() const {
   bramData.push_back({"BRAM", QString::number(usedBram),
                       QString::number(availBram), QString::number(result)});
 
-  result = (aBram.bram_18k == 0) ? 0 : uBram.bram_18k * 100 / aBram.bram_18k;
-  bramData.push_back({SPACE + "18k", QString::number(uBram.bram_18k),
-                      QString::number(aBram.bram_18k),
-                      QString::number(result)});
+  // TODO not supported yet
+  //  result = (aBram.bram_18k == 0) ? 0 : uBram.bram_18k * 100 /
+  //  aBram.bram_18k; bramData.push_back({SPACE + "18k",
+  //  QString::number(uBram.bram_18k),
+  //                      QString::number(aBram.bram_18k),
+  //                      QString::number(result)});
 
   result = (aBram.bram_36k == 0) ? 0 : uBram.bram_36k * 100 / aBram.bram_36k;
   bramData.push_back({SPACE + "36k", QString::number(uBram.bram_36k),
@@ -349,20 +351,21 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.fa2Bits = carry2Match.captured(1).toUInt();
     return;
   }
-  static const QRegularExpression bram36k{"^ +RS_TDP36K\\D+(\\d+)",
+  static const QRegularExpression bram36k{"^ +mem_36K\\D+(\\d+)",
                                           QRegularExpression::MultilineOption};
   auto bram36kMatch = bram36k.match(line);
   if (bram36kMatch.hasMatch()) {
     m_usedRes.bram.bram_36k = bram36kMatch.captured(1).toUInt();
     return;
   }
-  static const QRegularExpression bram18k{"^ +RS_TDP18K\\D+(\\d+)",
-                                          QRegularExpression::MultilineOption};
-  auto bram18kMatch = bram18k.match(line);
-  if (bram18kMatch.hasMatch()) {
-    m_usedRes.bram.bram_18k = bram18kMatch.captured(1).toUInt();
-    return;
-  }
+  // TODO not supported yet
+  //  static const QRegularExpression bram18k{"^ +RS_TDP18K\\D+(\\d+)",
+  //                                          QRegularExpression::MultilineOption};
+  //  auto bram18kMatch = bram18k.match(line);
+  //  if (bram18kMatch.hasMatch()) {
+  //    m_usedRes.bram.bram_18k = bram18kMatch.captured(1).toUInt();
+  //    return;
+  //  }
   static const QRegularExpression dsp_18_20{
       "^ +RS_DSP_MULT\\D+(\\d+)", QRegularExpression::MultilineOption};
   auto dsp_18_20Match = dsp_18_20.match(line);
