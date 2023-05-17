@@ -1110,8 +1110,25 @@ bool CompilerOpenFPGA::Analyze() {
     buffer << raptor_log.rdbuf();
     const std::string& buf = buffer.str();
     if (buf.find("VERI-1063") != std::string::npos) {
-      ErrorMessage("Design " + ProjManager()->projectName() +
-                   " has an incomplete hierarchy, unknown module(s) error(s).");
+      std::string modules = "";
+      int pos = 0;
+      while (buf.find("instantiating unknown module ", pos) !=
+             std::string::npos) {
+        pos = buf.find("instantiating unknown module ", pos) +
+              29;  // the searched line size
+        std::string tmp = " ";
+        while (buf[pos] != ' ') {
+          tmp += buf[pos];
+          ++pos;
+        }
+        if (modules.find(tmp) == std::string::npos) modules += tmp;
+      }
+
+      modules += " ";
+      ErrorMessage(
+          "Design " + ProjManager()->projectName() +
+          " has an incomplete hierarchy, unknown module(s) error(s). ");
+      ErrorMessage("Unknown modules:" + modules);
       status = true;
     }
     raptor_log.close();
