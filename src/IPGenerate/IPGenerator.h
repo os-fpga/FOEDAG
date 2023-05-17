@@ -66,6 +66,7 @@ class IPGenerator {
   std::filesystem::path GetSimArtifactsDir(IPInstance* instance) const;
   std::filesystem::path GetCachePath(IPInstance* instance) const;
   std::filesystem::path GetTmpCachePath(IPInstance* instance) const;
+  std::filesystem::path GetTmpPath() const;
   std::vector<std::filesystem::path> GetDesignFiles(IPInstance* instance);
 
  protected:
