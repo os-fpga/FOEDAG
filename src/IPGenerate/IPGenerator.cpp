@@ -711,9 +711,8 @@ std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
   std::filesystem::path dir{};
   if (m_compiler && m_compiler->ProjManager()) {
     auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-    auto ipPath = std::filesystem::temp_directory_path() / meta.vendor /
-                  meta.library / meta.name / meta.version /
-                  instance->ModuleName();
+    auto ipPath = GetTmpPath() / meta.vendor / meta.library / meta.name /
+                  meta.version / instance->ModuleName();
 
     auto def = instance->Definition();
     std::string ip_config_file =
@@ -722,6 +721,16 @@ std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
   }
 
   return dir;
+}
+
+std::filesystem::path IPGenerator::GetTmpPath() const {
+  if (m_compiler && m_compiler->ProjManager()) {
+    ProjectManager* projManager{m_compiler->ProjManager()};
+    std::filesystem::path baseDir(projManager->projectPath());
+    std::string projIpDir = projManager->projectName() + ".IPs";
+    return baseDir / projIpDir / ".tmp";
+  }
+  return {};
 }
 
 // This will return a vector of paths to ./*.json and ./src/* in a given IP
