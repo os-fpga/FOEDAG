@@ -1111,11 +1111,11 @@ bool CompilerOpenFPGA::Analyze() {
     const std::string& buf = buffer.str();
     if (buf.find("VERI-1063") != std::string::npos) {
       std::string modules = "";
-      int pos = 0; 
+      int pos = 0;
       while (buf.find("instantiating unknown module ", pos) !=
              std::string::npos) {
         pos = buf.find("instantiating unknown module ", pos) +
-              29; //the searched line size
+              29;  //the searched line size
         std::string tmp = " ";
         while (buf[pos] != ' ') {
           tmp += buf[pos];
