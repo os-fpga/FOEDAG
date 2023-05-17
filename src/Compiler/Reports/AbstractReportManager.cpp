@@ -344,7 +344,7 @@ void AbstractReportManager::parseLogLine(const QString &line) {
     m_usedRes.logic.latch += latchMatch.captured(1).toUInt();
     return;
   }
-  static const QRegularExpression carry2{"^ +fa_2bit\\D+(\\d+)",
+  static const QRegularExpression carry2{"^ +adder_carry\\D+(\\d+)",
                                          QRegularExpression::MultilineOption};
   auto carry2Match = carry2.match(line);
   if (carry2Match.hasMatch()) {
