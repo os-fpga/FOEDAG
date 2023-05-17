@@ -1114,15 +1114,15 @@ bool CompilerOpenFPGA::Analyze() {
       int pos = 0; 
       while (buf.find("instantiating unknown module ", pos) !=
              std::string::npos) {
-           pos = buf.find("instantiating unknown module ", pos) +
-                 29; //the searched line size
-           std::string tmp = " ";
-           while (buf[pos] != ' ') {
-                tmp += buf[pos];
-                ++pos;
-            }
-            if (modules.find(tmp) == std::string::npos) modules += tmp;
+        pos = buf.find("instantiating unknown module ", pos) +
+              29; //the searched line size
+        std::string tmp = " ";
+        while (buf[pos] != ' ') {
+          tmp += buf[pos];
+          ++pos;
         }
+        if (modules.find(tmp) == std::string::npos) modules += tmp;
+      }
 
       modules += " ";
       ErrorMessage(
