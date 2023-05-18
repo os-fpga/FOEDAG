@@ -655,20 +655,10 @@ std::pair<bool, std::string> IPGenerator::OpenWaveForm(
 
 // This will return the expected VLNV path for the given instance
 std::filesystem::path IPGenerator::GetBuildDir(IPInstance* instance) const {
-  std::filesystem::path dir{};
-
-  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  if (m_compiler && m_compiler->ProjManager()) {
-    ProjectManager* projManager{m_compiler->ProjManager()};
-    QString projName = projManager->getProjectName();
-
-    // Build up the expected ip build path
-    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
-    std::string projIpDir = projName.toStdString() + ".IPs";
-    dir = baseDir / projIpDir / meta.vendor / meta.library / meta.name /
-          meta.version / instance->ModuleName();
-  }
-  return dir;
+  auto projectIPsPath = GetProjectIPsPath();
+  if (!projectIPsPath.empty())
+    return GetMetaPath(projectIPsPath, instance) / instance->ModuleName();
+  return {};
 }
 
 std::filesystem::path IPGenerator::GetSimDir(IPInstance* instance) const {
@@ -678,17 +668,10 @@ std::filesystem::path IPGenerator::GetSimDir(IPInstance* instance) const {
 std::filesystem::path IPGenerator::GetSimArtifactsDir(
     IPInstance* instance) const {
   std::filesystem::path dir{};
-  auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-  if (m_compiler && m_compiler->ProjManager()) {
-    ProjectManager* projManager{m_compiler->ProjManager()};
-    QString projName = projManager->getProjectName();
-
-    // Build up the expected ip build path
-    std::filesystem::path baseDir(projManager->getProjectPath().toStdString());
-    std::string projIpDir = projName.toStdString() + ".IPs";
-    dir = baseDir / projIpDir / "simulation" / meta.vendor / meta.library /
-          meta.name / meta.version / instance->ModuleName();
-  }
+  auto projectIPsPath = GetProjectIPsPath();
+  if (!projectIPsPath.empty())
+    dir = GetMetaPath(projectIPsPath / "simulation", instance) /
+          instance->ModuleName();
   return dir;
 }
 
@@ -710,27 +693,36 @@ std::filesystem::path IPGenerator::GetCachePath(IPInstance* instance) const {
 std::filesystem::path IPGenerator::GetTmpCachePath(IPInstance* instance) const {
   std::filesystem::path dir{};
   if (m_compiler && m_compiler->ProjManager()) {
-    auto meta = FOEDAG::getIpInfoFromPath(instance->Definition()->FilePath());
-    auto ipPath = GetTmpPath() / meta.vendor / meta.library / meta.name /
-                  meta.version / instance->ModuleName();
-
+    auto ipPath = GetMetaPath(GetTmpPath(), instance) / instance->ModuleName();
     auto def = instance->Definition();
     std::string ip_config_file =
         def->Name() + "_" + instance->ModuleName() + ".json";
     dir = ipPath / ip_config_file;
   }
-
   return dir;
 }
 
 std::filesystem::path IPGenerator::GetTmpPath() const {
+  auto projectIPsPath = GetProjectIPsPath();
+  if (!projectIPsPath.empty()) return projectIPsPath / ".tmp";
+  return {};
+}
+
+std::filesystem::path IPGenerator::GetProjectIPsPath() const {
   if (m_compiler && m_compiler->ProjManager()) {
     ProjectManager* projManager{m_compiler->ProjManager()};
     std::filesystem::path baseDir(projManager->projectPath());
     std::string projIpDir = projManager->projectName() + ".IPs";
-    return baseDir / projIpDir / ".tmp";
+    return baseDir / projIpDir;
   }
   return {};
+}
+
+std::filesystem::path IPGenerator::GetMetaPath(
+    const std::filesystem::path& base, IPInstance* inst) const {
+  auto meta = FOEDAG::getIpInfoFromPath(inst->Definition()->FilePath());
+  auto ipPath = base / meta.vendor / meta.library / meta.name / meta.version;
+  return ipPath;
 }
 
 // This will return a vector of paths to ./*.json and ./src/* in a given IP

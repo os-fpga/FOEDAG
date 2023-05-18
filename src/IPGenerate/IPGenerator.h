@@ -67,6 +67,9 @@ class IPGenerator {
   std::filesystem::path GetCachePath(IPInstance* instance) const;
   std::filesystem::path GetTmpCachePath(IPInstance* instance) const;
   std::filesystem::path GetTmpPath() const;
+  std::filesystem::path GetProjectIPsPath() const;
+  std::filesystem::path GetMetaPath(const std::filesystem::path& base,
+                                    IPInstance* inst) const;
   std::vector<std::filesystem::path> GetDesignFiles(IPInstance* instance);
 
  protected:

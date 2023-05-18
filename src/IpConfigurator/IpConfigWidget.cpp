@@ -385,16 +385,14 @@ QMap<QVariant, QVariant> IpConfigWidget::saveProperties(bool& valid) const {
 }
 
 std::pair<std::string, std::string> IpConfigWidget::generateNewJson(bool& ok) {
-  // generate ip instance
-  std::filesystem::path baseDir(
-      std::filesystem::path{m_baseDirDefault.toStdString()} / ".tmp");
+  Compiler* compiler = GlobalSession->GetCompiler();
+  auto generator = compiler->GetIPGenerator();
+  std::filesystem::path baseDir{generator->GetTmpPath()};
   std::filesystem::path outFile = baseDir / moduleEdit.text().toStdString();
   QString outFileStr =
       QString::fromStdString(FileUtils::GetFullPath(outFile).string());
   Generate(false, outFileStr);
 
-  Compiler* compiler = GlobalSession->GetCompiler();
-  auto generator = compiler->GetIPGenerator();
   std::string newJson{};
   std::filesystem::path executable{};
 
