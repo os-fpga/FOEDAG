@@ -178,7 +178,8 @@ IDataReport::TableData AbstractReportManager::CreateLogicData(bool lut5_6) {
   circuitData.push_back({"CLB", QString::number(uLogic.clb),
                          QString::number(aLogic.clb), QString::number(result)});
 
-  uint usedLuts = (uLogic.lut5 / 2) + uLogic.lut6;
+  uint usedLuts = uLogic.lut5 + uLogic.lut6;
+  if (lut5_6) usedLuts = (uLogic.lut5 / 2) + uLogic.lut6;
 
   result = (aLogic.lut6 == 0) ? 0 : usedLuts * 100 / aLogic.lut6;
   circuitData.push_back({SPACE + "LUTs", QString::number(usedLuts),
