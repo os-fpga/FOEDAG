@@ -214,7 +214,7 @@ IDataReport::TableData AbstractReportManager::CreateLogicData(bool lut5_6) {
   //                         QString::number(result)});
 
   result = (aLogic.fa2Bits == 0) ? 0 : uLogic.fa2Bits * 100 / aLogic.fa2Bits;
-  circuitData.push_back({SPACE + "Carry Chain", QString::number(uLogic.fa2Bits),
+  circuitData.push_back({SPACE + "Adder Carry", QString::number(uLogic.fa2Bits),
                          QString::number(aLogic.fa2Bits),
                          QString::number(result)});
   return circuitData;
