@@ -148,9 +148,15 @@ void TclConsoleWidget::mouseMoveEvent(QMouseEvent *e) {
   QConsole::mouseMoveEvent(e);
 }
 
-void TclConsoleWidget::put(const QString &str) { putMessage(str, Output); }
+void TclConsoleWidget::put(const QString &str) {
+  putMessage(str, Output);
+  if (m_state == State::IDLE) commandDone();
+}
 
-void TclConsoleWidget::putError(const QString &str) { putMessage(str, Error); }
+void TclConsoleWidget::putError(const QString &str) {
+  putMessage(str, Error);
+  if (m_state == State::IDLE) commandDone();
+}
 
 void TclConsoleWidget::commandDone() {
   if (!hasPrompt()) displayPrompt();
