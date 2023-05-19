@@ -949,8 +949,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->SynthOpt(Compiler::SynthesisOpt::Area);
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
-        } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else if (arg == "clean") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
@@ -1277,8 +1275,6 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->SynthOpt(Compiler::SynthesisOpt::Area);
         } else if (arg == "delay") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Delay);
-        } else if (arg == "none") {
-          compiler->SynthOpt(Compiler::SynthesisOpt::None);
         } else if (arg == "clean") {
           compiler->SynthOpt(Compiler::SynthesisOpt::Clean);
         } else {
@@ -2072,7 +2068,7 @@ bool Compiler::Synthesize() {
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + m_projManager->projectName());
     m_state = State::IPGenerated;
-    SynthOpt(SynthesisOpt::None);
+    SynthOpt(SYNTH_OPT_DEFAULT);
     return true;
   }
   Message("Synthesizing design: " + m_projManager->projectName());

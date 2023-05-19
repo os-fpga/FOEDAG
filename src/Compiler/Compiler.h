@@ -96,7 +96,7 @@ class Compiler {
   enum MsgSeverity { Ignore, Info, Warning, Error };
   enum class IPGenerateOpt { None, Clean, List };
   enum class DesignAnalysisOpt { None, Clean };
-  enum class SynthesisOpt { None, Area, Delay, Mixed, Clean };
+  enum class SynthesisOpt { Area, Delay, Mixed, Clean };
   enum class PackingOpt { None, Clean, Debug };
   enum class GlobalPlacementOpt { None, Clean };
   enum class PlacementOpt { None, Clean };
@@ -279,6 +279,8 @@ class Compiler {
 
   std::string Name() const { return m_name; }
 
+  static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -351,7 +353,7 @@ class Compiler {
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;
   DesignAnalysisOpt m_analysisOpt = DesignAnalysisOpt::None;
-  SynthesisOpt m_synthOpt = SynthesisOpt::None;
+  SynthesisOpt m_synthOpt = SYNTH_OPT_DEFAULT;
   PackingOpt m_packingOpt = PackingOpt::None;
   GlobalPlacementOpt m_globalPlacementOpt = GlobalPlacementOpt::None;
   PlacementOpt m_placementOpt = PlacementOpt::None;
