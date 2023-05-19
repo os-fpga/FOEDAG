@@ -449,6 +449,8 @@ void MainWindow::startStopButtonsState() {
                                ipConfiguratorAction, pinAssignmentAction};
   for (auto action : actions) action->setDisabled(isRunning());
   recentMenu->setDisabled(isRunning());
+  if (m_reportsDockWidget && m_reportsDockWidget->widget())
+    m_reportsDockWidget->widget()->setDisabled(isRunning());
 }
 
 DockWidget* MainWindow::PrepareTab(const QString& name, const QString& objName,
