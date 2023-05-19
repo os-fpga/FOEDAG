@@ -140,7 +140,6 @@ auto separateArg = [](const QString& argName,
 
 // Lookup for SynthOpt values
 static std::map<FOEDAG::Compiler::SynthesisOpt, const char*> synthOptMap = {
-    {FOEDAG::Compiler::SynthesisOpt::None, "none"},
     {FOEDAG::Compiler::SynthesisOpt::Area, "area"},
     {FOEDAG::Compiler::SynthesisOpt::Delay, "delay"},
     {FOEDAG::Compiler::SynthesisOpt::Mixed, "mixed"},
@@ -172,7 +171,7 @@ auto synthStrToOpt = [](const QString& str) -> FOEDAG::Compiler::SynthesisOpt {
         return p.second == str;
       });
 
-  auto val = FOEDAG::Compiler::SynthesisOpt::None;
+  auto val = FOEDAG::Compiler::SYNTH_OPT_DEFAULT;
   if (it != synthOptMap.end()) {
     val = (*it).first;
   }

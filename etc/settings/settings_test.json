@@ -141,17 +141,15 @@
                 "options": [
                     "Area",
                     "Delay",
-                    "Mixed",
-                    "None"
+                    "Mixed"
                 ],
                 "optionsLookup": [
                     "area",
                     "delay",
-                    "mixed",
-                    "none"
+                    "mixed"
                 ],
                 "arg": "_SynthOpt_",
-                "default":"None" 
+                "default":"Mixed"
             },
             "effort_dropdown": {
                 "label": "Effort",

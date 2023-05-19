@@ -1159,7 +1159,7 @@ bool CompilerOpenFPGA::Synthesize() {
   if (SynthOpt() == SynthesisOpt::Clean) {
     Message("Cleaning synthesis results for " + ProjManager()->projectName());
     m_state = State::IPGenerated;
-    SynthOpt(SynthesisOpt::None);
+    SynthOpt(SYNTH_OPT_DEFAULT);
     CleanFiles(Action::Synthesis);
     return true;
   }
