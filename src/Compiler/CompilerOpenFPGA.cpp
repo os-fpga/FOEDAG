@@ -2763,7 +2763,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     resources.logic.dff = MaxDeviceFFCount();
     resources.logic.latch = MaxDeviceFFCount();
     resources.logic.clb = MaxDeviceLUTCount() / 8;
-    resources.logic.fa2Bits = MaxDeviceLUTCount() / 8;
+    resources.logic.fa2Bits = MaxDeviceLUTCount();
     resources.logic.lut6 = MaxDeviceLUTCount();
     resources.logic.lut5 = MaxDeviceLUTCount() * 2;
     resources.inouts.io = MaxDeviceIOCount();
