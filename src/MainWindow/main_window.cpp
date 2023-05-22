@@ -302,6 +302,7 @@ void MainWindow::closeProject(bool force) {
   if (!lastProjectClosed()) return;
   if (m_projectManager && m_projectManager->HasDesign()) {
     if (!force && !confirmCloseProject()) return;
+    ipConfiguratorAction->setChecked(false);
     forceStopCompilation();
     Project::Instance()->InitProject();
     newProjdialog->Reset();
@@ -1050,7 +1051,7 @@ void MainWindow::createActions() {
   ipConfiguratorAction = new QAction(tr("IP Configurator"), this);
   ipConfiguratorAction->setCheckable(true);
   ipConfiguratorAction->setEnabled(false);
-  connect(ipConfiguratorAction, &QAction::triggered, this,
+  connect(ipConfiguratorAction, &QAction::toggled, this,
           &MainWindow::ipConfiguratorActionTriggered);
 
   showWelcomePageAction = new QAction(tr("Show welcome page"), this);
