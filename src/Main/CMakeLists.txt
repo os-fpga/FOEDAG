@@ -73,6 +73,8 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../Main/ReportGenerator.cpp
   ../Main/JsonReportGenerator.cpp
   ../MainWindow/EditorSettings.cpp
+  ../MainWindow/Dialog.cpp
+  ../MainWindow/CompressProject.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -111,6 +113,8 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../Main/ReportGenerator.h
   ../Main/JsonReportGenerator.h
   ../MainWindow/EditorSettings.h
+  ../MainWindow/Dialog.h
+  ../MainWindow/CompressProject.h
 )
 
 set (SRC_UI_LIST "")

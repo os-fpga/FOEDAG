@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "LicenseManagerWidget.h"
 
-#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -29,13 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPushButton>
 #include <QRegularExpression>
 
-#include "qdebug.h"
-
 namespace FOEDAG {
 
-LicenseManagerWidget::LicenseManagerWidget(const QString &path, QWidget *parent,
-                                           Qt::WindowFlags f)
-    : QDialog(parent, f), m_path(path) {
+LicenseManagerWidget::LicenseManagerWidget(const QString &path, QWidget *parent)
+    : Dialog(parent), m_path(path) {
   QPushButton *btn = new QPushButton{"Copy license...", this};
   connect(btn, &QPushButton::clicked, this, &LicenseManagerWidget::selectFile);
   setWindowTitle("License manager");
@@ -52,10 +48,7 @@ LicenseManagerWidget::LicenseManagerWidget(const QString &path, QWidget *parent,
 
   QGridLayout *mainLayout = new QGridLayout;
   mainLayout->addWidget(groupbox);
-  auto okButton = new QDialogButtonBox{QDialogButtonBox::Ok};
-  connect(okButton, &QDialogButtonBox::accepted, this,
-          &LicenseManagerWidget::accept);
-  mainLayout->addWidget(okButton);
+  initDialogBox(mainLayout, Dialog::Ok);
   setLayout(mainLayout);
 }
 

@@ -18,30 +18,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-
 #include "Dialog.h"
 
-class QLabel;
+#include <QDialogButtonBox>
+#include <QLayout>
 
 namespace FOEDAG {
 
-class LicenseManagerWidget : public Dialog {
- public:
-  explicit LicenseManagerWidget(const QString &path, QWidget *parent = nullptr);
+Dialog::Dialog(QWidget *parent) : QDialog(parent) {}
 
-  void setLicensePath(const QString &path);
-
- private slots:
-  void selectFile();
-
- private:
-  void updateLabel();
-  static QString solveSystemVars(const QString &p, QWidget *parent);
-
- private:
-  QString m_path;
-  QLabel *m_label{};
-};
+QDialogButtonBox *Dialog::initDialogBox(QLayout *layout, Buttons buttons) {
+  QDialogButtonBox::StandardButtons btns;
+  if (buttons & Ok) btns |= QDialogButtonBox::Ok;
+  if (buttons & Yes) btns |= QDialogButtonBox::Yes;
+  if (buttons & No) btns |= QDialogButtonBox::No;
+  if (buttons & Cancel) btns |= QDialogButtonBox::Cancel;
+  auto buttonBox = new QDialogButtonBox{btns};
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &Dialog::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &Dialog::reject);
+  layout->addWidget(buttonBox);
+  return buttonBox;
+}
 
 }  // namespace FOEDAG

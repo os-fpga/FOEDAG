@@ -102,6 +102,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void saveSetting(const QString& setting);
   void openFileFromConsole(const FOEDAG::ErrorInfo& eInfo);
   void manageLicense();
+  void compressProject();
   void documentationClicked();
   void releaseNodesClicked();
   void openFileWith(QString file, int editor);
@@ -217,6 +218,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* pinPlannerPinNameAction = nullptr;
   QAction* manageLicenseAction = nullptr;
   QAction* editorSettingsAction = nullptr;
+  QAction* compressProjectAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */

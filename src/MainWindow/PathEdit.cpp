@@ -50,4 +50,6 @@ QString PathEdit::text() const { return m_edit->text(); }
 
 void PathEdit::setText(const QString &text) { m_edit->setText(text); }
 
+QLineEdit *PathEdit::lineEdit() { return m_edit; }
+
 }  // namespace FOEDAG
