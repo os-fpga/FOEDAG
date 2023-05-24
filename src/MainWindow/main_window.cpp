@@ -1854,10 +1854,19 @@ void MainWindow::releaseNodesClicked() {
 void MainWindow::openFileWith(QString file, int editor) {
   auto editorStr =
       m_settings.value(EDITOR_KEY.arg(QString::number(editor))).toString();
-  StringVector args{file.toStdString()};
-  auto command = QtUtils::StringSplit(editorStr, ';').last().toStdString();
-  FileUtils::ExecuteSystemCommand(command, args, nullptr, -1, {}, nullptr,
-                                  true);
+  auto editorLine = QtUtils::StringSplit(editorStr, ';');
+  if (editorLine.count() > 1) {
+    auto command = editorLine.last();
+    auto commandArgs = QtUtils::StringSplit(command, ' ');
+    if (!commandArgs.isEmpty()) {
+      auto commandName = commandArgs.takeFirst().toStdString();
+      StringVector args{};
+      for (const auto& c : commandArgs) args.push_back(c.toStdString());
+      args.push_back(file.toStdString());
+      FileUtils::ExecuteSystemCommand(commandName, args, nullptr, -1, {},
+                                      nullptr, true);
+    }
+  }
 }
 
 void MainWindow::editorSettings() {
