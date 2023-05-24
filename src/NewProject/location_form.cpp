@@ -10,7 +10,7 @@ locationForm::locationForm(const QString &defaultPath, QWidget *parent)
   ui->setupUi(this);
   int count = 1;
   QString project_prefix = "project_";
-  QString homePath = defaultPath.isEmpty() ? QDir::homePath() : defaultPath;
+  QString homePath = defaultPath.isEmpty() ? defaultDir() : defaultPath;
   QString projectPathPrefix = homePath + QDir::separator() + project_prefix;
   while (QDir(projectPathPrefix + QString::number(count)).exists()) {
     count++;
@@ -57,39 +57,37 @@ bool locationForm::IsProjectNameExit() {
 void locationForm::on_m_btnBrowse_clicked() {
   QString pathName = QFileDialog::getExistingDirectory(
       this, tr("Select Directory"),
-      ui->m_lineEditPpath->text() == "" ? QDir::homePath()
-                                        : ui->m_lineEditPpath->text(),
+      ui->m_lineEditPpath->text().isEmpty() ? defaultDir()
+                                            : ui->m_lineEditPpath->text(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-  if ("" == pathName) {
-    return;
-  }
+  if (pathName.isEmpty()) return;
+
   ui->m_lineEditPpath->setText(pathName);
 
   QString name = ui->m_lineEditPname->text();
   Qt::CheckState state = ui->m_checkBox->checkState();
-  if (Qt::CheckState::Checked == state && "" != pathName && "" != name) {
-    ui->m_labelPath1->setText(pathName + "/" + name);
-  } else {
-    ui->m_labelPath1->setText(pathName);
-  }
+  updateLabel(state, pathName, name);
 }
 
 void locationForm::on_m_checkBox_stateChanged(int arg1) {
   QString name = ui->m_lineEditPname->text();
   QString path = ui->m_lineEditPpath->text();
-  if (Qt::CheckState::Checked == arg1 && "" != name && "" != path) {
-    ui->m_labelPath1->setText(path + "/" + name);
-  } else {
-    ui->m_labelPath1->setText(path);
-  }
+  updateLabel(arg1, path, name);
 }
 
 void locationForm::on_m_lineEditPname_textChanged(const QString &arg1) {
   QString path = ui->m_lineEditPpath->text();
   Qt::CheckState state = ui->m_checkBox->checkState();
-  if (Qt::CheckState::Checked == state && "" != arg1 && "" != path) {
-    ui->m_labelPath1->setText(path + "/" + arg1);
+  updateLabel(state, path, arg1);
+}
+
+QString locationForm::defaultDir() const { return QDir::currentPath(); }
+
+void locationForm::updateLabel(int state, const QString &path,
+                               const QString &name) {
+  if (Qt::CheckState::Checked == state && !name.isEmpty() && !path.isEmpty()) {
+    ui->m_labelPath1->setText(path + "/" + name);
   } else {
     ui->m_labelPath1->setText(path);
   }

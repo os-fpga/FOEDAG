@@ -72,6 +72,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/LicenseManagerWidget.cpp
   ../Main/ReportGenerator.cpp
   ../Main/JsonReportGenerator.cpp
+  ../MainWindow/EditorSettings.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -109,6 +110,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/LicenseManagerWidget.h
   ../Main/ReportGenerator.h
   ../Main/JsonReportGenerator.h
+  ../MainWindow/EditorSettings.h
 )
 
 set (SRC_UI_LIST "")
