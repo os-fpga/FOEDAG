@@ -20,26 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "NewProject/ProjectManager/project_manager.h"
-#include "ProjectFileComponent.h"
+#include <QDialog>
 
+class QLineEdit;
 namespace FOEDAG {
 
-class ProjectManagerComponent : public ProjectFileComponent {
+class EditorSettings : public QDialog {
  public:
-  ProjectManagerComponent(ProjectManager *pManager, QObject *parent = nullptr);
-  void Save(QXmlStreamWriter *writer) override;
-  void Load(QXmlStreamReader *reader) override;
+  EditorSettings(QWidget *parent = nullptr);
+  std::vector<std::pair<QString, QString>> editor() const;
+  void setEditor(const std::pair<QString, QString> &data, int index);
 
- protected:
-  QString relatedPath(const QString &path) const;
-  QString absPath(const QString &path) const;
-
-  QString relatedPathList(const QStringList &pathList) const;
-  QString absPathList(const QStringList &pathList) const;
-
- protected:
-  ProjectManager *m_projectManager{nullptr};
+ private:
+  std::vector<std::pair<QLineEdit *, QLineEdit *>> m_editors{};
 };
-
 }  // namespace FOEDAG
