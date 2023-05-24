@@ -32,6 +32,13 @@ class ProjectManagerComponent : public ProjectFileComponent {
   void Load(QXmlStreamReader *reader) override;
 
  protected:
+  QString relatedPath(const QString &path) const;
+  QString absPath(const QString &path) const;
+
+  QString relatedPathList(const QStringList &pathList) const;
+  QString absPathList(const QStringList &pathList) const;
+
+ protected:
   ProjectManager *m_projectManager{nullptr};
 };
 
