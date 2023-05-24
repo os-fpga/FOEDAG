@@ -154,7 +154,7 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
     for (auto iterfile = tmpFileMap.begin(); iterfile != tmpFileMap.end();
          ++iterfile) {
       stream.writeStartElement(PROJECT_FILESET_FILE);
-      stream.writeAttribute(PROJECT_PATH, iterfile->second);
+      stream.writeAttribute(PROJECT_PATH, relatedPath(iterfile->second));
       stream.writeEndElement();
     }
     auto langMap = tmpFileSet->Files();
@@ -165,7 +165,7 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
       stream.writeAttribute(PROJECT_GROUP_ID,
                             QString::number(it->first.language));
       stream.writeAttribute(PROJECT_GROUP_NAME, it->first.group);
-      stream.writeAttribute(PROJECT_GROUP_FILES, it->second.join(" "));
+      stream.writeAttribute(PROJECT_GROUP_FILES, relatedPathList(it->second));
       stream.writeAttribute(PROJECT_GROUP_LIB_COMMAND,
                             libs.at(index).first.join(" "));
       stream.writeAttribute(PROJECT_GROUP_LIB_NAME,
@@ -281,7 +281,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_PATH)) {
             listFiles.append(
-                reader.attributes().value(PROJECT_PATH).toString());
+                absPath(reader.attributes().value(PROJECT_PATH).toString()));
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_NAME) &&
                      reader.attributes().hasAttribute(PROJECT_VAL)) {
@@ -290,11 +290,14 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_GROUP_ID) &&
                      reader.attributes().hasAttribute(PROJECT_GROUP_FILES)) {
+            QString raw{
+                reader.attributes().value(PROJECT_GROUP_FILES).toString()};
+            QStringList fileList = QtUtils::StringSplit(raw, ' ');
             langList.push_back(std::make_pair(
                 CompilationUnit{
                     reader.attributes().value(PROJECT_GROUP_ID).toInt(),
                     reader.attributes().value(PROJECT_GROUP_NAME).toString()},
-                reader.attributes().value(PROJECT_GROUP_FILES).toString()));
+                absPathList(fileList)));
             auto command =
                 reader.attributes().value(PROJECT_GROUP_LIB_COMMAND).toString();
             auto lib =
@@ -534,6 +537,42 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
       }
     }
   }
+}
+
+QString ProjectManagerComponent::relatedPath(const QString& path) const {
+  std::filesystem::path p = path.toStdString();
+  if (!p.is_absolute()) return path;
+
+  std::filesystem::path project_p = m_projectManager->projectPath();
+  auto relative_p = std::filesystem::relative(p, project_p);
+  relative_p = PROJECT_OSRCDIR / relative_p;
+  return QString::fromStdString(relative_p.string());
+}
+
+QString ProjectManagerComponent::absPath(const QString& path) const {
+  if (path.contains(PROJECT_OSRCDIR)) {
+    QString absPath = path;
+    auto replated =
+        absPath.replace(PROJECT_OSRCDIR, m_projectManager->getProjectPath());
+    std::filesystem::path path{replated.toStdString()};
+    path = std::filesystem::canonical(path);
+    return QString::fromStdString(path.string());
+  }
+  return path;
+}
+
+QString ProjectManagerComponent::relatedPathList(
+    const QStringList& pathList) const {
+  QStringList files{};
+  for (const auto& file : pathList) files.append(relatedPath(file));
+  return files.join(' ');
+}
+
+QString ProjectManagerComponent::absPathList(
+    const QStringList& pathList) const {
+  QStringList files{};
+  for (const auto& file : pathList) files.append(absPath(file));
+  return files.join(' ');
 }
 
 }  // namespace FOEDAG
