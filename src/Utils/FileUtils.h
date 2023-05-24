@@ -76,7 +76,8 @@ class FileUtils final {
                                      const std::vector<std::string>& args,
                                      std::ostream* out, int timeout_ms = -1,
                                      const std::string& workingDir = {},
-                                     std::ostream* err = nullptr);
+                                     std::ostream* err = nullptr,
+                                     bool startDetached = false);
 
   static time_t Mtime(const std::filesystem::path& path);
 

@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console/TclErrorParser.h"
 #include "DesignRuns/runs_form.h"
 #include "DockWidget.h"
+#include "EditorSettings.h"
 #include "IpConfigurator/IpCatalogTree.h"
 #include "IpConfigurator/IpConfigWidget.h"
 #include "IpConfigurator/IpConfigurator.h"
@@ -70,6 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextEditor/text_editor_form.h"
 #include "Utils/FileUtils.h"
 #include "Utils/QtUtils.h"
+#include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
 #include "foedag_version.h"
 
@@ -82,6 +84,7 @@ static constexpr const char* LICENSES_DIR{"licenses"};
 
 namespace {
 const QString RECENT_PROJECT_KEY{"recent/proj%1"};
+const QString EDITOR_KEY{"editors/editor%1"};
 const QString SHOW_WELCOMEPAGE_KEY{"showWelcomePage"};
 const QString SHOW_STOP_COMPILATION_MESSAGE_KEY{"showStopCompilationMessage"};
 const QString SHOW_MESSAGE_ON_EXIT_KEY{"showMessageOnExit"};
@@ -914,6 +917,7 @@ void MainWindow::createMenus() {
 #ifndef PRODUCTION_BUILD
   preferencesMenu->addAction(pinPlannerPinNameAction);
 #endif
+  preferencesMenu->addAction(editorSettingsAction);
   preferencesMenu->addAction(showWelcomePageAction);
   preferencesMenu->addAction(stopCompileMessageAction);
   preferencesMenu->addAction(showMessageOnExitAction);
@@ -1068,6 +1072,10 @@ void MainWindow::createActions() {
   connect(pinPlannerPinNameAction, &QAction::triggered, this,
           &MainWindow::pinPlannerPinName);
 
+  editorSettingsAction = new QAction{tr("3rd party editors..."), this};
+  connect(editorSettingsAction, &QAction::triggered, this,
+          &MainWindow::editorSettings);
+
   stopCompileMessageAction =
       new QAction(tr("Show message on stop compilation"), this);
   stopCompileMessageAction->setCheckable(true);
@@ -1152,7 +1160,7 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   QDockWidget* sourceDockWidget = new DockWidget(tr("Source"), this);
   sourceDockWidget->setObjectName("sourcedockwidget");
-  sourcesForm = new SourcesForm(this);
+  sourcesForm = new SourcesForm(&m_settings, this);
   connect(
       sourcesForm, &SourcesForm::CloseProject, this,
       [this]() { closeProject(); }, Qt::QueuedConnection);
@@ -1203,6 +1211,8 @@ void MainWindow::ReShowWindow(QString strProject) {
   textEditor->setObjectName("textEditor");
   connect(sourcesForm, SIGNAL(OpenFile(QString)), textEditor,
           SLOT(SlotOpenFile(QString)));
+  connect(sourcesForm, SIGNAL(OpenFileWith(QString, int)), this,
+          SLOT(openFileWith(QString, int)));
   connect(textEditor, SIGNAL(CurrentFileChanged(QString)), sourcesForm,
           SLOT(SetCurrentFileItem(QString)));
   connect(textEditor, &TextEditor::FileChanged, this,
@@ -1839,6 +1849,45 @@ void MainWindow::releaseNodesClicked() {
   auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
   auto releaseNotes{Settings::Config(path, "general", "release-notes")};
   if (!releaseNotes.isEmpty()) QDesktopServices::openUrl(releaseNotes);
+}
+
+void MainWindow::openFileWith(QString file, int editor) {
+  auto editorStr =
+      m_settings.value(EDITOR_KEY.arg(QString::number(editor))).toString();
+  auto editorLine = QtUtils::StringSplit(editorStr, ';');
+  if (editorLine.count() > 1) {
+    auto command = editorLine.last();
+    auto commandArgs = QtUtils::StringSplit(command, ' ');
+    if (!commandArgs.isEmpty()) {
+      auto commandName = commandArgs.takeFirst().toStdString();
+      StringVector args{};
+      for (const auto& c : commandArgs) args.push_back(c.toStdString());
+      args.push_back(file.toStdString());
+      FileUtils::ExecuteSystemCommand(commandName, args, nullptr, -1, {},
+                                      nullptr, true);
+    }
+  }
+}
+
+void MainWindow::editorSettings() {
+  EditorSettings setting{this};
+  for (int i = 0; i < setting.editor().size(); i++) {
+    auto value =
+        m_settings.value(EDITOR_KEY.arg(QString::number(i))).toString();
+    auto valueSplitted = QtUtils::StringSplit(value, ';');
+    if (valueSplitted.size() == 2)
+      setting.setEditor(
+          std::make_pair(valueSplitted.first(), valueSplitted.last()), i);
+  }
+  auto accepted = setting.exec();
+  if (accepted) {
+    const auto& editors = setting.editor();
+    for (int i = 0; i < editors.size(); i++) {
+      m_settings.setValue(
+          EDITOR_KEY.arg(QString::number(i)),
+          QString{"%1;%2"}.arg(editors.at(i).first, editors.at(i).second));
+    }
+  }
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

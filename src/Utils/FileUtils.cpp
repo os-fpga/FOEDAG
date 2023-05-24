@@ -229,29 +229,38 @@ Return FileUtils::ExecuteSystemCommand(const std::string& command,
                                        const std::vector<std::string>& args,
                                        std::ostream* out, int timeout_ms,
                                        const std::string& workingDir,
-                                       std::ostream* err) {
+                                       std::ostream* err, bool startDetached) {
   QProcess process;
   if (!workingDir.empty())
     process.setWorkingDirectory(QString::fromStdString(workingDir));
 
   std::ostream* errStream = err ? err : out;
 
-  QObject::connect(
-      &process, &QProcess::readyReadStandardOutput, [out, &process]() {
-        out->write(process.readAllStandardOutput(), process.bytesAvailable());
-      });
+  if (out) {
+    QObject::connect(
+        &process, &QProcess::readyReadStandardOutput, [out, &process]() {
+          out->write(process.readAllStandardOutput(), process.bytesAvailable());
+        });
+  }
 
-  QObject::connect(&process, &QProcess::readyReadStandardError,
-                   [errStream, &process]() {
-                     QByteArray data = process.readAllStandardError();
-                     errStream->write(data, data.size());
-                   });
+  if (errStream) {
+    QObject::connect(&process, &QProcess::readyReadStandardError,
+                     [errStream, &process]() {
+                       QByteArray data = process.readAllStandardError();
+                       errStream->write(data, data.size());
+                     });
+  }
 
   QString program = QString::fromStdString(command);
   QStringList args_{};
   for (const auto& ar : args) args_ << QString::fromStdString(ar);
   m_processes.push_back(&process);
-  process.start(program, args_);
+  if (startDetached) {
+    auto success = process.startDetached(program, args_);
+    return {success ? 0 : -1, {}};
+  } else {
+    process.start(program, args_);
+  }
 
   bool finished = process.waitForFinished(timeout_ms);
   auto it = std::find(m_processes.begin(), m_processes.end(), &process);
@@ -260,7 +269,7 @@ Return FileUtils::ExecuteSystemCommand(const std::string& command,
   std::string message{};
   if (!finished) {
     message = process.errorString().toStdString();
-    (*errStream) << message << std::endl;
+    if (errStream) (*errStream) << message << std::endl;
   }
 
   auto status = process.exitStatus();
