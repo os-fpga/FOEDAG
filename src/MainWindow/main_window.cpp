@@ -913,11 +913,13 @@ void MainWindow::createMenus() {
   helpMenu->addSeparator();
   helpMenu->addAction(manageLicenseAction);
   helpMenu->addAction(licensesAction);
+#ifndef PRODUCTION_BUILD
+  helpMenu->addAction(compressProjectAction);
+#endif
 
   preferencesMenu->addAction(defualtProjectPathAction);
 #ifndef PRODUCTION_BUILD
   preferencesMenu->addAction(pinPlannerPinNameAction);
-  preferencesMenu->addAction(compressProjectAction);
 #endif
   preferencesMenu->addAction(editorSettingsAction);
   preferencesMenu->addAction(showWelcomePageAction);
