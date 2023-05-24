@@ -1042,7 +1042,7 @@ void MainWindow::createActions() {
   connect(manageLicenseAction, &QAction::triggered, this,
           &MainWindow::manageLicense);
 
-  compressProjectAction = new QAction{tr("Compress project..."), this};
+  compressProjectAction = new QAction{tr("Save Diagnostics"), this};
   connect(compressProjectAction, &QAction::triggered, this,
           &MainWindow::compressProject);
 

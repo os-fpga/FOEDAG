@@ -71,7 +71,7 @@ CompressProject::CompressProject(const fs::path &project, QWidget *parent)
 
   initDialogBox(layout, Dialog::Ok | Dialog::Cancel);
   setLayout(layout);
-  setWindowTitle("Compress project...");
+  setWindowTitle("Save Diagnostics");
 
   auto projectName = project.filename();
   projectNameLine->setText(QString::fromStdString(projectName.string()));
