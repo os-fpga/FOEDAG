@@ -245,10 +245,16 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
       } else if (phase == "extra_options") {
         simulator->SetSimulatorExtraOption(level, sim_tool, options);
       }
-      if (simulator->m_compiler->GuiTclSync())
-        simulator->m_compiler->GuiTclSync()->saveSettings();
-      return TCL_OK;
+      if (!phase.empty()) {
+        if (simulator->m_compiler->GuiTclSync())
+          simulator->m_compiler->GuiTclSync()->saveSettings();
+        return TCL_OK;
+      }
     }
+    Tcl_AppendResult(interp,
+                     "Invalid arguments. Usage: simulation_options <simulator> "
+                     "<phase> ?<level>? <options>",
+                     nullptr);
     return TCL_ERROR;
   };
   interp->registerCmd("simulation_options", simulation_options, this, 0);

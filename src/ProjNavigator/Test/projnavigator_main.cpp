@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "tclutils/TclUtils.h"
 
 QWidget* proNavigatorBuilder(FOEDAG::Session* session) {
-  FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm();
+  FOEDAG::SourcesForm* srcForm = new FOEDAG::SourcesForm(nullptr);
   if (session->CmdLine()->Argc() > 2) {
     FOEDAG::ProjectFileLoader loader(FOEDAG::Project::Instance());
     loader.registerComponent(

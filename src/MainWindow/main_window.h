@@ -104,6 +104,8 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void manageLicense();
   void documentationClicked();
   void releaseNodesClicked();
+  void openFileWith(QString file, int editor);
+  void editorSettings();
 
  public slots:
   void updateSourceTree();
@@ -214,6 +216,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* defualtProjectPathAction = nullptr;
   QAction* pinPlannerPinNameAction = nullptr;
   QAction* manageLicenseAction = nullptr;
+  QAction* editorSettingsAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
