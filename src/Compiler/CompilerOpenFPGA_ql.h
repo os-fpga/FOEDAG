@@ -40,6 +40,7 @@ namespace FOEDAG {
 #endif // #if UPSTREAM_UNUSED
 
 class CompilerOpenFPGA_ql : public Compiler {
+    friend class QLSettingsManager;
  public:
   CompilerOpenFPGA_ql() = default;
 #if UPSTREAM_UNUSED
@@ -120,13 +121,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   int CleanTempFiles();
   std::string ToUpper(std::string str);
   std::string ToLower(std::string str);
-  void test_listing_all();
-  void deviceChanged(const QString& device_qstring);
-  std::vector<std::string> ListLayouts(std::string family,
-                                    std::string foundry,
-                                    std::string node,
-                                    std::string voltage_threshold,
-                                    std::string p_v_t_corner);
+  
   std::vector<std::string> list_device_variants(
       std::string family,
       std::string foundry,
@@ -138,13 +133,13 @@ class CompilerOpenFPGA_ql : public Compiler {
                            std::string voltage_threshold,
                            std::string p_v_t_corner);
   std::vector<std::string> ListDevices();
-  std::vector <QLDevice> device_list;
+  std::vector <QLDeviceType> device_list;
   bool DeviceExists(std::string family,
                     std::string foundry,
                     std::string node,
                     std::string voltage_threshold,
                     std::string p_v_t_corner);
-  bool DeviceExists(std::string device);
+  bool DeviceExists(std::string device_string);
   std::vector<long double> PowerEstimator();
 
  protected:

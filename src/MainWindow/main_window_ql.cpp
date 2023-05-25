@@ -67,6 +67,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/QtUtils.h"
 #include "WidgetFactory.h"
 #include "foedag_version.h"
+#include "Compiler/QLSettingsManager.h"
 
 using namespace FOEDAG;
 extern const char* foedag_version_number;
@@ -876,6 +877,12 @@ void MainWindow::createActions() {
   stopAction->setIcon(QIcon(":/images/stop.png"));
   stopAction->setToolTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
+
+  QAction* settingsAction = new QAction(tr("Settings"), this);
+  settingsAction->setIcon(QIcon(":/images/add.png"));
+  settingsAction->setToolTip(tr("Show Settings"));
+  //connect(settingsAction, &QAction::triggered, this, &MainWindow::stopCompilation);
+
   connect(startAction, &QAction::triggered, this,
           [this]() { startProject(false); });
   connect(startSimAction, &QAction::triggered, this,
@@ -1035,7 +1042,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectManager = sourcesForm->ProjManager();
   projectMenu->clear();
   sourcesForm->ProjectSettingsActions()->setEnabled(!strProject.isEmpty());
+  QAction* QLSettingsAction = new QAction("QLSettings");
+  QObject::connect(QLSettingsAction, &QAction::triggered, [=](){QLSettingsManager::getInstance((CompilerOpenFPGA_ql*)m_compiler)->createSettingsWidget()->show();});
   projectMenu->addAction(sourcesForm->ProjectSettingsActions());
+  projectMenu->addAction(QLSettingsAction);
   // If the project manager path changes, reload settings
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);

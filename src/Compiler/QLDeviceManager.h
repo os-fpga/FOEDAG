@@ -1,6 +1,8 @@
 #include <QWidget>
 #include <QString>
 #include <QComboBox>
+#include <QPushButton>
+#include <QLabel>
 
 
 #include <string>
@@ -18,6 +20,8 @@ class CompilerOpenFPGA_ql;
 class QLDeviceVariantLayout {
     public:
     std::string name;
+    int width;
+    int height;
     // can add other things here such as num of BRAM/DSP etc. in the future!
 };
 
@@ -28,10 +32,10 @@ class QLDeviceVariant {
     std::string node;
     std::string voltage_threshold;
     std::string p_v_t_corner;
-    std::vector<std::string> device_variant_layouts;
+    std::vector<QLDeviceVariantLayout> device_variant_layouts;
 };
 
-class QLDevice {
+class QLDeviceType {
     public:
     std::string family;
     std::string foundry;
@@ -40,45 +44,128 @@ class QLDevice {
     std::filesystem::path device_root_path;
 };
 
-class QLDeviceManager : public QWidget {
+
+class QLDeviceTarget  {
+  public:
+    QLDeviceVariant device_variant;
+    QLDeviceVariantLayout device_variant_layout;
+};
+
+
+class QLDeviceManager : public QObject {
   Q_OBJECT
  public:
-  QLDeviceManager(QWidget *parent = nullptr);
-  QLDeviceManager(CompilerOpenFPGA_ql *compiler, QWidget *parent = nullptr);
+  static QLDeviceManager* getInstance(CompilerOpenFPGA_ql *compiler, bool initialize=false);
+  ~QLDeviceManager();
+
+ private:
+  QLDeviceManager(CompilerOpenFPGA_ql *compiler,
+                  QObject *parent = nullptr);
 
 
  public:
- QWidget* createDeviceSelectionWidget();
- void parseDeviceData();
+  void initialize();
+  QWidget* createDeviceSelectionWidget();
+  void giveupDeviceSelectionWidget();
+  void parseDeviceData();
+  std::vector<QLDeviceVariant> listDeviceVariants(std::string family,
+                                                 std::string foundry,
+                                                 std::string node);
+  std::vector<QLDeviceVariantLayout> listDeviceVariantLayouts(std::string family,
+                                                            std::string foundry,
+                                                            std::string node,
+                                                            std::string voltage_threshold,
+                                                            std::string p_v_t_corner);
+  std::string DeviceString(std::string family,
+                           std::string foundry,
+                           std::string node,
+                           std::string voltage_threshold,
+                           std::string p_v_t_corner,
+                           std::string layout_name);
+  bool DeviceExists(std::string family,
+                    std::string foundry,
+                    std::string node,
+                    std::string voltage_threshold,
+                    std::string p_v_t_corner,
+                    std::string layout_name);
+  bool DeviceExists(std::string device_string);
+  QLDeviceTarget convertToDeviceTarget(std::string family,
+                                 std::string foundry,
+                                 std::string node,
+                                 std::string voltage_threshold,
+                                 std::string p_v_t_corner,
+                                 std::string layout_name);
+  QLDeviceTarget convertToDeviceTarget(std::string device_string);
+  std::string convertToDeviceString(QLDeviceTarget device_target);
+  bool isDeviceTargetValid(QLDeviceTarget device_target);
+  void setCurrentDeviceTarget(std::string family,
+                              std::string foundry,
+                              std::string node,
+                              std::string voltage_threshold,
+                              std::string p_v_t_corner,
+                              std::string layout_name);
+  void setCurrentDeviceTarget(std::string device_string);
+  void setCurrentDeviceTarget(QLDeviceTarget device_target);
+  // only for GUI usage:
+  std::string convertToFoundryNode(std::string foundry, std::string node);
+  std::vector<std::string> convertFromFoundryNode(std::string foundrynode);
 
- public slots:
+ public:
  void familyChanged(const QString& family_qstring);
  void foundrynodeChanged(const QString& foundrynode_qstring);
- void voltagethresholdChanged(const QString& voltagetheshold_qstring);
- void pvtcornerChanged(const QString& pvtcorner_qstring);
- void deviceIndexChanged(int index);
- void handleCancelButtonClicked();
+ void voltage_thresholdChanged(const QString& voltagetheshold_qstring);
+ void p_v_t_cornerChanged(const QString& p_v_t_corner_qstring);
+ void layoutChanged(const QString& layout_qstring);
+ void resetButtonClicked();
+ void applyButtonClicked();
 
  public:
-  std::vector <QLDevice> device_list;
+  // singleton instance of ourself
+  static QLDeviceManager* instance;
+
+  // reference to the compiler instance
   CompilerOpenFPGA_ql* compiler;
+
+  // hieracrchical list of all devices available in the installation
+  std::vector <QLDeviceType> device_list;
+
+  // flat list of all device targets (future?)
+  //std::vector <QLDeviceTarget> device_target_list;
+
+  // hold the current device_target
+  QLDeviceTarget device_target;
+
+  // GUI objects and state maintenance
+  QWidget* device_manager_widget = nullptr;
+
+  // hold the 'selected' device_target via GUI
+  QLDeviceTarget device_target_selected;
+
+  // hold the 'selected' device parameters via GUI
   std::set <std::string> families;
   std::string family;
   std::set <std::string> foundrynodes;
   std::string foundrynode;
-  std::set <std::string> voltagethresholds;
-  std::string voltagethreshold;
-  std::set <std::string> pvtcorners;
-  std::string pvtcorner;
+  std::string foundry;
+  std::string node;
+  std::set <std::string> voltage_thresholds;
+  std::string voltage_threshold;
+  std::set <std::string> p_v_t_corners;
+  std::string p_v_t_corner;
   std::set <std::string> layouts;
   std::string layout;
-  QLDevice device;
+  
+  QComboBox* m_combobox_family;
+  QComboBox* m_combobox_foundry_node;
+  QComboBox* m_combobox_voltage_threshold;
+  QComboBox* m_combobox_p_v_t_corner;
+  QComboBox* m_combobox_layout;
 
-  QComboBox *combo;
-  QComboBox *combo2;
-  QComboBox *combo3;
-  QComboBox *combo4;
-  QComboBox *combo5;
+  QPushButton* m_button_reset;
+  QPushButton* m_button_apply;
+  QLabel* m_message_label;
+
+  bool currentDeviceTargetUpdateInProgress = false;
 };
 
 
