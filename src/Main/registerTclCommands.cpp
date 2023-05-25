@@ -34,7 +34,6 @@ extern "C" {
 }
 
 #include <QApplication>
-#include <QDialogButtonBox>
 #include <QLabel>
 #include <fstream>
 #include <iostream>
@@ -52,8 +51,6 @@ extern "C" {
 #include "MainWindow/main_window.h"
 #include "NewProject/Main/registerNewProjectCommands.h"
 #include "Tcl/TclInterpreter.h"
-#include "TextEditor/text_editor.h"
-#include "qttclnotifier.hpp"
 
 void registerBasicGuiCommands(FOEDAG::Session* session) {
   auto gui_start = [](void* clientData, Tcl_Interp* interp, int argc,

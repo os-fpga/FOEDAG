@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/TaskManager.h"
 #include "Compiler/TaskModel.h"
 #include "Compiler/TaskTableView.h"
+#include "CompressProject.h"
 #include "Console/DummyParser.h"
 #include "Console/FileNameParser.h"
 #include "Console/StreamBuffer.h"
@@ -912,6 +913,9 @@ void MainWindow::createMenus() {
   helpMenu->addSeparator();
   helpMenu->addAction(manageLicenseAction);
   helpMenu->addAction(licensesAction);
+#ifndef PRODUCTION_BUILD
+  helpMenu->addAction(compressProjectAction);
+#endif
 
   preferencesMenu->addAction(defualtProjectPathAction);
 #ifndef PRODUCTION_BUILD
@@ -1037,6 +1041,10 @@ void MainWindow::createActions() {
   manageLicenseAction = new QAction{tr("Manage license..."), this};
   connect(manageLicenseAction, &QAction::triggered, this,
           &MainWindow::manageLicense);
+
+  compressProjectAction = new QAction{tr("Save Diagnostics"), this};
+  connect(compressProjectAction, &QAction::triggered, this,
+          &MainWindow::compressProject);
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
@@ -1346,6 +1354,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
   updateTaskTable();
+  compressProjectAction->setEnabled(!strProject.isEmpty());
 }
 
 void MainWindow::clearDockWidgets() {
@@ -1837,6 +1846,11 @@ void MainWindow::manageLicense() {
   auto licPath{Settings::Config(path, "general", "license-path")};
   LicenseManagerWidget license{licPath, this};
   license.exec();
+}
+
+void MainWindow::compressProject() {
+  CompressProject cProject{m_projectManager->projectPath(), this};
+  cProject.exec();
 }
 
 void MainWindow::documentationClicked() {

@@ -33,6 +33,8 @@ class PathEdit : public QWidget {
   QString text() const;
   void setText(const QString &text);
 
+  QLineEdit *lineEdit();
+
  signals:
 
  private:

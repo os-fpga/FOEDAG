@@ -22,26 +22,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Dialog.h"
 
-class QLabel;
+// include order issue: <filesystem> must go after Dialog.h
+#include <filesystem>
+namespace fs = std::filesystem;
 
 namespace FOEDAG {
 
-class LicenseManagerWidget : public Dialog {
- public:
-  explicit LicenseManagerWidget(const QString &path, QWidget *parent = nullptr);
+class CompressProject : public Dialog {
+  Q_OBJECT
 
-  void setLicensePath(const QString &path);
+ public:
+  explicit CompressProject(const fs::path& project, QWidget* parent = nullptr);
 
  private slots:
-  void selectFile();
+  void compressProject();
+  void extensionHasChanged(bool checked);
 
  private:
-  void updateLabel();
-  static QString solveSystemVars(const QString &p, QWidget *parent);
+  bool ExecuteSystemCommand(const std::string& command,
+                            const std::vector<std::string>& args,
+                            const std::string& workingDir);
 
  private:
-  QString m_path;
-  QLabel *m_label{};
+  QString m_extension;
+  const fs::path m_projectPath;
 };
-
 }  // namespace FOEDAG

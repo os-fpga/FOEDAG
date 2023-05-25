@@ -20,28 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "Dialog.h"
+#include <QDialog>
 
-class QLabel;
+class QDialogButtonBox;
 
 namespace FOEDAG {
 
-class LicenseManagerWidget : public Dialog {
+class Dialog : public QDialog {
+  Q_OBJECT
+
  public:
-  explicit LicenseManagerWidget(const QString &path, QWidget *parent = nullptr);
+  explicit Dialog(QWidget *parent = nullptr);
 
-  void setLicensePath(const QString &path);
+  enum Button { Ok = 1, Yes = 2, No = 4, Cancel = 8 };
+  Q_DECLARE_FLAGS(Buttons, Button)
 
- private slots:
-  void selectFile();
-
- private:
-  void updateLabel();
-  static QString solveSystemVars(const QString &p, QWidget *parent);
-
- private:
-  QString m_path;
-  QLabel *m_label{};
+ protected:
+  [[maybe_unused]] QDialogButtonBox *initDialogBox(QLayout *layout,
+                                                   Buttons buttons);
 };
-
+Q_DECLARE_OPERATORS_FOR_FLAGS(Dialog::Buttons)
 }  // namespace FOEDAG
