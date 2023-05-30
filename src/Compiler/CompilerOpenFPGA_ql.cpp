@@ -717,14 +717,26 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
   auto show_settings = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
                             
-    CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
-
-    QLSettingsManager::getInstance(compiler)->createSettingsWidget()->show();
-
+    //CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    QLSettingsManager::getInstance()->createSettingsWidget()->show();
 
     return TCL_OK;
   };
   interp->registerCmd("show_settings", show_settings, this, 0);
+
+  auto show_device_selection = [](void* clientData, Tcl_Interp* interp, int argc,
+                          const char* argv[]) -> int {
+                            
+    //CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
+    QWidget* qlDeviceSelectionWidget = 
+      QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+    qlDeviceSelectionWidget->setAttribute(Qt::WA_DeleteOnClose);
+    QObject::connect( qlDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "destroyed()" << std::endl;} );
+    qlDeviceSelectionWidget->show();
+
+    return TCL_OK;
+  };
+  interp->registerCmd("show_device_selection", show_device_selection, this, 0);
 
   auto add_device = [](void* clientData, Tcl_Interp* interp, int argc,
                           const char* argv[]) -> int {
@@ -2920,16 +2932,6 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
   Settings * currentSettings = GetSession()->GetSettings();
   currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
-
-   QLDeviceManager* devicemanager2 = QLDeviceManager::getInstance(this);
-   if(devicemanager2) {
-
-   }
-//    std::string layoutttt = devicemanager2->layout;
-//    if(layoutttt == "hello" ) {
-
-//    }
-//   std::cout << "selected layout is: " << layoutttt;
 
   json settings_vpr_general_obj = currentSettings->getJson()["vpr"]["general"];
   json settings_vpr_filename_obj = currentSettings->getJson()["vpr"]["filename"];

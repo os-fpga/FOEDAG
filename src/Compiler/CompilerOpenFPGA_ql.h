@@ -133,7 +133,6 @@ class CompilerOpenFPGA_ql : public Compiler {
                            std::string voltage_threshold,
                            std::string p_v_t_corner);
   std::vector<std::string> ListDevices();
-  std::vector <QLDeviceType> device_list;
   bool DeviceExists(std::string family,
                     std::string foundry,
                     std::string node,

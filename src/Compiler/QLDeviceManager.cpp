@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QPalette>
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -30,62 +31,61 @@
 #include "Utils/StringUtils.h"
 #include "MainWindow/Session.h"
 
+extern FOEDAG::Session* GlobalSession;
+
 namespace FOEDAG {
 
 
 // singleton init
-QLDeviceManager* QLDeviceManager::instance = NULL;
+QLDeviceManager* QLDeviceManager::instance = nullptr;
 
 
-QLDeviceManager* QLDeviceManager::getInstance(CompilerOpenFPGA_ql *compiler, bool initialize) {
+// static access function
+QLDeviceManager* QLDeviceManager::getInstance(bool initialize) {
 
   // creation
-  if(instance == NULL) {
-    instance = new QLDeviceManager(compiler);
+  if(instance == nullptr) {
+    std::cout << "create new QLDeviceManager()" << std::endl;
+    instance = new QLDeviceManager();
   }
 
   // init, if needed
   if(initialize == true) {
-    instance->initialize();
+    instance->parseDeviceData();
   }
 
   return instance;
 }
 
 
-QLDeviceManager::QLDeviceManager(CompilerOpenFPGA_ql *compiler, QObject *parent)
-    : QObject(parent) {
+QLDeviceManager::QLDeviceManager(QObject *parent)
+    : QObject(parent) {}
 
-      this->compiler = compiler;
-}
 
 QLDeviceManager::~QLDeviceManager() {
+  std::cout << "~QLDeviceManager()" << std::endl;
   if(device_manager_widget != nullptr) {
     delete device_manager_widget;
   }
 }
 
-void QLDeviceManager::initialize() {
-
-    // initialize ourselves by:
-    // parsing the device data in the install
-    // create the Device Selection GUI in accordance with the device data
-    if(instance != NULL) {
-      instance->parseDeviceData();
-    }
-}
 
 QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
-  // GUI element creation only
+  std::cout << "QLDeviceManager::createDeviceSelectionWidget()++" << std::endl;
 
-  if(device_manager_widget == nullptr) {
-    device_manager_widget = new QWidget();
-  }
-  else {
-    // clear everything and recreate GUI
-    qDeleteAll(device_manager_widget->children());
-  }
+  // always create a new widget, so many people can use.
+  // it will always be owned by someone else, so should be ok.
+  device_manager_widget = new QWidget();
+
+  // // GUI element creation only
+  // if(device_manager_widget == nullptr) {
+  //   device_manager_widget = new QWidget();
+  // }
+  // else {
+  //   // clear everything and recreate GUI
+  //   qDeleteAll(device_manager_widget->children());
+  // }
 
   QWidget* dlg = device_manager_widget;
 
@@ -192,6 +192,12 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
   m_message_label = new QLabel();
   m_message_label->setWordWrap(true);
+  QPalette m_message_label_palette;
+  m_message_label_palette.setColor(QPalette::Window, Qt::white);
+  m_message_label_palette.setColor(QPalette::WindowText, Qt::red);
+  m_message_label->setAutoFillBackground(true);
+  m_message_label->setPalette(m_message_label_palette);
+  //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
   m_message_label->hide();
 
   m_button_reset = new QPushButton("Reset");
@@ -225,6 +231,8 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
   // trigger a self UI update according to the currently selected device:
   setCurrentDeviceTarget(device_target);
+
+  std::cout << "QLDeviceManager::createDeviceSelectionWidget()--" << std::endl;
 
   return dlg;
 }
@@ -457,23 +465,39 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
   // now check if the selected device_target (via GUI) is different from the currently set device_target,
   // if so, enable the buttons, and show info text to user:
   if(device_manager_widget != nullptr) {
+
     std::string device_target_string = convertToDeviceString(device_target);
     std::string device_target_selected_string = convertToDeviceString(device_target_selected);
     // std::cout << "device_target_string: " << device_target_string << std::endl;
     // std::cout << "device_target_selected_string: " << device_target_selected_string << std::endl;
     if(!device_target_string.empty() && !device_target_selected_string.empty()) {
       if(device_target_string != device_target_selected_string) {
+        // current device_target of the project differs from that selected in GUI.
+        // Allow user to Apply the new target, or reset it to the current device_target.
         m_button_reset->setDisabled(false);
         m_button_apply->setDisabled(false);
 
-        m_message_label->setText("Device Selection has changed!\nClick 'Apply' to set the new Device\nClick 'Reset' to reset to the original device");
+        m_message_label->setText("Device Selection has changed!\n\nClick 'Apply' to set the new Device\nClick 'Reset' to reset to the original device");
         m_message_label->show();
+        device_manager_widget->adjustSize();
       }
       else {
+        // current device_target of the project is the same as the one selected in the GUI, no changes to apply.
         m_button_reset->setDisabled(true);
         m_button_apply->setDisabled(true);
+
+        m_message_label->setText("");
         m_message_label->hide();
       }
+    }
+    else if(!device_target_selected_string.empty()) {
+      // no currently set device target from JSON, probably new project.
+      // then, if the device_target_selected is via GUI, allow user to click apply
+      // so that we can do rest of the settings for selected device target...
+      m_button_apply->setDisabled(false);
+
+      m_message_label->setText("New Device Selection!\n\nClick 'Apply' to set the new Device!\n");
+      m_message_label->show();
     }
   }
 }
@@ -509,7 +533,7 @@ void QLDeviceManager::parseDeviceData() {
 
   // get to the device_data dir path of the installation
   std::filesystem::path root_device_data_dir_path = 
-      compiler->GetSession()->Context()->DataPath();
+      GlobalSession->Context()->DataPath();
 
   // clear the list before parsing
   device_list.clear();
@@ -553,7 +577,7 @@ void QLDeviceManager::parseDeviceData() {
 
               if(device_variants.empty()) {
                 // display error, but continue with other devices.
-                compiler->Message("error in parsing variants for device: " + family + "," + foundry + "," + node +"\n");
+                std::cout << "error in parsing variants for device: " + family + "," + foundry + "," + node +"\n" << std::endl;
               }
               else {
 
@@ -574,14 +598,14 @@ void QLDeviceManager::parseDeviceData() {
 
   // DEBUG
   // for (QLDeviceType device: device_list) {
-  //     compiler->Message("Device: " + device.family + " " + device.foundry + " " + device.node);
+  //     std::cout << "Device: " + device.family + " " + device.foundry + " " + device.node << std::endl;
   //     for (QLDeviceVariant variant: device.device_variants) {
-  //       compiler->Message("  Variant: " + variant.family + " " + variant.foundry + " " + variant.node + " " + variant.voltage_threshold + " " + variant.p_v_t_corner);
+  //       std::cout << "  Variant: " + variant.family + " " + variant.foundry + " " + variant.node + " " + variant.voltage_threshold + " " + variant.p_v_t_corner << std::endl;
   //       for (QLDeviceVariantLayout layout: variant.device_variant_layouts) {
-  //         compiler->Message("    " + layout.name + " " + std::to_string(layout.width) + " " + std::to_string(layout.height));
+  //         std::cout << "    " + layout.name + " " + std::to_string(layout.width) + " " + std::to_string(layout.height) << std::endl;
   //       }
   //     }
-  //     compiler->Message("\n");
+  //     std::cout << "\n" << std::endl;
   // }
   //DEBUG
 }
@@ -601,15 +625,15 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
   //                                          "",
   //                                          "",
   //                                          "");
-  // compiler->Message("parsing variants for: " + device_string);
+  // std::cout << "parsing variants for: " + device_string << std::endl;
 
   // get to the device_data dir path of the installation
   std::filesystem::path root_device_data_dir_path = 
-      compiler->GetSession()->Context()->DataPath();
+     GlobalSession->Context()->DataPath();
 
   // calculate the device_data dir path for specified device
   std::filesystem::path device_data_dir_path = root_device_data_dir_path / family / foundry / node;
-  compiler->Message("device_data dir: " + device_data_dir_path.string());
+  // std::cout << "device_data dir: " + device_data_dir_path.string() << std::endl;
 
   // [1] check for valid path
   // convert to canonical path, which will also check that the path exists.
@@ -618,8 +642,8 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
           std::filesystem::canonical(device_data_dir_path, ec);
   if(ec) {
     // error
-    compiler->ErrorMessage("Please check if the path specified exists!");
-    compiler->ErrorMessage("path: " + device_data_dir_path.string());
+    std::cout << "Please check if the path specified exists!" << std::endl;
+    std::cout << "path: " + device_data_dir_path.string() << std::endl;
     return device_variants;
   }
 
@@ -639,8 +663,8 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
                                                     std::filesystem::directory_options::skip_permission_denied,
                                                     ec)) {
     if(ec) {
-      compiler->ErrorMessage(std::string("failed listing contents of ") +
-                              device_data_dir_path_c.string());
+      std::cout << std::string("failed listing contents of ") +
+                              device_data_dir_path_c.string() << std::endl;
       return device_variants;
     }
 
@@ -663,7 +687,7 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
     }
 
     if(ec) {
-      compiler->ErrorMessage(std::string("error while checking: ") +  dir_entry.path().string());
+      std::cout << std::string("error while checking: ") +  dir_entry.path().string() << std::endl;
       return device_variants;
     }
   }
@@ -674,18 +698,18 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
 
   // check that we have atleast one set.
   if(vpr_xml_files.size() == 0) {
-    compiler->ErrorMessage("No VPR XML files were found in the source device data dir !");
+    std::cout << "No VPR XML files were found in the source device data dir !" << std::endl;
     return device_variants;
   }
   if(openfpga_xml_files.size() == 0) {
-    compiler->ErrorMessage("No OPENFPGA XML files were found in the source device data dir !");
+    std::cout << "No OPENFPGA XML files were found in the source device data dir !" << std::endl;
     return device_variants;
   }
 
   // check that we have the same number of entries for both vpr.xml and openfpga.xml
   // as they should be travelling in pairs.
   if(vpr_xml_files.size() != openfpga_xml_files.size()) {
-    compiler->ErrorMessage("Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !");
+    std::cout << "Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !" << std::endl;
     return device_variants;
   }
 
@@ -706,7 +730,7 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
   // check that we have the same set of dir paths for both XMLs, as they travel in pairs.
   // redundant?
   if(vpr_xml_file_parent_dirs != openfpga_xml_file_parent_dirs) {
-    compiler->ErrorMessage("Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !");
+    std::cout << "Mismatched number of VPR XML(s) w.r.t OPENFPGA XML(s) !" << std::endl;
     return device_variants;
   }
   // now we can take any one of the file_dirs vector for further steps as they are the same.
@@ -750,7 +774,7 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
     if(!std::filesystem::equivalent(dirpath_c.parent_path().parent_path(), device_data_dir_path_c)) {
       std::cout << dirpath_c.parent_path() << std::endl;
       std::cout << device_data_dir_path_c << std::endl;
-      compiler->ErrorMessage("p_v_t_corner dirs with XMLs are not 2 levels down from the source_device_data_dir_path!!!");
+      std::cout << "p_v_t_corner dirs with XMLs are not 2 levels down from the source_device_data_dir_path!!!" << std::endl;
       return device_variants;
     }
 
@@ -795,7 +819,7 @@ std::vector<QLDeviceVariant> QLDeviceManager::listDeviceVariants(
       device_data_dir_path_c / "fixed_sim_openfpga.xml.en";
   if(!std::filesystem::exists(fixed_sim_openfpga_xml) &&
      !std::filesystem::exists(fixed_sim_openfpga_xml_en)) {
-    compiler->ErrorMessage("fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!");
+    std::cout << "fixed_sim_openfpga.xml not found in source_device_data_dir_path!!!" << std::endl;
     return device_variants;
   }
 
@@ -819,7 +843,7 @@ std::vector<QLDeviceVariantLayout> QLDeviceManager::listDeviceVariantLayouts(std
   std::vector<QLDeviceVariantLayout> device_variant_layouts = {};
   
   std::filesystem::path root_device_data_dir_path = 
-      compiler->GetSession()->Context()->DataPath();
+      GlobalSession->Context()->DataPath();
   
   std::filesystem::path device_data_dir_path = root_device_data_dir_path / family / foundry / node;;
 
@@ -842,28 +866,28 @@ std::vector<QLDeviceVariantLayout> QLDeviceManager::listDeviceVariantLayouts(std
 
     if (!FileUtils::FileExists(source_vpr_xml_filepath)) {
       // this means we don't have a vpr xml file, which is an error!
-      compiler->Message("vpr xml: " + source_vpr_xml_filepath.string());
-      compiler->ErrorMessage("vpr xml not found!");
-      compiler->CleanTempFiles();
+      std::cout << "vpr xml: " + source_vpr_xml_filepath.string() << std::endl;
+      std::cout << "vpr xml not found!" << std::endl;
+      ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles();
       return device_variant_layouts;
     }
 
     // decrypt the encrypted vpr xml file. and then use that:
-    vpr_xml_filepath = compiler->GenerateTempFilePath();
+    vpr_xml_filepath = ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->GenerateTempFilePath();
 
     std::filesystem::path m_cryptdbPath = 
         CRFileCryptProc::getInstance()->getCryptDBFileName(device_data_dir_path.string(),
                                                           family + "_" + foundry + "_" + node);
 
     if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
-      compiler->ErrorMessage("load cryptdb failed!");
-      compiler->CleanTempFiles();
+      std::cout << "load cryptdb failed!" << std::endl;
+      ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles();
       return device_variant_layouts;
     }
 
     if (!CRFileCryptProc::getInstance()->decryptFile(source_vpr_xml_filepath, vpr_xml_filepath)) {
-      compiler->ErrorMessage("decryption failed!");
-      compiler->CleanTempFiles();
+      std::cout << "decryption failed!" << std::endl;
+      ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles();
       return device_variant_layouts;
     }
   }
@@ -873,8 +897,8 @@ std::vector<QLDeviceVariantLayout> QLDeviceManager::listDeviceVariantLayouts(std
   // qDebug() << "vpr xml" << QString::fromStdString(vpr_xml_filepath.string());
   QFile file(vpr_xml_filepath.string().c_str());
   if (!file.open(QFile::ReadOnly)) {
-    compiler->ErrorMessage("Cannot open file: " + vpr_xml_filepath.string());
-    compiler->CleanTempFiles();
+    std::cout << "Cannot open file: " + vpr_xml_filepath.string() << std::endl;
+    ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles();
     return device_variant_layouts;
   }
 
@@ -882,12 +906,12 @@ std::vector<QLDeviceVariantLayout> QLDeviceManager::listDeviceVariantLayouts(std
   QDomDocument doc;
   if (!doc.setContent(&file)) {
     file.close();
-    compiler->ErrorMessage("Incorrect file: " + vpr_xml_filepath.string());
-    compiler->CleanTempFiles();
+    std::cout << "Incorrect file: " + vpr_xml_filepath.string() << std::endl;
+    ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles();
     return device_variant_layouts;
   }
   file.close();
-  compiler->CleanTempFiles(); // the decrypted file is not needed anymore.
+  ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->CleanTempFiles(); // the decrypted file is not needed anymore.
 
 
   QDomNodeList nodes = doc.elementsByTagName("fixed_layout");
@@ -1082,6 +1106,17 @@ void QLDeviceManager::setCurrentDeviceTarget(QLDeviceTarget device_target) {
       currentDeviceTargetUpdateInProgress = true;
       m_combobox_family->setCurrentIndex(index);
     // rest of the items are set off by a cascade of signal-slots of the comboboxes.
+    }
+  }
+  else {
+    // update GUI:
+    // invalid target device in "device_target" - JSON is incorrect, or missing?
+    if(device_manager_widget != nullptr) {
+      // trigger GUI to default selection (index0 of all fields...)
+      m_combobox_family->blockSignals(true);
+      m_combobox_family->setCurrentIndex(-1);
+      m_combobox_family->blockSignals(false);
+      m_combobox_family->setCurrentIndex(0);
     }
   }
 }

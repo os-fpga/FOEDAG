@@ -1042,10 +1042,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_projectManager = sourcesForm->ProjManager();
   projectMenu->clear();
   sourcesForm->ProjectSettingsActions()->setEnabled(!strProject.isEmpty());
-  QAction* QLSettingsAction = new QAction("QLSettings");
-  QObject::connect(QLSettingsAction, &QAction::triggered, [=](){QLSettingsManager::getInstance((CompilerOpenFPGA_ql*)m_compiler)->createSettingsWidget()->show();});
   projectMenu->addAction(sourcesForm->ProjectSettingsActions());
-  projectMenu->addAction(QLSettingsAction);
   // If the project manager path changes, reload settings
   QObject::connect(m_projectManager, &ProjectManager::projectPathChanged, this,
                    &MainWindow::reloadSettings, Qt::UniqueConnection);
@@ -1251,6 +1248,22 @@ void MainWindow::reloadSettings() {
 
     // Load and merge all our json files
     settings->loadSettings(settingsFiles);
+  }
+
+//   QLDeviceManager* qlDeviceManagerInstance = QLDeviceManager::getInstance(true);
+//   if(!qlDeviceManagerInstance) {
+//       // could not get instance handle?
+//   }
+//   else {
+//       std::cout << "reloadSettings() qlDeviceManagerInstance" << std::endl;
+//   }
+
+  QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
+  if(!qlSettingsManagerInstance) {
+      // could not get instance handle?
+  }
+  else {
+      std::cout << "reloadSettings() qlSettingsManagerInstance" << std::endl;
   }
 }
 

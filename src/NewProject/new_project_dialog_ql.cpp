@@ -9,6 +9,8 @@
 #include "Compiler/Compiler.h"
 #include "MainWindow/Session.h"
 #include "ui_new_project_dialog.h"
+#include "Compiler/QLSettingsManager.h"
+#include "Compiler/QLDeviceManager.h"
 
 extern FOEDAG::Session *GlobalSession;
 using namespace FOEDAG;
@@ -159,28 +161,50 @@ void newProjectDialog::ResetToNewProject() {
   m_locationForm = new locationForm(m_defaultPath, this);
   ui->m_tabWidget->insertTab(INDEX_LOCATION, m_locationForm,
                              tr("Project Directory"));
+  
   m_proTypeForm = new projectTypeForm(this);
   ui->m_tabWidget->insertTab(INDEX_PROJTYPE, m_proTypeForm,
                              tr("Type of Project"));
   QObject::connect(m_proTypeForm, &projectTypeForm::skipSources, this,
                    [this](bool skip) { m_skipSources = skip; });
+  
   m_addSrcForm = new addSourceForm(GT_SOURCE, this);
   m_addSrcForm->SetTitle("Add Design Files");
   ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                              tr("Add Design Files"));
+  
   m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Add Simulation Files");
-  ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
-                             tr("Add Simulation Files"));
+  // ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+  //                            tr("Add Simulation Files"));
+  m_addSimForm->setVisible(false);
+  
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
   ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
                              tr("Add Design Constraints"));
+
 //   m_devicePlanForm = new devicePlannerForm(this);
 //   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
 //                              tr("Select Target Device"));
+
+  // TODO: Handle No Project Use Case in Settings Manager
+  // Trigger from Device Selection, and then populate Settings Manager GUI as well.
+  
+  QWidget* m_QLDeviceSelectionWidget = 
+    QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+  // // QWidget* m_QLDeviceSelectionWidget = new QWidget();
+  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
+                             tr("Target Device"));
+  QObject::connect( m_QLDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "m_QLDeviceSelectionWidget destroyed()" << std::endl;} );
+
+  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget();
+  ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
+                             tr("Task Settings"));
+
   m_sumForm = new summaryForm(this);
   ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));
+
   ui->m_tabWidget->adjustSize();
   // Disable tab selection (by mouse and keyboard)
   ui->m_tabWidget->tabBar()->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -201,23 +225,39 @@ void newProjectDialog::ResetToProjectSettings() {
   auto index = ui->m_tabWidget->insertTab(INDEX_ADDSOURC, m_addSrcForm,
                                           tr("Design Files"));
   m_tabIndexes.insert(INDEX_ADDSOURC, index);
+
   m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Simulation Files");
-  m_settings.append(m_addSimForm);
-  index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
-                                     tr("Simulation Files"));
-  m_tabIndexes.insert(INDEX_ADDSIM, index);
+  // m_settings.append(m_addSimForm);
+  // index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
+  //                                    tr("Simulation Files"));
+  // m_tabIndexes.insert(INDEX_ADDSIM, index);
+  m_addSimForm->setVisible(false);
+
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Design Constraints");
   m_settings.append(m_addConstrsForm);
   index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
                                      tr("Design Constraints"));
   m_tabIndexes.insert(INDEX_ADDCONST, index);
+
 //   m_devicePlanForm = new devicePlannerForm(this);
 //   m_settings.append(m_devicePlanForm);
 //   index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
 //                                      tr("Select Target Device"));
 //   m_tabIndexes.insert(INDEX_DEVICEPL, index);
+
+  QWidget* m_QLDeviceSelectionWidget = 
+    QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+  ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
+                             tr("Target Device"));
+  m_tabIndexes.insert(INDEX_DEVICEPL, index);
+
+  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget();
+  ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
+                             tr("Task Settings"));
+  m_tabIndexes.insert(INDEX_QLSETTIN, index);
+
   m_sumForm = new summaryForm(this);
   m_sumForm->setProjectSettings(true);
   index = ui->m_tabWidget->insertTab(INDEX_SUMMARYF, m_sumForm, tr("Summary"));

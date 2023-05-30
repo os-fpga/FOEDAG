@@ -36,25 +36,27 @@
 
 using json = nlohmann::ordered_json;
 
+extern FOEDAG::Session* GlobalSession;
+
 namespace FOEDAG {
 
 // singleton init
 QLSettingsManager* QLSettingsManager::instance = NULL;
 
-QLSettingsManager* QLSettingsManager::getInstance(CompilerOpenFPGA_ql *compiler) {
+QLSettingsManager* QLSettingsManager::getInstance() {
 
   std::cout << "1" << std::endl;
   // creation
   if(instance == NULL) {
 
-    instance = new QLSettingsManager(compiler);
+    instance = new QLSettingsManager();
   }
 
   std::cout << "2" << std::endl;
 
   if(instance->device_manager == nullptr) {
 
-    instance->device_manager = QLDeviceManager::getInstance(compiler, true);
+    instance->device_manager = QLDeviceManager::getInstance(true);
   }
 
   std::cout << "3" << std::endl;
@@ -63,25 +65,28 @@ QLSettingsManager* QLSettingsManager::getInstance(CompilerOpenFPGA_ql *compiler)
   instance->parseJSONSettings();
 
   std::cout << "4" << std::endl;
-    
-  std::string family              = instance->settings_json["general"]["device"]["family"]["default"];
-  std::string foundry             = instance->settings_json["general"]["device"]["foundry"]["default"];
-  std::string node                = instance->settings_json["general"]["device"]["node"]["default"];
-  std::string voltage_threshold   = instance->settings_json["general"]["device"]["voltage_threshold"]["default"];
-  std::string p_v_t_corner        = instance->settings_json["general"]["device"]["p_v_t_corner"]["default"];
-  std::string layout              = instance->settings_json["general"]["device"]["layout"]["default"];
-  
-  std::cout << "\n" << "---------------------------------------------" << std::endl;
-  std::cout << "current device_target from settings json:" << std::endl;
-  std::cout << " >> [family]              " << family << std::endl;
-  std::cout << " >> [foundry]             " << foundry << std::endl;
-  std::cout << " >> [node]                " << node << std::endl;
-  std::cout << " >> [voltage_threshold]   " << voltage_threshold << std::endl;
-  std::cout << " >> [p_v_t_corner]        " << p_v_t_corner << std::endl;
-  std::cout << " >> [layout]              " << layout << std::endl;
-  std::cout << "---------------------------------------------\n" << std::endl;
 
-  instance->device_manager->setCurrentDeviceTarget(family, foundry, node, voltage_threshold, p_v_t_corner, layout);
+  if( !((instance->settings_json).empty()) ) {
+
+    std::string family              = instance->settings_json["general"]["device"]["family"]["default"];
+    std::string foundry             = instance->settings_json["general"]["device"]["foundry"]["default"];
+    std::string node                = instance->settings_json["general"]["device"]["node"]["default"];
+    std::string voltage_threshold   = instance->settings_json["general"]["device"]["voltage_threshold"]["default"];
+    std::string p_v_t_corner        = instance->settings_json["general"]["device"]["p_v_t_corner"]["default"];
+    std::string layout              = instance->settings_json["general"]["device"]["layout"]["default"];
+    
+    std::cout << "\n" << "---------------------------------------------" << std::endl;
+    std::cout << "current device_target from settings json:" << std::endl;
+    std::cout << " >> [family]              " << family << std::endl;
+    std::cout << " >> [foundry]             " << foundry << std::endl;
+    std::cout << " >> [node]                " << node << std::endl;
+    std::cout << " >> [voltage_threshold]   " << voltage_threshold << std::endl;
+    std::cout << " >> [p_v_t_corner]        " << p_v_t_corner << std::endl;
+    std::cout << " >> [layout]              " << layout << std::endl;
+    std::cout << "---------------------------------------------\n" << std::endl;
+
+    instance->device_manager->setCurrentDeviceTarget(family, foundry, node, voltage_threshold, p_v_t_corner, layout);
+  }
 
   std::cout << "5" << std::endl;
 
@@ -89,16 +94,12 @@ QLSettingsManager* QLSettingsManager::getInstance(CompilerOpenFPGA_ql *compiler)
 }
 
 
-QLSettingsManager::QLSettingsManager(CompilerOpenFPGA_ql *compiler, QObject *parent)
-    : QObject(parent) {
-
-      this->compiler = compiler;
-}
+QLSettingsManager::QLSettingsManager(QObject *parent)
+    : QObject(parent) {}
 
 QLSettingsManager::~QLSettingsManager() {
   if(settings_manager_container_widget != nullptr) {
-    QLDeviceManager::getInstance(compiler)->giveupDeviceSelectionWidget();
-    delete settings_manager_container_widget;
+    settings_manager_container_widget->deleteLater();
   }
 }
 
@@ -106,20 +107,13 @@ QWidget* QLSettingsManager::createSettingsWidget() {
 
   std::cout << "6" << std::endl;
 
-  if(settings_manager_container_widget == nullptr) {
-    settings_manager_container_widget = new QTabWidget();
-    settings_manager_container_widget->setWindowTitle("Device/Task Settings");
+  if(settings_manager_container_widget != nullptr) {
+    settings_manager_container_widget->deleteLater();
   }
-  else {
-    // clear everything and recreate GUI (prevent us from deleting the Device Manager's Widget)
-    // this has more steps than needed, needs to be cleaned up!!!
-    QLDeviceManager::getInstance(compiler)->giveupDeviceSelectionWidget();
-    settings_manager_container_widget->clear();
-    qDeleteAll(settings_manager_container_widget->children());
-    delete settings_manager_container_widget;
-    settings_manager_container_widget = new QTabWidget();
-    settings_manager_container_widget->setWindowTitle("Device/Task Settings");    
-  }
+
+  settings_manager_container_widget = new QTabWidget();
+  settings_manager_container_widget->setWindowTitle("Task Settings");
+
 
   std::cout << "7" << std::endl;
 
@@ -235,7 +229,14 @@ QWidget* QLSettingsManager::createSettingsWidget() {
     stackedWidget->addWidget(categoryWidget);
 
     // correspondingly, add the category 'name' into the QListWidget
-    new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
+    QLabel* listItemWidgetLabel = new QLabel(QString::fromStdString(categoryId));
+    listItemWidgetLabel->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+    listItemWidgetLabel->setLineWidth(1);
+    QListWidgetItem* listItem = new QListWidgetItem();
+    listItem->setSizeHint(listItemWidgetLabel->sizeHint());
+    listWidget->addItem(listItem);
+    listWidget->setItemWidget(listItem, listItemWidgetLabel);
+    //new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
   }
 
   std::cout << "10" << std::endl;
@@ -308,9 +309,9 @@ QWidget* QLSettingsManager::createSettingsWidget() {
 
   std::cout << "11" << std::endl;
 
-  device_manager_widget = device_manager->createDeviceSelectionWidget();
-  std::cout << "12" << std::endl;
-  settings_manager_container_widget->addTab(device_manager_widget, QString::fromStdString("Device"));
+  //device_manager_widget = device_manager->createDeviceSelectionWidget();
+  //std::cout << "12" << std::endl;
+  //settings_manager_container_widget->addTab(device_manager_widget, QString::fromStdString("Device"));
   
   std::cout << "13" << std::endl;
   settings_manager_container_widget->addTab(settings_manager_widget, QString::fromStdString("Settings"));
@@ -327,10 +328,10 @@ void QLSettingsManager::saveJSONSettings() {
 
   // translate the GUI into JSON again:
   json settings_json_updated(settings_json);
-  std::filesystem::path settings_json_filepath_updated = std::filesystem::path(compiler->m_projManager->projectName() + ".updated.json");
+  std::filesystem::path settings_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + ".updated.json");
 
   json power_estimation_json_updated(power_estimation_json);
-  std::filesystem::path power_estimation_json_filepath_updated = std::filesystem::path(compiler->m_projManager->projectName() + "_power" + ".updated.json");
+  std::filesystem::path power_estimation_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power" + ".updated.json");
 
 
   // root of all the settings is the stackedWidget, which contains one 'page' 
@@ -562,24 +563,26 @@ void QLSettingsManager::saveJSONSettings() {
 
 void QLSettingsManager::parseJSONSettings() {
 
-  std::string settings_json_filename = compiler->m_projManager->projectName() + ".json";
+  std::string settings_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + ".json";
   settings_json_filepath = std::filesystem::path(settings_json_filename);
-  //std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-
-  std::ifstream settings_json_ifstream(settings_json_filepath.string());
-  settings_json = json::parse(settings_json_ifstream);
+  std::cout << "settings_json_filepath: " << settings_json_filepath.string() << std::endl;
+  if(FileUtils::FileExists(settings_json_filepath)) {
+    std::ifstream settings_json_ifstream(settings_json_filepath.string());
+    settings_json = json::parse(settings_json_ifstream);
+  }
+  else {}
 
 
   bool power_estimation_json_exists = false;
 
   power_estimation_json_filepath =
-      std::filesystem::path(compiler->m_projManager->projectPath())/std::string(compiler->m_projManager->projectName() + "_power.json");
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath())/std::string(GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power.json");
   if (FileUtils::FileExists(power_estimation_json_filepath)) {
       power_estimation_json_exists = true;
   }
   else {
       power_estimation_json_filepath = 
-      std::filesystem::path(compiler->m_projManager->projectPath())/std::filesystem::path("..")/std::string(compiler->m_projManager->projectName() + "_power.json");
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath())/std::filesystem::path("..")/std::string(GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power.json");
       if (FileUtils::FileExists(power_estimation_json_filepath)) {
         power_estimation_json_exists = true;
       }

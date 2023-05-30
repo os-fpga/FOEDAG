@@ -84,13 +84,13 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount,
 }
 
 void summaryForm::setDeviceInfo(const QStringList &listDevItem) {
-  if (listDevItem.count() > 3) {
-    auto itemIndex = 0;
-    for (const auto &txt : listDevItem) {
-      auto item = new QTableWidgetItem(txt);
-      item->setTextAlignment(Qt::AlignCenter);
-      ui->m_deviceInfoTable->setItem(0, itemIndex, item);
-      ++itemIndex;
-    }
-  }
+//   if (listDevItem.count() > 3) {
+//     auto itemIndex = 0;
+//     for (const auto &txt : listDevItem) {
+//       auto item = new QTableWidgetItem(txt);
+//       item->setTextAlignment(Qt::AlignCenter);
+//       ui->m_deviceInfoTable->setItem(0, itemIndex, item);
+//       ++itemIndex;
+//     }
+//   }
 }

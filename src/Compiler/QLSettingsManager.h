@@ -25,17 +25,15 @@ using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
-class CompilerOpenFPGA_ql;
-
 class QLSettingsManager : public QObject {
   Q_OBJECT
 
 public:
-  static QLSettingsManager* getInstance(CompilerOpenFPGA_ql *compiler);
+  static QLSettingsManager* getInstance();
   ~QLSettingsManager();
 
  private:
-  QLSettingsManager(CompilerOpenFPGA_ql *compiler, QObject *parent = nullptr);
+  QLSettingsManager(QObject *parent = nullptr);
 
 
  public:
@@ -49,7 +47,6 @@ public:
  public:
  static QLSettingsManager* instance;
  QLDeviceManager* device_manager = nullptr;
- CompilerOpenFPGA_ql* compiler;
 
  json settings_json;
  std::filesystem::path settings_json_filepath;

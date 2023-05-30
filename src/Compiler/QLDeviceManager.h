@@ -15,8 +15,6 @@
 
 namespace FOEDAG {
 
-class CompilerOpenFPGA_ql;
-
 class QLDeviceVariantLayout {
     public:
     std::string name;
@@ -55,12 +53,11 @@ class QLDeviceTarget  {
 class QLDeviceManager : public QObject {
   Q_OBJECT
  public:
-  static QLDeviceManager* getInstance(CompilerOpenFPGA_ql *compiler, bool initialize=false);
+  static QLDeviceManager* getInstance(bool initialize=false);
   ~QLDeviceManager();
 
  private:
-  QLDeviceManager(CompilerOpenFPGA_ql *compiler,
-                  QObject *parent = nullptr);
+  QLDeviceManager(QObject *parent = nullptr);
 
 
  public:
@@ -123,9 +120,6 @@ class QLDeviceManager : public QObject {
   // singleton instance of ourself
   static QLDeviceManager* instance;
 
-  // reference to the compiler instance
-  CompilerOpenFPGA_ql* compiler;
-
   // hieracrchical list of all devices available in the installation
   std::vector <QLDeviceType> device_list;
 
@@ -134,6 +128,7 @@ class QLDeviceManager : public QObject {
 
   // hold the current device_target
   QLDeviceTarget device_target;
+
 
   // GUI objects and state maintenance
   QWidget* device_manager_widget = nullptr;
