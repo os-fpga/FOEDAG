@@ -60,10 +60,7 @@ bool TclConsole::isCommandComplete(const QString &command) {
   return Tcl_CommandComplete(qPrintable(command));
 }
 
-void TclConsole::abort() {
-  m_tclWorker->abort();
-  emit aborted();
-}
+void TclConsole::abort() { emit aborted(); }
 
 void TclConsole::setErrorStream(std::ostream *err) {
   m_tclWorker->setErrStream(err);
