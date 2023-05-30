@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QListWidget>
+#include <QLayout>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -45,26 +46,18 @@ QLSettingsManager* QLSettingsManager::instance = NULL;
 
 QLSettingsManager* QLSettingsManager::getInstance() {
 
-  std::cout << "1" << std::endl;
-  // creation
   if(instance == NULL) {
 
     instance = new QLSettingsManager();
   }
 
-  std::cout << "2" << std::endl;
-
   if(instance->device_manager == nullptr) {
 
     instance->device_manager = QLDeviceManager::getInstance(true);
+    instance->device_manager->settings_manager = instance;
   }
 
-  std::cout << "3" << std::endl;
-
-  // init
   instance->parseJSONSettings();
-
-  std::cout << "4" << std::endl;
 
   if( !((instance->settings_json).empty()) ) {
 
@@ -75,20 +68,18 @@ QLSettingsManager* QLSettingsManager::getInstance() {
     std::string p_v_t_corner        = instance->settings_json["general"]["device"]["p_v_t_corner"]["default"];
     std::string layout              = instance->settings_json["general"]["device"]["layout"]["default"];
     
-    std::cout << "\n" << "---------------------------------------------" << std::endl;
-    std::cout << "current device_target from settings json:" << std::endl;
-    std::cout << " >> [family]              " << family << std::endl;
-    std::cout << " >> [foundry]             " << foundry << std::endl;
-    std::cout << " >> [node]                " << node << std::endl;
-    std::cout << " >> [voltage_threshold]   " << voltage_threshold << std::endl;
-    std::cout << " >> [p_v_t_corner]        " << p_v_t_corner << std::endl;
-    std::cout << " >> [layout]              " << layout << std::endl;
-    std::cout << "---------------------------------------------\n" << std::endl;
+    // std::cout << "\n" << "---------------------------------------------" << std::endl;
+    // std::cout << "current device_target from settings json:" << std::endl;
+    // std::cout << " >> [family]              " << family << std::endl;
+    // std::cout << " >> [foundry]             " << foundry << std::endl;
+    // std::cout << " >> [node]                " << node << std::endl;
+    // std::cout << " >> [voltage_threshold]   " << voltage_threshold << std::endl;
+    // std::cout << " >> [p_v_t_corner]        " << p_v_t_corner << std::endl;
+    // std::cout << " >> [layout]              " << layout << std::endl;
+    // std::cout << "---------------------------------------------\n" << std::endl;
 
     instance->device_manager->setCurrentDeviceTarget(family, foundry, node, voltage_threshold, p_v_t_corner, layout);
   }
-
-  std::cout << "5" << std::endl;
 
   return instance;
 }
@@ -98,26 +89,42 @@ QLSettingsManager::QLSettingsManager(QObject *parent)
     : QObject(parent) {}
 
 QLSettingsManager::~QLSettingsManager() {
-  if(settings_manager_container_widget != nullptr) {
-    settings_manager_container_widget->deleteLater();
+  if(settings_manager_widget != nullptr) {
+    settings_manager_widget->deleteLater();
   }
 }
 
 QWidget* QLSettingsManager::createSettingsWidget() {
 
-  std::cout << "6" << std::endl;
-
-  if(settings_manager_container_widget != nullptr) {
-    settings_manager_container_widget->deleteLater();
+  if(settings_manager_widget != nullptr) {
+    settings_manager_widget->deleteLater();
   }
 
-  settings_manager_container_widget = new QTabWidget();
-  settings_manager_container_widget->setWindowTitle("Task Settings");
-
-
-  std::cout << "7" << std::endl;
-
   settings_manager_widget = new QWidget();
+  settings_manager_widget->setWindowTitle("Task Settings");
+
+  populateSettingsWidget();
+
+  return settings_manager_widget;
+}
+
+
+void QLSettingsManager::updateSettingsWidget() {
+
+  if(settings_manager_widget != nullptr) {
+
+    // cleanup inside:
+    qDeleteAll(settings_manager_widget->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly));
+    QLayout* layout = settings_manager_widget->layout();
+    delete layout;
+
+    // repopulate:
+    populateSettingsWidget();
+  }
+}
+
+
+void QLSettingsManager::populateSettingsWidget() {
 
   QWidget* dlg = settings_manager_widget;
 
@@ -129,8 +136,6 @@ QWidget* QLSettingsManager::createSettingsWidget() {
   dlg_toplevellayout->addLayout(dlg_widgetslayout); // first the settings stuff
   dlg_toplevellayout->addLayout(dlg_buttonslayout); // second a row of buttons for actions
   dlg->setLayout(dlg_toplevellayout);
-
-  std::cout << "8" << std::endl;
 
   // json structure:
   //  category0
@@ -159,8 +164,6 @@ QWidget* QLSettingsManager::createSettingsWidget() {
   if(!power_estimation_json.empty()) {
     rootJson.update(power_estimation_json);
   }
-
-  std::cout << "9" << std::endl;
 
   for (auto [categoryId, categoryJson] : rootJson.items()) {
 
@@ -239,50 +242,9 @@ QWidget* QLSettingsManager::createSettingsWidget() {
     //new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
   }
 
-  std::cout << "10" << std::endl;
-  
-  // // Power JSON Settings also should be added into the Settings Menu
-  // if(!power_estimation_json.empty()) {
-
-  //     QTabWidget* categoryWidget = new QTabWidget(); // power
-  //     categoryWidget->setProperty("settings_category_id", QString::fromStdString("power"));
-
-  //     QWidget* subcategoryWidget = new QWidget(); // power_inputs
-  //     QVBoxLayout* subcategoryWidgetlayout = new QVBoxLayout();
-  //     subcategoryWidgetlayout->setAlignment(Qt::AlignTop);
-  //     subcategoryWidget->setLayout(subcategoryWidgetlayout);
-  //     subcategoryWidget->setProperty("settings_subcategory_id", QString::fromStdString("power_inputs"));
-
-  //     for (auto [widgetId, widgetJson] : power_estimation_json["power_inputs"].items()) {
-
-  //         QWidget* containerWidget = new QWidget();
-  //         QHBoxLayout* containerWidgetHBoxLayout = new QHBoxLayout();
-  //         containerWidget->setLayout(containerWidgetHBoxLayout);
-  //         containerWidget->setProperty("settings_json_id", QString::fromStdString(widgetId));
-  //         containerWidget->setProperty("settings_json_value_widgetType", QString::fromStdString(widgetJson["widgetType"].get<std::string>()));
-
-  //         QLabel* label = new QLabel(QString::fromStdString(widgetId));
-  //         std::string valuestring = std::to_string(widgetJson["default"].get<double>());
-  //         QLineEdit* lineEdit = new QLineEdit(QString::fromStdString(valuestring));
-
-  //         containerWidgetHBoxLayout->addWidget(label);
-  //         containerWidgetHBoxLayout->addStretch();
-  //         containerWidgetHBoxLayout->addWidget(lineEdit);
-
-  //         subcategoryWidgetlayout->addWidget(containerWidget);
-  //     }
-
-  //     categoryWidget->addTab(subcategoryWidget, QString::fromStdString("power_inputs"));
-  //     stackedWidget->addWidget(categoryWidget);
-  //     new QListWidgetItem(QString::fromStdString("power"), listWidget);
-  // }
-
-
-
   // when a 'category' in the QListView is selected, corresponding 'page' widget in the QStackedWidget should be shown.
   QObject::connect(listWidget, QOverload<int>::of(&QListWidget::currentRowChanged),
             stackedWidget, &QStackedWidget::setCurrentIndex);
-
 
   // container widget for all settings, add the QListView(left side), and then QStackedWidget(right side)
   dlg_widgetslayout->addWidget(listWidget);
@@ -291,34 +253,93 @@ QWidget* QLSettingsManager::createSettingsWidget() {
   listWidget->setCurrentRow(0);
 
   // make the buttons for the actions in the settings dialog
-  QPushButton *button_loadfromjson = new QPushButton("Reload");
-  button_loadfromjson->setToolTip("Reload everything from the JSON file");
-  QPushButton *button_savetojson = new QPushButton("Save");
-  button_savetojson->setToolTip("Save everything to the JSON file");
-  QPushButton *button_cancel = new QPushButton("Cancel");
-  button_cancel->setToolTip("Discard any modifications to the current session");
-  QPushButton *button_save = new QPushButton("Apply");
-  button_save->setToolTip("Keep any modifications for the current session");
-  connect(button_save, SIGNAL(released()), this, SLOT(handleSaveButtonClicked()));
+  QPushButton *button_reset = new QPushButton("Reset");
+  button_reset->setToolTip("Discard any modifications, reload from current settings JSON");
+  QObject::connect(button_reset, &QPushButton::released, this, &QLSettingsManager::handleResetButtonClicked);
   
-  dlg_buttonslayout->addWidget(button_loadfromjson);
-  dlg_buttonslayout->addWidget(button_savetojson);
+  QPushButton *button_apply = new QPushButton("Apply");
+  button_apply->setToolTip("Apply the modifications to the current settings JSON");
+  QObject::connect(button_apply, &QPushButton::released, this, &QLSettingsManager::handleApplyButtonClicked);
+  
   dlg_buttonslayout->addStretch();
-  dlg_buttonslayout->addWidget(button_cancel);
-  dlg_buttonslayout->addWidget(button_save);
+  dlg_buttonslayout->addWidget(button_reset);
+  dlg_buttonslayout->addWidget(button_apply);
+}
 
-  std::cout << "11" << std::endl;
 
-  //device_manager_widget = device_manager->createDeviceSelectionWidget();
-  //std::cout << "12" << std::endl;
-  //settings_manager_container_widget->addTab(device_manager_widget, QString::fromStdString("Device"));
+void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target) {
+
+  // this is called from QLDeviceManager (GUI), when user changes/sets the device_target!
+  // opened project -> change of device_target
+  // new project -> set the device_target (no json file(s) yet!) TODO.
+
+  if(settings_json.empty() && power_estimation_json.empty()) {
+    // new project use-case
+  }
+  else {
+    // check the current device_target using the settings json:
+    // std::string family              = settings_json["general"]["device"]["family"]["default"];
+    // std::string foundry             = settings_json["general"]["device"]["foundry"]["default"];
+    // std::string node                = settings_json["general"]["device"]["node"]["default"];
+    // std::string voltage_threshold   = settings_json["general"]["device"]["voltage_threshold"]["default"];
+    // std::string p_v_t_corner        = settings_json["general"]["device"]["p_v_t_corner"]["default"];
+    // std::string layout              = settings_json["general"]["device"]["layout"]["default"];
+
+    std::string family_updated              = device_target.device_variant.family;
+    std::string foundry_updated             = device_target.device_variant.foundry;
+    std::string node_updated                = device_target.device_variant.node;
+    std::string voltage_threshold_updated   = device_target.device_variant.voltage_threshold;
+    std::string p_v_t_corner_updated        = device_target.device_variant.p_v_t_corner;
+    std::string layout_updated              = device_target.device_variant_layout.name;
+
+    // TODO: check if we need to reload the settings/power json files (if same family-foundry-node, it may not be needed)
+
+    std::filesystem::path root_device_data_dir_path = 
+      GlobalSession->Context()->DataPath();
   
-  std::cout << "13" << std::endl;
-  settings_manager_container_widget->addTab(settings_manager_widget, QString::fromStdString("Settings"));
+    std::filesystem::path device_data_dir_path = root_device_data_dir_path / family_updated / foundry_updated / node_updated;
 
-  std::cout << "14" << std::endl;
-  
-  return settings_manager_container_widget;
+    std::error_code ec;
+    std::filesystem::path settings_json_template_filepath = device_data_dir_path / "settings_template.json";
+    std::filesystem::copy_file(settings_json_template_filepath,
+                               settings_json_filepath,
+                               std::filesystem::copy_options::overwrite_existing,
+                               ec);
+    if(ec) {
+      // error
+      std::cout << std::string("failed to copy: ") + settings_json_template_filepath.string() << std::endl;
+      return;
+    }
+
+    std::filesystem::path power_json_template_filepath = device_data_dir_path / "power_template.json";
+    std::filesystem::copy_file(power_json_template_filepath,
+                               power_estimation_json_filepath,
+                               std::filesystem::copy_options::overwrite_existing,
+                               ec);
+    if(ec) {
+      // error
+      std::cout << std::string("failed to copy: ") + power_json_template_filepath.string() << std::endl;
+      return;
+    }
+
+    // re-parse the JSON Settings now
+    parseJSONSettings();
+
+    // update the device_target in the template json:
+    settings_json["general"]["device"]["family"]["default"] = family_updated;
+    settings_json["general"]["device"]["foundry"]["default"] = foundry_updated;
+    settings_json["general"]["device"]["node"]["default"] = node_updated;
+    settings_json["general"]["device"]["voltage_threshold"]["default"] = voltage_threshold_updated;
+    settings_json["general"]["device"]["p_v_t_corner"]["default"] = p_v_t_corner_updated;
+    settings_json["general"]["device"]["layout"]["default"] = layout_updated;
+
+    // save the updated settings_json:
+    std::ofstream settings_json_ofstream(settings_json_filepath.string());
+    settings_json_ofstream << std::setw(4) << settings_json << std::endl;
+
+    // update *existing* GUI widget
+    updateSettingsWidget();
+  }
 }
 
 
@@ -429,9 +450,7 @@ void QLSettingsManager::saveJSONSettings() {
           }
         }
       }
-
     }
-
   }
 
   // compare with original settings json, and if there are differences, we need to initiate
@@ -445,7 +464,6 @@ void QLSettingsManager::saveJSONSettings() {
 
   // std::cout << "power_estimation_json_patch" << std::endl;
   // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
-
 
   // the patch is a json array of "diffs", each diff being:
   // {
@@ -497,6 +515,10 @@ void QLSettingsManager::saveJSONSettings() {
   //   std::cout << change << std::endl;
   //   std::cout << "--------\n" << std::endl;
   // }
+
+  if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
+    return;
+  }
 
   QDialog dialog;
   dialog.setWindowTitle("Settings Changes!");
@@ -553,11 +575,8 @@ void QLSettingsManager::saveJSONSettings() {
   }
   else if (result == QDialog::Rejected)
   {
-      // Do something on Cancel button click
       // std::cout << "QDialog::Rejected" << std::endl;
   }
-
-
 }
 
 
@@ -570,7 +589,9 @@ void QLSettingsManager::parseJSONSettings() {
     std::ifstream settings_json_ifstream(settings_json_filepath.string());
     settings_json = json::parse(settings_json_ifstream);
   }
-  else {}
+  else {
+    settings_json = json::object();
+  }
 
 
   bool power_estimation_json_exists = false;
@@ -592,11 +613,21 @@ void QLSettingsManager::parseJSONSettings() {
       std::ifstream power_estimation_json_f(power_estimation_json_filepath.string());
       power_estimation_json = json::parse(power_estimation_json_f);
   }
+  else {
+    power_estimation_json = json::object();
+  }
 }
 
 
-void QLSettingsManager::handleSaveButtonClicked() {
+void QLSettingsManager::handleApplyButtonClicked() {
   saveJSONSettings();
+}
+
+
+void QLSettingsManager::handleResetButtonClicked() {
+
+  parseJSONSettings();
+  updateSettingsWidget();
 }
 
 } // namespace FOEDAG

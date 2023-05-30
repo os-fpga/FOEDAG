@@ -30,6 +30,7 @@ class QLSettingsManager : public QObject {
 
 public:
   static QLSettingsManager* getInstance();
+//   static QLSettingsManager* getCurrentInstance();
   ~QLSettingsManager();
 
  private:
@@ -38,11 +39,16 @@ public:
 
  public:
  QWidget* createSettingsWidget();
+ void updateSettingsWidget();
+ void populateSettingsWidget();
+ 
+ void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
  void parseJSONSettings();
  void saveJSONSettings();
 
  public slots:
- void handleSaveButtonClicked();
+ void handleApplyButtonClicked();
+ void handleResetButtonClicked();
 
  public:
  static QLSettingsManager* instance;
@@ -55,8 +61,6 @@ public:
  std::filesystem::path power_estimation_json_filepath;
 
  // GUI elements
- QTabWidget* settings_manager_container_widget = nullptr;
- QWidget* device_manager_widget = nullptr; // caution: this is owned by QLDeviceManager.
  QWidget* settings_manager_widget = nullptr;
  QStackedWidget* stackedWidget; // each 'category' is a 'page'(represented by a QTabWidget) in the stackedWidget
  QListWidget* listWidget;   // each category is an entry in the listwidget

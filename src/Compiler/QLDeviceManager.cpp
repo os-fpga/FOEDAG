@@ -30,6 +30,7 @@
 #include "Utils/LogUtils.h"
 #include "Utils/StringUtils.h"
 #include "MainWindow/Session.h"
+#include "QLSettingsManager.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -477,9 +478,13 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
         m_button_reset->setDisabled(false);
         m_button_apply->setDisabled(false);
 
-        m_message_label->setText("Device Selection has changed!\n\nClick 'Apply' to set the new Device\nClick 'Reset' to reset to the original device");
+        m_message_label->setText("Device Selection has changed!\n\n"
+                                 "Click 'Apply' to set the new Device\n"
+                                 "Click 'Reset' to reset to the original device\n\n"
+                                 "Task Settings will not reflect new Device\n"
+                                 "until 'Apply' is executed!");
         m_message_label->show();
-        device_manager_widget->adjustSize();
+        // device_manager_widget->adjustSize();
       }
       else {
         // current device_target of the project is the same as the one selected in the GUI, no changes to apply.
@@ -496,7 +501,10 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
       // so that we can do rest of the settings for selected device target...
       m_button_apply->setDisabled(false);
 
-      m_message_label->setText("New Device Selection!\n\nClick 'Apply' to set the new Device!\n");
+      m_message_label->setText("New Device Selection!\n\n"
+                               "Click 'Apply' to set the new Device!\n\n"
+                               "Task Settings will not reflect new Device\n"
+                               "until 'Apply' is executed!");
       m_message_label->show();
     }
   }
@@ -515,11 +523,12 @@ void QLDeviceManager::applyButtonClicked() {
   // device_target should be set to device_target_selected
   setCurrentDeviceTarget(device_target_selected);
   
-  // this should also be triggering the reset of the 
-  // settings JSON, using the 'template' JSON from the respective
-  // device_type's directory...
-  // TODO...
-
+  // signal to the QLSettingsManager to update the settings JSON
+  // to reflect the device_target selection!
+  // change this to emit signal later...
+  if(settings_manager != nullptr) {
+    settings_manager->updateJSONSettingsForDeviceTarget(device_target);
+  }
 }
 
 
@@ -845,7 +854,7 @@ std::vector<QLDeviceVariantLayout> QLDeviceManager::listDeviceVariantLayouts(std
   std::filesystem::path root_device_data_dir_path = 
       GlobalSession->Context()->DataPath();
   
-  std::filesystem::path device_data_dir_path = root_device_data_dir_path / family / foundry / node;;
+  std::filesystem::path device_data_dir_path = root_device_data_dir_path / family / foundry / node;
 
   std::filesystem::path device_variant_dir = device_data_dir_path / voltage_threshold / p_v_t_corner;
 

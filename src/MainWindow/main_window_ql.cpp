@@ -1250,14 +1250,8 @@ void MainWindow::reloadSettings() {
     settings->loadSettings(settingsFiles);
   }
 
-//   QLDeviceManager* qlDeviceManagerInstance = QLDeviceManager::getInstance(true);
-//   if(!qlDeviceManagerInstance) {
-//       // could not get instance handle?
-//   }
-//   else {
-//       std::cout << "reloadSettings() qlDeviceManagerInstance" << std::endl;
-//   }
 
+  // QLSettingsManager also instantiates the QLDeviceManager internally
   QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
   if(!qlSettingsManagerInstance) {
       // could not get instance handle?

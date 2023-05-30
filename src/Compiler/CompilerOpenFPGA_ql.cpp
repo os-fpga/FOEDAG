@@ -913,6 +913,13 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
                                 std::regex::icase))) {
             source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
           }
+
+          // include template json files for copy
+          if (std::regex_match(dir_entry.path().filename().string(),
+                                std::regex(".+_template\\.json",
+                                std::regex::icase))) {
+            source_device_data_file_list_to_copy.push_back(dir_entry.path().string());
+          }
       }
 
       if(ec) {

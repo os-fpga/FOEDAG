@@ -15,6 +15,8 @@
 
 namespace FOEDAG {
 
+class QLSettingsManager;
+
 class QLDeviceVariantLayout {
     public:
     std::string name;
@@ -119,6 +121,9 @@ class QLDeviceManager : public QObject {
  public:
   // singleton instance of ourself
   static QLDeviceManager* instance;
+
+  // hold a reference to singleton QLSettingsManager
+  QLSettingsManager* settings_manager = nullptr;
 
   // hieracrchical list of all devices available in the installation
   std::vector <QLDeviceType> device_list;
