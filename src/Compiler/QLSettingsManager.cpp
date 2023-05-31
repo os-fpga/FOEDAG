@@ -131,22 +131,39 @@ void QLSettingsManager::populateSettingsWidget() {
   dlg->setWindowTitle("Settings");
 
   QVBoxLayout* dlg_toplevellayout = new QVBoxLayout();
-  QHBoxLayout* dlg_widgetslayout = new QHBoxLayout();
-  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
-  dlg_toplevellayout->addLayout(dlg_widgetslayout); // first the settings stuff
-  dlg_toplevellayout->addLayout(dlg_buttonslayout); // second a row of buttons for actions
   dlg->setLayout(dlg_toplevellayout);
 
-  // json structure:
+  QVBoxLayout* dlg_titleDetailLayout = new QVBoxLayout();
+  QLabel* dlg_titleLabel = new QLabel("Task Settings");
+  QFont dlg_titleLabelFont;
+  dlg_titleLabelFont.setWeight(QFont::Bold);
+  dlg_titleLabelFont.setStyleHint(QFont::SansSerif);
+  dlg_titleLabelFont.setPointSize(12);
+  dlg_titleLabel->setFont(dlg_titleLabelFont);
+  dlg_titleLabel->setWordWrap(true);
+
+  QLabel* dlg_detailLabel = new QLabel("Set the parameter values for all the Tasks (synth, pack, place ...)");
+  dlg_detailLabel->setWordWrap(true);
+
+  dlg_titleDetailLayout->addWidget(dlg_titleLabel);
+  dlg_titleDetailLayout->addSpacing(15);
+  dlg_titleDetailLayout->addWidget(dlg_detailLabel);
+
+  // json structure to be followed:
   //  category0
-  //    subcategory0
-  //      param0 {}
-  //      param1 {}
-  //    subcategory1
-  //      param2 {}
-  //      param3 {}
+  //    subcategory0_0
+  //      param0_0_0 {}
+  //      param0_0_1 {}
+  //    subcategory0_1
+  //      param0_1_0 {}
+  //      param0_1_1 {}
   // category1
+  //    subcategory1_0
+  //      param1_0_0 {}
+  //      param1_0_1 {}
   //    ... and so on.
+  // each param *must* specify its properties as well:
+  // TODO document.
 
   // 1. settings GUI representation, top-level -> Widget
   // 2. split layout into 
@@ -157,6 +174,7 @@ void QLSettingsManager::populateSettingsWidget() {
   //    each of the tabs in it represents a subcategory
   //    so, all the params in a subcategory will be displayed inside a 'tab' which is the 'subcategory widget'
 
+  QHBoxLayout* dlg_widgetslayout = new QHBoxLayout();
   stackedWidget = new QStackedWidget();
   listWidget = new QListWidget();
 
@@ -252,6 +270,8 @@ void QLSettingsManager::populateSettingsWidget() {
 
   listWidget->setCurrentRow(0);
 
+
+  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
   // make the buttons for the actions in the settings dialog
   QPushButton *button_reset = new QPushButton("Reset");
   button_reset->setToolTip("Discard any modifications, reload from current settings JSON");
@@ -264,6 +284,10 @@ void QLSettingsManager::populateSettingsWidget() {
   dlg_buttonslayout->addStretch();
   dlg_buttonslayout->addWidget(button_reset);
   dlg_buttonslayout->addWidget(button_apply);
+
+  dlg_toplevellayout->addLayout(dlg_titleDetailLayout);
+  dlg_toplevellayout->addLayout(dlg_widgetslayout); // first the settings stuff
+  dlg_toplevellayout->addLayout(dlg_buttonslayout); // second a row of buttons for actions
 }
 
 
@@ -278,12 +302,12 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
   }
   else {
     // check the current device_target using the settings json:
-    // std::string family              = settings_json["general"]["device"]["family"]["default"];
-    // std::string foundry             = settings_json["general"]["device"]["foundry"]["default"];
-    // std::string node                = settings_json["general"]["device"]["node"]["default"];
-    // std::string voltage_threshold   = settings_json["general"]["device"]["voltage_threshold"]["default"];
-    // std::string p_v_t_corner        = settings_json["general"]["device"]["p_v_t_corner"]["default"];
-    // std::string layout              = settings_json["general"]["device"]["layout"]["default"];
+    std::string family              = settings_json["general"]["device"]["family"]["default"];
+    std::string foundry             = settings_json["general"]["device"]["foundry"]["default"];
+    std::string node                = settings_json["general"]["device"]["node"]["default"];
+    std::string voltage_threshold   = settings_json["general"]["device"]["voltage_threshold"]["default"];
+    std::string p_v_t_corner        = settings_json["general"]["device"]["p_v_t_corner"]["default"];
+    std::string layout              = settings_json["general"]["device"]["layout"]["default"];
 
     std::string family_updated              = device_target.device_variant.family;
     std::string foundry_updated             = device_target.device_variant.foundry;
@@ -293,6 +317,17 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
     std::string layout_updated              = device_target.device_variant_layout.name;
 
     // TODO: check if we need to reload the settings/power json files (if same family-foundry-node, it may not be needed)
+    if(family == family_updated &&
+       foundry == foundry_updated &&
+       node == node_updated) {
+         
+         // same template can be re-used, so no need to reload fresh JSON?
+         // if so, return from here: TODO decide?
+        //  return;
+
+        // dummy usage to avoid warning
+        if(p_v_t_corner.empty() && layout.empty()){}
+    }
 
     std::filesystem::path root_device_data_dir_path = 
       GlobalSession->Context()->DataPath();

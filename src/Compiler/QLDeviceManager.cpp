@@ -2,6 +2,8 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QFont>
+#include <QSpacerItem>
 #include <QPalette>
 #include <QDialog>
 #include <QVBoxLayout>
@@ -73,20 +75,7 @@ QLDeviceManager::~QLDeviceManager() {
 
 QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
-  std::cout << "QLDeviceManager::createDeviceSelectionWidget()++" << std::endl;
-
-  // always create a new widget, so many people can use.
-  // it will always be owned by someone else, so should be ok.
   device_manager_widget = new QWidget();
-
-  // // GUI element creation only
-  // if(device_manager_widget == nullptr) {
-  //   device_manager_widget = new QWidget();
-  // }
-  // else {
-  //   // clear everything and recreate GUI
-  //   qDeleteAll(device_manager_widget->children());
-  // }
 
   QWidget* dlg = device_manager_widget;
 
@@ -95,12 +84,37 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
   QVBoxLayout* dlg_toplevellayout = new QVBoxLayout();
   dlg->setLayout(dlg_toplevellayout);
 
+  QVBoxLayout* dlg_titleDetailLayout = new QVBoxLayout();
+  QLabel* dlg_titleLabel = new QLabel("Device Selection");
+  QFont dlg_titleLabelFont;
+  dlg_titleLabelFont.setWeight(QFont::Bold);
+  dlg_titleLabelFont.setStyleHint(QFont::SansSerif);
+  dlg_titleLabelFont.setPointSize(12);
+  dlg_titleLabel->setFont(dlg_titleLabelFont);
+  dlg_titleLabel->setWordWrap(true);
+
+  QLabel* dlg_detailLabel = new QLabel("Select the target device for this project");
+  dlg_detailLabel->setWordWrap(true);
+
+  dlg_titleDetailLayout->addWidget(dlg_titleLabel);
+  dlg_titleDetailLayout->addSpacing(15);
+  dlg_titleDetailLayout->addWidget(dlg_detailLabel);
+
+
+  QFrame* dlg_selectionFrame = new QFrame();
+  dlg_selectionFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+  QVBoxLayout* dlg_selectionFrameLayout = new QVBoxLayout();
+  dlg_selectionFrame->setLayout(dlg_selectionFrameLayout);
   QHBoxLayout* dlg_familylayout = new QHBoxLayout();
   QHBoxLayout* dlg_foundrynodelayout = new QHBoxLayout();
   QHBoxLayout* dlg_voltage_thresholdlayout = new QHBoxLayout();
   QHBoxLayout* dlg_p_v_t_cornerlayout = new QHBoxLayout();
   QHBoxLayout* dlg_layoutlayout = new QHBoxLayout();
-  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
+  dlg_selectionFrameLayout->addLayout(dlg_familylayout);
+  dlg_selectionFrameLayout->addLayout(dlg_foundrynodelayout);
+  dlg_selectionFrameLayout->addLayout(dlg_voltage_thresholdlayout);
+  dlg_selectionFrameLayout->addLayout(dlg_p_v_t_cornerlayout);
+  dlg_selectionFrameLayout->addLayout(dlg_layoutlayout);
 
   QLabel* m_combobox_family_label = new QLabel("Family");
   QLabel* m_combobox_foundry_node_label = new QLabel("Foundry-Node");
@@ -201,6 +215,8 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
   //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
   m_message_label->hide();
 
+
+  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
   m_button_reset = new QPushButton("Reset");
   m_button_reset->setToolTip("Reset Device Selection as in the Settings JSON");
   m_button_reset->setDisabled(true);
@@ -221,11 +237,9 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
   dlg_buttonslayout->addWidget(m_button_reset);
   dlg_buttonslayout->addWidget(m_button_apply);
 
-  dlg_toplevellayout->addLayout(dlg_familylayout);
-  dlg_toplevellayout->addLayout(dlg_foundrynodelayout);
-  dlg_toplevellayout->addLayout(dlg_voltage_thresholdlayout);
-  dlg_toplevellayout->addLayout(dlg_p_v_t_cornerlayout);
-  dlg_toplevellayout->addLayout(dlg_layoutlayout);
+  dlg_toplevellayout->addLayout(dlg_titleDetailLayout);
+  dlg_toplevellayout->addSpacing(20);
+  dlg_toplevellayout->addWidget(dlg_selectionFrame);
   dlg_toplevellayout->addWidget(m_message_label);
   dlg_toplevellayout->addLayout(dlg_buttonslayout);
   dlg_toplevellayout->addStretch();
