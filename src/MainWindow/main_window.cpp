@@ -334,6 +334,7 @@ void MainWindow::newDesignCreated(const QString& design) {
     sourcesForm->ProjectSettingsActions()->setEnabled(!design.isEmpty());
   simulationMenu->setEnabled(!design.isEmpty());
   updateTaskTable();
+  compressProjectAction->setEnabled(!design.isEmpty());
 }
 
 void MainWindow::chatGpt(const QString& request, const QString& content) {
@@ -1354,7 +1355,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
   updateTaskTable();
-  compressProjectAction->setEnabled(!strProject.isEmpty());
 }
 
 void MainWindow::clearDockWidgets() {
