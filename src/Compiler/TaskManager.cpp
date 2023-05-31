@@ -353,9 +353,7 @@ void TaskManager::runNext(TaskStatus status) {
     m_runStack.clear();
   }
 
-  if (m_runStack.isEmpty()) {
-    emit done();
-  }
+  if (this->status() != TaskStatus::InProgress) emit done();
 }
 
 void TaskManager::initCleanTasks() {

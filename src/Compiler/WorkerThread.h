@@ -67,20 +67,17 @@ class WorkerThread {
     m_thread =
         // pack args as tuple for capturing
         new std::thread([&, args = std::make_tuple(std::forward<Args>(args)...),
-                         eventLoop, this]() mutable {
+                         eventLoop]() mutable {
           // pass arguments to callback
-          std::apply(
-              [&result, this, fn](auto&&... args) {
-                result = fn(args...);
-                m_compiler->finish();
-              },
-              std::move(args));
+          std::apply([&result, fn](auto&&... args) { result = fn(args...); },
+                     std::move(args));
           if (eventLoop) eventLoop->quit();
         });
     if (eventLoop)
       eventLoop->exec();
     else
       m_thread->join();  // batch mode
+    m_compiler->finish();
     delete eventLoop;
     return result;
   }
