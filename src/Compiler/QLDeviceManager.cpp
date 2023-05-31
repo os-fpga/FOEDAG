@@ -48,7 +48,7 @@ QLDeviceManager* QLDeviceManager::getInstance(bool initialize) {
 
   // creation
   if(instance == nullptr) {
-    std::cout << "create new QLDeviceManager()" << std::endl;
+    // std::cout << "create new QLDeviceManager()" << std::endl;
     instance = new QLDeviceManager();
   }
 
@@ -246,8 +246,6 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
   // trigger a self UI update according to the currently selected device:
   setCurrentDeviceTarget(device_target);
-
-  std::cout << "QLDeviceManager::createDeviceSelectionWidget()--" << std::endl;
 
   return dlg;
 }

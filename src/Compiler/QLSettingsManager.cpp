@@ -94,6 +94,47 @@ QLSettingsManager::~QLSettingsManager() {
   }
 }
 
+
+void QLSettingsManager::reloadJSONSettings() {
+
+  instance->parseJSONSettings();
+}
+
+std::string QLSettingsManager::getStringValue(std::string category, std::string subcategory, std::string parameter) {
+  
+  std::string value;
+
+  json& json_ref = instance->combined_json;
+
+  if( json_ref.contains(category) &&
+      json_ref[category].contains(subcategory) &&
+      json_ref[category][subcategory].contains(parameter) ) {
+
+    value = json_ref[category][subcategory][parameter]["default"].get<std::string>();
+  }
+
+  return value;
+}
+
+
+const json* QLSettingsManager::getJson(std::string category, std::string subcategory, std::string parameter) {
+
+   return nullptr;
+}
+
+
+const json* QLSettingsManager::getJson(std::string category, std::string subcategory) {
+
+   return nullptr;
+}
+
+
+const json* QLSettingsManager::getJson(std::string category) {
+
+   return nullptr;
+}
+
+
 QWidget* QLSettingsManager::createSettingsWidget() {
 
   if(settings_manager_widget != nullptr) {
@@ -619,7 +660,7 @@ void QLSettingsManager::parseJSONSettings() {
 
   std::string settings_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + ".json";
   settings_json_filepath = std::filesystem::path(settings_json_filename);
-  std::cout << "settings_json_filepath: " << settings_json_filepath.string() << std::endl;
+  // std::cout << "settings_json_filepath: " << settings_json_filepath.string() << std::endl;
   if(FileUtils::FileExists(settings_json_filepath)) {
     std::ifstream settings_json_ifstream(settings_json_filepath.string());
     settings_json = json::parse(settings_json_ifstream);
@@ -650,6 +691,12 @@ void QLSettingsManager::parseJSONSettings() {
   }
   else {
     power_estimation_json = json::object();
+  }
+
+  // combine both into single json for easy access internally:
+  combined_json = settings_json;
+  if(!power_estimation_json.empty()) {
+    combined_json.update(power_estimation_json);
   }
 }
 

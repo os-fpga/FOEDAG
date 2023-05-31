@@ -2030,7 +2030,8 @@ bool Compiler::Compile(Action action) {
 
 void Compiler::Stop() {
   m_stop = true;
-  ErrorMessage("Compilation was interrupted by user");
+  //ErrorMessage("Compilation was interrupted by user");
+  Message("Compilation was stopped by user"); // KK: look into this in GUI mode??
   if (m_process) m_process->terminate();
 }
 

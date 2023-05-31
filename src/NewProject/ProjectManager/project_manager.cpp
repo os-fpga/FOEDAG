@@ -16,6 +16,7 @@
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "Utils/sequential_map.h"
+#include "Compiler/QLSettingsManager.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -1493,7 +1494,18 @@ int ProjectManager::deleteRun(const QString& strRunName) {
   return ret;
 }
 
-void ProjectManager::FinishedProject() { emit saveFile(); }
+void ProjectManager::FinishedProject() {
+  // QLSettingsManager also instantiates the QLDeviceManager internally
+  QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
+  if(!qlSettingsManagerInstance) {
+      // could not get instance handle?
+      std::cout << "ProjectManager::FinishedProject() qlSettingsManagerInstance is NULL!\n\n" << std::endl;
+  }
+  else {
+    //   std::cout << "ProjectManager::FinishedProject() qlSettingsManagerInstance\n\n" << std::endl;
+  }
+    emit saveFile(); 
+}
 
 int ProjectManager::CreateProjectDir() {
   int ret = 0;

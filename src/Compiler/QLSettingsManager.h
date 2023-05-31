@@ -30,7 +30,6 @@ class QLSettingsManager : public QObject {
 
 public:
   static QLSettingsManager* getInstance();
-//   static QLSettingsManager* getCurrentInstance();
   ~QLSettingsManager();
 
  private:
@@ -46,6 +45,12 @@ public:
  void parseJSONSettings();
  void saveJSONSettings();
 
+ static void reloadJSONSettings();
+ static std::string getStringValue(std::string category, std::string subcategory, std::string parameter);
+ static const json* getJson(std::string category, std::string subcategory, std::string parameter);
+ static const json* getJson(std::string category, std::string subcategory);
+ static const json* getJson(std::string category);
+
  public slots:
  void handleApplyButtonClicked();
  void handleResetButtonClicked();
@@ -59,6 +64,8 @@ public:
 
  json power_estimation_json;
  std::filesystem::path power_estimation_json_filepath;
+
+ json combined_json;
 
  // GUI elements
  QWidget* settings_manager_widget = nullptr;

@@ -2428,11 +2428,8 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   }
 #endif // #if UPSTREAM_UNUSED
 
-  // read settings -> SynthArray of Objects
-  std::string settings_json_filename = m_projManager->projectName() + ".json";
-  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  Settings * currentSettings = GetSession()->GetSettings();
-  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -2685,8 +2682,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
         ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}", "-auto-top");
   }
 
-  json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
-  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
+  std::string family = QLSettingsManager::getStringValue("general", "device", "family");
 
   if(family == "QLF_K6N10") {
     yosysScript = ReplaceAll(yosysScript, "${FAMILY}", std::string("qlf_k6n10f"));
@@ -2705,75 +2701,62 @@ bool CompilerOpenFPGA_ql::Synthesize() {
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
 
-  
 
   // use settings to populate yosys_options
   std::string yosys_options;
-  json settings_yosys_general_obj = currentSettings->getJson()["yosys"]["general"];
 
-
-  if( (settings_yosys_general_obj.contains("verilog")) && 
-      (settings_yosys_general_obj["verilog"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "verilog") == "checked" ) {
 
     yosys_options += " -verilog " + std::string(m_projManager->projectName() + "_post_synth.v");
   }
 
-  if( (settings_yosys_general_obj.contains("no_abc_opt")) && 
-      (settings_yosys_general_obj["no_abc_opt"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_abc_opt") == "checked" ) {
 
     yosys_options += " -no_abc_opt";
   }
 
-  if( (settings_yosys_general_obj.contains("no_adder")) && 
-      (settings_yosys_general_obj["no_adder"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_adder") == "checked" ) {
 
     yosys_options += " -no_adder";
   }
 
-  if( (settings_yosys_general_obj.contains("no_ff_map")) && 
-      (settings_yosys_general_obj["no_ff_map"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_ff_map") == "checked" ) {
 
     yosys_options += " -no_ff_map";
   }
 
-  if( (settings_yosys_general_obj.contains("no_dsp")) && 
-      (settings_yosys_general_obj["no_dsp"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_dsp") == "checked" ) {
 
     yosys_options += " -no_dsp";
   }
 
-  if( (settings_yosys_general_obj.contains("no_bram")) && 
-      (settings_yosys_general_obj["no_bram"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_bram") == "checked" ) {
 
     yosys_options += " -no_bram";
   }
 
-  if( (settings_yosys_general_obj.contains("no_sdff")) && 
-      (settings_yosys_general_obj["no_sdff"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_sdff") == "checked" ) {
 
     yosys_options += " -nosdff";
   }
 
-  if( (settings_yosys_general_obj.contains("edif")) && 
-      (settings_yosys_general_obj["edif"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "edif") == "checked" ) {
 
     yosys_options += " -edif " + std::string(m_projManager->projectName() + ".edif");
   }
 
-  if( (settings_yosys_general_obj.contains("bram_types")) && 
-      (settings_yosys_general_obj["bram_types"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "bram_types") == "checked" ) {
 
     yosys_options += " -bram_types";
   }
 
-  if( (settings_yosys_general_obj.contains("use_dsp_cfg_params")) && 
-      (settings_yosys_general_obj["use_dsp_cfg_params"]["default"].get<std::string>() == "checked") ) {
+  if( QLSettingsManager::getStringValue("yosys", "general", "use_dsp_cfg_params") == "checked" ) {
 
     yosys_options += " -use_dsp_cfg_params";
   }
 
-
   yosysScript = ReplaceAll(yosysScript, "${YOSYS_OPTIONS}", yosys_options);
+
 
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VERILOG}",
@@ -2781,6 +2764,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   yosysScript =
       ReplaceAll(yosysScript, "${OUTPUT_VHDL}",
                  std::string(ProjManager()->projectName() + "_post_synth.vhd"));
+
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_EDIF}",
       std::string(ProjManager()->projectName() + "_post_synth.edif"));
@@ -2934,20 +2918,8 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   // note: at this point, the current_path() is the project 'source' directory.
 
-  // read settings -> SynthArray of Objects
-  std::string settings_json_filename = m_projManager->projectName() + ".json";
-  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  Settings * currentSettings = GetSession()->GetSettings();
-  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
-
-  json settings_vpr_general_obj = currentSettings->getJson()["vpr"]["general"];
-  json settings_vpr_filename_obj = currentSettings->getJson()["vpr"]["filename"];
-  json settings_vpr_netlist_obj = currentSettings->getJson()["vpr"]["netlist"];
-  json settings_vpr_pack_obj = currentSettings->getJson()["vpr"]["pack"];
-  json settings_vpr_place_obj = currentSettings->getJson()["vpr"]["place"];
-  json settings_vpr_route_obj = currentSettings->getJson()["vpr"]["route"];
-  json settings_vpr_analysis_obj = currentSettings->getJson()["vpr"]["analysis"];
-  json settings_vpr_custom_obj = currentSettings->getJson()["vpr"]["custom"];
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
 
   std::string vpr_options;
 
@@ -2963,95 +2935,85 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                     std::string(" ") + 
                     m_deviceSize;
   }
-  else if(settings_vpr_general_obj.contains("device")) {
+  else if( !QLSettingsManager::getStringValue("general", "device", "layout").empty() ) {
     vpr_options += std::string(" --device") + 
                     std::string(" ") + 
-                    settings_vpr_general_obj["device"]["default"].get<std::string>();
+                    QLSettingsManager::getStringValue("general", "device", "layout");
+  }
+  else {
+      std::cout << "Should never be here, we should have a layout specified!" << std::endl;
+      return std::string("");
   }
 
-  if(settings_vpr_general_obj.contains("timing_analysis")) {
-    vpr_options += std::string(" --timing_analysis");
-    if(settings_vpr_general_obj["timing_analysis"]["default"].get<std::string>() == "checked") {
-      vpr_options += std::string(" on");
-    }
-    else {
-      vpr_options += std::string(" off");
-    }
+  if( QLSettingsManager::getStringValue("vpr", "general", "timing_analysis") == "checked" ) {
+    vpr_options += std::string(" --timing_analysis on");
+  }
+  else if( QLSettingsManager::getStringValue("vpr", "general", "timing_analysis") == "unchecked" ) {
+    vpr_options += std::string(" --timing_analysis off");
   }
 
-  if(settings_vpr_general_obj.contains("constant_net_method")) {
+  if( !QLSettingsManager::getStringValue("vpr", "general", "constant_net_method").empty() ) {
     vpr_options += std::string(" --constant_net_method") + 
                    std::string(" ") + 
-                   settings_vpr_general_obj["constant_net_method"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "general", "constant_net_method");
   }
 
-  if(settings_vpr_general_obj.contains("clock_modeling")) {
+  if( !QLSettingsManager::getStringValue("vpr", "general", "clock_modeling").empty() ) {
     vpr_options += std::string(" --clock_modeling") + 
                    std::string(" ") + 
-                   settings_vpr_general_obj["clock_modeling"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "general", "clock_modeling");
   }
 
-  if(settings_vpr_general_obj.contains("exit_before_pack")) {
-    vpr_options += std::string(" --exit_before_pack");
-    if(settings_vpr_general_obj["exit_before_pack"]["default"].get<std::string>() == "checked") {
-      vpr_options += std::string(" on");
-    }
-    else {
-      vpr_options += std::string(" off");
-    }
+
+  if( QLSettingsManager::getStringValue("vpr", "general", "exit_before_pack") == "checked" ) {
+    vpr_options += std::string(" --exit_before_pack on");
+  }
+  else if( QLSettingsManager::getStringValue("vpr", "general", "exit_before_pack") == "unchecked" ) {
+    vpr_options += std::string(" --exit_before_pack off");
   }
 
   // parse vpr filename options
-  if(settings_vpr_filename_obj.contains("circuit_format")) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "circuit_format").empty() ) {
     vpr_options += std::string(" --circuit_format") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["circuit_format"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "circuit_format");
   }
 
-  if( (settings_vpr_filename_obj.contains("net_file")) && 
-      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "net_file").empty() ) {
     vpr_options += std::string(" --net_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "net_file");
   }
 
-  if( (settings_vpr_filename_obj.contains("place_file")) && 
-      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "place_file").empty() ) {
     vpr_options += std::string(" --place_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "place_file");
   }
 
-  if( (settings_vpr_filename_obj.contains("route_file")) && 
-      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "route_file").empty() ) {
     vpr_options += std::string(" --route_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "route_file");
   }
 
 
   // ---------------------------------------------------------------- sdc_file ++
-  //Message(std::string("currentpath:") + std::filesystem::current_path().string());
   std::filesystem::path sdc_file_path;
   bool sdc_file_path_from_json = false;
   // check if an sdc file is specified in the json:
-  if( (settings_vpr_filename_obj.contains("sdc_file")) && 
-      !settings_vpr_filename_obj["sdc_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "sdc_file").empty() ) {
 
     sdc_file_path = 
-        std::filesystem::path(settings_vpr_filename_obj["sdc_file"]["default"].get<std::string>());
+        std::filesystem::path(QLSettingsManager::getStringValue("vpr", "filename", "sdc_file"));
 
     sdc_file_path_from_json = true;
-
-    //Message(std::string("[1]") + sdc_file_path.string());
   }
   // check if an sdc file exists with the project name (projectName.sdc) in the project source dir:
   else {
 
     sdc_file_path = 
       std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
-
-    //Message(std::string("[2]") + sdc_file_path.string());
   }
 
   // convert to canonical path, which will also check that the path exists.
@@ -3067,8 +3029,8 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     // path does not exist, we got a filesystem error while making the canonical path.
 
     if(sdc_file_path_from_json) {
-      // if the sdc_file comes from the json, and it is not found, that is an error.
 
+      // if the sdc_file comes from the json, and it is not found, that is an error.
       ErrorMessage(std::string("sdc file from json: ") + sdc_file_path.string() + std::string(" does not exist!!"));
 
       // empty string returned on error.
@@ -3081,22 +3043,18 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   // ---------------------------------------------------------------- sdc_file --
 
 
-  if( (settings_vpr_filename_obj.contains("write_rr_graph")) && 
-      !settings_vpr_filename_obj["write_rr_graph"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph").empty() ) {
     vpr_options += std::string(" --write_rr_graph") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["write_rr_graph"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "write_rr_graph");
   }
 
   // parse vpr netlist options
-  if(settings_vpr_netlist_obj.contains("absorb_buffer_luts")) {
-    vpr_options += std::string(" --absorb_buffer_luts");
-    if(settings_vpr_netlist_obj["absorb_buffer_luts"]["default"].get<std::string>() == "checked") {
-      vpr_options += std::string(" on");
-    }
-    else {
-      vpr_options += std::string(" off");
-    }
+  if( QLSettingsManager::getStringValue("vpr", "netlist", "absorb_buffer_luts") == "checked" ) {
+    vpr_options += std::string(" --absorb_buffer_luts on");
+  }
+  else if( QLSettingsManager::getStringValue("vpr", "netlist", "absorb_buffer_luts") == "unchecked" ) {
+    vpr_options += std::string(" --absorb_buffer_luts off");
   }
 
   // parse vpr pack options: nothing here
@@ -3104,58 +3062,42 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   // parse vpr place options: nothing here
 
   // parse vpr route options
-  if( (settings_vpr_route_obj.contains("route_chan_width")) && 
-      !settings_vpr_route_obj["route_chan_width"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "route", "route_chan_width").empty() ) {
     vpr_options += std::string(" --route_chan_width") + 
                    std::string(" ") + 
-                   settings_vpr_route_obj["route_chan_width"]["default"].get<std::string>();
-
-    // fallback values - should this be enforced if empty in the settings JSON?
-    // if(family == "QLF_K6N10") {
-    //   vpr_options += std::string(" --route_chan_width") + std::string(" ") + std::string("180")
-    // }
-    // else if(family == "QLF_K4N8") {
-    //   vpr_options += std::string(" --route_chan_width") + std::string(" ") + std::string("60")
-    // }
+                   QLSettingsManager::getStringValue("vpr", "route", "route_chan_width");
   }
 
   // parse vpr analysis options
-  if(settings_vpr_analysis_obj.contains("gen_post_synthesis_netlist")) {
-    vpr_options += std::string(" --gen_post_synthesis_netlist");
-    if(settings_vpr_analysis_obj["gen_post_synthesis_netlist"]["default"].get<std::string>() == "checked") {
-      vpr_options += std::string(" on");
-    }
-    else {
-      vpr_options += std::string(" off");
-    }
+  if( QLSettingsManager::getStringValue("vpr", "analysis", "gen_post_synthesis_netlist") == "checked" ) {
+    vpr_options += std::string(" --gen_post_synthesis_netlist on");
+  }
+  else if( QLSettingsManager::getStringValue("vpr", "analysis", "gen_post_synthesis_netlist") == "unchecked" ) {
+    vpr_options += std::string(" --gen_post_synthesis_netlist off");
   }
 
-  if( (settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_inputs")) && 
-      !settings_vpr_analysis_obj["post_synth_netlist_unconn_inputs"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "analysis", "post_synth_netlist_unconn_inputs").empty() ) {
     vpr_options += std::string(" --post_synth_netlist_unconn_inputs") + 
                    std::string(" ") + 
-                   settings_vpr_analysis_obj["post_synth_netlist_unconn_inputs"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "analysis", "post_synth_netlist_unconn_inputs");
   }
 
-  if( (settings_vpr_analysis_obj.contains("post_synth_netlist_unconn_outputs")) && 
-      !settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "analysis", "post_synth_netlist_unconn_outputs").empty() ) {
     vpr_options += std::string(" --post_synth_netlist_unconn_outputs") + 
                    std::string(" ") + 
-                   settings_vpr_analysis_obj["post_synth_netlist_unconn_outputs"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "analysis", "post_synth_netlist_unconn_outputs");
   }
 
-  if( (settings_vpr_analysis_obj.contains("timing_report_npaths")) && 
-      !settings_vpr_analysis_obj["timing_report_npaths"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "analysis", "timing_report_npaths").empty() ) {
     vpr_options += std::string(" --timing_report_npaths") + 
                    std::string(" ") + 
-                   settings_vpr_analysis_obj["timing_report_npaths"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "analysis", "timing_report_npaths");
   }
 
   // custom vpr command-line options, it is upto the user to ensure that the options are passed in correctly.
-  if( (settings_vpr_custom_obj.contains("custom_vpr_options_str")) && 
-      !settings_vpr_custom_obj["custom_vpr_options_str"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "custom", "custom_vpr_options_str").empty() ) {
     // first, trim the entire string to eliminate any extra whitespace in the front and the back
-    std::string vpr_custom_options_string = settings_vpr_custom_obj["custom_vpr_options_str"]["default"].get<std::string>();
+    std::string vpr_custom_options_string = QLSettingsManager::getStringValue("vpr", "custom", "custom_vpr_options_str");
     vpr_custom_options_string = StringUtils::trim(vpr_custom_options_string);
     // add the options string to the end of the vpr options with one whitespace separator
     vpr_options += std::string(" ") + vpr_custom_options_string;
@@ -3202,69 +3144,40 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
 #endif // #if UPSTREAM_UNUSED
 
-  json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
 
-  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
-  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
-  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  std::string voltage_threshold = "";
-  std::string p_v_t_corner = "";
-
-  std::filesystem::path device_base_dir_path = 
+  std::filesystem::path device_type_dir_path = 
       std::filesystem::path(GetSession()->Context()->DataPath() /
-                            family /
-                            foundry /
-                            node);
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
   
-  std::filesystem::path device_variant_base_dir_path = device_base_dir_path;
-
-  // optional: if voltage_threshold and p_v_t_corner are specified in the JSON, 
-  //           take the XML file specific to that combination:
-  if( settings_general_device_obj.contains("voltage_threshold") &&
-      settings_general_device_obj.contains("p_v_t_corner") ) {
-    voltage_threshold = 
-        settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
-    p_v_t_corner = 
-            settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
-    if(!voltage_threshold.empty() &&
-       !p_v_t_corner.empty()) {
-        device_variant_base_dir_path = 
-            std::filesystem::path(GetSession()->Context()->DataPath() /
-                                  family /
-                                  foundry /
-                                  node /
-                                  voltage_threshold /
-                                  p_v_t_corner);
-    }
-  }
-
-  // to be used in future.
-  std::string layout_name = settings_general_device_obj["layout"]["default"].get<std::string>();
-
-  std::string device = 
-      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
-
-  // check if the target device exists
-  if(!DeviceExists(device)) {
-    ErrorMessage("Device does not exist in the installation: " + device);
-      // empty string returned on error.
-      return std::string("");
-  }
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
 
   // prefer to use the unencrypted file, if available.
   m_architectureFile = 
-      std::filesystem::path(device_variant_base_dir_path / std::string("vpr.xml"));
+      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
 
   // if not, use the encrypted file after decryption.
   if (!std::filesystem::exists(m_architectureFile, ec)) {
 
     std::filesystem::path vpr_xml_en_path = 
-          std::filesystem::path(device_variant_base_dir_path / std::string("vpr.xml.en"));
+          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
     m_architectureFile = GenerateTempFilePath();
 
     m_cryptdbPath = 
-        CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
-                                                           family + "_" + foundry + "_" + node);
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
 
     if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
       Message("load cryptdb failed!");
@@ -3279,7 +3192,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     }
   }
 
-  Message(std::string("Using vpr.xml for: ") + device );
+  Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
 
   // add the *internal* option to allow dangling nodes in the logic.
   // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/blob/a7f573b7a5432711042ddeb9f2958cd035097a10/vpr/src/timing/timing_graph_builder.cpp#L277
@@ -3982,6 +3895,9 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return true;
   }
 
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
+
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
           (std::filesystem::path(ProjManager()->projectPath()) /
@@ -4045,16 +3961,17 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
           "for timing analysis");
       return false;
     }
-  } else {  // use vpr/tatum engine
-    json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
+  } 
+  else {
+    // use vpr/tatum engine
+
     std::string vpr_options;
     std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
-    if( (settings_vpr_filename_obj.contains("net_file")) && 
-        !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+    if( !QLSettingsManager::getStringValue("vpr", "filename", "net_file").empty() ) {
         vpr_options += std::string(" --net_file") + 
                     std::string(" ") + 
-                    settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+                    QLSettingsManager::getStringValue("vpr", "filename", "net_file");
     }
     else {
         vpr_options += std::string(" --net_file") + 
@@ -4062,11 +3979,10 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                     netlistFilePrefix + std::string(".net");
     }
 
-    if( (settings_vpr_filename_obj.contains("place_file")) && 
-        !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+    if( !QLSettingsManager::getStringValue("vpr", "filename", "place_file").empty() ) {
         vpr_options += std::string(" --place_file") + 
                     std::string(" ") + 
-                    settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+                    QLSettingsManager::getStringValue("vpr", "filename", "place_file");
     }
     else {
         vpr_options += std::string(" --place_file") + 
@@ -4074,11 +3990,10 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                     netlistFilePrefix + std::string(".place");
     }
 
-    if( (settings_vpr_filename_obj.contains("route_file")) && 
-        !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+    if( !QLSettingsManager::getStringValue("vpr", "filename", "route_file").empty() ) {
         vpr_options += std::string(" --route_file") + 
                     std::string(" ") + 
-                    settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+                    QLSettingsManager::getStringValue("vpr", "filename", "route_file");
     }
     else {
         vpr_options += std::string(" --route_file") + 
@@ -4538,102 +4453,55 @@ std::string CompilerOpenFPGA_ql::InitOpenFPGAScript() {
 }
 
 std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script) {
+
   std::string result = script;
 
-  std::string settings_json_filename = m_projManager->projectName() + ".json";
-  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  Settings * currentSettings = GetSession()->GetSettings();
-  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
 
-  json settings_obj = GetSession()->GetSettings()->getJson();
-  json settings_general_device_obj = currentSettings->getJson()["general"]["device"];
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
 
-  std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
-  std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
-  std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
-  std::string voltage_threshold = "";
-  std::string p_v_t_corner = "";
-  std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
-
-  std::filesystem::path device_base_dir_path = 
+  std::filesystem::path device_type_dir_path = 
       std::filesystem::path(GetSession()->Context()->DataPath() /
-                            family /
-                            foundry /
-                            node);
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+  
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
 
-  std::filesystem::path device_variant_base_dir_path = device_base_dir_path;
-
-  // optional: if voltage_threshold and p_v_t_corner are specified in the JSON, 
-  //           take the XML file specific to that combination:
-  if( settings_general_device_obj.contains("voltage_threshold") &&
-      settings_general_device_obj.contains("p_v_t_corner") ) {
-    voltage_threshold = 
-        settings_general_device_obj["voltage_threshold"]["default"].get<std::string>();
-    p_v_t_corner = 
-            settings_general_device_obj["p_v_t_corner"]["default"].get<std::string>();
-    if(!voltage_threshold.empty() &&
-       !p_v_t_corner.empty()) {
-        device_variant_base_dir_path = 
-            std::filesystem::path(GetSession()->Context()->DataPath() /
-                                  family /
-                                  foundry /
-                                  node /
-                                  voltage_threshold /
-                                  p_v_t_corner);
-    }
-  }
-
-  std::string device = 
-      DeviceString(family,foundry,node,voltage_threshold,p_v_t_corner);
-
-  // check if the target device exists
-  if(!DeviceExists(device)) {
-    ErrorMessage("Device does not exist in the installation: " + device);
-      // empty string returned on error.
-      return std::string("");
-  }
 
   std::error_code ec;
   // prefer to use the unencrypted file, if available.
   m_OpenFpgaArchitectureFile = 
-      std::filesystem::path(device_variant_base_dir_path / std::string("openfpga.xml"));
+      std::filesystem::path(device_variant_dir_path / std::string("openfpga.xml"));
 
   // this is optional:
   m_OpenFpgaBitstreamSettingFile = 
-      std::filesystem::path(device_base_dir_path / std::string("bitstream_annotation.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml"));
   if(!std::filesystem::exists(m_OpenFpgaBitstreamSettingFile, ec)) {
     m_OpenFpgaBitstreamSettingFile.clear();
   }
   
   m_OpenFpgaSimSettingFile = 
-      std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml"));
+      std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml"));
 
   // fabric_key
   std::string filename_fabric_key_xml;
   std::string filename_fabric_key_xml_en;
   // form the file name using the current device: family_foundry_node
-  filename_fabric_key_xml = family +
-                             std::string("_") +
-                             foundry +
-                             std::string("_") +
-                             node;
-  if(!voltage_threshold.empty()) {
-    filename_fabric_key_xml += std::string("_") +
-                                voltage_threshold;
-  }
-  if(!p_v_t_corner.empty()) {
-    filename_fabric_key_xml += std::string("_") +
-                                p_v_t_corner;
-  }
-  filename_fabric_key_xml += std::string("_") +
-                              device_size +
-                              std::string("_fabric_key") + std::string(".xml");
-
+  filename_fabric_key_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+                            std::string("_fabric_key") + std::string(".xml");
   filename_fabric_key_xml_en = filename_fabric_key_xml + std::string(".en");
 
   // fabric_key is optional:
   m_OpenFpgaFabricKeyFile = 
-      std::filesystem::path(device_base_dir_path / std::string("fabric_key") / filename_fabric_key_xml);
+      std::filesystem::path(device_type_dir_path / std::string("fabric_key") / filename_fabric_key_xml);
   if(!std::filesystem::exists(m_OpenFpgaFabricKeyFile, ec)) {
     m_OpenFpgaFabricKeyFile.clear();
   }
@@ -4644,24 +4512,28 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
     // all of the xml files will be the encrypted versions.
 
     std::filesystem::path openfpga_xml_en_path = 
-          std::filesystem::path(device_variant_base_dir_path / std::string("openfpga.xml.en"));
+          std::filesystem::path(device_variant_dir_path / std::string("openfpga.xml.en"));
     m_OpenFpgaArchitectureFile = GenerateTempFilePath();
 
     std::filesystem::path bitstream_annotation_en_path = 
-          std::filesystem::path(device_base_dir_path / std::string("bitstream_annotation.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("bitstream_annotation.xml.en"));
     m_OpenFpgaBitstreamSettingFile = GenerateTempFilePath();
 
     std::filesystem::path fixed_sim_openfpga_en_path = 
-          std::filesystem::path(device_base_dir_path / std::string("fixed_sim_openfpga.xml.en"));
+          std::filesystem::path(device_type_dir_path / std::string("fixed_sim_openfpga.xml.en"));
     m_OpenFpgaSimSettingFile = GenerateTempFilePath();
 
     std::filesystem::path fabric_key_xml_en_path = 
-          std::filesystem::path(device_base_dir_path / std::string("fabric_key") / filename_fabric_key_xml_en);
+          std::filesystem::path(device_type_dir_path / std::string("fabric_key") / filename_fabric_key_xml_en);
     m_OpenFpgaFabricKeyFile = GenerateTempFilePath();
 
     m_cryptdbPath = 
-        CRFileCryptProc::getInstance()->getCryptDBFileName(device_base_dir_path.string(),
-                                                           family + "_" + foundry + "_" + node);
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
 
     if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
       Message("load cryptdb failed!");
@@ -4707,20 +4579,16 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   }
 
-  Message(std::string("Using openfpga.xml for: ") + device );
-
-
+  Message( std::string("Using openfpga.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
 
   // call vpr to execute analysis
-  json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
   std::string netlistFilePrefix = ProjManager()->projectName() + "_post_synth";
 
-  if( (settings_vpr_filename_obj.contains("net_file")) && 
-      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "net_file").empty() ) {
     vpr_options += std::string(" --net_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "net_file");
   }
   else {
     vpr_options += std::string(" --net_file") + 
@@ -4728,11 +4596,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
                    netlistFilePrefix + std::string(".net");
   }
 
-  if( (settings_vpr_filename_obj.contains("place_file")) && 
-      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "place_file").empty() ) {
     vpr_options += std::string(" --place_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "place_file");
   }
   else {
     vpr_options += std::string(" --place_file") + 
@@ -4740,11 +4607,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
                    netlistFilePrefix + std::string(".place");
   }
 
-  if( (settings_vpr_filename_obj.contains("route_file")) && 
-      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "route_file").empty() ) {
     vpr_options += std::string(" --route_file") + 
                    std::string(" ") + 
-                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+                   QLSettingsManager::getStringValue("vpr", "filename", "route_file");
   }
   else {
     vpr_options += std::string(" --route_file") + 
@@ -4900,22 +4766,8 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   // fpga_io_map
   std::filesystem::path filepath_fpga_io_map_xml;
   // form the file name using the current device: family_foundry_node
-  filepath_fpga_io_map_xml = family +
-                             std::string("_") +
-                             foundry +
-                             std::string("_") +
-                             node;
-  if(!voltage_threshold.empty()) {
-    filepath_fpga_io_map_xml += std::string("_") +
-                                voltage_threshold;
-  }
-  if(!p_v_t_corner.empty()) {
-    filepath_fpga_io_map_xml += std::string("_") +
-                                p_v_t_corner;
-  }
-  filepath_fpga_io_map_xml += std::string("_") +
-                              device_size +
-                              std::string("_fpga_io_map") + std::string(".xml");
+  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+                             std::string("_fpga_io_map") + std::string(".xml");
   // generate the fpga_io_map file in the generated 'working_directory', not in the 'design_directory'
   // so the below part of code is commented out.
   // if (!filepath_fpga_io_map_xml.is_absolute()) {
@@ -5089,20 +4941,14 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
 
   // either way, if the .place file is available, set the path to it in the 'filepath_fpga_fix_pins_place_str' variable ref passed in.
 
-  std::string settings_json_filename = m_projManager->projectName() + ".json";
-  std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-  Settings * currentSettings = GetSession()->GetSettings();
-  currentSettings->loadJsonFile(QString::fromStdString(settings_json_path));
-
-  json settings_obj = GetSession()->GetSettings()->getJson();
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
 
   ///////////////////////////////////////////////////////////////// PLACE ++
+  //QLSettingsManager::getStringValue("general", "device", "family");
   std::filesystem::path filepath_place;
-  if ( (settings_obj.contains("openfpga")) &&
-       (settings_obj["openfpga"].contains("general")) &&
-       (settings_obj["openfpga"]["general"].contains("place")) &&
-       (!settings_obj["openfpga"]["general"]["place"]["default"].get<std::string>().empty()) ) {
-    filepath_place = settings_obj["openfpga"]["general"]["place"]["default"].get<std::string>();
+  if( !QLSettingsManager::getStringValue("openfpga", "general", "place").empty() ) {
+    filepath_place = QLSettingsManager::getStringValue("openfpga", "general", "place");
   }
   else {
     filepath_place = ProjManager()->projectName() + std::string("_fix_pins") + std::string(".place");
@@ -5129,11 +4975,8 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
 
   ///////////////////////////////////////////////////////////////// PCF ++
   std::filesystem::path filepath_pcf;
-  if ( (settings_obj.contains("openfpga")) &&
-       (settings_obj["openfpga"].contains("general")) &&
-       (settings_obj["openfpga"]["general"].contains("pcf")) &&
-       (!settings_obj["openfpga"]["general"]["pcf"]["default"].get<std::string>().empty()) ) {
-    filepath_pcf = settings_obj["openfpga"]["general"]["pcf"]["default"].get<std::string>();
+  if( !QLSettingsManager::getStringValue("openfpga", "general", "pcf").empty() ) {
+    filepath_pcf = QLSettingsManager::getStringValue("openfpga", "general", "pcf");
   }
   else {
     filepath_pcf = ProjManager()->projectName() + std::string(".pcf");
@@ -5175,19 +5018,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   ///////////////////////////////////////////////////////////////// NETLIST --
 
   // get the required values for the current device:
-  std::string family = settings_obj["general"]["device"]["family"]["default"].get<std::string>();
-  std::string foundry = settings_obj["general"]["device"]["foundry"]["default"].get<std::string>();
-  std::string node = settings_obj["general"]["device"]["node"]["default"].get<std::string>();
-  std::string device_size = settings_obj["vpr"]["general"]["device"]["default"].get<std::string>();
-  std::string voltage_threshold;
-  std::string p_v_t_corner;
-  if( settings_obj["general"]["device"].contains("voltage_threshold") &&
-      settings_obj["general"]["device"].contains("p_v_t_corner") ) {
-    voltage_threshold = 
-        settings_obj["general"]["device"]["voltage_threshold"]["default"].get<std::string>();
-    p_v_t_corner = 
-            settings_obj["general"]["device"]["p_v_t_corner"]["default"].get<std::string>();
-  }
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
 
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV ++
   // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
@@ -5195,27 +5026,13 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // optionally, it can also be placed the design_directory
   std::filesystem::path filename_pin_table_csv;
   std::filesystem::path filepath_pin_table_csv;
-  filename_pin_table_csv = family +
-                             std::string("_") +
-                             foundry +
-                             std::string("_") +
-                             node;
-  if(!voltage_threshold.empty()) {
-    filename_pin_table_csv += std::string("_") +
-                                voltage_threshold;
-  }
-  if(!p_v_t_corner.empty()) {
-    filename_pin_table_csv += std::string("_") +
-                                p_v_t_corner;
-  }
-  filename_pin_table_csv += std::string("_") +
-                              device_size +
-                              std::string("_pin_table") + std::string(".csv");
+  filename_pin_table_csv = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+                           std::string("_pin_table") + std::string(".csv");
 
   filepath_pin_table_csv = GetSession()->Context()->DataPath() /
-                            family /
-                            foundry /
-                            node /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
                             std::string("pin_table") /
                             filename_pin_table_csv;
   // if the file does not exist in the device data dir
@@ -5227,7 +5044,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     else {
       // no fpga io map xml available, we cannot proceed with the pcf flow!
       ErrorMessage(std::string(__func__) + ": PIN TABLE CSV File: " + filename_pin_table_csv.string() + " not found!");
-    return false;
+      return false;
     }
   }
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV --
@@ -5238,29 +5055,15 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // optionally, it can also be placed the design_directory
   std::filesystem::path filename_fpga_io_map_xml;
   std::filesystem::path filepath_fpga_io_map_xml;
-  filename_fpga_io_map_xml = family +
-                             std::string("_") +
-                             foundry +
-                             std::string("_") +
-                             node;
-  if(!voltage_threshold.empty()) {
-    filename_fpga_io_map_xml += std::string("_") +
-                                voltage_threshold;
-  }
-  if(!p_v_t_corner.empty()) {
-    filename_fpga_io_map_xml += std::string("_") +
-                                p_v_t_corner;
-  }
-  filename_fpga_io_map_xml += std::string("_") +
-                              device_size +
-                              std::string("_fpga_io_map") + std::string(".xml");
+  filename_fpga_io_map_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+                             std::string("_fpga_io_map") + std::string(".xml");
 
   filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /
-                              family /
-                              foundry /
-                              node /
-                              std::string("fpga_io_map") /
-                              filename_fpga_io_map_xml;
+                             device_target.device_variant.family /
+                             device_target.device_variant.foundry /
+                             device_target.device_variant.node /
+                             std::string("fpga_io_map") /
+                             filename_fpga_io_map_xml;
   // if the file does not exist in the device data dir
   if (!FileUtils::FileExists(filepath_fpga_io_map_xml)) {
     // check if the file exists in the design_directory instead?
@@ -5270,7 +5073,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
     else {
       // no fpga io map xml available, we cannot proceed with the pcf flow!
       ErrorMessage(std::string(__func__) + ": FPGA IO MAP XML File: " + filename_fpga_io_map_xml.string() + " not found!");
-    return false;
+      return false;
     }
   }
   ///////////////////////////////////////////////////////////////// FPGA IO MAP XML --

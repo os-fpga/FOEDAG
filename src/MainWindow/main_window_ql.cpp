@@ -1255,9 +1255,10 @@ void MainWindow::reloadSettings() {
   QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
   if(!qlSettingsManagerInstance) {
       // could not get instance handle?
+      std::cout << "MainWindow::reloadSettings() qlSettingsManagerInstance is NULL!" << std::endl;
   }
   else {
-      std::cout << "reloadSettings() qlSettingsManagerInstance" << std::endl;
+      //std::cout << "MainWindow::reloadSettings() qlSettingsManagerInstance" << std::endl;
   }
 }
 
