@@ -196,7 +196,7 @@ void newProjectDialog::ResetToNewProject() {
   // // QWidget* m_QLDeviceSelectionWidget = new QWidget();
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
                              tr("Target Device"));
-  QObject::connect( m_QLDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "m_QLDeviceSelectionWidget destroyed()" << std::endl;} );
+  // QObject::connect( m_QLDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "m_QLDeviceSelectionWidget destroyed()" << std::endl;} );
 
   QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget();
   ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,

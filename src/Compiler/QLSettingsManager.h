@@ -43,10 +43,12 @@ public:
  
  void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
  void parseJSONSettings();
- void saveJSONSettings();
+ bool areJSONSettingsChanged();
+ bool saveJSONSettings();
 
  static void reloadJSONSettings();
  static std::string getStringValue(std::string category, std::string subcategory, std::string parameter);
+ static std::string getStringToolTip(std::string category, std::string subcategory, std::string parameter);
  static const json* getJson(std::string category, std::string subcategory, std::string parameter);
  static const json* getJson(std::string category, std::string subcategory);
  static const json* getJson(std::string category);
@@ -54,6 +56,7 @@ public:
  public slots:
  void handleApplyButtonClicked();
  void handleResetButtonClicked();
+ void handleSettingsChanged();
 
  public:
  static QLSettingsManager* instance;
@@ -67,10 +70,21 @@ public:
 
  json combined_json;
 
- // GUI elements
+ // GUI elements and GUI related variables
  QWidget* settings_manager_widget = nullptr;
  QStackedWidget* stackedWidget; // each 'category' is a 'page'(represented by a QTabWidget) in the stackedWidget
  QListWidget* listWidget;   // each category is an entry in the listwidget
+
+ QPushButton *button_reset;
+ QPushButton *button_apply;
+ QLabel* m_message_label;
+
+ json settings_json_updated;
+ json power_estimation_json_updated;
+ std::vector<std::string> settings_json_change_list;
+ std::vector<std::string> power_estimation_json_change_list;
+
+
 
 };
 

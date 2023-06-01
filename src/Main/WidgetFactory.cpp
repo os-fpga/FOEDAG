@@ -1012,7 +1012,7 @@ QWidget* FOEDAG::createWidget(const json& widgetJsonObj, const QString& objName,
           };
 
       // Determine if this combobox should add <unset> option
-      bool addUnset = widgetJsonObj.value("addUnset", true);
+      bool addUnset = widgetJsonObj.value("addUnset", false);
 
       // Create Widget
       auto ptr = createComboBox(objName, comboOptions, sysDefaultVal, addUnset,

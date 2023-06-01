@@ -61,12 +61,12 @@ QLSettingsManager* QLSettingsManager::getInstance() {
 
   if( !((instance->settings_json).empty()) ) {
 
-    std::string family              = instance->settings_json["general"]["device"]["family"]["default"];
-    std::string foundry             = instance->settings_json["general"]["device"]["foundry"]["default"];
-    std::string node                = instance->settings_json["general"]["device"]["node"]["default"];
-    std::string voltage_threshold   = instance->settings_json["general"]["device"]["voltage_threshold"]["default"];
-    std::string p_v_t_corner        = instance->settings_json["general"]["device"]["p_v_t_corner"]["default"];
-    std::string layout              = instance->settings_json["general"]["device"]["layout"]["default"];
+    std::string family              = getStringValue("general", "device", "family");
+    std::string foundry             = getStringValue("general", "device", "foundry");
+    std::string node                = getStringValue("general", "device", "node");
+    std::string voltage_threshold   = getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = getStringValue("general", "device", "layout");
     
     // std::cout << "\n" << "---------------------------------------------" << std::endl;
     // std::cout << "current device_target from settings json:" << std::endl;
@@ -101,7 +101,7 @@ void QLSettingsManager::reloadJSONSettings() {
 }
 
 std::string QLSettingsManager::getStringValue(std::string category, std::string subcategory, std::string parameter) {
-  
+
   std::string value;
 
   json& json_ref = instance->combined_json;
@@ -110,10 +110,38 @@ std::string QLSettingsManager::getStringValue(std::string category, std::string 
       json_ref[category].contains(subcategory) &&
       json_ref[category][subcategory].contains(parameter) ) {
 
-    value = json_ref[category][subcategory][parameter]["default"].get<std::string>();
+    if ( json_ref[category][subcategory][parameter].contains("userValue") ) {
+      value = json_ref[category][subcategory][parameter]["userValue"].get<std::string>();
+    }
+    else if ( json_ref[category][subcategory][parameter].contains("default") ) {
+      value = json_ref[category][subcategory][parameter]["default"].get<std::string>();
+    }
+    // else value is empty
   }
 
   return value;
+}
+
+std::string QLSettingsManager::getStringToolTip(std::string category, std::string subcategory, std::string parameter) {
+
+  std::string tooltip;
+
+  json& json_ref = instance->combined_json;
+
+  if( json_ref.contains(category) &&
+      json_ref[category].contains(subcategory) &&
+      json_ref[category][subcategory].contains(parameter) ) {
+
+    if ( json_ref[category][subcategory][parameter].contains("tooltip") ) {
+      tooltip = json_ref[category][subcategory][parameter]["tooltip"].get<std::string>();
+    }
+    else if ( json_ref[category][subcategory][parameter].contains("help") ) {
+      tooltip = json_ref[category][subcategory][parameter]["help"].get<std::string>();
+    }
+    // else tooltip is empty
+  }
+
+  return tooltip;
 }
 
 
@@ -258,10 +286,10 @@ void QLSettingsManager::populateSettingsWidget() {
       continue;
     }
 
-    if(categoryId == "general") {
-      // we don't use this section here, it is represented by the QLDeviceManager.
-      continue;
-    }
+    // if(categoryId == "general") {
+    //   // we don't use this section here, it is represented by the QLDeviceManager.
+    //   continue;
+    // }
 
     // container widget for each 'category' -> this will be each 'page' of the QStackedWidget
     // this container widget will contain all the 'subcategories' of the category -> hence a QTabWidget for each category
@@ -283,35 +311,98 @@ void QLSettingsManager::populateSettingsWidget() {
       subcategoryWidget->setLayout(subcategoryWidgetlayout);
       subcategoryWidget->setProperty("settings_subcategory_id", QString::fromStdString(subcategoryId));
 
-
       for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
 
+          std::string widgetType = widgetJson["widgetType"].get<std::string>();
+          
           // std::cout << "widgetId: " << QString::fromStdString(widgetId).toStdString() << std::endl;
-          // std::cout << "widgetType: " << QString::fromStdString(widgetJson["widgetType"].get<std::string>()).toStdString() << std::endl;
+          // std::cout << "widgetType: " << widgetType << std::endl;
 
           // finally, each parameter becomes a widget according the type and properties.
           QWidget* containerWidget = new QWidget();
           QHBoxLayout* containerWidgetHBoxLayout = new QHBoxLayout();
           containerWidget->setLayout(containerWidgetHBoxLayout);
           containerWidget->setProperty("settings_json_id", QString::fromStdString(widgetId));
-          containerWidget->setProperty("settings_json_value_widgetType", QString::fromStdString(widgetJson["widgetType"].get<std::string>()));
+          containerWidget->setProperty("settings_json_value_widgetType", QString::fromStdString(widgetType));
 
+          // add a tooltip if it exists:
+          std::string tooltip = getStringToolTip(categoryId, subcategoryId, widgetId);
+          if (!tooltip.empty()) {
+            containerWidget->setToolTip(QString::fromStdString(tooltip));
+          }
 
           QLabel* subWidgetLabel = new QLabel(QString::fromStdString(widgetId));
           QWidget* subWidget =
               FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
-          
+
           containerWidgetHBoxLayout->addWidget(subWidgetLabel);
           containerWidgetHBoxLayout->addStretch();
           containerWidgetHBoxLayout->addWidget(subWidget);
+
+          // subscribe to changes on any of the widgets:
+          if( widgetType == std::string("input") ) {
+
+            QLineEdit* input_widget = containerWidget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
+            if(input_widget) {
+
+              QObject::connect(input_widget, &QLineEdit::textChanged, 
+                              [=](){ this->handleSettingsChanged(); });
+            }
+          }
+          else if( widgetType == std::string("checkbox") ) {
+            
+            QCheckBox* checkbox_widget = containerWidget->findChild<QCheckBox*>(QString(), Qt::FindChildrenRecursively);
+            if(checkbox_widget) {
+
+              QObject::connect(checkbox_widget, &QCheckBox::clicked, 
+                              [=](){ this->handleSettingsChanged(); });
+            }
+          }
+          else if( widgetType == std::string("dropdown") ) {
+
+            QComboBox* dropdown_widget = containerWidget->findChild<QComboBox*>(QString(), Qt::FindChildrenRecursively);
+            if(dropdown_widget) {
+
+              // https://stackoverflow.com/questions/31164574/qt5-signal-slot-syntax-w-overloaded-signal-lambda
+              QObject::connect(dropdown_widget, qOverload<int>(&QComboBox::currentIndexChanged), 
+                              [=](){ this->handleSettingsChanged(); });
+            }
+          }
+          else {
+            // unhandled widgetType!
+            std::cout << ">>> warning: unhandled widgetType: " << widgetType << " widgetId:" << widgetId << std::endl;
+          }
+          
           
           // the parameter 'container' widget is added into the 'subcategory widget' layout.
           subcategoryWidgetlayout->addWidget(containerWidget);
       }
 
+      // if this subcategory in the json is empty, then we should not have a widget for this in the GUI
+      // so, there won't be any empty tabs which represent this subcategory
+      if(subcategoryJson.size() == 0) {
+        subcategoryWidget->deleteLater();
+        continue;
+      }
+
       // subcategory widget ready -> this is a 'page' or 'tab' in QTabWidget, so add to the QTabWidget directly (no layout)
       categoryWidget->addTab(subcategoryWidget, QString::fromStdString(subcategoryId));
+    }
 
+    // if this category in the json is empty, then we should not have a widget for this in the GUI
+    // so, there won't be any entry in the QListWidget, which will show empty QTabWidget when selected!
+    if(categoryJson.size() == 0) {
+      categoryWidget->deleteLater();
+      // std::cout << "categoryId: " << categoryId << " empty!" << std::endl;
+      continue;
+    }
+    
+    // also, if due to internal logic (e.g. "general" > "device") if the categoryWidget has
+    // 0 tabs, then, don't add it to the GUI as well:
+    if(categoryWidget->count() == 0) {
+      categoryWidget->deleteLater();
+      // std::cout << "categoryId: " << categoryId << " empty!" << std::endl;
+      continue;
     }
 
     // category widget is ready -> this is a 'page' in the 'container' QStackedWidget
@@ -341,21 +432,38 @@ void QLSettingsManager::populateSettingsWidget() {
 
   QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
   // make the buttons for the actions in the settings dialog
-  QPushButton *button_reset = new QPushButton("Reset");
+  button_reset = new QPushButton("Reset");
   button_reset->setToolTip("Discard any modifications, reload from current settings JSON");
+  button_reset->setDisabled(true);
   QObject::connect(button_reset, &QPushButton::released, this, &QLSettingsManager::handleResetButtonClicked);
-  
-  QPushButton *button_apply = new QPushButton("Apply");
+  button_apply = new QPushButton("Apply");
   button_apply->setToolTip("Apply the modifications to the current settings JSON");
+  button_apply->setDisabled(true);
   QObject::connect(button_apply, &QPushButton::released, this, &QLSettingsManager::handleApplyButtonClicked);
-  
+
   dlg_buttonslayout->addStretch();
   dlg_buttonslayout->addWidget(button_reset);
   dlg_buttonslayout->addWidget(button_apply);
 
+  m_message_label = new QLabel();
+  m_message_label->setWordWrap(true);
+  // background/font color
+  m_message_label->setAutoFillBackground(true);
+  //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
+  QPalette m_message_label_palette;
+  m_message_label_palette.setColor(QPalette::Window, Qt::white);
+  m_message_label_palette.setColor(QPalette::WindowText, Qt::red);
+  m_message_label->setPalette(m_message_label_palette);
+  // frame
+  m_message_label->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+  m_message_label->setText("");
+  m_message_label->hide();
+
   dlg_toplevellayout->addLayout(dlg_titleDetailLayout);
   dlg_toplevellayout->addLayout(dlg_widgetslayout); // first the settings stuff
+  dlg_toplevellayout->addWidget(m_message_label);
   dlg_toplevellayout->addLayout(dlg_buttonslayout); // second a row of buttons for actions
+  
 }
 
 
@@ -370,12 +478,12 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
   }
   else {
     // check the current device_target using the settings json:
-    std::string family              = settings_json["general"]["device"]["family"]["default"];
-    std::string foundry             = settings_json["general"]["device"]["foundry"]["default"];
-    std::string node                = settings_json["general"]["device"]["node"]["default"];
-    std::string voltage_threshold   = settings_json["general"]["device"]["voltage_threshold"]["default"];
-    std::string p_v_t_corner        = settings_json["general"]["device"]["p_v_t_corner"]["default"];
-    std::string layout              = settings_json["general"]["device"]["layout"]["default"];
+    std::string family              = getStringValue("general", "device", "family");
+    std::string foundry             = getStringValue("general", "device", "foundry");
+    std::string node                = getStringValue("general", "device", "node");
+    std::string voltage_threshold   = getStringValue("general", "device", "voltage_threshold");
+    std::string p_v_t_corner        = getStringValue("general", "device", "p_v_t_corner");
+    std::string layout              = getStringValue("general", "device", "layout");
 
     std::string family_updated              = device_target.device_variant.family;
     std::string foundry_updated             = device_target.device_variant.foundry;
@@ -429,12 +537,12 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
     parseJSONSettings();
 
     // update the device_target in the template json:
-    settings_json["general"]["device"]["family"]["default"] = family_updated;
-    settings_json["general"]["device"]["foundry"]["default"] = foundry_updated;
-    settings_json["general"]["device"]["node"]["default"] = node_updated;
-    settings_json["general"]["device"]["voltage_threshold"]["default"] = voltage_threshold_updated;
-    settings_json["general"]["device"]["p_v_t_corner"]["default"] = p_v_t_corner_updated;
-    settings_json["general"]["device"]["layout"]["default"] = layout_updated;
+    settings_json["general"]["device"]["family"]["userValue"] = family_updated;
+    settings_json["general"]["device"]["foundry"]["userValue"] = foundry_updated;
+    settings_json["general"]["device"]["node"]["userValue"] = node_updated;
+    settings_json["general"]["device"]["voltage_threshold"]["userValue"] = voltage_threshold_updated;
+    settings_json["general"]["device"]["p_v_t_corner"]["userValue"] = p_v_t_corner_updated;
+    settings_json["general"]["device"]["layout"]["userValue"] = layout_updated;
 
     // save the updated settings_json:
     std::ofstream settings_json_ofstream(settings_json_filepath.string());
@@ -446,18 +554,17 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 }
 
 
-void QLSettingsManager::saveJSONSettings() {
+bool QLSettingsManager::areJSONSettingsChanged() {
 
-  // std::cout << "saveJSONSettings()" << std::endl;
+  // std::cout << "areJSONSettingsChanged()" << std::endl;
 
-  // translate the GUI into JSON again:
-  json settings_json_updated(settings_json);
-  std::filesystem::path settings_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + ".updated.json");
+  // initialize to the current settings_json
+  settings_json_updated = settings_json;
 
-  json power_estimation_json_updated(power_estimation_json);
-  std::filesystem::path power_estimation_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power" + ".updated.json");
+  // initialize to the current power_estimation_json_updated
+  power_estimation_json_updated = power_estimation_json;
 
-
+  // loop through the GUI elements, and check the updates below.
   // root of all the settings is the stackedWidget, which contains one 'page' 
   // (page is a QTabWidget) for each category, loop through it for the categories:
   int category_count = stackedWidget->count();
@@ -476,12 +583,12 @@ void QLSettingsManager::saveJSONSettings() {
 
       // handle device selection separately:
       if(categoryId == "general" && subcategoryId == "device") {
-        settings_json_updated[categoryId][subcategoryId]["family"]["default"] = device_manager->device_target.device_variant.family;
-        settings_json_updated[categoryId][subcategoryId]["foundry"]["default"] = device_manager->device_target.device_variant.foundry;
-        settings_json_updated[categoryId][subcategoryId]["node"]["default"] = device_manager->device_target.device_variant.node;
-        settings_json_updated[categoryId][subcategoryId]["voltage_threshold"]["default"] = device_manager->device_target.device_variant.voltage_threshold;
-        settings_json_updated[categoryId][subcategoryId]["p_v_t_corner"]["default"] = device_manager->device_target.device_variant.p_v_t_corner;
-        settings_json_updated[categoryId][subcategoryId]["layout"]["default"] = device_manager->device_target.device_variant_layout.name;
+        settings_json_updated[categoryId][subcategoryId]["family"]["userValue"] = device_manager->device_target.device_variant.family;
+        settings_json_updated[categoryId][subcategoryId]["foundry"]["userValue"] = device_manager->device_target.device_variant.foundry;
+        settings_json_updated[categoryId][subcategoryId]["node"]["userValue"] = device_manager->device_target.device_variant.node;
+        settings_json_updated[categoryId][subcategoryId]["voltage_threshold"]["userValue"] = device_manager->device_target.device_variant.voltage_threshold;
+        settings_json_updated[categoryId][subcategoryId]["p_v_t_corner"]["userValue"] = device_manager->device_target.device_variant.p_v_t_corner;
+        settings_json_updated[categoryId][subcategoryId]["layout"]["userValue"] = device_manager->device_target.device_variant_layout.name;
       }
       else {
 
@@ -512,44 +619,44 @@ void QLSettingsManager::saveJSONSettings() {
               // std::cout << ">>>      input_widget value: " << value_string << std::endl;
 
               if(categoryId == "power") {
-                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
               else {
-                settings_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
             }
-
           }
           else if(widgetType == std::string("checkbox")) {
+
             QCheckBox* checkbox_widget = container_widget->findChild<QCheckBox*>(QString(), Qt::FindChildrenRecursively);
             if(checkbox_widget) {
               std::string value_string = checkbox_widget->isChecked() ? "checked" : "unchecked";
               // std::cout << ">>>      checkbox_widget value: " << value_string << std::endl;
               if(categoryId == "power") {
-                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
               else {
-                settings_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
             }
-
           }
           else if(widgetType == std::string("dropdown")) {
+
             QComboBox* dropdown_widget = container_widget->findChild<QComboBox*>(QString(), Qt::FindChildrenRecursively);
             if(dropdown_widget) {
               std::string value_string = (dropdown_widget->currentText()).toStdString();
               // std::cout << ">>>      dropdown_widget value: " << value_string << std::endl;
               if(categoryId == "power") {
-                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
               else {
-                settings_json_updated[categoryId][subcategoryId][widgetId]["default"] = value_string;
+                settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
               }
             }
           }
           else {
             // unhandled widgetType!
-            std::cout << ">>>      warning: unhandled widgetType: " << widgetType << std::endl;
+            std::cout << ">>> warning: unhandled widgetType: " << widgetType << " widgetId:" << widgetId << std::endl;
           }
         }
       }
@@ -574,8 +681,10 @@ void QLSettingsManager::saveJSONSettings() {
   //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
   //     "value": "unchecked" -> value changed
   // }
-  std::vector<std::string> settings_json_change_list;
-  std::vector<std::string> power_estimation_json_change_list;
+
+  // populate the list of changes:
+  settings_json_change_list.clear();
+  power_estimation_json_change_list.clear();
 
   for (auto diff_element: settings_json_patch) {
     std::string path = diff_element["path"];
@@ -609,6 +718,7 @@ void QLSettingsManager::saveJSONSettings() {
     power_estimation_json_change_list.push_back(json_change_stringstream.str());
   }
 
+  // debug:
   // std::cout << "--------\n" << std::endl;
   // for(std::string change: settings_json_change_list) {
   //   std::cout << change << std::endl;
@@ -619,67 +729,255 @@ void QLSettingsManager::saveJSONSettings() {
   //   std::cout << "--------\n" << std::endl;
   // }
 
+  // no changes:
   if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
-    return;
+    return false;
   }
 
-  QDialog dialog;
-  dialog.setWindowTitle("Settings Changes!");
-  QVBoxLayout* dialogLayout = new QVBoxLayout();
-  dialog.setLayout(dialogLayout);
+  return true;
+}
 
-  QListWidget* listOfChangesWidget = new QListWidget();
-  listOfChangesWidget->setAlternatingRowColors(true);
 
-  for(std::string change_item: settings_json_change_list) {
-    listOfChangesWidget->addItem(QString::fromStdString(change_item));
+bool QLSettingsManager::saveJSONSettings() {
+
+  // std::cout << "saveJSONSettings()" << std::endl;
+
+  bool savedNewJsonChanges = false;
+
+  // // translate the GUI into JSON again:
+  // json settings_json_updated(settings_json);
+  // std::filesystem::path settings_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + ".updated.json");
+
+  // json power_estimation_json_updated(power_estimation_json);
+  // std::filesystem::path power_estimation_json_filepath_updated = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power" + ".updated.json");
+
+
+  // // root of all the settings is the stackedWidget, which contains one 'page' 
+  // // (page is a QTabWidget) for each category, loop through it for the categories:
+  // int category_count = stackedWidget->count();
+  // for (int category_index = 0; category_index < category_count; category_index++) {
+  //   QTabWidget* category_widget = (QTabWidget*)stackedWidget->widget(category_index);
+  //   std::string categoryId = category_widget->property("settings_category_id").toString().toStdString();
+  //   // std::cout << "> categoryId: " << categoryId << std::endl;
+
+  //   // each subcategory is one 'tab' (which is a QWidget) of the corresponding QTabWidget, 
+  //   // loop through it for the subcategories:
+  //   int subcategory_count = category_widget->count();
+  //   for (int subcategory_index = 0; subcategory_index < subcategory_count; subcategory_index++) {
+  //     QWidget* subcategory_widget = category_widget->widget(subcategory_index);
+  //     std::string subcategoryId = subcategory_widget->property("settings_subcategory_id").toString().toStdString();
+  //     // std::cout << ">>    subcategoryId: " << subcategoryId << std::endl;
+
+  //     // handle device selection separately:
+  //     if(categoryId == "general" && subcategoryId == "device") {
+  //       settings_json_updated[categoryId][subcategoryId]["family"]["userValue"] = device_manager->device_target.device_variant.family;
+  //       settings_json_updated[categoryId][subcategoryId]["foundry"]["userValue"] = device_manager->device_target.device_variant.foundry;
+  //       settings_json_updated[categoryId][subcategoryId]["node"]["userValue"] = device_manager->device_target.device_variant.node;
+  //       settings_json_updated[categoryId][subcategoryId]["voltage_threshold"]["userValue"] = device_manager->device_target.device_variant.voltage_threshold;
+  //       settings_json_updated[categoryId][subcategoryId]["p_v_t_corner"]["userValue"] = device_manager->device_target.device_variant.p_v_t_corner;
+  //       settings_json_updated[categoryId][subcategoryId]["layout"]["userValue"] = device_manager->device_target.device_variant_layout.name;
+  //     }
+  //     else {
+
+  //       // each 'setting' is one 'container' widget inside the 'tab', loop through the widgets,
+  //       // for each 'setting'
+  //       // each 'container' widget contains: a QLabel, and a type specific QWidget (checkbox, combo, etc.)
+  //       QList<QWidget*> container_widget_list = subcategory_widget->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
+
+  //       for (int container_index = 0; container_index < container_widget_list.count(); container_index++) {
+  //         QWidget* container_widget = container_widget_list[container_index];
+
+  //         // get the property to check what kind of widget it is and its name:
+  //         std::string widgetId = container_widget->property("settings_json_id").toString().toStdString();
+  //         std::string widgetType = container_widget->property("settings_json_value_widgetType").toString().toStdString();
+  //         // std::cout << "\n>>>      widgetId: " << widgetId << std::endl;
+  //         // std::cout << ">>>      widgetType: " << widgetType << std::endl;
+
+  //         // currently, we use only string values in json, but it may be one of the others as well:
+  //         // std::string value_string;
+  //         // int value_int;
+  //         // double value_double;
+
+  //         if(widgetType == std::string("input")) {
+
+  //           QLineEdit* input_widget = container_widget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
+  //           if(input_widget) {
+  //             std::string value_string = (input_widget->text()).toStdString();
+  //             // std::cout << ">>>      input_widget value: " << value_string << std::endl;
+
+  //             if(categoryId == "power") {
+  //               power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //             else {
+  //               settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //           }
+  //         }
+  //         else if(widgetType == std::string("checkbox")) {
+
+  //           QCheckBox* checkbox_widget = container_widget->findChild<QCheckBox*>(QString(), Qt::FindChildrenRecursively);
+  //           if(checkbox_widget) {
+  //             std::string value_string = checkbox_widget->isChecked() ? "checked" : "unchecked";
+  //             // std::cout << ">>>      checkbox_widget value: " << value_string << std::endl;
+  //             if(categoryId == "power") {
+  //               power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //             else {
+  //               settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //           }
+  //         }
+  //         else if(widgetType == std::string("dropdown")) {
+
+  //           QComboBox* dropdown_widget = container_widget->findChild<QComboBox*>(QString(), Qt::FindChildrenRecursively);
+  //           if(dropdown_widget) {
+  //             std::string value_string = (dropdown_widget->currentText()).toStdString();
+  //             // std::cout << ">>>      dropdown_widget value: " << value_string << std::endl;
+  //             if(categoryId == "power") {
+  //               power_estimation_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //             else {
+  //               settings_json_updated[categoryId][subcategoryId][widgetId]["userValue"] = value_string;
+  //             }
+  //           }
+  //         }
+  //         else {
+  //           // unhandled widgetType!
+  //           std::cout << ">>> warning: unhandled widgetType: " << widgetType << " widgetId:" << widgetId << std::endl;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+  // // compare with original settings json, and if there are differences, we need to initiate
+  // // user confirmation, and then update and save json, replacing the original.
+
+  // json settings_json_patch = json::diff(settings_json, settings_json_updated);
+  // json power_estimation_json_patch = json::diff(power_estimation_json, power_estimation_json_updated);
+
+  // // std::cout << "settings_json_patch" << std::endl;
+  // // std::cout << std::setw(4) << settings_json_patch << std::endl;
+
+  // // std::cout << "power_estimation_json_patch" << std::endl;
+  // // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
+
+  // // the patch is a json array of "diffs", each diff being:
+  // // {
+  // //     "op": "replace",
+  // //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
+  // //     "value": "unchecked" -> value changed
+  // // }
+  // std::vector<std::string> settings_json_change_list;
+  // std::vector<std::string> power_estimation_json_change_list;
+
+  // for (auto diff_element: settings_json_patch) {
+  //   std::string path = diff_element["path"];
+  //   std::vector<std::string> tokens;
+  //   StringUtils::tokenize(path, "/", tokens);
+
+  //   std::string original_value = settings_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+  //   std::string new_value = diff_element["value"];
+
+  //   std::ostringstream json_change_stringstream;
+  //   json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+  //   json_change_stringstream << "  from: " << original_value << "\n";
+  //   json_change_stringstream << "  to:   " << new_value;
+
+  //   settings_json_change_list.push_back(json_change_stringstream.str());
+  // }
+
+  // for (auto diff_element: power_estimation_json_patch) {
+  //   std::string path = diff_element["path"];
+  //   std::vector<std::string> tokens;
+  //   StringUtils::tokenize(path, "/", tokens);
+
+  //   std::string original_value = power_estimation_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+  //   std::string new_value = diff_element["value"];
+
+  //   std::ostringstream json_change_stringstream;
+  //   json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+  //   json_change_stringstream << "  from: " << original_value << "\n";
+  //   json_change_stringstream << "  to:   " << new_value << "\n";
+
+  //   power_estimation_json_change_list.push_back(json_change_stringstream.str());
+  // }
+
+  // // std::cout << "--------\n" << std::endl;
+  // // for(std::string change: settings_json_change_list) {
+  // //   std::cout << change << std::endl;
+  // //   std::cout << "--------\n" << std::endl;
+  // // }
+  // // for(std::string change: power_estimation_json_change_list) {
+  // //   std::cout << change << std::endl;
+  // //   std::cout << "--------\n" << std::endl;
+  // // }
+
+  // if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
+  //   return;
+  // }
+
+  if(areJSONSettingsChanged()) {
+
+    // ask user to confirm the changes, before saving into JSON
+
+    QDialog dialog;
+    dialog.setWindowTitle("Settings Changes!");
+    QVBoxLayout* dialogLayout = new QVBoxLayout();
+    dialog.setLayout(dialogLayout);
+
+    QListWidget* listOfChangesWidget = new QListWidget();
+    listOfChangesWidget->setAlternatingRowColors(true);
+
+    for(std::string change_item: settings_json_change_list) {
+      listOfChangesWidget->addItem(QString::fromStdString(change_item));
+    }
+    
+    for(std::string change_item: power_estimation_json_change_list) {
+      listOfChangesWidget->addItem(QString::fromStdString(change_item));
+    }
+
+    QLabel* dialogLabel = new QLabel("\nPress OK to save the above changes into the Settings JSON\n");
+
+    QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                                    Qt::Horizontal);
+    QObject::connect(buttons, &QDialogButtonBox::accepted,
+                      &dialog, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected,
+                      &dialog, &QDialog::reject);
+
+    dialogLayout->addWidget(listOfChangesWidget);
+    dialogLayout->addStretch();
+    dialogLayout->addWidget(dialogLabel);
+    dialogLayout->addWidget(buttons);
+    
+    dialog.setModal(true);
+
+    int result = dialog.exec();
+    
+    if (result == QDialog::Accepted)
+    {
+        settings_json = settings_json_updated;
+        std::ofstream settings_json_ofstream(settings_json_filepath.string());
+        settings_json_ofstream << std::setw(4) << settings_json << std::endl;
+
+        power_estimation_json = power_estimation_json_updated;
+        std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
+        power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+
+        savedNewJsonChanges = true;
+    }
+    else if (result == QDialog::Rejected)
+    {
+        // std::cout << "QDialog::Rejected" << std::endl;
+        // user has cancelled, leave state as is.
+        // if user wants to reset, user will click the Reset button
+
+        savedNewJsonChanges = false;
+    }
   }
-  
-  for(std::string change_item: power_estimation_json_change_list) {
-    listOfChangesWidget->addItem(QString::fromStdString(change_item));
-  }
 
-  QLabel* dialogLabel = new QLabel("\nPress OK to save the above changes into the Settings JSON\n");
-
-  QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                                                  Qt::Horizontal);
-  QObject::connect(buttons, &QDialogButtonBox::accepted,
-                    &dialog, &QDialog::accept);
-  QObject::connect(buttons, &QDialogButtonBox::rejected,
-                    &dialog, &QDialog::reject);
-
-  dialogLayout->addWidget(listOfChangesWidget);
-  dialogLayout->addStretch();
-  dialogLayout->addWidget(dialogLabel);
-  dialogLayout->addWidget(buttons);
-  
-  dialog.setModal(true);
-
-  int result = dialog.exec();
-  
-  if (result == QDialog::Accepted)
-  {
-      // std::cout << "QDialog::Accepted" << std::endl;
-
-      // std::ofstream settings_json_updated_ofstream(settings_json_filepath_updated.string());
-      // settings_json_updated_ofstream << std::setw(4) << settings_json_updated << std::endl;
-
-      // std::ofstream power_estimation_json_updated_ofstream(power_estimation_json_filepath_updated.string());
-      // power_estimation_json_updated_ofstream << std::setw(4) << power_estimation_json_updated << std::endl;
-
-      settings_json = settings_json_updated;
-      std::ofstream settings_json_ofstream(settings_json_filepath.string());
-      settings_json_ofstream << std::setw(4) << settings_json << std::endl;
-
-      power_estimation_json = power_estimation_json_updated;
-      std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
-      power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
-
-  }
-  else if (result == QDialog::Rejected)
-  {
-      // std::cout << "QDialog::Rejected" << std::endl;
-  }
+  return savedNewJsonChanges;
 }
 
 
@@ -729,7 +1027,11 @@ void QLSettingsManager::parseJSONSettings() {
 
 
 void QLSettingsManager::handleApplyButtonClicked() {
-  saveJSONSettings();
+
+  bool savedNewJsonChanges = saveJSONSettings();
+  if(savedNewJsonChanges) {
+    updateSettingsWidget();
+  }
 }
 
 
@@ -737,6 +1039,32 @@ void QLSettingsManager::handleResetButtonClicked() {
 
   parseJSONSettings();
   updateSettingsWidget();
+}
+
+void QLSettingsManager::handleSettingsChanged() {
+
+  // on any change to settings, this is called.
+  // derive a diff, and if any changes, enable Reset and Apply buttons.
+  // if no changes, disable Reset and Apply buttons.
+
+  if(areJSONSettingsChanged()) {
+    // enable the buttons as there are unsaved changes
+    button_reset->setDisabled(false);
+    button_apply->setDisabled(false);
+    m_message_label->setText("Settings have unsaved changes!");
+    // m_message_label->setText("Settings have changes!\n\n"
+    //                          "- Click 'Apply' to save to JSON\n"
+    //                          "- Click 'Reset' to reset to original\n\n"
+    //                          "Task Settings changes will not be effective until 'Apply' is executed!");
+    m_message_label->show();
+  }
+  else {
+    // disable the buttons as there are no changes
+    button_reset->setDisabled(true);
+    button_apply->setDisabled(true);
+    m_message_label->setText("");
+    m_message_label->hide();
+  }
 }
 
 } // namespace FOEDAG

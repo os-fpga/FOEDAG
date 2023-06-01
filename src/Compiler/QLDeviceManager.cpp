@@ -179,12 +179,6 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
                         this->layoutChanged(currentText);
                         } );
 
-  // the below code causes trigger of currentTextChanged for m_combobox_family on first GUI creation.
-  // m_combobox_family->blockSignals(true);
-  // m_combobox_family->setCurrentIndex(-1);
-  // m_combobox_family->blockSignals(false);
-  // m_combobox_family->setCurrentIndex(0);
-
   dlg_familylayout->addWidget(m_combobox_family_label);
   dlg_familylayout->addStretch();
   dlg_familylayout->addWidget(m_combobox_family);
@@ -207,12 +201,15 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
 
   m_message_label = new QLabel();
   m_message_label->setWordWrap(true);
+  // background/font color
+  m_message_label->setAutoFillBackground(true);
+  //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
   QPalette m_message_label_palette;
   m_message_label_palette.setColor(QPalette::Window, Qt::white);
   m_message_label_palette.setColor(QPalette::WindowText, Qt::red);
-  m_message_label->setAutoFillBackground(true);
   m_message_label->setPalette(m_message_label_palette);
-  //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
+  // frame
+  m_message_label->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
   m_message_label->hide();
 
 
@@ -491,10 +488,9 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
         m_button_apply->setDisabled(false);
 
         m_message_label->setText("Device Selection has changed!\n\n"
-                                 "Click 'Apply' to set the new Device\n"
-                                 "Click 'Reset' to reset to the original device\n\n"
-                                 "Task Settings will not reflect new Device\n"
-                                 "until 'Apply' is executed!");
+                                 "- Click 'Apply' to set the new Device.\n"
+                                 "- Click 'Reset' to reset to the original Device.\n\n"
+                                 "Task Settings will not reflect new Device until 'Apply' is executed!");
         m_message_label->show();
         // device_manager_widget->adjustSize();
       }
@@ -1130,8 +1126,12 @@ void QLDeviceManager::setCurrentDeviceTarget(QLDeviceTarget device_target) {
     }
   }
   else {
-    // update GUI:
     // invalid target device in "device_target" - JSON is incorrect, or missing?
+    QLDeviceTarget empty_device_target;
+    this->device_target = empty_device_target;
+    this->device_target_selected = empty_device_target;
+    
+    // update GUI:
     if(device_manager_widget != nullptr) {
       // trigger GUI to default selection (index0 of all fields...)
       m_combobox_family->blockSignals(true);
