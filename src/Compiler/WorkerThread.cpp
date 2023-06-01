@@ -49,7 +49,6 @@ bool WorkerThread::start() {
   if (processEvents) eventLoop = new QEventLoop;
   m_thread = new std::thread([&, eventLoop] {
     result = m_compiler->Compile(m_action);
-    m_compiler->finish();
     if (eventLoop) eventLoop->quit();
   });
   if (eventLoop)
@@ -58,6 +57,7 @@ bool WorkerThread::start() {
     m_thread->join();  // batch mode
   delete eventLoop;
   if (m_postRunTask && result) m_postRunTask(static_cast<int>(m_action));
+  m_compiler->finish();
   return result;
 }
 
