@@ -145,6 +145,7 @@ class TaskManager : public QObject {
   int m_taskCount{0};
   int counter{0};
   const DialogProvider *m_dialogProvider{nullptr};
+  Compiler *m_compiler{nullptr};
 };
 
 }  // namespace FOEDAG
