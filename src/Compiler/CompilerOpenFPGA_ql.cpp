@@ -2807,6 +2807,12 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -no_abc_opt";
   }
 
+  if( (settings_yosys_general_obj.contains("no_abc9")) && 
+      (settings_yosys_general_obj["no_abc9"]["default"].get<std::string>() == "checked") ) {
+
+    yosys_options += " -no_abc9";
+  }
+
   if( (settings_yosys_general_obj.contains("no_adder")) && 
       (settings_yosys_general_obj["no_adder"]["default"].get<std::string>() == "checked") ) {
 
