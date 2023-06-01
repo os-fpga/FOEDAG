@@ -735,6 +735,7 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
       if (m_waveType == WaveformType::FST) {
         command += " -fst";
       }
+      if (!m_waveFile.empty()) command += " -dumpfile=" + m_waveFile;
       return command;
     }
     case SimulatorType::GHDL: {
