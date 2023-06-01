@@ -88,20 +88,24 @@ void CompressProject::compressProject() {
   if (projectNameLine && projectPathLine) {
     auto projectName = projectNameLine->text().toStdString();
     auto projectPath = projectPathLine->text().toStdString();
+    auto originalProjectPath = m_projectPath.parent_path().string();
     if (m_extension == ".tar.gz") {
       // tar -czvf file.tar.gz directory
       StringVector args{"-czvf", projectName + m_extension.toStdString(), "-C",
-                        m_projectPath.parent_path().string(),
-                        m_projectPath.filename().string()};
+                        originalProjectPath, m_projectPath.filename().string()};
       ExecuteSystemCommand("tar", args, projectPath);
     } else {
       // zip -r foo.zip foo
       StringVector args{"-r", projectName + m_extension.toStdString(),
                         m_projectPath.filename().string()};
-      if (ExecuteSystemCommand("zip", args,
-                               m_projectPath.parent_path().string())) {
-        args = {projectName + m_extension.toStdString(), projectPath};
-        ExecuteSystemCommand("mv", args, m_projectPath.parent_path().string());
+      if (ExecuteSystemCommand("zip", args, originalProjectPath)) {
+        // since zip file is created within original project path we have to
+        // move it to the path user selected. zip doesn't allow to drop parent
+        // folder structure.
+        if (projectPath != originalProjectPath) {
+          args = {projectName + m_extension.toStdString(), projectPath};
+          ExecuteSystemCommand("mv", args, originalProjectPath);
+        }
       }
     }
   }
