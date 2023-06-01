@@ -2005,7 +2005,14 @@ ClbPacking Compiler::ClbPackingOption() const { return m_clbPacking; }
 
 bool Compiler::Compile(Action action) {
   uint task{toTaskId(static_cast<int>(action), this)};
-  m_stop = false;
+  if (m_stop) {
+    ResetStopFlag();
+    if (task != TaskManager::invalid_id && m_taskManager) {
+      m_taskManager->task(task)->setStatus(TaskStatus::Fail);
+    }
+    return false;
+  }
+  ResetStopFlag();
   bool res{false};
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
@@ -2029,6 +2036,8 @@ void Compiler::Stop() {
   if (m_process) m_process->terminate();
   FileUtils::terminateSystemCommand();
 }
+
+void Compiler::ResetStopFlag() { m_stop = false; }
 
 bool Compiler::Analyze() {
   if (!m_projManager->HasDesign() && !CreateDesign("noname")) return false;
