@@ -119,19 +119,46 @@ std::string QLSettingsManager::getStringValue(std::string category, std::string 
 
 const json* QLSettingsManager::getJson(std::string category, std::string subcategory, std::string parameter) {
 
-   return nullptr;
+  json& json_ref = instance->combined_json;
+  if( json_ref.contains(category) &&
+      json_ref[category].contains(subcategory) &&
+      json_ref[category][subcategory].contains(parameter) &&
+      !json_ref[category][subcategory][parameter].empty() ) {
+
+    json* json_ptr = &(json_ref[category][subcategory][parameter]);
+    return json_ptr;
+  }
+
+  return nullptr;
 }
 
 
 const json* QLSettingsManager::getJson(std::string category, std::string subcategory) {
 
-   return nullptr;
+  json& json_ref = instance->combined_json;
+  if( json_ref.contains(category) &&
+      json_ref[category].contains(subcategory) &&
+      !json_ref[category][subcategory].empty() ) {
+
+    json* json_ptr = &(json_ref[category][subcategory]);
+    return json_ptr;
+  }
+
+  return nullptr;
 }
 
 
 const json* QLSettingsManager::getJson(std::string category) {
 
-   return nullptr;
+  json& json_ref = instance->combined_json;
+  if( json_ref.contains(category) &&
+      !json_ref[category].empty() ) {
+
+    json* json_ptr = &(json_ref[category]);
+    return json_ptr;
+  }
+
+  return nullptr;
 }
 
 

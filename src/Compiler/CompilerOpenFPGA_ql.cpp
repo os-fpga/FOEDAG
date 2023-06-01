@@ -1879,15 +1879,6 @@ bool CompilerOpenFPGA_ql::IPGenerate() {
 // this is only an example of using python process - as this is not needed currently, it
 // is disabled.
 //   // placeholder for ipgenerate process ++
-//   std::string settings_json_filename = m_projManager->projectName() + ".json";
-//   std::string settings_json_path = (std::filesystem::path(settings_json_filename)).string();
-//   GetSession()->GetSettings()->loadJsonFile(QString::fromStdString(settings_json_path));
-//   json settings_general_device_obj = GetSession()->GetSettings()->getJson()["general"]["device"];
-  
-
-//   std::string family = settings_general_device_obj["family"]["default"].get<std::string>();
-//   std::string foundry = settings_general_device_obj["foundry"]["default"].get<std::string>();
-//   std::string node = settings_general_device_obj["node"]["default"].get<std::string>();
 
 //   // use script from project dir:
 //   //std::filesystem::path python_script_path = std::filesystem::path(std::filesystem::current_path() / std::string("example.py"));
@@ -2755,6 +2746,7 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -use_dsp_cfg_params";
   }
 
+  // TODO: trim yosys_options at the front
   yosysScript = ReplaceAll(yosysScript, "${YOSYS_OPTIONS}", yosys_options);
 
 
@@ -4108,6 +4100,9 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   Message("Power Analysis for design: " + ProjManager()->projectName());
   Message("##################################################");
 
+  // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
+  QLSettingsManager::reloadJSONSettings();
+
 #if 0 // Disable VPR Power Analysis
 
 #if UPSTREAM_UNUSED
@@ -4131,44 +4126,40 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
      }
 #endif // #if UPSTREAM_UNUSED
   
-  json settings_vpr_filename_obj = GetSession()->GetSettings()->getJson()["vpr"]["filename"];
   std::string vpr_options;
   std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
 
-  if( (settings_vpr_filename_obj.contains("net_file")) && 
-      !settings_vpr_filename_obj["net_file"]["default"].get<std::string>().empty() ) {
-    vpr_options += std::string(" --net_file") + 
-                   std::string(" ") + 
-                   settings_vpr_filename_obj["net_file"]["default"].get<std::string>();
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "net_file").empty() ) {
+      vpr_options += std::string(" --net_file") + 
+                  std::string(" ") + 
+                  QLSettingsManager::getStringValue("vpr", "filename", "net_file");
   }
   else {
-    vpr_options += std::string(" --net_file") + 
-                   std::string(" ") + 
-                   netlistFilePrefix + std::string(".net");
+      vpr_options += std::string(" --net_file") + 
+                  std::string(" ") + 
+                  netlistFilePrefix + std::string(".net");
   }
 
-  if( (settings_vpr_filename_obj.contains("place_file")) && 
-      !settings_vpr_filename_obj["place_file"]["default"].get<std::string>().empty() ) {
-    vpr_options += std::string(" --place_file") + 
-                   std::string(" ") + 
-                   settings_vpr_filename_obj["place_file"]["default"].get<std::string>();
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "place_file").empty() ) {
+      vpr_options += std::string(" --place_file") + 
+                  std::string(" ") + 
+                  QLSettingsManager::getStringValue("vpr", "filename", "place_file");
   }
   else {
-    vpr_options += std::string(" --place_file") + 
-                   std::string(" ") + 
-                   netlistFilePrefix + std::string(".place");
+      vpr_options += std::string(" --place_file") + 
+                  std::string(" ") + 
+                  netlistFilePrefix + std::string(".place");
   }
 
-  if( (settings_vpr_filename_obj.contains("route_file")) && 
-      !settings_vpr_filename_obj["route_file"]["default"].get<std::string>().empty() ) {
-    vpr_options += std::string(" --route_file") + 
-                   std::string(" ") + 
-                   settings_vpr_filename_obj["route_file"]["default"].get<std::string>();
+  if( !QLSettingsManager::getStringValue("vpr", "filename", "route_file").empty() ) {
+      vpr_options += std::string(" --route_file") + 
+                  std::string(" ") + 
+                  QLSettingsManager::getStringValue("vpr", "filename", "route_file");
   }
   else {
-    vpr_options += std::string(" --route_file") + 
-                   std::string(" ") + 
-                   netlistFilePrefix + std::string(".route");
+      vpr_options += std::string(" --route_file") + 
+                  std::string(" ") + 
+                  netlistFilePrefix + std::string(".route");
   }
 
   std::string command = BaseVprCommand();
@@ -5959,25 +5950,11 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
 
 
   // Check and Parse Power Estimation JSON File for User Inputs
-  std::filesystem::path power_estimation_json_file;
-  bool power_estimation_json_exists = false;
-  json power_estimation_json;
-  
-  power_estimation_json_file = 
-    std::filesystem::path(m_projManager->projectPath())/std::string(m_projManager->projectName() + "_power.json");
-  if (FileUtils::FileExists(power_estimation_json_file)) {
-    power_estimation_json_exists = true;
-  }
-  else {
-    power_estimation_json_file = 
-      std::filesystem::path(m_projManager->projectPath())/std::filesystem::path("..")/std::string(m_projManager->projectName() + "_power.json");
-    if (FileUtils::FileExists(power_estimation_json_file)) {
-      power_estimation_json_exists = true;
-    }
-  }
+  if( QLSettingsManager::getJson("power", "power_inputs") == nullptr ) {
 
-  if(power_estimation_json_exists == false) {
-    // push final values onto the return vector
+    // there are no power_inputs parameters required for power analysis!
+    Message("power_inputs in JSON unavailable, skipping power analysis!");
+
     power_estimates.push_back(0); // dynamic power in mW
     power_estimates.push_back(0); // leakage power in mW
     power_estimates.push_back(0); // total power in mW
@@ -5985,15 +5962,11 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     return power_estimates;
   }
 
-  std::ifstream power_estimation_json_f(power_estimation_json_file.string());
-  power_estimation_json = json::parse(power_estimation_json_f);
-
   // enable debug prints if specified in JSON
   bool power_estimation_dbg = false;
   std::ofstream power_analysis_debug_rpt;
-  if( (power_estimation_json["power"].contains("power_outputs")) &&
-      (power_estimation_json["power"]["power_outputs"].contains("debug")) &&
-      (power_estimation_json["power"]["power_outputs"]["debug"]["default"].get<std::string>() == "checked") ) {
+
+  if( QLSettingsManager::getStringValue("power", "power_outputs", "debug") == "checked" ) {
 
     power_estimation_dbg = true;
 
@@ -6344,13 +6317,16 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
 
   // read inputs from power estimation json, if available:
   try {
-    voltage = std::stod(power_estimation_json["power"]["power_inputs"]["voltage"]["default"].get<std::string>());
+    voltage = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "voltage"));
     calculator_d8 = voltage;
 
-    system_frequency_mhz = std::stod(power_estimation_json["power"]["power_inputs"]["system_frequency_mhz"]["default"].get<std::string>());
+    system_frequency_mhz = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "system_frequency_mhz"));
     calculator_e9 = system_frequency_mhz;
 
-    input_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["input_activity_factor"]["default"].get<std::string>());
+    input_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "input_activity_factor"));
     calculator_f11 = input_activity_factor;
     calculator_e11 = (calculator_e9*calculator_f11);
 
@@ -6358,7 +6334,8 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     // calculator_f12 = input_ff_activity_factor;
     // calculator_e12 = (calculator_e9*calculator_f12);
 
-    output_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["output_activity_factor"]["default"].get<std::string>());
+    output_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "output_activity_factor"));
     calculator_f16 = output_activity_factor;
     calculator_e16 = (calculator_e9*calculator_f16);
 
@@ -6366,23 +6343,28 @@ std::vector<long double> CompilerOpenFPGA_ql::PowerEstimator() {
     // calculator_f17 = output_ff_activity_factor;
     // calculator_e17 = (calculator_e9*calculator_f17);
 
-    output_clb_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["output_clb_activity_factor"]["default"].get<std::string>());
+    output_clb_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "output_clb_activity_factor"));
     calculator_f18 = output_clb_activity_factor;
     calculator_e18 = (calculator_e9*calculator_f18);
 
-    routing_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["routing_activity_factor"]["default"].get<std::string>());
+    routing_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "routing_activity_factor"));
     calculator_f21 = routing_activity_factor;
     calculator_e21 = (calculator_e9*calculator_f21);
 
-    lut_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["lut_activity_factor"]["default"].get<std::string>());
+    lut_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "lut_activity_factor"));
     calculator_f22 = lut_activity_factor;
     calculator_e22 = (calculator_e9*calculator_f22);
 
-    // total_ff_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["ff_activity_factor"]["default"].get<std::string>());
+    // total_ff_activity_factor = 
+    //  std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "ff_activity_factor"));
     // calculator_f26 = total_ff_activity_factor;
     // calculator_e26 = (calculator_e9*calculator_f26);
 
-    clock_network_activity_factor = std::stod(power_estimation_json["power"]["power_inputs"]["clock_network_activity_factor"]["default"].get<std::string>());
+    clock_network_activity_factor = 
+      std::stod(QLSettingsManager::getStringValue("power", "power_inputs", "clock_network_activity_factor"));
     calculator_f28 = clock_network_activity_factor;
     calculator_e28 = (calculator_e9*calculator_f28);
   }
