@@ -127,6 +127,7 @@ class Compiler {
   bool Compile(Action action);
   void GenerateReport(int action);
   void Stop();
+  void ResetStopFlag();
   TclInterpreter* TclInterp() { return m_interp; }
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   void start();

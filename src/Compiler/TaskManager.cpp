@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/CompilerDefines.h"
 #include "Main/DialogProvider.h"
 #include "Reports/BitstreamReportManager.h"
@@ -43,7 +44,7 @@ static constexpr auto CleanText{
 static constexpr auto ParentTitle{"ParentTitle"};
 
 TaskManager::TaskManager(Compiler *compiler, QObject *parent)
-    : QObject{parent} {
+    : QObject{parent}, m_compiler(compiler) {
   qRegisterMetaType<FOEDAG::TaskStatus>("FOEDAG::TaskStatus");
 
   m_tasks.insert(IP_GENERATE, new Task{"IP Generate"});
@@ -262,6 +263,7 @@ TaskStatus TaskManager::status() const {
 
 void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
+  if (m_compiler) m_compiler->ResetStopFlag();
   reset();
   appendTask(m_tasks[IP_GENERATE]);
   appendTask(m_tasks[ANALYSIS]);
@@ -290,6 +292,7 @@ void TaskManager::startAll(bool simulation) {
 void TaskManager::startTask(Task *t) {
   if (!m_runStack.isEmpty()) return;
   if (!t->isValid()) return;
+  if (m_compiler) m_compiler->ResetStopFlag();
   if (t->type() == TaskType::Clean) {
     if (m_dialogProvider) {
       if (m_dialogProvider->question(
