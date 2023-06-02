@@ -853,7 +853,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                        const char* argv[]) -> int {
       Compiler* compiler = (Compiler*)clientData;
       bool status = true;
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Icarus;
+      const auto default_sim_tool{Simulator::SimulatorType::Icarus};
+      Simulator::SimulatorType sim_tool = default_sim_tool;
       if (argc < 2) {
         compiler->ErrorMessage(
             "Wrong number of arguments: simulate <type> ?<simulator>? "
@@ -867,14 +868,12 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         bool ok{false};
-        auto sim = Simulator::ToSimulatorType(arg, ok,
-                                              Simulator::SimulatorType::Icarus);
+        auto sim = Simulator::ToSimulatorType(arg, ok, default_sim_tool);
         if (ok) {
           sim_tool = sim;
           sim_tool_valid = true;
-        }
-        if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-            arg == "bitstream_fd" || arg == "bitstream_bd") {
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
@@ -1195,18 +1194,17 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
       std::string wave_file;
       bool clean{false};
       bool sim_tool_valid{false};
-      Simulator::SimulatorType sim_tool = Simulator::SimulatorType::Icarus;
+      const auto default_sim_tool{Simulator::SimulatorType::Icarus};
+      Simulator::SimulatorType sim_tool = default_sim_tool;
       for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         bool ok{false};
-        auto sim = Simulator::ToSimulatorType(arg, ok,
-                                              Simulator::SimulatorType::Icarus);
+        auto sim = Simulator::ToSimulatorType(arg, ok, default_sim_tool);
         if (ok) {
           sim_tool = sim;
           sim_tool_valid = true;
-        }
-        if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
-            arg == "bitstream_fd" || arg == "bitstream_bd") {
+        } else if (arg == "rtl" || arg == "gate" || arg == "pnr" ||
+                   arg == "bitstream_fd" || arg == "bitstream_bd") {
           sim_type = arg;
         } else if (arg == "clean") {
           clean = true;
