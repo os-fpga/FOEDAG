@@ -8,7 +8,7 @@ jobs:
   linux-gcc:
     name: ${{ matrix.mode }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -247,9 +247,9 @@ jobs:
           git
           mingw-w64-x86_64-toolchain
           mingw-w64-x86_64-cmake
-          mingw-w64-x86_64-qt5-base-debug
-          mingw-w64-x86_64-qt5
-          mingw-w64-x86_64-qt5-declarative-debug
+          mingw-w64-x86_64-qt6-base-debug
+          mingw-w64-x86_64-qt6
+          mingw-w64-x86_64-qt6-declarative-debug
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-libusb
@@ -325,6 +325,8 @@ jobs:
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.0.0
+      with:
+          version: '6.2.4'
 
     - run: git config --global core.autocrlf input
       shell: bash
@@ -408,6 +410,7 @@ jobs:
     - name: Install dependencies
       uses: jurplel/install-qt-action@v3.0.0
       with:
+        version: '6.2.4'
         setup-python: false
 
     - name: Use ccache
@@ -460,6 +463,7 @@ jobs:
     - name: Cancel previous
       uses: styfle/cancel-workflow-action@0.11.0
       with:
+        version: '6.2.4'
         access_token: ${{ github.token }}
 
     - uses: actions/setup-python@v4.3.0
@@ -469,6 +473,7 @@ jobs:
     - name: Install dependencies
       uses: jurplel/install-qt-action@v3.0.0
       with:
+        version: '6.2.4'  
         setup-python: false
 
     - uses: actions/checkout@v3

@@ -7,16 +7,23 @@ sudo apt install -y \
   cmake \
   build-essential \
   google-perftools \
-  libgoogle-perftools-dev \
   uuid-dev \
   valgrind \
   xorg \
-  qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
+  qt6-base-dev libegl1-mesa-dev libx11-xcb-dev libxkbcommon-dev \
   xvfb \
   yosys \
   automake \
   libusb-1.0-0-dev \
   pkg-config
+
+wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+sudo apt update
+sudo apt install vulkan-sdk
+
+sudo apt install -y libunwind-dev
+sudo apt install -y --no-install-recommends libgoogle-perftools-dev 
 
 # For QML: qtdeclarative5-dev
 
