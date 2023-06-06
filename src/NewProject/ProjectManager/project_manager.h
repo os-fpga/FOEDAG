@@ -425,9 +425,8 @@ class ProjectManager : public QObject {
   inline static const Suffixes m_designSuffixes{
       {"v", "sv", "vh", "svh", "vhd", "blif", "eblif"}};
   inline static const Suffixes m_constrSuffixes{{"sdc", "pin"}};
-  inline static const Suffixes m_simSuffixes{{"v", "sv", "cpp", "c", "cc",
-                                              "vhd"
-                                              "vhdl"}};
+  inline static const Suffixes m_simSuffixes{
+      {"v", "sv", "cpp", "c", "cc", "vhd", "vhdl"}};
 
  signals:
   void projectPathChanged();
