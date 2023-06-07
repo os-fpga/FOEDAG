@@ -496,6 +496,7 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
   auto timings = QStringList{};
   while (in.readLineInto(&line)) {
+    parseStatisticLine(line);
     ++lineNr;
     // We reached the end of section
     if (line.startsWith(sectionLine)) break;
