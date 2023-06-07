@@ -80,9 +80,10 @@ int TaskModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant TaskModel::data(const QModelIndex &index, int role) const {
-  if (role == TaskId) return ToTaskId(index);
+  auto taskID = ToTaskId(index);
+  if (role == TaskId) return taskID;
 
-  auto task = m_taskManager->task(ToTaskId(index));
+  auto task = m_taskManager->task(taskID);
   if (!task) return QVariant();
 
   if (index.column() == TITLE_COL && role == Qt::CheckStateRole &&
@@ -90,9 +91,10 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
     return task->isEnable() ? Qt::Checked : Qt::Unchecked;
 
   if (role == Qt::DisplayRole && index.column() == TIMING_COL) {
-    auto registry = m_taskManager->getReportManagerRegistry().getReportManager(
-        ToTaskId(index));
-    if (registry) {
+    auto registry =
+        m_taskManager->getReportManagerRegistry().getReportManager(taskID);
+    // Bitstream generation step should not display Fmax
+    if (registry && taskID != BITSTREAM) {
       if (registry->usedResources().stat.fmax != 0)
         return QString::number(registry->usedResources().stat.fmax);
     }
