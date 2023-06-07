@@ -192,13 +192,13 @@ void newProjectDialog::ResetToNewProject() {
   // Trigger from Device Selection, and then populate Settings Manager GUI as well.
   
   QWidget* m_QLDeviceSelectionWidget = 
-    QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+    QLDeviceManager::getInstance()->createDeviceSelectionWidget(true);
   // // QWidget* m_QLDeviceSelectionWidget = new QWidget();
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
                              tr("Target Device"));
   // QObject::connect( m_QLDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "m_QLDeviceSelectionWidget destroyed()" << std::endl;} );
 
-  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget();
+  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget(true);
   ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
                              tr("Task Settings"));
 
@@ -248,12 +248,12 @@ void newProjectDialog::ResetToProjectSettings() {
 //   m_tabIndexes.insert(INDEX_DEVICEPL, index);
 
   QWidget* m_QLDeviceSelectionWidget = 
-    QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+    QLDeviceManager::getInstance()->createDeviceSelectionWidget(false);
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
                              tr("Target Device"));
   m_tabIndexes.insert(INDEX_DEVICEPL, index);
 
-  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget();
+  QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget(false);
   ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
                              tr("Task Settings"));
   m_tabIndexes.insert(INDEX_QLSETTIN, index);
@@ -417,7 +417,7 @@ void newProjectDialog::on_next() {
     m_addSrcForm->setProjectType(m_proTypeForm->projectType());
   }
   if (m_skipSources && m_index == INDEX_PROJTYPE)
-    m_index = INDEX_SUMMARYF;  // omit design and constraint files
+    m_index = INDEX_DEVICEPL;  // omit design and constraint files
   else
     m_index++;
   UpdateDialogView();

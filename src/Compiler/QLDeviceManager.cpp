@@ -6,6 +6,7 @@
 #include <QSpacerItem>
 #include <QPalette>
 #include <QDialog>
+#include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -61,19 +62,97 @@ QLDeviceManager* QLDeviceManager::getInstance(bool initialize) {
 }
 
 
+bool QLDeviceManager::compareLayouts(const std::string& layout_1, const std::string& layout_2) {
+
+  bool firstIsLesser = true;
+
+  // assumption: layout_names are always "widthxheight" -> if not, then default to layout_1 < layout_2
+  // return true if layout_1 < layout_2, else false
+  try {
+
+    std::string layout_1_lc = StringUtils::toLower(layout_1);
+    std::string layout_2_lc = StringUtils::toLower(layout_2);
+
+    std::vector<std::string> tokens_layout_1;
+    StringUtils::tokenize(layout_1_lc, "x", tokens_layout_1);
+    
+    std::vector<std::string> tokens_layout_2;
+    StringUtils::tokenize(layout_2_lc, "x", tokens_layout_2);
+
+    if( (tokens_layout_1.size() == 2) && (tokens_layout_2.size() == 2) ) {
+      int layout_1_width = std::stoi(tokens_layout_1[0]);
+      int layout_1_height = std::stoi(tokens_layout_1[1]);
+
+      int layout_2_width = std::stoi(tokens_layout_2[0]);
+      int layout_2_height = std::stoi(tokens_layout_2[1]);
+
+      if(layout_1_width < layout_2_width) {
+        firstIsLesser = true;
+      }
+      else if(layout_1_width == layout_2_width) {
+        if(layout_1_height < layout_2_height) {
+          firstIsLesser = true;
+        }
+        else {
+          firstIsLesser = false;
+        }
+      }
+      else {
+        firstIsLesser = false;
+      }
+    }
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[compareLayouts] Bad input: std::invalid_argument thrown" << std::endl;
+    firstIsLesser = true;
+  }
+    catch (std::out_of_range const &e) {
+    std::cout << "[compareLayouts] Integer overflow: std::out_of_range thrown" << std::endl;
+    firstIsLesser = true;
+  }
+
+  return firstIsLesser;
+}
+
+
 QLDeviceManager::QLDeviceManager(QObject *parent)
     : QObject(parent) {}
 
 
 QLDeviceManager::~QLDeviceManager() {
-  std::cout << "~QLDeviceManager()" << std::endl;
+  // std::cout << "~QLDeviceManager()" << std::endl;
   if(device_manager_widget != nullptr) {
     delete device_manager_widget;
   }
 }
 
 
-QWidget* QLDeviceManager::createDeviceSelectionWidget() {
+QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
+
+  // whenever a new GUI Widget is created, we mark the mode of operation of this widget:
+  this->newProjectMode = newProjectMode;
+
+  // std::cout << "createDeviceSelectionWidget()++, newProjectMode: " << newProjectMode << std::endl;
+
+  if(device_manager_widget != nullptr) {
+    device_manager_widget->deleteLater();
+  }
+
+  // cleanup GUI related data as well:
+  QLDeviceTarget empty_device_target;
+  this->device_target_selected = empty_device_target;
+  this->families.clear();
+  this->family.clear();
+  this->foundrynodes.clear();
+  this->foundrynode.clear();
+  this->foundry.clear();
+  this->node.clear();
+  this->voltage_thresholds.clear();
+  this->voltage_threshold.clear();
+  this->p_v_t_corners.clear();
+  this->p_v_t_corner.clear();
+  this->layouts.clear();
+  this->layout.clear();
 
   device_manager_widget = new QWidget();
 
@@ -105,16 +184,34 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
   dlg_selectionFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
   QVBoxLayout* dlg_selectionFrameLayout = new QVBoxLayout();
   dlg_selectionFrame->setLayout(dlg_selectionFrameLayout);
+  QGroupBox *devicetypeGroupBox = new QGroupBox(tr("Device Type"));
+  QVBoxLayout* devicetypeGroupBoxLayout =  new QVBoxLayout();
+  devicetypeGroupBox->setLayout(devicetypeGroupBoxLayout);
   QHBoxLayout* dlg_familylayout = new QHBoxLayout();
   QHBoxLayout* dlg_foundrynodelayout = new QHBoxLayout();
+  devicetypeGroupBoxLayout->addLayout(dlg_familylayout);
+  devicetypeGroupBoxLayout->addLayout(dlg_foundrynodelayout);
+  QGroupBox *devicevariantGroupBox = new QGroupBox(tr("Device Variant"));
+  QVBoxLayout* devicevariantGroupBoxLayout =  new QVBoxLayout();
+  devicevariantGroupBox->setLayout(devicevariantGroupBoxLayout);
   QHBoxLayout* dlg_voltage_thresholdlayout = new QHBoxLayout();
   QHBoxLayout* dlg_p_v_t_cornerlayout = new QHBoxLayout();
+  devicevariantGroupBoxLayout->addLayout(dlg_voltage_thresholdlayout);
+  devicevariantGroupBoxLayout->addLayout(dlg_p_v_t_cornerlayout);
+  QGroupBox *devicesizeGroupBox = new QGroupBox(tr("Device Size"));
+  QVBoxLayout* devicesizeGroupBoxLayout =  new QVBoxLayout();
+  devicesizeGroupBox->setLayout(devicesizeGroupBoxLayout);
   QHBoxLayout* dlg_layoutlayout = new QHBoxLayout();
-  dlg_selectionFrameLayout->addLayout(dlg_familylayout);
-  dlg_selectionFrameLayout->addLayout(dlg_foundrynodelayout);
-  dlg_selectionFrameLayout->addLayout(dlg_voltage_thresholdlayout);
-  dlg_selectionFrameLayout->addLayout(dlg_p_v_t_cornerlayout);
-  dlg_selectionFrameLayout->addLayout(dlg_layoutlayout);
+  devicesizeGroupBoxLayout->addLayout(dlg_layoutlayout);
+
+  // dlg_selectionFrameLayout->addLayout(dlg_familylayout);
+  // dlg_selectionFrameLayout->addLayout(dlg_foundrynodelayout);
+  // dlg_selectionFrameLayout->addLayout(dlg_voltage_thresholdlayout);
+  // dlg_selectionFrameLayout->addLayout(dlg_p_v_t_cornerlayout);
+  // dlg_selectionFrameLayout->addLayout(dlg_layoutlayout);
+  dlg_selectionFrameLayout->addWidget(devicetypeGroupBox);
+  dlg_selectionFrameLayout->addWidget(devicevariantGroupBox);
+  dlg_selectionFrameLayout->addWidget(devicesizeGroupBox);
 
   QLabel* m_combobox_family_label = new QLabel("Family");
   QLabel* m_combobox_foundry_node_label = new QLabel("Foundry-Node");
@@ -135,7 +232,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
   families.clear();
   m_combobox_family->clear();
   for (QLDeviceType device: this->device_list) {
-    families.insert(device.family);
+    families.push_back(device.family);
   }
 
   for (std::string family: families) {
@@ -180,69 +277,72 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget() {
                         } );
 
   dlg_familylayout->addWidget(m_combobox_family_label);
-  dlg_familylayout->addStretch();
   dlg_familylayout->addWidget(m_combobox_family);
 
   dlg_foundrynodelayout->addWidget(m_combobox_foundry_node_label);
-  dlg_foundrynodelayout->addStretch();
   dlg_foundrynodelayout->addWidget(m_combobox_foundry_node);
 
   dlg_voltage_thresholdlayout->addWidget(m_combobox_voltage_threshold_label);
-  dlg_voltage_thresholdlayout->addStretch();
   dlg_voltage_thresholdlayout->addWidget(m_combobox_voltage_threshold);
 
   dlg_p_v_t_cornerlayout->addWidget(m_combobox_p_v_t_corner_label);
-  dlg_p_v_t_cornerlayout->addStretch();
   dlg_p_v_t_cornerlayout->addWidget(m_combobox_p_v_t_corner);
 
   dlg_layoutlayout->addWidget(m_combobox_layout_label);
-  dlg_layoutlayout->addStretch();
   dlg_layoutlayout->addWidget(m_combobox_layout);
 
-  m_message_label = new QLabel();
-  m_message_label->setWordWrap(true);
-  // background/font color
-  m_message_label->setAutoFillBackground(true);
-  //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
-  QPalette m_message_label_palette;
-  m_message_label_palette.setColor(QPalette::Window, Qt::white);
-  m_message_label_palette.setColor(QPalette::WindowText, Qt::red);
-  m_message_label->setPalette(m_message_label_palette);
-  // frame
-  m_message_label->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
-  m_message_label->hide();
+
+  QHBoxLayout* dlg_buttonslayout = nullptr;
+  if(!newProjectMode) {
+    m_message_label = new QLabel();
+    m_message_label->setWordWrap(true);
+    // background/font color
+    m_message_label->setAutoFillBackground(true);
+    //m_message_label->setStyleSheet("QLabel { background-color : red; color : blue; }");
+    QPalette m_message_label_palette;
+    m_message_label_palette.setColor(QPalette::Window, Qt::white);
+    m_message_label_palette.setColor(QPalette::WindowText, Qt::red);
+    m_message_label->setPalette(m_message_label_palette);
+    // frame
+    m_message_label->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+    m_message_label->hide();
 
 
-  QHBoxLayout* dlg_buttonslayout = new QHBoxLayout();
-  m_button_reset = new QPushButton("Reset");
-  m_button_reset->setToolTip("Reset Device Selection as in the Settings JSON");
-  m_button_reset->setDisabled(true);
-  QObject::connect( m_button_reset, &QPushButton::clicked, 
-                    [this](){
-                        // std::cout << "lambda-clicked-m_button_reset" << std::endl;
-                        this->resetButtonClicked();
-                        } );
-  m_button_apply = new QPushButton("Apply");
-  m_button_apply->setToolTip("Apply the new Device Selection to the Settings JSON");
-  m_button_apply->setDisabled(true);
-  QObject::connect( m_button_apply, &QPushButton::clicked, 
-                    [this](){
-                        // std::cout << "lambda-clicked-m_button_apply" << std::endl;
-                        this->applyButtonClicked();
-                        } );
-  dlg_buttonslayout->addStretch();
-  dlg_buttonslayout->addWidget(m_button_reset);
-  dlg_buttonslayout->addWidget(m_button_apply);
+    dlg_buttonslayout = new QHBoxLayout();
+    m_button_reset = new QPushButton("Reset");
+    m_button_reset->setToolTip("Reset Device Selection as in the Settings JSON");
+    m_button_reset->setDisabled(true);
+    QObject::connect( m_button_reset, &QPushButton::clicked, 
+                        [this](){
+                            // std::cout << "lambda-clicked-m_button_reset" << std::endl;
+                            this->resetButtonClicked();
+                            } );
+    m_button_apply = new QPushButton("Apply");
+    m_button_apply->setToolTip("Apply the new Device Selection to the Settings JSON");
+    m_button_apply->setDisabled(true);
+    QObject::connect( m_button_apply, &QPushButton::clicked, 
+                        [this](){
+                            // std::cout << "lambda-clicked-m_button_apply" << std::endl;
+                            this->applyButtonClicked();
+                            } );
+    dlg_buttonslayout->addStretch();
+    dlg_buttonslayout->addWidget(m_button_reset);
+    dlg_buttonslayout->addWidget(m_button_apply);
+  }
 
   dlg_toplevellayout->addLayout(dlg_titleDetailLayout);
   dlg_toplevellayout->addSpacing(20);
   dlg_toplevellayout->addWidget(dlg_selectionFrame);
-  dlg_toplevellayout->addWidget(m_message_label);
-  dlg_toplevellayout->addLayout(dlg_buttonslayout);
+  if(!newProjectMode) {
+    dlg_toplevellayout->addWidget(m_message_label);
+    dlg_toplevellayout->addLayout(dlg_buttonslayout);
+  }
   dlg_toplevellayout->addStretch();
 
   // trigger a self UI update according to the currently selected device:
-  setCurrentDeviceTarget(device_target);
+  triggerUIUpdate();
+
+  // std::cout << "createDeviceSelectionWidget()--, newProjectMode: " << newProjectMode << std::endl;
 
   return dlg;
 }
@@ -274,7 +374,7 @@ void QLDeviceManager::familyChanged(const QString& family_qstring)
     if(device.family == family) {
 
       std::string _foundrynode = convertToFoundryNode(device.foundry, device.node);
-      foundrynodes.insert(_foundrynode);
+      foundrynodes.push_back(_foundrynode);
     }
   }
 
@@ -321,7 +421,7 @@ void QLDeviceManager::foundrynodeChanged(const QString& foundrynode_qstring)
       std::string _foundrynode = convertToFoundryNode(device.foundry, device.node);
       if (_foundrynode == foundrynode) {
         for (QLDeviceVariant variant : device.device_variants) {
-            voltage_thresholds.insert(variant.voltage_threshold);
+            voltage_thresholds.push_back(variant.voltage_threshold);
         }
       }
     }
@@ -363,7 +463,7 @@ void QLDeviceManager::voltage_thresholdChanged(const QString& voltage_threshold_
       if (_foundrynode == foundrynode) {
         for (QLDeviceVariant variant : device.device_variants) {
           if (variant.voltage_threshold == voltage_threshold) {
-            p_v_t_corners.insert(variant.p_v_t_corner);
+            p_v_t_corners.push_back(variant.p_v_t_corner);
           }
         }
       }
@@ -408,7 +508,7 @@ void QLDeviceManager::p_v_t_cornerChanged(const QString& p_v_t_corner_qstring)
           if (variant.voltage_threshold == voltage_threshold) {
             if(variant.p_v_t_corner == p_v_t_corner) {
               for(QLDeviceVariantLayout _layout : variant.device_variant_layouts) {
-                layouts.insert(_layout.name);
+                layouts.push_back(_layout.name);
               }
             }
           }
@@ -416,6 +516,9 @@ void QLDeviceManager::p_v_t_cornerChanged(const QString& p_v_t_corner_qstring)
       }
     }
   }
+
+  // sort the layouts:
+  std::sort(layouts.begin(), layouts.end(), QLDeviceManager::compareLayouts);
 
   for (std::string _layout: layouts) {
     m_combobox_layout->addItem(QString::fromStdString(_layout));
@@ -439,6 +542,7 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
   // when 'layout' changes, store the value
 
   // std::cout << "layoutChanged: " << layout_qstring.toStdString() << std::endl;
+  // std::cout << "newProjectMode: " << newProjectMode << std::endl;
 
   layout = layout_qstring.toStdString();
 
@@ -446,74 +550,92 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
 
     currentDeviceTargetUpdateInProgress = false; // done.
   }
-  else {
 
-    QLDeviceTarget _device_target = convertToDeviceTarget(family,
-                                                          foundry,
-                                                          node,
-                                                          voltage_threshold,
-                                                          p_v_t_corner,
-                                                          layout);
+  QLDeviceTarget _device_target = convertToDeviceTarget(family,
+                                                        foundry,
+                                                        node,
+                                                        voltage_threshold,
+                                                        p_v_t_corner,
+                                                        layout);
 
-    if(isDeviceTargetValid(_device_target)) {
+  if(isDeviceTargetValid(_device_target)) {
 
-      // store the update: in separate variable, until user says confirm
-      device_target_selected = _device_target;
+    // store the update: in separate variable, until user says confirm
+    device_target_selected = _device_target;
 
-      // std::cout << "selected device: " << std::endl;
-      // std::cout << " >> [family]              " << device_target.device_variant.family << std::endl;
-      // std::cout << " >> [foundry]             " << device_target.device_variant.foundry << std::endl;
-      // std::cout << " >> [node]                " << device_target.device_variant.node << std::endl;
-      // std::cout << " >> [voltage_threshold]   " << device_target.device_variant.voltage_threshold << std::endl;
-      // std::cout << " >> [p_v_t_corner]        " << device_target.device_variant.p_v_t_corner << std::endl;
-      // std::cout << " >> [layout name]         " << device_target.device_variant_layout.name << std::endl;
-      // std::cout << " >> [layout width]        " << device_target.device_variant_layout.width << std::endl;
-      // std::cout << " >> [layout height]       " << device_target.device_variant_layout.height << std::endl;
-    }
+    // std::cout << "selected device: " << std::endl;
+    // std::cout << " >> [family]              " << device_target.device_variant.family << std::endl;
+    // std::cout << " >> [foundry]             " << device_target.device_variant.foundry << std::endl;
+    // std::cout << " >> [node]                " << device_target.device_variant.node << std::endl;
+    // std::cout << " >> [voltage_threshold]   " << device_target.device_variant.voltage_threshold << std::endl;
+    // std::cout << " >> [p_v_t_corner]        " << device_target.device_variant.p_v_t_corner << std::endl;
+    // std::cout << " >> [layout name]         " << device_target.device_variant_layout.name << std::endl;
+    // std::cout << " >> [layout width]        " << device_target.device_variant_layout.width << std::endl;
+    // std::cout << " >> [layout height]       " << device_target.device_variant_layout.height << std::endl;
   }
 
   // now check if the selected device_target (via GUI) is different from the currently set device_target,
   // if so, enable the buttons, and show info text to user:
   if(device_manager_widget != nullptr) {
+    
+    if(newProjectMode) {
 
-    std::string device_target_string = convertToDeviceString(device_target);
-    std::string device_target_selected_string = convertToDeviceString(device_target_selected);
-    // std::cout << "device_target_string: " << device_target_string << std::endl;
-    // std::cout << "device_target_selected_string: " << device_target_selected_string << std::endl;
-    if(!device_target_string.empty() && !device_target_selected_string.empty()) {
-      if(device_target_string != device_target_selected_string) {
-        // current device_target of the project differs from that selected in GUI.
-        // Allow user to Apply the new target, or reset it to the current device_target.
-        m_button_reset->setDisabled(false);
-        m_button_apply->setDisabled(false);
-
-        m_message_label->setText("Device Selection has changed!\n\n"
-                                 "- Click 'Apply' to set the new Device.\n"
-                                 "- Click 'Reset' to reset to the original Device.\n\n"
-                                 "Task Settings will not reflect new Device until 'Apply' is executed!");
-        m_message_label->show();
-        // device_manager_widget->adjustSize();
-      }
-      else {
-        // current device_target of the project is the same as the one selected in the GUI, no changes to apply.
-        m_button_reset->setDisabled(true);
-        m_button_apply->setDisabled(true);
-
-        m_message_label->setText("");
-        m_message_label->hide();
-      }
+        // no apply or reset buttons, update the device_target immediately:
+        // device_target should be set to device_target_selected
+        //device_target = device_target_selected;
+        
+        // signal to the QLSettingsManager to update the settings JSON
+        // to reflect the device_target selection!
+        // change this to emit signal later...
+        if(settings_manager != nullptr) {
+            settings_manager->newProjectMode = newProjectMode;
+            settings_manager->updateJSONSettingsForDeviceTarget(device_target_selected);
+        }
     }
-    else if(!device_target_selected_string.empty()) {
-      // no currently set device target from JSON, probably new project.
-      // then, if the device_target_selected is via GUI, allow user to click apply
-      // so that we can do rest of the settings for selected device target...
-      m_button_apply->setDisabled(false);
+    else {
 
-      m_message_label->setText("New Device Selection!\n\n"
-                               "Click 'Apply' to set the new Device!\n\n"
-                               "Task Settings will not reflect new Device\n"
-                               "until 'Apply' is executed!");
-      m_message_label->show();
+        // existing project mode: check if the device_target is changed from currently set device_target
+        // and update the UI accordingly.
+
+        std::string device_target_string = convertToDeviceString(device_target);
+        std::string device_target_selected_string = convertToDeviceString(device_target_selected);
+        // std::cout << "device_target_string: " << device_target_string << std::endl;
+        // std::cout << "device_target_selected_string: " << device_target_selected_string << std::endl;
+        if(!device_target_string.empty() && !device_target_selected_string.empty()) {
+            if(device_target_string != device_target_selected_string) {
+                // current device_target of the project differs from that selected in GUI.
+                // Allow user to Apply the new target, or reset it to the current device_target.
+                m_button_reset->setDisabled(false);
+                m_button_apply->setDisabled(false);
+
+                m_message_label->setText("Device Selection has changed!\n\n"
+                                        "- Click 'Apply' to set the new Device.\n"
+                                        "- Click 'Reset' to reset to the original Device.\n\n"
+                                        "Task Settings will not reflect new Device until 'Apply' is executed!");
+                m_message_label->show();
+                // device_manager_widget->adjustSize();
+            }
+            else {
+                // current device_target of the project is the same as the one selected in the GUI, no changes to apply.
+                m_button_reset->setDisabled(true);
+                m_button_apply->setDisabled(true);
+
+                m_message_label->setText("");
+                m_message_label->hide();
+            }
+        }
+        // else if(!device_target_selected_string.empty()) {
+        // // no currently set device target from JSON, probably new project.
+        // // then, if the device_target_selected is via GUI, allow user to click apply
+        // // so that we can do rest of the settings for selected device target...
+        // m_button_apply->setDisabled(false);
+
+        // m_message_label->setText("New Device Selection!\n\n"
+        //                         "Click 'Apply' to set the new Device!\n\n"
+        //                         "Task Settings will not reflect new Device\n"
+        //                         "until 'Apply' is executed!");
+        // m_message_label->show();
+        // }
     }
   }
 }
@@ -521,8 +643,9 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
 
 void QLDeviceManager::resetButtonClicked() {
 
-  setCurrentDeviceTarget(device_target);
-
+  //device_target_selected = device_target;
+  
+  triggerUIUpdate();
 }
 
 
@@ -530,11 +653,14 @@ void QLDeviceManager::applyButtonClicked() {
 
   // device_target should be set to device_target_selected
   setCurrentDeviceTarget(device_target_selected);
+
+  triggerUIUpdate();
   
   // signal to the QLSettingsManager to update the settings JSON
   // to reflect the device_target selection!
   // change this to emit signal later...
   if(settings_manager != nullptr) {
+    settings_manager->newProjectMode = newProjectMode;
     settings_manager->updateJSONSettingsForDeviceTarget(device_target);
   }
 }
@@ -1027,6 +1153,13 @@ bool QLDeviceManager::DeviceExists(std::string device_string) {
   return false;
 }
 
+
+bool QLDeviceManager::DeviceExists(QLDeviceTarget device_target) {
+
+  return true;
+}
+
+
 QLDeviceTarget QLDeviceManager::convertToDeviceTarget(std::string family,
                                                 std::string foundry,
                                                 std::string node,
@@ -1105,39 +1238,62 @@ void QLDeviceManager::setCurrentDeviceTarget(std::string device_string) {
 
 }
 
+
 void QLDeviceManager::setCurrentDeviceTarget(QLDeviceTarget device_target) {
 
-  if(isDeviceTargetValid(device_target)) {
-    
-    this->device_target = device_target;
-    this->device_target_selected = device_target; // selected (via GUI) device is the same as the current device.
+  // std::cout << "setCurrentDeviceTarget" << std::endl;
+  // std::cout << "newProjectMode: " << newProjectMode << std::endl;
+  // std::cout << "device_target: " << convertToDeviceString(device_target) << std::endl;
 
-    // update GUI:
-    if(device_manager_widget != nullptr) {
-      int index;
-      index = m_combobox_family->findText(QString::fromStdString(device_target.device_variant.family));
-      // std::cout << "m_combobox_family index" << index << std::endl;
-      m_combobox_family->blockSignals(true);
-      m_combobox_family->setCurrentIndex(-1);
-      m_combobox_family->blockSignals(false);
-      currentDeviceTargetUpdateInProgress = true;
-      m_combobox_family->setCurrentIndex(index);
-    // rest of the items are set off by a cascade of signal-slots of the comboboxes.
-    }
+  if(isDeviceTargetValid(device_target)) {
+
+    this->device_target = device_target;
   }
   else {
+
     // invalid target device in "device_target" - JSON is incorrect, or missing?
     QLDeviceTarget empty_device_target;
     this->device_target = empty_device_target;
-    this->device_target_selected = empty_device_target;
-    
-    // update GUI:
-    if(device_manager_widget != nullptr) {
+  }
+}
+
+
+void QLDeviceManager::triggerUIUpdate() {
+
+  // set the selected device in the GUI:
+  // newProjectMode : set the device selected in device_target_newproject
+  // existingProjectMode : set the device selected in device_target_selected
+
+  // to trigger the GUI update, we update the 'family' combobox, which cascades and
+  // terminates at layoutChanged()
+
+  if(device_manager_widget != nullptr) {
+    if(newProjectMode) {
       // trigger GUI to default selection (index0 of all fields...)
       m_combobox_family->blockSignals(true);
       m_combobox_family->setCurrentIndex(-1);
       m_combobox_family->blockSignals(false);
       m_combobox_family->setCurrentIndex(0);
+    }
+    else {
+      // existingProjectMode
+
+      // check if the device_target contains a valid target, if so, set the ball rolling:
+      if( DeviceExists(this->device_target) ) {
+
+        int index;
+        index = m_combobox_family->findText(QString::fromStdString(this->device_target.device_variant.family));
+        // std::cout << "m_combobox_family index" << index << std::endl;
+        m_combobox_family->blockSignals(true);
+        m_combobox_family->setCurrentIndex(-1);
+        m_combobox_family->blockSignals(false);
+        currentDeviceTargetUpdateInProgress = true;
+        m_combobox_family->setCurrentIndex(index);
+      }
+      else {
+        // invalid device, ignore for now.
+        std::cout << "existing-project, but device_target is invalid, json parse problem??" << std::endl;
+      }
     }
   }
 }

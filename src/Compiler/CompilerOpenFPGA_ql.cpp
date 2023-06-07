@@ -718,7 +718,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
                           const char* argv[]) -> int {
                             
     //CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
-    QLSettingsManager::getInstance()->createSettingsWidget()->show();
+    QLSettingsManager::getInstance()->createSettingsWidget(false)->show();
 
     return TCL_OK;
   };
@@ -729,7 +729,7 @@ bool CompilerOpenFPGA_ql::RegisterCommands(TclInterpreter* interp,
                             
     //CompilerOpenFPGA_ql* compiler = (CompilerOpenFPGA_ql*)clientData;
     QWidget* qlDeviceSelectionWidget = 
-      QLDeviceManager::getInstance()->createDeviceSelectionWidget();
+      QLDeviceManager::getInstance()->createDeviceSelectionWidget(false);
     qlDeviceSelectionWidget->setAttribute(Qt::WA_DeleteOnClose);
     QObject::connect( qlDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "destroyed()" << std::endl;} );
     qlDeviceSelectionWidget->show();

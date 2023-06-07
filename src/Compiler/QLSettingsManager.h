@@ -1,3 +1,4 @@
+
 #include <QWidget>
 #include <QString>
 #include <QComboBox>
@@ -8,7 +9,6 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-
 
 #include <string>
 #include <vector>
@@ -28,63 +28,63 @@ namespace FOEDAG {
 class QLSettingsManager : public QObject {
   Q_OBJECT
 
+private:
+  QLSettingsManager(QObject* parent = nullptr);
+
 public:
   static QLSettingsManager* getInstance();
+  static void reloadJSONSettings();
+  static std::string getStringValue(std::string category, std::string subcategory, std::string parameter);
+  static std::string getStringToolTip(std::string category, std::string subcategory, std::string parameter);
+  static const json* getJson(std::string category, std::string subcategory, std::string parameter);
+  static const json* getJson(std::string category, std::string subcategory);
+  static const json* getJson(std::string category);
+
   ~QLSettingsManager();
 
- private:
-  QLSettingsManager(QObject *parent = nullptr);
-
-
- public:
- QWidget* createSettingsWidget();
- void updateSettingsWidget();
- void populateSettingsWidget();
+  QWidget* createSettingsWidget(bool newProjectMode);
+  void updateSettingsWidget();
+  void populateSettingsWidget();
  
- void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
- void parseJSONSettings();
- bool areJSONSettingsChanged();
- bool saveJSONSettings();
+  void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
+  void parseJSONSettings();
+  bool areJSONSettingsChanged();
+  bool saveJSONSettings();
 
- static void reloadJSONSettings();
- static std::string getStringValue(std::string category, std::string subcategory, std::string parameter);
- static std::string getStringToolTip(std::string category, std::string subcategory, std::string parameter);
- static const json* getJson(std::string category, std::string subcategory, std::string parameter);
- static const json* getJson(std::string category, std::string subcategory);
- static const json* getJson(std::string category);
+  void handleApplyButtonClicked();
+  void handleResetButtonClicked();
+  void handleSettingsChanged();
 
- public slots:
- void handleApplyButtonClicked();
- void handleResetButtonClicked();
- void handleSettingsChanged();
+public:
+  static QLSettingsManager* instance;
+  QLDeviceManager* device_manager = nullptr;
 
- public:
- static QLSettingsManager* instance;
- QLDeviceManager* device_manager = nullptr;
+  json settings_json;
+  std::filesystem::path settings_json_filepath;
 
- json settings_json;
- std::filesystem::path settings_json_filepath;
+  json power_estimation_json;
+  std::filesystem::path power_estimation_json_filepath;
 
- json power_estimation_json;
- std::filesystem::path power_estimation_json_filepath;
+  json combined_json;
 
- json combined_json;
+  // GUI elements and GUI related variables
+  QWidget* settings_manager_widget = nullptr;
+  QStackedWidget* stackedWidget; // each 'category' is a 'page'(represented by a QTabWidget) in the stackedWidget
+  QListWidget* listWidget;   // each category is an entry in the listwidget
 
- // GUI elements and GUI related variables
- QWidget* settings_manager_widget = nullptr;
- QStackedWidget* stackedWidget; // each 'category' is a 'page'(represented by a QTabWidget) in the stackedWidget
- QListWidget* listWidget;   // each category is an entry in the listwidget
+  QPushButton *button_reset;
+  QPushButton *button_apply;
+  QLabel* m_message_label;
 
- QPushButton *button_reset;
- QPushButton *button_apply;
- QLabel* m_message_label;
+  json settings_json_updated;
+  json power_estimation_json_updated;
+  std::vector<std::string> settings_json_change_list;
+  std::vector<std::string> power_estimation_json_change_list;
 
- json settings_json_updated;
- json power_estimation_json_updated;
- std::vector<std::string> settings_json_change_list;
- std::vector<std::string> power_estimation_json_change_list;
-
-
+  // GUI can operate in 'newProjectMode' or 'existingProjectMode'
+  bool newProjectMode=false;
+  json settings_json_newproject;
+  json power_estimation_json_newproject;
 
 };
 

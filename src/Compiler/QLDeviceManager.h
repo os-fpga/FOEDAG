@@ -56,6 +56,7 @@ class QLDeviceManager : public QObject {
   Q_OBJECT
  public:
   static QLDeviceManager* getInstance(bool initialize=false);
+  static bool compareLayouts(const std::string& layout_1, const std::string& layout_2);
   ~QLDeviceManager();
 
  private:
@@ -64,7 +65,7 @@ class QLDeviceManager : public QObject {
 
  public:
   void initialize();
-  QWidget* createDeviceSelectionWidget();
+  QWidget* createDeviceSelectionWidget(bool newProjectMode);
   void giveupDeviceSelectionWidget();
   void parseDeviceData();
   std::vector<QLDeviceVariant> listDeviceVariants(std::string family,
@@ -88,6 +89,7 @@ class QLDeviceManager : public QObject {
                     std::string p_v_t_corner,
                     std::string layout_name);
   bool DeviceExists(std::string device_string);
+  bool DeviceExists(QLDeviceTarget device_target);
   QLDeviceTarget convertToDeviceTarget(std::string family,
                                  std::string foundry,
                                  std::string node,
@@ -110,6 +112,7 @@ class QLDeviceManager : public QObject {
   std::vector<std::string> convertFromFoundryNode(std::string foundrynode);
 
  public:
+ void triggerUIUpdate();
  void familyChanged(const QString& family_qstring);
  void foundrynodeChanged(const QString& foundrynode_qstring);
  void voltage_thresholdChanged(const QString& voltagetheshold_qstring);
@@ -142,17 +145,17 @@ class QLDeviceManager : public QObject {
   QLDeviceTarget device_target_selected;
 
   // hold the 'selected' device parameters via GUI
-  std::set <std::string> families;
+  std::vector <std::string> families;
   std::string family;
-  std::set <std::string> foundrynodes;
+  std::vector <std::string> foundrynodes;
   std::string foundrynode;
   std::string foundry;
   std::string node;
-  std::set <std::string> voltage_thresholds;
+  std::vector <std::string> voltage_thresholds;
   std::string voltage_threshold;
-  std::set <std::string> p_v_t_corners;
+  std::vector <std::string> p_v_t_corners;
   std::string p_v_t_corner;
-  std::set <std::string> layouts;
+  std::vector <std::string> layouts;
   std::string layout;
   
   QComboBox* m_combobox_family;
@@ -166,6 +169,7 @@ class QLDeviceManager : public QObject {
   QLabel* m_message_label;
 
   bool currentDeviceTargetUpdateInProgress = false;
+  bool newProjectMode = false;
 };
 
 
