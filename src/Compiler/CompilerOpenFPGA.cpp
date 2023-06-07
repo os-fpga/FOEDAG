@@ -52,6 +52,7 @@
 #include "scope_guard/scope_guard.hpp"
 
 using json = nlohmann::ordered_json;
+namespace fs = std::filesystem;
 
 using namespace FOEDAG;
 
@@ -1087,9 +1088,7 @@ bool CompilerOpenFPGA::Analyze() {
     return true;
   }
   // Create Analyser command and execute
-  std::ofstream ofs(script_path);
-  ofs << analysisScript;
-  ofs.close();
+  FileUtils::WriteToFile(script_path, analysisScript, false);
   std::string command;
   int status = 0;
   std::filesystem::path analyse_path =
@@ -1503,9 +1502,7 @@ bool CompilerOpenFPGA::Synthesize() {
   script_path =
       (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
-  std::ofstream ofs(script_path);
-  ofs << yosysScript;
-  ofs.close();
+  FileUtils::WriteToFile(script_path, yosysScript, false);
   if (!FileUtils::FileExists(m_yosysExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_yosysExecutablePath.string());
     return false;
@@ -1647,9 +1644,7 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
       (std::filesystem::path(ProjManager()->projectPath()) /
        std::string(ProjManager()->projectName() + "_opensta.tcl"))
           .string();
-  std::ofstream ofssta(openStaFile);
-  ofssta << script << "\n";
-  ofssta.close();
+  FileUtils::WriteToFile(openStaFile, script);
   return openStaFile;
 }
 
@@ -1724,11 +1719,9 @@ bool CompilerOpenFPGA::Packing() {
   PackOpt(PackingOpt::None);
 
   std::string command = BaseVprCommand() + " --pack";
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                     std::string(ProjManager()->projectName() + "_pack.cmd"))
-                        .string());
-  ofs << command << std::endl;
-  ofs.close();
+  auto file = (fs::path(ProjManager()->projectPath()) /
+               std::string(ProjManager()->projectName() + "_pack.cmd"));
+  FileUtils::WriteToFile(file, command);
 
   if (FileUtils::IsUptoDate(
           GetNetlistPath(),
@@ -1747,13 +1740,9 @@ bool CompilerOpenFPGA::Packing() {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
     if (PackOpt() == PackingOpt::Debug) {
       std::string command = BaseVprCommand() + " --pack";
-      std::ofstream ofs(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_pack.cmd"))
-              .string());
-      ofs << command << std::endl;
-      ofs.close();
-
+      auto file = fs::path(ProjManager()->projectPath()) /
+                  std::string(ProjManager()->projectName() + "_pack.cmd");
+      FileUtils::WriteToFile(file, command);
       ExecuteAndMonitorSystemCommand(command);
     }
     return false;
@@ -2011,12 +2000,9 @@ bool CompilerOpenFPGA::Placement() {
 
     std::string pin_loc_constraint_file;
 
-    std::ofstream ofsp(
-        (std::filesystem::path(ProjManager()->projectPath()) /
-         std::string(ProjManager()->projectName() + "_pin_loc.cmd"))
-            .string());
-    ofsp << pincommand << std::endl;
-    ofsp.close();
+    auto file = fs::path(ProjManager()->projectPath()) /
+                std::string(ProjManager()->projectName() + "_pin_loc.cmd");
+    FileUtils::WriteToFile(file, pincommand);
 
     int status = ExecuteAndMonitorSystemCommand(pincommand);
 
@@ -2034,11 +2020,9 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                     std::string(ProjManager()->projectName() + "_place.cmd"))
-                        .string());
-  ofs << command << std::endl;
-  ofs.close();
+  auto file = fs::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_place.cmd");
+  FileUtils::WriteToFile(file, command);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
@@ -2144,11 +2128,10 @@ bool CompilerOpenFPGA::Route() {
   }
 
   std::string command = BaseVprCommand() + " --route";
-  std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                     std::string(ProjManager()->projectName() + "_route.cmd"))
-                        .string());
-  ofs << command << std::endl;
-  ofs.close();
+  FileUtils::WriteToFile(
+      fs::path(ProjManager()->projectPath()) /
+          std::string(ProjManager()->projectName() + "_route.cmd"),
+      command);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
@@ -2219,10 +2202,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
-    std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                       std::string(ProjManager()->projectName() + "_sta.cmd"))
-                          .string());
-    ofs.close();
+    auto file = std::filesystem::path(ProjManager()->projectPath()) /
+                std::string(ProjManager()->projectName() + "_sta.cmd");
+    FileUtils::WriteToFile(file, command);
     int status = ExecuteAndMonitorSystemCommand(command);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
@@ -2254,11 +2236,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       taCommand =
           BaseStaCommand() + " " +
           BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
-      std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                         std::string(ProjManager()->projectName() + "_sta.cmd"))
-                            .string());
-      ofs << taCommand << std::endl;
-      ofs.close();
+      auto file = std::filesystem::path(ProjManager()->projectPath()) /
+                  std::string(ProjManager()->projectName() + "_sta.cmd");
+      FileUtils::WriteToFile(file, taCommand);
     } else {
       ErrorMessage(
           "No required design info generated for user design, required "
@@ -2267,11 +2247,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     }
   } else {  // use vpr/tatum engine
     taCommand = BaseVprCommand() + " --analysis";
-    std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
-                       std::string(ProjManager()->projectName() + "_sta.cmd"))
-                          .string());
-    ofs << taCommand << " --disp on" << std::endl;
-    ofs.close();
+    auto file = std::filesystem::path(ProjManager()->projectPath()) /
+                std::string(ProjManager()->projectName() + "_sta.cmd");
+    FileUtils::WriteToFile(file, taCommand + " --disp on");
   }
 
   status = ExecuteAndMonitorSystemCommand(taCommand);
@@ -2710,21 +2688,16 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   script_path =
       (std::filesystem::path(ProjManager()->projectPath()) / script_path)
           .string();
-  std::ofstream sofs(script_path);
-  sofs << script;
-  sofs.close();
+  FileUtils::WriteToFile(script_path, script, false);
   if (!FileUtils::FileExists(m_openFpgaExecutablePath)) {
     ErrorMessage("Cannot find executable: " +
                  m_openFpgaExecutablePath.string());
     return false;
   }
 
-  std::ofstream ofs(
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       std::string(ProjManager()->projectName() + "_bitstream.cmd"))
-          .string());
-  ofs << command << std::endl;
-  ofs.close();
+  auto file = std::filesystem::path(ProjManager()->projectPath()) /
+              std::string(ProjManager()->projectName() + "_bitstream.cmd");
+  FileUtils::WriteToFile(file, command);
   int status = ExecuteAndMonitorSystemCommand(command);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
