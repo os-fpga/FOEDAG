@@ -640,15 +640,29 @@ void SourcesForm::CreateFolderHierachyTree() {
   QStringList listConfFile;
 
   std::filesystem::path settings_json_path = 
-    std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + ".json");
-  if(FileUtils::FileExists(settings_json_path)) {
+    std::filesystem::path(m_projManager->projectPath())/std::string(m_projManager->projectName() + ".json");
+  if(!FileUtils::FileExists(settings_json_path)) {
+    settings_json_path = 
+      std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + ".json");
+    if(!FileUtils::FileExists(settings_json_path)) {
+      settings_json_path.clear();
+    }
+  }
+  if(!settings_json_path.empty()) {
     listConfFile.append(QString::fromStdString(settings_json_path.string()));
     iFileSumConfFile += 1;
   }
   
   std::filesystem::path power_json_path = 
-    std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + "_power.json");
-  if(FileUtils::FileExists(power_json_path)) {
+    std::filesystem::path(m_projManager->projectPath())/std::string(m_projManager->projectName() + "_power.json");
+  if(!FileUtils::FileExists(power_json_path)) {
+    power_json_path = 
+      std::filesystem::path(m_projManager->projectPath())/std::string("..")/std::string(m_projManager->projectName() + "_power.json");
+    if(!FileUtils::FileExists(power_json_path)) {
+      power_json_path.clear();
+    }
+  }
+  if(!power_json_path.empty()) {
     listConfFile.append(QString::fromStdString(power_json_path.string()));
     iFileSumConfFile +=1;
   }
