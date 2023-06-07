@@ -263,8 +263,8 @@ TaskStatus TaskManager::status() const {
 void TaskManager::startAll(bool simulation) {
   if (!m_runStack.isEmpty()) return;
   reset();
-  appendTask(m_tasks[IP_GENERATE]);
-  appendTask(m_tasks[ANALYSIS]);
+  //appendTask(m_tasks[IP_GENERATE]);
+  //appendTask(m_tasks[ANALYSIS]);
   if (simulation) appendTask(m_tasks[SIMULATE_RTL]);
   appendTask(m_tasks[SYNTHESIS]);
   if (simulation) appendTask(m_tasks[SIMULATE_GATE]);

@@ -832,7 +832,7 @@ bool QLSettingsManager::areJSONSettingsChanged() {
 
 bool QLSettingsManager::saveJSONSettings() {
 
-  std::cout << "saveJSONSettings(), newProjectMode: " << newProjectMode << std::endl;
+  // std::cout << "saveJSONSettings(), newProjectMode: " << newProjectMode << std::endl;
 
   bool savedNewJsonChanges = false;
 
@@ -902,14 +902,21 @@ bool QLSettingsManager::saveJSONSettings() {
     }
   }
   else {
-    // for a new project, this should be handled.
-    settings_json = settings_json_newproject;
-    std::ofstream settings_json_ofstream(settings_json_filepath.string());
-    settings_json_ofstream << std::setw(4) << settings_json << std::endl;
 
-    power_estimation_json = power_estimation_json_newproject;
-    std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
-    power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+    // if the settings json values are empty, ignore them.
+    if(!settings_json_newproject.empty()) {
+
+      settings_json = settings_json_newproject;
+      std::ofstream settings_json_ofstream(settings_json_filepath.string());
+      settings_json_ofstream << std::setw(4) << settings_json << std::endl;
+    }
+
+    if(!power_estimation_json_newproject.empty()) {
+
+      power_estimation_json = power_estimation_json_newproject;
+      std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
+      power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+    }
 
     savedNewJsonChanges = true;
   }
