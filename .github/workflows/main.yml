@@ -95,6 +95,12 @@ jobs:
         make debug
         make test/valgrind
 
+    - name: Valgrind cat log
+      if: matrix.mode == 'valgrind' && always()
+      run: |
+        ls -l
+        cat valgrind_gui.log
+
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
       if: matrix.mode == 'coverage'
