@@ -369,6 +369,8 @@ void QLSettingsManager::populateSettingsWidget() {
 
           // finally, each parameter becomes a widget according the type and properties.
           QWidget* containerWidget = new QWidget();
+          containerWidget->setObjectName("containerwidget");
+          containerWidget->setStyleSheet("QWidget#containerwidget { background-color: #f0f0f0; }");
           QHBoxLayout* containerWidgetHBoxLayout = new QHBoxLayout();
           containerWidget->setLayout(containerWidgetHBoxLayout);
           containerWidget->setProperty("settings_json_id", QString::fromStdString(widgetId));
@@ -377,16 +379,19 @@ void QLSettingsManager::populateSettingsWidget() {
           // add a tooltip if it exists:
           std::string tooltip = getStringToolTip(categoryId, subcategoryId, widgetId);
           if (!tooltip.empty()) {
-            containerWidget->setToolTip(QString::fromStdString(tooltip));
+            QString tooltip_qstring = QString("<font>");
+            tooltip_qstring += QString::fromStdString(tooltip);
+            tooltip_qstring += QString("</font>");
+            containerWidget->setToolTip(tooltip_qstring);
           }
 
           QLabel* subWidgetLabel = new QLabel(QString::fromStdString(widgetId));
           QWidget* subWidget =
               FOEDAG::createWidget(widgetJson, QString::fromStdString(widgetId));
 
-          containerWidgetHBoxLayout->addWidget(subWidgetLabel);
-          containerWidgetHBoxLayout->addStretch();
-          containerWidgetHBoxLayout->addWidget(subWidget);
+          containerWidgetHBoxLayout->addWidget(subWidgetLabel,1);
+          //containerWidgetHBoxLayout->addStretch();
+          containerWidgetHBoxLayout->addWidget(subWidget,1);
 
           // subscribe to changes on any of the widgets:
           if( widgetType == std::string("input") ) {
@@ -955,11 +960,13 @@ void QLSettingsManager::parseJSONSettings() {
     settings_json_filepath = project_path / ".." / settings_json_filename;
     if(!FileUtils::FileExists(settings_json_filepath)) {
       // error!
+      // std::cout << "settings_json_filepath:" << "empty!!!" << std::endl;
       settings_json_filepath.clear();
     }
   }
   if(!settings_json_filepath.empty()) {
     try {
+        // std::cout << "settings_json_filepath" << settings_json_filepath << std::endl;
         std::ifstream settings_json_ifstream(settings_json_filepath.string());
         settings_json = json::parse(settings_json_ifstream);
     }

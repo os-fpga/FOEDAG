@@ -720,7 +720,7 @@ void QLDeviceManager::parseDeviceData() {
 
               if(device_variants.empty()) {
                 // display error, but continue with other devices.
-                std::cout << "error in parsing variants for device: " + family + "," + foundry + "," + node +"\n" << std::endl;
+                std::cout << "error in parsing variants for device: " + family + "_" + foundry + "_" + node +"\n" << std::endl;
               }
               else {
 
@@ -1114,14 +1114,14 @@ std::string QLDeviceManager::DeviceString(std::string family,
                                           std::string layout_name) {
 
   // form the string representation of the device
-  std::string device_string = family + "," + foundry + "," + node;
+  std::string device_string = family + "_" + foundry + "_" + node;
 
   if(!voltage_threshold.empty() && !p_v_t_corner.empty()) {
-    device_string += "," + voltage_threshold + "," + p_v_t_corner;
+    device_string += "_" + voltage_threshold + "_" + p_v_t_corner;
   }
 
   if(!layout_name.empty()) {
-    device_string += "," + layout_name;
+    device_string += "_" + layout_name;
   }
 
   return device_string;
@@ -1156,7 +1156,25 @@ bool QLDeviceManager::DeviceExists(std::string device_string) {
 
 bool QLDeviceManager::DeviceExists(QLDeviceTarget device_target) {
 
-  return true;
+  // loop through the device_list and check if a matching device exists.
+
+  for (QLDeviceType device: device_list) {
+    for (QLDeviceVariant device_variant: device.device_variants) {
+      for (QLDeviceVariantLayout device_variant_layout: device_variant.device_variant_layouts) {
+        if(device_target.device_variant.family            == device_variant.family &&
+           device_target.device_variant.foundry           == device_variant.foundry &&
+           device_target.device_variant.node              == device_variant.node &&
+           device_target.device_variant.voltage_threshold == device_variant.voltage_threshold &&
+           device_target.device_variant.p_v_t_corner      == device_variant.p_v_t_corner &&
+           device_target.device_variant_layout.name       == device_variant_layout.name) {
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 
@@ -1329,12 +1347,12 @@ std::string QLDeviceManager::convertToDeviceString(QLDeviceTarget device_target)
 
   if(isDeviceTargetValid(device_target)) {
 
-    device_string = device_target.device_variant.family + "," + 
-                    device_target.device_variant.foundry + "," + 
-                    device_target.device_variant.node + "," +
-                    device_target.device_variant.voltage_threshold + "," + 
-                    device_target.device_variant.p_v_t_corner + "," +
-                    device_target.device_variant_layout.name;
+    device_string = DeviceString(device_target.device_variant.family ,
+                                 device_target.device_variant.foundry,
+                                 device_target.device_variant.node,
+                                 device_target.device_variant.voltage_threshold,
+                                 device_target.device_variant.p_v_t_corner,
+                                 device_target.device_variant_layout.name);
   }
 
   return device_string;
