@@ -2723,6 +2723,11 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosys_options += " -no_abc_opt";
   }
 
+  if( QLSettingsManager::getStringValue("yosys", "general", "no_abc9") == "checked" ) {
+
+    yosys_options += " -no_abc9";
+  }
+
   if( QLSettingsManager::getStringValue("yosys", "general", "no_adder") == "checked" ) {
 
     yosys_options += " -no_adder";
