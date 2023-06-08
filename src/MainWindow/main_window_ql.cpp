@@ -878,11 +878,6 @@ void MainWindow::createActions() {
   stopAction->setToolTip(tr("Stop compilation tasks"));
   stopAction->setEnabled(false);
 
-  QAction* settingsAction = new QAction(tr("Settings"), this);
-  settingsAction->setIcon(QIcon(":/images/add.png"));
-  settingsAction->setToolTip(tr("Show Settings"));
-  //connect(settingsAction, &QAction::triggered, this, &MainWindow::stopCompilation);
-
   connect(startAction, &QAction::triggered, this,
           [this]() { startProject(false); });
   connect(startSimAction, &QAction::triggered, this,
@@ -1250,16 +1245,8 @@ void MainWindow::reloadSettings() {
     settings->loadSettings(settingsFiles);
   }
 
-
-  // QLSettingsManager also instantiates the QLDeviceManager internally
+  // ensure that we instantiate the QLSettingsManager
   QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
-  if(!qlSettingsManagerInstance) {
-      // could not get instance handle?
-      std::cout << "MainWindow::reloadSettings() qlSettingsManagerInstance is NULL!" << std::endl;
-  }
-  else {
-      //std::cout << "MainWindow::reloadSettings() qlSettingsManagerInstance" << std::endl;
-  }
 }
 
 void MainWindow::updatePRViewButton(int state) {

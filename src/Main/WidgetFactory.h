@@ -71,8 +71,6 @@ QWidget* createWidget(const json& widgetJsonObj, const QString& objName = "",
                       const QStringList& args = QStringList());
 QWidget* createWidget(const QString& widgetJsonStr, const QString& objName = "",
                       const QStringList& args = QStringList());
-QWidget* createWidgetQL(const json& widgetJsonObj, const QString& objName = "",
-        const QStringList& args = QStringList());
 QWidget* createLabelWidget(const QString& label, QWidget* widget);
 QWidget* createContainerWidget(QWidget* widget,
                                const QString& label = QString());

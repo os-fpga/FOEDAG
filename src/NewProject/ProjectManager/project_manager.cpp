@@ -262,13 +262,16 @@ int ProjectManager::CreateProject(const QString& strName,
     return ret;
   }
 
-  // create the JSON Files here:
+  // ensure that we instantiate the QLSettingsManager
   QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
+  
+  // create the JSON Files here, if applicable: KK: TODO, API cleanup needed.
   if(qlSettingsManagerInstance) {
     qlSettingsManagerInstance->newProjectMode = true;
     qlSettingsManagerInstance->settings_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + ".json");
     qlSettingsManagerInstance->power_estimation_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + "_power" + ".json");
     qlSettingsManagerInstance->saveJSONSettings();
+    qlSettingsManagerInstance->newProjectMode = false;
   }
 
   setDesignFileSet(designSource);
@@ -1504,15 +1507,6 @@ int ProjectManager::deleteRun(const QString& strRunName) {
 }
 
 void ProjectManager::FinishedProject() {
-  // // QLSettingsManager also instantiates the QLDeviceManager internally
-  // QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
-  // if(!qlSettingsManagerInstance) {
-  //     // could not get instance handle?
-  //     std::cout << "ProjectManager::FinishedProject() qlSettingsManagerInstance is NULL!\n\n" << std::endl;
-  // }
-  // else {
-  //     std::cout << "ProjectManager::FinishedProject() qlSettingsManagerInstance\n\n" << std::endl;
-  // }
     emit saveFile(); 
 }
 

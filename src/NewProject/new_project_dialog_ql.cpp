@@ -188,16 +188,13 @@ void newProjectDialog::ResetToNewProject() {
 //   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
 //                              tr("Select Target Device"));
 
-  // TODO: Handle No Project Use Case in Settings Manager
-  // Trigger from Device Selection, and then populate Settings Manager GUI as well.
-  
   QWidget* m_QLDeviceSelectionWidget = 
     QLDeviceManager::getInstance()->createDeviceSelectionWidget(true);
   // // QWidget* m_QLDeviceSelectionWidget = new QWidget();
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
                              tr("Target Device"));
-  // QObject::connect( m_QLDeviceSelectionWidget, &QWidget::destroyed, [](){std::cout << "m_QLDeviceSelectionWidget destroyed()" << std::endl;} );
 
+  // ensure that we instantiate the QLSettingsManager
   QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget(true);
   ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
                              tr("Task Settings"));
@@ -253,6 +250,7 @@ void newProjectDialog::ResetToProjectSettings() {
                              tr("Target Device"));
   m_tabIndexes.insert(INDEX_DEVICEPL, index);
 
+  // ensure that we instantiate the QLSettingsManager
   QWidget* m_QLSettingsWidget = QLSettingsManager::getInstance()->createSettingsWidget(false);
   ui->m_tabWidget->insertTab(INDEX_QLSETTIN, m_QLSettingsWidget,
                              tr("Task Settings"));
