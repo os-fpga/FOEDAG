@@ -8,6 +8,7 @@
 #include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
@@ -65,7 +66,8 @@ QStringList RoutingReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
     const QString &reportId) {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
+  if (!FileUtils::FileExists(logFile())) clean();
 
   ITaskReport::DataReports dataReports;
 
@@ -90,9 +92,8 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
 }
 
 void RoutingReportManager::parseLogFile() {
-  reset();
-
-  auto logFile = createLogFile(QString(ROUTING_LOG));
+  clean();
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   QTextStream in(logFile.get());
@@ -136,14 +137,15 @@ void RoutingReportManager::parseLogFile() {
   designStatistics();
 
   logFile->close();
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
 }
 
-QString RoutingReportManager::getTimingLogFileName() const {
-  return QString(ROUTING_TIMING_LOG);
+std::filesystem::path RoutingReportManager::logFile() const {
+  return logFilePath(ROUTING_LOG);
 }
 
-void RoutingReportManager::reset() {
+void RoutingReportManager::clean() {
+  AbstractReportManager::clean();
   m_messages.clear();
   m_circuitData.clear();
   m_histograms.clear();
@@ -153,6 +155,10 @@ void RoutingReportManager::reset() {
   m_dspData.clear();
   m_ioData.clear();
   m_clockData.clear();
+}
+
+QString RoutingReportManager::getTimingLogFileName() const {
+  return QString(ROUTING_TIMING_LOG);
 }
 
 bool RoutingReportManager::isStatisticalTimingHistogram(const QString &line) {

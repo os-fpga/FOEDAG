@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr const char *DESIGN_STAT_REPORT_NAME{"STA - Design statistics"};
@@ -102,7 +103,8 @@ QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
     const QString &reportId) {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
+  if (!FileUtils::FileExists(logFile())) clean();
 
   ITaskReport::DataReports dataReports;
 
@@ -166,17 +168,8 @@ void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
 }
 
 void TimingAnalysisReportManager::parseLogFile() {
-  m_messages.clear();
-  m_histograms.clear();
-  m_timingData.clear();
-  m_resourceData.clear();
-  m_circuitData.clear();
-  m_bramData.clear();
-  m_dspData.clear();
-  m_ioData.clear();
-  m_clockData.clear();
-
-  auto logFile = createLogFile(QString(TIMING_ANALYSIS_LOG));
+  clean();
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto timings = QStringList{};
@@ -236,11 +229,28 @@ void TimingAnalysisReportManager::parseLogFile() {
 
   logFile->close();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
+}
+
+std::filesystem::path TimingAnalysisReportManager::logFile() const {
+  return logFilePath(TIMING_ANALYSIS_LOG);
+}
+
+void TimingAnalysisReportManager::clean() {
+  AbstractReportManager::clean();
+  m_messages.clear();
+  m_histograms.clear();
+  m_timingData.clear();
+  m_resourceData.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 }
 
 void TimingAnalysisReportManager::parseOpenSTALog() {
-  auto logFile = createLogFile(QString(TIMING_ANALYSIS_LOG));
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto in = QTextStream(logFile.get());
@@ -266,7 +276,7 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
 
   logFile->close();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
 }
 
 IDataReport::TableData TimingAnalysisReportManager::parseOpenSTATimingTable(

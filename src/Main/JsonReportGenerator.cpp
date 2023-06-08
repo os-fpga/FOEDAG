@@ -55,15 +55,18 @@ void JsonReportGenerator::Generate() {
       }
       data.push_back(line);
     }
+    if (data.empty()) continue;
     obj[report->getName().toStdString()]["data"] = data;
     jUtils += obj;
   }
 
-  QFile jsonFile{QString{"%1%2%3.json"}.arg(outputDir.absolutePath(),
-                                            QDir::separator(), m_name)};
-  if (jsonFile.open(QFile::WriteOnly | QFile::Text)) {
-    jsonFile.write(QByteArray::fromStdString(jUtils.dump(4)));
-    jsonFile.close();
+  if (!jUtils.empty()) {
+    QFile jsonFile{QString{"%1%2%3.json"}.arg(outputDir.absolutePath(),
+                                              QDir::separator(), m_name)};
+    if (jsonFile.open(QFile::WriteOnly | QFile::Text)) {
+      jsonFile.write(QByteArray::fromStdString(jUtils.dump(4)));
+      jsonFile.close();
+    }
   }
 }
 

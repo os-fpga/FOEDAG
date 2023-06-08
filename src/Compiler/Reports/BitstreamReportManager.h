@@ -36,6 +36,7 @@ class BitstreamReportManager final : public AbstractReportManager {
   bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
   void parseLogFile() override;
+  std::filesystem::path logFile() const override;
 };
 
 }  // namespace FOEDAG

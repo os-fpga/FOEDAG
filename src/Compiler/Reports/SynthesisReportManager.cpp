@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 // Report strings
@@ -132,7 +133,8 @@ void SynthesisReportManager::fillLevels(const QString &line,
 
 std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
     const QString &reportId) {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
+  if (!FileUtils::FileExists(logFile())) clean();
 
   ITaskReport::DataReports dataReports;
 
@@ -158,15 +160,8 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 }
 
 void SynthesisReportManager::parseLogFile() {
-  m_resourceData.clear();
-  m_messages.clear();
-  m_circuitData.clear();
-  m_bramData.clear();
-  m_dspData.clear();
-  m_ioData.clear();
-  m_clockData.clear();
-
-  auto logFile = createLogFile(QString(SYNTHESIS_LOG));
+  clean();
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto fileStr = QTextStream(logFile.get()).readAll();
@@ -229,7 +224,7 @@ void SynthesisReportManager::parseLogFile() {
 
   fillErrorsWarnings();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
 }
 
 QString SynthesisReportManager::getTimingLogFileName() const {
@@ -240,4 +235,20 @@ QString SynthesisReportManager::getTimingLogFileName() const {
 void SynthesisReportManager::splitTimingData(const QString &timingStr) {
   // Current synthesis log implementation doesn't contain timing info
 }
+
+std::filesystem::path SynthesisReportManager::logFile() const {
+  return logFilePath(SYNTHESIS_LOG);
+}
+
+void SynthesisReportManager::clean() {
+  AbstractReportManager::clean();
+  m_resourceData.clear();
+  m_messages.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
+}
+
 }  // namespace FOEDAG
