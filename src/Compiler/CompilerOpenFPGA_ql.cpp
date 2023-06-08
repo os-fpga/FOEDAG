@@ -2323,6 +2323,9 @@ bool CompilerOpenFPGA_ql::Analyze() {
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
   }
+  else {
+    m_useVerific = false;
+  }
 
   std::string analysisScript = InitAnalyzeScript();
   analysisScript = FinishAnalyzeScript(analysisScript);
@@ -2431,6 +2434,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   QLSettingsManager::reloadJSONSettings();
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
+  }
+  else {
+    m_useVerific = false;
   }
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {

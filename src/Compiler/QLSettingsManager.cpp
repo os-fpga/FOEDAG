@@ -286,6 +286,22 @@ void QLSettingsManager::populateSettingsWidget() {
   QHBoxLayout* dlg_widgetslayout = new QHBoxLayout();
   stackedWidget = new QStackedWidget();
   listWidget = new QListWidget();
+  // https://stackoverflow.com/a/48336420/3379867
+  listWidget->setStyleSheet(
+            "QListWidget {\
+                color: #FFFFFF;\
+                outline: 0;\
+            }\
+            QListWidget::item {\
+                padding: 4px;\
+                min-height: 30px;\
+                font-size: 20px;\
+                color: #000000;\
+            }\
+            QListWidget::item:selected {\
+                background-color: #2ABf9E;\
+                color: #000000;\
+            }");
 
   json rootJson;
 
@@ -442,14 +458,16 @@ void QLSettingsManager::populateSettingsWidget() {
     stackedWidget->addWidget(categoryWidget);
 
     // correspondingly, add the category 'name' into the QListWidget
-    QLabel* listItemWidgetLabel = new QLabel(QString::fromStdString(categoryId));
-    listItemWidgetLabel->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
-    listItemWidgetLabel->setLineWidth(1);
-    QListWidgetItem* listItem = new QListWidgetItem();
-    listItem->setSizeHint(listItemWidgetLabel->sizeHint());
-    listWidget->addItem(listItem);
-    listWidget->setItemWidget(listItem, listItemWidgetLabel);
-    //new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
+    // custom qwidget, as the qlistwidgetitem's widget in this way:
+    // QLabel* listItemWidgetLabel = new QLabel(QString::fromStdString(categoryId));
+    // listItemWidgetLabel->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
+    // listItemWidgetLabel->setLineWidth(1);
+    // QListWidgetItem* listItem = new QListWidgetItem();
+    // listItem->setSizeHint(listItemWidgetLabel->sizeHint());
+    // listWidget->addItem(listItem);
+    // listWidget->setItemWidget(listItem, listItemWidgetLabel);
+    // simple qlistwidgetitem, this way:
+    new QListWidgetItem(QString::fromStdString(categoryId), listWidget);
   }
 
   // when a 'category' in the QListView is selected, corresponding 'page' widget in the QStackedWidget should be shown.
