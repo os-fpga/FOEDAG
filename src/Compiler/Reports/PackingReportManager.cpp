@@ -7,6 +7,7 @@
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 // report names
@@ -48,7 +49,8 @@ QStringList PackingReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> PackingReportManager::createReport(
     const QString &reportId) {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
+  if (!FileUtils::FileExists(logFile())) clean();
 
   ITaskReport::DataReports dataReports;
 
@@ -93,15 +95,8 @@ void PackingReportManager::splitTimingData(const QString &timingStr) {
 }
 
 void PackingReportManager::parseLogFile() {
-  m_messages.clear();
-  m_resourceData.clear();
-  m_circuitData.clear();
-  m_bramData.clear();
-  m_dspData.clear();
-  m_ioData.clear();
-  m_clockData.clear();
-
-  auto logFile = createLogFile(QString(PACKING_LOG));
+  clean();
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto in = QTextStream(logFile.get());
@@ -148,7 +143,22 @@ void PackingReportManager::parseLogFile() {
 
   logFile->close();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
+}
+
+std::filesystem::path PackingReportManager::logFile() const {
+  return logFilePath(PACKING_LOG);
+}
+
+void PackingReportManager::clean() {
+  AbstractReportManager::clean();
+  m_messages.clear();
+  m_resourceData.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 }
 
 }  // namespace FOEDAG

@@ -7,6 +7,7 @@
 
 #include "Compiler/TaskManager.h"
 #include "NewProject/ProjectManager/project.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr const char *RESOURCES_SPLIT{"blocks of type:"};
@@ -27,8 +28,6 @@ const QRegExp AbstractReportManager::FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 
 AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
   // Log files should be re-parsed after starting new compilation
-  connect(&taskManager, &TaskManager::started,
-          [this]() { setFileParsed(false); });
   m_timingColumns = {ReportColumn{"Statistics"},
                      ReportColumn{"Value", Qt::AlignCenter}};
   m_histogramColumns = {ReportColumn{"From"}, ReportColumn{"To"},
@@ -43,7 +42,7 @@ AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
 }
 
 const ITaskReportManager::Messages &AbstractReportManager::getMessages() {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
   return m_messages;
 }
 
@@ -453,13 +452,9 @@ void AbstractReportManager::parseStatisticLine(const QString &line) {
   }
 }
 
-std::unique_ptr<QFile> AbstractReportManager::createLogFile(
-    const QString &fileName) const {
-  auto projectPath = Project::Instance()->projectPath().toStdString();
-  auto logFilePath =
-      (std::filesystem::path(projectPath) / fileName.toStdString()).string();
-
-  auto logFile = std::make_unique<QFile>(QString::fromStdString(logFilePath));
+std::unique_ptr<QFile> AbstractReportManager::createLogFile() const {
+  auto logFile =
+      std::make_unique<QFile>(QString::fromStdString(this->logFile().string()));
   if (!logFile->open(QIODevice::ExistingOnly | QIODevice::ReadOnly |
                      QIODevice::Text))
     return nullptr;
@@ -628,8 +623,15 @@ IDataReport::TableData AbstractReportManager::parseHistogram(QTextStream &in,
   return result;
 }
 
-void AbstractReportManager::setFileParsed(bool parsed) {
-  m_fileParsed = parsed;
+void AbstractReportManager::setFileTimeStamp(
+    const std::filesystem::path &file) {
+  m_fileTimeStamp = FileUtils::Mtime(file);
+}
+
+std::filesystem::path AbstractReportManager::logFilePath(
+    const std::string &file) const {
+  auto projectPath = Project::Instance()->projectPath().toStdString();
+  return std::filesystem::path(projectPath) / file;
 }
 
 bool AbstractReportManager::isMessageSuppressed(const QString &message) const {
@@ -639,7 +641,11 @@ bool AbstractReportManager::isMessageSuppressed(const QString &message) const {
   return false;
 }
 
-bool AbstractReportManager::isFileParsed() const { return m_fileParsed; }
+bool AbstractReportManager::isFileOutdated(
+    const std::filesystem::path &file) const {
+  auto ts = FileUtils::Mtime(file);
+  return ts > m_fileTimeStamp;
+}
 
 bool AbstractReportManager::isStatisticalTimingLine(const QString &line) {
   return false;
@@ -648,5 +654,7 @@ bool AbstractReportManager::isStatisticalTimingLine(const QString &line) {
 bool AbstractReportManager::isStatisticalTimingHistogram(const QString &line) {
   return false;
 }
+
+void AbstractReportManager::clean() { m_usedRes = {}; }
 
 }  // namespace FOEDAG

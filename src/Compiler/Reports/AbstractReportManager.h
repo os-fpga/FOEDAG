@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QVector>
+#include <filesystem>
 #include <map>
 
 #include "IDataReport.h"
@@ -55,11 +56,13 @@ class AbstractReportManager : public ITaskReportManager {
   virtual bool isStatisticalTimingHistogram(const QString &line);
   // Parses in stream line by line till empty one occurs and creates table data.
   // Fills parsed data into 'm_resourceColumns' and 'm_resourceData'
+  virtual std::filesystem::path logFile() const = 0;
+  virtual void clean();
   void parseResourceUsage(QTextStream &in, int &lineNr);
   void designStatistics();
 
   // Creates and opens log file instance. returns nullptr if file doesn't exist.
-  std::unique_ptr<QFile> createLogFile(const QString &fileName) const;
+  std::unique_ptr<QFile> createLogFile() const;
 
   using SectionKeys = QVector<QRegExp>;
   int parseErrorWarningSection(QTextStream &in, int lineNr,
@@ -97,8 +100,9 @@ class AbstractReportManager : public ITaskReportManager {
   static const QRegExp FIND_RESOURCES;
   static const QRegExp FIND_CIRCUIT_STAT;
 
-  bool isFileParsed() const;
-  void setFileParsed(bool parsed);
+  bool isFileOutdated(const std::filesystem::path &file) const;
+  void setFileTimeStamp(const std::filesystem::path &file);
+  std::filesystem::path logFilePath(const std::string &file) const;
 
   bool isMessageSuppressed(const QString &message) const;
 
@@ -122,7 +126,7 @@ class AbstractReportManager : public ITaskReportManager {
   Messages m_messages;
 
  private:
-  bool m_fileParsed{false};
+  time_t m_fileTimeStamp{-1};
   const QString SPACE{"       "};
   const QString D_SPACE{"              "};
 };

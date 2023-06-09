@@ -55,7 +55,7 @@ bool BitstreamReportManager::isStatisticalTimingHistogram(const QString &line) {
 void BitstreamReportManager::splitTimingData(const QString &timingStr) {}
 
 void BitstreamReportManager::parseLogFile() {
-  auto logFile = createLogFile(QString(BITSTREAM_LOG));
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto in = QTextStream(logFile.get());
@@ -74,6 +74,11 @@ void BitstreamReportManager::parseLogFile() {
 
   logFile->close();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
 }
+
+std::filesystem::path BitstreamReportManager::logFile() const {
+  return logFilePath(BITSTREAM_LOG);
+}
+
 }  // namespace FOEDAG

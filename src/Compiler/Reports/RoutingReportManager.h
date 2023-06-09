@@ -43,8 +43,8 @@ class RoutingReportManager final : public AbstractReportManager {
   bool isStatisticalTimingHistogram(const QString &line) override;
   void splitTimingData(const QString &timingStr) override;
   void parseLogFile() override;
-
-  void reset();
+  std::filesystem::path logFile() const override;
+  void clean() override;
 
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::ColumnValues m_bramColumns;

@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
+#include "Utils/FileUtils.h"
 
 namespace {
 static constexpr const char *RESOURCE_REPORT_NAME{
@@ -90,7 +91,8 @@ QStringList PlacementReportManager::getAvailableReportIds() const {
 
 std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
     const QString &reportId) {
-  if (!isFileParsed()) parseLogFile();
+  if (isFileOutdated(logFile())) parseLogFile();
+  if (!FileUtils::FileExists(logFile())) clean();
 
   ITaskReport::DataReports dataReports;
 
@@ -116,17 +118,8 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 }
 
 void PlacementReportManager::parseLogFile() {
-  m_messages.clear();
-  m_histograms.clear();
-  m_resourceData.clear();
-  m_timingData.clear();
-  m_circuitData.clear();
-  m_bramData.clear();
-  m_dspData.clear();
-  m_ioData.clear();
-  m_clockData.clear();
-
-  auto logFile = createLogFile(QString(PLACEMENT_LOG));
+  clean();
+  auto logFile = createLogFile();
   if (!logFile) return;
 
   auto in = QTextStream(logFile.get());
@@ -160,7 +153,24 @@ void PlacementReportManager::parseLogFile() {
 
   logFile->close();
 
-  setFileParsed(true);
+  setFileTimeStamp(this->logFile());
+}
+
+std::filesystem::path PlacementReportManager::logFile() const {
+  return logFilePath(PLACEMENT_LOG);
+}
+
+void PlacementReportManager::clean() {
+  AbstractReportManager::clean();
+  m_messages.clear();
+  m_histograms.clear();
+  m_resourceData.clear();
+  m_timingData.clear();
+  m_circuitData.clear();
+  m_bramData.clear();
+  m_dspData.clear();
+  m_ioData.clear();
+  m_clockData.clear();
 }
 
 QString PlacementReportManager::getTimingLogFileName() const {

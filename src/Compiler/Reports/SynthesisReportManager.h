@@ -49,6 +49,8 @@ class SynthesisReportManager final : public AbstractReportManager {
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   QString getTimingLogFileName() const override;
   void splitTimingData(const QString &timingStr) override;
+  std::filesystem::path logFile() const override;
+  void clean() override;
   // Go through the log file and fills internal data collections (stats,
   // messages)
   void parseLogFile() override;
