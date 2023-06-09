@@ -2662,24 +2662,6 @@ bool CompilerOpenFPGA_ql::Synthesize() {
   yosysScript = ReplaceAll(yosysScript, "${QL_SYNTH_PASS_NAME}", std::string("synth_quicklogic"));
 #endif
 
-#if(AURORA_USE_TABBYCAD == 1)
-// check if the env variable: YOSYSHQ_LICENSE is defined
-  // bool use_tabbycad_for_synthesis = false;
-  // const char* const yosyshq_license = std::getenv("YOSYSHQ_LICENSE");
-  // if (yosyshq_license != nullptr) {
-  //   std::filesystem::path path_yosyshq_license = std::string(yosyshq_license);
-  //   if(FileUtils::FileExists(path_yosyshq_license)) {
-  //     // if the env variable is defined, and license file path is ok, use Tabby CAD:
-  //     use_tabbycad_for_synthesis = true;
-  //   }
-  //   else {
-  //     // if license file path is not ok, fallback to open source YosysHQ yosys.
-  //     Message("YOSYSHQ_LICENSE is set, but license file path is invalid: " + path_yosyshq_license.string());
-  //     Message("Using open source YosysHQ yosys instead!");
-  //   }
-  // }
-#endif // #if(AURORA_USE_TABBYCAD == 1)
-
   if (!ProjManager()->DesignTopModule().empty()) {
     yosysScript = ReplaceAll(yosysScript, "${TOP_MODULE_DIRECTIVE}",
                              "-top " + ProjManager()->DesignTopModule());
@@ -2831,7 +2813,6 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   std::filesystem::path yosys_executable_path = m_yosysExecutablePath;
 #if(AURORA_USE_TABBYCAD == 1)
-  // if(use_tabbycad_for_synthesis) {
   if(m_useVerific) {
     yosys_executable_path = GetSession()->Context()->BinaryPath() /
                             ".." /
