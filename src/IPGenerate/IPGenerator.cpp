@@ -715,9 +715,8 @@ std::filesystem::path IPGenerator::GetTmpPath() const {
 std::filesystem::path IPGenerator::GetProjectIPsPath() const {
   if (m_compiler && m_compiler->ProjManager()) {
     ProjectManager* projManager{m_compiler->ProjManager()};
-    std::filesystem::path baseDir(projManager->projectPath());
     std::string projIpDir = projManager->projectName() + ".IPs";
-    return baseDir / projIpDir;
+    return projManager->ProjectFile(projIpDir);
   }
   return {};
 }

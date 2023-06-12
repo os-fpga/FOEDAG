@@ -61,9 +61,8 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
 
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
     auto simType = task->cusomData().data.value<Simulator::SimulationType>();
-    std::filesystem::path file =
-        std::filesystem::path(compiler->ProjManager()->projectPath()) /
-        compiler->GetSimulator()->WaveFile(simType);
+    std::filesystem::path file = compiler->ProjManager()->ProjectFile(
+        compiler->GetSimulator()->WaveFile(simType));
     if (FileUtils::FileExists(file)) {
       std::string cmd = "wave_open " + file.string();
       GlobalSession->CmdStack()->push_and_exec(new Command(cmd));

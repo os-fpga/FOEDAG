@@ -176,7 +176,8 @@ class ProjectManager : public QObject {
   QString getProjectName() const;
   std::string projectName() const;
   QString getProjectPath() const;
-  std::string projectPath() const;
+  std::filesystem::path ProjectPath() const;
+  std::filesystem::path ProjectFile(const std::string &fileName) const;
   bool HasDesign() const;
 
   int setProjectType(int strType);

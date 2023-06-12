@@ -543,7 +543,7 @@ QString ProjectManagerComponent::relatedPath(const QString& path) const {
   std::filesystem::path p = path.toStdString();
   if (!p.is_absolute()) return path;
 
-  std::filesystem::path project_p = m_projectManager->projectPath();
+  std::filesystem::path project_p = m_projectManager->ProjectPath();
   auto relative_p = std::filesystem::relative(p, project_p);
   relative_p = PROJECT_OSRCDIR / relative_p;
   return QString::fromStdString(relative_p.string());

@@ -306,8 +306,13 @@ QString ProjectManager::getProjectPath() const {
   return Project::Instance()->projectPath();
 }
 
-std::string ProjectManager::projectPath() const {
+std::filesystem::path ProjectManager::ProjectPath() const {
   return getProjectPath().toStdString();
+}
+
+std::filesystem::path ProjectManager::ProjectFile(
+    const std::string& fileName) const {
+  return ProjectPath() / fileName;
 }
 
 bool ProjectManager::HasDesign() const { return !getProjectName().isEmpty(); }

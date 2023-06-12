@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "gtest/gtest.h"
 using namespace FOEDAG;
+namespace fs = std::filesystem;
 
 TEST(ProjectManager, ProjectFilesPath_withFile) {
   QString projPath{"path"};
@@ -257,4 +258,18 @@ TEST(ProjectManager, AddFilesLocalToProject) {
       };
   ProjectManager::AddFiles(data, addFilesFunction);
   EXPECT_EQ(counter, 2);
+}
+
+TEST(ProjectManager, ProjectFile) {
+  ProjectManager pManager{};
+  const QString projectPath{"path/to/project"};
+  const std::string file{"projectFileName"};
+  const fs::path expectedPath = fs::path{projectPath.toStdString()} / file;
+  const auto currentProjectPath = Project::Instance()->projectPath();
+  Project::Instance()->setProjectPath(projectPath);
+  const fs::path actualPath = pManager.ProjectFile(file);
+  // restore previous project path value
+  Project::Instance()->setProjectPath(currentProjectPath);
+
+  EXPECT_EQ(actualPath, expectedPath);
 }
