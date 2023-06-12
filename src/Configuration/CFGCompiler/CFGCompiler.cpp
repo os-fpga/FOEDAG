@@ -40,8 +40,12 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   auto compiler = cfgcompiler->GetCompiler();
 
   cfgcompiler->m_cmdarg.compilerName = compiler->Name();
-  auto arg = std::make_shared<CFGArg_PROGRAM_DEVICE>();
-  status = arg->parse(argc, argv, &errors);
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  // drop the first executable arg,
+  // create pointer to the second element
+  // the parser expect the first arg is the command name
+  const char** argvPtr = &argv[1];
+  status = arg->parse(argc - 1, argvPtr, &errors);
   cfgcompiler->m_cmdarg.arg = arg;
   cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
   cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
