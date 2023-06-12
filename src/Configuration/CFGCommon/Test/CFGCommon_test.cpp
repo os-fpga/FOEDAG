@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CFGArg_auto.h"
 
+// this test is not meant for automated. It is for manual testing
 void test_arg() {
   CFG_POST_MSG("This is CFGArg unit test");
   CFGArg_UTST arg;
@@ -69,24 +70,6 @@ void test_arg() {
              "argument(s) is specified");
   arg.print();
 }
-
-// void test_program_device_arg() {
-//   CFG_POST_MSG("test_program_device_arg unit test");
-//   CFGArg_PROGRAMMER arg;
-//   std::vector<std::string> errors;
-//   CFG_ASSERT(arg.config == "");
-//   CFG_ASSERT(arg.index == 0);
-//   //CFG_ASSERT(arg.bitstream == "");
-//   CFG_ASSERT(arg.m_args.size() == 0);
-//   const char* argv[] = {
-//       "programmer", "-b", "test.bit", "-c", "gemini.cfg", "--index", "2",
-//   };
-//   bool status = arg.parse(int(sizeof(argv) / sizeof(argv[0])), argv,
-//   &errors); CFG_ASSERT(status); CFG_ASSERT(arg.config == "gemini.cfg");
-//   CFG_ASSERT(arg.index == 2);
-//   //CFG_ASSERT(arg.bitstream == "test.bit");
-//   arg.print();
-// }
 
 void test_programmer_short_option_ok() {
   CFG_POST_MSG("test_programmer_short_option_ok");
