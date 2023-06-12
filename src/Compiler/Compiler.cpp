@@ -78,8 +78,7 @@ auto CreateDummyLog =
   std::filesystem::path outputPath{};
 
   if (projManager) {
-    std::filesystem::path projectPath(projManager->projectPath());
-    outputPath = projectPath / outfileName;
+    outputPath = projManager->ProjectFile(outfileName);
     if (FileUtils::FileExists(outputPath)) {
       std::filesystem::remove(outputPath);
     }
@@ -181,12 +180,10 @@ std::vector<std::string> Compiler::GetCleanFiles(
 }
 
 void Compiler::CleanFiles(Action action) {
-  const std::filesystem::path base{ProjManager()->projectPath()};
   auto removeFiles = GetCleanFiles(action, ProjManager()->projectName(),
                                    ProjManager()->DesignTopModule());
   for (const auto& fileName : removeFiles) {
-    const std::filesystem::path p{base / fileName};
-    FileUtils::removeFile(p);
+    FileUtils::removeFile(ProjManager()->ProjectFile(fileName));
   }
 }
 
@@ -1952,8 +1949,7 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
 void Compiler::AddHeadersToLogs() {
   auto projManager = ProjManager();
   if (projManager) {
-    std::filesystem::path projectPath(projManager->projectPath());
-    LogUtils::AddHeadersToLogs(projectPath);
+    LogUtils::AddHeadersToLogs(projManager->ProjectPath());
   }
 }
 
@@ -2366,9 +2362,8 @@ bool Compiler::Packing() {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    std::filesystem::remove(ProjManager()->ProjectFile(
+        ProjManager()->projectName() + "_post_synth.net"));
     return true;
   }
   if (!m_projManager->HasDesign()) {
@@ -2392,9 +2387,8 @@ bool Compiler::Placement() {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    std::filesystem::remove(ProjManager()->ProjectFile(
+        ProjManager()->projectName() + "_post_synth.place"));
     return true;
   }
   Message("Placement for design: " + m_projManager->projectName());
@@ -2414,9 +2408,8 @@ bool Compiler::Route() {
     Message("Cleaning routing results for " + ProjManager()->projectName());
     m_state = State::Placed;
     RouteOpt(RoutingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    std::filesystem::remove(ProjManager()->ProjectFile(
+        ProjManager()->projectName() + "_post_synth.route"));
     return true;
   }
 
@@ -2626,8 +2619,8 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
 
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile =
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       (ProjManager()->projectName() + "_post_synth.blif"))
+      ProjManager()
+          ->ProjectFile(ProjManager()->projectName() + "_post_synth.blif")
           .string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
@@ -2667,7 +2660,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   (*m_out) << "Command: " << command << std::endl;
   std::error_code ec;
   auto path = std::filesystem::current_path();  // getting path
-  std::filesystem::current_path(m_projManager->projectPath(),
+  std::filesystem::current_path(m_projManager->ProjectPath(),
                                 ec);  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads

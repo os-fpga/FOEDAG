@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 class QProcess;
+namespace fs = std::filesystem;
 
 namespace FOEDAG {
 
@@ -83,8 +84,8 @@ class FileUtils final {
 
   static time_t Mtime(const std::filesystem::path& path);
 
-  static bool IsUptoDate(const std::string& sourceFile,
-                         const std::string& outputFile);
+  static bool IsUptoDate(const fs::path& sourceFile,
+                         const fs::path& outputFile);
 
   static std::string AdjustPath(const std::string& p);
   static std::string AdjustPath(const std::filesystem::path& p);

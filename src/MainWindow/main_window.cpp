@@ -1849,7 +1849,7 @@ void MainWindow::manageLicense() {
 }
 
 void MainWindow::compressProject() {
-  CompressProject cProject{m_projectManager->projectPath(), this};
+  CompressProject cProject{m_projectManager->ProjectPath(), this};
   cProject.exec();
 }
 

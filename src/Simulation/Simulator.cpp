@@ -266,18 +266,15 @@ bool Simulator::Clean(SimulationType action) {
   Message("Cleaning simulation results for " + ProjManager()->projectName());
   auto waveFile = m_waveFiles.find(action);
   if (waveFile != m_waveFiles.end()) {
-    auto filePath =
-        std::filesystem::path(ProjManager()->projectPath()) / waveFile->second;
+    auto filePath = ProjManager()->ProjectFile(waveFile->second);
     if (FileUtils::FileExists(filePath)) std::filesystem::remove(filePath);
-    auto logPath =
-        std::filesystem::path(ProjManager()->projectPath()) / LogFile(action);
+    auto logPath = ProjManager()->ProjectFile(LogFile(action));
     if (FileUtils::FileExists(logPath)) std::filesystem::remove(logPath);
   }
-  auto obj_dir =
-      std::filesystem::path(ProjManager()->projectPath()) / "obj_dir";
+  auto obj_dir = ProjManager()->ProjectFile("obj_dir");
   if (FileUtils::FileExists(obj_dir)) std::filesystem::remove_all(obj_dir);
   for (auto& de :
-       std::filesystem::directory_iterator(ProjManager()->projectPath())) {
+       std::filesystem::directory_iterator(ProjManager()->ProjectPath())) {
     if ((de.path().extension() == ".cf") || de.path().extension() == ".out")
       std::filesystem::remove(de.path());
   }

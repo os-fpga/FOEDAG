@@ -297,8 +297,8 @@ time_t FileUtils::Mtime(const std::filesystem::path& path) {
   return statbuf.st_mtime;
 }
 
-bool FileUtils::IsUptoDate(const std::string& sourceFile,
-                           const std::string& outputFile) {
+bool FileUtils::IsUptoDate(const std::filesystem::path& sourceFile,
+                           const std::filesystem::path& outputFile) {
   time_t time_output = -1;
   if (FileUtils::FileExists(outputFile)) {
     time_output = Mtime(outputFile);
