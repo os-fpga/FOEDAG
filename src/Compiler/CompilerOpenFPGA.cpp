@@ -1961,7 +1961,8 @@ bool CompilerOpenFPGA::Placement() {
       std::string base_name = path.stem().string();
       pincommand += " --port_info ";
       pincommand += (std::filesystem::path(ProjManager()->projectPath()) /
-                     std::string(base_name + "_ports.json")).string();
+                     std::string(base_name + "_ports.json"))
+                        .string();
     } else {
       pincommand += " --blif " + netlistFile;
     }
