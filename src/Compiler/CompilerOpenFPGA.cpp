@@ -2480,9 +2480,8 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(result, "${ROUTE_FILE}", netlistFilePrefix + ".route");
   result = ReplaceAll(result, "${SDC_FILE}",
                       ProjManager()->projectName() + "_openfpga.sdc");
-  if(!ProjManager()->DesignTopModule().empty())
-    result +=
-         " --top " + ProjManager()->DesignTopModule();
+  if (!ProjManager()->DesignTopModule().empty())
+    result += " --top " + ProjManager()->DesignTopModule();
 
   std::string pnrOptions;
   if (ClbPackingOption() == ClbPacking::Timing_driven) {
