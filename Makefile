@@ -174,6 +174,7 @@ test/gui: run-cmake-debug
 	#$(XVFB) ./dbuild/bin/foedag --script tests/TestGui/gtkwave_cmds.tcl || (cat foedag.log; exit 1)
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gtkwave_open_bad_path.tcl && exit 1 || (echo "PASSED: Caught negative test")
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/log_header.tcl
+	$(XVFB) ./dbuild/bin/programmer-gui_test --replay tests/TestGui/programmer_gui.tcl
 
 test/gui_mac: run-cmake-debug
 	$(XVFB) ./dbuild/bin/foedag --replay tests/TestGui/gui_start_stop.tcl

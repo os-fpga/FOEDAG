@@ -254,11 +254,12 @@ Return FileUtils::ExecuteSystemCommand(const std::string& command,
   QString program = QString::fromStdString(command);
   QStringList args_{};
   for (const auto& ar : args) args_ << QString::fromStdString(ar);
-  m_processes.push_back(&process);
   if (startDetached) {
     auto success = process.startDetached(program, args_);
-    return {success ? 0 : -1, {}};
+    return {success ? 0 : -1,
+            QString{"%1: Failed to start."}.arg(program).toStdString()};
   } else {
+    m_processes.push_back(&process);
     process.start(program, args_);
   }
 

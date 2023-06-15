@@ -219,6 +219,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QAction* manageLicenseAction = nullptr;
   QAction* editorSettingsAction = nullptr;
   QAction* compressProjectAction = nullptr;
+  QAction* programmerAction = nullptr;
   std::vector<std::pair<QAction*, QString>> m_recentProjectsActions;
   newProjectDialog* newProjdialog = nullptr;
   /* Tool bar objects */
