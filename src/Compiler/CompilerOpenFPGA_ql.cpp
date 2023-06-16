@@ -3790,7 +3790,7 @@ bool CompilerOpenFPGA_ql::Route() {
     return false;
   }
   command += std::string(" ") + 
-             std::string("--route");
+             std::string("--route --flat_routing true --has_choking_spot true");
 
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
@@ -4012,6 +4012,10 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                 std::string(" ") + 
                 std::string("--analysis");
 
+    //Temporarily change - Once flat router is truned on we can't read route file anymore
+    //we need to do routing and analysis together
+    taCommand += std::string(" --route --flat_routing true --has_choking_spot true") + std::string(" ") + std::string("--analysis");
+
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                         std::string(ProjManager()->projectName() + "_sta.cmd"))
                             .string());
@@ -4181,6 +4185,10 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
              std::string(" ") + 
              std::string("--analysis");
 
+  //Temporarily change - Once flat router is truned on we can't read route file anymore
+  //we need to do routing and analysis together
+  command += std::string(" --route --flat_routing true --has_choking_spot true") + std::string(" ") + std::string("--analysis");
+
   int status = ExecuteAndMonitorSystemCommand(command);
   CleanTempFiles();
   if (status) {
@@ -4263,7 +4271,7 @@ exit
 )";
 
 const std::string simulationOpenFPGABitstreamScript = R"( 
-vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --skip_sync_clustering_and_routing_results on --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
+vpr ${VPR_ARCH_FILE} ${VPR_TESTBENCH_BLIF} --clock_modeling ideal${OPENFPGA_VPR_DEVICE_LAYOUT} --net_file ${NET_FILE} --place_file ${PLACE_FILE} --route_file ${ROUTE_FILE} --route --flat_routing true --has_choking_spot true --route_chan_width ${OPENFPGA_VPR_ROUTE_CHAN_WIDTH} --sdc_file ${SDC_FILE} --absorb_buffer_luts off --constant_net_method route --skip_sync_clustering_and_routing_results on --circuit_format ${OPENFPGA_VPR_CIRCUIT_FORMAT} --analysis ${PNR_OPTIONS}
 
 # Read OpenFPGA architecture definition
 read_openfpga_arch -f ${OPENFPGA_ARCH_FILE}
@@ -4629,6 +4637,10 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
                           std::string(" ") + 
                           std::string("--analysis");
 
+  //Temporarily change - Once flat router is truned on we can't read route file anymore
+  //we need to do routing and analysis together
+  vpr_analysis_command += std::string(" --route --flat_routing true --has_choking_spot true") + std::string(" ") + std::string("--analysis");
+  
   result = ReplaceAll(result, "${VPR_ANALYSIS_COMMAND}", vpr_analysis_command);
 
   //std::string netlistFilePrefix = m_projManager->projectName() + "_post_synth";
