@@ -95,6 +95,7 @@ class TaskManager : public QObject {
   void setTaskCount(int count);
 
   const TaskReportManagerRegistry &getReportManagerRegistry() const;
+  Compiler *GetCompiler() const { return m_compiler; }
 
   static bool isSimulation(const Task *const task);
   void setDialogProvider(const DialogProvider *const dProvider);

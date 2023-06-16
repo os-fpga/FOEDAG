@@ -4,6 +4,7 @@
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
@@ -141,6 +142,8 @@ void RoutingReportManager::parseLogFile() {
 }
 
 std::filesystem::path RoutingReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::Routing, ROUTING_LOG);
   return logFilePath(ROUTING_LOG);
 }
 

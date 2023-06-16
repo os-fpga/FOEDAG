@@ -264,23 +264,8 @@ bool Simulator::RegisterCommands(TclInterpreter* interp) {
 
 bool Simulator::Clean(SimulationType action) {
   Message("Cleaning simulation results for " + ProjManager()->projectName());
-  auto waveFile = m_waveFiles.find(action);
-  if (waveFile != m_waveFiles.end()) {
-    auto filePath =
-        std::filesystem::path(ProjManager()->projectPath()) / waveFile->second;
-    if (FileUtils::FileExists(filePath)) std::filesystem::remove(filePath);
-    auto logPath =
-        std::filesystem::path(ProjManager()->projectPath()) / LogFile(action);
-    if (FileUtils::FileExists(logPath)) std::filesystem::remove(logPath);
-  }
-  auto obj_dir =
-      std::filesystem::path(ProjManager()->projectPath()) / "obj_dir";
-  if (FileUtils::FileExists(obj_dir)) std::filesystem::remove_all(obj_dir);
-  for (auto& de :
-       std::filesystem::directory_iterator(ProjManager()->projectPath())) {
-    if ((de.path().extension() == ".cf") || de.path().extension() == ".out")
-      std::filesystem::remove(de.path());
-  }
+  auto base = m_compiler->FilePath(Compiler::ToCompilerAction(action));
+  if (!base.empty()) FileUtils::removeAll(base);
   SimulationOption(SimulationOpt::None);
   return true;
 }
@@ -890,7 +875,10 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   if (!GetSimulatorCompileOption(simulation, type).empty())
     command += " " + GetSimulatorCompileOption(simulation, type);
   command += " " + fileList;
-  int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log);
+  std::string workingDir =
+      m_compiler->FilePath(Compiler::ToCompilerAction(simulation)).string();
+  int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, false,
+                                                          workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation compilation failed!\n");
@@ -905,7 +893,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
           "make -j -C obj_dir/ -f V" + simulationTop + ".mk V" + simulationTop;
       if (!GetSimulatorElaborationOption(simulation, type).empty())
         command += " " + GetSimulatorElaborationOption(simulation, type);
-      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
+                                                          workingDir);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -920,7 +909,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
-      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
+      status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
+                                                          workingDir);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -934,7 +924,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
 
   // Actual simulation
   command = SimulatorRunCommand(simulation, type);
-  status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true);
+  status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
+                                                      workingDir);
   return status;
 }
 
@@ -1007,6 +998,9 @@ bool Simulator::SimulateGate(SimulatorType type) {
       netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
+  if (!netlistFile.empty())
+    netlistFile =
+        m_compiler->FilePath(Compiler::Action::Synthesis, netlistFile).string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {

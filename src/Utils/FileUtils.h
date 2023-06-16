@@ -92,6 +92,7 @@ class FileUtils final {
   // return true if file was removed otherwise return false
   static bool removeFile(const std::string& file) noexcept;
   static bool removeFile(const std::filesystem::path& file) noexcept;
+  static bool removeAll(const std::filesystem::path& path);
 
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);

@@ -53,3 +53,25 @@ TEST(FileUtils, WriteToFileNoNewLine) {
                           std::istreambuf_iterator<char>());
   EXPECT_EQ(content, readContent);
 }
+
+TEST(FileUtils, removeAll) {
+  fs::path testFolder{"testFolder"};
+  FileUtils::MkDirs(testFolder);
+  FileUtils::WriteToFile(testFolder / "test1.txt", "content");
+  FileUtils::WriteToFile(testFolder / "test2.txt", "content");
+  uint fileCount{0};
+  ASSERT_NO_THROW({
+    for (auto const& entry : fs::directory_iterator{testFolder}) fileCount++;
+  });
+  EXPECT_EQ(fileCount, 2);
+
+  FileUtils::removeAll(testFolder);
+
+  fileCount = 0;
+  ASSERT_NO_THROW(
+      {  // directory_iterator will throw exception if path does not exists
+        for (auto const& entry : fs::directory_iterator{testFolder})
+          fileCount++;
+      });
+  EXPECT_EQ(fileCount, 0);
+}

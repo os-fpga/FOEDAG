@@ -360,4 +360,12 @@ bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
   return ec.value() == 0;
 }
 
+bool FileUtils::removeAll(const std::filesystem::path& path) {
+  bool ok{true};
+  for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+    ok &= FileUtils::removeFile(dir_entry);
+  }
+  return ok;
+}
+
 }  // namespace FOEDAG

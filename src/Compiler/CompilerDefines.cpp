@@ -61,11 +61,11 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
 
   QObject::connect(view, &TaskTableView::ViewWaveform, [compiler](Task *task) {
     auto simType = task->cusomData().data.value<Simulator::SimulationType>();
-    std::filesystem::path file =
-        std::filesystem::path(compiler->ProjManager()->projectPath()) /
-        compiler->GetSimulator()->WaveFile(simType);
-    if (FileUtils::FileExists(file)) {
-      std::string cmd = "wave_open " + file.string();
+    auto fileName = compiler->GetSimulator()->WaveFile(simType);
+    std::filesystem::path filePath =
+        compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
+    if (FileUtils::FileExists(filePath)) {
+      std::string cmd = "wave_open " + filePath.string();
       GlobalSession->CmdStack()->push_and_exec(new Command(cmd));
     }
   });
@@ -183,6 +183,40 @@ bool target_device(const QString &target) {
   const int res = Tcl_Eval(GlobalSession->TclInterp()->getInterp(),
                            qPrintable(QString("target_device %1").arg(target)));
   return (res == TCL_OK);
+}
+
+int toAction(uint taskId) {
+  switch (taskId) {
+    case IP_GENERATE:
+      return static_cast<int>(Compiler::Action::IPGen);
+    case ANALYSIS:
+      return static_cast<int>(Compiler::Action::Analyze);
+    case SYNTHESIS:
+      return static_cast<int>(Compiler::Action::Synthesis);
+    case PACKING:
+      return static_cast<int>(Compiler::Action::Pack);
+    case GLOBAL_PLACEMENT:
+      return static_cast<int>(Compiler::Action::Global);
+    case PLACEMENT:
+      return static_cast<int>(Compiler::Action::Detailed);
+    case ROUTING:
+      return static_cast<int>(Compiler::Action::Routing);
+    case TIMING_SIGN_OFF:
+      return static_cast<int>(Compiler::Action::STA);
+    case POWER:
+      return static_cast<int>(Compiler::Action::Power);
+    case BITSTREAM:
+      return static_cast<int>(Compiler::Action::Bitstream);
+    case SIMULATE_RTL:
+      return static_cast<int>(Compiler::Action::SimulateRTL);
+    case SIMULATE_GATE:
+      return static_cast<int>(Compiler::Action::SimulateGate);
+    case SIMULATE_PNR:
+      return static_cast<int>(Compiler::Action::SimulatePNR);
+    case SIMULATE_BITSTREAM:
+      return static_cast<int>(Compiler::Action::SimulateBitstream);
+  }
+  return static_cast<int>(Compiler::Action::NoAction);
 }
 
 }  // namespace FOEDAG
