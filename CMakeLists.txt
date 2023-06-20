@@ -114,6 +114,7 @@ add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
 add_subdirectory(src/PinAssignment)
 add_subdirectory(src/Configuration)
+add_subdirectory(src/ProgrammerGui)
 
 
 # NOTE: Set the global output directories after the subprojects have had their go at it
