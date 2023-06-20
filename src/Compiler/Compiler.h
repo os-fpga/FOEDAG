@@ -259,7 +259,7 @@ class Compiler {
 
   virtual int ExecuteAndMonitorSystemCommand(
       const std::string& command, const std::string logFile = std::string{},
-      bool appendLog = false, const std::string& workingDir = {});
+      bool appendLog = false, const fs::path& workingDir = {});
 
   void ProgrammerToolExecPath(const std::filesystem::path& path) {
     m_programmerToolExecutablePath = path;

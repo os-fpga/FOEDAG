@@ -39,9 +39,6 @@ void ProjectManager::CreateProject(const ProjectOptions& opt) {
     std::filesystem::path srcsDir =
         tmpPath / std::string(projectName + ".srcs");
     std::filesystem::remove_all(srcsDir);
-    std::filesystem::path runsDir =
-        tmpPath / std::string(projectName + ".runs");
-    std::filesystem::remove_all(runsDir);
     // DO NOT REMOVE FILES BLINDLY, COMPILATION RESULTS GET SAVED IN THE SAME
     // PROJECT DIR
     // if (dir.exists()) dir.removeRecursively();
@@ -1501,7 +1498,7 @@ int ProjectManager::CreateProjectDir() {
     QString tmpName = Project::Instance()->projectName();
     QString tmpPath = Project::Instance()->projectPath();
 
-    if ("" == tmpName || "" == tmpPath) {
+    if (tmpName.isEmpty() || tmpPath.isEmpty()) {
       ret = -1;
       break;
     }
@@ -1519,19 +1516,12 @@ int ProjectManager::CreateProjectDir() {
       break;
     }
 
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".runs")) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".runs/" + DEFAULT_FOLDER_IMPLE)) {
-      ret = -2;
-      break;
-    }
-
-    if (!dir.mkdir(tmpPath + "/" + tmpName + ".runs/" + DEFAULT_FOLDER_SYNTH)) {
-      ret = -2;
-      break;
+    auto runsPath = tmpPath + "/" + tmpName + ".runs";
+    if (!QDir{runsPath}.exists()) {
+      if (!dir.mkdir(runsPath)) {
+        ret = -2;
+        break;
+      }
     }
   } while (false);
 

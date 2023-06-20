@@ -1991,8 +1991,11 @@ bool Compiler::HasInternalError() const {
 std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
-  fs::path base{fs::path{ProjManager()->projectPath()} / "runs_1"};
+  fs::path base{fs::path{ProjManager()->projectPath()}};
+  base /= ProjectManager().projectName() + ".runs";
+  base /= "run_1";
   fs::path synth{base / "synth_1"};
+  fs::path impl{base / "impl_1"};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";
@@ -2002,6 +2005,22 @@ std::filesystem::path Compiler::FilePath(Action action) const {
       return synth / "simulate_rtl";
     case Action::SimulateGate:
       return synth / "simulate_gate";
+    case Action::SimulatePNR:
+      return synth / "simulate_pnr";
+    case Action::SimulateBitstream:
+      return synth / "simulate_bitstream";
+    case Action::Pack:
+      return impl / "packing";
+    case Action::Detailed:
+      return impl / "placement";
+    case Action::Routing:
+      return impl / "routing";
+    case Action::STA:
+      return impl / "timing_analysis";
+    case Action::Power:
+      return impl / "power_analysis";
+    case Action::Bitstream:
+      return impl / "bitstream";
     default:
       return {};
   }
@@ -2401,9 +2420,7 @@ bool Compiler::Packing() {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.net");
     return true;
   }
   if (!m_projManager->HasDesign()) {
@@ -2427,9 +2444,7 @@ bool Compiler::Placement() {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.place");
     return true;
   }
   Message("Placement for design: " + m_projManager->projectName());
@@ -2449,9 +2464,7 @@ bool Compiler::Route() {
     Message("Cleaning routing results for " + ProjManager()->projectName());
     m_state = State::Placed;
     RouteOpt(RoutingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.route");
     return true;
   }
 
@@ -2661,6 +2674,7 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
 
 const std::string Compiler::GetNetlistPath() {
   std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -2691,17 +2705,16 @@ void Compiler::SetEnvironmentVariable(const std::string variable,
   m_environmentVariableMap.emplace(variable, value);
 }
 
-int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile,
-                                             bool appendLog,
-                                             const std::string& workingDir) {
+int Compiler::ExecuteAndMonitorSystemCommand(
+    const std::string& command, const std::string logFile, bool appendLog,
+    const std::filesystem::path& workingDir) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
   std::error_code ec;
   auto path = std::filesystem::current_path();  // getting path
   std::filesystem::current_path(
-      workingDir.empty() ? ProjManager()->projectPath() : workingDir,
+      workingDir.empty() ? fs::path{ProjManager()->projectPath()} : workingDir,
       ec);  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads

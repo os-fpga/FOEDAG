@@ -541,8 +541,6 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
 
   fillErrorsWarnings();
 
-  if (!timings.isEmpty()) fillTimingData(timings);
-
   m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
   return lineNr;
 }

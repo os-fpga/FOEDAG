@@ -219,7 +219,6 @@ void TimingAnalysisReportManager::parseLogFile() {
       lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
-  if (!timings.isEmpty()) fillTimingData(timings);
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
@@ -274,7 +273,6 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
                                        parseOpenSTATimingTable(in, lineNr)));
     ++lineNr;
   }
-  if (!timings.isEmpty()) fillTimingData(timings);
 
   logFile->close();
 

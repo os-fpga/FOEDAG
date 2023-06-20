@@ -725,6 +725,8 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
     }
     case SimulatorType::GHDL: {
       std::string command = execPath + " -r -fsynopsys";
+      command += " --workdir=" +
+                 m_compiler->FilePath(Compiler::Action::SimulateRTL).string();
       if (!GetSimulatorExtraOption(simulation, type).empty())
         command += " " + GetSimulatorExtraOption(simulation, type);
       if (!simulationTop.empty()) {
@@ -906,6 +908,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       std::string command = execPath + " -e -fsynopsys";
       if (!GetSimulatorElaborationOption(simulation, type).empty())
         command += " " + GetSimulatorElaborationOption(simulation, type);
+      command += " --workdir=" +
+                 m_compiler->FilePath(Compiler::Action::SimulateRTL).string();
       if (!simulationTop.empty()) {
         command += TopModuleCmd(type) + simulationTop;
       }
@@ -1053,6 +1057,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
 
   std::string netlistFile =
       ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
+
+  netlistFile = m_compiler->FilePath(Compiler::Action::Routing, netlistFile);
 
   fileList += " " + netlistFile + " ";
   for (auto path : m_gateSimulationModels) {

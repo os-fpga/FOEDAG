@@ -634,8 +634,6 @@ bool CompilerOpenFPGA::DesignChanged(
     const std::filesystem::path& synth_scrypt_path,
     const std::filesystem::path& outputFile) {
   bool result = false;
-  auto path = std::filesystem::current_path();                  // getting path
-  std::filesystem::current_path(ProjManager()->projectPath());  // setting path
   time_t time_netlist = FileUtils::Mtime(outputFile);
   if (time_netlist == -1) {
     result = true;
@@ -702,7 +700,6 @@ bool CompilerOpenFPGA::DesignChanged(
   if (synth_script != buffer.str()) {
     result = true;
   }
-  std::filesystem::current_path(path);
   return result;
 }
 
@@ -1360,13 +1357,10 @@ bool CompilerOpenFPGA::Synthesize() {
     return true;
   }
   std::filesystem::remove(
-      std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
   std::filesystem::remove(
-      std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_post_synth.eblif"));
   std::filesystem::remove(
-      std::filesystem::path(ProjManager()->projectPath()) /
       std::string(ProjManager()->projectName() + "_post_synth.v"));
   // Create Yosys command and execute
   FileUtils::WriteToFile(script_path, yosysScript, false);
@@ -1379,8 +1373,8 @@ bool CompilerOpenFPGA::Synthesize() {
       std::string(ProjManager()->projectName() + ".ys -l " +
                   ProjManager()->projectName() + "_synth.log");
   Message("Synthesis command: " + command);
-  int status = ExecuteAndMonitorSystemCommand(command, {}, false,
-                                              FilePath(Action::Synthesis));
+  int status = ExecuteAndMonitorSystemCommand(
+      command, {}, false, FilePath(Action::Synthesis).string());
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " synthesis failed");
@@ -1448,6 +1442,7 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
       netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
+  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -1484,6 +1479,14 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
                   std::string(" --clock_modeling ideal --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
 
+  fs::path netlistFileName{netlistFile};
+  netlistFileName = netlistFileName.filename();
+  auto name = netlistFileName.stem().string();
+  command += " --net_file " + FilePath(Action::Pack, name + ".net").string();
+  command +=
+      " --place_file " + FilePath(Action::Detailed, name + ".place").string();
+  command +=
+      " --route_file " + FilePath(Action::Routing, name + ".route").string();
   return command;
 }
 
@@ -1508,10 +1511,7 @@ std::string CompilerOpenFPGA::BaseStaScript(std::string libFileName,
       std::string("\n") + std::string("read_sdc ") + sdcFileName +
       std::string("\n") +
       std::string("report_checks\n");  // to do: add more check/report flavors
-  const std::string openStaFile =
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       std::string(ProjManager()->projectName() + "_opensta.tcl"))
-          .string();
+  const std::string openStaFile = ProjManager()->projectName() + "_opensta.tcl";
   FileUtils::WriteToFile(openStaFile, script);
   return openStaFile;
 }
@@ -1544,10 +1544,7 @@ bool CompilerOpenFPGA::Packing() {
   Message("##################################################");
   Message("Packing for design: " + ProjManager()->projectName());
   Message("##################################################");
-  const std::string sdcOut =
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       std::string(ProjManager()->projectName() + "_openfpga.sdc"))
-          .string();
+  const std::string sdcOut = ProjManager()->projectName() + "_openfpga.sdc";
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
   for (auto constraint : m_constraints->getConstraints()) {
@@ -1587,15 +1584,11 @@ bool CompilerOpenFPGA::Packing() {
   PackOpt(PackingOpt::None);
 
   std::string command = BaseVprCommand() + " --pack";
-  auto file = (fs::path(ProjManager()->projectPath()) /
-               std::string(ProjManager()->projectName() + "_pack.cmd"));
+  auto file = ProjManager()->projectName() + "_pack.cmd";
   FileUtils::WriteToFile(file, command);
 
-  if (FileUtils::IsUptoDate(
-          GetNetlistPath(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.net"))
-              .string()) &&
+  if (FileUtils::IsUptoDate(GetNetlistPath(),
+                            ProjManager()->projectName() + "_post_synth.net") &&
       (prevOpt != PackingOpt::Debug)) {
     m_state = State::Packed;
     Message("Design " + ProjManager()->projectName() + " packing reused");
@@ -1603,15 +1596,14 @@ bool CompilerOpenFPGA::Packing() {
   }
 
   PackOpt(prevOpt);
-  int status = ExecuteAndMonitorSystemCommand(command);
+  auto workingDir = FilePath(Action::Pack);
+  int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
     if (PackOpt() == PackingOpt::Debug) {
       std::string command = BaseVprCommand() + " --pack";
-      auto file = fs::path(ProjManager()->projectPath()) /
-                  std::string(ProjManager()->projectName() + "_pack.cmd");
       FileUtils::WriteToFile(file, command);
-      ExecuteAndMonitorSystemCommand(command);
+      ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
     }
     return false;
   }
@@ -1684,11 +1676,7 @@ bool CompilerOpenFPGA::Placement() {
     return false;
   }
 
-  const std::string pcfOut =
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       std::string(ProjManager()->projectName() + "_openfpga.pcf"))
-          .string();
-
+  const std::string pcfOut = ProjManager()->projectName() + "_openfpga.pcf";
   std::string previousConstraints;
   std::ifstream ifspcf(pcfOut);
   if (ifspcf.good()) {
@@ -1751,13 +1739,14 @@ bool CompilerOpenFPGA::Placement() {
   }
   ifspcf.close();
 
+  auto packingPath = FilePath(Action::Pack);
   if ((previousConstraints == newConstraints) &&
       FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.net"))
+          FilePath(Action::Pack,
+                   ProjManager()->projectName() + "_post_synth.net")
               .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.place"))
+          FilePath(Action::Detailed,
+                   ProjManager()->projectName() + "_post_synth.place")
               .string())) {
     m_state = State::Placed;
     Message("Design " + ProjManager()->projectName() + " placement reused");
@@ -1768,6 +1757,7 @@ bool CompilerOpenFPGA::Placement() {
   if (GetNetlistType() == NetlistType::EBlif) {
     netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
   }
+  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -1853,9 +1843,7 @@ bool CompilerOpenFPGA::Placement() {
 
     if (!set_clks.empty() && repackConstraint) {
       const std::string repack_out =
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + ".temp_file_clkmap"))
-              .string();
+          ProjManager()->projectName() + ".temp_file_clkmap";
       std::ofstream ofsclkmap(repack_out);
 
       for (auto constraint : set_clks) {
@@ -1871,11 +1859,12 @@ bool CompilerOpenFPGA::Placement() {
 
     std::string pin_loc_constraint_file;
 
-    auto file = fs::path(ProjManager()->projectPath()) /
-                std::string(ProjManager()->projectName() + "_pin_loc.cmd");
+    auto file = ProjManager()->projectName() + "_pin_loc.cmd";
     FileUtils::WriteToFile(file, pincommand);
 
-    int status = ExecuteAndMonitorSystemCommand(pincommand);
+    auto workingDir = FilePath(Action::Detailed);
+    int status =
+        ExecuteAndMonitorSystemCommand(pincommand, {}, false, workingDir);
 
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
@@ -1891,10 +1880,10 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  auto file = fs::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_place.cmd");
+  auto file = ProjManager()->projectName() + "_place.cmd";
   FileUtils::WriteToFile(file, command);
-  int status = ExecuteAndMonitorSystemCommand(command);
+  auto workingDir = FilePath(Action::Detailed);
+  int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " placement failed");
@@ -1987,23 +1976,23 @@ bool CompilerOpenFPGA::Route() {
   }
 
   if (FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.place"))
+          FilePath(Action::Detailed,
+                   ProjManager()->projectName() + "_post_synth.place")
               .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.route"))
+          FilePath(Action::Routing,
+                   ProjManager()->projectName() + "_post_synth.route")
               .string())) {
     m_state = State::Routed;
     Message("Design " + ProjManager()->projectName() + " routing reused");
     return true;
   }
 
+  auto routingPath = FilePath(Action::Routing);
   std::string command = BaseVprCommand() + " --route";
   FileUtils::WriteToFile(
-      fs::path(ProjManager()->projectPath()) /
-          std::string(ProjManager()->projectName() + "_route.cmd"),
+      routingPath / std::string(ProjManager()->projectName() + "_route.cmd"),
       command);
-  int status = ExecuteAndMonitorSystemCommand(command);
+  int status = ExecuteAndMonitorSystemCommand(command, {}, false, routingPath);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " routing failed");
     return false;
@@ -2045,10 +2034,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return false;
   }
 
+  auto workingDir = FilePath(Action::STA).string();
   if (TimingAnalysisOpt() == STAOpt::View) {
     TimingAnalysisOpt(STAOpt::None);
     const std::string command = BaseVprCommand() + " --analysis --disp on";
-    const int status = ExecuteAndMonitorSystemCommand(command);
+    const int status =
+        ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " place and route view failed");
@@ -2058,11 +2049,10 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   }
 
   if (FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.route"))
+          FilePath(Action::Routing,
+                   ProjManager()->projectName() + "_post_synth.route")
               .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_sta.cmd"))
+          FilePath(Action::STA, ProjManager()->projectName() + "_sta.cmd")
               .string())) {
     Message("Design " + ProjManager()->projectName() + " timing didn't change");
     return true;
@@ -2073,10 +2063,9 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   if (TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
     std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
-    auto file = std::filesystem::path(ProjManager()->projectPath()) /
-                std::string(ProjManager()->projectName() + "_sta.cmd");
+    auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
     FileUtils::WriteToFile(file, command);
-    int status = ExecuteAndMonitorSystemCommand(command);
+    int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
     if (status) {
       ErrorMessage("Design " + ProjManager()->projectName() +
                    " timing analysis failed");
@@ -2084,22 +2073,14 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     }
     // find files
     std::string libFileName =
-        (std::filesystem::current_path() /
-         std::string(ProjManager()->projectName() + ".lib"))
-            .string();  // this is the standard sdc file
+        ProjManager()->projectName() + ".lib";  // this is the standard sdc file
     std::string netlistFileName =
-        (std::filesystem::path(ProjManager()->projectPath()) /
-         std::string(ProjManager()->projectName() + "_post_synthesis.v"))
-            .string();
+        ProjManager()->projectName() + "_post_synthesis.v";
     std::string sdfFileName =
-        (std::filesystem::path(ProjManager()->projectPath()) /
-         std::string(ProjManager()->projectName() + "_post_synthesis.sdf"))
-            .string();
+        ProjManager()->projectName() + "_post_synthesis.sdf";
     // std::string sdcFile = ProjManager()->getConstrFiles();
     std::string sdcFileName =
-        (std::filesystem::current_path() /
-         std::string(ProjManager()->projectName() + ".sdc"))
-            .string();  // this is the standard sdc file
+        ProjManager()->projectName() + ".sdc";  // this is the standard sdc file
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
         std::filesystem::is_regular_file(sdfFileName) &&
@@ -2107,8 +2088,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       taCommand =
           BaseStaCommand() + " " +
           BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
-      auto file = std::filesystem::path(ProjManager()->projectPath()) /
-                  std::string(ProjManager()->projectName() + "_sta.cmd");
+      auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
       FileUtils::WriteToFile(file, taCommand);
     } else {
       ErrorMessage(
@@ -2118,12 +2098,24 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     }
   } else {  // use vpr/tatum engine
     taCommand = BaseVprCommand() + " --analysis";
-    auto file = std::filesystem::path(ProjManager()->projectPath()) /
-                std::string(ProjManager()->projectName() + "_sta.cmd");
+    auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
     FileUtils::WriteToFile(file, taCommand + " --disp on");
   }
 
-  status = ExecuteAndMonitorSystemCommand(taCommand);
+  taCommand +=
+      " --net_file " +
+      FilePath(Action::Pack, ProjManager()->projectName() + "_post_synth.net")
+          .string();
+  taCommand += " --place_file " +
+               FilePath(Action::Detailed,
+                        ProjManager()->projectName() + "_post_synth.place")
+                   .string();
+  taCommand += " --route_file " +
+               FilePath(Action::Routing,
+                        ProjManager()->projectName() + "_post_synth.route")
+                   .string();
+
+  status = ExecuteAndMonitorSystemCommand(taCommand, {}, false, workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " timing analysis failed");
@@ -2163,11 +2155,10 @@ bool CompilerOpenFPGA::PowerAnalysis() {
   Message("##################################################");
 
   if (FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.route"))
+          FilePath(Action::Routing,
+                   ProjManager()->projectName() + "_post_synth.route")
               .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_sta.cmd"))
+          FilePath(Action::STA, ProjManager()->projectName() + "_sta.cmd")
               .string())) {
     Message("Design " + ProjManager()->projectName() + " power didn't change");
     return true;
@@ -2178,7 +2169,9 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
-  int status = ExecuteAndMonitorSystemCommand(command);
+
+  int status = ExecuteAndMonitorSystemCommand(command, {}, false,
+                                              FilePath(Action::Power).string());
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " power analysis failed");
@@ -2324,9 +2317,15 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
 
   result = ReplaceAll(result, "${VPR_ARCH_FILE}", m_architectureFile.string());
-  result = ReplaceAll(result, "${NET_FILE}", netlistFilePrefix + ".net");
-  result = ReplaceAll(result, "${PLACE_FILE}", netlistFilePrefix + ".place");
-  result = ReplaceAll(result, "${ROUTE_FILE}", netlistFilePrefix + ".route");
+  result =
+      ReplaceAll(result, "${NET_FILE}",
+                 FilePath(Action::Pack, netlistFilePrefix + ".net").string());
+  result = ReplaceAll(
+      result, "${PLACE_FILE}",
+      FilePath(Action::Detailed, netlistFilePrefix + ".place").string());
+  result = ReplaceAll(
+      result, "${ROUTE_FILE}",
+      FilePath(Action::Routing, netlistFilePrefix + ".route").string());
   result = ReplaceAll(result, "${SDC_FILE}",
                       ProjManager()->projectName() + "_openfpga.sdc");
   if (!ProjManager()->DesignTopModule().empty())
@@ -2360,6 +2359,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
+  netlistFile = FilePath(Action::Synthesis, netlistFile);
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
@@ -2459,8 +2459,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   }
   std::string repack_constraints =
       ProjManager()->projectName() + "_repack_constraints.xml";
-  const bool fpga_repack = FileUtils::FileExists(
-      std::filesystem::path(ProjManager()->projectPath()) / repack_constraints);
+  const bool fpga_repack = FileUtils::FileExists(repack_constraints);
   if (!fpga_repack) {
     result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",
                         m_OpenFpgaRepackConstraintsFile.string());
@@ -2533,18 +2532,15 @@ bool CompilerOpenFPGA::GenerateBitstream() {
   }
 
   if (BitsOpt() == BitstreamOpt::EnableSimulation) {
-    std::filesystem::path bit_path =
-        std::filesystem::path(ProjManager()->projectPath()) / "BIT_SIM";
+    std::filesystem::path bit_path = "BIT_SIM";
     std::filesystem::create_directory(bit_path);
   }
 
   if (FileUtils::IsUptoDate(
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string(ProjManager()->projectName() + "_post_synth.route"))
+          FilePath(Action::Routing,
+                   ProjManager()->projectName() + "_post_synth.route")
               .string(),
-          (std::filesystem::path(ProjManager()->projectPath()) /
-           std::string("fabric_bitstream.bit"))
-              .string())) {
+          FilePath(Action::Bitstream, "fabric_bitstream.bit").string())) {
     Message("Design " + ProjManager()->projectName() +
             " bitstream didn't change");
     m_state = State::BistreamGenerated;
@@ -2572,14 +2568,9 @@ bool CompilerOpenFPGA::GenerateBitstream() {
 
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 
-  std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
-                          std::string("fabric_bitstream.bit"));
-  std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
-                          std::string("fabric_independent_bitstream.xml"));
+  std::filesystem::remove("fabric_bitstream.bit");
+  std::filesystem::remove("fabric_independent_bitstream.xml");
   // Create OpenFpga command and execute
-  script_path =
-      (std::filesystem::path(ProjManager()->projectPath()) / script_path)
-          .string();
   FileUtils::WriteToFile(script_path, script, false);
   if (!FileUtils::FileExists(m_openFpgaExecutablePath)) {
     ErrorMessage("Cannot find executable: " +
@@ -2587,10 +2578,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     return false;
   }
 
-  auto file = std::filesystem::path(ProjManager()->projectPath()) /
-              std::string(ProjManager()->projectName() + "_bitstream.cmd");
+  auto file = ProjManager()->projectName() + "_bitstream.cmd";
   FileUtils::WriteToFile(file, command);
-  int status = ExecuteAndMonitorSystemCommand(command);
+  auto workingDir = FilePath(Action::Bitstream);
+  int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " bitstream generation failed");

@@ -40,7 +40,8 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
   for (auto task : tasks) {
     auto taskId = m_taskManager.taskId(task);
 
-    if (auto reportManager = reports.getReportManager(taskId)) {
+    if (auto reportManager = reports.getReportManager(taskId);
+        reportManager && !reportManager->getAvailableReportIds().isEmpty()) {
       reportManager->setSuppressList(loadSuppressList(dataPath));
       auto logFileReadPath = task->logFileReadPath();
       auto compiler = m_taskManager.GetCompiler();
