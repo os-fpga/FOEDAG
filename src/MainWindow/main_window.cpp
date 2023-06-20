@@ -939,6 +939,9 @@ void MainWindow::createToolBars() {
   debugToolBar->addAction(startAction);
   debugToolBar->addAction(startSimAction);
   debugToolBar->addAction(stopAction);
+#ifndef PRODUCTION_BUILD
+  debugToolBar->addAction(programmerAction);
+#endif
 }
 
 void MainWindow::updateMenusVisibility(bool welcomePageShown) {
@@ -1046,6 +1049,14 @@ void MainWindow::createActions() {
   compressProjectAction = new QAction{tr("Save Diagnostics"), this};
   connect(compressProjectAction, &QAction::triggered, this,
           &MainWindow::compressProject);
+
+  programmerAction = new QAction{tr("Programmer"), this};
+  connect(programmerAction, &QAction::triggered, this, [this]() {
+    auto programmer = GlobalSession->Context()->ProgrammerGuiPath();
+    auto result = FileUtils::ExecuteSystemCommand(
+        programmer.string(), {}, nullptr, -1, {}, nullptr, true);
+    if (result.code != 0) m_compiler->Message(result.message);
+  });
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {

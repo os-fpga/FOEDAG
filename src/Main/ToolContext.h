@@ -44,12 +44,18 @@ class ToolContext {
   const std::string& ExecutableName() const { return m_executableName; }
   const std::filesystem::path& BinaryPath() const { return m_binaryPath; }
   const std::filesystem::path& DataPath() const { return m_dataPath; }
+  const std::filesystem::path& ProgrammerGuiPath() const {
+    return m_programmerGuiPath;
+  }
 
   void ToolName(const std::string& name) { m_toolName = name; }
   void CompanyName(const std::string& name) { m_companyName = name; }
   void ExecutableName(const std::string& name) { m_executableName = name; }
   void BinaryPath(const std::filesystem::path& path) { m_binaryPath = path; }
   void DataPath(const std::filesystem::path& path) { m_dataPath = path; }
+  void ProgrammerGuiPath(const std::filesystem::path& path) {
+    m_programmerGuiPath = path;
+  }
 
  private:
   std::string m_toolName;
@@ -57,6 +63,7 @@ class ToolContext {
   std::string m_executableName;
   std::filesystem::path m_binaryPath;
   std::filesystem::path m_dataPath;
+  std::filesystem::path m_programmerGuiPath;
 };
 
 }  // namespace FOEDAG
