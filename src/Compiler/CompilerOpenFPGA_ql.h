@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/Compiler.h"
 #include "QLDeviceManager.h"
+#include "QLMetricsManager.h"
 
 #ifndef COMPILER_OPENFPGA_QL_H
 #define COMPILER_OPENFPGA_QL_H
@@ -41,6 +42,7 @@ namespace FOEDAG {
 
 class CompilerOpenFPGA_ql : public Compiler {
     friend class QLSettingsManager;
+    friend class QLMetricsManager;
  public:
   CompilerOpenFPGA_ql() = default;
 #if UPSTREAM_UNUSED
@@ -139,7 +141,9 @@ class CompilerOpenFPGA_ql : public Compiler {
                     std::string voltage_threshold,
                     std::string p_v_t_corner);
   bool DeviceExists(std::string device_string);
-  std::vector<long double> PowerEstimator();
+  long double PowerEstimator_Dynamic();
+  long double PowerEstimator_Leakage();
+
 
  protected:
   virtual bool IPGenerate();

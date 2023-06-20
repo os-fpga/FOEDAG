@@ -122,6 +122,48 @@ std::string QLSettingsManager::getStringValue(std::string category, std::string 
   return value;
 }
 
+
+long double QLSettingsManager::getLongDoubleValue(std::string category, std::string subcategory, std::string parameter) {
+
+  long double value = 0;
+  std::string str_value;
+
+  json& json_ref = instance->combined_json;
+
+  if( json_ref.contains(category) &&
+      json_ref[category].contains(subcategory) &&
+      json_ref[category][subcategory].contains(parameter) ) {
+
+    if ( json_ref[category][subcategory][parameter].contains("userValue") ) {
+      str_value = json_ref[category][subcategory][parameter]["userValue"].get<std::string>();
+    }
+    else if ( json_ref[category][subcategory][parameter].contains("default") ) {
+      str_value = json_ref[category][subcategory][parameter]["default"].get<std::string>();
+    }
+    // else value is empty
+  }
+
+  if(!str_value.empty()) {
+
+    try {
+      value = std::stold(str_value);
+    }
+    catch (std::invalid_argument const &e) {
+      std::cout << "[power json] Bad input: std::invalid_argument thrown" << std::endl;
+      std::cout << "user entered: " << str_value << std::endl;
+      value = 0;
+    }
+    catch (std::out_of_range const &e) {
+      std::cout << "[power json] Integer overflow: std::out_of_range thrown" << std::endl;
+      std::cout << "user entered: " << str_value << std::endl;
+      value = 0;
+    }
+  }
+
+  return value;
+}
+
+
 std::string QLSettingsManager::getStringToolTip(std::string category, std::string subcategory, std::string parameter) {
 
   std::string tooltip;
