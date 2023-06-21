@@ -1111,6 +1111,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "pb_pin_fixup") {
           compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "write_cache") {
+          compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
         }
@@ -1482,6 +1484,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         } else if (arg == "write_fabric_independent") {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "pb_pin_fixup") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "write_cache") {
           compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
