@@ -2372,7 +2372,7 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
 build_architecture_bitstream ${BUILD_ARCHITECTURE_BITSTREAM_OPTIONS}
 
-build_fabric_bitstream
+build_fabric_bitstream ${BITSTREAM_BINARY_FILE_OPERATION} ${BITSTREAM_BINARY_FILE}
 write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
 ${WRITE_FABRIC_BITSTREAM_XML}
 write_io_mapping -f PinMapping.xml
@@ -2415,7 +2415,7 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 build_architecture_bitstream --verbose \
                              --write_file fabric_independent_bitstream.xml
  
-build_fabric_bitstream --verbose 
+build_fabric_bitstream --verbose ${BITSTREAM_BINARY_FILE_OPERATION} ${BITSTREAM_BINARY_FILE}
 
 write_fabric_verilog --file BIT_SIM \
                      --explicit_port_mapping \
@@ -2587,6 +2587,27 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
                       m_OpenFpgaPinConstraintXml.string());
+  result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE}",
+                      m_OpenFpgaBitstreamBinaryFile.string());
+
+  if (m_bitstreamMoreOpt.find("write_cache") != std::string::npos)
+    m_bitstreamCacheOpType = BitstreamCacheOpType::Write;
+  else if (!m_OpenFpgaBitstreamBinaryFile.empty()) {
+    m_bitstreamCacheOpType = BitstreamCacheOpType::Read;
+  }
+  switch (m_bitstreamCacheOpType) {
+    case BitstreamCacheOpType::NoOp:
+      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}", "");
+      break;
+    case BitstreamCacheOpType::Read:
+      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}",
+                          "--read_file");
+      break;
+    case BitstreamCacheOpType::Write:
+      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}",
+                          "--write_file");
+      break;
+  }
   std::string repack_constraints =
       ProjManager()->projectName() + "_repack_constraints.xml";
   const bool fpga_repack = FileUtils::FileExists(
@@ -2831,7 +2852,8 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   fullPath = datapath / std::string("etc") /
                              std::string("devices") / file;
                 }
-                if (!FileUtils::FileExists(fullPath.string())) {
+                if ((file_type != "bitstream_cache") &&
+                    !FileUtils::FileExists(fullPath.string())) {
                   ErrorMessage("Invalid device config file: " +
                                fullPath.string() + "\n");
                   status = false;
@@ -2849,6 +2871,8 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 OpenFpgaRepackConstraintsFile(fullPath.string());
               } else if (file_type == "fabric_key") {
                 OpenFpgaFabricKeyFile(fullPath.string());
+              } else if (file_type == "bitstream_cache") {
+                OpenFpgaBitstreamBinaryFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pcf_xml") {
