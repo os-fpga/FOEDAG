@@ -2720,7 +2720,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(
   // QObjects in different threads
   m_process = new QProcess;
   if (!workingDir.empty()) {
-    m_process->setWorkingDirectory(QString::fromStdString(workingDir));
+    m_process->setWorkingDirectory(QString::fromStdString(workingDir.string()));
     FileUtils::MkDirs(workingDir);
   }
   QStringList env = QProcess::systemEnvironment();

@@ -1587,8 +1587,10 @@ bool CompilerOpenFPGA::Packing() {
   auto file = ProjManager()->projectName() + "_pack.cmd";
   FileUtils::WriteToFile(file, command);
 
+  fs::path netlistPath = GetNetlistPath();
+  netlistPath = netlistPath.filename();
   if (FileUtils::IsUptoDate(GetNetlistPath(),
-                            ProjManager()->projectName() + "_post_synth.net") &&
+                            netlistPath.stem().string() + ".net") &&
       (prevOpt != PackingOpt::Debug)) {
     m_state = State::Packed;
     Message("Design " + ProjManager()->projectName() + " packing reused");
@@ -1739,15 +1741,12 @@ bool CompilerOpenFPGA::Placement() {
   }
   ifspcf.close();
 
-  auto packingPath = FilePath(Action::Pack);
+  fs::path netlistPath = GetNetlistPath();
+  auto netlistFileName = netlistPath.filename().stem().string();
   if ((previousConstraints == newConstraints) &&
       FileUtils::IsUptoDate(
-          FilePath(Action::Pack,
-                   ProjManager()->projectName() + "_post_synth.net")
-              .string(),
-          FilePath(Action::Detailed,
-                   ProjManager()->projectName() + "_post_synth.place")
-              .string())) {
+          FilePath(Action::Pack, netlistFileName + ".net").string(),
+          FilePath(Action::Detailed, netlistFileName + ".place").string())) {
     m_state = State::Placed;
     Message("Design " + ProjManager()->projectName() + " placement reused");
     return true;
@@ -1975,13 +1974,11 @@ bool CompilerOpenFPGA::Route() {
     return false;
   }
 
+  fs::path netlistPath = GetNetlistPath();
+  auto netlistFileName = netlistPath.filename().stem().string();
   if (FileUtils::IsUptoDate(
-          FilePath(Action::Detailed,
-                   ProjManager()->projectName() + "_post_synth.place")
-              .string(),
-          FilePath(Action::Routing,
-                   ProjManager()->projectName() + "_post_synth.route")
-              .string())) {
+          FilePath(Action::Detailed, netlistFileName + ".place").string(),
+          FilePath(Action::Routing, netlistFileName + ".route").string())) {
     m_state = State::Routed;
     Message("Design " + ProjManager()->projectName() + " routing reused");
     return true;
@@ -2048,10 +2045,10 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     return true;
   }
 
+  fs::path netlistPath = GetNetlistPath();
+  auto netlistFileName = netlistPath.filename().stem().string();
   if (FileUtils::IsUptoDate(
-          FilePath(Action::Routing,
-                   ProjManager()->projectName() + "_post_synth.route")
-              .string(),
+          FilePath(Action::Routing, netlistFileName + ".route").string(),
           FilePath(Action::STA, ProjManager()->projectName() + "_sta.cmd")
               .string())) {
     Message("Design " + ProjManager()->projectName() + " timing didn't change");
@@ -2101,19 +2098,6 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
     FileUtils::WriteToFile(file, taCommand + " --disp on");
   }
-
-  taCommand +=
-      " --net_file " +
-      FilePath(Action::Pack, ProjManager()->projectName() + "_post_synth.net")
-          .string();
-  taCommand += " --place_file " +
-               FilePath(Action::Detailed,
-                        ProjManager()->projectName() + "_post_synth.place")
-                   .string();
-  taCommand += " --route_file " +
-               FilePath(Action::Routing,
-                        ProjManager()->projectName() + "_post_synth.route")
-                   .string();
 
   status = ExecuteAndMonitorSystemCommand(taCommand, {}, false, workingDir);
   if (status) {
@@ -2359,7 +2343,7 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
-  netlistFile = FilePath(Action::Synthesis, netlistFile);
+  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VERILOG_NETLIST:
@@ -2536,10 +2520,10 @@ bool CompilerOpenFPGA::GenerateBitstream() {
     std::filesystem::create_directory(bit_path);
   }
 
+  fs::path netlistPath = GetNetlistPath();
+  auto netlistFileName = netlistPath.filename().stem().string();
   if (FileUtils::IsUptoDate(
-          FilePath(Action::Routing,
-                   ProjManager()->projectName() + "_post_synth.route")
-              .string(),
+          FilePath(Action::Routing, netlistFileName + ".route").string(),
           FilePath(Action::Bitstream, "fabric_bitstream.bit").string())) {
     Message("Design " + ProjManager()->projectName() +
             " bitstream didn't change");

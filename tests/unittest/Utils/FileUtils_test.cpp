@@ -59,7 +59,7 @@ TEST(FileUtils, removeAll) {
   FileUtils::MkDirs(testFolder);
   FileUtils::WriteToFile(testFolder / "test1.txt", "content");
   FileUtils::WriteToFile(testFolder / "test2.txt", "content");
-  uint fileCount{0};
+  int fileCount{0};
   ASSERT_NO_THROW({
     for (auto const& entry : fs::directory_iterator{testFolder}) fileCount++;
   });

@@ -1058,7 +1058,8 @@ bool Simulator::SimulatePNR(SimulatorType type) {
   std::string netlistFile =
       ProjManager()->getDesignTopModule().toStdString() + "_post_synthesis.v";
 
-  netlistFile = m_compiler->FilePath(Compiler::Action::Routing, netlistFile);
+  netlistFile =
+      m_compiler->FilePath(Compiler::Action::Routing, netlistFile).string();
 
   fileList += " " + netlistFile + " ";
   for (auto path : m_gateSimulationModels) {
