@@ -4901,6 +4901,16 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     return false;
   }
 
+  //User might specify to run flat router in routing stage, we need to 
+  //skip bitgeneration in that case, since It is not supported as June 2023
+  std::string flat_router = "flat_routing";
+  if(script.find(flat_router) != string::npos){
+    Message("##################################################");
+    Message("Skipping the bit-generation process since flat router option is turned on in VPR!");
+    Message("##################################################");
+    return true;
+  }
+  
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 
   std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
