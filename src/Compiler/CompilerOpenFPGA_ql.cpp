@@ -3795,8 +3795,7 @@ bool CompilerOpenFPGA_ql::Route() {
   //User might specify to run flat router in routing stage, we need to increase
   //maximum routing iteration in case of congestion to give flat router enough
   //time to converage to a legal routing solution
-  std::string flat_router = "flat_routing";
-  if(command.find(flat_router) != string::npos){
+  if(command.find("--flat_routing true") != string::npos){
     command += std::string(" ") + std::string("--max_router_iterations 100");
   }
 
@@ -4024,8 +4023,7 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     //User might specify to run flat router in routing stage. Once the flat router
     //flag is true, we no longer can read routing file in timing analaysis as it is
     //not supported in VPR as June 2023. Hence, we need to redo the routing stage.
-    std::string flat_router = "flat_routing";
-    if(taCommand.find(flat_router) != string::npos){
+    if(taCommand.find("--flat_routing true") != string::npos){
       taCommand += std::string(" ") + std::string("--route --max_router_iterations 100");
     }
     
@@ -4201,8 +4199,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   //User might specify to run flat router in routing stage. Once the flat router
   //flag is true, we no longer can read routing file in timing analaysis as it is
   //not supported in VPR as June 2023. Hence, we need to redo the routing stage.
-  std::string flat_router = "flat_routing";
-  if(command.find(flat_router) != string::npos){
+  if(command.find("--flat_routing true") != string::npos){
     command += std::string(" ") + std::string("--route --max_router_iterations 100");
   }
 
@@ -4903,8 +4900,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
 
   //User might specify to run flat router in routing stage, we need to 
   //skip bitgeneration in that case, since It is not supported as June 2023
-  std::string flat_router = "flat_routing";
-  if(script.find(flat_router) != string::npos){
+  if(script.find("--flat_routing true") != string::npos){
     Message("##################################################");
     Message("Skipping the bit-generation process since flat router option is turned on in VPR!");
     Message("##################################################");
