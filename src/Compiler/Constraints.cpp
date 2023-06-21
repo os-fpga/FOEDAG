@@ -389,6 +389,9 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     text = replaceAll(text, "{*}", "@*@");
     int status = Tcl_Eval(interp, text.c_str());
     if (status) {
+      std::cout << "ERROR line"<< std::endl;
+      Tcl_AppendResult(interp, "ERROR: SDC file syntax error" +
+      fileName + ":" + std::to_string(Tcl_GetErrorLine(interp)), (char*)NULL);
       return TCL_ERROR;
     }
     return TCL_OK;
@@ -399,7 +402,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                       const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
     if (argc < 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
+      Tcl_AppendResult(interp, "ERROR: Specify an SDC file", (char*)NULL);
       return TCL_ERROR;
     }
     std::string fileName = argv[1];
