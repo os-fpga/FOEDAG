@@ -34,7 +34,7 @@ std::string buildFpgaProgramCommand(const std::string& bitstream_file,
                                     int pld_index) {
   std::string cmd = " -f " + config_file + " -c \"gemini load " +
                     std::to_string(pld_index) + " fpga " + bitstream_file +
-                    "\"" + " -l /dev/stdout -c exit";
+                    "-p 1\"" + " -l /dev/stdout -c exit";
   return cmd;
 }
 
@@ -59,7 +59,7 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
                                      bool doVerify) {
   std::string cmd = " -f " + config_file + " -c \"gemini load " +
                     std::to_string(pld_index) + " flash " + bitstream_file +
-                    "\"" + " -l /dev/stdout -c exit";
+                    "p 1\"" + " -l /dev/stdout -c exit";
   return cmd;
 }
 
