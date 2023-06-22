@@ -183,7 +183,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             interp,
             strdup(
                 (std::string(
-                     "ERROR: Illegal option for create_clock, check manual: ") +
+                     "Illegal option for create_clock, check manual: ") +
                  arg)
                     .c_str()),
             (char*)NULL);
@@ -193,10 +193,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             interp,
             strdup(
                 (std::string(
-                     "ERROR: Illegal option for create_clock, check manual: ") +
+                     "Illegal option for create_clock, check manual: ") +
                  arg)
                     .c_str()),
             (char*)NULL);
+
         return TCL_ERROR;
       } else {
         if (arg != "{*}") constraints->addKeep(arg);
@@ -350,7 +351,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   auto read_sdc = [](void* clientData, Tcl_Interp* interp, int argc,
                      const char* argv[]) -> int {
     if (argc < 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify an sdc file", (char*)NULL);
+      Tcl_AppendResult(interp, "Specify an sdc file", (char*)NULL);
       return TCL_ERROR;
     }
     std::string fileName = argv[1];
@@ -359,7 +360,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     if (!stream.good()) {
       Tcl_AppendResult(
           interp,
-          strdup(std::string("ERROR: Cannot open the SDC file:" + fileName)
+          strdup(std::string("Cannot open the SDC file:" + fileName)
                      .c_str()),
           (char*)NULL);
       return TCL_ERROR;
@@ -389,20 +390,37 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     text = replaceAll(text, "{*}", "@*@");
     int status = Tcl_Eval(interp, text.c_str());
     if (status) {
-      std::cout << "ERROR line"<< std::endl;
-      Tcl_AppendResult(interp, "ERROR: SDC file syntax error" +
-      fileName + ":" + std::to_string(Tcl_GetErrorLine(interp)), (char*)NULL);
+      Tcl_Obj *errorDict = Tcl_GetReturnOptions(interp, status);
+      Tcl_Obj *errorInfo = Tcl_NewStringObj("-errorinfo", -1);
+      Tcl_Obj *errorMsg;
+      Tcl_IncrRefCount(errorDict);
+      Tcl_DictObjGet(interp, errorDict, errorInfo , &errorMsg);
+      Tcl_DecrRefCount(errorDict);
+      char* msgString = Tcl_GetString(errorMsg);//Get stackTrace
+      Tcl_DecrRefCount(errorInfo);
+      Tcl_ResetResult(interp);
+      Tcl_AppendResult(
+      interp,
+      strdup(
+        (std::string("SDC file syntax error ") +
+         fileName +
+         ":" +
+         std::to_string(Tcl_GetErrorLine(interp))).c_str()),
+         "\n" ,
+         msgString,
+         (char*)NULL);
       return TCL_ERROR;
     }
     return TCL_OK;
   };
+
   interp->registerCmd("read_sdc", read_sdc, this, 0);
 
   auto write_sdc = [](void* clientData, Tcl_Interp* interp, int argc,
                       const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
     if (argc < 2) {
-      Tcl_AppendResult(interp, "ERROR: Specify an SDC file", (char*)NULL);
+      Tcl_AppendResult(interp, "Specify an SDC file", (char*)NULL);
       return TCL_ERROR;
     }
     std::string fileName = argv[1];
@@ -411,7 +429,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     if (!stream.good()) {
       Tcl_AppendResult(
           interp,
-          strdup(std::string("ERROR: Cannot open the SDC file for writing:" +
+          strdup(std::string("Cannot open the SDC file for writing:" +
                              fileName)
                      .c_str()),
           (char*)NULL);
