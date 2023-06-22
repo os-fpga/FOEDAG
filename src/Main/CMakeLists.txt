@@ -48,7 +48,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/Session.cpp
   ../Main/qttclnotifier.cpp
   ../Main/CommandLine.cpp
-  ../Main/registerTclCommands.cpp
+  #../Main/registerTclCommands.cpp
+  ../Main/registerTclCommands_ql.cpp
   ../Main/Settings.cpp
   ../Main/Tasks.cpp
   ../Main/WidgetFactory.cpp
@@ -64,7 +65,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   ../MainWindow/mainwindowmodel.cpp
   ../MainWindow/MessagesTabWidget.cpp
   ../MainWindow/ReportsTreeWidget.cpp
-  ../MainWindow/WelcomePageWidget.cpp
+  #../MainWindow/WelcomePageWidget.cpp
+  ../MainWindow/WelcomePageWidget_ql.cpp
   ../Main/TclSimpleParser.cpp
   CompilerNotifier.cpp
   ../MainWindow/PathEdit.cpp

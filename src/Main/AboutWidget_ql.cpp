@@ -82,7 +82,7 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
 
 QString AboutWidget::License(const std::filesystem::path &srcDir,
                              const QString &file) {
-  std::filesystem::path sourceDir = srcDir / ETC_DIR / file.toStdString();
+  std::filesystem::path sourceDir = srcDir / ".." / "share" / "aurora" / ETC_DIR / file.toStdString();
   auto result = QString{};
   auto descFile = QFile(QString::fromStdString(sourceDir.string()));
   if (!descFile.open(QIODevice::ReadOnly)) return result;
@@ -99,7 +99,7 @@ QString AboutWidget::License(const std::filesystem::path &srcDir,
 }
 
 QString AboutWidget::getTagLine(const std::filesystem::path &srcDir) {
-  std::filesystem::path sourceDir = srcDir / ETC_DIR / WELCOME_PAGE_DIR;
+  std::filesystem::path sourceDir = srcDir / ".." / "share" / "aurora" / ETC_DIR / WELCOME_PAGE_DIR;
   auto result = QString{};
 
   std::filesystem::path welcomeDescPath = sourceDir / DESCRIPTION_FILENAME;

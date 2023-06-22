@@ -761,8 +761,8 @@ void MainWindow::createMenus() {
 //   simulationMenu->setEnabled(false);
 
   viewMenu = menuBar()->addMenu("&View");
-  viewMenu->addAction(ipConfiguratorAction);
-  viewMenu->addAction(pinAssignmentAction);
+  // viewMenu->addAction(ipConfiguratorAction);
+  // viewMenu->addAction(pinAssignmentAction);
 
   processMenu = menuBar()->addMenu(tr("&Processing"));
   processMenu->addAction(startAction);
@@ -772,10 +772,10 @@ void MainWindow::createMenus() {
   helpMenu = menuBar()->addMenu("&Help");
   helpMenu->addAction(aboutAction);
   helpMenu->addSeparator();
-  helpMenu->addAction(documentationAction);
-  helpMenu->addAction(releaseNotesAction);
-  helpMenu->addSeparator();
-  helpMenu->addAction(licensesAction);
+  // helpMenu->addAction(documentationAction);
+  // helpMenu->addAction(releaseNotesAction);
+  // helpMenu->addSeparator();
+  // helpMenu->addAction(licensesAction);
 
   preferencesMenu->addAction(defualtProjectPathAction);
   preferencesMenu->addAction(pinPlannerPinNameAction);
@@ -886,16 +886,19 @@ void MainWindow::createActions() {
 
   aboutAction = new QAction(tr("About"), this);
   connect(aboutAction, &QAction::triggered, this, [this]() {
-    AboutWidget w(m_projectInfo, GlobalSession->Context()->DataPath(), this);
+    AboutWidget w(m_projectInfo, GlobalSession->Context()->BinaryPath(), this);
     w.exec();
   });
 
-  documentationAction = new QAction(tr("Documentation"), this);
-  releaseNotesAction = new QAction(tr("Release Notes"), this);
-  licensesAction = new QAction(tr("Licenses"), this);
+  // documentationAction = new QAction(tr("Documentation"), this);
+  // releaseNotesAction = new QAction(tr("Release Notes"), this);
+  // licensesAction = new QAction(tr("Licenses"), this);
 
-  connect(licensesAction, &QAction::triggered, this,
-          &MainWindow::onShowLicenses);
+  // connect(releaseNotesAction, &QAction::triggered, this,
+  //         &MainWindow::onShowLicenses);
+
+  // connect(licensesAction, &QAction::triggered, this,
+  //         &MainWindow::onShowLicenses);
 
   connect(exitAction, &QAction::triggered, qApp, [this]() {
     if (this->confirmExitProgram()) {
@@ -1464,8 +1467,8 @@ void MainWindow::resetIps() {
 
 void MainWindow::updateViewMenu() {
   viewMenu->clear();
-  viewMenu->addAction(ipConfiguratorAction);
-  viewMenu->addAction(pinAssignmentAction);
+  // viewMenu->addAction(ipConfiguratorAction);
+  // viewMenu->addAction(pinAssignmentAction);
   const QList<QDockWidget*> dockwidgets = findChildren<QDockWidget*>();
   if (!dockwidgets.empty()) {
     viewMenu->addSeparator();
