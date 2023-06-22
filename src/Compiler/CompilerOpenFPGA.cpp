@@ -748,7 +748,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           "packing_pin_util.rpt",
           "pre_pack.report_timing.setup.rpt",
           std::string{projectName + "_openfpga.sdc"},
-          std::string{projectName + "_post_synth_ports.json"},
+          "post_synth_ports.json",
           "vpr_stdout.log",
           PACKING_LOG,
           fs::path{fs::path{"reports"} / "packing_utilization.json"}.string(),
@@ -758,7 +758,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
       files = {
           "packing_pin_util.rpt",
           std::string{projectName + "_post_place_timing.rpt"},
-          std::string{projectName + "_post_synth_ports.json"},
+          "post_synth_ports.json",
           std::string{projectName + "_place.cmd"},
           std::string{projectName + "_openfpga.pcf"},
           "check_rr_node_warnings.log",
@@ -778,7 +778,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
           std::string{topModule + "_post_synthesis.eblif"},
           std::string{topModule + "_post_synthesis.sdf"},
           std::string{topModule + "_post_synthesis.v"},
-          std::string{projectName + "_post_synth_ports.json"},
+          "post_synth_ports.json",
           std::string{projectName + "_route.cmd"},
           std::string{projectName + "_post_synth.route"},
           "packing_pin_util.rpt",
@@ -800,7 +800,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
                std::string{topModule + "_post_synthesis.sdf"},
                std::string{topModule + "_post_synthesis.v"},
                std::string{projectName + "_sta.cmd"},
-               std::string{projectName + "_post_synth_ports.json"},
+               "post_synth_ports.json",
                "packing_pin_util.rpt",
                "post_place_timing.rpt",
                "post_route_timing.rpt",
@@ -821,7 +821,7 @@ std::vector<std::string> CompilerOpenFPGA::GetCleanFiles(
     case Compiler::Action::Bitstream:
       files = {std::string{projectName + ".openfpga"},
                std::string{projectName + "_bitstream.cmd"},
-               std::string{projectName + "_post_synth_ports.json"},
+               "post_synth_ports.json",
                "fabric_bitstream.bit",
                "fabric_independent_bitstream.xml",
                "packing_pin_util.rpt",
@@ -1956,10 +1956,13 @@ bool CompilerOpenFPGA::Placement() {
     if (GetNetlistType() == NetlistType::Verilog ||
         GetNetlistType() == NetlistType::VHDL ||
         GetNetlistType() == NetlistType::Edif) {
-      std::filesystem::path p(netlistFile);
-      p.replace_extension();
+      std::filesystem::path p(ProjManager()->projectPath());
+      std::filesystem::path path(netlistFile);
+      std::string base_name = path.stem().string();
       pincommand += " --port_info ";
-      pincommand += p.string() + "_ports.json";
+      pincommand += (std::filesystem::path(ProjManager()->projectPath()) /
+                     std::string("post_synth_ports.json"))
+                        .string();
     } else {
       pincommand += " --blif " + netlistFile;
     }
