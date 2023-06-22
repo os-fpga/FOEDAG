@@ -36,12 +36,16 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
   // return if there is an error
   bool status{true};
   std::vector<std::string> errors;
-  cfgcompiler->m_cmdarg.command = "program_device";
+  cfgcompiler->m_cmdarg.command = "programmer";
   auto compiler = cfgcompiler->GetCompiler();
 
   cfgcompiler->m_cmdarg.compilerName = compiler->Name();
-  auto arg = std::make_shared<CFGArg_PROGRAM_DEVICE>();
-  status = arg->parse(argc, argv, &errors);
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  // drop the first executable arg,
+  // create pointer to the second element
+  // the parser expect the first arg is the command name
+  const char** argvPtr = &argv[1];
+  status = arg->parse(argc - 1, argvPtr, &errors);
   cfgcompiler->m_cmdarg.arg = arg;
   cfgcompiler->m_cmdarg.toolPath = compiler->GetProgrammerToolExecPath();
   cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
@@ -59,8 +63,8 @@ Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
 bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   bool status = true;
   if (batchMode) {
-    auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
+    auto programmer = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
         return CFGCompiler::Compile(cfgcompiler, true);
@@ -68,10 +72,10 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("program_device", program_device, this, 0);
+    interp->registerCmd("programmer", programmer, this, 0);
   } else {
-    auto program_device = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
+    auto programmer = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
         return CFGCompiler::Compile(cfgcompiler, false);
@@ -79,10 +83,10 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         return TCL_ERROR;
       }
     };
-    interp->registerCmd("program_device", program_device, this, 0);
+    interp->registerCmd("programmer", programmer, this, 0);
   }
 
-  RegisterCallbackFunction("program_device", programmer_entry);
+  RegisterCallbackFunction("programmer", programmer_entry);
   return status;
 }
 

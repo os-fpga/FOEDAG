@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 enum class SynthesisType { Yosys, QL, RS };
+enum class BitstreamCacheOpType { Read, Write, NoOp };
 
 class CompilerOpenFPGA : public Compiler {
  public:
@@ -82,6 +83,9 @@ class CompilerOpenFPGA : public Compiler {
   }
   void OpenFpgaPinConstraintFile(const std::filesystem::path& path) {
     m_OpenFpgaPinConstraintXml = path;
+  }
+  void OpenFpgaBitstreamBinaryFile(const std::filesystem::path& path) {
+    m_OpenFpgaBitstreamBinaryFile = path;
   }
   void PbPinFixup(const std::string& name) { m_pb_pin_fixup = name; }
   void DeviceSize(const std::string& XxY) { m_deviceSize = XxY; }
@@ -202,6 +206,7 @@ class CompilerOpenFPGA : public Compiler {
   std::filesystem::path m_OpenFpgaFabricKeyFile = "";
   std::filesystem::path m_OpenFpgaPinMapXml = "";
   std::filesystem::path m_OpenFpgaPinConstraintXml = "";
+  std::filesystem::path m_OpenFpgaBitstreamBinaryFile = "";
   std::string m_deviceTagVersion;
   std::string m_deviceSize;
   std::string m_yosysScript;
@@ -223,6 +228,7 @@ class CompilerOpenFPGA : public Compiler {
                                     std::string sdfFileName,
                                     std::string sdcFileName);
   bool m_keepAllSignals = false;
+  BitstreamCacheOpType m_bitstreamCacheOpType = BitstreamCacheOpType::NoOp;
 };
 
 }  // namespace FOEDAG

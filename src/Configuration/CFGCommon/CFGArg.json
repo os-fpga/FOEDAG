@@ -45,14 +45,15 @@
      "help" : [ "This is Dummy ARG" ],
      "arg"  : [1, 2]
    },
-   "program_device" : {
+   "programmer" : {
       "option" : [
          {
             "name" : "config",
             "short": "c",
             "type" : "str", 
             "multi" : false,
-            "optional" : false,
+            "optional" : true,
+            "default" : "gemini.cfg",
             "help" : "Configuration file for the device programming"
          },
          {
@@ -65,18 +66,30 @@
             "help" : "Index of the device to program"
          },
          {
-            "name" : "bitstream",
-            "short": "b",
+            "name" : "operations",
+            "short": "o",
             "type" : "str", 
             "multi" : false,
-            "optional" : false,
-            "help" : "Bitstream file to program"
+            "optional" : true,
+            "default" : "program",
+            "help" : ["Flash operations to perform.", 
+                      "Valid values are: erase, blankcheck, program, verify",
+                      "The values can be chained together using comma or separator", 
+                       "e.g. erase,blankcheck,program,verify",
+                       "e.g. erase|blankcheck|program|verify"]
          }
       ],
      "help" : [ 
       "Configuration bitstream programming tool.", 
-      "To use it:",
-      "  program_device -b <bitstream> -c <config_file> -n <index>" ],
-      "arg" : [1,1]
+      "To program fpga device:",
+      "  programmer fpga_config <bitstream>",
+      "To program flash device:",
+      "  programmer flash <bitstream>",
+      "  programmer flash <bitstream> -o erase|blankcheck|program|verify",
+      "To query device status:",
+      "  programmer fpga_status",
+      "To list all connected FPGA devices:",
+      "  programmer list_devices"],
+      "arg" : [0,3]
    }
 }
