@@ -64,7 +64,7 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   bool status = true;
   if (batchMode) {
     auto programmer = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
+                         const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
         return CFGCompiler::Compile(cfgcompiler, true);
@@ -75,7 +75,7 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     interp->registerCmd("programmer", programmer, this, 0);
   } else {
     auto programmer = [](void* clientData, Tcl_Interp* interp, int argc,
-                             const char* argv[]) -> int {
+                         const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
         return CFGCompiler::Compile(cfgcompiler, false);

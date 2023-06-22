@@ -63,14 +63,15 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
   return cmd;
 }
 
-ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg, std::filesystem::path configFile) {
+ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
+                                         std::filesystem::path configFile) {
   ProgrammerCommand programmerCmd;
-  
+
   if (cmdarg->arg->m_help) {
     programmerCmd.name = "help";
     return programmerCmd;
   }
-  
+
   if (cmdarg->arg->m_args.size() < 1) {
     CFG_POST_ERR("Not enough arguments for programmer. ");
     programmerCmd.is_error = true;
@@ -125,8 +126,7 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg, std::files
     programmerCmd.executable_cmd =
         openocd + buildFpgaQueryStatusCommand(configFile, arg->index);
   } else if (programmerCmd.name == "list_devices") {
-    programmerCmd.executable_cmd =
-        openocd + buildListDeviceCommand(configFile);
+    programmerCmd.executable_cmd = openocd + buildListDeviceCommand(configFile);
   }
   return programmerCmd;
 }
@@ -237,12 +237,10 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
     if (programmerCmd.name == "help") {
       return;
-    }
-    else if (programmerCmd.name.empty() && programmerCmd.is_error) {
+    } else if (programmerCmd.name.empty() && programmerCmd.is_error) {
       CFG_POST_ERR("Subcommand not provided. ");
       return;
-    }
-    else if (programmerCmd.is_error) {
+    } else if (programmerCmd.is_error) {
       return;
     }
     int return_code =
