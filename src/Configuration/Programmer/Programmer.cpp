@@ -64,7 +64,7 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
 }
 
 ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
-                                         std::filesystem::path configFile) {
+                                         std::filesystem::path configFilePath) {
   ProgrammerCommand programmerCmd;
 
   if (cmdarg->arg->m_help) {
@@ -92,6 +92,7 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
   const std::filesystem::path openOcdExecPath = cmdarg->toolPath;
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
   const std::string openocd = openOcdExecPath.string();
+  const std::string configFile = configFilePath.string();
   if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
     std::string bitstreamFile = arg->m_args[1];
     std::error_code ec;
