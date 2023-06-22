@@ -86,8 +86,9 @@ class FileUtils final {
   static bool IsUptoDate(const std::string& sourceFile,
                          const std::string& outputFile);
 
-  static std::string AdjustPath(const std::string& p);
-  static std::string AdjustPath(const std::filesystem::path& p);
+  static std::string AdjustPath(const std::string& p, const std::string& base);
+  static std::string AdjustPath(const std::filesystem::path& p,
+                                const std::filesystem::path& base);
 
   // return true if file was removed otherwise return false
   static bool removeFile(const std::string& file) noexcept;
