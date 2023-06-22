@@ -106,6 +106,9 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg) {
       bool doBlankCheck = isOperationRequested("blankcheck", operations);
       bool doProgram = isOperationRequested("program", operations);
       bool doVerify = isOperationRequested("verify", operations);
+      // TODO: doVerify, doBlankCheck, doErase set to false
+      // there are not supported yet
+      doErase = doBlankCheck = doVerify = false;
       programmerCmd.executable_cmd =
           openocd + buildFlashProgramCommand(bitstreamFile, arg->config,
                                              arg->index, doErase, doBlankCheck,
