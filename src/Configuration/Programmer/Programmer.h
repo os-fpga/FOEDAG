@@ -31,6 +31,7 @@ static const std::vector<std::string> programmer_subcmd{
 struct ProgrammerCommand {
   std::string name;
   std::string executable_cmd;
+  bool is_error = false;
 };
 
 std::string buildFpgaProgramCommand(const std::string& bitstream_file,
@@ -44,7 +45,8 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
                                      int pld_index, bool doErase,
                                      bool doBlankCheck, bool doProgram,
                                      bool doVerify);
-ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg);
+ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
+                                         std::filesystem::path configFile);
 std::vector<std::string> parseOperationString(const std::string& operation);
 bool isOperationRequested(const std::string& operation,
                           const std::vector<std::string>& supportedOperations);

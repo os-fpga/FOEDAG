@@ -63,11 +63,17 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
   return cmd;
 }
 
-ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg) {
+ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg, std::filesystem::path configFile) {
   ProgrammerCommand programmerCmd;
-
+  
+  if (cmdarg->arg->m_help) {
+    programmerCmd.name = "help";
+    return programmerCmd;
+  }
+  
   if (cmdarg->arg->m_args.size() < 1) {
-    CFG_POST_ERR("Not enough arguments for programmer");
+    CFG_POST_ERR("Not enough arguments for programmer. ");
+    programmerCmd.is_error = true;
     return programmerCmd;
   }
 
@@ -76,30 +82,31 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg) {
                 cmdarg->arg->m_args[0]);
 
   if (itSubcmd == std::end(programmer_subcmd)) {
-    CFG_POST_ERR("Invalid command for %s", cmdarg->arg->m_args[0].c_str());
+    CFG_POST_ERR("Invalid command for %s. ", cmdarg->arg->m_args[0].c_str());
+    programmerCmd.is_error = true;
     return programmerCmd;
   }
 
   programmerCmd.name = cmdarg->arg->m_args[0];
   const std::filesystem::path openOcdExecPath = cmdarg->toolPath;
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-  std::string openocd = openOcdExecPath.string();
-
+  const std::string openocd = openOcdExecPath.string();
   if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
     std::string bitstreamFile = arg->m_args[1];
     std::error_code ec;
     if (cmdarg->compilerName != "dummy") {
       if (!std::filesystem::exists(bitstreamFile, ec)) {
-        CFG_POST_ERR("Cannot find bitstream file: %s. %s",
+        CFG_POST_ERR("Cannot find bitstream file: %s. %s ",
                      bitstreamFile.c_str(), (ec ? ec.message().c_str() : ""));
-        return ProgrammerCommand();
+        programmerCmd.is_error = true;
+        return programmerCmd;
       }
     }
 
     if (programmerCmd.name == "fpga_config") {
       programmerCmd.executable_cmd =
           openocd +
-          buildFpgaProgramCommand(bitstreamFile, arg->config, arg->index);
+          buildFpgaProgramCommand(bitstreamFile, configFile, arg->index);
     } else if (programmerCmd.name == "flash") {
       auto operations = parseOperationString(arg->operations);
       bool doErase = isOperationRequested("erase", operations);
@@ -110,16 +117,16 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg) {
       // there are not supported yet
       doErase = doBlankCheck = doVerify = false;
       programmerCmd.executable_cmd =
-          openocd + buildFlashProgramCommand(bitstreamFile, arg->config,
+          openocd + buildFlashProgramCommand(bitstreamFile, configFile,
                                              arg->index, doErase, doBlankCheck,
                                              doProgram, doVerify);
     }
-  } else if (programmerCmd.name == "query_status") {
+  } else if (programmerCmd.name == "fpga_status") {
     programmerCmd.executable_cmd =
-        openocd + buildFpgaQueryStatusCommand(arg->config, arg->index);
+        openocd + buildFpgaQueryStatusCommand(configFile, arg->index);
   } else if (programmerCmd.name == "list_devices") {
     programmerCmd.executable_cmd =
-        openocd + buildListDeviceCommand(arg->config);
+        openocd + buildListDeviceCommand(configFile);
   }
   return programmerCmd;
 }
@@ -164,7 +171,8 @@ bool isOperationRequested(const std::string& operation,
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   if (cmdarg->compilerName == "dummy") {
     auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-    auto programmerCmd = parseProgrammerCommand(cmdarg);
+    std::filesystem::path configFile = arg->config;
+    auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
     if (programmerCmd.name == "fpga_config") {
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -206,7 +214,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         }
       }
     } else {
-      CFG_POST_ERR("Invalid subcommand");
+      CFG_POST_ERR("Invalid subcommand. ");
       return;
     }
   } else {
@@ -214,7 +222,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     const std::filesystem::path configFileSearchPath = cmdarg->searchPath;
     std::error_code ec;
     if (!std::filesystem::exists(openOcdExecPath, ec)) {
-      CFG_POST_ERR("Cannot find openocd executable: %s. %s",
+      CFG_POST_ERR("Cannot find openocd executable: %s. %s. ",
                    openOcdExecPath.string().c_str(),
                    (ec ? ec.message().c_str() : ""));
       return;
@@ -222,17 +230,26 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
     auto configFile = CFG_find_file(arg->config, configFileSearchPath);
     if (configFile.empty()) {
-      CFG_POST_ERR("Cannot find config file: %s", configFile.c_str());
+      CFG_POST_ERR("Cannot find config file: %s. ", configFile.c_str());
       return;
     }
 
-    auto programmerCmd = parseProgrammerCommand(cmdarg);
-
+    auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
+    if (programmerCmd.name == "help") {
+      return;
+    }
+    else if (programmerCmd.name.empty() && programmerCmd.is_error) {
+      CFG_POST_ERR("Subcommand not provided. ");
+      return;
+    }
+    else if (programmerCmd.is_error) {
+      return;
+    }
     int return_code =
         CFG_compiler_execute_cmd(programmerCmd.executable_cmd, "", false);
     if (return_code) {
-      CFG_POST_ERR("Failed to execute follow command %s. Error code: %d",
-                   programmerCmd.name, return_code);
+      CFG_POST_ERR("Failed to execute following command %s. Error code: %d ",
+                   programmerCmd.name.c_str(), return_code);
     }
   }
 }
