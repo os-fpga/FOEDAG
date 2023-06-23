@@ -175,7 +175,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         i++;
         arg = argv[i];
         if (arg != "{*}") {
-          bool unique = constraints->AddVirtualClocks(arg);
+          bool unique = constraints->AddVirtualClock(arg);
           if (!unique) {
             Tcl_AppendResult(interp,
                              "Only one Virtual clock definition is allowed",
@@ -481,7 +481,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   interp->registerCmd("write_sdc", write_sdc, this, 0);
 }
 
-bool Constraints::AddVirtualClocks(const std::string& vClock) {
+bool Constraints::AddVirtualClock(const std::string& vClock) {
   auto it = m_virtualClocks.find(vClock);
   if (it != m_virtualClocks.end()) return false;
   m_virtualClocks.insert(vClock);

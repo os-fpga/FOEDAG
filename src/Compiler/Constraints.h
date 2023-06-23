@@ -57,7 +57,7 @@ class Constraints {
   Compiler* GetCompiler() { return m_compiler; }
 
   std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
-  bool AddVirtualClocks(const std::string& vClock);
+  bool AddVirtualClock(const std::string& vClock);
 
  protected:
   Compiler* m_compiler = nullptr;
