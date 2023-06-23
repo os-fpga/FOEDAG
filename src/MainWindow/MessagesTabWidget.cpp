@@ -1,5 +1,7 @@
 #include "MessagesTabWidget.h"
 
+#include <iostream>
+
 #include <QGridLayout>
 #include <QTreeWidget>
 

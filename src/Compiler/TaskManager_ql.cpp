@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
 #include "Reports/TimingAnalysisReportManager.h"
+#include "Reports/PowerAnalysisReportManager.h"
 
 namespace FOEDAG {
 
@@ -226,6 +227,12 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PACKING, std::move(packingReportManager));
+  auto paReportManager =
+      std::make_shared<PowerAnalysisReportManager>(*this);
+  connect(paReportManager.get(), &AbstractReportManager::reportCreated, this,
+          &TaskManager::taskReportCreated);
+  m_reportManagerRegistry.registerReportManager(POWER,
+                                                std::move(paReportManager));
 }
 
 TaskManager::~TaskManager() { qDeleteAll(m_tasks); }

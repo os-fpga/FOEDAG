@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QHeaderView>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QStackedWidget>
 
 #include "Compiler/Reports/IDataReport.h"
 #include "Compiler/Reports/ITaskReport.h"
@@ -57,15 +58,24 @@ QLabel* createTitleLabel(const QString& text) {
 }
 
 void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
+
+  QComboBox* reportTablesSelectionComboBox = new QComboBox();
+  QStackedWidget* reportTablesStackedWidget = new QStackedWidget();
+
+
+
   for (auto& dataReport : report.getDataReports()) {
     auto dataReportName = dataReport->getName();
-    if (!dataReportName.isEmpty())
-      reportLayout->addWidget(createTitleLabel(dataReportName));
+    // add this datareport table into combobox
+    reportTablesSelectionComboBox->addItem(dataReportName);
+    // if (!dataReportName.isEmpty())
+    //   reportLayout->addWidget(createTitleLabel(dataReportName));
 
     if (dataReport->isEmpty()) {
-      reportLayout->addWidget(
-          new QLabel("No statistics data found to generate report."), 1,
-          Qt::AlignTop);
+      // reportLayout->addWidget(
+      //     new QLabel("No statistics data found to generate report."), 1,
+      //     Qt::AlignTop);
+      reportTablesStackedWidget->addWidget(new QLabel("No statistics data found to generate report."));
       continue;
     }
     auto reportsView = new QTableWidget();
@@ -97,8 +107,16 @@ void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
     reportsView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     reportsView->horizontalHeader()->resizeSections(
         QHeaderView::ResizeToContents);
-    reportLayout->addWidget(reportsView);
+    //reportLayout->addWidget(reportsView);
+    reportTablesStackedWidget->addWidget(reportsView);
   }
+
+  QObject::connect(reportTablesSelectionComboBox, qOverload<int>(&QComboBox::currentIndexChanged), 
+                              reportTablesStackedWidget, &QStackedWidget::setCurrentIndex);
+
+  reportLayout->addWidget(reportTablesSelectionComboBox);
+  reportLayout->addSpacing(20);
+  reportLayout->addWidget(reportTablesStackedWidget);
 }
 
 void openReportView(Compiler* compiler, const Task* task,
@@ -129,7 +147,7 @@ void openReportView(Compiler* compiler, const Task* task,
   if (newReport) {
     auto reportsWidget = new QWidget;
     auto reportLayout = new QVBoxLayout;
-    reportLayout->setContentsMargins(0, 0, 0, 0);
+    reportLayout->setContentsMargins(20, 20, 0, 0);
 
     generateReport(report, reportLayout);
     reportsWidget->setLayout(reportLayout);

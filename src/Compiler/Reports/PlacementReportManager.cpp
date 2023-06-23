@@ -86,10 +86,10 @@ std::unique_ptr<ITaskReport> PlacementReportManager::createReport(
 
   if (reportId == QString(RESOURCE_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_resourceColumns, m_resourceData, QString{}));
+        m_resourceColumns, m_resourceData, QString{RESOURCE_REPORT_NAME}));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_timingColumns, m_timingData, QString{}));
+        m_timingColumns, m_timingData, QString{"Timing Data"}));
     for (auto &hgrm : m_histograms)
       dataReports.push_back(std::make_unique<TableReport>(
           m_histogramColumns, hgrm.second, hgrm.first));

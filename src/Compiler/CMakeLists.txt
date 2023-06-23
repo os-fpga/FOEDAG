@@ -71,6 +71,7 @@ set (SRC_CPP_LIST
   Reports/TaskReportManagerRegistry.cpp
   Reports/SynthesisReportManager.cpp
   Reports/TimingAnalysisReportManager.cpp
+  Reports/PowerAnalysisReportManager.cpp
   QLDeviceManager.cpp
   QLSettingsManager.cpp
   QLMetricsManager.cpp
@@ -100,6 +101,7 @@ set (SRC_H_INSTALL_LIST
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
   Reports/TimingAnalysisReportManager.h
+  Reports/PowerAnalysisReportManager.h
   TaskGlobal.h
   QLDeviceManager.h
   QLSettingsManager.h

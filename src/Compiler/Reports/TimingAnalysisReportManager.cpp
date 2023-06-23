@@ -109,14 +109,14 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
 
   if (reportId == QString(RESOURCE_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_resourceColumns, m_resourceData, QString{}));
+        m_resourceColumns, m_resourceData, QString{RESOURCE_REPORT_NAME}));
   } else if (reportId == QString(CIRCUIT_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_circuitColumns, m_circuitData, QString{}));
+        m_circuitColumns, m_circuitData, QString{CIRCUIT_REPORT_NAME}));
 
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_timingColumns, m_timingData, QString{}));
+        m_timingColumns, m_timingData, QString{"Timing Data"}));
     if (m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
                           Compiler::STAEngineOpt::Opensta) {
       for (auto &hgrm : m_histograms)
