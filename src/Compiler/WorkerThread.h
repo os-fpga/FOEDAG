@@ -60,9 +60,9 @@ class WorkerThread {
   template <typename Func, typename... Args>
   bool Start(const Func& fn, Args&&... args) {
     bool result = true;
-    m_compiler->start();
+    if (m_compiler) m_compiler->start();
     QEventLoop* eventLoop{nullptr};
-    const bool processEvents = isGui();
+    const bool processEvents = m_compiler ? isGui() : true;
     if (processEvents) eventLoop = new QEventLoop;
     m_thread =
         // pack args as tuple for capturing
@@ -73,11 +73,13 @@ class WorkerThread {
                      std::move(args));
           if (eventLoop) eventLoop->quit();
         });
-    if (eventLoop)
+    if (eventLoop) {
       eventLoop->exec();
-    else
+      m_thread->join();
+    } else {
       m_thread->join();  // batch mode
-    m_compiler->finish();
+    }
+    if (m_compiler) m_compiler->finish();
     delete eventLoop;
     return result;
   }

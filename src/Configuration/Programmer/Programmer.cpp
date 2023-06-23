@@ -258,6 +258,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       }
     }
   }
+==== BASE ====
 }
 
 int InitLibrary(std::string openOCDPath) {

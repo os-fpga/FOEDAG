@@ -15,161 +15,128 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>5</number>
+    </property>
+    <property name="topMargin">
+     <number>5</number>
+    </property>
+    <property name="rightMargin">
+     <number>5</number>
+    </property>
+    <property name="bottomMargin">
+     <number>5</number>
+    </property>
+    <property name="spacing">
+     <number>5</number>
+    </property>
     <item row="0" column="0">
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QSplitter" name="splitter">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="title">
-       <string>Tips</string>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
       </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Context aware tips and guidence for user</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QPlainTextEdit" name="plainTextEdit">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <family>Courier New</family>
-       </font>
-      </property>
-      <property name="plainText">
-       <string>Open On-Chip Debugger 0.12.0+dev-gfce8d8675 (2023-05-22-18:42)
-Licensed under GNU GPL v2
-For bug reports, read
-        http://openocd.org/doc/doxygen/bugs.html
-Info : ftdi: if you experience problems at higher adapter clocks, try the command &quot;ftdi tdo_sample_edge falling&quot;
-Info : clock speed 10000 kHz
-Error: JTAG scan chain interrogation failed: all zeroes
-Error: Check JTAG interface, timings, target power, etc.
-Error: Trying to use configured scan chain anyway...
-Error: gemini.tap: IR capture error; saw 0x00 not 0x01
-Warn : Bypassing JTAG setup events due to errors
-Error: Unsupported DTM version: 15
-Warn : target gemini.cpu examination failed
-Info : starting gdb server for gemini.cpu on 3333
-Info : Listening on port 3333 for gdb connections
-Info : Listening on port 6666 for tcl connections
-Info : Listening on port 4444 for telnet connections</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="title">
-       <string>Device Tree: 2 device(s) found</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QTreeWidget" name="treeWidget">
-         <attribute name="headerHighlightSections">
-          <bool>true</bool>
-         </attribute>
-         <attribute name="headerShowSortIndicator" stdset="0">
-          <bool>true</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Device</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>File</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Operation</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Status</string>
-          </property>
-         </column>
-         <item>
-          <property name="text">
-           <string>1: Gemini</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
-          </property>
-          <property name="text">
-           <string>/home/dev/fpga.cfgbit</string>
-          </property>
-          <property name="text">
-           <string>Configure</string>
-          </property>
-          <property name="text">
-           <string>In progress - 10%</string>
-          </property>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string>Device Tree: 2 device(s) found</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QTreeWidget" name="treeWidget">
+          <attribute name="headerHighlightSections">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="headerShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Device</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>File</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Operation</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Status</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Progress</string>
+           </property>
+          </column>
           <item>
            <property name="text">
-            <string>Flash</string>
+            <string>1: Gemini</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
+             <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
            </property>
            <property name="text">
-            <string>/home/dev/full.cfgbit</string>
+            <string>/home/dev/fpga.cfgbit</string>
            </property>
            <property name="text">
-            <string>Program, Verify</string>
+            <string>Configure</string>
            </property>
            <property name="text">
-            <string>Pending - 0%</string>
+            <string>In progress - 10%</string>
            </property>
+           <item>
+            <property name="text">
+             <string>Flash</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
+            </property>
+            <property name="text">
+             <string>/home/dev/full.cfgbit</string>
+            </property>
+            <property name="text">
+             <string>Program, Verify</string>
+            </property>
+            <property name="text">
+             <string>Pending - 0%</string>
+            </property>
+           </item>
           </item>
-         </item>
-         <item>
-          <property name="text">
-           <string>2: Gemini</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
-          </property>
-          <property name="text">
-           <string>-</string>
-          </property>
-          <property name="text">
-           <string>-</string>
-          </property>
-          <property name="text">
-           <string>-</string>
-          </property>
           <item>
            <property name="text">
-            <string>Flash</string>
+            <string>2: Gemini</string>
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
+             <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
            </property>
            <property name="text">
             <string>-</string>
@@ -180,11 +147,78 @@ Info : Listening on port 4444 for telnet connections</string>
            <property name="text">
             <string>-</string>
            </property>
+           <item>
+            <property name="text">
+             <string>Flash</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </item>
           </item>
-         </item>
-        </widget>
-       </item>
-      </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>Log</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QPlainTextEdit" name="plainTextEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Courier New</family>
+           </font>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="plainText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -215,17 +249,11 @@ Info : Listening on port 4444 for telnet connections</string>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
-     <string>Options</string>
-    </property>
-   </widget>
-   <widget class="QMenu" name="menuHardware_Settins">
-    <property name="title">
-     <string>Hardware Settings</string>
+     <string>Settings</string>
     </property>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOptions"/>
-   <addaction name="menuHardware_Settins"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -244,6 +272,7 @@ Info : Listening on port 4444 for telnet connections</string>
    </attribute>
    <addaction name="actionDetect"/>
    <addaction name="actionStart"/>
+   <addaction name="actionStop"/>
   </widget>
   <action name="actionDetect">
    <property name="icon">
@@ -268,15 +297,11 @@ Info : Listening on port 4444 for telnet connections</string>
    </property>
   </action>
   <action name="actionStart">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/images/icons/play.png</normaloff>:/images/icons/play.png</iconset>
-   </property>
    <property name="text">
     <string>Start</string>
    </property>
    <property name="toolTip">
-    <string>Start Programming...</string>
+    <string>Start programming</string>
    </property>
   </action>
   <action name="actionAdd_File">
@@ -336,6 +361,14 @@ Info : Listening on port 4444 for telnet connections</string>
   <action name="actionUser_Guide">
    <property name="text">
     <string>User Guide</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+   <property name="toolTip">
+    <string>Stop programming</string>
    </property>
   </action>
  </widget>

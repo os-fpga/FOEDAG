@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="/images">
+    <qresource prefix="/">
+        <file>images/help-circle.png</file>
     </qresource>
 </RCC>
