@@ -63,12 +63,14 @@ void CompilerOpenFPGA::Version(std::ostream* out) {
   LogUtils::PrintVersion(out);
 }
 
-bool CompilerOpenFPGA::isRtlClock(const std::string& str) {
+bool CompilerOpenFPGA::isRtlClock(const std::string& str, bool& ok) {
   std::string synth_script;
   std::filesystem::path synth_scrypt_path;
   std::filesystem::path outputFile;
+  ok = true;
   if (DesignChangedForAnalysis(synth_script, synth_scrypt_path, outputFile)) {
-    Analyze();
+    ok = Analyze();
+    if (!ok) return false;
   }
   auto rtl_clocks = m_tclCmdIntegration->GetPorts(
       std::filesystem::path{ProjManager()->projectPath()} / "port_info.json");

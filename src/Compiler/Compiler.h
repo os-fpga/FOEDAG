@@ -282,7 +282,7 @@ class Compiler {
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
   std::filesystem::path FilePath(Action action) const;
   std::filesystem::path FilePath(Action action, const std::string& file) const;
-  virtual bool isRtlClock(const std::string& str) { return false; }
+  virtual bool isRtlClock(const std::string& str, bool& ok) { return false; }
 
  protected:
   /* Methods that can be customized for each new compiler flow */

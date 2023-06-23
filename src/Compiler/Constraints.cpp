@@ -182,7 +182,14 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                              nullptr);
             return TCL_ERROR;
           }
-          if (constraints->GetCompiler()->isRtlClock(arg)) {
+          bool ok{false};
+          bool isRtlClock = constraints->GetCompiler()->isRtlClock(arg, ok);
+          if (!ok) {
+            Tcl_AppendResult(interp, "Failed to retrieve ports information",
+                             nullptr);
+            return TCL_ERROR;
+          }
+          if (isRtlClock) {
             Tcl_AppendResult(
                 interp,
                 "Virtual clock cannot be one of the RTL design real clocks",
@@ -218,7 +225,14 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         return TCL_ERROR;
       } else {
         if (arg != "{*}") {
-          if (!constraints->GetCompiler()->isRtlClock(arg)) {
+          bool ok{false};
+          bool isRtlClock = constraints->GetCompiler()->isRtlClock(arg, ok);
+          if (!ok) {
+            Tcl_AppendResult(interp, "Failed to retrieve ports information",
+                             nullptr);
+            return TCL_ERROR;
+          }
+          if (!isRtlClock) {
             Tcl_AppendResult(interp,
                              (std::string{"Clock ("} + arg +
                               ") has to be one of the RTL design real clocks")
