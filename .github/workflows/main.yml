@@ -192,6 +192,14 @@ jobs:
         which gcc 
         which g++ 
 
+    - name: Remove QT tar file.
+      run: |
+        df -h
+        rm -rf buildqt5-centos7-gcc.tgz
+        rm -rf buildqt5-centos7-gcc.zip
+        rm -rf buildqt5
+        df -h
+
     - name: Configure shell
       run: |
         source /opt/rh/devtoolset-11/enable
