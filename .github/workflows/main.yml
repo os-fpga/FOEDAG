@@ -43,7 +43,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        bash .github/workflows/install_ubuntu_dependencies_build.sh && df -h
+        bash .github/workflows/install_ubuntu_dependencies_build.sh
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1.2.3
@@ -170,7 +170,7 @@ jobs:
 
     - name: Install dependencies and build QT
       run: |
-        bash .github/workflows/install_centos_dependencies_build.sh
+        bash .github/workflows/install_centos_dependencies_build.sh && df -h
 
     - name: Prepare QT build artifacts
       if: matrix.mode == 'test'
