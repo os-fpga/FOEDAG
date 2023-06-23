@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CFGArg_auto.h"
 
+// this test is not meant for automated. It is for manual testing
 void test_arg() {
   CFG_POST_MSG("This is CFGArg unit test");
   CFGArg_UTST arg;
@@ -70,28 +71,50 @@ void test_arg() {
   arg.print();
 }
 
-void test_program_device_arg() {
-  CFG_POST_MSG("test_program_device_arg unit test");
-  CFGArg_PROGRAM_DEVICE arg;
+void test_programmer_short_option_ok() {
+  CFG_POST_MSG("test_programmer_short_option_ok");
+  CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
   CFG_ASSERT(arg.config == "");
   CFG_ASSERT(arg.index == 0);
-  CFG_ASSERT(arg.bitstream == "");
   CFG_ASSERT(arg.m_args.size() == 0);
-  const char* argv[] = {
-      "programmer", "-b", "test.bit", "-c", "gemini.cfg", "--index", "2",
-  };
-  bool status = arg.parse(int(sizeof(argv) / sizeof(argv[0])), argv, &errors);
+  const char* argv[] = {"flash", "test.bit", "-o", "erase|program"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  CFG_ASSERT(status);
+  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.index == 0);
+  CFG_ASSERT(arg.operations == "erase|program");
+  CFG_ASSERT(arg.m_args[0] == "flash");
+  CFG_ASSERT(arg.m_args[1] == "test.bit");
+  arg.print();
+}
+
+void test_program_device_long_option_ok() {
+  CFG_POST_MSG("test_program_device_long_option_ok");
+  CFGArg_PROGRAMMER arg;
+  std::vector<std::string> errors;
+  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.index == 0);
+  CFG_ASSERT(arg.m_args.size() == 0);
+  const char* argv[] = {"flash",        "test.bit",
+                        "--operations", "erase,blankcheck,program",
+                        "-c",           "gemini.cfg"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
   CFG_ASSERT(status);
   CFG_ASSERT(arg.config == "gemini.cfg");
-  CFG_ASSERT(arg.index == 2);
-  CFG_ASSERT(arg.bitstream == "test.bit");
+  CFG_ASSERT(arg.index == 0);
+  CFG_ASSERT(arg.operations == "erase,blankcheck,program");
+  CFG_ASSERT(arg.m_args[0] == "flash");
+  CFG_ASSERT(arg.m_args[1] == "test.bit");
   arg.print();
 }
 
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is CFGCommon unit test");
   test_arg();
-  test_program_device_arg();
+  test_programmer_short_option_ok();
+  test_program_device_long_option_ok();
   return 0;
 }
