@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTextStream>
 #include <memory>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 static const QString STATISTIC_SECTION{"Pb types usage..."};
@@ -78,6 +79,8 @@ void BitstreamReportManager::parseLogFile() {
 }
 
 std::filesystem::path BitstreamReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::Bitstream, BITSTREAM_LOG);
   return logFilePath(BITSTREAM_LOG);
 }
 

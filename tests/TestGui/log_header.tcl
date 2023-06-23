@@ -2,13 +2,15 @@ gui_start
 create_design log_header
 
 # create an empty report before we run the analyze the step
-set fp [open "log_header/fake.rpt" w]
+set fakePath log_header/log_header.runs/run_1/synth_1/analysis
+file mkdir $fakePath
+set fp [open "$fakePath/fake.rpt" w]
 close $fp
 
 analyze
 help
 
-set fp [open "log_header/analysis.rpt" r]
+set fp [open "$fakePath/analysis.rpt" r]
 set file_data [read $fp]
 close $fp
 
@@ -60,7 +62,7 @@ set found [regexp "\n=-= FOEDAG HELP   =-=" $file_data]
 if { !$found } { puts "ERROR: foedag.log's help message has an abbreviation before it or wasn't printed"; exit 1 }
 
 # Verify that the fake.rpt file now has copyright info because we now dynamically add the header to all *.rpt's in a project folder
-set fp [open "log_header/fake.rpt" r]
+set fp [open "$fakePath/fake.rpt" r]
 set file_data [read $fp]
 close $fp
 set found [regexp "Copyright 20\\d\\d The Foedag team" $file_data]

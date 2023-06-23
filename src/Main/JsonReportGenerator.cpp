@@ -34,11 +34,6 @@ JsonReportGenerator::JsonReportGenerator(const ITaskReport &report,
     : ReportGenerator(report), m_dir(outDir), m_name(name) {}
 
 void JsonReportGenerator::Generate() {
-  const QString reportsFolder{"reports"};
-  QDir outputDir{m_dir};
-  outputDir.mkdir(reportsFolder);
-  outputDir.cd(reportsFolder);
-
   json jUtils = json::array();
   for (auto &report : m_report.getDataReports()) {
     json obj = json::object();
@@ -61,6 +56,10 @@ void JsonReportGenerator::Generate() {
   }
 
   if (!jUtils.empty()) {
+    const QString reportsFolder{"reports"};
+    QDir outputDir{m_dir};
+    outputDir.mkdir(reportsFolder);
+    outputDir.cd(reportsFolder);
     QFile jsonFile{QString{"%1%2%3.json"}.arg(outputDir.absolutePath(),
                                               QDir::separator(), m_name)};
     if (jsonFile.open(QFile::WriteOnly | QFile::Text)) {

@@ -219,7 +219,6 @@ void TimingAnalysisReportManager::parseLogFile() {
       lineNr = parseStatisticsSection(in, lineNr);
     ++lineNr;
   }
-  if (!timings.isEmpty()) fillTimingData(timings);
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
@@ -233,6 +232,8 @@ void TimingAnalysisReportManager::parseLogFile() {
 }
 
 std::filesystem::path TimingAnalysisReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::STA, TIMING_ANALYSIS_LOG);
   return logFilePath(TIMING_ANALYSIS_LOG);
 }
 
@@ -272,7 +273,6 @@ void TimingAnalysisReportManager::parseOpenSTALog() {
                                        parseOpenSTATimingTable(in, lineNr)));
     ++lineNr;
   }
-  if (!timings.isEmpty()) fillTimingData(timings);
 
   logFile->close();
 

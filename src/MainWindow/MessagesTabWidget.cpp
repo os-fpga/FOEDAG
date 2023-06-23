@@ -3,6 +3,7 @@
 #include <QGridLayout>
 #include <QTreeWidget>
 
+#include "Compiler/Compiler.h"
 #include "Compiler/TaskManager.h"
 #include "MessageItemParser.h"
 #include "NewProject/ProjectManager/project_manager.h"
@@ -39,15 +40,22 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
   for (auto task : tasks) {
     auto taskId = m_taskManager.taskId(task);
 
-    if (auto reportManager = reports.getReportManager(taskId)) {
+    if (auto reportManager = reports.getReportManager(taskId);
+        reportManager && !reportManager->getAvailableReportIds().isEmpty()) {
       reportManager->setSuppressList(loadSuppressList(dataPath));
-      auto filePath = task->logFileReadPath();
-      filePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+      auto logFileReadPath = task->logFileReadPath();
+      auto compiler = m_taskManager.GetCompiler();
+      auto action = static_cast<Compiler::Action>(FOEDAG::toAction(taskId));
+      auto filePath = compiler->FilePath(action);
+      logFileReadPath.replace(PROJECT_OSRCDIR,
+                              QString::fromStdString(filePath.string()));
 
-      const bool fileExists{FileUtils::FileExists(filePath.toStdString())};
-      if (!fileExists) filePath = tr("log file not found");
+      const bool fileExists{
+          FileUtils::FileExists(logFileReadPath.toStdString())};
+      if (!fileExists) logFileReadPath = tr("log file not found");
 
-      const QString hyperLink = fileExists ? createLink(filePath) : filePath;
+      const QString hyperLink =
+          fileExists ? createLink(logFileReadPath) : logFileReadPath;
       auto itemName = QString("%1 (%2)").arg(task->title(), hyperLink);
       auto taskItem = new QTreeWidgetItem({itemName});
       if (fileExists) m_convertToLabel.push_back(taskItem);
@@ -55,7 +63,7 @@ MessagesTabWidget::MessagesTabWidget(const TaskManager &taskManager,
       if (fileExists) {
         const auto &msgs = reportManager->getMessages();
         for (auto it = msgs.cbegin(); it != msgs.cend(); it++) {
-          auto msgItem = createTaskMessageItem(it.value(), filePath);
+          auto msgItem = createTaskMessageItem(it.value(), logFileReadPath);
           taskItem->addChild(msgItem);
         }
       }

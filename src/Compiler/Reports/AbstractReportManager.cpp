@@ -26,7 +26,8 @@ namespace FOEDAG {
 const QRegExp AbstractReportManager::FIND_RESOURCES{"Resource usage.*"};
 const QRegExp AbstractReportManager::FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
 
-AbstractReportManager::AbstractReportManager(const TaskManager &taskManager) {
+AbstractReportManager::AbstractReportManager(const TaskManager &taskManager)
+    : m_compiler(taskManager.GetCompiler()) {
   // Log files should be re-parsed after starting new compilation
   m_timingColumns = {ReportColumn{"Statistics"},
                      ReportColumn{"Value", Qt::AlignCenter}};
@@ -539,8 +540,6 @@ int AbstractReportManager::parseErrorWarningSection(QTextStream &in, int lineNr,
   }
 
   fillErrorsWarnings();
-
-  if (!timings.isEmpty()) fillTimingData(timings);
 
   m_messages.insert(sectionMsg.m_lineNr, std::move(sectionMsg));
   return lineNr;

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
@@ -237,6 +238,8 @@ void SynthesisReportManager::splitTimingData(const QString &timingStr) {
 }
 
 std::filesystem::path SynthesisReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::Synthesis, SYNTHESIS_LOG);
   return logFilePath(SYNTHESIS_LOG);
 }
 

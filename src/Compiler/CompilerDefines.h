@@ -133,6 +133,7 @@ class TaskTableView *prepareCompilerView(Compiler *compiler,
                                          TaskManager **taskManager = nullptr);
 
 uint toTaskId(int action, Compiler *const compiler);
+int toAction(uint taskId);
 
 /*!
  * \brief read_sdc
