@@ -56,6 +56,9 @@ class Constraints {
   void addConstraint(const std::string& name) { m_constraints.push_back(name); }
   Compiler* GetCompiler() { return m_compiler; }
 
+  std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
+  bool AddVirtualClocks(const std::string& vClock);
+
  protected:
   Compiler* m_compiler = nullptr;
   std::ostream* m_out = &std::cout;
@@ -63,6 +66,7 @@ class Constraints {
   Session* m_session = nullptr;
   std::vector<std::string> m_constraints;
   std::set<std::string> m_keeps;
+  std::set<std::string> m_virtualClocks{};
 };
 
 }  // namespace FOEDAG

@@ -48,6 +48,7 @@ bool Constraints::evaluateConstraint(const std::string& constraint) {
 void Constraints::reset() {
   m_constraints.erase(m_constraints.begin(), m_constraints.end());
   m_keeps.erase(m_keeps.begin(), m_keeps.end());
+  m_virtualClocks.clear();
 }
 
 static std::string getConstraint(uint64_t argc, const char* argv[]) {
@@ -173,7 +174,23 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       if (arg == "-name") {
         i++;
         arg = argv[i];
-        if (arg != "{*}") constraints->addKeep(arg);
+        if (arg != "{*}") {
+          bool unique = constraints->AddVirtualClocks(arg);
+          if (!unique) {
+            Tcl_AppendResult(interp,
+                             "Only one Virtual clock definition is allowed",
+                             nullptr);
+            return TCL_ERROR;
+          }
+          if (constraints->GetCompiler()->isRtlClock(arg)) {
+            Tcl_AppendResult(
+                interp,
+                "Virtual clock cannot be one of the RTL design real clocks",
+                nullptr);
+            return TCL_ERROR;
+          }
+          constraints->addKeep(arg);
+        }
       } else if (arg == "-period") {
         i++;
       } else if (arg == "-waveform") {
@@ -200,7 +217,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
 
         return TCL_ERROR;
       } else {
-        if (arg != "{*}") constraints->addKeep(arg);
+        if (arg != "{*}") {
+          if (!constraints->GetCompiler()->isRtlClock(arg)) {
+            Tcl_AppendResult(interp,
+                             (std::string{"Clock ("} + arg +
+                              ") has to be one of the RTL design real clocks")
+                                 .c_str(),
+                             nullptr);
+            return TCL_ERROR;
+          }
+          constraints->addKeep(arg);
+        }
       }
     }
     return TCL_OK;
@@ -438,4 +465,11 @@ void Constraints::registerCommands(TclInterpreter* interp) {
     return TCL_OK;
   };
   interp->registerCmd("write_sdc", write_sdc, this, 0);
+}
+
+bool Constraints::AddVirtualClocks(const std::string& vClock) {
+  auto it = m_virtualClocks.find(vClock);
+  if (it != m_virtualClocks.end()) return false;
+  m_virtualClocks.insert(vClock);
+  return true;
 }

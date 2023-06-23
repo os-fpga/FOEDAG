@@ -30,6 +30,7 @@ class ProjectManagerComponent : public ProjectFileComponent {
   ProjectManagerComponent(ProjectManager *pManager, QObject *parent = nullptr);
   void Save(QXmlStreamWriter *writer) override;
   void Load(QXmlStreamReader *reader) override;
+  void LoadDone() override;
 
  protected:
   QString relatedPath(const QString &path) const;

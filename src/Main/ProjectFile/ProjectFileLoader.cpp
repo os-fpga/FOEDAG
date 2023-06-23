@@ -98,6 +98,8 @@ void ProjectFileLoader::LoadInternal(const QString &filename) {
     }
   }
 
+  for (const auto &component : m_components) component->LoadDone();
+
   if (reader.hasError()) {
     return;
   }
