@@ -116,9 +116,9 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
   dataReports.push_back(
-      std::make_unique<TableReport>(cols, m_resourceData, QString{}));
+      std::make_unique<TableReport>(cols, m_resourceData, QString{"Resources"}));
   return std::make_unique<DefaultTaskReport>(std::move(dataReports),
-                                             "Synthesis report");
+                                             "Resource Utilization");
 }
 
 void SynthesisReportManager::parseLogFile() {

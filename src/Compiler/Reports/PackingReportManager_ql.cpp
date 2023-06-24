@@ -47,10 +47,10 @@ std::unique_ptr<ITaskReport> PackingReportManager::createReport(
 
   if (reportId == QString(RESOURCE_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_resourceColumns, m_resourceData, QString{}));
+        m_resourceColumns, m_resourceData, QString{"Resource Utilization"}));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_circuitColumns, m_circuitData, QString{}));
+        m_circuitColumns, m_circuitData, QString{"Circuit Statistics"}));
   }
 
   emit reportCreated(reportId);

@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Reports/RoutingReportManager.h"
 #include "Reports/SynthesisReportManager.h"
 #include "Reports/TimingAnalysisReportManager.h"
-#include "Reports/PowerAnalysisReportManager.h"
+#include "Reports/PowerAnalysisReportManager_ql.h"
 
 namespace FOEDAG {
 
@@ -211,22 +211,26 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PLACEMENT, std::move(placementReportManager));
+  
   auto routingReportManager = std::make_shared<RoutingReportManager>(*this);
   connect(routingReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       ROUTING, std::move(routingReportManager));
+  
   auto taReportManager =
       std::make_shared<TimingAnalysisReportManager>(*this, compiler);
   connect(taReportManager.get(), &AbstractReportManager::reportCreated, this,
           &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(TIMING_SIGN_OFF,
                                                 std::move(taReportManager));
+  
   auto packingReportManager = std::make_shared<PackingReportManager>(*this);
   connect(packingReportManager.get(), &AbstractReportManager::reportCreated,
           this, &TaskManager::taskReportCreated);
   m_reportManagerRegistry.registerReportManager(
       PACKING, std::move(packingReportManager));
+  
   auto paReportManager =
       std::make_shared<PowerAnalysisReportManager>(*this);
   connect(paReportManager.get(), &AbstractReportManager::reportCreated, this,

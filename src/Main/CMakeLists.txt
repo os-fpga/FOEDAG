@@ -51,7 +51,8 @@ set (SRC_CPP_LIST ../Main/Foedag_ql.cpp
   #../Main/registerTclCommands.cpp
   ../Main/registerTclCommands_ql.cpp
   ../Main/Settings.cpp
-  ../Main/Tasks.cpp
+  # ../Main/Tasks.cpp
+  ../Main/Tasks_ql.cpp
   ../Main/WidgetFactory.cpp
   ../Main/FoedagStyle.cpp
   ../Main/ProjectFile/ProjectFileLoader.cpp

@@ -64,14 +64,19 @@ set (SRC_CPP_LIST
   Log.cpp
   Reports/AbstractReportManager.cpp
   Reports/DefaultTaskReport.cpp
-  Reports/RoutingReportManager.cpp
-  Reports/PackingReportManager.cpp
-  Reports/PlacementReportManager.cpp
+  # Reports/RoutingReportManager.cpp
+  # Reports/PackingReportManager.cpp
+  # Reports/PlacementReportManager.cpp
+  Reports/RoutingReportManager_ql.cpp
+  Reports/PackingReportManager_ql.cpp
+  Reports/PlacementReportManager_ql.cpp
   Reports/TableReport.cpp
   Reports/TaskReportManagerRegistry.cpp
-  Reports/SynthesisReportManager.cpp
-  Reports/TimingAnalysisReportManager.cpp
-  Reports/PowerAnalysisReportManager.cpp
+  # Reports/SynthesisReportManager.cpp
+  # Reports/TimingAnalysisReportManager.cpp
+  Reports/SynthesisReportManager_ql.cpp
+  Reports/TimingAnalysisReportManager_ql.cpp
+  Reports/PowerAnalysisReportManager_ql.cpp
   QLDeviceManager.cpp
   QLSettingsManager.cpp
   QLMetricsManager.cpp
@@ -101,7 +106,7 @@ set (SRC_H_INSTALL_LIST
   Reports/TaskReportManagerRegistry.h
   Reports/SynthesisReportManager.h
   Reports/TimingAnalysisReportManager.h
-  Reports/PowerAnalysisReportManager.h
+  Reports/PowerAnalysisReportManager_ql.h
   TaskGlobal.h
   QLDeviceManager.h
   QLSettingsManager.h

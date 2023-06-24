@@ -67,13 +67,13 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
 
   if (reportId == QString(RESOURCE_REPORT_NAME))
     dataReports.push_back(std::make_unique<TableReport>(
-        m_resourceColumns, m_resourceData, QString{}));
+        m_resourceColumns, m_resourceData, QString{"Resource Utilization"}));
   else if (reportId == QString(CIRCUIT_REPORT_NAME))
     dataReports.push_back(std::make_unique<TableReport>(
-        m_circuitColumns, m_circuitData, QString{}));
+        m_circuitColumns, m_circuitData, QString{"Circuit Statistics"}));
   else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_timingColumns, m_timingData, "Statistical timing:"));
+        m_timingColumns, m_timingData, "Static Timing"));
     for (auto &hgrm : m_histograms)
       dataReports.push_back(std::make_unique<TableReport>(
           m_histogramColumns, hgrm.second, hgrm.first));
