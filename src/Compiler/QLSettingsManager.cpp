@@ -404,6 +404,12 @@ void QLSettingsManager::populateSettingsWidget() {
 
       for (auto [widgetId, widgetJson] : subcategoryJson.items()) {
 
+          if(widgetJson.contains("hidden") &&
+             widgetJson["hidden"].get<std::string>() == "true") {
+              // do not render this widget in the settings
+              continue;
+          }
+
           std::string widgetType = widgetJson["widgetType"].get<std::string>();
           
           // std::cout << "widgetId: " << QString::fromStdString(widgetId).toStdString() << std::endl;

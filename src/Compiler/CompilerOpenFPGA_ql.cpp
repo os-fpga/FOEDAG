@@ -6036,42 +6036,31 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   }
 
   long double calculator_d8 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "voltage");                          // voltage
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "voltage");                          // voltage (internal)
 
   long double calculator_e9 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "system_frequency_mhz");             // system_frequency_mhz
-
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "system_frequency_mhz");             // system_frequency_mhz (user)
 
   long double calculator_f11 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "input_activity_factor");            // input_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "input_activity_factor");            // input_activity_factor (user)
 
   long double calculator_f15 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "input_xbar_activity_factor");       // input_xbar_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "input_xbar_activity_factor");       // input_xbar_activity_factor (internal)
 
   long double calculator_f16 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "output_activity_factor");           // output_activity_factor
-
-  long double calculator_f18 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "output_clb_activity_factor");       // output_clb_activity_factor
-
-  // routing == switchbox == wire_segment
-  long double calculator_f21 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "routing_activity_factor");          // routing_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "output_activity_factor");           // output_activity_factor (user)
 
   long double calculator_f22 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "lut_activity_factor");              // lut_activity_factor
-
-  // long double calculator_f26 =
-  //   QLSettingsManager::getLongDoubleValue("power", "power_inputs", "clb_ff_activity_factor");           // clb_ff_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "lut_activity_factor");              // lut_activity_factor (internal)
 
   long double calculator_f28 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "clock_network_activity_factor");    // clock_network_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "clock_network_activity_factor");    // clock_network_activity_factor (internal)
 
   long double calculator_f29 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "dsp_activity_factor");              // dsp_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "dsp_activity_factor");              // dsp_activity_factor (users)
 
   long double calculator_f30 =
-    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "bram_activity_factor");             // bram_activity_factor
+    QLSettingsManager::getLongDoubleValue("power", "power_inputs", "bram_activity_factor");             // bram_activity_factor (user)
 
   if(power_estimation_dbg) {
     
@@ -6098,12 +6087,6 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
 
     // std::cout <<"calculator_f16 : " << std::left << std::setw(15) << std::to_string(calculator_f16) + " %" << "[OUTPUT ACTIVITY FACTOR]" << std::endl;
     power_analysis_debug_rpt << "calculator_f16 : " << std::left << std::setw(15) << std::to_string(calculator_f16) + " %" << "[OUTPUT ACTIVITY FACTOR]" << std::endl;
-
-    // std::cout <<"calculator_f18 : " << std::left << std::setw(15) << std::to_string(calculator_f18) + " %" << "[OUTPUT CLB ACTIVITY FACTOR]" << std::endl;
-    power_analysis_debug_rpt << "calculator_f18 : " << std::left << std::setw(15) << std::to_string(calculator_f18) + " %" << "[OUTPUT CLB ACTIVITY FACTOR]" << std::endl;
-
-    // std::cout <<"calculator_f21 : " << std::left << std::setw(15) << std::to_string(calculator_f21) + " %" << "[TOTAL # SB ACTIVITY FACTOR]" << std::endl;
-    power_analysis_debug_rpt << "calculator_f21 : " << std::left << std::setw(15) << std::to_string(calculator_f21) + " %" << "[TOTAL # SB ACTIVITY FACTOR]" << std::endl;
 
     // std::cout <<"calculator_f22 : " << std::left << std::setw(15) << std::to_string(calculator_f22) + " %" << "[TOTAL # LUT ACTIVITY FACTOR]" << std::endl;
     power_analysis_debug_rpt << "calculator_f22 : " << std::left << std::setw(15) << std::to_string(calculator_f22) + " %" << "[TOTAL # LUT ACTIVITY FACTOR]" << std::endl;
@@ -6288,21 +6271,20 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   long double calculator_e11 = (calculator_e9 * calculator_f11 / 100);                // freq_input
   long double calculator_e15 = (calculator_e9 * calculator_f15 / 100);                // freq_xbar
   long double calculator_e16 = (calculator_e9 * calculator_f16 / 100);                // freq_output
-  long double calculator_e18 = (calculator_e9 * calculator_f18 / 100);                // freq_output_clb
-  long double calculator_e21 = (calculator_e9 * calculator_f21 / 100);                // freq_sb
   long double calculator_e22 = (calculator_e9 * calculator_f22 / 100);                // freq_lut
-  // long double calculator_e26 = (calculator_e9 * calculator_f26 / 100);                // freq_clb_ff    -->  (not used currently) TODO clarify do we need input?
   long double calculator_e28 = (calculator_e9 * calculator_f28 / 100);                // freq_clock_network
   long double calculator_e29 = (calculator_e9 * calculator_f29 / 100);                // freq_dsp
-  long double calculator_e30 = (calculator_e9 * calculator_f30 / 100);                // freq_bram  // TODO why zero in spreadsheet?
+  long double calculator_e30 = (calculator_e9 * calculator_f30 / 100);                // freq_bram
 
   // second, the frequencies derived from user inputs + design input correlation
   long double calculator_e12 = 0;                                             // freq_input_ff (not used currently)
-  long double calculator_e13 = calculator_e21;                                 // freq_input_sb == freq_sb
   long double calculator_e14 = calculator_e11;                                // freq_input_cbx_cby == freq_input
   long double calculator_e17 = 0;                                             // freq_output_ff (not used currently)
-  long double calculator_e19 = calculator_e21;                                // freq_output_sb == freq_sb
+  long double calculator_e18 = calculator_e16;                                // freq_output_clb == freq_output
   long double calculator_e20 = calculator_e16;                                // freq_output_cbx_cby == freq_output
+  long double calculator_e21 = calculator_e16;                                // freq_sb == freq_output
+  long double calculator_e13 = calculator_e21;                                // freq_input_sb == freq_sb
+  long double calculator_e19 = calculator_e21;                                // freq_output_sb == freq_sb
   long double calculator_e23 = calculator_e22;                                // freq_lut_5_ff == freq_lut
   long double calculator_e24 = calculator_e22;                                // freq_lut_6 == freq_lut
   long double calculator_e25 = calculator_e24;                                // freq_lut_6_ff == freq_lut_6
@@ -6480,7 +6462,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e28 <= 10) {
     dynamic_o5 = dynamic_linear_o5 > 0 ? dynamic_linear_o5 : 0;
   }
-  else if(calculator_e28 <= 250) {
+  else {
     dynamic_o5 = dynamic_poly_o5 > 0 ? dynamic_poly_o5 : 0;
   }
 
@@ -6488,7 +6470,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e11 <= 10) {
     dynamic_o6 = dynamic_linear_o6 > 0 ? dynamic_linear_o6 : 0;
   }
-  else if(calculator_e11 <= 250) {
+  else {
     dynamic_o6 = dynamic_poly_o6 > 0 ? dynamic_poly_o6 : 0;
   }
 
@@ -6496,7 +6478,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e12 <= 10) {
     dynamic_o7 = dynamic_linear_o7 > 0 ? dynamic_linear_o7 : 0;
   }
-  else if(calculator_e12 <= 250) {
+  else {
     dynamic_o7 = dynamic_poly_o7 > 0 ? dynamic_poly_o7 : 0;
   }
 
@@ -6504,7 +6486,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e13 <= 10) {
     dynamic_o8 = dynamic_linear_o8 > 0 ? dynamic_linear_o8 : 0;
   }
-  else if(calculator_e13 <= 250) {
+  else {
     dynamic_o8 = dynamic_poly_o8 > 0 ? dynamic_poly_o8 : 0;
   }
 
@@ -6512,7 +6494,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e14 <= 10) {
     dynamic_o9 = dynamic_linear_o9 > 0 ? dynamic_linear_o9 : 0;
   }
-  else if(calculator_e14 <= 250) {
+  else {
     dynamic_o9 = dynamic_poly_o9 > 0 ? dynamic_poly_o9 : 0;
   }
   
@@ -6520,7 +6502,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e15 <= 10) {
     dynamic_o10 = dynamic_linear_o10 > 0 ? dynamic_linear_o10 : 0;
   }
-  else if(calculator_e15 <= 250) {
+  else {
     dynamic_o10 = dynamic_poly_o10 > 0 ? dynamic_poly_o10 : 0;
   }
   
@@ -6528,7 +6510,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e16 <= 10) {
     dynamic_o12 = dynamic_linear_o12 > 0 ? dynamic_linear_o12 : 0;
   }
-  else if(calculator_e16 <= 250) {
+  else {
     dynamic_o12 = dynamic_poly_o12 > 0 ? dynamic_poly_o12 : 0;
   }
   
@@ -6536,7 +6518,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e17 <= 10) {
     dynamic_o13 = dynamic_linear_o13 > 0 ? dynamic_linear_o13 : 0;
   }
-  else if(calculator_e17 <= 250) {
+  else {
     dynamic_o13 = dynamic_poly_o13 > 0 ? dynamic_poly_o13 : 0;
   }
   
@@ -6544,7 +6526,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e19 <= 10) {
     dynamic_o14 = dynamic_linear_o14 > 0 ? dynamic_linear_o14 : 0;
   }
-  else if(calculator_e19 <= 250) {
+  else {
     dynamic_o14 = dynamic_poly_o14 > 0 ? dynamic_poly_o14 : 0;
   }
 
@@ -6552,7 +6534,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e20 <= 10) {
     dynamic_o15 = dynamic_linear_o15 > 0 ? dynamic_linear_o15 : 0;
   }
-  else if(calculator_e20 <= 250) {
+  else {
     dynamic_o15 = dynamic_poly_o15 > 0 ? dynamic_poly_o15 : 0;
   }
 
@@ -6560,7 +6542,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e18 <= 10) {
     dynamic_o16 = dynamic_linear_o16 > 0 ? dynamic_linear_o16 : 0;
   }
-  else if(calculator_e18 <= 250) {
+  else {
     dynamic_o16 = dynamic_poly_o16 > 0 ? dynamic_poly_o16 : 0;
   }
 
@@ -6568,7 +6550,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e22 <= 10) {
     dynamic_o35 = dynamic_linear_o35 > 0 ? dynamic_linear_o35 : 0;
   }
-  else if(calculator_e22 <= 250) {
+  else {
     dynamic_o35 = dynamic_poly_o35 > 0 ? dynamic_poly_o35 : 0;
   }
 
@@ -6576,7 +6558,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e23 <= 10) {
     dynamic_o36 = dynamic_linear_o36 > 0 ? dynamic_linear_o36 : 0;
   }
-  else if(calculator_e23 <= 250) {
+  else {
     dynamic_o36 = dynamic_poly_o36 > 0 ? dynamic_poly_o36 : 0;
   }
 
@@ -6584,7 +6566,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e24 <= 10) {
     dynamic_o37 = dynamic_linear_o37 > 0 ? dynamic_linear_o37 : 0;
   }
-  else if(calculator_e24 <= 250) {
+  else {
     dynamic_o37 = dynamic_poly_o37 > 0 ? dynamic_poly_o37 : 0;
   }
 
@@ -6592,7 +6574,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e25 <= 10) {
     dynamic_o38 = dynamic_linear_o38 > 0 ? dynamic_linear_o38 : 0;
   }
-  else if(calculator_e25 <= 250) {
+  else {
     dynamic_o38 = dynamic_poly_o38 > 0 ? dynamic_poly_o38 : 0;
   }
   
@@ -6691,7 +6673,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e29 <= 10) {
     ffb_n3 = ffb_linear_n3 > 0 ? ffb_linear_n3 : 0;
   }
-  else if(calculator_e29 <= 250) {
+  else {
     ffb_n3 = ffb_poly_n3 > 0 ? ffb_poly_n3 : 0;
   }
 
@@ -6699,7 +6681,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   if(calculator_e30 <= 10) {
     ffb_n4 = ffb_linear_n4 > 0 ? ffb_linear_n4 : 0;
   }
-  else if(calculator_e30 <= 250) {
+  else {
     ffb_n4 = ffb_poly_n4 > 0 ? ffb_poly_n4 : 0;
   }
 
