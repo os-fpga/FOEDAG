@@ -6050,6 +6050,14 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   long double calculator_f16 =
     QLSettingsManager::getLongDoubleValue("power", "power_inputs", "output_activity_factor");           // output_activity_factor (user)
 
+  // v1.40 : F18 = F16 (removed from JSON, if value changes, we will add it back)
+  long double calculator_f18 = calculator_f16;
+    // QLSettingsManager::getLongDoubleValue("power", "power_inputs", "output_clb_activity_factor");    // output_clb_activity_factor (internal)
+
+  // v1.40 : F21 = F16 (removed from JSON, if value changes, we will add it back)
+  long double calculator_f21 = calculator_f16;
+    // QLSettingsManager::getLongDoubleValue("power", "power_inputs", "routing_activity_factor");       // routing_activity_factor or sb_activity_factor (internal)
+
   long double calculator_f22 =
     QLSettingsManager::getLongDoubleValue("power", "power_inputs", "lut_activity_factor");              // lut_activity_factor (internal)
 
@@ -6087,6 +6095,12 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
 
     // std::cout <<"calculator_f16 : " << std::left << std::setw(15) << std::to_string(calculator_f16) + " %" << "[OUTPUT ACTIVITY FACTOR]" << std::endl;
     power_analysis_debug_rpt << "calculator_f16 : " << std::left << std::setw(15) << std::to_string(calculator_f16) + " %" << "[OUTPUT ACTIVITY FACTOR]" << std::endl;
+
+    // std::cout <<"calculator_f18 : " << std::left << std::setw(15) << std::to_string(calculator_f18) + " %" << "[OUTPUT CLB ACTIVITY FACTOR]" << std::endl;
+    power_analysis_debug_rpt << "calculator_f18 : " << std::left << std::setw(15) << std::to_string(calculator_f18) + " %" << "[OUTPUT CLB ACTIVITY FACTOR]" << std::endl;
+
+    // std::cout <<"calculator_f21 : " << std::left << std::setw(15) << std::to_string(calculator_f21) + " %" << "[TOTAL # SB ACTIVITY FACTOR]" << std::endl;
+    power_analysis_debug_rpt << "calculator_f21 : " << std::left << std::setw(15) << std::to_string(calculator_f21) + " %" << "[TOTAL # SB ACTIVITY FACTOR]" << std::endl;
 
     // std::cout <<"calculator_f22 : " << std::left << std::setw(15) << std::to_string(calculator_f22) + " %" << "[TOTAL # LUT ACTIVITY FACTOR]" << std::endl;
     power_analysis_debug_rpt << "calculator_f22 : " << std::left << std::setw(15) << std::to_string(calculator_f22) + " %" << "[TOTAL # LUT ACTIVITY FACTOR]" << std::endl;
@@ -6271,6 +6285,8 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   long double calculator_e11 = (calculator_e9 * calculator_f11 / 100);                // freq_input
   long double calculator_e15 = (calculator_e9 * calculator_f15 / 100);                // freq_xbar
   long double calculator_e16 = (calculator_e9 * calculator_f16 / 100);                // freq_output
+  long double calculator_e18 = (calculator_e9 * calculator_f18 / 100);                // freq_output_clb
+  long double calculator_e21 = (calculator_e9 * calculator_f21 / 100);                // freq_sb
   long double calculator_e22 = (calculator_e9 * calculator_f22 / 100);                // freq_lut
   long double calculator_e28 = (calculator_e9 * calculator_f28 / 100);                // freq_clock_network
   long double calculator_e29 = (calculator_e9 * calculator_f29 / 100);                // freq_dsp
@@ -6278,13 +6294,11 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
 
   // second, the frequencies derived from user inputs + design input correlation
   long double calculator_e12 = 0;                                             // freq_input_ff (not used currently)
+  long double calculator_e13 = calculator_e21;                                // freq_input_sb == freq_sb
   long double calculator_e14 = calculator_e11;                                // freq_input_cbx_cby == freq_input
   long double calculator_e17 = 0;                                             // freq_output_ff (not used currently)
-  long double calculator_e18 = calculator_e16;                                // freq_output_clb == freq_output
-  long double calculator_e20 = calculator_e16;                                // freq_output_cbx_cby == freq_output
-  long double calculator_e21 = calculator_e16;                                // freq_sb == freq_output
-  long double calculator_e13 = calculator_e21;                                // freq_input_sb == freq_sb
   long double calculator_e19 = calculator_e21;                                // freq_output_sb == freq_sb
+  long double calculator_e20 = calculator_e16;                                // freq_output_cbx_cby == freq_output
   long double calculator_e23 = calculator_e22;                                // freq_lut_5_ff == freq_lut
   long double calculator_e24 = calculator_e22;                                // freq_lut_6 == freq_lut
   long double calculator_e25 = calculator_e24;                                // freq_lut_6_ff == freq_lut_6
