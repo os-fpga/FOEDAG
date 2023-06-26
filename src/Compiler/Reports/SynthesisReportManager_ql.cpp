@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 // Report strings
-static constexpr const char *REPORT_NAME{"Synthesis report"};
+static constexpr const char *REPORT_NAME{"Synthesis - Report Statistics"};
 static constexpr const char *MAX_LVL_STR{"Maximum logic level"};
 static constexpr const char *AVG_LVL_STR{"Average logic level"};
 
@@ -116,9 +116,9 @@ std::unique_ptr<ITaskReport> SynthesisReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
   dataReports.push_back(
-      std::make_unique<TableReport>(cols, m_resourceData, QString{"Resources"}));
+      std::make_unique<TableReport>(cols, m_resourceData, QString{"Statistics"}));
   return std::make_unique<DefaultTaskReport>(std::move(dataReports),
-                                             "Resource Utilization");
+                                             reportId);
 }
 
 void SynthesisReportManager::parseLogFile() {

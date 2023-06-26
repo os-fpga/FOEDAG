@@ -146,7 +146,7 @@ bool QLMetricsManager::parseJSON() {
     }
   }
   else {
-    std::cout << "[warning] expected metrics json file does not exist: " << metrics_json_filepath.string() << std::endl;
+    // std::cout << "[warning] expected metrics json file does not exist: " << metrics_json_filepath.string() << std::endl;
   }
 
   if(metrics_json.empty()) {
@@ -276,7 +276,7 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
     
     // if log file does not exist, skip:
     if(!FileUtils::FileExists(filepath)) {
-      std::cout << "[warning] file not found: " << metric.filename << std::endl;
+      // std::cout << "[warning] file not found: " << metric.filename << std::endl;
       continue;
     }
 
@@ -285,7 +285,7 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
 
     // if log file read failed, skip:
     if (!stream.good()) {
-      std::cout << "[warning] file could not be read: " << metric.filename << std::endl;
+      // std::cout << "[warning] file could not be read: " << metric.filename << std::endl;
       stream.close();
       continue;
     }

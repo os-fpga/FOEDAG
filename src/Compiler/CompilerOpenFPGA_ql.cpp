@@ -6015,7 +6015,7 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   std::cout.setf (std::ios::fixed);
 
   // enable debug prints if specified in JSON
-  bool power_estimation_dbg = true; // TODO test change
+  bool power_estimation_dbg = false;
   std::ofstream power_analysis_debug_rpt;
 
   if( QLSettingsManager::getStringValue("power", "power_outputs", "debug") == "checked" ) {
