@@ -2265,18 +2265,18 @@ bool Compiler::RunCompileTask(Action action) {
 
 bool Compiler::SwitchCompileContext(Action action,
                                     const std::function<bool()>& fn) {
-  auto propriatePath = FilePath(action);
+  auto compilePath = FilePath(action);
   auto current_path = fs::current_path();
-  if (!propriatePath.empty()) {
+  if (!compilePath.empty()) {
     // make sure path exists
-    bool ok = FileUtils::MkDirs(propriatePath);
+    bool ok = FileUtils::MkDirs(compilePath);
     if (ok) {
       // switch actions context here
-      std::filesystem::current_path(propriatePath);
+      std::filesystem::current_path(compilePath);
     }
   }
   auto res = fn();
-  if (!propriatePath.empty()) fs::current_path(current_path);
+  if (!compilePath.empty()) fs::current_path(current_path);
   return res;
 }
 
