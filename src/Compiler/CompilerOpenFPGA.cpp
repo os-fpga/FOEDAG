@@ -1821,13 +1821,8 @@ bool CompilerOpenFPGA::Placement() {
     if (GetNetlistType() == NetlistType::Verilog ||
         GetNetlistType() == NetlistType::VHDL ||
         GetNetlistType() == NetlistType::Edif) {
-      std::filesystem::path p(ProjManager()->projectPath());
-      std::filesystem::path path(netlistFile);
-      std::string base_name = path.stem().string();
       pincommand += " --port_info ";
-      pincommand += (std::filesystem::path(ProjManager()->projectPath()) /
-                     std::string("post_synth_ports.json"))
-                        .string();
+      pincommand += FilePath(Action::Pack, "post_synth_ports.json").string();
     } else {
       pincommand += " --blif " + netlistFile;
     }
