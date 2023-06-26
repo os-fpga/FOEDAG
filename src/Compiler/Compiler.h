@@ -315,6 +315,7 @@ class Compiler {
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
+  bool SwitchCompileContext(Action action, const std::function<bool(void)>& fn);
 
   void SetEnvironmentVariable(const std::string variable,
                               const std::string value);

@@ -69,11 +69,15 @@ bool CompilerOpenFPGA::isRtlClock(const std::string& str, bool& ok) {
   std::filesystem::path outputFile;
   ok = true;
   if (DesignChangedForAnalysis(synth_script, synth_scrypt_path, outputFile)) {
-    ok = Analyze();
+    ok = SwitchCompileContext(Action::Analyze, [this]() { return Analyze(); });
     if (!ok) return false;
   }
-  auto rtl_clocks = m_tclCmdIntegration->GetPorts(
-      std::filesystem::path{ProjManager()->projectPath()} / "port_info.json");
+  auto port_info = FilePath(Action::Analyze, "port_info.json");
+  if (!FileUtils::FileExists(port_info)) {
+    ok = false;
+    return false;
+  }
+  auto rtl_clocks = m_tclCmdIntegration->GetPorts(port_info);
   const std::regex regex{str};
   for (const auto& clk : rtl_clocks) {
     if (std::regex_match(clk, regex)) return true;
@@ -632,12 +636,9 @@ bool CompilerOpenFPGA::DesignChangedForAnalysis(
   synth_script = InitAnalyzeScript();
   synth_script = FinishAnalyzeScript(synth_script);
 
-  synth_scrypt_path = ProjManager()->projectName() + "_analyzer.cmd";
   synth_scrypt_path =
-      (std::filesystem::path(ProjManager()->projectPath()) / synth_scrypt_path)
-          .string();
-  outputFile =
-      std::filesystem::path(ProjManager()->projectPath()) / "port_info.json";
+      FilePath(Action::Analyze, ProjManager()->projectName() + "_analyzer.cmd");
+  outputFile = FilePath(Action::Analyze, "port_info.json");
   return DesignChanged(synth_script, synth_scrypt_path, outputFile);
 }
 

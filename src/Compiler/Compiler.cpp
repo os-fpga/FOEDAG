@@ -2057,18 +2057,8 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
-  auto propriatePath = FilePath(action);
-  auto current_path = fs::current_path();
-  if (!propriatePath.empty()) {
-    // make sure path exists
-    bool ok = FileUtils::MkDirs(propriatePath);
-    if (ok) {
-      // switch actions context here
-      std::filesystem::current_path(propriatePath);
-    }
-  }
-  res = RunCompileTask(action);
-  if (!propriatePath.empty()) fs::current_path(current_path);
+  res = SwitchCompileContext(
+      action, [this, action]() { return RunCompileTask(action); });
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
@@ -2271,6 +2261,23 @@ bool Compiler::RunCompileTask(Action action) {
       break;
   }
   return false;
+}
+
+bool Compiler::SwitchCompileContext(Action action,
+                                    const std::function<bool()>& fn) {
+  auto propriatePath = FilePath(action);
+  auto current_path = fs::current_path();
+  if (!propriatePath.empty()) {
+    // make sure path exists
+    bool ok = FileUtils::MkDirs(propriatePath);
+    if (ok) {
+      // switch actions context here
+      std::filesystem::current_path(propriatePath);
+    }
+  }
+  auto res = fn();
+  if (!propriatePath.empty()) fs::current_path(current_path);
+  return res;
 }
 
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
