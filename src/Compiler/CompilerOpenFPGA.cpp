@@ -77,7 +77,7 @@ bool CompilerOpenFPGA::isRtlClock(const std::string& str, bool& ok) {
     ok = false;
     return false;
   }
-  auto rtl_clocks = m_tclCmdIntegration->GetPorts(port_info);
+  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info);
   const std::regex regex{str};
   for (const auto& clk : rtl_clocks) {
     if (std::regex_match(clk, regex)) return true;

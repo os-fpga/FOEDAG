@@ -350,7 +350,7 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
-std::vector<std::string> TclCommandIntegration::GetPorts(
+std::vector<std::string> TclCommandIntegration::GetClockList(
     const std::filesystem::path &path) const {
   PortsModel *portsModel = new PortsModel{};
   PortsLoader *portsLoader = new PortsLoader{portsModel};

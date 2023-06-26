@@ -58,7 +58,8 @@ class TclCommandIntegration : public QObject {
 
   ProjectManager *GetProjectManager();
   void saveSettings();
-  std::vector<std::string> GetPorts(const std::filesystem::path &path) const;
+  std::vector<std::string> GetClockList(
+      const std::filesystem::path &path) const;
 
  signals:
   void newDesign(const QString &);
