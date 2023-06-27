@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMovie>
 #include <QPushButton>
 
+#include "Compiler.h"
 #include "NewProject/ProjectManager/project.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TaskGlobal.h"
@@ -199,7 +200,12 @@ void TaskTableView::addTaskLogAction(QMenu *menu, FOEDAG::Task *task) {
   // Create View Log action and disable it if the file doesn't exist
   QString viewLogStr = "View " + title + " Logs";
   QAction *viewLog = new QAction(viewLogStr, this);
-  logFilePath.replace(PROJECT_OSRCDIR, Project::Instance()->projectPath());
+  auto compiler = m_taskManager->GetCompiler();
+  auto action = static_cast<Compiler::Action>(
+      FOEDAG::toAction(m_taskManager->taskId(task)));
+  auto filePath = compiler->FilePath(action);
+  logFilePath.replace(PROJECT_OSRCDIR,
+                      QString::fromStdString(filePath.string()));
   auto logExists = QFile::exists(logFilePath);
   viewLog->setEnabled(logExists);
   connect(viewLog, &QAction::triggered, this,

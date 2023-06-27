@@ -160,9 +160,6 @@ class CompilerOpenFPGA : public Compiler {
                              const std::filesystem::path& synth_scrypt_path,
                              const std::filesystem::path& outputFile);
   virtual void reloadSettings();
-  virtual std::vector<std::string> GetCleanFiles(
-      Action action, const std::string& projectName,
-      const std::string& topModule) const;
   virtual std::string InitSynthesisScript();
   virtual std::string FinishSynthesisScript(const std::string& script);
   virtual std::string InitAnalyzeScript();

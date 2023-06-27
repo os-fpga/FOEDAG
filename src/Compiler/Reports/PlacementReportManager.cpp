@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
@@ -157,6 +158,8 @@ void PlacementReportManager::parseLogFile() {
 }
 
 std::filesystem::path PlacementReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::Detailed, PLACEMENT_LOG);
   return logFilePath(PLACEMENT_LOG);
 }
 

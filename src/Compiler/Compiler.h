@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Tcl/TclInterpreter.h"
 
 class QProcess;
+namespace fs = std::filesystem;
 
 namespace FOEDAG {
 
@@ -106,6 +107,7 @@ class Compiler {
   enum class STAOpt { None, Clean, View };
   enum class BitstreamOpt { DefaultBitsOpt, Force, EnableSimulation, Clean };
   enum class STAEngineOpt { Tatum, Opensta };
+  static Action ToCompilerAction(Simulator::SimulationType type);
 
   // Most common use case, create the compiler in your main
   Compiler() { m_name = "dummy"; };
@@ -152,9 +154,6 @@ class Compiler {
                             const std::string& messagePrefix = "",
                             bool raw = false) const;
   virtual void reloadSettings() {}
-  virtual std::vector<std::string> GetCleanFiles(
-      Action action, const std::string& projectName,
-      const std::string& topModule) const;
   void CleanFiles(Action action);
   std::string GetMessagePrefix() const;
   void SetUseVerific(bool on) { m_useVerific = on; }
@@ -260,7 +259,7 @@ class Compiler {
 
   virtual int ExecuteAndMonitorSystemCommand(
       const std::string& command, const std::string logFile = std::string{},
-      bool appendLog = false);
+      bool appendLog = false, const fs::path& workingDir = {});
 
   void ProgrammerToolExecPath(const std::filesystem::path& path) {
     m_programmerToolExecutablePath = path;
@@ -281,6 +280,8 @@ class Compiler {
   std::string Name() const { return m_name; }
 
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
+  std::filesystem::path FilePath(Action action) const;
+  std::filesystem::path FilePath(Action action, const std::string& file) const;
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -331,7 +332,7 @@ class Compiler {
       const std::vector<std::pair<std::string, std::string>>& cmdDescPairs,
       int frontSpacePadCount, int descColumn);
   void writeWaveHelp(std::ostream* out, int frontSpacePadCount, int descColumn);
-  void AddHeadersToLogs();
+  void AddHeadersToLogs(Action action);
   void AddErrorLink(const class Task* const current);
   bool HasInternalError() const;
   /* Propected members */

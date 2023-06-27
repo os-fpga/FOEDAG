@@ -115,6 +115,14 @@ std::string FileUtils::GetFileContent(const std::filesystem::path& filename) {
   return result;
 }
 
+void FileUtils::WriteToFile(const std::filesystem::path& path,
+                            const std::string& content, bool newLine) {
+  std::ofstream ofs{path};
+  ofs << content;
+  if (newLine) ofs << std::endl;
+  ofs.close();
+}
+
 std::filesystem::path FileUtils::GetPathName(
     const std::filesystem::path& path) {
   return path.has_parent_path() ? path.parent_path() : "";
@@ -317,15 +325,19 @@ bool FileUtils::IsUptoDate(const std::string& sourceFile,
   return true;
 }
 
-std::string FileUtils::AdjustPath(const std::string& p) {
+std::string FileUtils::AdjustPath(const std::string& p,
+                                  const std::string& base) {
   std::filesystem::path the_path = p;
-  return AdjustPath(the_path);
+  if (the_path.is_absolute()) return p;
+  return AdjustPath(the_path, std::filesystem::relative(
+                                  base, std::filesystem::current_path()));
 }
 
-std::string FileUtils::AdjustPath(const std::filesystem::path& p) {
+std::string FileUtils::AdjustPath(const std::filesystem::path& p,
+                                  const std::filesystem::path& base) {
   std::filesystem::path the_path = p;
   if (!the_path.is_absolute()) {
-    the_path = std::filesystem::path("..") / p;
+    the_path = base / ".." / p;
   }
   return the_path.string();
 }
@@ -350,6 +362,14 @@ bool FileUtils::removeFile(const std::filesystem::path& file) noexcept {
   std::error_code ec;
   std::filesystem::remove_all(file, ec);
   return ec.value() == 0;
+}
+
+bool FileUtils::removeAll(const std::filesystem::path& path) {
+  bool ok{true};
+  for (auto const& dir_entry : std::filesystem::directory_iterator{path}) {
+    ok &= FileUtils::removeFile(dir_entry);
+  }
+  return ok;
 }
 
 }  // namespace FOEDAG

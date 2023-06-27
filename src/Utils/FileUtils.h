@@ -54,6 +54,8 @@ class FileUtils final {
   static uint64_t FileSize(const std::filesystem::path& name);
 
   static std::string GetFileContent(const std::filesystem::path& name);
+  static void WriteToFile(const std::filesystem::path& path,
+                          const std::string& content, bool newLine = true);
 
   static std::filesystem::path GetPreferredPath(
       const std::filesystem::path& path);
@@ -84,12 +86,14 @@ class FileUtils final {
   static bool IsUptoDate(const std::string& sourceFile,
                          const std::string& outputFile);
 
-  static std::string AdjustPath(const std::string& p);
-  static std::string AdjustPath(const std::filesystem::path& p);
+  static std::string AdjustPath(const std::string& p, const std::string& base);
+  static std::string AdjustPath(const std::filesystem::path& p,
+                                const std::filesystem::path& base);
 
   // return true if file was removed otherwise return false
   static bool removeFile(const std::string& file) noexcept;
   static bool removeFile(const std::filesystem::path& file) noexcept;
+  static bool removeAll(const std::filesystem::path& path);
 
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);

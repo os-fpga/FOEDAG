@@ -4,6 +4,7 @@
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include "Compiler.h"
 #include "CompilerDefines.h"
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
@@ -147,6 +148,8 @@ void PackingReportManager::parseLogFile() {
 }
 
 std::filesystem::path PackingReportManager::logFile() const {
+  if (m_compiler)
+    return m_compiler->FilePath(Compiler::Action::Pack, PACKING_LOG);
   return logFilePath(PACKING_LOG);
 }
 

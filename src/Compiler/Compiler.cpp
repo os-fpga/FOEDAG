@@ -72,22 +72,14 @@ using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 static const int CHATGPT_TIMEOUT{180000};
 
-auto CreateDummyLog =
-    [](ProjectManager* projManager,
-       const std::string& outfileName) -> std::filesystem::path {
-  std::filesystem::path outputPath{};
-
-  if (projManager) {
-    std::filesystem::path projectPath(projManager->projectPath());
-    outputPath = projectPath / outfileName;
-    if (FileUtils::FileExists(outputPath)) {
-      std::filesystem::remove(outputPath);
-    }
-    std::ofstream ofs(outputPath);
-    ofs << "Dummy log for " << outfileName << "\n";
-    ofs.close();
+auto CreateDummyLog = [](Compiler::Action action,
+                         const std::string& outfileName,
+                         Compiler* compiler) -> std::filesystem::path {
+  std::filesystem::path outputPath = compiler->FilePath(action, outfileName);
+  if (FileUtils::FileExists(outputPath)) {
+    std::filesystem::remove(outputPath);
   }
-
+  FileUtils::WriteToFile(outputPath, "Dummy log for " + outfileName);
   return outputPath;
 };
 
@@ -110,6 +102,21 @@ void Compiler::Help(ToolContext* context, std::ostream* out) {
 }
 
 void Compiler::CustomSimulatorSetup(Simulator::SimulationType action) {}
+
+Compiler::Action Compiler::ToCompilerAction(Simulator::SimulationType type) {
+  switch (type) {
+    case Simulator::SimulationType::RTL:
+      return Compiler::Action::SimulateRTL;
+    case Simulator::SimulationType::PNR:
+      return Compiler::Action::SimulatePNR;
+    case Simulator::SimulationType::Gate:
+      return Compiler::Action::SimulateGate;
+    case Simulator::SimulationType::BitstreamBackDoor:
+    case Simulator::SimulationType::BitstreamFrontDoor:
+      return Compiler::Action::SimulateBitstream;
+  }
+  return Compiler::Action::NoAction;
+}
 
 Compiler::Compiler(TclInterpreter* interp, std::ostream* out,
                    TclInterpreterHandler* tclInterpreterHandler)
@@ -174,20 +181,9 @@ void Compiler::ErrorMessage(const std::string& message, bool append,
   if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
-std::vector<std::string> Compiler::GetCleanFiles(
-    Action action, const std::string& projectName,
-    const std::string& topModule) const {
-  return {};
-}
-
 void Compiler::CleanFiles(Action action) {
-  const std::filesystem::path base{ProjManager()->projectPath()};
-  auto removeFiles = GetCleanFiles(action, ProjManager()->projectName(),
-                                   ProjManager()->DesignTopModule());
-  for (const auto& fileName : removeFiles) {
-    const std::filesystem::path p{base / fileName};
-    FileUtils::removeFile(p);
-  }
+  auto base = FilePath(action);
+  if (!base.empty()) FileUtils::removeAll(base);
 }
 
 static std::string TclInterpCloneScript() {
@@ -1953,11 +1949,10 @@ void Compiler::writeWaveHelp(std::ostream* out, int frontSpacePadCount,
 
 // Search the project directory for files ending in .rpt and add our header if
 // the file doesn't have it already
-void Compiler::AddHeadersToLogs() {
+void Compiler::AddHeadersToLogs(Action action) {
   auto projManager = ProjManager();
   if (projManager) {
-    std::filesystem::path projectPath(projManager->projectPath());
-    LogUtils::AddHeadersToLogs(projectPath);
+    LogUtils::AddHeadersToLogs(FilePath(action));
   }
 }
 
@@ -1993,6 +1988,49 @@ bool Compiler::HasInternalError() const {
   return false;
 }
 
+std::filesystem::path Compiler::FilePath(Action action) const {
+  if (!ProjManager()) return {};
+
+  fs::path base{fs::path{ProjManager()->projectPath()}};
+  base /= ProjectManager().projectName() + ".runs";
+  base /= "run_1";
+  fs::path synth{base / "synth_1"};
+  fs::path impl{base / "impl_1"};
+  switch (action) {
+    case Action::Analyze:
+      return synth / "analysis";
+    case Action::Synthesis:
+      return synth / "synthesis";
+    case Action::SimulateRTL:
+      return synth / "simulate_rtl";
+    case Action::SimulateGate:
+      return synth / "simulate_gate";
+    case Action::SimulatePNR:
+      return synth / "simulate_pnr";
+    case Action::SimulateBitstream:
+      return synth / "simulate_bitstream";
+    case Action::Pack:
+      return impl / "packing";
+    case Action::Detailed:
+      return impl / "placement";
+    case Action::Routing:
+      return impl / "routing";
+    case Action::STA:
+      return impl / "timing_analysis";
+    case Action::Power:
+      return impl / "power_analysis";
+    case Action::Bitstream:
+      return impl / "bitstream";
+    default:
+      return {};
+  }
+}
+
+std::filesystem::path Compiler::FilePath(Action action,
+                                         const std::string& file) const {
+  return FilePath(action) / file;
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
@@ -2019,7 +2057,18 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
+  auto propriatePath = FilePath(action);
+  auto current_path = fs::current_path();
+  if (!propriatePath.empty()) {
+    // make sure path exists
+    bool ok = FileUtils::MkDirs(propriatePath);
+    if (ok) {
+      // switch actions context here
+      std::filesystem::current_path(propriatePath);
+    }
+  }
   res = RunCompileTask(action);
+  if (!propriatePath.empty()) fs::current_path(current_path);
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
@@ -2028,8 +2077,9 @@ bool Compiler::Compile(Action action) {
 }
 
 void Compiler::GenerateReport(int action) {
-  handleJsonReportGeneration(m_taskManager->task(toTaskId(action, this)),
-                             m_taskManager, m_projManager->getProjectPath());
+  handleJsonReportGeneration(
+      m_taskManager->task(toTaskId(action, this)), m_taskManager,
+      QString::fromStdString(FilePath(static_cast<Action>(action)).string()));
 }
 
 void Compiler::Stop() {
@@ -2070,7 +2120,7 @@ bool Compiler::Analyze() {
   m_state = State::Analyzed;
   Message(("Design ") + m_projManager->projectName() + " is analyzed");
 
-  CreateDummyLog(m_projManager, ANALYSIS_LOG);
+  CreateDummyLog(Action::Analyze, ANALYSIS_LOG, this);
   return true;
 }
 
@@ -2108,7 +2158,7 @@ bool Compiler::Synthesize() {
   m_state = State::Synthesized;
   Message("Design " + m_projManager->projectName() + " is synthesized");
 
-  CreateDummyLog(m_projManager, SYNTHESIS_LOG);
+  CreateDummyLog(Action::Synthesis, SYNTHESIS_LOG, this);
   return true;
 }
 
@@ -2140,7 +2190,7 @@ bool Compiler::GlobalPlacement() {
   m_state = State::GloballyPlaced;
   Message("Design " + m_projManager->projectName() + " globally placed");
 
-  CreateDummyLog(m_projManager, GLOBAL_PLACEMENT_LOG);
+  CreateDummyLog(Action::Global, GLOBAL_PLACEMENT_LOG, this);
   return true;
 }
 
@@ -2171,8 +2221,8 @@ void Compiler::finish() {
 bool Compiler::RunCompileTask(Action action) {
   auto currentTask = m_taskManager->currentTask();
   // Use Scope Guard to add headers to new logs whenever this function exits
-  auto guard = sg::make_scope_guard([this, currentTask] {
-    AddHeadersToLogs();
+  auto guard = sg::make_scope_guard([this, currentTask, action] {
+    AddHeadersToLogs(action);
     AddErrorLink(currentTask);
   });
 
@@ -2361,7 +2411,7 @@ bool Compiler::IPGenerate() {
                  " IPs generation failed");
   }
 
-  CreateDummyLog(m_projManager, IP_GENERATE_LOG);
+  CreateDummyLog(Action::IPGen, IP_GENERATE_LOG, this);
   return status;
 }
 
@@ -2370,9 +2420,7 @@ bool Compiler::Packing() {
     Message("Cleaning packing results for " + ProjManager()->projectName());
     m_state = State::Synthesized;
     PackOpt(PackingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.net"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.net");
     return true;
   }
   if (!m_projManager->HasDesign()) {
@@ -2383,7 +2431,7 @@ bool Compiler::Packing() {
   Message("Design " + m_projManager->projectName() + " is packed");
   m_state = State::Packed;
 
-  CreateDummyLog(m_projManager, PACKING_LOG);
+  CreateDummyLog(Action::Pack, PACKING_LOG, this);
   return true;
 }
 
@@ -2396,16 +2444,14 @@ bool Compiler::Placement() {
     Message("Cleaning placement results for " + ProjManager()->projectName());
     m_state = State::GloballyPlaced;
     PlaceOpt(PlacementOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.place"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.place");
     return true;
   }
   Message("Placement for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is placed");
   m_state = State::Placed;
 
-  CreateDummyLog(m_projManager, PLACEMENT_LOG);
+  CreateDummyLog(Action::Detailed, PLACEMENT_LOG, this);
   return true;
 }
 
@@ -2418,9 +2464,7 @@ bool Compiler::Route() {
     Message("Cleaning routing results for " + ProjManager()->projectName());
     m_state = State::Placed;
     RouteOpt(RoutingOpt::None);
-    std::filesystem::remove(
-        std::filesystem::path(ProjManager()->projectPath()) /
-        std::string(ProjManager()->projectName() + "_post_synth.route"));
+    std::filesystem::remove(ProjManager()->projectName() + "_post_synth.route");
     return true;
   }
 
@@ -2428,7 +2472,7 @@ bool Compiler::Route() {
   Message("Design " + m_projManager->projectName() + " is routed");
   m_state = State::Routed;
 
-  CreateDummyLog(m_projManager, ROUTING_LOG);
+  CreateDummyLog(Action::Routing, ROUTING_LOG, this);
   return true;
 }
 
@@ -2439,7 +2483,7 @@ bool Compiler::TimingAnalysis() {
   }
   Message("Timing analysis for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is analyzed");
-  CreateDummyLog(m_projManager, TIMING_ANALYSIS_LOG);
+  CreateDummyLog(Action::STA, TIMING_ANALYSIS_LOG, this);
   return true;
 }
 
@@ -2451,7 +2495,7 @@ bool Compiler::PowerAnalysis() {
   Message("Power analysis for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " is analyzed");
 
-  CreateDummyLog(m_projManager, POWER_ANALYSIS_LOG);
+  CreateDummyLog(Action::Power, POWER_ANALYSIS_LOG, this);
   return true;
 }
 
@@ -2463,7 +2507,7 @@ bool Compiler::GenerateBitstream() {
   Message("Bitstream generation for design: " + m_projManager->projectName());
   Message("Design " + m_projManager->projectName() + " bitstream is generated");
 
-  CreateDummyLog(m_projManager, BITSTREAM_LOG);
+  CreateDummyLog(Action::Bitstream, BITSTREAM_LOG, this);
   return true;
 }
 
@@ -2629,10 +2673,8 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
 }
 
 const std::string Compiler::GetNetlistPath() {
-  std::string netlistFile =
-      (std::filesystem::path(ProjManager()->projectPath()) /
-       (ProjManager()->projectName() + "_post_synth.blif"))
-          .string();
+  std::string netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+  netlistFile = FilePath(Action::Synthesis, netlistFile).string();
 
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
@@ -2663,19 +2705,24 @@ void Compiler::SetEnvironmentVariable(const std::string variable,
   m_environmentVariableMap.emplace(variable, value);
 }
 
-int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
-                                             const std::string logFile,
-                                             bool appendLog) {
+int Compiler::ExecuteAndMonitorSystemCommand(
+    const std::string& command, const std::string logFile, bool appendLog,
+    const std::filesystem::path& workingDir) {
   auto start = Time::now();
   PERF_LOG("Command: " + command);
   (*m_out) << "Command: " << command << std::endl;
   std::error_code ec;
   auto path = std::filesystem::current_path();  // getting path
-  std::filesystem::current_path(m_projManager->projectPath(),
-                                ec);  // setting path
+  std::filesystem::current_path(
+      workingDir.empty() ? fs::path{ProjManager()->projectPath()} : workingDir,
+      ec);  // setting path
   // new QProcess must be created here to avoid issues related to creating
   // QObjects in different threads
   m_process = new QProcess;
+  if (!workingDir.empty()) {
+    m_process->setWorkingDirectory(QString::fromStdString(workingDir.string()));
+    FileUtils::MkDirs(workingDir);
+  }
   QStringList env = QProcess::systemEnvironment();
   if (!m_environmentVariableMap.empty()) {
     for (std::map<std::string, std::string>::iterator itr =

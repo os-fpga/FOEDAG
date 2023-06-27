@@ -34,6 +34,7 @@ class QTextStream;
 namespace FOEDAG {
 
 class TaskManager;
+class Compiler;
 
 /* Abstract implementation holding common logic for report managers.
  *
@@ -124,6 +125,7 @@ class AbstractReportManager : public ITaskReportManager {
   IDataReport::ColumnValues m_clockColumns;
 
   Messages m_messages;
+  Compiler *m_compiler{nullptr};
 
  private:
   time_t m_fileTimeStamp{-1};
