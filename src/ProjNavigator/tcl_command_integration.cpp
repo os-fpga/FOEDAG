@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Compiler/CompilerDefines.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "PinAssignment/PortsLoader.h"
+#include "PinAssignment/PortsModel.h"
 #include "ProjNavigator/sources_form.h"
 #include "Utils/QtUtils.h"
 
@@ -347,6 +349,22 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 }
 
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
+
+std::vector<std::string> TclCommandIntegration::GetClockList(
+    const std::filesystem::path &path) const {
+  PortsModel *portsModel = new PortsModel{};
+  PortsLoader *portsLoader = new PortsLoader{portsModel};
+  auto returnValue = portsLoader->load(QString::fromStdString(path.string()));
+  std::vector<std::string> ports;
+  if (returnValue.first) {
+    for (const auto &gr : portsModel->ports()) {
+      for (const auto &port : gr.ports) {
+        if (!port.isBus) ports.push_back(port.name.toStdString());
+      }
+    }
+  }
+  return ports;
+}
 
 void TclCommandIntegration::createNewDesign(const QString &projName,
                                             int projectType) {

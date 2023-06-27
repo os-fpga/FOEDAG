@@ -36,7 +36,7 @@ ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
   connect(Project::Instance(), &Project::saveFile, this,
           &ProjectFileLoader::Save);
-  m_components.resize(static_cast<size_t>(ComponentId::Count));
+  m_components.resize(static_cast<size_t>(ComponentId::Count), nullptr);
 }
 
 ProjectFileLoader::~ProjectFileLoader() {
@@ -97,6 +97,9 @@ void ProjectFileLoader::LoadInternal(const QString &filename) {
       target_device(device);
     }
   }
+
+  for (const auto &component : m_components)
+    if (component) component->LoadDone();
 
   if (reader.hasError()) {
     return;

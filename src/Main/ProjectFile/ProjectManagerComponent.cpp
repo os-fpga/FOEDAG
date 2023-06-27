@@ -527,6 +527,9 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
       }
     }
   }
+}
+
+void ProjectManagerComponent::LoadDone() {
   const auto constrSets = m_projectManager->getConstrFileSets();
   for (const auto& set : constrSets) {
     const auto files = m_projectManager->getConstrFiles(set);

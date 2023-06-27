@@ -140,6 +140,8 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
+  virtual bool isRtlClock(const std::string& str, bool& ok);
+
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
@@ -173,6 +175,9 @@ class CompilerOpenFPGA : public Compiler {
   static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
                                        const std::string& srcFileName,
                                        const std::string& destFileName);
+  bool DesignChangedForAnalysis(std::string& synth_script,
+                                std::filesystem::path& synth_scrypt_path,
+                                std::filesystem::path& outputFile);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;
