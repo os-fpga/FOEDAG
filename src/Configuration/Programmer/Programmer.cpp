@@ -30,6 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 #include <unordered_set>
 
+namespace FOEDAG {
+
 std::string buildFpgaProgramCommand(const std::string& bitstream_file,
                                     const std::string& config_file,
                                     int pld_index) {
@@ -285,7 +287,7 @@ bool GetFpgaStatus(const Device& device, CfgStatus& status) {
 int ProgramFpga(const Device& device, const std::string& bitfile,
                 const std::string& cfgfile, std::ostream* outStream,
                 OutputCallback callbackMsg, ProgressCallback callbackProgress,
-                std::atomic<bool> stop) {
+                std::atomic<bool>& stop) {
   std::vector<std::string> runMessages{
       "Open On-Chip Debugger 0.12.0+dev-g7c8f503b4 (2023-06-12-08:16)\n",
       "Licensed under GNU GPL v2\n",
@@ -340,6 +342,8 @@ int ProgramFpga(const Device& device, const std::string& bitfile,
 bool ProgramFlash(const Device& device, const std::string& bitfile,
                   const std::string& cfgfile, Operation modes,
                   std::ostream* outStream, OutputCallback callbackMsg,
-                  ProgressCallback callbackProgress, std::atomic<bool> stop) {
+                  ProgressCallback callbackProgress, std::atomic<bool>& stop) {
   return 0;
 }
+
+}  // namespace FOEDAG
