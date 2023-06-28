@@ -409,7 +409,8 @@ int CFG_execute_cmd_with_callback(
     }
   }
 
-  int exit_code = WEXITSTATUS(PCLOSE(pipe));
+  int status = PCLOSE(pipe);
+  int exit_code = WEXITSTATUS(status);
   return exit_code;
 }
 
