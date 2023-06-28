@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CFGCommon/CFGArg_auto.h"
 #include "CFGCommon/CFGCommon.h"
 
+namespace FOEDAG {
+
 static const std::vector<std::string> programmer_subcmd{
     "fpga_config", "fpga_status", "flash", "list_devices"};
 
@@ -91,9 +93,11 @@ bool GetFpgaStatus(const Device& device, CfgStatus& status);
 int ProgramFpga(const Device& device, const std::string& bitfile,
                 const std::string& cfgfile, std::ostream* outStream,
                 OutputCallback callbackMsg, ProgressCallback callbackProgress,
-                std::atomic<bool> stop);
+                std::atomic<bool>& stop);
 bool ProgramFlash(const Device& device, const std::string& bitfile,
                   const std::string& cfgfile, Operation modes,
                   std::ostream* outStream, OutputCallback callbackMsg,
-                  ProgressCallback callbackProgress, std::atomic<bool> stop);
+                  ProgressCallback callbackProgress, std::atomic<bool>& stop);
 #endif
+
+}  // namespace FOEDAG
