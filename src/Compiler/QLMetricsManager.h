@@ -36,6 +36,8 @@ class AuroraMetrics {
     std::string match_type;
     // value parsed from the file as string
     std::string string_value;
+    // units of the value, if any
+    std::string value_units;
     // was the metric found after parsing
     bool found = false;
 };
@@ -65,6 +67,7 @@ private:
 public:
   json metrics_json;
   std::vector<AuroraMetrics> aurora_metrics_list;
+  std::string rpt_delimiter = ";";
 
 public:
   static QLMetricsManager* instance;

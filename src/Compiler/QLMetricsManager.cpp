@@ -330,12 +330,22 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
 
           metric.string_value = smatches.str(1);
           // std::cout << "metric.string_value: " << metric.string_value << std::endl;
+          if(regex.mark_count() == 2) {
+            // we expect to also have a "units" capture group at 2:
+            metric.value_units = smatches.str(2);
+          }
           metric.found = true;
       }
       else if(metric.match_type == "last") {
 
-          metric.string_value = smatches.str(smatches.size()-1);
+          // this is not the right way for last, we need to do repeated search till end.
+          // FIX IT.
+          metric.string_value = smatches.str(1);
           // std::cout << "metric.string_value: " << metric.string_value << std::endl;
+          if(regex.mark_count() == 2) {
+            // we expect to also have a "units" capture group at 2:
+            metric.value_units = smatches.str(2);
+          }
           metric.found = true;
       }
       // TODO: future, we can concat strings, or add all warnings to get total etc.
@@ -353,6 +363,19 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
     }
     else {
       // std::cout << ">> metric not found in logs: " << metric.regex << std::endl;
+      // if not found:
+      //    if string -> keep it empty?
+      //    if int -> make it 0
+      //    if double -> make it 0
+      if(metric.type == "string") {
+        metric.string_value = "not-available";
+      }
+      else if(metric.type == "int") {
+        metric.string_value = "0";
+      }
+      else if (metric.type == "double") {
+        metric.string_value = "0";
+      }
     }
   }
 
@@ -372,9 +395,20 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
     metrics_rpt.open(metrics_rpt_filepath);
   
     // header:
-    metrics_rpt << "category" << "," << "subcategory" << "," << "name" << "," << "found" << "," << "value" << std::endl;
+    metrics_rpt << "category" << rpt_delimiter
+                << "subcategory" << rpt_delimiter
+                << "name" << rpt_delimiter
+                << "found" << rpt_delimiter
+                << "value" << rpt_delimiter
+                << "units" << std::endl;
+    
     for (const AuroraMetrics& metric: metrics_list) {
-      metrics_rpt << metric.category << "," << metric.subcategory << "," << metric.name << "," << metric.found << "," << metric.string_value << std::endl;
+      metrics_rpt << metric.category << rpt_delimiter
+                  << metric.subcategory << rpt_delimiter
+                  << metric.name << rpt_delimiter
+                  << metric.found << rpt_delimiter
+                  << metric.string_value << rpt_delimiter
+                  << metric.value_units << std::endl;
     }
 
     // close the file stream
