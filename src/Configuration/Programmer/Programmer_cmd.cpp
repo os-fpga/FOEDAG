@@ -58,8 +58,6 @@ int main(int argc, const char** argv) {
                  std::to_string(status.cfgError).c_str());
   }
 
-  Operation modes = Operation::Erase | Operation::BlankCheck |
-                    Operation::Program | Operation::Verify;
   OutputCallback callback = [](std::string msg) {
     CFG_POST_MSG("### OutputCallback API testing ###");
     CFG_POST_MSG("OutputCallback msg: %s", msg.c_str());
