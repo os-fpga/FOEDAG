@@ -2125,9 +2125,11 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       auto fileList =
           StringUtils::join({libFileName.string(), netlistFileName.string(),
                              sdfFileName.string(), sdcFileName.string()},
-                            ", ");
-      ErrorMessage("No required design info (" + fileList +
-                   ") generated for user design, required for timing analysis");
+                            "\n");
+      ErrorMessage(
+          "No required design info generated for user design, required for "
+          "timing analysis:\n" +
+          fileList);
       return false;
     }
   } else {  // use vpr/tatum engine
