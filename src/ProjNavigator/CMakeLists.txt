@@ -27,6 +27,7 @@ set (SRC_CPP_LIST
   select_file_type_form.cpp
   tcl_command_integration.cpp
   PropertyWidget.cpp
+  FileExplorer.cpp
 )
 
 set (SRC_H_LIST
@@ -36,7 +37,8 @@ set (SRC_H_LIST
   add_file_form.h
   select_file_type_form.h
   tcl_command_integration.h
-  PropertyWidget.cpp
+  PropertyWidget.h
+  FileExplorer.h
 )
 
 set (SRC_UI_LIST
