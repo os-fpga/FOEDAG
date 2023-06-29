@@ -2920,7 +2920,13 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
           language = Design::Language::CPP;
           actualType = "C++";
         } else {
-          actualType = "VERILOG_2001";
+          if (filesType == AddFilesType::Design) {
+            language = Design::Language::VERILOG_2001;
+            actualType = "VERILOG_2001";
+          } else {
+            language = Design::Language::SYSTEMVERILOG_2012;
+            actualType = "SV_2012";
+          }
         }
       }
       const std::string file = argv[i];
