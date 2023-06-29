@@ -130,20 +130,19 @@ static std::filesystem::path GetProgramNameAbsolutePath(const char* progname) {
   return progname;  // Didn't find anything, return progname as-is.
 }
 
-void loadTclInitFile(CommandStack* commandStack,
-                     const std::string& initFilePrefix) {
+void loadTclInitFile(CommandStack* commandStack, ToolContext* context) {
   if (!commandStack) return;
 
   // Get the home and the local paths
   // std c++ doesn't have a concept of a home dir so we use QDir instead
   std::filesystem::path homeDir =
       std::filesystem::path(QDir::homePath().toStdString());
-  std::filesystem::path localDir =
-      std::filesystem::path(QDir::currentPath().toStdString());
-  std::vector<std::filesystem::path> searchPaths{homeDir, localDir};
+  std::filesystem::path localDir = std::filesystem::current_path();
+  auto etc = context->DataPath() / "etc";
+  std::vector<std::filesystem::path> searchPaths{homeDir, localDir, etc};
 
   // Search for and load/source each file match in searchPaths
-  std::string fileName = initFilePrefix + "_init.tcl";
+  std::string fileName = context->ExecutableName() + "_init.tcl";
   for (auto path : FileUtils::FindFileInDirs(fileName, searchPaths, true)) {
     std::string cmd = "source " + path.string();
     commandStack->push_and_exec(new Command(cmd));
@@ -186,7 +185,7 @@ bool Foedag::initGui() {
   FOEDAG::CommandStack* commands =
       new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
 
-  loadTclInitFile(commands, m_context->ExecutableName());
+  loadTclInitFile(commands, m_context);
 
   QWidget* mainWin = nullptr;
 
@@ -375,7 +374,7 @@ bool Foedag::initBatch() {
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
 
-  loadTclInitFile(commands, m_context->ExecutableName());
+  loadTclInitFile(commands, m_context);
 
   GlobalSession->setGuiType(GUI_TYPE::GT_NONE);
   m_compiler->setGuiTclSync(
