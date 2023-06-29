@@ -1992,10 +1992,10 @@ std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
   fs::path base{fs::path{ProjManager()->projectPath()}};
-  base /= ProjectManager().projectName() + ".runs";
+  // _1_1 is default.This will be changed after multiple run implementation
   base /= "run_1";
-  fs::path synth{base / "synth_1"};
-  fs::path impl{base / "impl_1"};
+  fs::path synth{base / "synth_1_1"};
+  fs::path impl{base / "impl_1_1"};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";

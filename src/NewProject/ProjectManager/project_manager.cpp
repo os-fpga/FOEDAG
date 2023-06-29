@@ -1511,14 +1511,6 @@ int ProjectManager::CreateProjectDir() {
       ret = -2;
       break;
     }
-
-    auto runsPath = tmpPath + "/" + tmpName + ".runs";
-    if (!QDir{runsPath}.exists()) {
-      if (!dir.mkdir(runsPath)) {
-        ret = -2;
-        break;
-      }
-    }
   } while (false);
 
   return ret;
