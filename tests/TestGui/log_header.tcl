@@ -2,7 +2,7 @@ gui_start
 create_design log_header
 
 # create an empty report before we run the analyze the step
-set fakePath log_header/log_header.runs/run_1/synth_1/analysis
+set fakePath log_header/run_1/synth_1_1/analysis
 file mkdir $fakePath
 set fp [open "$fakePath/fake.rpt" w]
 close $fp
