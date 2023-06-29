@@ -73,6 +73,8 @@ class FileUtils final {
 
   static std::filesystem::path FindFileByExtension(
       const std::filesystem::path& path, const std::string& extension);
+  static std::vector<std::filesystem::path> FindFilesByExtension(
+      const std::filesystem::path& path, const std::string& extension);
 
   static Return ExecuteSystemCommand(const std::string& command,
                                      const std::vector<std::string>& args,
