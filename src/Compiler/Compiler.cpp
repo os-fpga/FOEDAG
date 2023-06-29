@@ -2031,6 +2031,21 @@ std::filesystem::path Compiler::FilePath(Action action,
   return FilePath(action) / file;
 }
 
+std::vector<std::string> Compiler::TopModules(
+    const std::filesystem::path& ports_info) const {
+  std::vector<std::string> topModules;
+  if (FileUtils::FileExists(ports_info)) {
+    std::ifstream file(ports_info);
+    json data = json::parse(file);
+    if (data.is_array()) {
+      std::transform(
+          data.begin(), data.end(), std::back_inserter(topModules),
+          [](json val) -> std::string { return val.value("topModule", ""); });
+    }
+  }
+  return topModules;
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
