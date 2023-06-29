@@ -138,12 +138,17 @@ void loadTclInitFile(CommandStack* commandStack, ToolContext* context) {
   std::filesystem::path homeDir =
       std::filesystem::path(QDir::homePath().toStdString());
   std::filesystem::path localDir = std::filesystem::current_path();
-  auto etc = context->DataPath() / "etc";
-  std::vector<std::filesystem::path> searchPaths{homeDir, localDir, etc};
+  std::vector<std::filesystem::path> searchPaths{homeDir, localDir};
 
   // Search for and load/source each file match in searchPaths
   std::string fileName = context->ExecutableName() + "_init.tcl";
   for (auto path : FileUtils::FindFileInDirs(fileName, searchPaths, true)) {
+    std::string cmd = "source " + path.string();
+    commandStack->push_and_exec(new Command(cmd));
+  }
+
+  auto etc = context->DataPath() / "etc" / "init";
+  for (const auto& path : FileUtils::FindFilesByExtension(etc, ".tcl")) {
     std::string cmd = "source " + path.string();
     commandStack->push_and_exec(new Command(cmd));
   }
