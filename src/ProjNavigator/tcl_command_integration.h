@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include <QObject>
 #include <QString>
+#include <filesystem>
 #include <ostream>
 
 namespace FOEDAG {
@@ -57,6 +58,8 @@ class TclCommandIntegration : public QObject {
 
   ProjectManager *GetProjectManager();
   void saveSettings();
+  std::vector<std::string> GetClockList(
+      const std::filesystem::path &path) const;
 
  signals:
   void newDesign(const QString &);

@@ -46,6 +46,7 @@ class ProjectFileComponent : public QObject {
   virtual ~ProjectFileComponent() = default;
   virtual void Save(QXmlStreamWriter *writer);
   virtual void Load(QXmlStreamReader *reader) {}
+  virtual void LoadDone() {}
 
  signals:
   void saveFile();

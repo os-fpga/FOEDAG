@@ -35,6 +35,7 @@
 #include <QTextStream>
 #include <chrono>
 #include <filesystem>
+#include <regex>
 #include <sstream>
 #include <thread>
 
@@ -60,6 +61,28 @@ void CompilerOpenFPGA::Version(std::ostream* out) {
   (*out) << "Foedag OpenFPGA Compiler"
          << "\n";
   LogUtils::PrintVersion(out);
+}
+
+bool CompilerOpenFPGA::isRtlClock(const std::string& str, bool& ok) {
+  std::string synth_script;
+  std::filesystem::path synth_scrypt_path;
+  std::filesystem::path outputFile;
+  ok = true;
+  if (DesignChangedForAnalysis(synth_script, synth_scrypt_path, outputFile)) {
+    ok = SwitchCompileContext(Action::Analyze, [this]() { return Analyze(); });
+    if (!ok) return false;
+  }
+  auto port_info = FilePath(Action::Analyze, "port_info.json");
+  if (!FileUtils::FileExists(port_info)) {
+    ok = false;
+    return false;
+  }
+  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info);
+  const std::regex regex{str};
+  for (const auto& clk : rtl_clocks) {
+    if (std::regex_match(clk, regex)) return true;
+  }
+  return false;
 }
 
 std::vector<std::string> CompilerOpenFPGA::helpTags() const {
@@ -607,6 +630,18 @@ std::filesystem::path CompilerOpenFPGA::copyLog(
   return dest;
 }
 
+bool CompilerOpenFPGA::DesignChangedForAnalysis(
+    std::string& synth_script, std::filesystem::path& synth_scrypt_path,
+    std::filesystem::path& outputFile) {
+  synth_script = InitAnalyzeScript();
+  synth_script = FinishAnalyzeScript(synth_script);
+
+  synth_scrypt_path =
+      FilePath(Action::Analyze, ProjManager()->projectName() + "_analyzer.cmd");
+  outputFile = FilePath(Action::Analyze, "port_info.json");
+  return DesignChanged(synth_script, synth_scrypt_path, outputFile);
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
@@ -910,25 +945,15 @@ bool CompilerOpenFPGA::Analyze() {
     LogUtils::AddHeaderToLog(logPath);
   });
 
-  auto printTopModules = [](const std::filesystem::path& filePath,
-                            std::ostream* out) {
+  auto printTopModules = [this](const std::filesystem::path& filePath,
+                                std::ostream* out) {
     // Check for "topModule" in a given json filePath
     // Assumed json format is [ { "topModule" : "some_value"} ]
     if (out) {
-      if (FileUtils::FileExists(filePath)) {
-        std::ifstream file(filePath);
-        json data = json::parse(file);
-        if (data.is_array()) {
-          std::vector<std::string> topModules;
-          std::transform(data.begin(), data.end(),
-                         std::back_inserter(topModules),
-                         [](json val) -> std::string {
-                           return val.value("topModule", "");
-                         });
-
-          (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
-                 << std::endl;
-        }
+      auto topModules = TopModules(filePath);
+      if (!topModules.empty()) {
+        (*out) << "Top Modules: " << StringUtils::join(topModules, ", ")
+               << std::endl;
       }
     }
   };
@@ -948,12 +973,10 @@ bool CompilerOpenFPGA::Analyze() {
   Message("Analysis for design: " + ProjManager()->projectName());
   Message("##################################################");
 
-  std::string analysisScript = InitAnalyzeScript();
-  analysisScript = FinishAnalyzeScript(analysisScript);
-
-  std::string script_path = ProjManager()->projectName() + "_analyzer.cmd";
-  std::filesystem::path output_path = "port_info.json";
-  if (!DesignChanged(analysisScript, script_path, output_path)) {
+  std::string analysisScript;
+  std::filesystem::path script_path;
+  std::filesystem::path output_path;
+  if (!DesignChangedForAnalysis(analysisScript, script_path, output_path)) {
     Message("Design didn't change: " + ProjManager()->projectName() +
             ", skipping analysis.");
     std::stringstream tempOut{};
@@ -972,7 +995,7 @@ bool CompilerOpenFPGA::Analyze() {
                    m_analyzeExecutablePath.string());
       return false;
     }
-    command = m_analyzeExecutablePath.string() + " -f " + script_path;
+    command = m_analyzeExecutablePath.string() + " -f " + script_path.string();
     Message("Analyze command: " + command);
     status = ExecuteAndMonitorSystemCommand(command, analyse_path.string(),
                                             false, FilePath(Action::Analyze));
@@ -2083,28 +2106,30 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       return false;
     }
     // find files
-    std::string libFileName =
-        ProjManager()->projectName() + ".lib";  // this is the standard sdc file
-    std::string netlistFileName =
-        ProjManager()->projectName() + "_post_synthesis.v";
-    std::string sdfFileName =
-        ProjManager()->projectName() + "_post_synthesis.sdf";
-    // std::string sdcFile = ProjManager()->getConstrFiles();
-    std::string sdcFileName =
-        ProjManager()->projectName() + ".sdc";  // this is the standard sdc file
+    auto projName = ProjManager()->projectName();
+    auto libFileName = FilePath(Action::STA, projName + ".lib");
+    auto netlistFileName =
+        FilePath(Action::STA, projName + "_post_synthesis.v");
+    auto sdfFileName = FilePath(Action::STA, projName + "_post_synthesis.sdf");
+    auto sdcFileName = FilePath(Action::STA, projName + ".sdc");
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
         std::filesystem::is_regular_file(sdfFileName) &&
         std::filesystem::is_regular_file(sdcFileName)) {
-      taCommand =
-          BaseStaCommand() + " " +
-          BaseStaScript(libFileName, netlistFileName, sdfFileName, sdcFileName);
+      taCommand = BaseStaCommand() + " " +
+                  BaseStaScript(libFileName.string(), netlistFileName.string(),
+                                sdfFileName.string(), sdcFileName.string());
       auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
       FileUtils::WriteToFile(file, taCommand);
     } else {
+      auto fileList =
+          StringUtils::join({libFileName.string(), netlistFileName.string(),
+                             sdfFileName.string(), sdcFileName.string()},
+                            "\n");
       ErrorMessage(
-          "No required design info generated for user design, required "
-          "for timing analysis");
+          "No required design info generated for user design, required for "
+          "timing analysis:\n" +
+          fileList);
       return false;
     }
   } else {  // use vpr/tatum engine

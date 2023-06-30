@@ -1992,10 +1992,10 @@ std::filesystem::path Compiler::FilePath(Action action) const {
   if (!ProjManager()) return {};
 
   fs::path base{fs::path{ProjManager()->projectPath()}};
-  base /= ProjectManager().projectName() + ".runs";
+  // _1_1 is default.This will be changed after multiple run implementation
   base /= "run_1";
-  fs::path synth{base / "synth_1"};
-  fs::path impl{base / "impl_1"};
+  fs::path synth{base / "synth_1_1"};
+  fs::path impl{base / "impl_1_1"};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";
@@ -2031,6 +2031,21 @@ std::filesystem::path Compiler::FilePath(Action action,
   return FilePath(action) / file;
 }
 
+std::vector<std::string> Compiler::TopModules(
+    const std::filesystem::path& ports_info) const {
+  std::vector<std::string> topModules;
+  if (FileUtils::FileExists(ports_info)) {
+    std::ifstream file(ports_info);
+    json data = json::parse(file);
+    if (data.is_array()) {
+      std::transform(
+          data.begin(), data.end(), std::back_inserter(topModules),
+          [](json val) -> std::string { return val.value("topModule", ""); });
+    }
+  }
+  return topModules;
+}
+
 DeviceData Compiler::deviceData() const { return m_deviceData; }
 
 void Compiler::setDeviceData(const DeviceData& newDeviceData) {
@@ -2057,18 +2072,8 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
-  auto propriatePath = FilePath(action);
-  auto current_path = fs::current_path();
-  if (!propriatePath.empty()) {
-    // make sure path exists
-    bool ok = FileUtils::MkDirs(propriatePath);
-    if (ok) {
-      // switch actions context here
-      std::filesystem::current_path(propriatePath);
-    }
-  }
-  res = RunCompileTask(action);
-  if (!propriatePath.empty()) fs::current_path(current_path);
+  res = SwitchCompileContext(
+      action, [this, action]() { return RunCompileTask(action); });
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
@@ -2271,6 +2276,23 @@ bool Compiler::RunCompileTask(Action action) {
       break;
   }
   return false;
+}
+
+bool Compiler::SwitchCompileContext(Action action,
+                                    const std::function<bool()>& fn) {
+  auto compilePath = FilePath(action);
+  auto current_path = fs::current_path();
+  if (!compilePath.empty()) {
+    // make sure path exists
+    bool ok = FileUtils::MkDirs(compilePath);
+    if (ok) {
+      // switch actions context here
+      std::filesystem::current_path(compilePath);
+    }
+  }
+  auto res = fn();
+  if (!compilePath.empty()) fs::current_path(current_path);
+  return res;
 }
 
 void Compiler::setTaskManager(TaskManager* newTaskManager) {
@@ -2913,7 +2935,13 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
           language = Design::Language::CPP;
           actualType = "C++";
         } else {
-          actualType = "VERILOG_2001";
+          if (filesType == AddFilesType::Design) {
+            language = Design::Language::VERILOG_2001;
+            actualType = "VERILOG_2001";
+          } else {
+            language = Design::Language::SYSTEMVERILOG_2012;
+            actualType = "SV_2012";
+          }
         }
       }
       const std::string file = argv[i];

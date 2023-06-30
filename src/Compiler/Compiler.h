@@ -282,6 +282,9 @@ class Compiler {
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
   std::filesystem::path FilePath(Action action) const;
   std::filesystem::path FilePath(Action action, const std::string& file) const;
+  virtual bool isRtlClock(const std::string& str, bool& ok) { return false; }
+  std::vector<std::string> TopModules(
+      const std::filesystem::path& ports_info) const;
 
  protected:
   /* Methods that can be customized for each new compiler flow */
@@ -314,6 +317,7 @@ class Compiler {
   /* Compiler class utilities */
   bool RunBatch();
   bool RunCompileTask(Action action);
+  bool SwitchCompileContext(Action action, const std::function<bool(void)>& fn);
 
   void SetEnvironmentVariable(const std::string variable,
                               const std::string value);

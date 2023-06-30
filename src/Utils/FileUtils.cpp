@@ -233,6 +233,22 @@ std::filesystem::path FileUtils::FindFileByExtension(
   return {};
 }
 
+std::vector<std::filesystem::path> FileUtils::FindFilesByExtension(
+    const std::filesystem::path& path, const std::string& extension) {
+  std::vector<std::filesystem::path> files;
+  if (FileUtils::FileExists(path)) {
+    for (const std::filesystem::path& entry :
+         std::filesystem::directory_iterator(path)) {
+      if (FileUtils::FileIsRegular(entry)) {
+        if (StringUtils::toLower(entry.extension().string()) ==
+            StringUtils::toLower(extension))
+          files.push_back(entry);
+      }
+    }
+  }
+  return files;
+}
+
 Return FileUtils::ExecuteSystemCommand(const std::string& command,
                                        const std::vector<std::string>& args,
                                        std::ostream* out, int timeout_ms,
