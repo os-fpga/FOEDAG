@@ -38,12 +38,15 @@ FileExplorer::FileExplorer(QObject *parent) : QObject(parent) {
   m_model = new FileSystemModel;
   m_model->setIconProvider(new QFileIconProvider);
   m_model->setRootPath({});
+  m_model->setFilter(QDir::AllEntries | QDir::Files | QDir::Filter::NoDot);
   m_tree = new QTreeView;
   connect(m_tree, &QTreeView::doubleClicked, this,
           [this](const QModelIndex &index) {
             auto path = m_model->filePath(index);
             if (std::filesystem::is_regular_file(path.toStdString())) {
               emit openFile(path);
+            } else {
+              m_tree->setRootIndex(m_model->index(path));
             }
           });
   m_tree->setModel(m_model);
