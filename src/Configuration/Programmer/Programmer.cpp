@@ -315,6 +315,9 @@ int ProgramFpga(const Device& device, const std::string& bitfile,
     }
     std::string runProgress("Info : [RS] Progress " + std::to_string(i) +
                             ".00% (34816/34816 bytes)\n");
+    if (outStream != nullptr) {
+      *outStream << runProgress;
+    }
     if (callbackMsg != nullptr) {
       callbackMsg(runProgress);
     }
