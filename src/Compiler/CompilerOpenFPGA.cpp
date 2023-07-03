@@ -1513,11 +1513,13 @@ std::string CompilerOpenFPGA::BaseVprCommand() {
   }
   if (!PnROpt().empty()) pnrOptions += " " + PnROpt();
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
+  auto sdcFile =
+      FilePath(Action::Pack, ProjManager()->projectName() + "_openfpga.sdc")
+          .string();
   std::string command =
       m_vprExecutablePath.string() + std::string(" ") +
       m_architectureFile.string() + std::string(" ") +
-      std::string(netlistFile + std::string(" --sdc_file ") +
-                  std::string(ProjManager()->projectName() + "_openfpga.sdc") +
+      std::string(netlistFile + std::string(" --sdc_file ") + sdcFile +
                   std::string(" --clock_modeling ideal --route_chan_width ") +
                   std::to_string(m_channel_width) + device_size + pnrOptions);
 
