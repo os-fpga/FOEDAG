@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(compiler LANGUAGES CXX)
+project(programmer-gui LANGUAGES CXX)
 
 if (PRODUCTION_BUILD)
   message("Production Build type set to ON")

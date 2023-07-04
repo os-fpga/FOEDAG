@@ -33,8 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
-#include "Compiler/WorkerThread.h"
-#include "Utils/QtUtils.h"
 #include "qdebug.h"
 #include "ui_ProgrammerMain.h"
 
@@ -42,6 +40,18 @@ namespace FOEDAG {
 
 static const char *NONE_STR{"-"};
 QMenu *contextMenu = nullptr;
+
+bool StartThread(const std::function<bool(void)> &fn) {
+  bool result = true;
+  QEventLoop eventLoop{};
+  auto m_thread = new std::thread([&]() {
+    result = fn();
+    eventLoop.quit();
+  });
+  eventLoop.exec();
+  m_thread->join();
+  return result;
+}
 
 ProgrammerMain::ProgrammerMain(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::ProgrammerMain) {
@@ -187,7 +197,7 @@ void ProgrammerMain::addFile() {
       this, tr("Select File"), "", "Bitstream file (*)", nullptr, option);
 
   if (current) {
-    auto ds = m_items.key(current);
+    auto ds = m_items.value(current);
     ds->devOptions.file = fileName;
     if (ds->flash) {  // device
       ds->devOptions.operations = QStringList{{"Configure"}};
@@ -337,7 +347,6 @@ bool ProgrammerMain::VerifyDevices() {
 }
 
 void ProgrammerMain::start() {
-  WorkerThread thread{{}, Compiler::Action::NoAction, nullptr};
   std::ostream *outStream = &std::cout;
   stop = false;
   auto outputCallback = [this](const QString &msg) { emit appendOutput(msg); };
@@ -348,33 +357,21 @@ void ProgrammerMain::start() {
   while (!m_deviceTmp.isEmpty()) {
     auto dev = m_deviceTmp.first();
     setStatus(dev, InProgress);
-    auto ProgramFpga = [this, outputCallback](
-                           const FoedagDevice &device, const QString &bitfile,
-                           const QString &cfgfile, std::ostream *outStream,
-                           OutputCallback outputMsg, ProgressCallback callback,
-                           std::atomic<bool> *stop) -> bool {
+    auto result = StartThread([&]() {
       auto returnValue = m_backend.ProgramFpgaAPI(
-          device, bitfile, cfgfile, outStream, outputCallback, callback, stop);
-      return m_backend.StatusAPI(device) && (returnValue == 0);
-    };
-    auto result = thread.Start(ProgramFpga, dev->device, dev->devOptions.file,
-                               QString{}, outStream, OutputCallback{},
-                               dev->devOptions.progress, &stop);
+          dev->device, dev->devOptions.file, QString{}, outStream,
+          outputCallback, dev->devOptions.progress, &stop);
+      return m_backend.StatusAPI(dev->device) && (returnValue == 0);
+    });
     setStatus(dev, Done);
     setStatus(dev->flash, InProgress);
     if (!result) break;
-    auto ProgramFlash = [this](
-                            const FoedagDevice &device, const QString &bitfile,
-                            const QString &cfgfile, std::ostream *outStream,
-                            OutputCallback outputMsg, ProgressCallback callback,
-                            std::atomic<bool> *stop) -> bool {
+    result = StartThread([&]() {
       auto returnValue = m_backend.ProgramFlashAPI(
-          device, bitfile, cfgfile, outStream, outputMsg, callback, stop);
-      return m_backend.StatusAPI(device) && (returnValue == 0);
-    };
-    result = thread.Start(
-        ProgramFlash, dev->device, dev->flash->devOptions.file, QString{},
-        outStream, outputCallback, dev->flash->devOptions.progress, &stop);
+          dev->device, dev->flash->devOptions.file, QString{}, outStream,
+          outputCallback, dev->flash->devOptions.progress, &stop);
+      return m_backend.StatusAPI(dev->device) && (returnValue == 0);
+    });
     if (!result) break;
     setStatus(dev->flash, Done);
     m_deviceTmp.removeFirst();
