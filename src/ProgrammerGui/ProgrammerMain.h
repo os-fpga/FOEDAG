@@ -35,6 +35,8 @@ class QProgressBar;
 
 namespace FOEDAG {
 
+enum Status { None, InProgress, Pending, Done };
+
 struct DeviceOptions {
   QString file;
   QStringList operations;
@@ -42,16 +44,10 @@ struct DeviceOptions {
 };
 
 struct DeviceSettings {
+  ~DeviceSettings() { delete flash; }
   FoedagDevice device;
   DeviceOptions devOptions;
-  DeviceOptions flashOptions;
-  bool operator==(const DeviceSettings &other) {
-    return device.name == other.device.name &&
-           devOptions.file == other.devOptions.file &&
-           devOptions.operations == other.devOptions.operations &&
-           flashOptions.file == other.flashOptions.file &&
-           flashOptions.operations == other.flashOptions.operations;
-  }
+  DeviceSettings *flash{nullptr};
 };
 
 class ProgrammerMain : public QMainWindow {
@@ -77,11 +73,12 @@ class ProgrammerMain : public QMainWindow {
   void reset();
   void showToolTip();
   void updateProgressSlot(QProgressBar *progressBar, int value);
+  void updateDeviceOperations(bool ok);
 
  private:
   void updateTable();
-  void updateOperations(QTreeWidgetItem *item);
-  DeviceSettings itemToDevice(QTreeWidgetItem *item) const;
+  void updateOperationActions(QTreeWidgetItem *item);
+  void updateRow(QTreeWidgetItem *item);
   int itemIndex(QTreeWidgetItem *item) const;
   void prepareMenu(bool flash);
   void cleanup();
@@ -89,18 +86,23 @@ class ProgrammerMain : public QMainWindow {
   QStringList BuildFlashRow(const DeviceSettings &dev);
   bool VerifyDevices();
   void start();
+  static QString ToString(Status status);
+  void setStatus(DeviceSettings *ds, Status status);
 
  private:
+  static constexpr int FILE_COL{1};
   static constexpr int OPERATIONS_COL{2};
+  static constexpr int STATUS_COL{3};
   static constexpr int PROGRESS_COL{4};
   Ui::ProgrammerMain *ui;
   ProgrammerBackend m_backend{};
   QAction *m_progressAction{nullptr};
-  QVector<DeviceSettings> m_deviceSettings;
-  QVector<DeviceSettings> m_deviceTmp;
+  QVector<DeviceSettings *> m_deviceSettings;
+  QVector<DeviceSettings *> m_deviceTmp;
   QTreeWidgetItem *current{nullptr};
   std::atomic_bool stop{false};
   SummaryProgressBar m_mainProgress;
+  QMap<QTreeWidgetItem *, DeviceSettings *> m_items;
 };
 
 }  // namespace FOEDAG

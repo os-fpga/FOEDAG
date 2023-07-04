@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+static const char *NONE_STR{"-"};
 QMenu *contextMenu = nullptr;
 
 ProgrammerMain::ProgrammerMain(QWidget *parent)
@@ -106,11 +107,17 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 
   connect(this, &ProgrammerMain::appendOutput, this,
           [this](const QString &msg) {
+            ui->plainTextEdit->moveCursor(QTextCursor::End);
             ui->plainTextEdit->insertPlainText(msg);
             ui->plainTextEdit->ensureCursorVisible();
           });
   connect(this, &ProgrammerMain::updateProgress, this,
           &ProgrammerMain::updateProgressSlot);
+
+  for (QAction *action : {ui->actionBlankcheck, ui->actionErase,
+                          ui->actionVerify, ui->actionProgram})
+    connect(action, &QAction::triggered, this,
+            &ProgrammerMain::updateDeviceOperations);
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -129,23 +136,10 @@ void ProgrammerMain::onCustomContextMenu(const QPoint &point) {
   if (index.isValid()) {
     auto item = ui->treeWidget->itemAt(point);
     if (!item) return;
-    updateOperations(item);
+    updateOperationActions(item);
     current = item;
     prepareMenu(item->parent() != nullptr);
-    auto action =
-        contextMenu->exec(ui->treeWidget->viewport()->mapToGlobal(point));
-    if (action) {
-      QStringList operation{};
-      if (ui->actionProgram->isChecked()) operation.append("Program");
-      if (ui->actionErase->isChecked()) operation.append("Erase");
-      if (ui->actionVerify->isChecked()) operation.append("Verify");
-      if (ui->actionBlankcheck->isChecked()) operation.append("Blankcheck");
-      auto index = itemIndex(item);
-      if (index >= 0 && index < m_deviceSettings.size()) {
-        m_deviceSettings[index].flashOptions.operations = operation;
-        updateTable();
-      }
-    }
+    contextMenu->exec(ui->treeWidget->viewport()->mapToGlobal(point));
   }
 }
 
@@ -153,10 +147,15 @@ void ProgrammerMain::autoDetect() {
   std::vector<FoedagDevice> devices{};
   auto deviceList = m_backend.ListDevicesAPI(devices);
   if (deviceList.first) {
+    qDeleteAll(m_deviceSettings);
     m_deviceSettings.clear();
+    m_items.clear();
+    m_deviceTmp.clear();
     for (const auto &device : devices) {
-      DeviceSettings ds;
-      ds.device = device;
+      DeviceSettings *ds = new DeviceSettings;
+      ds->device = device;
+      ds->flash = new DeviceSettings;
+      ds->flash->device = device;
       m_deviceSettings.push_back(ds);
     }
     updateTable();
@@ -188,33 +187,21 @@ void ProgrammerMain::addFile() {
       this, tr("Select File"), "", "Bitstream file (*)", nullptr, option);
 
   if (current) {
-    auto index = itemIndex(current);
-    if (index >= 0 && index < m_deviceSettings.size()) {
-      if (current->parent()) {
-        m_deviceSettings[index].flashOptions.file = fileName;
-      } else {
-        m_deviceSettings[index].devOptions.file = fileName;
-        m_deviceSettings[index].devOptions.operations =
-            QStringList{{"Configure"}};
-      }
-      updateTable();
+    auto ds = m_items.key(current);
+    ds->devOptions.file = fileName;
+    if (ds->flash) {  // device
+      ds->devOptions.operations = QStringList{{"Configure"}};
     }
+    updateRow(current);
   }
 }
 
 void ProgrammerMain::reset() {
   if (current) {
-    auto index = itemIndex(current);
-    if (index >= 0 && index < m_deviceSettings.size()) {
-      if (current->parent()) {
-        m_deviceSettings[index].flashOptions.file.clear();
-        m_deviceSettings[index].flashOptions.operations.clear();
-      } else {
-        m_deviceSettings[index].devOptions.file.clear();
-        m_deviceSettings[index].devOptions.operations.clear();
-      }
-      updateTable();
-    }
+    auto ds = m_items.value(current);
+    ds->devOptions.file.clear();
+    ds->devOptions.operations.clear();
+    updateRow(current);
   }
 }
 
@@ -226,25 +213,42 @@ void ProgrammerMain::updateProgressSlot(QProgressBar *progressBar, int value) {
   progressBar->setValue(value);
 }
 
+void ProgrammerMain::updateDeviceOperations(bool ok) {
+  if (current) {
+    QStringList operation{};
+    if (ui->actionProgram->isChecked()) operation.append("Program");
+    if (ui->actionErase->isChecked()) operation.append("Erase");
+    if (ui->actionVerify->isChecked()) operation.append("Verify");
+    if (ui->actionBlankcheck->isChecked()) operation.append("Blankcheck");
+    auto ds = m_items.value(current);
+    ds->devOptions.operations = operation;
+    updateRow(current);
+  }
+}
+
 void ProgrammerMain::updateTable() {
   ui->treeWidget->clear();
   m_mainProgress.clear();
-  m_deviceTmp.clear();
+  m_items.clear();
   int counter{0};
-  for (auto &ds : m_deviceSettings) {
-    auto top = new QTreeWidgetItem{BuildDeviceRow(ds, ++counter)};
+  for (auto ds : m_deviceSettings) {
+    auto top = new QTreeWidgetItem{BuildDeviceRow(*ds, ++counter)};
+    m_items.insert(top, ds);
     ui->treeWidget->addTopLevelItem(top);
     auto progress = new QProgressBar{this};
+    progress->setValue(0);
     m_mainProgress.AddProgressBar(progress);
-    ds.devOptions.progress = [this, progress, ds](double val) {
+    ds->devOptions.progress = [this, progress](double val) {
       emit updateProgress(progress, val);
     };
     ui->treeWidget->setItemWidget(top, PROGRESS_COL, progress);
-    auto flash = new QTreeWidgetItem{BuildFlashRow(ds)};
+    auto flash = new QTreeWidgetItem{BuildFlashRow(*ds->flash)};
+    m_items.insert(flash, ds->flash);
     top->addChild(flash);
     progress = new QProgressBar{this};
+    progress->setValue(0);
     m_mainProgress.AddProgressBar(progress);
-    ds.flashOptions.progress = [this, progress, ds](double val) {
+    ds->flash->devOptions.progress = [this, progress](double val) {
       emit updateProgress(progress, val);
     };
     ui->treeWidget->setItemWidget(flash, PROGRESS_COL, progress);
@@ -252,21 +256,23 @@ void ProgrammerMain::updateTable() {
   ui->treeWidget->expandAll();
 }
 
-void ProgrammerMain::updateOperations(QTreeWidgetItem *item) {
+void ProgrammerMain::updateOperationActions(QTreeWidgetItem *item) {
   // Program, Verify Erase & Blankcheck
-  DeviceSettings ds = itemToDevice(item);
-  QStringList operations = ds.flashOptions.operations;
+  DeviceSettings *ds = m_items.value(item);
+  QStringList operations = ds->devOptions.operations;
   ui->actionProgram->setChecked(operations.contains("Program"));
   ui->actionErase->setChecked(operations.contains("Erase"));
   ui->actionVerify->setChecked(operations.contains("Verify"));
   ui->actionBlankcheck->setChecked(operations.contains("Blankcheck"));
 }
 
-DeviceSettings ProgrammerMain::itemToDevice(QTreeWidgetItem *item) const {
-  int index = itemIndex(item);
-  if (index >= 0 && index < m_deviceSettings.size())
-    return m_deviceSettings.at(index);
-  return {};
+void ProgrammerMain::updateRow(QTreeWidgetItem *item) {
+  auto ds = m_items.value(item);
+  item->setText(FILE_COL,
+                ds->devOptions.file.isEmpty() ? NONE_STR : ds->devOptions.file);
+  item->setText(OPERATIONS_COL, ds->devOptions.operations.isEmpty()
+                                    ? NONE_STR
+                                    : ds->devOptions.operations.join(", "));
 }
 
 int ProgrammerMain::itemIndex(QTreeWidgetItem *item) const {
@@ -288,31 +294,33 @@ void ProgrammerMain::prepareMenu(bool flash) {
 }
 
 void ProgrammerMain::cleanup() {
-  for (auto &dev : m_deviceTmp) {
-    dev.flashOptions.progress(0);
-    dev.devOptions.progress(0);
+  for (auto dev : m_deviceTmp) {
+    dev->devOptions.progress(0);
+    dev->flash->devOptions.progress(0);
+    setStatus(dev, Pending);
+    setStatus(dev->flash, Pending);
   }
 }
 
 QStringList ProgrammerMain::BuildDeviceRow(const DeviceSettings &dev,
                                            int counter) {
-  return {
-      QString{"%1: %2"}.arg(QString::number(counter),
-                            dev.device.name.isEmpty() ? "-" : dev.device.name),
-      dev.devOptions.file.isEmpty() ? "-" : dev.devOptions.file,
-      dev.devOptions.operations.isEmpty()
-          ? "-"
-          : dev.devOptions.operations.join(", "),
-      "-"};
+  return {QString{"%1: %2"}.arg(
+              QString::number(counter),
+              dev.device.name.isEmpty() ? NONE_STR : dev.device.name),
+          dev.devOptions.file.isEmpty() ? NONE_STR : dev.devOptions.file,
+          dev.devOptions.operations.isEmpty()
+              ? NONE_STR
+              : dev.devOptions.operations.join(", "),
+          NONE_STR};
 }
 
 QStringList ProgrammerMain::BuildFlashRow(const DeviceSettings &dev) {
   return {QString{"Flash"},
-          dev.flashOptions.file.isEmpty() ? "-" : dev.flashOptions.file,
-          dev.flashOptions.operations.isEmpty()
-              ? "-"
-              : dev.flashOptions.operations.join(", "),
-          "-"};
+          dev.devOptions.file.isEmpty() ? NONE_STR : dev.devOptions.file,
+          dev.devOptions.operations.isEmpty()
+              ? NONE_STR
+              : dev.devOptions.operations.join(", "),
+          NONE_STR};
 }
 
 bool ProgrammerMain::VerifyDevices() {
@@ -339,6 +347,7 @@ void ProgrammerMain::start() {
   cleanup();
   while (!m_deviceTmp.isEmpty()) {
     auto dev = m_deviceTmp.first();
+    setStatus(dev, InProgress);
     auto ProgramFpga = [this, outputCallback](
                            const FoedagDevice &device, const QString &bitfile,
                            const QString &cfgfile, std::ostream *outStream,
@@ -348,9 +357,11 @@ void ProgrammerMain::start() {
           device, bitfile, cfgfile, outStream, outputCallback, callback, stop);
       return m_backend.StatusAPI(device) && (returnValue == 0);
     };
-    auto result = thread.Start(ProgramFpga, dev.device, dev.devOptions.file,
+    auto result = thread.Start(ProgramFpga, dev->device, dev->devOptions.file,
                                QString{}, outStream, OutputCallback{},
-                               dev.devOptions.progress, &stop);
+                               dev->devOptions.progress, &stop);
+    setStatus(dev, Done);
+    setStatus(dev->flash, InProgress);
     if (!result) break;
     auto ProgramFlash = [this](
                             const FoedagDevice &device, const QString &bitfile,
@@ -361,12 +372,34 @@ void ProgrammerMain::start() {
           device, bitfile, cfgfile, outStream, outputMsg, callback, stop);
       return m_backend.StatusAPI(device) && (returnValue == 0);
     };
-    result = thread.Start(ProgramFlash, dev.device, dev.flashOptions.file,
-                          QString{}, outStream, outputCallback,
-                          dev.flashOptions.progress, &stop);
+    result = thread.Start(
+        ProgramFlash, dev->device, dev->flash->devOptions.file, QString{},
+        outStream, outputCallback, dev->flash->devOptions.progress, &stop);
     if (!result) break;
+    setStatus(dev->flash, Done);
     m_deviceTmp.removeFirst();
   }
+}
+
+void ProgrammerMain::setStatus(DeviceSettings *ds, Status status) {
+  auto item = m_items.key(ds);
+  if (item) {
+    item->setText(STATUS_COL, ToString(status));
+  }
+}
+
+QString ProgrammerMain::ToString(Status status) {
+  switch (status) {
+    case None:
+      return NONE_STR;
+    case Pending:
+      return "Pending";
+    case InProgress:
+      return "In progress";
+    case Done:
+      return "Done";
+  }
+  return {};
 }
 
 }  // namespace FOEDAG
