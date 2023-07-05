@@ -132,6 +132,12 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 ProgrammerMain::~ProgrammerMain() { delete ui; }
 
 void ProgrammerMain::closeEvent(QCloseEvent *e) {
+  if (!m_programmingDone) {
+    QMessageBox::warning(this, "Programming in progress",
+                         "Please stop programming process.");
+    e->ignore();
+    return;
+  }
   if (QMessageBox::question(
           this, "Exit Program?", tr("Are you sure you want to exit?\n"),
           QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes)
@@ -166,6 +172,7 @@ void ProgrammerMain::autoDetect() {
       ds->device = device;
       ds->flash = new DeviceSettings;
       ds->flash->device = device;
+      ds->flash->isFlash = true;
       m_deviceSettings.push_back(ds);
     }
     updateTable();
@@ -315,9 +322,7 @@ QMenu *ProgrammerMain::prepareMenu(bool flash) {
 void ProgrammerMain::cleanup() {
   for (auto dev : m_deviceTmp) {
     dev->devOptions.progress(0);
-    dev->flash->devOptions.progress(0);
     setStatus(dev, Pending);
-    setStatus(dev->flash, Pending);
   }
 }
 
@@ -347,35 +352,38 @@ bool ProgrammerMain::VerifyDevices() {
 }
 
 void ProgrammerMain::start() {
+  m_programmingDone = false;
   std::ostream *outStream = &std::cout;
   stop = false;
   auto outputCallback = [this](const QString &msg) { emit appendOutput(msg); };
   if (m_deviceTmp.isEmpty()) {
-    m_deviceTmp = m_deviceSettings;
+    for (auto d : m_deviceSettings) {
+      m_deviceTmp.push_back(d);
+      m_deviceTmp.push_back(d->flash);
+    }
   }
   cleanup();
   while (!m_deviceTmp.isEmpty()) {
     auto dev = m_deviceTmp.first();
     setStatus(dev, InProgress);
     auto result = StartThread([&]() {
-      auto returnValue = m_backend.ProgramFpgaAPI(
-          dev->device, dev->devOptions.file, QString{}, outStream,
-          outputCallback, dev->devOptions.progress, &stop);
+      auto returnValue{0};
+      if (!dev->isFlash) {
+        returnValue = m_backend.ProgramFpgaAPI(
+            dev->device, dev->devOptions.file, QString{}, outStream,
+            outputCallback, dev->devOptions.progress, &stop);
+      } else {
+        returnValue = m_backend.ProgramFlashAPI(
+            dev->device, dev->devOptions.file, QString{}, outStream,
+            outputCallback, dev->devOptions.progress, &stop);
+      }
       return m_backend.StatusAPI(dev->device) && (returnValue == 0);
     });
     if (!result) break;
     setStatus(dev, Done);
-    setStatus(dev->flash, InProgress);
-    result = StartThread([&]() {
-      auto returnValue = m_backend.ProgramFlashAPI(
-          dev->device, dev->flash->devOptions.file, QString{}, outStream,
-          outputCallback, dev->flash->devOptions.progress, &stop);
-      return m_backend.StatusAPI(dev->device) && (returnValue == 0);
-    });
-    if (!result) break;
-    setStatus(dev->flash, Done);
     m_deviceTmp.removeFirst();
   }
+  m_programmingDone = true;
 }
 
 void ProgrammerMain::setStatus(DeviceSettings *ds, Status status) {

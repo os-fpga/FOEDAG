@@ -49,6 +49,7 @@ struct DeviceSettings {
   FoedagDevice device;
   DeviceOptions devOptions;
   DeviceSettings *flash{nullptr};
+  bool isFlash{false};
 };
 
 class ProgrammerMain : public QMainWindow {
@@ -106,6 +107,7 @@ class ProgrammerMain : public QMainWindow {
   SummaryProgressBar m_mainProgress;
   QMap<QTreeWidgetItem *, DeviceSettings *> m_items;
   QSettings m_settings;
+  bool m_programmingDone{true};
 };
 
 }  // namespace FOEDAG
