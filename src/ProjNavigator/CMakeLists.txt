@@ -27,6 +27,7 @@ set (SRC_CPP_LIST
   select_file_type_form.cpp
   tcl_command_integration.cpp
   PropertyWidget.cpp
+  FileExplorer.cpp
 )
 
 set (SRC_H_LIST
@@ -36,7 +37,8 @@ set (SRC_H_LIST
   add_file_form.h
   select_file_type_form.h
   tcl_command_integration.h
-  PropertyWidget.cpp
+  PropertyWidget.h
+  FileExplorer.h
 )
 
 set (SRC_UI_LIST
@@ -66,6 +68,7 @@ install (
 
 install(
     FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/sources_form.h
+    FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/FileExplorer.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/ProjNavigator)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)

@@ -820,6 +820,8 @@ void MainWindow::loadFile(const QString& file) {
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
     updateTaskTable();
+
+    m_fileExplorer.setRootPath(m_projectManager->getProjectPath());
   }
 }
 
@@ -1366,6 +1368,18 @@ void MainWindow::ReShowWindow(QString strProject) {
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();
   updateTaskTable();
+
+  auto path = m_projectManager->getProjectPath();
+  if (path.isEmpty())
+    path = QString::fromStdString(std::filesystem::current_path().string());
+  m_fileExplorer.setRootPath(path);
+  connect(&m_fileExplorer, &FileExplorer::openFile, textEditor,
+          &TextEditor::SlotOpenFile, Qt::UniqueConnection);
+
+  QDockWidget* treeDoc = new DockWidget(tr("Explorer"), this);
+  treeDoc->setWidget(m_fileExplorer.widget());
+  addDockWidget(Qt::LeftDockWidgetArea, treeDoc);
+  tabifyDockWidget(sourceDockWidget, treeDoc);
 }
 
 void MainWindow::clearDockWidgets() {
