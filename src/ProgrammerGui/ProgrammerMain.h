@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QMainWindow>
 #include <QMap>
+#include <QSettings>
 
 #include "ProgrammerBackend.h"
 #include "SummaryProgressBar.h"
@@ -80,7 +81,7 @@ class ProgrammerMain : public QMainWindow {
   void updateOperationActions(QTreeWidgetItem *item);
   void updateRow(QTreeWidgetItem *item);
   int itemIndex(QTreeWidgetItem *item) const;
-  void prepareMenu(bool flash);
+  QMenu *prepareMenu(bool flash);
   void cleanup();
   QStringList BuildDeviceRow(const DeviceSettings &dev, int counter);
   QStringList BuildFlashRow(const DeviceSettings &dev);
@@ -88,6 +89,7 @@ class ProgrammerMain : public QMainWindow {
   void start();
   static QString ToString(Status status);
   void setStatus(DeviceSettings *ds, Status status);
+  void openSettingsWindow(int index);
 
  private:
   static constexpr int FILE_COL{1};
@@ -99,10 +101,11 @@ class ProgrammerMain : public QMainWindow {
   QAction *m_progressAction{nullptr};
   QVector<DeviceSettings *> m_deviceSettings;
   QVector<DeviceSettings *> m_deviceTmp;
-  QTreeWidgetItem *current{nullptr};
+  QTreeWidgetItem *m_currentItem{nullptr};
   std::atomic_bool stop{false};
   SummaryProgressBar m_mainProgress;
   QMap<QTreeWidgetItem *, DeviceSettings *> m_items;
+  QSettings m_settings;
 };
 
 }  // namespace FOEDAG

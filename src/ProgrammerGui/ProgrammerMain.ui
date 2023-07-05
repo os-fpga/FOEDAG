@@ -94,78 +94,6 @@
             <string>Progress</string>
            </property>
           </column>
-          <item>
-           <property name="text">
-            <string>1: Gemini</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
-           </property>
-           <property name="text">
-            <string>/home/dev/fpga.cfgbit</string>
-           </property>
-           <property name="text">
-            <string>Configure</string>
-           </property>
-           <property name="text">
-            <string>In progress - 10%</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>Flash</string>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
-            </property>
-            <property name="text">
-             <string>/home/dev/full.cfgbit</string>
-            </property>
-            <property name="text">
-             <string>Program, Verify</string>
-            </property>
-            <property name="text">
-             <string>Pending - 0%</string>
-            </property>
-           </item>
-          </item>
-          <item>
-           <property name="text">
-            <string>2: Gemini</string>
-           </property>
-           <property name="icon">
-            <iconset>
-             <normaloff>:/images/icons/chip.png</normaloff>:/images/icons/chip.png</iconset>
-           </property>
-           <property name="text">
-            <string>-</string>
-           </property>
-           <property name="text">
-            <string>-</string>
-           </property>
-           <property name="text">
-            <string>-</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>Flash</string>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>:/images/icons/ram.png</normaloff>:/images/icons/ram.png</iconset>
-            </property>
-            <property name="text">
-             <string>-</string>
-            </property>
-            <property name="text">
-             <string>-</string>
-            </property>
-            <property name="text">
-             <string>-</string>
-            </property>
-           </item>
-          </item>
          </widget>
         </item>
        </layout>
@@ -251,6 +179,10 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="actionHarware_settings"/>
+    <addaction name="actionDevice"/>
+    <addaction name="actionJTAG_Settings"/>
+    <addaction name="actionOptions"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOptions"/>
@@ -276,11 +208,14 @@
   </widget>
   <action name="actionDetect">
    <property name="icon">
-    <iconset>
-     <normaloff>:/images/icons/refresh.png</normaloff>:/images/icons/refresh.png</iconset>
+    <iconset resource="res.qrc">
+     <normaloff>:/images/detect.png</normaloff>:/images/detect.png</iconset>
    </property>
    <property name="text">
-    <string>Auto. Detect</string>
+    <string>Detect</string>
+   </property>
+   <property name="iconText">
+    <string>Detect</string>
    </property>
    <property name="toolTip">
     <string>Auto. Detect Device(s)...</string>
@@ -297,6 +232,10 @@
    </property>
   </action>
   <action name="actionStart">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/start.png</normaloff>:/images/start.png</iconset>
+   </property>
    <property name="text">
     <string>Start</string>
    </property>
@@ -364,14 +303,40 @@
    </property>
   </action>
   <action name="actionStop">
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/images/pause.png</normaloff>:/images/pause.png</iconset>
+   </property>
    <property name="text">
-    <string>Stop</string>
+    <string>Pause</string>
    </property>
    <property name="toolTip">
     <string>Stop programming</string>
    </property>
   </action>
+  <action name="actionHarware_settings">
+   <property name="text">
+    <string>Hardware Settings</string>
+   </property>
+  </action>
+  <action name="actionDevice">
+   <property name="text">
+    <string>Device</string>
+   </property>
+  </action>
+  <action name="actionJTAG_Settings">
+   <property name="text">
+    <string>JTAG Settings</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

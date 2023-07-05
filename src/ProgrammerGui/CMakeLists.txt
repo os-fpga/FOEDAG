@@ -48,16 +48,19 @@ set (SRC_CPP_LIST
   ProgrammerMain.cpp
   ProgrammerBackend.cpp
   SummaryProgressBar.cpp
+  ProgrammerSettingsWidget.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   ProgrammerMain.h
   ProgrammerBackend.h
   SummaryProgressBar.h
+  ProgrammerSettingsWidget.h
 )
 
 set (SRC_UI
   ProgrammerMain.ui
+  ProgrammerSettingsWidget.ui
 )
 
 set (SRC_H_LIST

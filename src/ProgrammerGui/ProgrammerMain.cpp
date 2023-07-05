@@ -33,13 +33,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
+#include "ProgrammerSettingsWidget.h"
 #include "qdebug.h"
 #include "ui_ProgrammerMain.h"
 
 namespace FOEDAG {
 
 static const char *NONE_STR{"-"};
-QMenu *contextMenu = nullptr;
 
 bool StartThread(const std::function<bool(void)> &fn) {
   bool result = true;
@@ -54,17 +54,10 @@ bool StartThread(const std::function<bool(void)> &fn) {
 }
 
 ProgrammerMain::ProgrammerMain(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::ProgrammerMain) {
+    : QMainWindow(parent),
+      ui(new Ui::ProgrammerMain),
+      m_settings("programmer_settings", QSettings::IniFormat) {
   ui->setupUi(this);
-
-  contextMenu = new QMenu(this);
-  contextMenu->addAction(ui->actionAdd_File);
-  contextMenu->addAction(ui->actionReset);
-  contextMenu->addSeparator();
-  contextMenu->addAction(ui->actionProgram);
-  contextMenu->addAction(ui->actionVerify);
-  contextMenu->addAction(ui->actionErase);
-  contextMenu->addAction(ui->actionBlankcheck);
 
   QComboBox *hardware = new QComboBox;
   hardware->addItem("FTDI");
@@ -128,6 +121,12 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
                           ui->actionVerify, ui->actionProgram})
     connect(action, &QAction::triggered, this,
             &ProgrammerMain::updateDeviceOperations);
+
+  for (auto action : {ui->actionHarware_settings, ui->actionDevice,
+                      ui->actionJTAG_Settings, ui->actionOptions})
+    connect(action, &QAction::triggered, this, [this, action]() {
+      openSettingsWindow(ui->menuOptions->actions().indexOf(action));
+    });
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -147,9 +146,10 @@ void ProgrammerMain::onCustomContextMenu(const QPoint &point) {
     auto item = ui->treeWidget->itemAt(point);
     if (!item) return;
     updateOperationActions(item);
-    current = item;
-    prepareMenu(item->parent() != nullptr);
-    contextMenu->exec(ui->treeWidget->viewport()->mapToGlobal(point));
+    m_currentItem = item;
+    auto menu = prepareMenu(item->parent() != nullptr);
+    menu->exec(ui->treeWidget->viewport()->mapToGlobal(point));
+    menu->deleteLater();
   }
 }
 
@@ -196,22 +196,22 @@ void ProgrammerMain::addFile() {
   const QString fileName = QFileDialog::getOpenFileName(
       this, tr("Select File"), "", "Bitstream file (*)", nullptr, option);
 
-  if (current) {
-    auto ds = m_items.value(current);
+  if (m_currentItem) {
+    auto ds = m_items.value(m_currentItem);
     ds->devOptions.file = fileName;
     if (ds->flash) {  // device
       ds->devOptions.operations = QStringList{{"Configure"}};
     }
-    updateRow(current);
+    updateRow(m_currentItem);
   }
 }
 
 void ProgrammerMain::reset() {
-  if (current) {
-    auto ds = m_items.value(current);
+  if (m_currentItem) {
+    auto ds = m_items.value(m_currentItem);
     ds->devOptions.file.clear();
     ds->devOptions.operations.clear();
-    updateRow(current);
+    updateRow(m_currentItem);
   }
 }
 
@@ -224,16 +224,23 @@ void ProgrammerMain::updateProgressSlot(QProgressBar *progressBar, int value) {
 }
 
 void ProgrammerMain::updateDeviceOperations(bool ok) {
-  if (current) {
+  if (m_currentItem) {
     QStringList operation{};
     if (ui->actionProgram->isChecked()) operation.append("Program");
     if (ui->actionErase->isChecked()) operation.append("Erase");
     if (ui->actionVerify->isChecked()) operation.append("Verify");
     if (ui->actionBlankcheck->isChecked()) operation.append("Blankcheck");
-    auto ds = m_items.value(current);
+    auto ds = m_items.value(m_currentItem);
     ds->devOptions.operations = operation;
-    updateRow(current);
+    updateRow(m_currentItem);
   }
+}
+
+void ProgrammerMain::openSettingsWindow(int index) {
+  ProgrammerSettingsWidget w{m_settings, this};
+  w.setWindowTitle("Settings");
+  w.openTab(index);
+  w.exec();
 }
 
 void ProgrammerMain::updateTable() {
@@ -243,6 +250,7 @@ void ProgrammerMain::updateTable() {
   int counter{0};
   for (auto ds : m_deviceSettings) {
     auto top = new QTreeWidgetItem{BuildDeviceRow(*ds, ++counter)};
+    top->setIcon(0, QIcon{":/images/electronics-chip.png"});
     m_items.insert(top, ds);
     ui->treeWidget->addTopLevelItem(top);
     auto progress = new QProgressBar{this};
@@ -290,8 +298,8 @@ int ProgrammerMain::itemIndex(QTreeWidgetItem *item) const {
   return ui->treeWidget->indexOfTopLevelItem(parent);
 }
 
-void ProgrammerMain::prepareMenu(bool flash) {
-  contextMenu->clear();
+QMenu *ProgrammerMain::prepareMenu(bool flash) {
+  QMenu *contextMenu = new QMenu;
   contextMenu->addAction(ui->actionAdd_File);
   contextMenu->addAction(ui->actionReset);
   if (flash) {
@@ -301,6 +309,7 @@ void ProgrammerMain::prepareMenu(bool flash) {
     contextMenu->addAction(ui->actionErase);
     contextMenu->addAction(ui->actionBlankcheck);
   }
+  return contextMenu;
 }
 
 void ProgrammerMain::cleanup() {
@@ -317,20 +326,11 @@ QStringList ProgrammerMain::BuildDeviceRow(const DeviceSettings &dev,
   return {QString{"%1: %2"}.arg(
               QString::number(counter),
               dev.device.name.isEmpty() ? NONE_STR : dev.device.name),
-          dev.devOptions.file.isEmpty() ? NONE_STR : dev.devOptions.file,
-          dev.devOptions.operations.isEmpty()
-              ? NONE_STR
-              : dev.devOptions.operations.join(", "),
-          NONE_STR};
+          NONE_STR, NONE_STR, NONE_STR};
 }
 
 QStringList ProgrammerMain::BuildFlashRow(const DeviceSettings &dev) {
-  return {QString{"Flash"},
-          dev.devOptions.file.isEmpty() ? NONE_STR : dev.devOptions.file,
-          dev.devOptions.operations.isEmpty()
-              ? NONE_STR
-              : dev.devOptions.operations.join(", "),
-          NONE_STR};
+  return {QString{"Flash"}, NONE_STR, NONE_STR, NONE_STR};
 }
 
 bool ProgrammerMain::VerifyDevices() {
@@ -363,9 +363,9 @@ void ProgrammerMain::start() {
           outputCallback, dev->devOptions.progress, &stop);
       return m_backend.StatusAPI(dev->device) && (returnValue == 0);
     });
+    if (!result) break;
     setStatus(dev, Done);
     setStatus(dev->flash, InProgress);
-    if (!result) break;
     result = StartThread([&]() {
       auto returnValue = m_backend.ProgramFlashAPI(
           dev->device, dev->flash->devOptions.file, QString{}, outStream,
