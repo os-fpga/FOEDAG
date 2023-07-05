@@ -59,6 +59,9 @@ class ProgrammerMain : public QMainWindow {
   ProgrammerMain(QWidget *parent = nullptr);
   ~ProgrammerMain();
 
+  QString cfgFile() const;
+  void setCfgFile(const QString &cfg);
+
  signals:
   void appendOutput(const QString &);
   void updateProgress(QProgressBar *progressBar, int value);
@@ -108,6 +111,7 @@ class ProgrammerMain : public QMainWindow {
   QMap<QTreeWidgetItem *, DeviceSettings *> m_items;
   QSettings m_settings;
   bool m_programmingDone{true};
+  QString m_cfgFile{};
 };
 
 }  // namespace FOEDAG

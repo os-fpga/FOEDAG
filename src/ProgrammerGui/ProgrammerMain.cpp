@@ -131,6 +131,10 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
 
+QString ProgrammerMain::cfgFile() const { return m_cfgFile; }
+
+void ProgrammerMain::setCfgFile(const QString &cfg) { m_cfgFile = cfg; }
+
 void ProgrammerMain::closeEvent(QCloseEvent *e) {
   if (!m_programmingDone) {
     QMessageBox::warning(this, "Programming in progress",
@@ -353,7 +357,7 @@ bool ProgrammerMain::VerifyDevices() {
 
 void ProgrammerMain::start() {
   m_programmingDone = false;
-  std::ostream *outStream = &std::cout;
+  std::ostream *outStream = nullptr;
   stop = false;
   auto outputCallback = [this](const QString &msg) { emit appendOutput(msg); };
   if (m_deviceTmp.isEmpty()) {
@@ -370,11 +374,11 @@ void ProgrammerMain::start() {
       auto returnValue{0};
       if (!dev->isFlash) {
         returnValue = m_backend.ProgramFpgaAPI(
-            dev->device, dev->devOptions.file, QString{}, outStream,
+            dev->device, dev->devOptions.file, m_cfgFile, outStream,
             outputCallback, dev->devOptions.progress, &stop);
       } else {
         returnValue = m_backend.ProgramFlashAPI(
-            dev->device, dev->devOptions.file, QString{}, outStream,
+            dev->device, dev->devOptions.file, m_cfgFile, outStream,
             outputCallback, dev->devOptions.progress, &stop);
       }
       return m_backend.StatusAPI(dev->device) && (returnValue == 0);
