@@ -23,11 +23,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <memory>
-#include <sstream>
+#include <sstream>  // for std::stringstream
 #include <thread>
 #include <unordered_set>
+
+namespace FOEDAG {
 
 std::string buildFpgaProgramCommand(const std::string& bitstream_file,
                                     const std::string& config_file,
@@ -252,3 +255,98 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     }
   }
 }
+
+bool ListDevices(std::vector<Device>& devices, std::string& outputMsg) {
+  devices.clear();
+  outputMsg.clear();
+  devices.push_back(Device{0, "Gemini", "0x1000563d", 0xffffff, 5, 16384});
+  devices.push_back(Device{1, "Gemini+", "0x1000564d", 0xffffff, 5, 16384});
+
+  std::stringstream ss;
+  ss << std::left << std::setw(8) << "Device" << std::setw(22) << "ID"
+     << std::setw(13) << "IRLen" << std::setw(14) << "Flash Size" << std::endl;
+
+  ss << "------ ---------------------- ------------ ----------" << std::endl;
+  ss << std::left << std::setw(8) << "Found" << std::setw(10) << "0 Gemini"
+     << std::setw(14) << "0x1000563d" << std::setw(13) << " 5" << std::setw(13)
+     << "16384" << std::endl;
+
+  ss << std::left << std::setw(8) << "Found" << std::setw(10) << "1 Gemini+"
+     << std::setw(14) << "0x1000564d" << std::setw(13) << " 5" << std::setw(13)
+     << "16384" << std::endl;
+
+  outputMsg = ss.str();
+  return true;
+}
+
+bool GetFpgaStatus(const Device& device, CfgStatus& status) {
+  status.cfgDone = true;
+  status.cfgError = false;
+  return true;
+}
+int ProgramFpga(const Device& device, const std::string& bitfile,
+                const std::string& cfgfile, std::ostream* outStream,
+                OutputCallback callbackMsg, ProgressCallback callbackProgress,
+                std::atomic<bool>& stop) {
+  std::vector<std::string> runMessages{
+      "Open On-Chip Debugger 0.12.0+dev-g7c8f503b4 (2023-06-12-08:16)\n",
+      "Licensed under GNU GPL v2\n",
+      "...\n",
+      "Info : [RS] Configuring FPGA fabric...\n",
+  };
+
+  for (auto s : runMessages) {
+    if (stop) {
+      return -1;
+    }
+
+    if (outStream != nullptr) {
+      *outStream << s;
+    }
+    if (callbackMsg != nullptr) {
+      callbackMsg(s);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  for (int i = 0; i <= 100; i += 10) {
+    if (stop) {
+      return -1;
+    }
+    std::string runProgress("Info : [RS] Progress " + std::to_string(i) +
+                            ".00% (34816/34816 bytes)\n");
+    if (outStream != nullptr) {
+      *outStream << runProgress;
+    }
+    if (callbackMsg != nullptr) {
+      callbackMsg(runProgress);
+    }
+    if (callbackProgress != nullptr) {
+      callbackProgress(double(i));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  std::string endMessage = "Info : [RS] Configured FPGA fabric successfully\n";
+  std::string loadedFile = "loaded file" + bitfile + " to pld device " +
+                           device.name + " " + std::to_string(device.index) +
+                           " in 5s 90381us\n";
+
+  if (outStream != nullptr) {
+    *outStream << endMessage << loadedFile;
+  }
+
+  if (callbackMsg != nullptr) {
+    callbackMsg(endMessage);
+    callbackMsg(loadedFile);
+  }
+
+  return 0;
+}
+bool ProgramFlash(const Device& device, const std::string& bitfile,
+                  const std::string& cfgfile, Operation modes,
+                  std::ostream* outStream, OutputCallback callbackMsg,
+                  ProgressCallback callbackProgress, std::atomic<bool>& stop) {
+  return 0;
+}
+
+}  // namespace FOEDAG
