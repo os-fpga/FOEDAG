@@ -1365,10 +1365,6 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   sourcesForm->InitSourcesForm();
   // runForm->InitRunsForm();
-  updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
-  updateViewMenu();
-  updateTaskTable();
-
   auto path = m_projectManager->getProjectPath();
   if (path.isEmpty())
     path = QString::fromStdString(std::filesystem::current_path().string());
@@ -1380,6 +1376,10 @@ void MainWindow::ReShowWindow(QString strProject) {
   treeDoc->setWidget(m_fileExplorer.widget());
   addDockWidget(Qt::LeftDockWidgetArea, treeDoc);
   tabifyDockWidget(sourceDockWidget, treeDoc);
+
+  updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
+  updateViewMenu();
+  updateTaskTable();
 }
 
 void MainWindow::clearDockWidgets() {
