@@ -1995,7 +1995,7 @@ std::filesystem::path Compiler::FilePath(Action action) const {
   // _1_1 is default.This will be changed after multiple run implementation
   base /= "run_1";
   fs::path synth{base / "synth_1_1"};
-  fs::path impl{base / "impl_1_1"};
+  fs::path impl{synth / "impl_1_1"};
   switch (action) {
     case Action::Analyze:
       return synth / "analysis";
