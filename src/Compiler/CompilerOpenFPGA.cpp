@@ -65,7 +65,7 @@ void CompilerOpenFPGA::Version(std::ostream* out) {
 
 bool isRegexValid(const std::string& str) {
   try {
-    const std::regex regex{str, std::regex_constants::icase};
+    const std::regex regex{str};
     return true;
   } catch (...) {
     return false;
@@ -85,13 +85,16 @@ std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
     if (!ok)
       return std::make_pair(false, "Failed to retrieve ports information");
   }
-  auto port_info = FilePath(Action::Analyze, "port_info.json");
+  auto port_info = FilePath(Action::Analyze, "hier_info.json");
   if (!FileUtils::FileExists(port_info)) {
     return std::make_pair(false, "Failed to retrieve ports information");
   }
-  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info);
+  bool vhdl{false};
+  auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info, vhdl);
   if (regex) {
-    const std::regex regexp{str, std::regex_constants::icase};
+    auto flags = std::regex_constants::ECMAScript;  // default value
+    if (vhdl) flags |= std::regex_constants::icase;
+    const std::regex regexp{str, flags};
     for (const auto& clk : rtl_clocks) {
       if (std::regex_match(clk, regexp))
         return std::make_pair(true, std::string{});

@@ -58,8 +58,8 @@ class TclCommandIntegration : public QObject {
 
   ProjectManager *GetProjectManager();
   void saveSettings();
-  std::vector<std::string> GetClockList(
-      const std::filesystem::path &path) const;
+  std::vector<std::string> GetClockList(const std::filesystem::path &path,
+                                        bool &vhdl) const;
 
  signals:
   void newDesign(const QString &);
@@ -70,6 +70,7 @@ class TclCommandIntegration : public QObject {
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);
+  static bool isVHDL(const std::string &str);
 
  private:
   bool validate() const;
