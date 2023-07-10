@@ -63,26 +63,45 @@ void CompilerOpenFPGA::Version(std::ostream* out) {
   LogUtils::PrintVersion(out);
 }
 
-bool CompilerOpenFPGA::isRtlClock(const std::string& str, bool& ok) {
+bool isRegexValid(const std::string& str) {
+  try {
+    const std::regex regex{str, std::regex_constants::icase};
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+std::pair<bool, std::string> CompilerOpenFPGA::isRtlClock(
+    const std::string& str, bool regex) {
+  if (regex && !isRegexValid(str))
+    return std::make_pair(false, "Invalid regular expession");
   std::string synth_script;
   std::filesystem::path synth_scrypt_path;
   std::filesystem::path outputFile;
-  ok = true;
   if (DesignChangedForAnalysis(synth_script, synth_scrypt_path, outputFile)) {
-    ok = SwitchCompileContext(Action::Analyze, [this]() { return Analyze(); });
-    if (!ok) return false;
+    bool ok =
+        SwitchCompileContext(Action::Analyze, [this]() { return Analyze(); });
+    if (!ok)
+      return std::make_pair(false, "Failed to retrieve ports information");
   }
   auto port_info = FilePath(Action::Analyze, "port_info.json");
   if (!FileUtils::FileExists(port_info)) {
-    ok = false;
-    return false;
+    return std::make_pair(false, "Failed to retrieve ports information");
   }
   auto rtl_clocks = m_tclCmdIntegration->GetClockList(port_info);
-  const std::regex regex{str};
-  for (const auto& clk : rtl_clocks) {
-    if (std::regex_match(clk, regex)) return true;
+  if (regex) {
+    const std::regex regexp{str, std::regex_constants::icase};
+    for (const auto& clk : rtl_clocks) {
+      if (std::regex_match(clk, regexp))
+        return std::make_pair(true, std::string{});
+    }
+  } else {
+    for (const auto& clk : rtl_clocks)
+      if (clk == StringUtils::toLower(str))
+        return std::make_pair(true, std::string{});
   }
-  return false;
+  return std::make_pair(false, std::string{});
 }
 
 std::vector<std::string> CompilerOpenFPGA::helpTags() const {
