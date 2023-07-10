@@ -382,6 +382,8 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
   return {};
 }
 
+void TclCommandIntegration::updateHierarchyView() { emit updateHierarchy(); }
+
 void TclCommandIntegration::createNewDesign(const QString &projName,
                                             int projectType) {
   ProjectOptions opt{projName,

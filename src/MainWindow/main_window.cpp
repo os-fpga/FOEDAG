@@ -63,6 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/new_project_dialog.h"
 #include "PathEdit.h"
 #include "PinAssignment/PinAssignmentCreator.h"
+#include "ProjNavigator/HierarchyView.h"
 #include "ProjNavigator/PropertyWidget.h"
 #include "ProjNavigator/sources_form.h"
 #include "ProjNavigator/tcl_command_integration.h"
@@ -822,6 +823,8 @@ void MainWindow::loadFile(const QString& file) {
     updateTaskTable();
 
     m_fileExplorer.setRootPath(m_projectManager->getProjectPath());
+    m_hierarchyView.setPortsFile(
+        m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json"));
   }
 }
 
@@ -1290,6 +1293,11 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this]() { closeProject(true); });
   connect(tclCommandIntegration, &TclCommandIntegration::saveSettingsSignal,
           this, [this]() { saveSettings(); });
+  connect(tclCommandIntegration, &TclCommandIntegration::updateHierarchy, this,
+          [this]() {
+            m_hierarchyView.setPortsFile(m_compiler->FilePath(
+                Compiler::Action::Analyze, "hier_info.json"));
+          });
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
@@ -1376,6 +1384,13 @@ void MainWindow::ReShowWindow(QString strProject) {
   treeDoc->setWidget(m_fileExplorer.widget());
   addDockWidget(Qt::LeftDockWidgetArea, treeDoc);
   tabifyDockWidget(sourceDockWidget, treeDoc);
+
+  connect(&m_hierarchyView, &HierarchyView::openFile, textEditor,
+          &TextEditor::SlotOpenFileWithLine, Qt::UniqueConnection);
+  QDockWidget* hierDoc = new DockWidget(tr("Hierarchy"), this);
+  hierDoc->setWidget(m_hierarchyView.widget());
+  addDockWidget(Qt::LeftDockWidgetArea, hierDoc);
+  tabifyDockWidget(sourceDockWidget, hierDoc);
 
   updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
   updateViewMenu();

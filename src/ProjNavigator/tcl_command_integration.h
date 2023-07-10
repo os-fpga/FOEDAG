@@ -60,6 +60,7 @@ class TclCommandIntegration : public QObject {
   void saveSettings();
   std::vector<std::string> GetClockList(const std::filesystem::path &path,
                                         bool &vhdl) const;
+  void updateHierarchyView();
 
  signals:
   void newDesign(const QString &);
@@ -67,6 +68,7 @@ class TclCommandIntegration : public QObject {
   void showChatGpt(const QString &r, const QString &data);
   void chatGptStatus(bool);
   void saveSettingsSignal();
+  void updateHierarchy();
 
  private:
   void createNewDesign(const QString &design, int projectType = 0);

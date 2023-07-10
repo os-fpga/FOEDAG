@@ -28,6 +28,7 @@ set (SRC_CPP_LIST
   tcl_command_integration.cpp
   PropertyWidget.cpp
   FileExplorer.cpp
+  HierarchyView.cpp
 )
 
 set (SRC_H_LIST
@@ -39,6 +40,7 @@ set (SRC_H_LIST
   tcl_command_integration.h
   PropertyWidget.h
   FileExplorer.h
+  HierarchyView.h
 )
 
 set (SRC_UI_LIST
