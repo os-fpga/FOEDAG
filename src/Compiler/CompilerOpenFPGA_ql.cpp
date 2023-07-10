@@ -6127,28 +6127,28 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   // are parsed at the synthesis/pack/place/route stages.
   // ===================================================== Design Inputs From Metrics++
   // declaration of all design inputs - some are derived from other design inputs.
-  long double calculator_d6     = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "device_size_x");          // array_x
-  long double calculator_d7     = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "device_size_y");          // array_y
-  long double calculator_d11    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_input");              // num_input
+  long double calculator_d6     = QLMetricsManager::getDoubleValue("routing", "device_size_x");          // array_x
+  long double calculator_d7     = QLMetricsManager::getDoubleValue("routing", "device_size_y");          // array_y
+  long double calculator_d11    = QLMetricsManager::getDoubleValue("routing", "num_input");              // num_input
   long double calculator_d12    = 0;        // num_input_ff                                 -->  (not used currently)
   // long double calculator_d13    = 0;        // num_input_sb or num_input_wire_segment       -->  (not used currently)
   long double calculator_d14    = 0;        // num_input_cbx_cby        -->  (derived later)
   long double calculator_d15    = 0;        // num_input_xbar           -->  (derived later)
-  long double calculator_d16    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_output");             // num_output
+  long double calculator_d16    = QLMetricsManager::getDoubleValue("routing", "num_output");             // num_output
   long double calculator_d17    = 0;        // num_output_ff                                -->  (not used currently)
   long double calculator_d18    = 0;        // num_output_clb           -->  (derived later)
   // long double calculator_d19    = 0;        // num_output_sb or num_output_wire_segment     -->  (not used currently)
   long double calculator_d20    = 0;        // num_output_cbx_cby       -->  (derived later)
-  long double calculator_d21    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_wiring_segments");    // num_sb or num_wire_segment (also == L1_O + L4_O)
+  long double calculator_d21    = QLMetricsManager::getDoubleValue("routing", "num_wiring_segments");    // num_sb or num_wire_segment (also == L1_O + L4_O)
   long double calculator_d22    = 0;        // num_lut                  -->  (derived later)
   // long double calculator_d23    = 0;        // num_lut5_ff                                  -->  (not used currently)
   // long double calculator_d24    = 0;        // num_lut6                                     -->  (not used currently)
   // long double calculator_d25    = 0;        // num_lut6_ff                                  -->  (not used currently)
   long double calculator_d26    = 0;        // num_clb_ff               -->  (derived later)
   long double calculator_d27    = 0;        // num_average_lut_input    -->  (derived later)
-  long double calculator_d28    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_clock_network");    // num_clock_network
-  long double calculator_d29    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_dsp");              // num_dsp
-  long double calculator_d30    = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_bram");             // num_bram
+  long double calculator_d28    = QLMetricsManager::getDoubleValue("routing", "num_clock_network");    // num_clock_network
+  long double calculator_d29    = QLMetricsManager::getDoubleValue("routing", "num_dsp");              // num_dsp
+  long double calculator_d30    = QLMetricsManager::getDoubleValue("routing", "num_bram");             // num_bram
   // ===================================================== Design Inputs From Metrics--
   // ===================================================== Design Inputs Derived++
   // calculator_d14    = 0;                       // num_input_cbx_cby        -->  (derived later)
@@ -6156,15 +6156,15 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   //
   // num_input_cbx_cby = num_input_xbar = total_lut_inputs_used (from spreadsheet theory)
   // total_lut_inputs_used = 1*num_1_LUT + 2*num_2_LUT + ... + 6*num_6_LUT (from yosys metrics, we obtain these numbers)
-  int num_1_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_1_LUT");
-  int num_2_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_2_LUT");
-  int num_3_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_3_LUT");
-  int num_4_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_4_LUT");
-  int num_5_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_5_LUT");
-  int num_6_LUT = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_6_LUT");
+  int num_1_LUT = QLMetricsManager::getIntValue("synthesis", "num_1_LUT");
+  int num_2_LUT = QLMetricsManager::getIntValue("synthesis", "num_2_LUT");
+  int num_3_LUT = QLMetricsManager::getIntValue("synthesis", "num_3_LUT");
+  int num_4_LUT = QLMetricsManager::getIntValue("synthesis", "num_4_LUT");
+  int num_5_LUT = QLMetricsManager::getIntValue("synthesis", "num_5_LUT");
+  int num_6_LUT = QLMetricsManager::getIntValue("synthesis", "num_6_LUT");
   
   // note: we consider Adder Carry blocks as 3-LUTs, so account for those as well:
-  int num_adder_carry = QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_adder_carry");
+  int num_adder_carry = QLMetricsManager::getIntValue("synthesis", "num_adder_carry");
   num_3_LUT += num_adder_carry;
   
   int total_num_luts = num_1_LUT + num_2_LUT + num_3_LUT + num_4_LUT + num_5_LUT + num_6_LUT;
@@ -6199,11 +6199,11 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Dynamic() {
   //
   // num_clb_ff = sum of all ff primitives == dff + dffn + dffsre + dffnsre + sh_dff
   int total_num_ffs = 0;
-  total_num_ffs += QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_dffsre");
-  total_num_ffs += QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_dffnsre");
-  total_num_ffs += QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_sh_dff");
-  total_num_ffs += QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_dff");
-  total_num_ffs += QLMetricsManager::getIntValue("yosys_metrics", "synthesis", "num_dffn");
+  total_num_ffs += QLMetricsManager::getIntValue("synthesis", "num_dffsre");
+  total_num_ffs += QLMetricsManager::getIntValue("synthesis", "num_dffnsre");
+  total_num_ffs += QLMetricsManager::getIntValue("synthesis", "num_sh_dff");
+  total_num_ffs += QLMetricsManager::getIntValue("synthesis", "num_dff");
+  total_num_ffs += QLMetricsManager::getIntValue("synthesis", "num_dffn");
   
   calculator_d26 = total_num_ffs;                 // num_clb_ff
 
@@ -6814,10 +6814,10 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Leakage() {
   // ===================================================== Constants --
 
   // ===================================================== Design Inputs ++
-  long double calculator_d6       = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "device_size_x");        // array_x
-  long double calculator_d7       = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "device_size_y");        // array_y
-  long double calculator_d29      = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_dsp");              // num_dsp
-  long double calculator_d30      = QLMetricsManager::getDoubleValue("vpr_metrics", "routing", "num_bram");             // num_bram
+  long double calculator_d6       = QLMetricsManager::getDoubleValue("routing", "device_size_x");        // array_x
+  long double calculator_d7       = QLMetricsManager::getDoubleValue("routing", "device_size_y");        // array_y
+  long double calculator_d29      = QLMetricsManager::getDoubleValue("routing", "num_dsp");              // num_dsp
+  long double calculator_d30      = QLMetricsManager::getDoubleValue("routing", "num_bram");             // num_bram
 
   // enable debug prints if specified in JSON
   bool power_estimation_dbg = true; // TODO test change

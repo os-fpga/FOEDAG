@@ -29,19 +29,18 @@ QLMetricsManager* QLMetricsManager::getInstance() {
   return instance;
 }
 
-std::string QLMetricsManager::getStringValue(std::string category, std::string subcategory, std::string name) {
+std::string QLMetricsManager::getStringValue(std::string stage, std::string name) {
 
   std::string string_value;
 
-  // std::cout << "getStringValue(): " << category << ", " << subcategory << ", " << name << std::endl;
+  // std::cout << "getStringValue(): " << ", " << stage << ", " << name << std::endl;
 
   for (AuroraMetrics metric: QLMetricsManager::getInstance()->aurora_metrics_list) {
 
     // std::cout << "\n\nmetric:" << std::endl;
-    // std::cout << "    " << metric.category << ", " << metric.subcategory << ", " << metric.name << ", " << metric.found << ", " << metric.string_value << std::endl;
+    // std::cout << "    " << ", " << metric.stage << ", " << metric.name << ", " << metric.found << ", " << metric.string_value << std::endl;
 
-    if(metric.category == category &&
-       metric.subcategory == subcategory &&
+    if(metric.stage == stage &&
        metric.name == name &&
        metric.found == true) {
 
@@ -55,11 +54,11 @@ std::string QLMetricsManager::getStringValue(std::string category, std::string s
 }
 
 
-int QLMetricsManager::getIntValue(std::string category, std::string subcategory, std::string name) {
+int QLMetricsManager::getIntValue(std::string stage, std::string name) {
 
   int int_value = 0;
 
-  std::string string_value = QLMetricsManager::getStringValue(category, subcategory, name);
+  std::string string_value = QLMetricsManager::getStringValue(stage, name);
 
   if(string_value.empty()) {
     return int_value;
@@ -82,11 +81,11 @@ int QLMetricsManager::getIntValue(std::string category, std::string subcategory,
 }
 
 
-double QLMetricsManager::getDoubleValue(std::string category, std::string subcategory, std::string name) {
+double QLMetricsManager::getDoubleValue(std::string stage, std::string name) {
 
   double double_value = 0;
 
-  std::string string_value = QLMetricsManager::getStringValue(category, subcategory, name);
+  std::string string_value = QLMetricsManager::getStringValue(stage, name);
 
   if(string_value.empty()) {
     return double_value;
@@ -165,67 +164,51 @@ std::vector<AuroraMetrics> QLMetricsManager::buildMetricsListForAction(Compiler:
   
   if(!metrics_json.empty()) {
 
-    for (auto [category_name, category_json] : metrics_json.items()) {
+    for (auto [stage_name, stage_json] : metrics_json.items()) {
 
-      for (auto [subcategory_name, subcategory_json] : category_json.items()) {
+      for (auto [parameter_name, parameter_json] : stage_json.items()) {
 
-        for (auto [parameter_name, parameter_json] : subcategory_json.items()) {
-
-          // filter the metrics according to the stage and metrics classification:
-          if(action == Compiler::Action::Synthesis) {
-            if(category_name != "yosys_metrics") {
-              continue;
-            }
-            if(subcategory_name != "synthesis") {
-              continue;
-            }
+        // filter the metrics according to the stage and metrics classification:
+        if(action == Compiler::Action::Synthesis) {
+          if(stage_name != "synthesis") {
+            continue;
           }
-          else if(action == Compiler::Action::Pack) {
-            if(category_name != "vpr_metrics") {
-              continue;
-            }
-            if( (subcategory_name != "packing") && (subcategory_name != "general") ) {
-              continue;
-            }
-          }
-          else if(action == Compiler::Action::Detailed) {
-            if(category_name != "vpr_metrics") {
-              continue;
-            }
-            if( (subcategory_name != "placement") && (subcategory_name != "general") ) {
-              continue;
-            }
-          }
-          else if(action == Compiler::Action::Routing) {
-            if(category_name != "vpr_metrics") {
-              continue;
-            }
-            if( (subcategory_name != "routing") && (subcategory_name != "general") ) {
-              continue;
-            }
-          }
-
-          // create a metric object
-          AuroraMetrics metric;
-          metric.category = category_name;        // yosys, vpr
-          metric.subcategory = subcategory_name;  // synthesis, packing, placement, routing
-          metric.name = parameter_name;
-          metric.filename = parameter_json["filename"];
-          metric.filename = std::regex_replace(metric.filename, std::regex("\\$\\{PROJECT_NAME\\}"), GlobalSession->GetCompiler()->ProjManager()->projectName());
-          std::string action_log_file;
-          if(action == Compiler::Action::Synthesis)       { action_log_file = SYNTHESIS_LOG;  }
-          else if(action == Compiler::Action::Pack)       { action_log_file = PACKING_LOG;    }
-          else if(action == Compiler::Action::Detailed)   { action_log_file = PLACEMENT_LOG;  }
-          else if(action == Compiler::Action::Routing)    { action_log_file = ROUTING_LOG;    }
-          else if(action == Compiler::Action::Bitstream)  { action_log_file = BITSTREAM_LOG;  }
-          metric.filename = std::regex_replace(metric.filename, std::regex("\\$\\{ACTION_LOG_FILE\\}"), action_log_file);
-          metric.regex = parameter_json["regex"];
-          metric.description = parameter_json["description"];
-          metric.type = parameter_json["type"];
-          metric.match_type = parameter_json["match_type"];
-
-          metrics_list.push_back(metric);
         }
+        else if(action == Compiler::Action::Pack) {
+          if( (stage_name != "packing") && (stage_name != "general") ) {
+            continue;
+          }
+        }
+        else if(action == Compiler::Action::Detailed) {
+          if( (stage_name != "placement") && (stage_name != "general") ) {
+            continue;
+          }
+        }
+        else if(action == Compiler::Action::Routing) {
+          if( (stage_name != "routing") && (stage_name != "general") ) {
+            continue;
+          }
+        }
+
+        // create a metric object
+        AuroraMetrics metric;
+        metric.stage = stage_name;  // synthesis, packing, placement, routing
+        metric.name = parameter_name;
+        metric.filename = parameter_json["filename"];
+        metric.filename = std::regex_replace(metric.filename, std::regex("\\$\\{PROJECT_NAME\\}"), GlobalSession->GetCompiler()->ProjManager()->projectName());
+        std::string action_log_file;
+        if(action == Compiler::Action::Synthesis)       { action_log_file = SYNTHESIS_LOG;  }
+        else if(action == Compiler::Action::Pack)       { action_log_file = PACKING_LOG;    }
+        else if(action == Compiler::Action::Detailed)   { action_log_file = PLACEMENT_LOG;  }
+        else if(action == Compiler::Action::Routing)    { action_log_file = ROUTING_LOG;    }
+        else if(action == Compiler::Action::Bitstream)  { action_log_file = BITSTREAM_LOG;  }
+        metric.filename = std::regex_replace(metric.filename, std::regex("\\$\\{ACTION_LOG_FILE\\}"), action_log_file);
+        metric.regex = parameter_json["regex"];
+        metric.description = parameter_json["description"];
+        metric.type = parameter_json["type"];
+        metric.match_type = parameter_json["match_type"];
+
+        metrics_list.push_back(metric);
       }
     }
   }
@@ -244,14 +227,14 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
   // save the parsed metrics list into the QLMetricsManager for later API access by other
   // components.
 
-  // std::string stage;
-  // if(action == Compiler::Action::Synthesis)         { stage = "synthesis";  }
-  // else if(action == Compiler::Action::Pack)         { stage = "packing";       }
-  // else if(action == Compiler::Action::Detailed)     { stage = "placement";      }
-  // else if(action == Compiler::Action::Routing)      { stage = "routing";      }
-  // else if(action == Compiler::Action::Bitstream)    { stage = "bitstream";   }
-  // else                                              { stage = "!!unknown!!"; }
-  // std::cout << "\n\n\n>>> ParseLogs() for: " << stage << std::endl;
+  // std::string stage_str;
+  // if(action == Compiler::Action::Synthesis)         { stage_str = "synthesis";   }
+  // else if(action == Compiler::Action::Pack)         { stage_str = "packing";     }
+  // else if(action == Compiler::Action::Detailed)     { stage_str = "placement";   }
+  // else if(action == Compiler::Action::Routing)      { stage_str = "routing";     }
+  // else if(action == Compiler::Action::Bitstream)    { stage_str = "bitstream";   }
+  // else                                              { stage_str = "!!unknown!!"; }
+  // std::cout << "\n\n\n>>> ParseLogs() for: " << stage_str << std::endl;
 
   // build the list of metrics for this action, from the JSON:
   std::vector<AuroraMetrics> metrics_list = buildMetricsListForAction(action);
@@ -395,16 +378,14 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
     metrics_rpt.open(metrics_rpt_filepath);
   
     // header:
-    metrics_rpt << "category" << rpt_delimiter
-                << "subcategory" << rpt_delimiter
+    metrics_rpt << "stage" << rpt_delimiter
                 << "name" << rpt_delimiter
                 << "found" << rpt_delimiter
                 << "value" << rpt_delimiter
                 << "units" << std::endl;
     
     for (const AuroraMetrics& metric: metrics_list) {
-      metrics_rpt << metric.category << rpt_delimiter
-                  << metric.subcategory << rpt_delimiter
+      metrics_rpt << metric.stage << rpt_delimiter
                   << metric.name << rpt_delimiter
                   << metric.found << rpt_delimiter
                   << metric.string_value << rpt_delimiter

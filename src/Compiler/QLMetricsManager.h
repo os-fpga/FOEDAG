@@ -21,9 +21,8 @@ class AuroraMetrics {
   public:
     // name of the metrics parameter
     std::string name;
-    // cat/subcategory of the metrics parameter(internal)
-    std::string category;
-    std::string subcategory;
+    // compilation "stage" where the metrics parameter is available
+    std::string stage;
     // filename (in project path) to parse
     std::string filename;
     // regex to use, with single capture group
@@ -54,9 +53,9 @@ public:
 
 public:
   static QLMetricsManager* getInstance();
-  static std::string getStringValue(std::string category, std::string subcategory, std::string name);
-  static int getIntValue(std::string category, std::string subcategory, std::string name);
-  static double getDoubleValue(std::string category, std::string subcategory, std::string name);
+  static std::string getStringValue(std::string stage, std::string name);
+  static int getIntValue(std::string stage, std::string name);
+  static double getDoubleValue(std::string stage, std::string name);
   static void addParsedMetrics(std::vector<AuroraMetrics>& metrics_list);
 
 private:
