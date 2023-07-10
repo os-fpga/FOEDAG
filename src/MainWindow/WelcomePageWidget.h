@@ -29,6 +29,14 @@ class QAction;
 class QVBoxLayout;
 class QPixmap;
 class QPushButton;
+class QGridLayout;
+class QCheckBox;
+class QGroupBox;
+class QHBoxLayout;
+
+namespace Ui {
+class WelcomePageWidget;
+}
 
 namespace FOEDAG {
 class WelcomePageWidget final : public QWidget {
@@ -49,17 +57,15 @@ class WelcomePageWidget final : public QWidget {
 
  private:
   void keyPressEvent(QKeyEvent *event) override;
-  void initRecentProjects();
 
   QPushButton *createActionButton(const QString &text);
+
+  Ui::WelcomePageWidget *ui;
 
   // Reads WelcomeDescription txt file, located in given path. Returns empty
   // string if the file doesn't exist.
   QString getDescription(const std::filesystem::path &srcDir) const;
-
-  QVBoxLayout *m_actionsLayout{nullptr};
-  QVBoxLayout *m_recentProjectsLayout{nullptr};
-  QVBoxLayout *m_mainLayout{nullptr};
+  QString getCopyrightconst(std::filesystem::path &srcDir) const;
 };
 }  // namespace FOEDAG
 
