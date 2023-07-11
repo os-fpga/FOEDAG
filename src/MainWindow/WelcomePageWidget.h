@@ -25,10 +25,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <filesystem>
 
-class QAction;
-class QVBoxLayout;
-class QPixmap;
 class QPushButton;
+namespace Ui {
+class WelcomePageWidget;
+}
 
 namespace FOEDAG {
 class WelcomePageWidget final : public QWidget {
@@ -49,17 +49,10 @@ class WelcomePageWidget final : public QWidget {
 
  private:
   void keyPressEvent(QKeyEvent *event) override;
-  void initRecentProjects();
-
   QPushButton *createActionButton(const QString &text);
+  QString getFileContent(const std::filesystem::path &srcDir) const;
 
-  // Reads WelcomeDescription txt file, located in given path. Returns empty
-  // string if the file doesn't exist.
-  QString getDescription(const std::filesystem::path &srcDir) const;
-
-  QVBoxLayout *m_actionsLayout{nullptr};
-  QVBoxLayout *m_recentProjectsLayout{nullptr};
-  QVBoxLayout *m_mainLayout{nullptr};
+  Ui::WelcomePageWidget *ui;
 };
 }  // namespace FOEDAG
 
