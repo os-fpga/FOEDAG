@@ -71,6 +71,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/sources_form.h
     FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/FileExplorer.h
+    FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/HierarchyView.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/ProjNavigator)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
