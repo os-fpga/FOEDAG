@@ -25,15 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <filesystem>
 
-class QAction;
-class QVBoxLayout;
-class QPixmap;
 class QPushButton;
-class QGridLayout;
-class QCheckBox;
-class QGroupBox;
-class QHBoxLayout;
-
 namespace Ui {
 class WelcomePageWidget;
 }
@@ -57,15 +49,10 @@ class WelcomePageWidget final : public QWidget {
 
  private:
   void keyPressEvent(QKeyEvent *event) override;
-
   QPushButton *createActionButton(const QString &text);
+  QString getFileContent(const std::filesystem::path &srcDir) const;
 
   Ui::WelcomePageWidget *ui;
-
-  // Reads WelcomeDescription txt file, located in given path. Returns empty
-  // string if the file doesn't exist.
-  QString getDescription(const std::filesystem::path &srcDir) const;
-  QString getCopyrightconst(std::filesystem::path &srcDir) const;
 };
 }  // namespace FOEDAG
 

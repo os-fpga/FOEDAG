@@ -28,22 +28,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QKeyEvent>
 #include <QLabel>
 #include <QPushButton>
-#include <QTextStream>
-#include <QVBoxLayout>
-#include <QSpacerItem>
-#include "qdebug.h"
 
 #include "ui_WelcomePageWidget.h"
 
 using namespace FOEDAG;
 
 namespace {
-static constexpr auto HEADER_MARGIN = 6;
-static constexpr auto HEADER_POINTSIZE = 14;
-static constexpr auto DESCRIPTION_POINTSIZE = 10;
-static constexpr auto PAGE_MARGIN = 30;
-static constexpr auto PAGE_SPACING = 20;
-
 static const auto ETC_DIR = "etc";
 static const auto WELCOME_PAGE_DIR = "Welcome_Page";
 static const auto LOGO_FILENAME = "WelcomeLogo.png";
@@ -57,8 +47,8 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
     : QWidget(parent), ui(new Ui::WelcomePageWidget) {
   ui->setupUi(this);
   std::filesystem::path srcDir = sourcesPath / ETC_DIR / WELCOME_PAGE_DIR;
-  ui->labelHeader->setText(getDescription(srcDir));
-  ui->labelBottom->setText(getCopyrightconst(srcDir));
+  ui->labelHeader->setText(getFileContent(srcDir / DESCRIPTION_FILENAME));
+  ui->labelBottom->setText(getFileContent(srcDir / COPY_FILENAME));
 
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
   auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
@@ -108,34 +98,14 @@ QPushButton *WelcomePageWidget::createActionButton(const QString &text) {
   return btn;
 }
 
-QString WelcomePageWidget::getDescription(
+QString WelcomePageWidget::getFileContent(
     const std::filesystem::path &srcDir) const {
   auto result = QString{};
 
-  std::filesystem::path welcomeDescPath = srcDir / DESCRIPTION_FILENAME;
-  auto descFile = QFile(QString::fromStdString(welcomeDescPath.string()));
+  auto descFile = QFile(QString::fromStdString(srcDir.string()));
   if (!descFile.open(QIODevice::ReadOnly)) return result;
 
-  auto in = QTextStream(&descFile);
-  result = in.readAll();
-  descFile.close();
-
-  return result.trimmed();
-}
-
-QString WelcomePageWidget::getCopyrightconst(
-    std::filesystem::path &srcDir) const {
-  auto result = QString{};
-
-  std::filesystem::path welcomeDescPath = srcDir / COPY_FILENAME;
-  auto descFile = QFile(QString::fromStdString(welcomeDescPath.string()));
-  if (!descFile.open(QIODevice::ReadOnly)) return result;
-
-  auto in = QTextStream(&descFile);
-  result = in.readAll();
-  descFile.close();
-
-  return result.trimmed();
+  return descFile.readAll().trimmed();
 }
 
 void WelcomePageWidget::keyPressEvent(QKeyEvent *event) {
