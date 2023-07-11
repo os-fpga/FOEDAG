@@ -140,7 +140,8 @@ class CompilerOpenFPGA : public Compiler {
     m_perDevicePnROptions = options;
   }
 
-  virtual bool isRtlClock(const std::string& str, bool& ok);
+  virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
+                                                  bool regex);
 
  protected:
   virtual bool IPGenerate();

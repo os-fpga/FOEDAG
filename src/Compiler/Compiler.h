@@ -282,7 +282,10 @@ class Compiler {
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
   std::filesystem::path FilePath(Action action) const;
   std::filesystem::path FilePath(Action action, const std::string& file) const;
-  virtual bool isRtlClock(const std::string& str, bool& ok) { return false; }
+  virtual std::pair<bool, std::string> isRtlClock(const std::string& str,
+                                                  bool regex) {
+    return std::make_pair(false, std::string{});
+  }
   std::vector<std::string> TopModules(
       const std::filesystem::path& ports_info) const;
 

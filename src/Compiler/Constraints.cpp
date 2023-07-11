@@ -182,11 +182,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
                              nullptr);
             return TCL_ERROR;
           }
-          bool ok{false};
-          bool isRtlClock = constraints->GetCompiler()->isRtlClock(arg, ok);
-          if (!ok) {
-            Tcl_AppendResult(interp, "Failed to retrieve ports information",
-                             nullptr);
+          auto [isRtlClock, message] =
+              constraints->GetCompiler()->isRtlClock(arg, false);
+          if (!isRtlClock && !message.empty()) {
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
             return TCL_ERROR;
           }
           if (isRtlClock) {
@@ -225,11 +224,10 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         return TCL_ERROR;
       } else {
         if (arg != "{*}") {
-          bool ok{false};
-          bool isRtlClock = constraints->GetCompiler()->isRtlClock(arg, ok);
-          if (!ok) {
-            Tcl_AppendResult(interp, "Failed to retrieve ports information",
-                             nullptr);
+          auto [isRtlClock, message] =
+              constraints->GetCompiler()->isRtlClock(arg, true);
+          if (!isRtlClock && !message.empty()) {
+            Tcl_AppendResult(interp, message.c_str(), nullptr);
             return TCL_ERROR;
           }
           if (!isRtlClock) {

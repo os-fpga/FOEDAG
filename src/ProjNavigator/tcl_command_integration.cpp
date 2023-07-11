@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignment/PortsModel.h"
 #include "ProjNavigator/sources_form.h"
 #include "Utils/QtUtils.h"
+#include "Utils/StringUtils.h"
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
 
 namespace FOEDAG {
 
@@ -351,19 +354,32 @@ ProjectManager *TclCommandIntegration::GetProjectManager() {
 void TclCommandIntegration::saveSettings() { emit saveSettingsSignal(); }
 
 std::vector<std::string> TclCommandIntegration::GetClockList(
-    const std::filesystem::path &path) const {
-  PortsModel *portsModel = new PortsModel{};
-  PortsLoader *portsLoader = new PortsLoader{portsModel};
-  auto returnValue = portsLoader->load(QString::fromStdString(path.string()));
-  std::vector<std::string> ports;
-  if (returnValue.first) {
-    for (const auto &gr : portsModel->ports()) {
-      for (const auto &port : gr.ports) {
-        if (!port.isBus) ports.push_back(port.name.toStdString());
-      }
+    const std::filesystem::path &path, bool &vhdl) const {
+  QFile jsonFile{QString::fromStdString(path.string())};
+  if (jsonFile.exists() &&
+      jsonFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    // Read/parse json from file and update the passed jsonObject w/ new vals
+    QString jsonStr = jsonFile.readAll();
+    json jsonObject;
+    try {
+      jsonObject = json::parse(jsonStr.toStdString());
+    } catch (...) {
+      return {};
     }
+    std::vector<std::string> ports;
+    auto hierTree = jsonObject.at("hierTree");
+    auto portsArr = hierTree[0].at("ports");
+    auto language = hierTree[0].at("language");
+    if (isVHDL(language)) vhdl = true;
+    for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+      const auto range = it->at("range");
+      const int msb = range["msb"];
+      const int lsb = range["lsb"];
+      if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+    }
+    return ports;
   }
-  return ports;
+  return {};
 }
 
 void TclCommandIntegration::createNewDesign(const QString &projName,
@@ -384,6 +400,12 @@ void TclCommandIntegration::createNewDesign(const QString &projName,
                        m_projManager->getProjectName() + PROJECT_FILE_FORMAT};
   emit newDesign(newDesignStr);
   update();
+}
+
+bool TclCommandIntegration::isVHDL(const std::string &str) {
+  static const StringVector vhdl{"VHDL_87",   "VHDL_93",   "VHDL_2K",
+                                 "VHDL_2008", "VHDL_2019", "VHDL_PSL"};
+  return std::find(vhdl.begin(), vhdl.end(), str) != vhdl.end();
 }
 
 bool TclCommandIntegration::validate() const { return m_projManager; }
