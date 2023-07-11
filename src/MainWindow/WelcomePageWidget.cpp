@@ -62,12 +62,18 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 
   std::filesystem::path labelPath = srcDir / LOGO_FILENAME;
   auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
-  logoPixmap = logoPixmap.scaledToWidth(500, Qt::SmoothTransformation);
-  if (!logoPixmap.isNull()) ui->labelLogo->setPixmap(logoPixmap);
+  if (!logoPixmap.isNull()) {
+    logoPixmap = logoPixmap.scaledToWidth(500, Qt::SmoothTransformation);
+    ui->labelLogo->setPixmap(logoPixmap);
+  } else {
+    ui->labelLogo->hide();
+  }
 
   ui->checkBox->setCheckState(Qt::Checked);
   connect(ui->checkBox, &QAbstractButton::clicked, this,
           [this]() { emit welcomePageClosed(true); });
+
+  ui->groupBox->hide();
 
   // Background setup
   auto defaultPalette = palette();
@@ -86,6 +92,8 @@ void WelcomePageWidget::addRecentProject(QAction &act) {
   auto buttons = createActionButton(act.text());
   connect(buttons, &QPushButton::clicked, this, [&act]() { act.trigger(); });
   ui->verticalLayoutRecent->addWidget(buttons, 0, Qt::AlignLeft | Qt::AlignTop);
+  ui->groupBox->show();
+  ui->line->setMinimumHeight(130 + ui->verticalLayoutRecent->count() * 25);
 }
 
 QPushButton *WelcomePageWidget::createActionButton(const QString &text) {
