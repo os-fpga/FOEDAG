@@ -997,7 +997,7 @@ void MainWindow::createActions() {
   newProjdialog->SetDefaultPath(
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
-  newProjectAction = new QAction(tr("&New Project..."), this);
+  newProjectAction = new QAction(tr("&Create New Project..."), this);
   newProjectAction->setToolTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 

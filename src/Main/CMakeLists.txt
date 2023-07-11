@@ -117,7 +117,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/CompressProject.h
 )
 
-set (SRC_UI_LIST "")
+set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)
 
 set (SRC_QRC_LIST ../MainWindow/main_window_resource.qrc
     ../MainWindow/qml.qrc)
