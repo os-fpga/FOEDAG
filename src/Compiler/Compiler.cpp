@@ -769,6 +769,27 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("add_constraint_file", add_constraint_file, this, 0);
 
+  auto constraint_file_policy = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Please specify one constraint file policy");
+      return TCL_ERROR;
+    }
+    std::string policy = argv[1];
+    if (policy == "vpr") {
+      compiler->getConstraints()->SetPolicy(ConstraintPolicy::StrictVPR);
+    } else if (policy == "SDC") {
+      compiler->getConstraints()->SetPolicy(ConstraintPolicy::SDCCompatible);
+    } else {
+      compiler->ErrorMessage("Please specify a valid constraint file policy: vpr, SDC");
+      return TCL_ERROR;
+    }
+     return TCL_OK;
+  };
+  interp->registerCmd("constraint_file_policy", constraint_file_policy, this,
+                      0);
+
   auto pnr_options = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
