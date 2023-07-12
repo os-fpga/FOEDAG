@@ -28,6 +28,7 @@ set (SRC_CPP_LIST
   tcl_command_integration.cpp
   PropertyWidget.cpp
   FileExplorer.cpp
+  HierarchyView.cpp
 )
 
 set (SRC_H_LIST
@@ -39,6 +40,7 @@ set (SRC_H_LIST
   tcl_command_integration.h
   PropertyWidget.h
   FileExplorer.h
+  HierarchyView.h
 )
 
 set (SRC_UI_LIST
@@ -69,6 +71,7 @@ install (
 install(
     FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/sources_form.h
     FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/FileExplorer.h
+    FILES ${PROJECT_SOURCE_DIR}/../ProjNavigator/HierarchyView.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/ProjNavigator)
   
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
