@@ -22,10 +22,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
+#include <QMenu>
 #include <QTreeWidget>
+
+#include "Utils/StringUtils.h"
 
 static int FileRole = Qt::UserRole + 1;
 static int LineRole = Qt::UserRole + 2;
+static int InstFileRole = Qt::UserRole + 3;
+static int InstLineRole = Qt::UserRole + 4;
+static int TopItemRole = Qt::UserRole + 5;
 
 namespace FOEDAG {
 
@@ -34,10 +41,12 @@ HierarchyView::HierarchyView(const std::filesystem::path &ports)
   m_treeWidget->setHeaderHidden(true);
 
   connect(m_treeWidget, &QTreeWidget::itemDoubleClicked, this,
-          [this](QTreeWidgetItem *item, int column) {
-            emit openFile(item->data(0, FileRole).toString(),
-                          item->data(0, LineRole).toInt());
-          });
+          &HierarchyView::itemDoubleClick);
+
+  m_treeWidget->setExpandsOnDoubleClick(false);
+  m_treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_treeWidget, &QTreeWidget::customContextMenuRequested, this,
+          &HierarchyView::treeWidgetContextMenu);
 
   update();
 }
@@ -69,13 +78,44 @@ void HierarchyView::update() {
 
   if (fileParsed) {
     QTreeWidgetItem *top = addItem(nullptr, &m_top);
-    top->setText(0, m_top.name);
-    m_treeWidget->addTopLevelItem(top);
-    m_treeWidget->expandAll();
+    if (top) {
+      m_treeWidget->addTopLevelItem(top);
+      m_treeWidget->expandAll();
+    }
   }
 }
 
 QTreeWidget *HierarchyView::widget() { return m_treeWidget; }
+
+void HierarchyView::treeWidgetContextMenu(const QPoint &pos) {
+  QMenu menu{m_treeWidget};
+  QAction *showDef = new QAction{"Show Definition"};
+  connect(showDef, &QAction::triggered, this, [this]() {
+    const auto selection = m_treeWidget->selectedItems();
+    for (auto item : selection) {
+      emitOpenFile(item, 0);
+    }
+  });
+  menu.addAction(showDef);
+  menu.exec(QCursor::pos());
+}
+
+void HierarchyView::itemDoubleClick(QTreeWidgetItem *item, int column) {
+  if (item->data(0, TopItemRole).toBool())
+    emitOpenFile(item, column);
+  else
+    emitOpenInstFile(item, column);
+}
+
+void HierarchyView::emitOpenFile(QTreeWidgetItem *item, int column) {
+  emit openFile(item->data(column, FileRole).toString(),
+                item->data(column, LineRole).toInt());
+}
+
+void HierarchyView::emitOpenInstFile(QTreeWidgetItem *item, int column) {
+  emit openFile(item->data(column, InstFileRole).toString(),
+                item->data(column, InstLineRole).toInt());
+}
 
 void HierarchyView::clean() {
   m_files.clear();
@@ -86,11 +126,20 @@ void HierarchyView::clean() {
 
 QTreeWidgetItem *HierarchyView::addItem(QTreeWidgetItem *parent,
                                         Module *module) {
-  auto title = QString{"%1 : %2"}.arg(module->instName, module->name);
+  const bool topModule = (parent == nullptr);
+  const QFileInfo info{module->file};
+  auto title = QString{"%1 : %2 (%3)"}.arg(module->instName, module->name,
+                                           info.fileName());
+  if (topModule) {
+    title = QString{"%1 (%2)"}.arg(module->name, info.fileName());
+  }
   QTreeWidgetItem *it = new QTreeWidgetItem{{title}};
   it->setToolTip(0, title);
+  it->setData(0, InstFileRole, module->instFile);
+  it->setData(0, InstLineRole, module->instLine);
   it->setData(0, FileRole, module->file);
   it->setData(0, LineRole, module->line);
+  it->setData(0, TopItemRole, topModule);
   if (parent) parent->addChild(it);
 
   for (auto sub : qAsConst(module->moduleInst)) {
@@ -102,8 +151,10 @@ QTreeWidgetItem *HierarchyView::addItem(QTreeWidgetItem *parent,
 void HierarchyView::parseJson(json &jsonObject) {
   auto files = jsonObject.at("fileIDs");
   for (auto it = files.begin(); it != files.end(); it++) {
-    m_files.insert(QString::fromStdString(it.key()).toInt(),
-                   QString::fromStdString(it.value().get<std::string>()));
+    const auto &[value, ok] = StringUtils::to_number<int>(it.key());
+    if (ok)
+      m_files.insert(value,
+                     QString::fromStdString(it.value().get<std::string>()));
   }
 
   // top module parsing
@@ -111,16 +162,18 @@ void HierarchyView::parseJson(json &jsonObject) {
   auto topModule = hierTree.at("topModule");
   m_top.name = QString::fromStdString(topModule.get<std::string>());
   m_top.line = QString::number(hierTree.at("line").get<int>());
-  m_top.file = m_files.value(
-      QString::fromStdString(hierTree.at("file").get<std::string>()).toInt());
+  const auto &[num, ok] =
+      StringUtils::to_number<int>(hierTree.at("file").get<std::string>());
+  if (ok) m_top.file = m_files.value(num);
   if (hierTree.contains("moduleInsts")) {
     auto moduleInst = hierTree.at("moduleInsts");
     for (auto it = moduleInst.begin(); it != moduleInst.end(); it++) {
       Module *mod = new Module;
       mod->name = QString::fromStdString(it->at("module").get<std::string>());
-      mod->line = QString::number(it->at("line").get<int>());
-      mod->file = m_files.value(
-          QString::fromStdString(it->at("file").get<std::string>()).toInt());
+      mod->instLine = QString::number(it->at("line").get<int>());
+      const auto &[num, ok] =
+          StringUtils::to_number<int>(it->at("file").get<std::string>());
+      if (ok) mod->instFile = m_files.value(num);
       mod->instName =
           QString::fromStdString(it->at("instName").get<std::string>());
       m_top.moduleInst.append(mod);
@@ -134,18 +187,19 @@ void HierarchyView::parseJson(json &jsonObject) {
     Module *newMod = new Module;
     newMod->name = QString::fromStdString(m.key());
     newMod->line = QString::number(m.value().at("line").get<int>());
-    newMod->file = m_files.value(
-        QString::fromStdString(m.value().at("file").get<std::string>())
-            .toInt());
+    const auto &[num, ok] =
+        StringUtils::to_number<int>(m.value().at("file").get<std::string>());
+    if (ok) newMod->file = m_files.value(num);
     allModules.append(newMod);
     if (m.value().contains("moduleInsts")) {
       auto moduleInst = m.value().at("moduleInsts");
       for (auto it = moduleInst.begin(); it != moduleInst.end(); it++) {
         Module *modeInst = new Module;
         modeInst->name = QString::fromStdString(it->at("module"));
-        modeInst->line = QString::number(it->at("line").get<int>());
-        modeInst->file = m_files.value(
-            QString::fromStdString(it->at("file").get<std::string>()).toInt());
+        modeInst->instLine = QString::number(it->at("line").get<int>());
+        const auto &[num, ok] =
+            StringUtils::to_number<int>(it->at("file").get<std::string>());
+        if (ok) modeInst->instFile = m_files.value(num);
         modeInst->instName = QString::fromStdString(it->at("instName"));
         newMod->moduleInst.append(modeInst);
       }
@@ -169,6 +223,20 @@ void HierarchyView::parseJson(json &jsonObject) {
   for (auto topInst : qAsConst(m_top.moduleInst)) {
     auto inst = getInst(topInst->name);
     for (auto sub : qAsConst(inst->moduleInst)) topInst->moduleInst.append(sub);
+  }
+
+  for (auto topInst : qAsConst(m_top.moduleInst)) {
+    auto inst = getInst(topInst->name);
+    topInst->file = inst->file;
+    topInst->line = inst->line;
+  }
+
+  for (auto m : qAsConst(allModules)) {
+    for (auto inst : qAsConst(m->moduleInst)) {
+      auto sub = getInst(inst->name);
+      inst->file = sub->file;
+      inst->line = sub->line;
+    }
   }
 }
 

@@ -39,6 +39,8 @@ struct Module {
   QString instName;
   QString file;
   QString line;
+  QString instFile;
+  QString instLine;
   QVector<Module *> moduleInst;
   ~Module() { qDeleteAll(moduleInst); }
 };
@@ -56,10 +58,16 @@ class HierarchyView : public QObject {
  signals:
   void openFile(const QString &file, int line);
 
+ private slots:
+  void treeWidgetContextMenu(const QPoint &pos);
+  void itemDoubleClick(QTreeWidgetItem *item, int column);
+
  private:
   void clean();
   QTreeWidgetItem *addItem(QTreeWidgetItem *parent, Module *module);
   void parseJson(json &jsonObject);
+  void emitOpenFile(QTreeWidgetItem *item, int column);
+  void emitOpenInstFile(QTreeWidgetItem *item, int column);
 
  private:
   QTreeWidget *m_treeWidget{};
