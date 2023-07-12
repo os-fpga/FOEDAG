@@ -157,16 +157,7 @@ void HierarchyView::parseJson(json &jsonObject) {
                      QString::fromStdString(it.value().get<std::string>()));
   }
 
-  // top module parsing
-  auto hierTree = jsonObject.at("hierTree")[0];
-  auto topModule = hierTree.at("topModule");
-  m_top.name = QString::fromStdString(topModule.get<std::string>());
-  m_top.line = QString::number(hierTree.at("line").get<int>());
-  const auto &[num, ok] =
-      StringUtils::to_number<int>(hierTree.at("file").get<std::string>());
-  if (ok) m_top.file = m_files.value(num);
-  if (hierTree.contains("moduleInsts")) {
-    auto moduleInst = hierTree.at("moduleInsts");
+  auto parseModuleInst = [this](json &moduleInst, Module *module) {
     for (auto it = moduleInst.begin(); it != moduleInst.end(); it++) {
       Module *mod = new Module;
       mod->name = QString::fromStdString(it->at("module").get<std::string>());
@@ -176,34 +167,36 @@ void HierarchyView::parseJson(json &jsonObject) {
       if (ok) mod->instFile = m_files.value(num);
       mod->instName =
           QString::fromStdString(it->at("instName").get<std::string>());
-      m_top.moduleInst.append(mod);
+      module->moduleInst.append(mod);
     }
-  }
+  };
+
+  auto parseModule = [this, parseModuleInst](json &moduleInst, Module *module) {
+    module->line = QString::number(moduleInst.at("line").get<int>());
+    const auto &[num, ok] =
+        StringUtils::to_number<int>(moduleInst.at("file").get<std::string>());
+    if (ok) module->file = m_files.value(num);
+    if (moduleInst.contains("moduleInsts")) {
+      auto moduleInsts = moduleInst.at("moduleInsts");
+      parseModuleInst(moduleInsts, module);
+    }
+  };
+
+  // top module parsing
+  auto hierTree = jsonObject.at("hierTree")[0];
+  auto topModule = hierTree.at("topModule");
+  m_top.name = QString::fromStdString(topModule.get<std::string>());
+  parseModule(hierTree, &m_top);
 
   // all modules parsing
   auto modules = jsonObject.at("modules");
   QVector<Module *> allModules;
   for (auto m = modules.begin(); m != modules.end(); m++) {
     Module *newMod = new Module;
-    newMod->name = QString::fromStdString(m.key());
-    newMod->line = QString::number(m.value().at("line").get<int>());
-    const auto &[num, ok] =
-        StringUtils::to_number<int>(m.value().at("file").get<std::string>());
-    if (ok) newMod->file = m_files.value(num);
     allModules.append(newMod);
-    if (m.value().contains("moduleInsts")) {
-      auto moduleInst = m.value().at("moduleInsts");
-      for (auto it = moduleInst.begin(); it != moduleInst.end(); it++) {
-        Module *modeInst = new Module;
-        modeInst->name = QString::fromStdString(it->at("module"));
-        modeInst->instLine = QString::number(it->at("line").get<int>());
-        const auto &[num, ok] =
-            StringUtils::to_number<int>(it->at("file").get<std::string>());
-        if (ok) modeInst->instFile = m_files.value(num);
-        modeInst->instName = QString::fromStdString(it->at("instName"));
-        newMod->moduleInst.append(modeInst);
-      }
-    }
+    newMod->name = QString::fromStdString(m.key());
+    auto in = m.value();
+    parseModule(in, newMod);
   }
 
   auto getInst = [allModules](const QString &name) -> Module * {
@@ -212,6 +205,7 @@ void HierarchyView::parseJson(json &jsonObject) {
     return nullptr;
   };
 
+  // update all modules instances
   for (auto m : qAsConst(allModules)) {
     for (auto inst : qAsConst(m->moduleInst)) {
       auto sub = getInst(inst->name);
@@ -225,12 +219,14 @@ void HierarchyView::parseJson(json &jsonObject) {
     for (auto sub : qAsConst(inst->moduleInst)) topInst->moduleInst.append(sub);
   }
 
+  // set top module instances file and line
   for (auto topInst : qAsConst(m_top.moduleInst)) {
     auto inst = getInst(topInst->name);
     topInst->file = inst->file;
     topInst->line = inst->line;
   }
 
+  // set all modules instances file and line
   for (auto m : qAsConst(allModules)) {
     for (auto inst : qAsConst(m->moduleInst)) {
       auto sub = getInst(inst->name);
