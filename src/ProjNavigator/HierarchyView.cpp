@@ -89,7 +89,7 @@ QTreeWidget *HierarchyView::widget() { return m_treeWidget; }
 
 void HierarchyView::treeWidgetContextMenu(const QPoint &pos) {
   QMenu menu{m_treeWidget};
-  QAction *showDef = new QAction{"Show Definition"};
+  QAction *showDef = new QAction{"Go to Definition"};
   connect(showDef, &QAction::triggered, this, [this]() {
     const auto selection = m_treeWidget->selectedItems();
     for (auto item : selection) {
