@@ -95,7 +95,7 @@ static std::vector<std::string> constraint_procs = {
     "filter_ports1",
     // "create_clock",
     "create_generated_clock", "group_path", "check_exception_pins",
-    "set_clock_gating_check", "set_clock_gating_check1", 
+    "set_clock_gating_check", "set_clock_gating_check1",
     // "set_clock_groups",
     "set_clock_latency", "set_sense", "set_clock_sense", "set_clock_sense_cmd1",
     "set_clock_transition", "set_clock_uncertainty", "set_data_check",
@@ -196,16 +196,20 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         arg = argv[i];
         if (arg != "{*}") {
           if (constraints->GetPolicy() == ConstraintPolicy::SDCCompatible) {
-            // Ignore the -name <clock>, only use the [get_clock <clock>] portion of the command (Names have to match)
-            if (actual_clock.empty() || ((!actual_clock.empty()) && (arg == actual_clock))) {
+            // Ignore the -name <clock>, only use the [get_clock <clock>]
+            // portion of the command (Names have to match)
+            if (actual_clock.empty() ||
+                ((!actual_clock.empty()) && (arg == actual_clock))) {
               if (actual_clock.empty()) {
                 constraint += "-name " + arg + " ";
               }
               continue;
             } else {
-              Tcl_AppendResult(interp,
-                             "In SDC compatibility mode for: create_clock -name <clk> [get_clock/get_port <clk>], <clk> names have to match.",
-                             nullptr);
+              Tcl_AppendResult(
+                  interp,
+                  "In SDC compatibility mode for: create_clock -name <clk> "
+                  "[get_clock/get_port <clk>], <clk> names have to match.",
+                  nullptr);
               return TCL_ERROR;
             }
           } else {
@@ -291,7 +295,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   interp->registerCmd("create_clock", create_clock, this, 0);
 
   auto set_clock_groups = [](void* clientData, Tcl_Interp* interp, int argc,
-                         const char* argv[]) -> int {
+                             const char* argv[]) -> int {
     Constraints* constraints = (Constraints*)clientData;
     std::string constraint = std::string(argv[0]) + " ";
     std::string actual_clock;
@@ -325,8 +329,7 @@ void Constraints::registerCommands(TclInterpreter* interp) {
       std::string tmp = replaceAll(arg, "@*@", "{*}");
       if (tmp != "{*}") constraints->addKeep(tmp);
       returnVal += tmp;
-      if (i < argc - 1)
-        returnVal += " ";
+      if (i < argc - 1) returnVal += " ";
     }
     if (constraints->GetPolicy() == ConstraintPolicy::StrictVPR) {
       returnVal += "]";
