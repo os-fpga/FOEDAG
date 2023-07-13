@@ -80,6 +80,7 @@ void WelcomePageWidget::addAction(QAction &act) {
 
 void WelcomePageWidget::addRecentProject(QAction &act) {
   auto buttons = createActionButton(act);
+  buttons->setIcon(QIcon{":/images/dot.png"});
   connect(buttons, &QPushButton::clicked, &act, &QAction::triggered);
   ui->verticalLayoutRecent->addWidget(buttons, 0, Qt::AlignLeft | Qt::AlignTop);
   ui->groupBox->show();
