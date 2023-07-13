@@ -984,11 +984,13 @@ void MainWindow::createActions() {
 
   openProjectAction = new QAction(tr("Open &Project..."), this);
   openProjectAction->setToolTip(tr("Open a new project"));
+  openProjectAction->setIcon(QIcon{":/images/open-new-window.png"});
   connect(openProjectAction, SIGNAL(triggered()), this,
           SLOT(openProjectDialog()));
 
   openExampleAction = new QAction(tr("Open &Example Design..."), this);
   openExampleAction->setToolTip(tr("Open example design"));
+  openExampleAction->setIcon(QIcon{":/images/open-in-browser.png"});
   connect(openExampleAction, SIGNAL(triggered()), this,
           SLOT(openExampleProject()));
 
@@ -1001,6 +1003,7 @@ void MainWindow::createActions() {
       m_settings.value(DEFAULT_PROJECT_PATH, QString{}).toString());
   connect(newProjdialog, SIGNAL(accepted()), this, SLOT(newDialogAccepted()));
   newProjectAction = new QAction(tr("&Create New Project..."), this);
+  newProjectAction->setIcon(QIcon{":/images/add-circle.png"});
   newProjectAction->setToolTip(tr("Create a new project"));
   connect(newProjectAction, SIGNAL(triggered()), this, SLOT(newProjectDlg()));
 
