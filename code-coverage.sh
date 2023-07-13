@@ -36,7 +36,7 @@ fi
 popd
 
 mkdir -p $COVERAGE_DIR
-gcovr -r . -f src* --html-nested -o $COVERAGE_DIR/index.html \
+gcovr -r . -f src* --html-nested -o $COVERAGE_DIR/index.html --exclude-unreachable-branches --exclude-throw-branches \
     -e "src/Compiler/Test/*" \
     -e "src/Console/Test/*" \
     -e "src/DesignRuns/Test/*" \
