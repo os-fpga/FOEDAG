@@ -87,8 +87,8 @@ jobs:
     - name: Coverage
       if: matrix.mode == 'coverage'
       run: |
-        make debug coverage-build/foedag.coverage
-
+        make test/coverage
+    
     - name: Valgrind
       if: matrix.mode == 'valgrind'
       run: |
