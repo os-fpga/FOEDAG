@@ -14,5 +14,8 @@
         <file>images/search.png</file>
         <file>images/profile-circle.png</file>
         <file>images/chat-bubble-check.png</file>
+        <file>images/open-in-browser.png</file>
+        <file>images/open-new-window.png</file>
+        <file>images/add-circle.png</file>
     </qresource>
 </RCC>

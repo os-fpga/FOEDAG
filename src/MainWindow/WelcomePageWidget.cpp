@@ -73,21 +73,22 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
 }
 
 void WelcomePageWidget::addAction(QAction &act) {
-  auto actionButton = createActionButton(act.text());
-  connect(actionButton, &QPushButton::clicked, [&act]() { act.trigger(); });
+  auto actionButton = createActionButton(act);
+  connect(actionButton, &QPushButton::clicked, &act, &QAction::triggered);
   ui->verticalLayout->addWidget(actionButton, 0, Qt::AlignLeft | Qt::AlignTop);
 }
 
 void WelcomePageWidget::addRecentProject(QAction &act) {
-  auto buttons = createActionButton(act.text());
-  connect(buttons, &QPushButton::clicked, this, [&act]() { act.trigger(); });
+  auto buttons = createActionButton(act);
+  connect(buttons, &QPushButton::clicked, &act, &QAction::triggered);
   ui->verticalLayoutRecent->addWidget(buttons, 0, Qt::AlignLeft | Qt::AlignTop);
   ui->groupBox->show();
   ui->line->setMinimumHeight(130 + ui->verticalLayoutRecent->count() * 25);
 }
 
-QPushButton *WelcomePageWidget::createActionButton(const QString &text) {
-  auto btn = new QPushButton(text);
+QPushButton *WelcomePageWidget::createActionButton(QAction &action) {
+  auto btn = new QPushButton(action.text());
+  btn->setIcon(action.icon());
   btn->setFlat(true);
   btn->setCursor(Qt::PointingHandCursor);
 
