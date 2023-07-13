@@ -14,7 +14,6 @@ sudo apt install -y \
   xorg \
   qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
   xvfb \
-#  gcovr \
   yosys \
   automake
 
