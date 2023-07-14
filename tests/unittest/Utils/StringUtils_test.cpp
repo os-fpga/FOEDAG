@@ -243,7 +243,7 @@ TEST(StringUtilsTest, FromArgsNull) {
 
 TEST(StringUtilsTest, FromArgsOne) {
   const int argc{1};
-  const char* args[argc] = {};
+  const char* args[argc] = {nullptr};
 
   EXPECT_THROW(
       {
