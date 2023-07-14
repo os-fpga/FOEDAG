@@ -39,6 +39,8 @@ namespace FOEDAG {
 /* This class preprocess SDC contraints to keep all names used in the
  * constraints and the constraints themselves */
 
+enum class ConstraintPolicy { VPR, SDCCompatible, SDC };
+
 class Constraints {
  public:
   Constraints(Compiler* compiler);
@@ -46,6 +48,8 @@ class Constraints {
   void SetSession(Session* session) { m_session = session; }
   Session* GetSession() { return m_session; }
   ~Constraints();
+  void SetPolicy(ConstraintPolicy policy) { m_constraintPolicy = policy; }
+  ConstraintPolicy GetPolicy() { return m_constraintPolicy; }
   bool evaluateConstraints(const std::filesystem::path& path);
   bool evaluateConstraint(const std::string& constraint);
   void reset();
@@ -67,6 +71,7 @@ class Constraints {
   std::vector<std::string> m_constraints;
   std::set<std::string> m_keeps;
   std::set<std::string> m_virtualClocks{};
+  ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
 };
 
 }  // namespace FOEDAG
