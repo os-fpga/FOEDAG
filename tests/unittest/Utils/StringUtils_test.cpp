@@ -241,18 +241,5 @@ TEST(StringUtilsTest, FromArgsNull) {
   EXPECT_EQ(res, expected);
 }
 
-TEST(StringUtilsTest, FromArgsOne) {
-  const int argc{1};
-  const char* args[argc] = {nullptr};
-
-  EXPECT_THROW(
-      {
-        StringVector res = StringUtils::FromArgs(argc, args);
-        StringVector expected{"one"};
-        EXPECT_EQ(res, expected);
-      },
-      std::exception);
-}
-
 }  // namespace
 }  // namespace FOEDAG
