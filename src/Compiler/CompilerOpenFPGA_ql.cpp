@@ -2689,6 +2689,37 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // ErrorMessage("Unknown Family Specified: " + family);
     // return false;
   //}
+
+  // SDC file support in yosys using sdc-plugin:
+  // if there is a sdc file specified in yosys > sdc_plugin > sdc_file > userValue -> take this
+  // else if there is an sdc file in the project dir or TCL dir of the name: <project_name>_synth.sdc -> take this
+  // then we need to process the sdc file using the sdc-plugin.
+  std::filesystem::path synth_sdc_filepath;
+  if( !QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file").empty() ) {
+    synth_sdc_filepath = QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file");
+    if(!FileUtils::FileExists(synth_sdc_filepath)) {
+      synth_sdc_filepath.clear();
+    }
+  }
+  else {
+    synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / (ProjManager()->projectName() + std::string("_synth") + std::string(".sdc"));
+    // check project_path
+    if(!FileUtils::FileExists(synth_sdc_filepath)) {
+      synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / ".." / (ProjManager()->projectName() + std::string("_synth") + std::string(".sdc"));
+      // check design_dir_path (TCL script path)
+      if(!FileUtils::FileExists(synth_sdc_filepath)) {
+        synth_sdc_filepath.clear();
+      }
+    }
+  }
+  
+  if(!synth_sdc_filepath.empty()) {
+    // process SDC related stuff
+  }
+  else {
+    // all SDC related stuff should be disabled
+  }
+
   
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
