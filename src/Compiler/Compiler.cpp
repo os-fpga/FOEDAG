@@ -2107,6 +2107,9 @@ void Compiler::GenerateReport(int action) {
   handleJsonReportGeneration(
       m_taskManager->task(toTaskId(action, this)), m_taskManager,
       QString::fromStdString(FilePath(static_cast<Action>(action)).string()));
+  if (static_cast<Action>(action) == Action::Analyze && m_tclCmdIntegration) {
+    m_tclCmdIntegration->updateHierarchyView();
+  }
 }
 
 void Compiler::Stop() {

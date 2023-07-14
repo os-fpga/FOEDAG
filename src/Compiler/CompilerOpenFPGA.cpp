@@ -2373,8 +2373,10 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
   result = ReplaceAll(
       result, "${ROUTE_FILE}",
       FilePath(Action::Routing, netlistFilePrefix + ".route").string());
-  result = ReplaceAll(result, "${SDC_FILE}",
-                      ProjManager()->projectName() + "_openfpga.sdc");
+  result = ReplaceAll(
+      result, "${SDC_FILE}",
+      FilePath(Action::Pack, ProjManager()->projectName() + "_openfpga.sdc")
+          .string());
   if (!ProjManager()->DesignTopModule().empty())
     result = ReplaceAll(result, "${TOP_MODULE_INFO}",
                         "--top " + ProjManager()->DesignTopModule());
@@ -2507,7 +2509,9 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
       break;
   }
   std::string repack_constraints =
-      ProjManager()->projectName() + "_repack_constraints.xml";
+      FilePath(Action::Detailed,
+               ProjManager()->projectName() + "_repack_constraints.xml")
+          .string();
   const bool fpga_repack = FileUtils::FileExists(repack_constraints);
   if (!fpga_repack) {
     result = ReplaceAll(result, "${OPENFPGA_REPACK_CONSTRAINTS}",

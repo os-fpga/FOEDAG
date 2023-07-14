@@ -49,7 +49,7 @@ class WelcomePageWidget final : public QWidget {
 
  private:
   void keyPressEvent(QKeyEvent *event) override;
-  QPushButton *createActionButton(const QString &text);
+  QPushButton *createActionButton(QAction &action);
   QString getFileContent(const std::filesystem::path &srcDir) const;
 
   Ui::WelcomePageWidget *ui;
