@@ -2702,22 +2702,50 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     }
   }
   else {
-    synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / (ProjManager()->projectName() + std::string("_synth") + std::string(".sdc"));
+    std::string expected_synth_sdc_filename = ProjManager()->projectName() + std::string("_synth") + std::string(".sdc");
+
     // check project_path
+    synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / expected_synth_sdc_filename;
     if(!FileUtils::FileExists(synth_sdc_filepath)) {
-      synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / ".." / (ProjManager()->projectName() + std::string("_synth") + std::string(".sdc"));
+      
       // check design_dir_path (TCL script path)
+      synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / std::string("..") / expected_synth_sdc_filename;
       if(!FileUtils::FileExists(synth_sdc_filepath)) {
+
+        // not found, mark path as empty
         synth_sdc_filepath.clear();
       }
     }
   }
   
   if(!synth_sdc_filepath.empty()) {
-    // process SDC related stuff
+    
+    // we have a valid SDC file
+    std::filesystem::path aurora_yosys_import_script_path =
+        GetSession()->Context()->DataPath() /
+        std::filesystem::path("..") /
+        std::filesystem::path("scripts") /
+        std::filesystem::path("aurora_yosys_import.tcl");
+
+    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD_SDC}", std::string("plugin -i sdc"));
+
+    yosysScript = ReplaceAll(yosysScript, "${CALL_TCL_IMPORT_SCRIPT}", std::string("tcl") + 
+                                                                       std::string(" ") + 
+                                                                       aurora_yosys_import_script_path.string());
+    yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("read_sdc") +
+                                                              std::string(" ") + 
+                                                              synth_sdc_filepath.string());
+
   }
   else {
-    // all SDC related stuff should be disabled
+    
+    // we don't have SDC file
+
+    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD_SDC}", std::string("# [skipped] sdc plugin load as there is no synth sdc file"));
+
+    yosysScript = ReplaceAll(yosysScript, "${CALL_TCL_IMPORT_SCRIPT}", std::string("# [skipped] call tcl import script as there is no synth sdc file"));
+
+    yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("# [skipped] read sdc as there is no synth sdc file"));
   }
 
   
