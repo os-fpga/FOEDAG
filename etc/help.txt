@@ -56,6 +56,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
    add_library_ext <ext>      : Spcify library extensions (Not applicable to VHDL)
    set_macro <name>=<value>   : As in -D<macro>=<value>
    read_netlist <file>        : Read a netlist (.blif/.eblif) instead of an RTL design (Skip Synthesis)
+   constraint_file_policy <policy> : "vpr" for VPR mode or "SDCCompatible" for SDC-vpr compatibility mode (default), or "SDC" for standard SDC mode
    add_constraint_file <file> : Sets constraints file (SDC) filename and location
    add_simulation_file <file list> ?type?   ?-work <libName>?   ?-L <libName>? 
        <type>                 : -VHDL_1987, -VHDL_1993, -VHDL_2000, -VHDL_2008, -VHDL_2019, -V_1995, -V_2001, -SV_2005, -SV_2009, -SV_2012, -SV_2017, -C, -CPP 

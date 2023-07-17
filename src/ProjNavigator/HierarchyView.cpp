@@ -152,9 +152,14 @@ void HierarchyView::parseJson(json &jsonObject) {
   auto files = jsonObject.at("fileIDs");
   for (auto it = files.begin(); it != files.end(); it++) {
     const auto &[value, ok] = StringUtils::to_number<int>(it.key());
-    if (ok)
-      m_files.insert(value,
-                     QString::fromStdString(it.value().get<std::string>()));
+    if (ok) {
+      auto file = std::filesystem::path{it.value().get<std::string>()};
+      if (file.is_relative()) {
+        file = m_portsFile.parent_path() / file;
+        file = file.lexically_normal();
+      }
+      m_files.insert(value, QString::fromStdString(file.string()));
+    }
   }
 
   auto parseModuleInst = [this](json &moduleInst, Module *module) {
