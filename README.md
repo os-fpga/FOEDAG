@@ -2,6 +2,7 @@
 
 [![main](https://github.com/os-fpga/FOEDAG/actions/workflows/main.yml/badge.svg)](https://github.com/os-fpga/FOEDAG/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/foedag/badge/?version=latest)](https://foedag.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/os-fpga/FOEDAG/branch/main/graph/badge.svg?token=J3BBk1po4L)](https://codecov.io/gh/os-fpga/FOEDAG)
 
 FOEDAG denotes Qt-based Framework Open EDA Gui
 
