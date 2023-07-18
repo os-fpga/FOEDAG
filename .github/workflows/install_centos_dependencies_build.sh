@@ -61,4 +61,3 @@ else
   make install
   cd ..
 fi
-yum clean all
