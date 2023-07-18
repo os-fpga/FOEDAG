@@ -36,7 +36,7 @@ fi
 popd
 
 mkdir -p $COVERAGE_DIR
-gcovr -r . -f src*  -o $COVERAGE_DIR/index.txt --exclude-unreachable-branches --exclude-throw-branches --txt \
+gcovr -r . -f src*  -o $COVERAGE_DIR/index.txt --exclude-unreachable-branches --exclude-throw-branches --json -s \
     -e "src/Compiler/Test/*" \
     -e "src/Console/Test/*" \
     -e "src/DesignRuns/Test/*" \
