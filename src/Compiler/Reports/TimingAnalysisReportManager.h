@@ -25,6 +25,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 class Compiler;
 
+struct TimingData {
+  double WNS{};
+  double TNS{};
+};
+
+struct ClockData {
+  QString clockName;
+  double pathDelay{};
+  double WNS{};
+  double fMax{};
+};
+
 /* Report manager for timing analysis. It works with 'timing_analysis.rpt' log
  * file. As there are two timing engines supported: Tatum (Default) and OpenSTA,
  * this manager is responsible for recognizing messages of both.
@@ -35,6 +47,7 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
                               Compiler *compiler);
 
  private:
+  void parseStatisticLine(const QString &line) override;
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;
   QString getTimingLogFileName() const override;
@@ -44,10 +57,28 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   void parseLogFile() override;
   std::filesystem::path logFile() const override;
   void clean() override;
+  void validateTimingReport();
+
+  static QString ToString(double val);
 
   void parseOpenSTALog();
   IDataReport::TableData parseOpenSTATimingTable(QTextStream &in,
                                                  int &lineNr) const;
+  IDataReport::TableData CreateTotalDesign() const;
+  IDataReport::TableData CreateIntraClock() const;
+  IDataReport::TableData CreateInterClock() const;
+
+  template <class T>
+  void Resize(int row, int col, QVector<QVector<T>> &vec) {
+    vec.resize(row);
+    for (int i = 0; i < row; i++) vec[i].resize(col);
+  }
+
+  int parseIntraDomPathDelaysSection(QTextStream &in, int lineNr);
+  int parseIntraSetupSection(QTextStream &in, int lineNr);
+  int parseInterDomPathDelaysSection(QTextStream &in, int lineNr);
+  int parseInterSetupSection(QTextStream &in, int lineNr);
+  static QString FloatRegex();
 
   SectionKeys m_createDeviceKeys;
   IDataReport::ColumnValues m_openSTATimingColumns;
@@ -59,7 +90,23 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   IDataReport::TableData m_bramData;
   IDataReport::TableData m_dspData;
 
+  // timing report
+  IDataReport::ColumnValues m_totalDesignColumn;
+  IDataReport::ColumnValues m_intraClockColumn;
+  IDataReport::ColumnValues m_interClockColumn;
+  IDataReport::TableData m_totalDesign;
+  IDataReport::TableData m_intraClock;
+  IDataReport::TableData m_interClock;
+
+  IDataReport::TableMetaData m_totalDesignMeta;
+  IDataReport::TableMetaData m_intraClockMeta;
+  IDataReport::TableMetaData m_interClockMeta;
+
   Compiler *m_compiler;
+  TimingData m_timingSetup{};
+  TimingData m_timingHold{};
+  QVector<ClockData> m_clocksIntra;
+  QVector<ClockData> m_clocksInter;
 };
 
 }  // namespace FOEDAG

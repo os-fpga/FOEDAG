@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QStringList>
 #include <QVector>
+#include <QBrush>
 
 namespace FOEDAG {
 
@@ -32,6 +33,10 @@ struct ReportColumn {
   bool operator==(const ReportColumn &rhs) const {
     return m_name == rhs.m_name;
   }
+};
+
+struct LineMeta {
+  QBrush forground = Qt::black;
 };
 
 /* Given interface represents the data report, holding single type of data:
@@ -46,11 +51,14 @@ class IDataReport {
 
   using ColumnValues = QVector<ReportColumn>;
   using LineValues = QStringList;
+  using LineMetaValues = QVector<LineMeta>;
   using TableData = QVector<LineValues>;
+  using TableMetaData = QVector<LineMetaValues>;
   // Returns report column names
   virtual const ColumnValues &getColumns() const = 0;
   // Returns report data - rows of values
   virtual const TableData &getData() const = 0;
+  virtual const TableMetaData &getMetaData() const = 0;
   // Returns report name
   virtual const QString &getName() const = 0;
   // Indicates whether report has any data
