@@ -2133,8 +2133,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
     auto projName = ProjManager()->projectName();
     auto libFileName = FilePath(Action::STA, projName + ".lib");
     auto netlistFileName =
-        FilePath(Action::STA, projName + "_post_synthesis.v");
-    auto sdfFileName = FilePath(Action::STA, projName + "_post_synthesis.sdf");
+        FilePath(Action::STA, projName + "_post_route.v");
+    auto sdfFileName = FilePath(Action::STA, projName + "_post_route.sdf");
     auto sdcFileName = FilePath(Action::STA, projName + ".sdc");
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
