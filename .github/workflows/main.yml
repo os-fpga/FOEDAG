@@ -98,7 +98,7 @@ jobs:
     - name: Upload coverage
       # will show up under https://app.codecov.io/gh/os-fpga/FOEDAG
       if: matrix.mode == 'coverage'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v3.1.4
       with:
         files: dbuild/code-coverage/index.txt
         fail_ci_if_error: false
