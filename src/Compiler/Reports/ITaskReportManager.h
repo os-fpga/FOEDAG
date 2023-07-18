@@ -98,6 +98,7 @@ struct ClockData {
   double pathDelay{};
   double WNS{};
   double fMax{};
+  bool constrained{false};
 };
 
 class ITaskReport;

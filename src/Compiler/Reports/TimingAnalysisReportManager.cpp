@@ -374,14 +374,14 @@ void TimingAnalysisReportManager::validateTimingReport() {
       m_totalDesignMeta[1][i].forground = Qt::red;
   }
   if (m_clocksIntra.count() == 1) {  // single clock
-    if (m_timingSetup.WNS < 0) {
+    if ((m_timingSetup.WNS < 0) || !m_clocksIntra.at(0).constrained) {
       for (int j = 0; j < m_intraClockMeta.at(0).count(); j++) {
         m_intraClockMeta[0][j].forground = Qt::red;
       }
     }
   } else {
     for (int i = 0; i < m_clocksIntra.count(); i++) {
-      if (m_clocksIntra.at(i).WNS < 0) {
+      if ((m_clocksIntra.at(i).WNS < 0) || !m_clocksIntra.at(i).constrained) {
         for (int j = 0; j < m_intraClockMeta.at(i).count(); j++) {
           m_intraClockMeta[i][j].forground = Qt::red;
         }
@@ -472,19 +472,27 @@ IDataReport::TableData TimingAnalysisReportManager::CreateIntraClock() const {
   if (m_clocksIntra.count() < 2) {
     const bool met = (m_timingSetup.WNS == 0);
     for (const auto &clock : m_clocksIntra) {
-      data.push_back({clock.clockName,
-                      ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
-                      QString::number(clock.pathDelay),
-                      ToString(m_timingSetup.WNS),
-                      QString::number(clock.fMax)});
+      if (!clock.constrained) {
+        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+      } else {
+        data.push_back({clock.clockName,
+                        ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
+                        QString::number(clock.pathDelay),
+                        ToString(m_timingSetup.WNS),
+                        QString::number(clock.fMax)});
+      }
     }
   } else if (m_clocksIntra.count() > 1) {
     for (const auto &clock : m_clocksIntra) {
-      const bool met = (clock.WNS == 0);
-      data.push_back({clock.clockName,
-                      ToString(met ? 0 : clock.pathDelay + clock.WNS),
-                      QString::number(clock.pathDelay), ToString(clock.WNS),
-                      QString::number(clock.fMax)});
+      if (!clock.constrained) {
+        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+      } else {
+        const bool met = (clock.WNS == 0);
+        data.push_back({clock.clockName,
+                        ToString(met ? 0 : clock.pathDelay + clock.WNS),
+                        QString::number(clock.pathDelay), ToString(clock.WNS),
+                        QString::number(clock.fMax)});
+      }
     }
   }
   return data;
