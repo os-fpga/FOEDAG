@@ -543,7 +543,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
       break;
     }
     case SimulatorType::Icarus:
-      return "-gno-specify -DIVERILOG=1 -v";
+      return "-DIVERILOG=1 -v";
     case SimulatorType::GHDL:
       return "-a -fsynopsys";
     case SimulatorType::Questa:
