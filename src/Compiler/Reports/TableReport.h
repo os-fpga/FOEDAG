@@ -28,7 +28,7 @@ namespace FOEDAG {
 class TableReport : public IDataReport {
  public:
   TableReport(const ColumnValues &columns, const TableData &linesData,
-              const QString &name);
+              const QString &name, const TableMetaData &metaData = {});
 
   TableReport(const TableReport &) = default;
   TableReport &operator=(const TableReport &) = default;
@@ -40,9 +40,11 @@ class TableReport : public IDataReport {
   const TableData &getData() const override;
   const QString &getName() const override;
   bool isEmpty() const override;
+  const TableMetaData &getMetaData() const override;
 
   ColumnValues m_columns;
   TableData m_linesData;
+  TableMetaData m_tableMetaData;
   QString m_name;
 };
 

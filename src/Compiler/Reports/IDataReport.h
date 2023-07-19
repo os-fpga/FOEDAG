@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QBrush>
 #include <QStringList>
 #include <QVector>
 
@@ -34,6 +35,10 @@ struct ReportColumn {
   }
 };
 
+struct LineMeta {
+  QBrush forground = Qt::black;
+};
+
 /* Given interface represents the data report, holding single type of data:
  * Timing info, resource usage, cirtuit statistics etc.
  * It returns row and column data as strings. For simplicity, only
@@ -46,11 +51,14 @@ class IDataReport {
 
   using ColumnValues = QVector<ReportColumn>;
   using LineValues = QStringList;
+  using LineMetaValues = QVector<LineMeta>;
   using TableData = QVector<LineValues>;
+  using TableMetaData = QVector<LineMetaValues>;
   // Returns report column names
   virtual const ColumnValues &getColumns() const = 0;
   // Returns report data - rows of values
   virtual const TableData &getData() const = 0;
+  virtual const TableMetaData &getMetaData() const = 0;
   // Returns report name
   virtual const QString &getName() const = 0;
   // Indicates whether report has any data
