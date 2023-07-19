@@ -43,7 +43,7 @@ else
 fi
 
 mkdir -p $COVERAGE_DIR
-gcovr -r . -f src* -s $gcovr_dump --exclude-unreachable-branches --exclude-throw-branches\
+gcovr -r . -f src* -s $gcovr_dump --exclude-unreachable-branches --exclude-throw-branches \
     -e "src/Compiler/Test/*" \
     -e "src/Console/Test/*" \
     -e "src/DesignRuns/Test/*" \
@@ -53,4 +53,7 @@ gcovr -r . -f src* -s $gcovr_dump --exclude-unreachable-branches --exclude-throw
     -e "src/PinAssignment/Test/*" \
     -e "src/ProjNavigator/Test/*" \
     -e "src/TextEditor/Test/*" \
-    -e "src/NewProject/Main/*"
+    -e "src/NewProject/Main/*" \
+    -e "src/Simulation/Test/*" \
+    -e "src/ProgrammerGui/Test/*" \
+    -e "src/DesignQuery/Test/*"
