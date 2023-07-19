@@ -30,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
 #include "Utils/FileUtils.h"
-#include "qdebug.h"
 
 #ifndef PRODUCTION_BUILD
 #define TIMING_SUMMARY
