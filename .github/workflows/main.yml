@@ -100,7 +100,7 @@ jobs:
       if: matrix.mode == 'coverage'
       uses: codecov/codecov-action@v3.1.4
       with:
-        files: dbuild/code-coverage/index.json
+        files: dbuild/code-coverage/coverage.xml
         fail_ci_if_error: false
 
     - name: Install Test
