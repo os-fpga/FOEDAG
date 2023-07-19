@@ -117,9 +117,9 @@ void CFG_get_rid_leading_whitespace(std::string& string,
 void CFG_get_rid_whitespace(std::string& string,
                             const std::vector<char> whitespaces = {' ', '\t',
                                                                    '\n', '\r'});
-void CFG_string_toupper(std::string& string);
+std::string CFG_string_toupper(std::string& string);
 
-void CFG_string_tolower(std::string& string);
+std::string CFG_string_tolower(std::string& string);
 
 uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
                                    bool* status = NULL,

@@ -186,12 +186,14 @@ void CFG_get_rid_whitespace(std::string& string,
   CFG_get_rid_leading_whitespace(string, whitespaces);
 }
 
-void CFG_string_toupper(std::string& string) {
+std::string CFG_string_toupper(std::string& string) {
   transform(string.begin(), string.end(), string.begin(), ::toupper);
+  return string;
 }
 
-void CFG_string_tolower(std::string& string) {
+std::string CFG_string_tolower(std::string& string) {
   transform(string.begin(), string.end(), string.begin(), ::tolower);
+  return string;
 }
 
 uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
