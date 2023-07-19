@@ -317,6 +317,43 @@ int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
   return CFG_find_element_in_vector(vector, element);
 }
 
+std::vector<std::string> CFG_split_string(const std::string& str,
+                                          const std::string& seperator,
+                                          int max_split, bool include_empty) {
+  CFG_ASSERT(seperator.size());
+  CFG_ASSERT(max_split >= 0);
+  std::vector<std::string> vec;
+  int split = 0;
+  size_t search_index = 0;
+  size_t index = str.find(seperator, search_index);
+  while (index != std::string::npos) {
+    if (index != search_index || include_empty) {
+      if (index == search_index) {
+        vec.push_back("");
+      } else {
+        vec.push_back(str.substr(search_index, index - search_index));
+        search_index += (index - search_index);
+      }
+      split++;
+      if (max_split != 0 && split == max_split) {
+        search_index += seperator.size();
+        break;
+      }
+    }
+    search_index += seperator.size();
+    index = str.find(seperator, search_index);
+  }
+  CFG_ASSERT(search_index <= str.size());
+  if (search_index == str.size()) {
+    if (include_empty) {
+      vec.push_back("");
+    }
+  } else {
+    vec.push_back(str.substr(search_index, str.size() - search_index));
+  }
+  return vec;
+}
+
 int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile, bool appendLog) {
   if (m_execute_cmd_function != nullptr) {

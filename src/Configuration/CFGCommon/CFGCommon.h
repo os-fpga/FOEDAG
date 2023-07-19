@@ -132,6 +132,11 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
 int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
                            const uint32_t element);
 
+std::vector<std::string> CFG_split_string(const std::string& str,
+                                          const std::string& seperator,
+                                          int max_split = 0,
+                                          bool include_empty = true);
+
 int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile = std::string{},
                              bool appendLog = false);

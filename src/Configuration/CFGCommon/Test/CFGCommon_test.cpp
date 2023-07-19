@@ -75,14 +75,14 @@ void test_programmer_short_option_ok() {
   CFG_POST_MSG("test_programmer_short_option_ok");
   CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.m_args.size() == 0);
   const char* argv[] = {"flash", "test.bit", "-o", "erase|program"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   CFG_ASSERT(status);
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.operations == "erase|program");
   CFG_ASSERT(arg.m_args[0] == "flash");
@@ -94,7 +94,7 @@ void test_program_device_long_option_ok() {
   CFG_POST_MSG("test_program_device_long_option_ok");
   CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.m_args.size() == 0);
   const char* argv[] = {"flash",        "test.bit",
@@ -111,10 +111,48 @@ void test_program_device_long_option_ok() {
   arg.print();
 }
 
+void test_string_split() {
+  CFG_POST_MSG("test_string_split");
+  std::string string = "I am*#You*#*#*#HEis*#";
+  std::vector<std::string> results = CFG_split_string(string, "*#");
+  CFG_ASSERT(results.size() == 6);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "");
+  CFG_ASSERT(results[3] == "");
+  CFG_ASSERT(results[4] == "HEis");
+  CFG_ASSERT(results[5] == "");
+  results = CFG_split_string(string, "*#", 0, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "HEis");
+  results = CFG_split_string(string, "*#", 3, true);
+  CFG_ASSERT(results.size() == 4);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "");
+  CFG_ASSERT(results[3] == "*#HEis*#");
+  results = CFG_split_string(string, "*#", 2, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "*#*#HEis*#");
+  results = CFG_split_string(string, "*#", 3, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "HEis");
+  results = CFG_split_string(string, "!");
+  CFG_ASSERT(results.size() == 1);
+  CFG_ASSERT(results[0] == "I am*#You*#*#*#HEis*#");
+}
+
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is CFGCommon unit test");
   test_arg();
   test_programmer_short_option_ok();
   test_program_device_long_option_ok();
+  test_string_split();
   return 0;
 }
