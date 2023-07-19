@@ -72,16 +72,8 @@ test/unittest-d: run-cmake-debug
 	cmake --build dbuild --target unittest -j $(CPU_CORES)
 	pushd dbuild && $(XVFB) tests/unittest/unittest && popd
 
-test/unittest-coverage: run-cmake-coverage
-	cmake --build coverage-build --target unittest -j $(CPU_CORES)
-	pushd coverage-build && $(XVFB) tests/unittest/unittest && popd
-
-coverage-build/foedag.coverage: test/unittest-coverage
-	lcov --no-external --exclude "*_test.cpp" --capture --directory coverage-build/CMakeFiles/foedag.dir --base-directory src --output-file coverage-build/foedag.coverage
-
-coverage-build/html: foedag-build/foedag.coverage
-	genhtml --output-directory coverage-build/html $^
-	realpath coverage-build/html/index.html
+test/coverage:
+	bash code-coverage.sh
 
 test/regression: run-cmake-release
 

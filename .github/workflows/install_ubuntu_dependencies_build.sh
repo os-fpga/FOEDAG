@@ -1,4 +1,5 @@
 # Install required dependencies for Ubuntu systems
+pip3 install gcovr==6.0
 sudo apt-get update -qq
 sudo apt install -y \
   g++-11 gcc-11 \
@@ -8,7 +9,6 @@ sudo apt install -y \
   google-perftools \
   libgoogle-perftools-dev \
   uuid-dev \
-  lcov \
   valgrind \
   xorg \
   qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
