@@ -813,14 +813,14 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
       }
     }
 
-    fileList += "-vlog-incdir " + includes + "\n";
+    if (!includes.empty()) fileList += "-vlog-incdir " + includes + "\n";
 
     std::string libraries;
     for (auto path : ProjManager()->libraryPathList()) {
       libraries +=
           FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
     }
-    fileList += "-vlog-libdir " + libraries + "\n";
+    if (!libraries.empty()) fileList += "-vlog-libdir " + libraries + "\n";
 
     for (auto ext : ProjManager()->libraryExtensionList()) {
       fileList += "-vlog-libext " + ext + "\n";
@@ -830,7 +830,7 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     for (auto& macro_value : ProjManager()->macroList()) {
       macros += macro_value.first + "=" + macro_value.second + " ";
     }
-    fileList += "-vlog-define " + macros + "\n";
+    if (!macros.empty()) fileList += "-vlog-define " + macros + "\n";
 
     std::string importLibs;
     auto commandsLibs = ProjManager()->DesignLibraries();
@@ -901,6 +901,10 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
     }
     if (!ProjManager()->DesignTopModule().empty()) {
       fileList += "-top " + ProjManager()->DesignTopModule() + "\n";
+    }
+    auto topModuleLib = ProjManager()->DesignTopModuleLib();
+    if (!topModuleLib.empty()) {
+      fileList += "-work " + topModuleLib + "\n";
     }
     analysisScript = fileList;
   } else {
