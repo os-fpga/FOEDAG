@@ -31,10 +31,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TableReport.h"
 #include "Utils/FileUtils.h"
 
+#ifndef PRODUCTION_BUILD
+#define TIMING_SUMMARY
+#endif
+
 namespace {
 static constexpr const char *DESIGN_STAT_REPORT_NAME{"STA - Design statistics"};
 static constexpr const char *RESOURCE_REPORT_NAME{"STA - Utilization report"};
+#ifdef TIMING_SUMMARY
 static constexpr const char *TIMING_REPORT{"Timing Summary"};
+#endif
 
 static const QString LOAD_ARCH_SECTION{"# Loading Architecture Description"};
 static const QString BLOCK_GRAPH_BUILD_SECTION{
@@ -176,7 +182,12 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
-  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
+  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME
+#ifdef TIMING_SUMMARY
+          ,
+          TIMING_REPORT
+#endif
+  };
 }
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
