@@ -25,6 +25,8 @@ namespace FOEDAG {
 
 const QRegExp AbstractReportManager::FIND_RESOURCES{"Resource usage.*"};
 const QRegExp AbstractReportManager::FIND_CIRCUIT_STAT{"Circuit Statistics:.*"};
+const QString AbstractReportManager::INTRA_DOMAIN_PATH_DELAYS_SECTION{
+    "Final intra-domain critical path delays (CPDs):"};
 
 AbstractReportManager::AbstractReportManager(const TaskManager &taskManager)
     : m_compiler(taskManager.GetCompiler()) {
@@ -451,6 +453,24 @@ void AbstractReportManager::parseStatisticLine(const QString &line) {
     m_usedRes.clocks.clock_num = clockMatch.captured(1).toUInt();
     return;
   }
+
+  static const QRegularExpression netlistclock{"Netlist Clock '(.+)' Fanout"};
+  match = netlistclock.match(line);
+  if (match.hasMatch()) {
+    m_clocksIntra.push_back({match.captured(1)});
+    return;
+  }
+
+  static const QRegularExpression pathDelay{QString{
+      "Final critical path delay \\(least slack\\): %1 ns, Fmax: %1 MHz"}
+                                                .arg(FloatRegex())};
+  match = pathDelay.match(line);
+  if (match.hasMatch() && !m_clocksIntra.isEmpty()) {
+    m_clocksIntra[0].pathDelay = match.captured(1).toDouble();
+    if (match.lastCapturedIndex() >= 4)
+      m_clocksIntra[0].fMax = match.captured(4).toDouble();
+    return;
+  }
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile() const {
@@ -640,6 +660,58 @@ bool AbstractReportManager::isMessageSuppressed(const QString &message) const {
   return false;
 }
 
+QString AbstractReportManager::FloatRegex() {
+  static const QString regex{"([-+]?([0-9]+(\\.[0-9]+)?|\\.[0-9]+))"};
+  return regex;
+}
+
+int AbstractReportManager::parseSection(
+    QTextStream &in, int lineNr,
+    const std::function<void(const QString &)> &processLine) {
+  QString line{};
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.isEmpty()) break;  // end of section
+    processLine(line);
+  }
+  return lineNr;
+}
+
+QString AbstractReportManager::FMax() const {
+  auto base = ITaskReportManager::FMax();
+  if (!base.isEmpty()) return base;
+
+  QStringList fmax{};
+  for (const auto &clock : m_clocksIntra) {
+    if (clock.fMax != 0) fmax.push_back(QString::number(clock.fMax));
+  }
+  return fmax.join(", ");
+}
+
+void AbstractReportManager::parseIntraDomPathDelaysSection(
+    const QString &line) {
+  static const QRegularExpression lineRegex{
+      QString{"(\\S+) .+CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
+  auto match = lineRegex.match(line);
+  if (match.hasMatch()) {
+    auto clockName = match.captured(1);
+    double pathDelay = match.captured(2).toDouble();
+    double fMax = match.captured(5).toDouble();
+    for (auto &clock : m_clocksIntra) {
+      if (clock.clockName == clockName) {
+        clock.pathDelay = pathDelay;
+        clock.fMax = fMax;
+        return;
+      }
+    }
+    ClockData clock{};
+    clock.clockName = clockName;
+    clock.pathDelay = pathDelay;
+    clock.fMax = fMax;
+    m_clocksIntra.push_back(clock);
+  }
+}
+
 bool AbstractReportManager::isFileOutdated(
     const std::filesystem::path &file) const {
   auto ts = FileUtils::Mtime(file);
@@ -654,6 +726,9 @@ bool AbstractReportManager::isStatisticalTimingHistogram(const QString &line) {
   return false;
 }
 
-void AbstractReportManager::clean() { m_usedRes = {}; }
+void AbstractReportManager::clean() {
+  m_usedRes = {};
+  m_clocksIntra.clear();
+}
 
 }  // namespace FOEDAG

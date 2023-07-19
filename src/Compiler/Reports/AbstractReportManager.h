@@ -100,12 +100,18 @@ class AbstractReportManager : public ITaskReportManager {
   // Keyword to recognize the start of resource usage section
   static const QRegExp FIND_RESOURCES;
   static const QRegExp FIND_CIRCUIT_STAT;
+  static const QString INTRA_DOMAIN_PATH_DELAYS_SECTION;
 
   bool isFileOutdated(const std::filesystem::path &file) const;
   void setFileTimeStamp(const std::filesystem::path &file);
   std::filesystem::path logFilePath(const std::string &file) const;
 
   bool isMessageSuppressed(const QString &message) const;
+  static QString FloatRegex();
+  int parseSection(QTextStream &in, int lineNr,
+                   const std::function<void(const QString &)> &processLine);
+  QString FMax() const override;
+  void parseIntraDomPathDelaysSection(const QString &line);
 
  signals:
   void reportCreated(QString reportName);
@@ -126,6 +132,7 @@ class AbstractReportManager : public ITaskReportManager {
 
   Messages m_messages;
   Compiler *m_compiler{nullptr};
+  QVector<ClockData> m_clocksIntra;
 
  private:
   time_t m_fileTimeStamp{-1};

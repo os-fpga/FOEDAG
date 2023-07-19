@@ -51,8 +51,6 @@ static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString LOAD_PLACEMENT_SECTION{"# Load Placement"};
 static const QString LOAD_ROUTING_SECTION{"# Load Routing"};
 
-static const QString INTRA_DOMAIN_PATH_DELAYS_SECTION{
-    "Final intra-domain critical path delays (CPDs):"};
 static const QString INTER_DOMAIN_PATH_DELAYS_SECTION{
     "Final inter-domain critical path delays (CPDs):"};
 
@@ -159,24 +157,6 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
   match = hTNS.match(line);
   if (match.hasMatch()) {
     m_timingHold.TNS = match.captured(1).toDouble();
-    return;
-  }
-
-  static const QRegularExpression clock{"Netlist Clock '(.+)' Fanout"};
-  match = clock.match(line);
-  if (match.hasMatch()) {
-    m_clocksIntra.push_back({match.captured(1)});
-    return;
-  }
-
-  static const QRegularExpression pathDelay{QString{
-      "Final critical path delay \\(least slack\\): %1 ns, Fmax: %1 MHz"}
-                                                .arg(FloatRegex())};
-  match = pathDelay.match(line);
-  if (match.hasMatch() && !m_clocksIntra.isEmpty()) {
-    m_clocksIntra[0].pathDelay = match.captured(1).toDouble();
-    if (match.lastCapturedIndex() >= 4)
-      m_clocksIntra[0].fMax = match.captured(4).toDouble();
     return;
   }
 }
@@ -368,7 +348,6 @@ void TimingAnalysisReportManager::clean() {
   m_totalDesignTable.clear();
   m_intraClockTable.clear();
   m_interClockTable.clear();
-  m_clocksIntra.clear();
   m_clocksInter.clear();
   m_totalDesignMeta.clear();
   m_intraClockMeta.clear();
@@ -521,23 +500,6 @@ IDataReport::TableData TimingAnalysisReportManager::CreateInterClock() const {
   return data;
 }
 
-void TimingAnalysisReportManager::parseIntraDomPathDelaysSection(
-    const QString &line) {
-  static const QRegularExpression lineRegex{
-      QString{"(\\S+) .+CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
-  auto match = lineRegex.match(line);
-  if (match.hasMatch()) {
-    auto clockName = match.captured(1);
-    for (auto &clock : m_clocksIntra) {
-      if (clock.clockName == clockName) {
-        clock.pathDelay = match.captured(2).toDouble();
-        clock.fMax = match.captured(5).toDouble();
-        break;
-      }
-    }
-  }
-}
-
 void TimingAnalysisReportManager::parseIntraSetupSection(const QString &line) {
   static const QRegularExpression lineRegex{
       QString{"(\\S+) .+worst setup slack: %1 ns"}.arg(FloatRegex())};
@@ -580,23 +542,6 @@ void TimingAnalysisReportManager::parseInterSetupSection(const QString &line) {
       }
     }
   }
-}
-
-int TimingAnalysisReportManager::parseSection(
-    QTextStream &in, int lineNr,
-    const std::function<void(const QString &)> &processLine) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    processLine(line);
-  }
-  return lineNr;
-}
-
-QString TimingAnalysisReportManager::FloatRegex() {
-  static const QString regex{"([-+]?([0-9]+(\\.[0-9]+)?|\\.[0-9]+))"};
-  return regex;
 }
 
 }  // namespace FOEDAG

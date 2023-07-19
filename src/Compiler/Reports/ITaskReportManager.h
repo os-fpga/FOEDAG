@@ -88,6 +88,18 @@ struct Resources {
   Clock clocks{};
 };
 
+struct TimingData {
+  double WNS{};
+  double TNS{};
+};
+
+struct ClockData {
+  QString clockName;
+  double pathDelay{};
+  double WNS{};
+  double fMax{};
+};
+
 class ITaskReport;
 
 /* Manager for task reports. It has to be implemented per compilation
@@ -117,6 +129,11 @@ class ITaskReportManager : public QObject {
   Resources usedResources() const { return m_usedRes; }
   Resources availableResources() const { return m_availRes; }
   void setAvailableResources(const Resources &res) { m_availRes = res; }
+
+  virtual QString FMax() const {
+    if (m_usedRes.stat.fmax != 0) return QString::number(m_usedRes.stat.fmax);
+    return {};
+  }
 
  protected:
   Resources m_usedRes{};

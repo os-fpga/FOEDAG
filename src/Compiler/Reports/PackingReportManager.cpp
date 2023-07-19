@@ -132,6 +132,10 @@ void PackingReportManager::parseLogFile() {
       lineNr =
           parseErrorWarningSection(in, lineNr, PACKING_SECTION,
                                    {QRegExp("Final Clustering Statistics")});
+    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
 
     ++lineNr;
   }

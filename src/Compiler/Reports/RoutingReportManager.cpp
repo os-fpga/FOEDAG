@@ -127,6 +127,10 @@ void RoutingReportManager::parseLogFile() {
               lineNr, MessageSeverity::INFO_MESSAGE, TIMING_INFO.cap(), {}});
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
+    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
