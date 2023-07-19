@@ -66,6 +66,7 @@ void TableReportGenerator::Generate() {
     reportsView->verticalHeader()->hide();
     // Fill columns
     auto columns = dataReport->getColumns();
+    auto tableMeta = dataReport->getMetaData();
     reportsView->setColumnCount(columns.size());
     auto colIndex = 0;
     for (auto& col : columns) {
@@ -82,6 +83,9 @@ void TableReportGenerator::Generate() {
       for (auto& lineValue : lineData) {
         auto item = new QTableWidgetItem(lineValue);
         item->setTextAlignment(columns[colIndex].m_alignment);
+        if (rowIndex < tableMeta.count() &&
+            colIndex < tableMeta.at(rowIndex).count())
+          item->setForeground(tableMeta.at(rowIndex).at(colIndex).forground);
         reportsView->setItem(rowIndex, colIndex, item);
         ++colIndex;
       }
