@@ -74,10 +74,12 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
     for (int i = 0; i < row; i++) vec[i].resize(col);
   }
 
-  int parseIntraDomPathDelaysSection(QTextStream &in, int lineNr);
-  int parseIntraSetupSection(QTextStream &in, int lineNr);
-  int parseInterDomPathDelaysSection(QTextStream &in, int lineNr);
-  int parseInterSetupSection(QTextStream &in, int lineNr);
+  void parseIntraDomPathDelaysSection(const QString &line);
+  void parseIntraSetupSection(const QString &line);
+  void parseInterDomPathDelaysSection(const QString &line);
+  void parseInterSetupSection(const QString &line);
+  int parseSection(QTextStream &in, int lineNr,
+                   const std::function<void(const QString &)> &processLine);
   static QString FloatRegex();
 
   SectionKeys m_createDeviceKeys;
@@ -94,9 +96,9 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   IDataReport::ColumnValues m_totalDesignColumn;
   IDataReport::ColumnValues m_intraClockColumn;
   IDataReport::ColumnValues m_interClockColumn;
-  IDataReport::TableData m_totalDesign;
-  IDataReport::TableData m_intraClock;
-  IDataReport::TableData m_interClock;
+  IDataReport::TableData m_totalDesignTable;
+  IDataReport::TableData m_intraClockTable;
+  IDataReport::TableData m_interClockTable;
 
   IDataReport::TableMetaData m_totalDesignMeta;
   IDataReport::TableMetaData m_intraClockMeta;

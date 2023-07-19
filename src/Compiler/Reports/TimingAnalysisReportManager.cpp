@@ -30,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DefaultTaskReport.h"
 #include "TableReport.h"
 #include "Utils/FileUtils.h"
-#include "qdebug.h"
 
 namespace {
 static constexpr const char *DESIGN_STAT_REPORT_NAME{"STA - Design statistics"};
@@ -203,12 +202,12 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
         std::make_unique<TableReport>(m_clockColumns, m_clockData, QString{}));
   } else {
     dataReports.push_back(std::make_unique<TableReport>(
-        m_totalDesignColumn, m_totalDesign, QString{}, m_totalDesignMeta));
+        m_totalDesignColumn, m_totalDesignTable, QString{}, m_totalDesignMeta));
     dataReports.push_back(std::make_unique<TableReport>(
-        m_intraClockColumn, m_intraClock, QString{}, m_intraClockMeta));
-    if (!m_interClock.isEmpty())  // multi clock
+        m_intraClockColumn, m_intraClockTable, QString{}, m_intraClockMeta));
+    if (!m_interClockTable.isEmpty())  // multi clock
       dataReports.push_back(std::make_unique<TableReport>(
-          m_interClockColumn, m_interClock, QString{}, m_interClockMeta));
+          m_interClockColumn, m_interClockTable, QString{}, m_interClockMeta));
   }
 
   emit reportCreated(reportId);
@@ -305,13 +304,21 @@ void TimingAnalysisReportManager::parseLogFile() {
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
     else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
-      lineNr = parseIntraDomPathDelaysSection(in, lineNr);
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
     else if (line.startsWith(INTRA_DOMAIN_SETUP_SLACK_SECTION))
-      lineNr = parseIntraSetupSection(in, lineNr);
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraSetupSection(line);
+      });
     else if (line.startsWith(INTER_DOMAIN_PATH_DELAYS_SECTION))
-      lineNr = parseInterDomPathDelaysSection(in, lineNr);
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseInterDomPathDelaysSection(line);
+      });
     else if (line.startsWith(INTER_DOMAIN_SETUP_SLACK_SECTION))
-      lineNr = parseInterSetupSection(in, lineNr);
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseInterSetupSection(line);
+      });
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
@@ -319,9 +326,9 @@ void TimingAnalysisReportManager::parseLogFile() {
   m_dspData = CreateDspData();
   m_ioData = CreateIOData();
   m_clockData = CreateClockData();
-  m_totalDesign = CreateTotalDesign();
-  m_intraClock = CreateIntraClock();
-  m_interClock = CreateInterClock();
+  m_totalDesignTable = CreateTotalDesign();
+  m_intraClockTable = CreateIntraClock();
+  m_interClockTable = CreateInterClock();
   designStatistics();
   validateTimingReport();
 
@@ -347,21 +354,26 @@ void TimingAnalysisReportManager::clean() {
   m_dspData.clear();
   m_ioData.clear();
   m_clockData.clear();
-  m_totalDesign.clear();
-  m_intraClock.clear();
-  m_interClock.clear();
+  m_totalDesignTable.clear();
+  m_intraClockTable.clear();
+  m_interClockTable.clear();
   m_clocksIntra.clear();
+  m_clocksInter.clear();
   m_totalDesignMeta.clear();
   m_intraClockMeta.clear();
   m_interClockMeta.clear();
+  m_timingSetup = {};
+  m_timingHold = {};
 }
 
 void TimingAnalysisReportManager::validateTimingReport() {
   int colCount = m_totalDesignColumn.count();
-  int rowCount = m_totalDesign.count();
+  int rowCount = m_totalDesignTable.count();
   Resize(rowCount, colCount, m_totalDesignMeta);
-  Resize(m_intraClock.count(), m_intraClockColumn.count(), m_intraClockMeta);
-  Resize(m_interClock.count(), m_interClockColumn.count(), m_interClockMeta);
+  Resize(m_intraClockTable.count(), m_intraClockColumn.count(),
+         m_intraClockMeta);
+  Resize(m_interClockTable.count(), m_interClockColumn.count(),
+         m_interClockMeta);
   if (m_timingSetup.WNS < 0) {
     for (int i = 0; i < colCount; i++)
       m_totalDesignMeta[0][i].forground = Qt::red;
@@ -485,95 +497,82 @@ IDataReport::TableData TimingAnalysisReportManager::CreateInterClock() const {
   return data;
 }
 
-int TimingAnalysisReportManager::parseIntraDomPathDelaysSection(QTextStream &in,
-                                                                int lineNr) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    static const QRegularExpression lineRegex{
-        QString{"(\\S+) .+CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
-    auto match = lineRegex.match(line);
-    if (match.hasMatch()) {
-      auto clockName = match.captured(1);
-      for (auto &clock : m_clocksIntra) {
-        if (clock.clockName == clockName) {
-          clock.pathDelay = match.captured(2).toDouble();
-          clock.fMax = match.captured(5).toDouble();
-          break;
-        }
+void TimingAnalysisReportManager::parseIntraDomPathDelaysSection(
+    const QString &line) {
+  static const QRegularExpression lineRegex{
+      QString{"(\\S+) .+CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
+  auto match = lineRegex.match(line);
+  if (match.hasMatch()) {
+    auto clockName = match.captured(1);
+    for (auto &clock : m_clocksIntra) {
+      if (clock.clockName == clockName) {
+        clock.pathDelay = match.captured(2).toDouble();
+        clock.fMax = match.captured(5).toDouble();
+        break;
       }
     }
   }
-  return lineNr;
 }
 
-int TimingAnalysisReportManager::parseIntraSetupSection(QTextStream &in,
-                                                        int lineNr) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    static const QRegularExpression lineRegex{
-        QString{"(\\S+) .+worst setup slack: %1 ns"}.arg(FloatRegex())};
-    auto match = lineRegex.match(line);
-    if (match.hasMatch()) {
-      auto clockName = match.captured(1);
-      for (auto &clock : m_clocksIntra) {
-        if (clock.clockName == clockName) {
-          clock.WNS = match.captured(2).toDouble();
-          break;
-        }
+void TimingAnalysisReportManager::parseIntraSetupSection(const QString &line) {
+  static const QRegularExpression lineRegex{
+      QString{"(\\S+) .+worst setup slack: %1 ns"}.arg(FloatRegex())};
+  auto match = lineRegex.match(line);
+  if (match.hasMatch()) {
+    auto clockName = match.captured(1);
+    for (auto &clock : m_clocksIntra) {
+      if (clock.clockName == clockName) {
+        clock.WNS = match.captured(2).toDouble();
+        break;
       }
     }
   }
-  return lineNr;
 }
 
-int TimingAnalysisReportManager::parseInterDomPathDelaysSection(QTextStream &in,
-                                                                int lineNr) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    static const QRegularExpression lineRegex{
-        QString{"  (.+) CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
-    auto match = lineRegex.match(line);
-    if (match.hasMatch()) {
-      ClockData newClock;
-      newClock.clockName = match.captured(1);
-      newClock.pathDelay = match.captured(2).toDouble();
-      newClock.fMax = match.captured(5).toDouble();
-      m_clocksInter.push_back(newClock);
-    }
+void TimingAnalysisReportManager::parseInterDomPathDelaysSection(
+    const QString &line) {
+  static const QRegularExpression lineRegex{
+      QString{"  (.+) CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
+  auto match = lineRegex.match(line);
+  if (match.hasMatch()) {
+    ClockData newClock;
+    newClock.clockName = match.captured(1);
+    newClock.pathDelay = match.captured(2).toDouble();
+    newClock.fMax = match.captured(5).toDouble();
+    m_clocksInter.push_back(newClock);
   }
-  return lineNr;
 }
 
-int TimingAnalysisReportManager::parseInterSetupSection(QTextStream &in,
-                                                        int lineNr) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    static const QRegularExpression lineRegex{
-        QString{"  (.+) worst setup slack: %1 ns"}.arg(FloatRegex())};
-    auto match = lineRegex.match(line);
-    if (match.hasMatch()) {
-      auto clockName = match.captured(1);
-      for (auto &clock : m_clocksInter) {
-        if (clock.clockName == clockName) {
-          clock.WNS = match.captured(2).toDouble();
-          break;
-        }
+void TimingAnalysisReportManager::parseInterSetupSection(const QString &line) {
+  static const QRegularExpression lineRegex{
+      QString{"  (.+) worst setup slack: %1 ns"}.arg(FloatRegex())};
+  auto match = lineRegex.match(line);
+  if (match.hasMatch()) {
+    auto clockName = match.captured(1);
+    for (auto &clock : m_clocksInter) {
+      if (clock.clockName == clockName) {
+        clock.WNS = match.captured(2).toDouble();
+        break;
       }
     }
+  }
+}
+
+int TimingAnalysisReportManager::parseSection(
+    QTextStream &in, int lineNr,
+    const std::function<void(const QString &)> &processLine) {
+  QString line{};
+  while (in.readLineInto(&line)) {
+    ++lineNr;
+    if (line.isEmpty()) break;  // end of section
+    processLine(line);
   }
   return lineNr;
 }
 
 QString TimingAnalysisReportManager::FloatRegex() {
-  return "([-+]?([0-9]+(\\.[0-9]+)?|\\.[0-9]+))";
+  static const QString regex{"([-+]?([0-9]+(\\.[0-9]+)?|\\.[0-9]+))"};
+  return regex;
 }
 
 }  // namespace FOEDAG

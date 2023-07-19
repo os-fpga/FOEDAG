@@ -20,9 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QBrush>
 #include <QStringList>
 #include <QVector>
-#include <QBrush>
 
 namespace FOEDAG {
 
