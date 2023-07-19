@@ -141,16 +141,20 @@ void test_string_to_u64_conversion() {
   CFG_ASSERT(status == true);
   CFG_ASSERT(CFG_convert_string_to_u64("", false, nullptr, &init) == 123);
   init = 789;
-  CFG_ASSERT(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init) == 789);
+  CFG_ASSERT(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init) ==
+             789);
   CFG_ASSERT(status == false);
   CFG_ASSERT(CFG_convert_string_to_u64("0x123") == 0x123);
   status = true;
-  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr, false) == 0);
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr,
+                                       false) == 0);
   CFG_ASSERT(status == false);
   status = true;
-  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr, true) == 0x246);
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr,
+                                       true) == 0x246);
   CFG_ASSERT(status == true);
-  CFG_ASSERT(CFG_convert_string_to_u64("0x123 >> 4", true, &status, nullptr, true) == 0x12);
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 >> 4", true, &status, nullptr,
+                                       true) == 0x12);
   CFG_ASSERT(status == true);
 }
 
