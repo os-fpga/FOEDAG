@@ -79,7 +79,7 @@ class AbstractReportManager : public ITaskReportManager {
   IDataReport::TableData CreateIOData() const;
   IDataReport::TableData CreateClockData() const;
   virtual void parseLogLine(const QString &line);
-  void parseStatisticLine(const QString &line);
+  virtual void parseStatisticLine(const QString &line);
 
   using MessagesLines = std::map<int, QString>;
   // Creates parent item for either warnings or messages. Clears msgs
