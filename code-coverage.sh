@@ -5,6 +5,12 @@ BUILD_DIR="dbuild"
 COVERAGE_DIR="$BUILD_DIR/code-coverage"
 CI_PROJECT_DIR=$1
 CPU_CORES=$(grep --count ^processor /proc/cpuinfo)
+GCOVR_VER=$(gcovr --version | grep -Po 'gcovr ([+-]?[[0-9]*[.]]?[0-9]+)' | awk -F' ' '{print $2}')
+
+if (( $(echo "$GCOVR_VER < 6.0" |bc -l) )); then
+    echo "gcovr version must be >=6.0 but $GCOVR_VER is provided"
+    exit 1
+fi
 
 # Clean the previous build
 rm -rf $BUILD_DIR
@@ -12,12 +18,6 @@ rm -rf $BUILD_DIR
 # Build the project
 cmake . -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Debug -DCODE_COVERAGE:BOOL=ON
 make -C $BUILD_DIR --no-print-directory -j $CPU_CORES
-
-mkdir -p $COVERAGE_DIR
-
-# Collect initial lcov data
-lcov --capture --initial --base-directory . --directory $BUILD_DIR --no-external \
-    --output-file $COVERAGE_DIR/app_base.info
 
 # Run all tests
 pushd $BUILD_DIR/tests/unittest
@@ -35,33 +35,25 @@ if [ "$test_results" -ne "0" ]; then
 fi
 popd
 
-# Collect lcov data after the tests
-lcov --rc lcov_branch_coverage=1 --capture --base-directory . --directory $BUILD_DIR \
-    --no-external --output-file $COVERAGE_DIR/app_test.info
+if [[ $CI == true ]]
+then
+  gcovr_dump="--xml -o $COVERAGE_DIR/coverage.xml"
+else
+ gcovr_dump="--html-nested -o $COVERAGE_DIR/index.html"
+fi
 
-# Combine info from two files
-lcov --rc lcov_branch_coverage=1 -a $COVERAGE_DIR/app_base.info -a \
-    $COVERAGE_DIR/app_test.info --output-file $COVERAGE_DIR/app.info
-
-# Remove unneeded folders from info file
-lcov --rc lcov_branch_coverage=1 --remove $COVERAGE_DIR/app.info \
-    "$PWD/$BUILD_DIR/*" \
-    "$PWD/third_party/*" \
-    "$PWD/tests/*" \
-    "$PWD/src/Compiler/Test/*" \
-    "$PWD/src/Console/Test/*" \
-    "$PWD/src/DesignRuns/Test/*" \
-    "$PWD/src/IPGenerate/Test/*" \
-    "$PWD/src/IpConfigurator/Test/*" \
-    "$PWD/src/NewFile/Test/*" \
-    "$PWD/src/PinAssignment/Test/*" \
-    "$PWD/src/ProjNavigator/Test/*" \
-    "$PWD/src/TextEditor/Test/*" \
-    "$PWD/src/NewProject/Main/*" \
-    --output-file $COVERAGE_DIR/app_filtered.info
-
-# Generate html report
-genhtml $COVERAGE_DIR/app_filtered.info --output-directory \
-    $COVERAGE_DIR/report --branch-coverage --show-details
-
-echo "*** DONE *** Report saved to $COVERAGE_DIR/report"
+mkdir -p $COVERAGE_DIR
+gcovr -r . -f src* -s $gcovr_dump --exclude-unreachable-branches --exclude-throw-branches \
+    -e "src/Compiler/Test/*" \
+    -e "src/Console/Test/*" \
+    -e "src/DesignRuns/Test/*" \
+    -e "src/IPGenerate/Test/*" \
+    -e "src/IpConfigurator/Test/*" \
+    -e "src/NewFile/Test/*" \
+    -e "src/PinAssignment/Test/*" \
+    -e "src/ProjNavigator/Test/*" \
+    -e "src/TextEditor/Test/*" \
+    -e "src/NewProject/Main/*" \
+    -e "src/Simulation/Test/*" \
+    -e "src/ProgrammerGui/Test/*" \
+    -e "src/DesignQuery/Test/*"
