@@ -35,8 +35,15 @@ if [ "$test_results" -ne "0" ]; then
 fi
 popd
 
+if [[ $CI == true ]]
+then
+  gcovr_dump="--xml -o $COVERAGE_DIR/coverage.xml"
+else
+ gcovr_dump="--html-nested -o $COVERAGE_DIR/index.html"
+fi
+
 mkdir -p $COVERAGE_DIR
-gcovr -r . -f src* -s --xml -o $COVERAGE_DIR/coverage.xml --exclude-unreachable-branches --exclude-throw-branches\
+gcovr -r . -f src* -s $gcovr_dump --exclude-unreachable-branches --exclude-throw-branches\
     -e "src/Compiler/Test/*" \
     -e "src/Console/Test/*" \
     -e "src/DesignRuns/Test/*" \
