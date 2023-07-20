@@ -127,7 +127,7 @@ class OPTION :
 
         if self.optional :
             if self.short == None :
-                str = "{ %s}" % (self.name)
+                str = "{ %s }" % (self.name)
             else :
                 str = "{ %s:%c }" % (self.name, self.short)
         else :
@@ -211,23 +211,39 @@ def write_arg(file, cfile, arg) :
     else :
         cfile.write("%s\n" % arg.help)
     if arg.print_options_count() != 0 :
-        cfile.write("\n  Explantion:\n")
-        cfile.write("    <> : option/argument is required\n")
-        cfile.write("    {} : option/argument is optional\n")
-        cfile.write("    s  : option can be specified more than once\n")
-        cfile.write("\n  Usage:\n")
+        cfile.write("\nExplantion:\n")
+        cfile.write("  <> : option/argument is required\n")
+        cfile.write("  {} : option/argument is optional\n")
+        cfile.write("  s  : option can be specified more than once\n")
+        cfile.write("\nUsage:\n")
         for o in arg.options :
             if not o.hide :
                 if isinstance(o.help, str) :
-                    cfile.write("    %-*s : %s\n" % (arg.longest_option_name, o, o.help))
+                    cfile.write("  %-*s : %s\n" % (arg.longest_option_name, o, o.help))
                 else :
-                    cfile.write("    %-*s : %s\n" % (arg.longest_option_name, o, o.help[0]))
+                    cfile.write("  %-*s : %s\n" % (arg.longest_option_name, o, o.help[0]))
                     for hl in o.help[1:] :
-                        cfile.write("    %s   %s\n" % (arg.longest_option_name * " ", hl))
+                        cfile.write("  %s   %s\n" % (arg.longest_option_name * " ", hl))
                 if o.type == "enum" :
-                    cfile.write("    %-*s   Valid input is \"%s\"\n" % (arg.longest_option_name, \
+                    estring = []
+                    estr = ""
+                    for ei, e in enumerate(o.enum) :
+                        if len(estr) + len(e) >= 50 :
+                            estring.append(estr)
+                            estr = ""
+                        if ei != (len(o.enum) - 1) :
+                            estr = "%s%s|" % (estr, e)
+                        else :
+                            estr = "%s%s" % (estr, e)
+                    assert len(estr)
+                    estring.append(estr)
+                    cfile.write("  %-*s   Valid input is %s\n" % (arg.longest_option_name, \
                                                                         " ",
-                                                                        "|".join(o.enum)))
+                                                                        estring[0]))
+                    for estr in estring[1:] :
+                        cfile.write("  %-*s                  %s\n" % (arg.longest_option_name, \
+                                                                        " ",
+                                                                        estr))
         cfile.write("\n  Note: Use --help=option to show more detail of the option\n")
     cfile.write(")\"\"\"\";\n\n")
     file.write("class CFGArg_%s : public CFGArg\n" % arg.name.upper())

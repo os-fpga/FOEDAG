@@ -117,9 +117,9 @@ void CFG_get_rid_leading_whitespace(std::string& string,
 void CFG_get_rid_whitespace(std::string& string,
                             const std::vector<char> whitespaces = {' ', '\t',
                                                                    '\n', '\r'});
-void CFG_string_toupper(std::string& string);
+std::string CFG_string_toupper(std::string& string);
 
-void CFG_string_tolower(std::string& string);
+std::string CFG_string_tolower(std::string& string);
 
 uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
                                    bool* status = NULL,
@@ -131,6 +131,11 @@ int CFG_find_string_in_vector(const std::vector<std::string>& vector,
 
 int CFG_find_u32_in_vector(const std::vector<uint32_t>& vector,
                            const uint32_t element);
+
+std::vector<std::string> CFG_split_string(const std::string& str,
+                                          const std::string& seperator,
+                                          int max_split = 0,
+                                          bool include_empty = true);
 
 int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile = std::string{},
