@@ -25,7 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 using namespace Design;
-TclInterpreter interp;
 
 TEST(Compiler, Init) {
   Compiler* compiler = new Compiler();
