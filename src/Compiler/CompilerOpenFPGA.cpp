@@ -2265,8 +2265,8 @@ repack --design_constraints ${OPENFPGA_REPACK_CONSTRAINTS}
 
 build_architecture_bitstream ${BUILD_ARCHITECTURE_BITSTREAM_OPTIONS}
 
-build_fabric_bitstream ${BITSTREAM_BINARY_FILE_OPERATION} ${BITSTREAM_BINARY_FILE}
-write_fabric_bitstream --format plain_text --file fabric_bitstream.bit
+build_fabric_bitstream
+write_fabric_bitstream ${DONT_CARE_BITS_OPTION} ${WL_ORDER_OPTION} --format plain_text --file fabric_bitstream.bit
 ${WRITE_FABRIC_BITSTREAM_XML}
 write_io_mapping -f PinMapping.xml
 
@@ -2491,27 +2491,19 @@ std::string CompilerOpenFPGA::FinishOpenFPGAScript(const std::string& script) {
                       m_OpenFpgaBitstreamSettingFile.string());
   result = ReplaceAll(result, "${OPENFPGA_PIN_CONSTRAINTS}",
                       m_OpenFpgaPinConstraintXml.string());
-  result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE}",
-                      m_OpenFpgaBitstreamBinaryFile.string());
 
-  if (m_bitstreamMoreOpt.find("write_cache") != std::string::npos)
-    m_bitstreamCacheOpType = BitstreamCacheOpType::Write;
-  else if (!m_OpenFpgaBitstreamBinaryFile.empty()) {
-    m_bitstreamCacheOpType = BitstreamCacheOpType::Read;
+  if (m_bitstreamMoreOpt.find("wl_decremental_order") != std::string::npos) {
+    result = ReplaceAll(result, "${WL_ORDER_OPTION}", "--wl_decremental_order");
+  } else {
+    result = ReplaceAll(result, "${WL_ORDER_OPTION}", "");
   }
-  switch (m_bitstreamCacheOpType) {
-    case BitstreamCacheOpType::NoOp:
-      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}", "");
-      break;
-    case BitstreamCacheOpType::Read:
-      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}",
-                          "--read_file");
-      break;
-    case BitstreamCacheOpType::Write:
-      result = ReplaceAll(result, "${BITSTREAM_BINARY_FILE_OPERATION}",
-                          "--write_file");
-      break;
+  if (m_bitstreamMoreOpt.find("ignore_dont_care_bits") != std::string::npos) {
+    result = ReplaceAll(result, "${DONT_CARE_BITS_OPTION}", "");
+  } else {
+    result =
+        ReplaceAll(result, "${DONT_CARE_BITS_OPTION}", "--keep_dont_care_bits");
   }
+
   std::string repack_constraints =
       FilePath(Action::Detailed,
                ProjManager()->projectName() + "_repack_constraints.xml")
@@ -2744,8 +2736,7 @@ bool CompilerOpenFPGA::LoadDeviceData(
                   fullPath = datapath / std::string("etc") /
                              std::string("devices") / file;
                 }
-                if ((file_type != "bitstream_cache") &&
-                    !FileUtils::FileExists(fullPath.string())) {
+                if (!FileUtils::FileExists(fullPath.string())) {
                   ErrorMessage("Invalid device config file: " +
                                fullPath.string() + "\n");
                   status = false;
@@ -2763,8 +2754,6 @@ bool CompilerOpenFPGA::LoadDeviceData(
                 OpenFpgaRepackConstraintsFile(fullPath.string());
               } else if (file_type == "fabric_key") {
                 OpenFpgaFabricKeyFile(fullPath.string());
-              } else if (file_type == "bitstream_cache") {
-                OpenFpgaBitstreamBinaryFile(fullPath.string());
               } else if (file_type == "pinmap_xml") {
                 OpenFpgaPinmapXMLFile(fullPath.string());
               } else if (file_type == "pcf_xml") {
