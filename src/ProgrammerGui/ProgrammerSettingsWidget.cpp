@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QSettings>
 
-#include "qdebug.h"
 #include "ui_ProgrammerSettingsWidget.h"
 
 namespace FOEDAG {
@@ -40,6 +39,10 @@ ProgrammerSettingsWidget::ProgrammerSettingsWidget(QSettings &settings,
       m_settings.value(ALWAYS_VERIFY, false).toBool());
   connect(this, &ProgrammerSettingsWidget::accepted, this,
           &ProgrammerSettingsWidget::apply);
+
+  // disable for now
+  ui->tabWidget->removeTab(3);
+  ui->tabWidget->removeTab(2);
 }
 
 ProgrammerSettingsWidget::~ProgrammerSettingsWidget() { delete ui; }

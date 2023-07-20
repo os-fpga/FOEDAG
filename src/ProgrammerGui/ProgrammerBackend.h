@@ -23,28 +23,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <QString>
 
-struct Device;
 namespace FOEDAG {
+struct Device;
 
 struct FoedagDevice {
   QString name;
   Device *dev{nullptr};
 };
 
-using ProgressCallback = std::function<void(double)>;
+using ProgressCallback_ = std::function<void(std::string)>;
 using OutputCallback = std::function<void(const QString &)>;
 
 class ProgrammerBackend {
  public:
   ProgrammerBackend();
+  int InitLibraryAPI(const QString &openocd);
   std::pair<bool, QString> ListDevicesAPI(std::vector<FoedagDevice> &devices);
   int ProgramFpgaAPI(const FoedagDevice &device, const QString &bitfile,
                      const QString &cfgfile, std::ostream *outStream,
-                     OutputCallback outputMsg, ProgressCallback callback,
+                     OutputCallback outputMsg, ProgressCallback_ callback,
                      std::atomic<bool> *stop);
   int ProgramFlashAPI(const FoedagDevice &device, const QString &bitfile,
                       const QString &cfgfile, std::ostream *outStream,
-                      OutputCallback outputMsg, ProgressCallback callback,
+                      OutputCallback outputMsg, ProgressCallback_ callback,
                       std::atomic<bool> *stop);
   bool StatusAPI(const FoedagDevice &device);
 };

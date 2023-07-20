@@ -41,7 +41,7 @@ enum Status { None, InProgress, Pending, Done };
 struct DeviceOptions {
   QString file;
   QStringList operations;
-  ProgressCallback progress;
+  ProgressCallback_ progress;
 };
 
 struct DeviceSettings {

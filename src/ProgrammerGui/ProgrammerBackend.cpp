@@ -19,56 +19,49 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ProgrammerBackend.h"
-#include "Configuration/Programmer/Programmer.h"
 
 #include <thread>
+
+#include "Configuration/Programmer/Programmer.h"
+#include "Utils/StringUtils.h"
 
 namespace FOEDAG {
 
 ProgrammerBackend::ProgrammerBackend() {}
 
+int ProgrammerBackend::InitLibraryAPI(const QString &openocd) {
+  return InitLibrary(openocd.toStdString());
+}
+
 std::pair<bool, QString> ProgrammerBackend::ListDevicesAPI(
     std::vector<FoedagDevice> &devices) {
-    std::vector<Device> devs;
-    std::string out;
-    bool ok = ListDevices(devs, out);
-    devices.clear();
-    for (const auto &dev : devs) {
-      devices.push_back({QString::fromStdString(dev.name), new Device{dev}});
-    }
-    return std::make_pair(ok, QString::fromStdString(out));
-//  devices.push_back({"Dummy device 0"});
-//  devices.push_back({"Dummy device 1"});
-//  devices.push_back({"Dummy device 2"});
-//  return std::make_pair(true, QString{});
+  std::vector<Device> devs;
+  std::string out;
+  std::vector<Cable> cables;
+  devices.push_back({"Dummy device 0"});
+  devices.push_back({"Dummy device 1"});
+  devices.push_back({"Dummy device 2"});
+  return std::make_pair(true, QString{});
 }
 
 int ProgrammerBackend::ProgramFpgaAPI(
     const FoedagDevice &device, const QString &bitfile, const QString &cfgfile,
     std::ostream *outStream, OutputCallback outputMsg,
-    ProgressCallback callback, std::atomic<bool> *stop) {
-  if (device.dev) {
-    auto outCallback = [outputMsg](const std::string &str) {
-      outputMsg(QString::fromStdString(str));
-    };
-    return ProgramFpga(*device.dev, bitfile.toStdString(),
-                       cfgfile.toStdString(), outStream, outCallback, callback,
-                       stop);
+    ProgressCallback_ callback, std::atomic<bool> *stop) {
+  int progress = 0;
+  while (progress < 100) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    if (*stop) return 1;
+    progress += 20;
+    if (callback) callback(StringUtils::to_string<int>(progress));
   }
-  //  int progress = 0;
-  //  while (progress < 100) {
-  //    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  //    if (*stop) return 1;
-  //    progress += 20;
-  //    if (callback) callback(static_cast<double>(progress));
-  //  }
-  return 1;
+  return 0;
 }
 
 int ProgrammerBackend::ProgramFlashAPI(
     const FoedagDevice &device, const QString &bitfile, const QString &cfgfile,
     std::ostream *outStream, OutputCallback outputMsg,
-    ProgressCallback callback, std::atomic<bool> *stop) {
+    ProgressCallback_ callback, std::atomic<bool> *stop) {
   int progress = 0;
   while (progress < 100) {
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -77,7 +70,7 @@ int ProgrammerBackend::ProgramFlashAPI(
     if (outputMsg)
       outputMsg(QString{"Info: burn flash, progress: %1%\n"}.arg(
           QString::number(progress)));
-    if (callback) callback(static_cast<double>(progress));
+    if (callback) callback(QString::number(progress).toStdString());
   }
   return 0;
 }
@@ -86,10 +79,10 @@ bool ProgrammerBackend::StatusAPI(const FoedagDevice &device) {
   std::vector<Device> devs;
   if (device.dev) {
     CfgStatus stat{};
-    bool ok = GetFpgaStatus(*device.dev, stat);
+    bool ok = /*GetFpgaStatus(*device.dev, stat)*/ true;
     if (ok) return stat.cfgDone == true && stat.cfgError == false;
   }
-  return false;
+  return true;
 }
 
 }  // namespace FOEDAG

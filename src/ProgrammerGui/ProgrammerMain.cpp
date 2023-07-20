@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "qdebug.h"
 #include "ui_ProgrammerMain.h"
 
+inline void InitResources() { Q_INIT_RESOURCE(res); }
+
 namespace FOEDAG {
 
 static const char *NONE_STR{"-"};
@@ -44,12 +46,12 @@ static const char *NONE_STR{"-"};
 bool StartThread(const std::function<bool(void)> &fn) {
   bool result = true;
   QEventLoop eventLoop{};
-  auto m_thread = new std::thread([&]() {
+  auto m_thread = std::thread([&]() {
     result = fn();
     eventLoop.quit();
   });
   eventLoop.exec();
-  m_thread->join();
+  m_thread.join();
   return result;
 }
 
@@ -57,6 +59,7 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::ProgrammerMain),
       m_settings("programmer_settings", QSettings::IniFormat) {
+  InitResources();
   ui->setupUi(this);
 
   QComboBox *hardware = new QComboBox;
@@ -122,11 +125,13 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
     connect(action, &QAction::triggered, this,
             &ProgrammerMain::updateDeviceOperations);
 
-  for (auto action : {ui->actionHarware_settings, ui->actionDevice,
-                      ui->actionJTAG_Settings, ui->actionOptions})
+  for (auto action : {ui->actionHarware_settings, ui->actionDevice})
     connect(action, &QAction::triggered, this, [this, action]() {
       openSettingsWindow(ui->menuOptions->actions().indexOf(action));
     });
+  // disabled for now
+  ui->actionJTAG_Settings->setVisible(false);
+  ui->actionOptions->setVisible(false);
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -267,8 +272,8 @@ void ProgrammerMain::updateTable() {
     auto progress = new QProgressBar{this};
     progress->setValue(0);
     m_mainProgress.AddProgressBar(progress);
-    ds->devOptions.progress = [this, progress](double val) {
-      emit updateProgress(progress, val);
+    ds->devOptions.progress = [this, progress](const std::string &val) {
+      emit updateProgress(progress, QString::fromStdString(val).toDouble());
     };
     ui->treeWidget->setItemWidget(top, PROGRESS_COL, progress);
     auto flash = new QTreeWidgetItem{BuildFlashRow(*ds->flash)};
@@ -277,8 +282,8 @@ void ProgrammerMain::updateTable() {
     progress = new QProgressBar{this};
     progress->setValue(0);
     m_mainProgress.AddProgressBar(progress);
-    ds->flash->devOptions.progress = [this, progress](double val) {
-      emit updateProgress(progress, val);
+    ds->flash->devOptions.progress = [this, progress](const std::string &val) {
+      emit updateProgress(progress, QString::fromStdString(val).toDouble());
     };
     ui->treeWidget->setItemWidget(flash, PROGRESS_COL, progress);
   }
@@ -325,7 +330,7 @@ QMenu *ProgrammerMain::prepareMenu(bool flash) {
 
 void ProgrammerMain::cleanup() {
   for (auto dev : m_deviceTmp) {
-    dev->devOptions.progress(0);
+    dev->devOptions.progress({});
     setStatus(dev, Pending);
   }
 }
