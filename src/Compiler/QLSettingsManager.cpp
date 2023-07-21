@@ -717,15 +717,25 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
 bool QLSettingsManager::areJSONSettingsChanged() {
 
-  if(newProjectMode) return false;
 
   // std::cout << "areJSONSettingsChanged()" << std::endl;
 
-  // initialize to the current settings_json
-  settings_json_updated = settings_json;
+  if(newProjectMode) {
 
-  // initialize to the current power_estimation_json_updated
-  power_estimation_json_updated = power_estimation_json;
+    // initialize to the "newproject" settings_json
+    settings_json_updated = settings_json_newproject;
+
+    // initialize to the "newproject" power_estimation_json
+    power_estimation_json_updated = power_estimation_json_newproject;
+  }
+  else {
+
+    // initialize to the current settings_json
+    settings_json_updated = settings_json;
+
+    // initialize to the current power_estimation_json
+    power_estimation_json_updated = power_estimation_json;
+  }
 
   // loop through the GUI elements, and check the updates below.
   // root of all the settings is the stackedWidget, which contains one 'page' 
@@ -826,76 +836,83 @@ bool QLSettingsManager::areJSONSettingsChanged() {
     }
   }
 
-  // compare with original settings json, and if there are differences, we need to initiate
-  // user confirmation, and then update and save json, replacing the original.
 
-  json settings_json_patch = json::diff(settings_json, settings_json_updated);
-  json power_estimation_json_patch = json::diff(power_estimation_json, power_estimation_json_updated);
+  if(!newProjectMode) {
+    // compare with original settings json, and if there are differences, we need to initiate
+    // user confirmation, and then update and save json, replacing the original.
 
-  // std::cout << "settings_json_patch" << std::endl;
-  // std::cout << std::setw(4) << settings_json_patch << std::endl;
+    json settings_json_patch = json::diff(settings_json, settings_json_updated);
+    json power_estimation_json_patch = json::diff(power_estimation_json, power_estimation_json_updated);
 
-  // std::cout << "power_estimation_json_patch" << std::endl;
-  // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
+    // std::cout << "settings_json_patch" << std::endl;
+    // std::cout << std::setw(4) << settings_json_patch << std::endl;
 
-  // the patch is a json array of "diffs", each diff being:
-  // {
-  //     "op": "replace",
-  //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
-  //     "value": "unchecked" -> value changed
-  // }
+    // std::cout << "power_estimation_json_patch" << std::endl;
+    // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
 
-  // populate the list of changes:
-  settings_json_change_list.clear();
-  power_estimation_json_change_list.clear();
+    // the patch is a json array of "diffs", each diff being:
+    // {
+    //     "op": "replace",
+    //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
+    //     "value": "unchecked" -> value changed
+    // }
 
-  for (auto diff_element: settings_json_patch) {
-    std::string path = diff_element["path"];
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(path, "/", tokens);
+    // populate the list of changes:
+    settings_json_change_list.clear();
+    power_estimation_json_change_list.clear();
 
-    std::string original_value = settings_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
-    std::string new_value = diff_element["value"];
+    for (auto diff_element: settings_json_patch) {
+      std::string path = diff_element["path"];
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(path, "/", tokens);
 
-    std::ostringstream json_change_stringstream;
-    json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
-    json_change_stringstream << "  from: " << original_value << "\n";
-    json_change_stringstream << "  to:   " << new_value;
+      std::string original_value = settings_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+      std::string new_value = diff_element["value"];
 
-    settings_json_change_list.push_back(json_change_stringstream.str());
+      std::ostringstream json_change_stringstream;
+      json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+      json_change_stringstream << "  from: " << original_value << "\n";
+      json_change_stringstream << "  to:   " << new_value;
+
+      settings_json_change_list.push_back(json_change_stringstream.str());
+    }
+
+    for (auto diff_element: power_estimation_json_patch) {
+      std::string path = diff_element["path"];
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(path, "/", tokens);
+
+      std::string original_value = power_estimation_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+      std::string new_value = diff_element["value"];
+
+      std::ostringstream json_change_stringstream;
+      json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+      json_change_stringstream << "  from: " << original_value << "\n";
+      json_change_stringstream << "  to:   " << new_value << "\n";
+
+      power_estimation_json_change_list.push_back(json_change_stringstream.str());
+    }
+
+    // debug:
+    // std::cout << "--------\n" << std::endl;
+    // for(std::string change: settings_json_change_list) {
+    //   std::cout << change << std::endl;
+    //   std::cout << "--------\n" << std::endl;
+    // }
+    // for(std::string change: power_estimation_json_change_list) {
+    //   std::cout << change << std::endl;
+    //   std::cout << "--------\n" << std::endl;
+    // }
+
+    // no changes:
+    if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
+      return false;
+    }
+    else {
+      return false;
+    }
   }
-
-  for (auto diff_element: power_estimation_json_patch) {
-    std::string path = diff_element["path"];
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(path, "/", tokens);
-
-    std::string original_value = power_estimation_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
-    std::string new_value = diff_element["value"];
-
-    std::ostringstream json_change_stringstream;
-    json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
-    json_change_stringstream << "  from: " << original_value << "\n";
-    json_change_stringstream << "  to:   " << new_value << "\n";
-
-    power_estimation_json_change_list.push_back(json_change_stringstream.str());
-  }
-
-  // debug:
-  // std::cout << "--------\n" << std::endl;
-  // for(std::string change: settings_json_change_list) {
-  //   std::cout << change << std::endl;
-  //   std::cout << "--------\n" << std::endl;
-  // }
-  // for(std::string change: power_estimation_json_change_list) {
-  //   std::cout << change << std::endl;
-  //   std::cout << "--------\n" << std::endl;
-  // }
-
-  // no changes:
-  if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
-    return false;
-  }
+  // for existing project only
 
   return true;
 }
@@ -907,6 +924,84 @@ bool QLSettingsManager::saveJSONSettings() {
 
   bool savedNewJsonChanges = false;
 
+  bool userMadeChangesToSettingsJSON = false;
+  userMadeChangesToSettingsJSON = areJSONSettingsChanged();
+
+
+  // if newProjectMode *and* there are changes from the user, prompt user to confirm the changes to be saved:
+  int userDialogConfirmationResult = QDialog::Rejected;
+  if(!newProjectMode && userMadeChangesToSettingsJSON) {
+
+    // for an existing project, check if there are any changes, and then update into the json files
+    // replacing the current json files.
+    // ask user to confirm the changes, before saving into JSON
+
+      QDialog dialog;
+      dialog.setWindowTitle("Settings Changes!");
+      QVBoxLayout* dialogLayout = new QVBoxLayout();
+      dialog.setLayout(dialogLayout);
+
+      QListWidget* listOfChangesWidget = new QListWidget();
+      listOfChangesWidget->setAlternatingRowColors(true);
+
+      for(std::string change_item: settings_json_change_list) {
+        listOfChangesWidget->addItem(QString::fromStdString(change_item));
+      }
+      
+      for(std::string change_item: power_estimation_json_change_list) {
+        listOfChangesWidget->addItem(QString::fromStdString(change_item));
+      }
+
+      QLabel* dialogLabel = new QLabel("\nPress OK to save the above changes into the Settings JSON\n");
+
+      QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                                      Qt::Horizontal);
+      QObject::connect(buttons, &QDialogButtonBox::accepted,
+                        &dialog, &QDialog::accept);
+      QObject::connect(buttons, &QDialogButtonBox::rejected,
+                        &dialog, &QDialog::reject);
+
+      dialogLayout->addWidget(listOfChangesWidget);
+      dialogLayout->addStretch();
+      dialogLayout->addWidget(dialogLabel);
+      dialogLayout->addWidget(buttons);
+      
+      dialog.setModal(true);
+
+      userDialogConfirmationResult = dialog.exec();
+  }
+
+
+  // if newProjectMode -> just save the updated settings into the JSON filepath
+  // if existingProjectMode *and* user has confirmed changes -> save the updated settings into the JSON filepath
+  if( (newProjectMode) ||
+      (!newProjectMode && userDialogConfirmationResult == QDialog::Accepted) ) {
+
+          // if the settings json values are empty, ignore them.
+    if(!settings_json_updated.empty()) {
+
+      settings_json = settings_json_updated;
+      std::ofstream settings_json_ofstream(settings_json_filepath.string());
+      settings_json_ofstream << std::setw(4) << settings_json << std::endl;
+    }
+
+    if(!power_estimation_json_updated.empty()) {
+
+      power_estimation_json = power_estimation_json_updated;
+      std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
+      power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+    }
+
+    savedNewJsonChanges = true;
+  }
+  else {
+
+    // not saving updated JSON files:
+    savedNewJsonChanges = false;
+  }
+
+
+#if 0
   if(!newProjectMode) {
 
     // for an existing project, check if there are any changes, and then update into the json files
@@ -991,6 +1086,9 @@ bool QLSettingsManager::saveJSONSettings() {
 
     savedNewJsonChanges = true;
   }
+
+#endif
+
   return savedNewJsonChanges;
 }
 
