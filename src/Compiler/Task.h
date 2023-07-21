@@ -51,6 +51,11 @@ struct CustomData {
   QVariant data;
 };
 
+struct ProcessUtilization {
+  uint duration{};
+  uint utilization{};
+};
+
 /*!
  * \brief The Task class
  * Implements task entity.
@@ -111,6 +116,9 @@ class Task : public QObject {
   Task *cleanTask() const;
   void setCleanTask(Task *newClean);
 
+  ProcessUtilization utilization() const;
+  void setUtilization(const ProcessUtilization &newUtilization);
+
  signals:
   /*!
    * \brief statusChanged. Emits whenever status has changed.
@@ -136,6 +144,7 @@ class Task : public QObject {
   bool m_enable{true};
   bool m_enableDefault{true};
   CustomData m_customData{};
+  ProcessUtilization m_utilization;
 };
 
 }  // namespace FOEDAG

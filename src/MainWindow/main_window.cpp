@@ -1282,6 +1282,9 @@ void MainWindow::ReShowWindow(QString strProject) {
   console->addParser(new FileNameParser{});
   m_console = console;
 
+  QDockWidget* perfomance = new DockWidget(tr("Perfomance tracker"), this);
+  perfomance->setWidget(m_perfomanceTracker.widget());
+
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
@@ -1303,6 +1306,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::updateHierarchyTree);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
+  addDockWidget(Qt::BottomDockWidgetArea, perfomance);
+  tabifyDockWidget(consoleDocWidget, perfomance);
 
   // QDockWidget* runDockWidget = new DockWidget(tr("Design Runs"), this);
   // runDockWidget->setObjectName("designrundockwidget");
@@ -1322,6 +1327,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   // compiler task view
   delete m_taskView;
   m_taskView = prepareCompilerView(m_compiler, &m_taskManager);
+  m_perfomanceTracker.setTaskManager(m_taskManager);
   m_taskManager->setDialogProvider(new DialogProvider{this});
   m_taskView->setObjectName("compilerTaskView");
   m_taskView->setParent(this);
@@ -1341,6 +1347,7 @@ void MainWindow::ReShowWindow(QString strProject) {
               showMessagesTab();
               showReportsTab();
             }
+            m_perfomanceTracker.update();
             m_progressBar->show();
             setStatusAndProgressText(statusMsg);
           });
@@ -1761,6 +1768,7 @@ void MainWindow::updateTaskTable() {
   m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
   m_taskManager->task(POWER)->setValid(false);
   m_taskManager->task(POWER_CLEAN)->setValid(false);
+  m_perfomanceTracker.setIsRtl(!isPostSynthPure);
 }
 
 void MainWindow::slotTabChanged(int index) {

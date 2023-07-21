@@ -98,4 +98,10 @@ Task *Task::cleanTask() const { return m_clean; }
 
 void Task::setCleanTask(Task *newClean) { m_clean = newClean; }
 
+ProcessUtilization Task::utilization() const { return m_utilization; }
+
+void Task::setUtilization(const ProcessUtilization &newUtilization) {
+  m_utilization = newUtilization;
+}
+
 }  // namespace FOEDAG

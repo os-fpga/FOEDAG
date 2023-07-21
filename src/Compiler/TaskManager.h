@@ -131,6 +131,7 @@ class TaskManager : public QObject {
   void reset();
   void cleanDownStreamStatus(Task *t);
   void appendTask(Task *t);
+  void resetTask(Task *t);
 
   /*!
    * \brief getDownstreamClearTasks
