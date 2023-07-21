@@ -50,6 +50,7 @@ set (CPP_LIST
     MainWindow/PerfomanceTracker_test.cpp
     MainWindow/ProjectFileComponent_test.cpp
     CFGProgrammer/CFGProgrammer_test.cpp
+    CFGProgrammer/CFGProgrammer_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
