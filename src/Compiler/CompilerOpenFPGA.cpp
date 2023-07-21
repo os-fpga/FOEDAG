@@ -873,7 +873,7 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
           lang = "-sv";
           break;
         case Design::Language::VERILOG_NETLIST:
-          lang = "";
+          lang = "-sv";
           break;
         case Design::Language::BLIF:
         case Design::Language::EBLIF:
