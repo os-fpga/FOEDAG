@@ -145,10 +145,14 @@ int CFG_compiler_execute_cmd(const std::string& command,
 
 int CFG_execute_cmd(const std::string& cmd, std::string& output);
 
+int CFG_execute_cmd(const std::string& cmd, std::string& output,
+                    std::ostream* outStream, std::atomic<bool>& stopCommand);
+
 int CFG_execute_cmd_with_callback(
     const std::string& cmd, std::string& output, std::ostream* outstream,
     std::regex patternToMatch, std::atomic<bool>& stopCommand,
-    std::function<void(const std::string&)> callback = nullptr);
+    std::function<void(const std::string&)> progressCallback = nullptr,
+    std::function<void(const std::string&)> generalCallback = nullptr);
 
 std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
                                     const std::filesystem::path& defaultDir);

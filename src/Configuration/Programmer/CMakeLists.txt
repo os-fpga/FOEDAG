@@ -54,10 +54,15 @@ endif()
 # subsystem library
 #
 ###################
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+find_package(libusb-1.0 REQUIRED)
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
+  Programmer_helper.cpp
 )
+target_link_libraries(${subsystem} PUBLIC ${LIBUSB_1_LIBRARIES} foedagutils)
+
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
@@ -66,6 +71,7 @@ add_library(
 add_executable(
   ${foedag_bin}
   Programmer_cmd.cpp
+  Programmer_helper.cpp
 )
 target_link_libraries(${foedag_bin} ${subsystem})
 

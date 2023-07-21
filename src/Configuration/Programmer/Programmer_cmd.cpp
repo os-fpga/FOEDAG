@@ -30,46 +30,66 @@ int main(int argc, const char** argv) {
   // programmer_entry(&cmdarg);
 
   // simple programmer API manual testing
+  std::string openOCDPath = "/home/guanyung/dev/openocd/src/openocd";
+  InitLibrary(openOCDPath);
   std::vector<Device> devices;
-  std::string outputMsg;
-  if (ListDevices(devices, outputMsg)) {
-    CFG_POST_MSG("### ListDevices API testing ###");
-    for (auto& device : devices) {
+
+  std::vector<FOEDAG::Cable> cables;
+  GetAvailableCables(cables);
+  CFG_POST_MSG("-- GetAvailableCables(cables) --")
+  for (auto& cable : cables) {
+    CFG_POST_MSG("--------------")
+    CFG_POST_MSG("product ID: 0x%04x", cable.productId);
+    CFG_POST_MSG("vendor  ID: 0x%04x", cable.vendorId);
+    CFG_POST_MSG("serial    : %s", cable.serialNumber.c_str());
+    CFG_POST_MSG("desc      : %s", cable.description.c_str());
+    CFG_POST_MSG("bus       : %d", cable.busAddr);
+    CFG_POST_MSG("port      : %d", cable.portAddr);
+    CFG_POST_MSG("device    : %d", cable.deviceAddr);
+    CFG_POST_MSG("speed     : %d", cable.speed);
+    CFG_POST_MSG("transport : %d", cable.transport);
+    CFG_POST_MSG("channel   : %d", cable.channel);
+  }
+
+  CFG_POST_MSG("-- ListDevices(cables, outputMsg) --")
+  if (cables.size() > 0) {
+    if (ListDevices(cables[0], devices)) {
+      CFG_POST_MSG("### ListDevices API testing ###");
+      for (auto& device : devices) {
+        CFG_POST_MSG("-------------------------");
+        CFG_POST_MSG("Device name: %s", device.name.c_str());
+        CFG_POST_MSG("Device index: %d", device.index);
+        CFG_POST_MSG("Device jtagId: %d", device.tapInfo.idCode);
+        CFG_POST_MSG("Device mask: %d", device.tapInfo.irMask);
+        CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
+        CFG_POST_MSG("Device flashSize: %d", device.flashSize);
+      }
       CFG_POST_MSG("-------------------------");
-      CFG_POST_MSG("Device name: %s", device.name.c_str());
-      CFG_POST_MSG("Device index: %s", std::to_string(device.index).c_str());
-      CFG_POST_MSG("Device jtagId: %s", device.jtagId.c_str());
-      CFG_POST_MSG("Device mask: %s", std::to_string(device.mask).c_str());
-      CFG_POST_MSG("Device irlength: %s",
-                   std::to_string(device.irlength).c_str());
-      CFG_POST_MSG("Device flashSize: %s",
-                   std::to_string(device.flashSize).c_str());
     }
-    CFG_POST_MSG("-------------------------");
-    CFG_POST_MSG(outputMsg.c_str());
   }
 
-  Device device = devices[0];
-  CfgStatus status;
-  if (GetFpgaStatus(device, status)) {
-    CFG_POST_MSG("### GetFpgaStatus API testing ###");
-    CFG_POST_MSG("Device cfgDone: %s", std::to_string(status.cfgDone).c_str());
-    CFG_POST_MSG("Device cfgError: %s",
-                 std::to_string(status.cfgError).c_str());
-  }
+  // Device device = devices[0];
+  // CfgStatus status;
+  // if (GetFpgaStatus(device, status)) {
+  //   CFG_POST_MSG("### GetFpgaStatus API testing ###");
+  //   CFG_POST_MSG("Device cfgDone: %s",
+  //   std::to_string(status.cfgDone).c_str()); CFG_POST_MSG("Device cfgError:
+  //   %s",
+  //                std::to_string(status.cfgError).c_str());
+  // }
 
-  OutputCallback callback = [](std::string msg) {
-    CFG_POST_MSG("### OutputCallback API testing ###");
-    CFG_POST_MSG("OutputCallback msg: %s", msg.c_str());
-  };
-  ProgressCallback progress = [](double percent) {
-    CFG_POST_MSG("### ProgressCallback API testing ###");
-    CFG_POST_MSG("ProgressCallback percent: %s",
-                 std::to_string(percent).c_str());
-  };
-  std::atomic<bool> stop = false;
-  ProgramFpga(device, "test.bit", "config.cfg", nullptr, callback, progress,
-              stop);
+  // OutputCallback callback = [](std::string msg) {
+  //   CFG_POST_MSG("### OutputCallback API testing ###");
+  //   CFG_POST_MSG("OutputCallback msg: %s", msg.c_str());
+  // };
+  // ProgressCallback progress = [](double percent) {
+  //   CFG_POST_MSG("### ProgressCallback API testing ###");
+  //   CFG_POST_MSG("ProgressCallback percent: %s",
+  //                std::to_string(percent).c_str());
+  // };
+  // std::atomic<bool> stop = false;
+  // ProgramFpga(device, "test.bit", "config.cfg", nullptr, callback, progress,
+  //             stop);
 
   return 0;
 }

@@ -422,10 +422,8 @@ int CFG_execute_cmd(const std::string& cmd, std::string& output) {
   return exitcode;
 }
 
-int CFG_execute_cmd_with_callback(
-    const std::string& cmd, std::string& output, std::ostream* outStream,
-    std::regex patternToMatch, std::atomic<bool>& stopCommand,
-    std::function<void(const std::string&)> callback) {
+int CFG_execute_cmd(const std::string& cmd, std::string& output,
+                    std::ostream* outStream, std::atomic<bool>& stopCommand) {
 #ifdef _WIN32
 #define POPEN _popen
 #define PCLOSE _pclose
@@ -453,13 +451,55 @@ int CFG_execute_cmd_with_callback(
     if (stopCommand) {
       break;
     }
+  }
+
+  int status = PCLOSE(pipe);
+  int exit_code = WEXITSTATUS(status);
+  return exit_code;
+}
+
+int CFG_execute_cmd_with_callback(
+    const std::string& cmd, std::string& output, std::ostream* outStream,
+    std::regex patternToMatch, std::atomic<bool>& stopCommand,
+    std::function<void(const std::string&)> progressCallback,
+    std::function<void(const std::string&)> generalCallback) {
+#ifdef _WIN32
+#define POPEN _popen
+#define PCLOSE _pclose
+#else
+#define POPEN popen
+#define PCLOSE pclose
+#endif
+
+  FILE* pipe = POPEN(cmd.c_str(), "r");
+  if (pipe == nullptr) {
+    return -1;
+  }
+
+  // Read the output of the command and store it in the output string.
+  char buffer[1024];
+  std::string newline;
+  while (fgets(buffer, sizeof(buffer), pipe) != nullptr && !stopCommand) {
+    output += buffer;
+    newline = buffer;
+    if (generalCallback != nullptr) {
+      generalCallback(newline);
+    }
+
+    if (outStream) {
+      *outStream << newline;
+    }
+
+    if (stopCommand) {
+      break;
+    }
 
     std::smatch matches;
     if (std::regex_search(newline, matches, patternToMatch)) {
-      if (callback != nullptr) {
+      if (progressCallback != nullptr) {
         std::string strOutput = matches.str();
         strOutput += "\n";
-        callback(strOutput);
+        progressCallback(strOutput);
       }
     }
   }

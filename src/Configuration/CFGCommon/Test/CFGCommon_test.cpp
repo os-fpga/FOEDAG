@@ -68,7 +68,6 @@ void test_arg() {
   CFG_ASSERT(errors[3] ==
              "Can only specify maximum of 2 argument(s), but found 4 "
              "argument(s) is specified");
-  arg.print();
 }
 
 void test_programmer_short_option_ok() {
@@ -87,7 +86,6 @@ void test_programmer_short_option_ok() {
   CFG_ASSERT(arg.operations == "erase|program");
   CFG_ASSERT(arg.m_args[0] == "flash");
   CFG_ASSERT(arg.m_args[1] == "test.bit");
-  arg.print();
 }
 
 void test_program_device_long_option_ok() {
@@ -108,7 +106,6 @@ void test_program_device_long_option_ok() {
   CFG_ASSERT(arg.operations == "erase,blankcheck,program");
   CFG_ASSERT(arg.m_args[0] == "flash");
   CFG_ASSERT(arg.m_args[1] == "test.bit");
-  arg.print();
 }
 
 void test_get_rid_whitespace() {

@@ -48,6 +48,7 @@ set (CPP_LIST
     CFGCommon/CFGCommon_test.cpp
     CFGCompiler/CFGCompiler_test.cpp
     MainWindow/PerfomanceTracker_test.cpp
+    CFGProgrammer/CFGProgrammer_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
@@ -66,6 +67,7 @@ target_link_libraries(unittest PRIVATE
   newproject
   foedag
   foedagcore
-  cfgcommon)
+  cfgcommon
+  programmer)
 
 add_test(NAME unittest COMMAND unittest)
