@@ -388,4 +388,10 @@ bool FileUtils::removeAll(const std::filesystem::path& path) {
   return ok;
 }
 
+bool FileUtils::MoveFile(const std::filesystem::path& file, const std::filesystem::path& renameFile) noexcept {
+  if (!FileExists(file)) return false;
+  std::error_code ec;
+  std::filesystem::rename(file, renameFile, ec);
+}
+
 }  // namespace FOEDAG

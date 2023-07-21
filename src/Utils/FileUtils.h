@@ -97,6 +97,9 @@ class FileUtils final {
   static bool removeFile(const std::filesystem::path& file) noexcept;
   static bool removeAll(const std::filesystem::path& path);
 
+  // return true if file was renamed otherwise return false
+  static bool MoveFile(const std::filesystem::path& file, const std::filesystem::path& renameFile) noexcept;
+
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);
 
