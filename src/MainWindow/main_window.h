@@ -109,6 +109,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void releaseNodesClicked();
   void openFileWith(QString file, int editor);
   void editorSettings();
+  void updateHierarchyTree();
 
  public slots:
   void updateSourceTree();

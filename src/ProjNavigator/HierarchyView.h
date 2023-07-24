@@ -42,7 +42,6 @@ struct Module {
   QString instFile;
   QString instLine;
   QVector<Module *> moduleInst;
-  ~Module() { qDeleteAll(moduleInst); }
 };
 
 class HierarchyView : public QObject {
@@ -52,6 +51,7 @@ class HierarchyView : public QObject {
   HierarchyView(const std::filesystem::path &ports);
   void setPortsFile(const std::filesystem::path &ports);
   void update();
+  void clean();
 
   QTreeWidget *widget();
 
@@ -63,7 +63,6 @@ class HierarchyView : public QObject {
   void itemDoubleClick(QTreeWidgetItem *item, int column);
 
  private:
-  void clean();
   QTreeWidgetItem *addItem(QTreeWidgetItem *parent, Module *module);
   void parseJson(json &jsonObject);
   void emitOpenFile(QTreeWidgetItem *item, int column);
@@ -73,7 +72,7 @@ class HierarchyView : public QObject {
   QTreeWidget *m_treeWidget{};
   std::filesystem::path m_portsFile;
   QMap<int, QString> m_files;
-  Module m_top;
+  QVector<Module> m_topVector;
 };
 
 }  // namespace FOEDAG
