@@ -118,10 +118,12 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
 
 int InitLibrary(std::string openOCDPath) {
   CFG_ASSERT_MSG(!openOCDPath.empty(), "openOCDPath cannot be empty");
+  libOpenOcdExecPath = openOCDPath;
+
   if (!std::filesystem::exists(openOCDPath)) {
     return ProgrammerErrorCode::OpenOCDExecutableNotFound;
   }
-  libOpenOcdExecPath = openOCDPath;
+
   return ProgrammerErrorCode::NoError;
 }
 
