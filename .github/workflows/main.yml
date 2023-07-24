@@ -257,6 +257,7 @@ jobs:
           mingw-w64-x86_64-qt5-declarative-debug
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
+          mingw-w64-x86_64-libusb
     
     - name: Configure shell environment variables
       run: |
