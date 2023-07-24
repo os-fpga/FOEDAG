@@ -392,6 +392,7 @@ bool FileUtils::MoveFile(const std::filesystem::path& file, const std::filesyste
   if (!FileExists(file)) return false;
   std::error_code ec;
   std::filesystem::rename(file, renameFile, ec);
+  return ec.value() == 0;
 }
 
 }  // namespace FOEDAG

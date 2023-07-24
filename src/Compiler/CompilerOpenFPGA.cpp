@@ -2008,6 +2008,13 @@ bool CompilerOpenFPGA::Route() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+    std::string prefix = ProjManager()->projectName();
+    const std::vector<std::string> fileNames = {prefix+"_post_synthesis.v", prefix+"_post_synthesis.sdf"};
+    auto routePath = FilePath(Action::Routing);
+    for (auto &fileName: fileNames){
+      Message("File path: " + fileName);
+//      FileUtils::MoveFile(filePath, )
+    }
   });
 
   if (!ProjManager()->HasDesign()) {
