@@ -1132,7 +1132,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "pb_pin_fixup") {
           compiler->BitstreamMoreOpt(arg);
-        } else if (arg == "write_cache") {
+        } else if (arg == "wl_decremental_order") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "ignore_dont_care_bits") {
           compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);
@@ -1506,7 +1508,9 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->BitstreamMoreOpt(arg);
         } else if (arg == "pb_pin_fixup") {
           compiler->BitstreamMoreOpt(arg);
-        } else if (arg == "write_cache") {
+        } else if (arg == "wl_decremental_order") {
+          compiler->BitstreamMoreOpt(arg);
+        } else if (arg == "ignore_dont_care_bits") {
           compiler->BitstreamMoreOpt(arg);
         } else {
           compiler->ErrorMessage("Unknown bitstream option: " + arg);

@@ -368,14 +368,16 @@ std::vector<std::string> TclCommandIntegration::GetClockList(
     }
     std::vector<std::string> ports;
     auto hierTree = jsonObject.at("hierTree");
-    auto portsArr = hierTree[0].at("ports");
-    auto language = hierTree[0].at("language");
-    if (isVHDL(language)) vhdl = true;
-    for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
-      const auto range = it->at("range");
-      const int msb = range["msb"];
-      const int lsb = range["lsb"];
-      if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+    for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
+      auto portsArr = it->at("ports");
+      auto language = it->at("language");
+      if (isVHDL(language)) vhdl = true;
+      for (auto it{portsArr.cbegin()}; it != portsArr.cend(); ++it) {
+        const auto range = it->at("range");
+        const int msb = range["msb"];
+        const int lsb = range["lsb"];
+        if (msb == 0 && lsb == 0) ports.push_back(it->at("name"));
+      }
     }
     return ports;
   }

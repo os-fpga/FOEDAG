@@ -77,11 +77,13 @@ void HierarchyView::update() {
   }
 
   if (fileParsed) {
-    QTreeWidgetItem *top = addItem(nullptr, &m_top);
-    if (top) {
-      m_treeWidget->addTopLevelItem(top);
-      m_treeWidget->expandAll();
+    for (auto &module : m_topVector) {
+      QTreeWidgetItem *top = addItem(nullptr, &module);
+      if (top) {
+        m_treeWidget->addTopLevelItem(top);
+      }
     }
+    m_treeWidget->expandAll();
   }
 }
 
@@ -120,8 +122,8 @@ void HierarchyView::emitOpenInstFile(QTreeWidgetItem *item, int column) {
 void HierarchyView::clean() {
   m_files.clear();
   m_treeWidget->clear();
-  qDeleteAll(m_top.moduleInst);
-  m_top = {};
+  for (auto &m : m_topVector) qDeleteAll(m.moduleInst);
+  m_topVector.clear();
 }
 
 QTreeWidgetItem *HierarchyView::addItem(QTreeWidgetItem *parent,
@@ -188,56 +190,61 @@ void HierarchyView::parseJson(json &jsonObject) {
   };
 
   // top module parsing
-  auto hierTree = jsonObject.at("hierTree")[0];
-  auto topModule = hierTree.at("topModule");
-  m_top.name = QString::fromStdString(topModule.get<std::string>());
-  parseModule(hierTree, &m_top);
+  auto hierTree = jsonObject.at("hierTree");
+  for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
+    auto topModule = it->at("topModule");
+    Module m_top;
+    m_top.name = QString::fromStdString(topModule.get<std::string>());
+    parseModule(*it, &m_top);
 
-  // all modules parsing
-  auto modules = jsonObject.at("modules");
-  QVector<Module *> allModules;
-  for (auto m = modules.begin(); m != modules.end(); m++) {
-    Module *newMod = new Module;
-    allModules.append(newMod);
-    newMod->name = QString::fromStdString(m.key());
-    auto in = m.value();
-    parseModule(in, newMod);
-  }
-
-  auto getInst = [allModules](const QString &name) -> Module * {
-    for (auto m : allModules)
-      if (m->name == name) return m;
-    return nullptr;
-  };
-
-  // update all modules instances
-  for (auto m : qAsConst(allModules)) {
-    for (auto inst : qAsConst(m->moduleInst)) {
-      auto sub = getInst(inst->name);
-      for (auto s : qAsConst(sub->moduleInst)) inst->moduleInst.push_back(s);
+    // all modules parsing
+    auto modules = jsonObject.at("modules");
+    QVector<Module *> allModules;
+    for (auto m = modules.begin(); m != modules.end(); m++) {
+      Module *newMod = new Module;
+      allModules.append(newMod);
+      newMod->name = QString::fromStdString(m.key());
+      auto in = m.value();
+      parseModule(in, newMod);
     }
-  }
 
-  // update top module instances
-  for (auto topInst : qAsConst(m_top.moduleInst)) {
-    auto inst = getInst(topInst->name);
-    for (auto sub : qAsConst(inst->moduleInst)) topInst->moduleInst.append(sub);
-  }
+    auto getInst = [allModules](const QString &name) -> Module * {
+      for (auto m : allModules)
+        if (m->name == name) return m;
+      return nullptr;
+    };
 
-  // set top module instances file and line
-  for (auto topInst : qAsConst(m_top.moduleInst)) {
-    auto inst = getInst(topInst->name);
-    topInst->file = inst->file;
-    topInst->line = inst->line;
-  }
-
-  // set all modules instances file and line
-  for (auto m : qAsConst(allModules)) {
-    for (auto inst : qAsConst(m->moduleInst)) {
-      auto sub = getInst(inst->name);
-      inst->file = sub->file;
-      inst->line = sub->line;
+    // update all modules instances
+    for (auto m : qAsConst(allModules)) {
+      for (auto inst : qAsConst(m->moduleInst)) {
+        auto sub = getInst(inst->name);
+        for (auto s : qAsConst(sub->moduleInst)) inst->moduleInst.push_back(s);
+      }
     }
+
+    // update top module instances
+    for (auto topInst : qAsConst(m_top.moduleInst)) {
+      auto inst = getInst(topInst->name);
+      for (auto sub : qAsConst(inst->moduleInst))
+        topInst->moduleInst.append(sub);
+    }
+
+    // set top module instances file and line
+    for (auto topInst : qAsConst(m_top.moduleInst)) {
+      auto inst = getInst(topInst->name);
+      topInst->file = inst->file;
+      topInst->line = inst->line;
+    }
+
+    // set all modules instances file and line
+    for (auto m : qAsConst(allModules)) {
+      for (auto inst : qAsConst(m->moduleInst)) {
+        auto sub = getInst(inst->name);
+        inst->file = sub->file;
+        inst->line = sub->line;
+      }
+    }
+    m_topVector.push_back(m_top);
   }
 }
 

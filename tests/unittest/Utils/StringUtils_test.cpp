@@ -167,11 +167,11 @@ TEST(StringUtilsTest, endsWithTest) {
 }
 
 TEST(StringUtilsTest, toLowerTest) {
-    EXPECT_EQ(StringUtils::toLower("LOWERCASE"), std::string("lowercase"));
+  EXPECT_EQ(StringUtils::toLower("LOWERCASE"), std::string("lowercase"));
 }
 
 TEST(StringUtilsTest, toUpperTest) {
-    EXPECT_EQ(StringUtils::toUpper("upperCase"), std::string("UPPERCASE"));
+  EXPECT_EQ(StringUtils::toUpper("upperCase"), std::string("UPPERCASE"));
 }
 
 TEST(StringUtilsTest, joinEmpty) {
@@ -222,6 +222,23 @@ TEST(StringUtilsTest, setArgumentValueExists) {
   StringUtils::setArgumentValue(test, "arg", "value1");
   StringVector expected{"arg", "value1"};
   EXPECT_EQ(test, expected);
+}
+
+TEST(StringUtilsTest, FromArgs) {
+  const int argc{3};
+  const char* args[argc] = {"one", "two", "three"};
+
+  StringVector res = StringUtils::FromArgs(argc, args);
+  StringVector expected{"one", "two", "three"};
+  EXPECT_EQ(res, expected);
+}
+
+TEST(StringUtilsTest, FromArgsNull) {
+  const int argc{0};
+
+  StringVector res = StringUtils::FromArgs(argc, nullptr);
+  StringVector expected{};
+  EXPECT_EQ(res, expected);
 }
 
 }  // namespace

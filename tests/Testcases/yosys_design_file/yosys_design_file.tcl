@@ -12,6 +12,5 @@ route
 sta
 power
 bitstream
+bitstream ignore_dont_care_bits wl_decremental_order
 puts "done!"
-
-

@@ -40,10 +40,12 @@ set (CPP_LIST
     PinAssignment/TestLoader.cpp
     PinAssignment/TestPortsLoader.cpp
     Compiler/CompilerDefines_test.cpp
+    Compiler/Compiler_test.cpp
     PinAssignment/PortsModel_test.cpp
     PinAssignment/PinAssignmentBaseView_test.cpp
     Simulation/Simulation_test.cpp
     Utils/FileUtils_test.cpp
+    CFGCommon/CFGCommon_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
@@ -61,6 +63,7 @@ target_link_libraries(unittest PRIVATE
   pinassignment
   newproject
   foedag
-  foedagcore)
+  foedagcore
+  cfgcommon)
 
 add_test(NAME unittest COMMAND unittest)

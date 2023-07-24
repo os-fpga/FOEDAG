@@ -235,6 +235,9 @@ void MainWindow::ScriptFinished() {
   const QSignalBlocker signalBlocker{DesignFileWatcher::Instance()};
   DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
   saveSettings();
+
+  GlobalSession->CmdStack()->push_and_exec(new Command{"analyze"});
+  updateHierarchyTree();
 }
 
 void MainWindow::newFile() {
@@ -314,6 +317,7 @@ void MainWindow::closeProject(bool force) {
     m_showWelcomePage ? showWelcomePage() : ReShowWindow({});
     newProjectAction->setEnabled(true);
     setStatusAndProgressText(QString{});
+    m_hierarchyView.clean();
   }
 }
 
@@ -823,8 +827,7 @@ void MainWindow::loadFile(const QString& file) {
     updateTaskTable();
 
     m_fileExplorer.setRootPath(m_projectManager->getProjectPath());
-    m_hierarchyView.setPortsFile(
-        m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json"));
+    updateHierarchyTree();
   }
 }
 
@@ -1297,10 +1300,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   connect(tclCommandIntegration, &TclCommandIntegration::saveSettingsSignal,
           this, [this]() { saveSettings(); });
   connect(tclCommandIntegration, &TclCommandIntegration::updateHierarchy, this,
-          [this]() {
-            m_hierarchyView.setPortsFile(m_compiler->FilePath(
-                Compiler::Action::Analyze, "hier_info.json"));
-          });
+          &MainWindow::updateHierarchyTree);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
@@ -1945,6 +1945,12 @@ void MainWindow::editorSettings() {
           QString{"%1;%2"}.arg(editors.at(i).first, editors.at(i).second));
     }
   }
+}
+
+void MainWindow::updateHierarchyTree() {
+  if (m_compiler)
+    m_hierarchyView.setPortsFile(
+        m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json"));
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

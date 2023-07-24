@@ -75,14 +75,14 @@ void test_programmer_short_option_ok() {
   CFG_POST_MSG("test_programmer_short_option_ok");
   CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.m_args.size() == 0);
   const char* argv[] = {"flash", "test.bit", "-o", "erase|program"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   CFG_ASSERT(status);
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.operations == "erase|program");
   CFG_ASSERT(arg.m_args[0] == "flash");
@@ -94,7 +94,7 @@ void test_program_device_long_option_ok() {
   CFG_POST_MSG("test_program_device_long_option_ok");
   CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
-  CFG_ASSERT(arg.config == "");
+  CFG_ASSERT(arg.config == "gemini.cfg");
   CFG_ASSERT(arg.index == 0);
   CFG_ASSERT(arg.m_args.size() == 0);
   const char* argv[] = {"flash",        "test.bit",
@@ -111,10 +111,112 @@ void test_program_device_long_option_ok() {
   arg.print();
 }
 
+void test_get_rid_whitespace() {
+  CFG_POST_MSG("test_get_rid_whitespace");
+  std::string str = "\t  \t \r \n \tThis is Love\t \r \n     \n";
+  CFG_get_rid_trailing_whitespace(str, {'\t'});
+  CFG_ASSERT(str == "\t  \t \r \n \tThis is Love\t \r \n     \n");
+  CFG_get_rid_trailing_whitespace(str, {' ', '\n'});
+  CFG_ASSERT(str == "\t  \t \r \n \tThis is Love\t \r");
+  CFG_get_rid_leading_whitespace(str, {'\t', ' '});
+  CFG_ASSERT(str == "\r \n \tThis is Love\t \r");
+  CFG_get_rid_whitespace(str);
+  CFG_ASSERT(str == "This is Love");
+}
+
+void test_string_case_conversion() {
+  CFG_POST_MSG("test_string_case_conversion");
+  std::string str = "thiS is me";
+  CFG_ASSERT(CFG_string_toupper(str) == "THIS IS ME");
+  CFG_ASSERT(str == "THIS IS ME");
+  CFG_ASSERT(CFG_string_tolower(str) == "this is me");
+  CFG_ASSERT(str == "this is me");
+}
+
+void test_string_to_u64_conversion() {
+  CFG_POST_MSG("test_string_to_u64_conversion");
+  bool status = true;
+  uint64_t init = 123;
+  CFG_ASSERT(CFG_convert_string_to_u64("", false, &status) == 0);
+  CFG_ASSERT(status == true);
+  CFG_ASSERT(CFG_convert_string_to_u64("", false, nullptr, &init) == 123);
+  init = 789;
+  CFG_ASSERT(CFG_convert_string_to_u64("joqekdvmpq", false, &status, &init) ==
+             789);
+  CFG_ASSERT(status == false);
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123") == 0x123);
+  status = true;
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr,
+                                       false) == 0);
+  CFG_ASSERT(status == false);
+  status = true;
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 << 1", true, &status, nullptr,
+                                       true) == 0x246);
+  CFG_ASSERT(status == true);
+  CFG_ASSERT(CFG_convert_string_to_u64("0x123 >> 4", true, &status, nullptr,
+                                       true) == 0x12);
+  CFG_ASSERT(status == true);
+}
+
+void test_find_item_in_vector() {
+  CFG_POST_MSG("test_find_item_in_vector");
+  CFG_ASSERT(
+      CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "she") == -1);
+  CFG_ASSERT(
+      CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "you") == 1);
+  CFG_ASSERT(
+      CFG_find_string_in_vector({"I", "you", "we", "they", "he"}, "he") == 4);
+  CFG_ASSERT(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 5) == -1);
+  CFG_ASSERT(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 3) == 3);
+  CFG_ASSERT(CFG_find_u32_in_vector({0, 1, 2, 3, 4}, 0) == 0);
+}
+
+void test_string_split() {
+  CFG_POST_MSG("test_string_split");
+  std::string string = "I am*#You*#*#*#HEis*#";
+  std::vector<std::string> results = CFG_split_string(string, "*#");
+  CFG_ASSERT(results.size() == 6);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "");
+  CFG_ASSERT(results[3] == "");
+  CFG_ASSERT(results[4] == "HEis");
+  CFG_ASSERT(results[5] == "");
+  results = CFG_split_string(string, "*#", 0, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "HEis");
+  results = CFG_split_string(string, "*#", 3, true);
+  CFG_ASSERT(results.size() == 4);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "");
+  CFG_ASSERT(results[3] == "*#HEis*#");
+  results = CFG_split_string(string, "*#", 2, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "*#*#HEis*#");
+  results = CFG_split_string(string, "*#", 3, false);
+  CFG_ASSERT(results.size() == 3);
+  CFG_ASSERT(results[0] == "I am");
+  CFG_ASSERT(results[1] == "You");
+  CFG_ASSERT(results[2] == "HEis");
+  results = CFG_split_string(string, "!");
+  CFG_ASSERT(results.size() == 1);
+  CFG_ASSERT(results[0] == "I am*#You*#*#*#HEis*#");
+}
+
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is CFGCommon unit test");
   test_arg();
   test_programmer_short_option_ok();
   test_program_device_long_option_ok();
+  test_get_rid_whitespace();
+  test_string_case_conversion();
+  test_string_to_u64_conversion();
+  test_find_item_in_vector();
+  test_string_split();
   return 0;
 }

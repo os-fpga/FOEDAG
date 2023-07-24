@@ -24,8 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 TableReport::TableReport(const ColumnValues &columns,
-                         const TableData &linesData, const QString &name)
-    : m_columns{columns}, m_linesData{linesData}, m_name{name} {}
+                         const TableData &linesData, const QString &name,
+                         const TableMetaData &metaData)
+    : m_columns{columns},
+      m_linesData{linesData},
+      m_tableMetaData{metaData},
+      m_name{name} {}
 
 const IDataReport::ColumnValues &TableReport::getColumns() const {
   return m_columns;
@@ -39,6 +43,10 @@ const QString &TableReport::getName() const { return m_name; }
 
 bool TableReport::isEmpty() const {
   return m_linesData.empty() || m_columns.empty();
+}
+
+const IDataReport::TableMetaData &TableReport::getMetaData() const {
+  return m_tableMetaData;
 }
 
 }  // namespace FOEDAG
