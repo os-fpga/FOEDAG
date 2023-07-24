@@ -84,6 +84,7 @@ else (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
   endif (LIBUSB_1_INCLUDE_DIRS AND LIBUSB_1_LIBRARIES)
 
   if (LIBUSB_1_FOUND)
+    include_directories(${LIBUSB_1_INCLUDE_DIRS})
     if (NOT libusb_1_FIND_QUIETLY)
       message(STATUS "Found libusb-1.0:")
       message(STATUS " - Includes: ${LIBUSB_1_INCLUDE_DIRS}")
