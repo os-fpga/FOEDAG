@@ -1614,6 +1614,21 @@ bool CompilerOpenFPGA::Packing() {
   Message("##################################################");
   Message("Packing for design: " + ProjManager()->projectName());
   Message("##################################################");
+  if (ProjManager()->projectType() == PostSynth) {
+    // update constraints
+    const auto& constrFiles = ProjManager()->getConstrFiles();
+    m_constraints->reset();
+    for (const auto& file : constrFiles) {
+      int res{TCL_OK};
+      auto status = m_interp->evalCmd(
+          std::string("read_sdc {" + file + "}").c_str(), &res);
+      if (res != TCL_OK) {
+        ErrorMessage(status);
+        return false;
+      }
+    }
+  }
+
   const std::string sdcOut = ProjManager()->projectName() + "_openfpga.sdc";
   std::ofstream ofssdc(sdcOut);
   // TODO: Massage the SDC so VPR can understand them
