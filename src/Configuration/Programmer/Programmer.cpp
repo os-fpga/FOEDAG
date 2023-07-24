@@ -241,8 +241,8 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
     for (auto& supportedTap : supportedTAP) {
       if (tap.idCode == supportedTap.idCode) {
         foundTap.push_back(TapInfo{tap.index, tap.tapName, tap.enabled,
-                                   tap.idCode, tap.irLen, tap.irCap,
-                                   tap.irMask});
+                                   tap.idCode, tap.expected, tap.irLen,
+                                   tap.irCap, tap.irMask});
       }
     }
   }
