@@ -410,6 +410,10 @@ jobs:
       with:
         setup-python: false
 
+    - name: Install libusb pkgconfig
+      run: |
+        brew install pkgconfig libusb
+
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1.2.3
       with:
