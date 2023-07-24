@@ -62,7 +62,7 @@ add_library(
   Programmer_helper.cpp
 )
 target_link_libraries(${subsystem} PUBLIC ${LIBUSB_1_LIBRARIES} foedagutils)
-
+target_include_directories(${subsystem} PUBLIC ${LIBUSB_1_INCLUDE_DIRS})
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
