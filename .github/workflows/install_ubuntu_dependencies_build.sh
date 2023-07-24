@@ -15,7 +15,8 @@ sudo apt install -y \
   xvfb \
   yosys \
   automake \
-  libusb-1.0-0-dev
+  libusb-1.0-0-dev \
+  pkg-config
 
 # For QML: qtdeclarative5-dev
 
