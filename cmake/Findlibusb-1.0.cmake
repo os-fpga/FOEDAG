@@ -73,6 +73,7 @@ else (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
       /usr/local/include
       /opt/local/include
       /sw/include
+      ${TGY_LIBUSB_INCLUDE_DIRS}
 	PATH_SUFFIXES
 	  libusb-1.0
   )
@@ -85,6 +86,7 @@ else (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
       /usr/local/lib
       /opt/local/lib
       /sw/lib
+      ${TGY_LIBUSB_LIBDIR}
   )
 
   set(LIBUSB_1_INCLUDE_DIRS
