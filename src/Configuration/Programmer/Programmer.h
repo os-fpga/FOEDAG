@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROGRAMMER_H
 #define PROGRAMMER_H
 
-
 #include <functional>
 #include <tuple>
 
