@@ -43,7 +43,7 @@ TEST(PerfomanceTracker, isNotRtl) {
   pTracker.setTaskManager(&mManager);
   pTracker.setIsRtl(false);
 
-  EXPECT_EQ(pTracker.widget()->rowCount(), 5);
+  EXPECT_EQ(pTracker.widget()->rowCount(), 7);
 }
 
 TEST(PerfomanceTracker, isRtl) {
@@ -53,7 +53,7 @@ TEST(PerfomanceTracker, isRtl) {
   pTracker.setTaskManager(&mManager);
   pTracker.update();
 
-  EXPECT_EQ(pTracker.widget()->rowCount(), 7);
+  EXPECT_EQ(pTracker.widget()->rowCount(), 10);
 }
 
 TEST(PerfomanceTracker, updateTable) {
