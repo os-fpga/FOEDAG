@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if (defined(_MSC_VER) || defined(__CYGWIN__))
+#define NOMINMAX  // prevent error with std::max
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #include <direct.h>
