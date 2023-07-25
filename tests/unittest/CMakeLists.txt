@@ -46,6 +46,7 @@ set (CPP_LIST
     Simulation/Simulation_test.cpp
     Utils/FileUtils_test.cpp
     CFGCommon/CFGCommon_test.cpp
+    MainWindow/PerfomanceTracker_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
