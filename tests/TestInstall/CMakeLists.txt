@@ -37,7 +37,12 @@ project(HELLOFOEDAG)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
-
+# message("TestInstall Debug message CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../../cmake/")
+find_package(USB1 REQUIRED)
+message("TestInstall Debug message include_directories: ${LIBUSB_INCLUDE_DIR}")
+message("TestInstall Debug message libusb-1.0_LIBRARIES: ${LIBUSB_LIBRARIES}")
 #find_package(QT NAMES Qt5 COMPONENTS Core Quick REQUIRED)
 #find_package(Qt5 COMPONENTS Core Quick Gui Widgets Xml REQUIRED)
 find_package(QT NAMES Qt5 COMPONENTS Core REQUIRED)
@@ -171,6 +176,7 @@ target_link_libraries(test_hellofoedag
   cfgcompiler
   cfgcommon
   programmer
+  ${LIBUSB_LIBRARIES}
   $<$<BOOL:${FOEDAG_WITH_PYTHON}>:${Python3_LIBRARIES}>
   Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml
 #  Qt5::Quick
