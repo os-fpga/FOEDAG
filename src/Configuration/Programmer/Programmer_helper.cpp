@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Programmer_helper.h"
-#include "libusb.h"
+
 #include <regex>
 #include <unordered_set>
 
