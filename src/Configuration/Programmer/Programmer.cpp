@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 
 #include "Programmer_helper.h"
+#include "libusb-1.0/libusb.h"
 namespace FOEDAG {
 
 // openOCDPath used by library
