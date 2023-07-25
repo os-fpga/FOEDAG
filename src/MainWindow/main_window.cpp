@@ -1282,7 +1282,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   console->addParser(new FileNameParser{});
   m_console = console;
 
-  QDockWidget* perfomance = new DockWidget(tr("Perfomance tracker"), this);
+  QDockWidget* perfomance = new DockWidget(tr("Compute usage"), this);
   perfomance->setWidget(m_perfomanceTracker.widget());
 
   m_compiler->SetInterpreter(m_interpreter);
