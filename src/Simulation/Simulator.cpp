@@ -549,7 +549,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
     case SimulatorType::Questa:
       return "";
     case SimulatorType::VCS:
-      return "";
+      return "-full64";
     case SimulatorType::Xcelium:
       return "";
   }
@@ -585,7 +585,7 @@ std::string Simulator::TopModuleCmd(SimulatorType type) {
     case SimulatorType::Questa:
       return "Todo";
     case SimulatorType::VCS:
-      return "Todo";
+      return "-top ";
     case SimulatorType::Xcelium:
       return "Todo";
   }
@@ -692,6 +692,28 @@ std::string Simulator::LanguageDirective(SimulatorType type,
     case SimulatorType::Questa:
       break;
     case SimulatorType::VCS:
+      switch (lang) {
+        case Design::Language::VERILOG_1995:
+          return "";
+        case Design::Language::VERILOG_2001:
+          return "+v2k";
+        case Design::Language::SYSTEMVERILOG_2005:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2009:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2012:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2017:
+          return "-sverilog";
+        case Design::Language::VERILOG_NETLIST:
+          return "-sverilog";
+        case Design::Language::C:
+          return "";
+        case Design::Language::CPP:
+          return "";
+        default:
+          return "--invalid-lang-for-vcs";
+      }
       break;
     case SimulatorType::Xcelium:
       break;
