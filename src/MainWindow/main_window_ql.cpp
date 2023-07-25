@@ -633,48 +633,50 @@ void MainWindow::onDesignCreated() {
 }
 
 bool MainWindow::saveConstraintFile() {
-  auto pinAssignment = findChild<PinAssignmentCreator*>();
-  if (!pinAssignment) return false;
-  auto constrFile = m_projectManager->getConstrPinFile();
-  if (constrFile.empty()) {
-    newProjdialog->Reset(Mode::ProjectSettings);
-    newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
-    newProjdialog->exec();
-  }
-  constrFile = m_projectManager->getConstrPinFile();
-  if (constrFile.empty()) {
-    QMessageBox::warning(this, "No *.pin constraint file...",
-                         "Please create *.pin constraint file.");
-    return false;
-  }
-  bool rewrite = false;
-  auto constraint = QString::fromStdString(constrFile);
-  QFile file{constraint};  // TODO @volodymyrk, need to fix
-                           // issue with target constraint
-  QFile::OpenMode openFlags = QFile::ReadWrite;
-  if (file.size() != 0) {
-    auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
-    auto msgBox = QMessageBox(
-        QMessageBox::Question, tr("Save constraint file..."),
-        tr("Do you want to rewrite current constraint file?"), btns, this);
-    msgBox.button(QMessageBox::Yes)->setText("Rewrite");
-    msgBox.button(QMessageBox::No)->setText("Append");
-    msgBox.exec();
-    auto answer = msgBox.buttonRole(msgBox.clickedButton());
-    if (answer == QMessageBox::RejectRole) return false;
-    rewrite = (answer == QMessageBox::YesRole);
-    if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
-  }
-  pinAssignment->setPinFile(constraint);
-  file.open(openFlags);
-  QString sdc{pinAssignment->generateSdc()};
-  if (rewrite)
-    file.resize(0);  // clean content
-  else if (!sdc.isEmpty() && file.size() != 0)
-    sdc.push_front('\n');  // make sure start with new line
-  file.write(sdc.toLatin1());
-  file.close();
-  return true;
+  // KK: bypass saving constraint file section, as we don't use it (or pinassinment) yet.
+  return false;
+  // auto pinAssignment = findChild<PinAssignmentCreator*>();
+  // if (!pinAssignment) return false;
+  // auto constrFile = m_projectManager->getConstrPinFile();
+  // if (constrFile.empty()) {
+  //   newProjdialog->Reset(Mode::ProjectSettings);
+  //   newProjdialog->SetPageActive(FormIndex::INDEX_ADDCONST);
+  //   newProjdialog->exec();
+  // }
+  // constrFile = m_projectManager->getConstrPinFile();
+  // if (constrFile.empty()) {
+  //   QMessageBox::warning(this, "No *.pin constraint file...",
+  //                        "Please create *.pin constraint file.");
+  //   return false;
+  // }
+  // bool rewrite = false;
+  // auto constraint = QString::fromStdString(constrFile);
+  // QFile file{constraint};  // TODO @volodymyrk, need to fix
+  //                          // issue with target constraint
+  // QFile::OpenMode openFlags = QFile::ReadWrite;
+  // if (file.size() != 0) {
+  //   auto btns = QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel;
+  //   auto msgBox = QMessageBox(
+  //       QMessageBox::Question, tr("Save constraint file..."),
+  //       tr("Do you want to rewrite current constraint file?"), btns, this);
+  //   msgBox.button(QMessageBox::Yes)->setText("Rewrite");
+  //   msgBox.button(QMessageBox::No)->setText("Append");
+  //   msgBox.exec();
+  //   auto answer = msgBox.buttonRole(msgBox.clickedButton());
+  //   if (answer == QMessageBox::RejectRole) return false;
+  //   rewrite = (answer == QMessageBox::YesRole);
+  //   if (!rewrite) openFlags = QFile::ReadWrite | QIODevice::Append;
+  // }
+  // pinAssignment->setPinFile(constraint);
+  // file.open(openFlags);
+  // QString sdc{pinAssignment->generateSdc()};
+  // if (rewrite)
+  //   file.resize(0);  // clean content
+  // else if (!sdc.isEmpty() && file.size() != 0)
+  //   sdc.push_front('\n');  // make sure start with new line
+  // file.write(sdc.toLatin1());
+  // file.close();
+  // return true;
 }
 
 void MainWindow::loadFile(const QString& file) {

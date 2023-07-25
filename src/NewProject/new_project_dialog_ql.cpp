@@ -175,22 +175,25 @@ void newProjectDialog::ResetToNewProject() {
   
   m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Add Simulation Files");
+  // KK: remove Simulation Files Form (not using yet)
   // ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
   //                            tr("Add Simulation Files"));
   m_addSimForm->setVisible(false);
   
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Add Design Constraints (optional)");
-  ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                             tr("Add Design Constraints"));
+  // KK: remove Constraint File Form (use JSON/Settings GUI only)
+  // ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+  //                            tr("Add Design Constraints"));
+  m_addConstrsForm->setVisible(false);
 
-//   m_devicePlanForm = new devicePlannerForm(this);
-//   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
-//                              tr("Select Target Device"));
+  // KK: remove Device Planner Form, we use our own Device Selection Widget
+  // m_devicePlanForm = new devicePlannerForm(this);
+  // ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+  //                            tr("Select Target Device"));
 
   QWidget* m_QLDeviceSelectionWidget = 
     QLDeviceManager::getInstance()->createDeviceSelectionWidget(true);
-  // // QWidget* m_QLDeviceSelectionWidget = new QWidget();
   ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_QLDeviceSelectionWidget,
                              tr("Target Device"));
 
@@ -225,6 +228,7 @@ void newProjectDialog::ResetToProjectSettings() {
 
   m_addSimForm = new addSourceForm(GT_SIM, this);
   m_addSimForm->SetTitle("Simulation Files");
+  // KK: remove Simulation Files Form (not using yet)
   // m_settings.append(m_addSimForm);
   // index = ui->m_tabWidget->insertTab(INDEX_ADDSIM, m_addSimForm,
   //                                    tr("Simulation Files"));
@@ -233,16 +237,19 @@ void newProjectDialog::ResetToProjectSettings() {
 
   m_addConstrsForm = new addConstraintsForm(this);
   m_addConstrsForm->SetTitle("Design Constraints");
-  m_settings.append(m_addConstrsForm);
-  index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
-                                     tr("Design Constraints"));
-  m_tabIndexes.insert(INDEX_ADDCONST, index);
+  // KK: remove Constraint File Form (use JSON/Settings GUI only)
+  // m_settings.append(m_addConstrsForm);
+  // index = ui->m_tabWidget->insertTab(INDEX_ADDCONST, m_addConstrsForm,
+  //                                    tr("Design Constraints"));
+  // m_tabIndexes.insert(INDEX_ADDCONST, index);
+  m_addConstrsForm->setVisible(false);
 
-//   m_devicePlanForm = new devicePlannerForm(this);
-//   m_settings.append(m_devicePlanForm);
-//   index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
-//                                      tr("Select Target Device"));
-//   m_tabIndexes.insert(INDEX_DEVICEPL, index);
+  // KK: remove Device Planner Form, we use our own Device Selection Widget
+  // m_devicePlanForm = new devicePlannerForm(this);
+  // m_settings.append(m_devicePlanForm);
+  // index = ui->m_tabWidget->insertTab(INDEX_DEVICEPL, m_devicePlanForm,
+  //                                    tr("Select Target Device"));
+  // m_tabIndexes.insert(INDEX_DEVICEPL, index);
 
   QWidget* m_QLDeviceSelectionWidget = 
     QLDeviceManager::getInstance()->createDeviceSelectionWidget(false);

@@ -627,11 +627,11 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
     // new project with specified device_target use-case
 
-    // we cannot copy the json files, as we don't know where to copy them yet.
-    // this can only be done once the project directory is copied.
+    // we cannot copy the json files, as we don't know where to copy/save them yet.
+    // this can only be done once the project directory is created.
 
     // however: we can populate the settings GUI, using the template file,
-    // and when the project creation is actually done by FOEDAG, then we copy the files:
+    // and when the project creation is actually done by FOEDAG, then we save the files:
 
     // read in the template json into the *future* _json_updated variables:
     if(FileUtils::FileExists(settings_json_template_filepath)) {
@@ -717,8 +717,7 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
 bool QLSettingsManager::areJSONSettingsChanged() {
 
-
-  // std::cout << "areJSONSettingsChanged()" << std::endl;
+  // std::cout << "areJSONSettingsChanged(), newProjectMode: " << newProjectMode << std::endl;
 
   if(newProjectMode) {
 
@@ -837,7 +836,9 @@ bool QLSettingsManager::areJSONSettingsChanged() {
   }
 
 
+  // for existing project only
   if(!newProjectMode) {
+
     // compare with original settings json, and if there are differences, we need to initiate
     // user confirmation, and then update and save json, replacing the original.
 
@@ -909,7 +910,7 @@ bool QLSettingsManager::areJSONSettingsChanged() {
       return false;
     }
     else {
-      return false;
+      return true;
     }
   }
   // for existing project only
@@ -924,13 +925,31 @@ bool QLSettingsManager::saveJSONSettings() {
 
   bool savedNewJsonChanges = false;
 
+  if(settings_manager_widget == nullptr) {
+
+    // if we don't have a GUI, then there is nothing to save here.
+    // settings_json_updated and power_estimation_json_updated will always be empty.
+    // std::cout << "saveJSONSettings(), non-GUI mode, do nothing." << std::endl;
+    return savedNewJsonChanges;
+  }
+
+  // For GUI mode of operation, scan through the settings widget, and ensure that
+  // we are saving the changed settings, if any.
+  // this will ensure we have the user updated settings from GUI in the xxxx_json_updated objects.
   bool userMadeChangesToSettingsJSON = false;
   userMadeChangesToSettingsJSON = areJSONSettingsChanged();
 
+  // Futher, depending on the mode:
+  // newProject -> save user changes without confirming with the user, because the settings came from a template anyway.
+  // existingProject -> ask user for confirmation and then save to JSON, because the settings came from a project specific JSON
 
-  // if newProjectMode *and* there are changes from the user, prompt user to confirm the changes to be saved:
+
+  // existing project only:
+  // if !newProjectMode *and* there are changes from the user, prompt user to confirm the changes to be saved:
   int userDialogConfirmationResult = QDialog::Rejected;
   if(!newProjectMode && userMadeChangesToSettingsJSON) {
+
+    // std::cout << "saveJSONSettings(), !newProjectMode && userMadeChangesToSettingsJSON" << std::endl;
 
     // for an existing project, check if there are any changes, and then update into the json files
     // replacing the current json files.
@@ -972,24 +991,38 @@ bool QLSettingsManager::saveJSONSettings() {
   }
 
 
-  // if newProjectMode -> just save the updated settings into the JSON filepath
-  // if existingProjectMode *and* user has confirmed changes -> save the updated settings into the JSON filepath
+  // if newProjectMode
+  // -or-
+  // if existingProjectMode *and* user has confirmed changes
+  //   -> save the updated settings into the JSON filepath
   if( (newProjectMode) ||
       (!newProjectMode && userDialogConfirmationResult == QDialog::Accepted) ) {
 
-          // if the settings json values are empty, ignore them.
+    // std::cout << "saveJSONSettings(), going to save the new JSON!!" << std::endl;
+
+    // if the settings json values are empty, ignore them.
     if(!settings_json_updated.empty()) {
+
+      // std::cout << "saveJSONSettings(), !settings_json_updated.empty()" << std::endl;
 
       settings_json = settings_json_updated;
       std::ofstream settings_json_ofstream(settings_json_filepath.string());
       settings_json_ofstream << std::setw(4) << settings_json << std::endl;
     }
+    else {
+      // std::cout << "saveJSONSettings(), settings_json_updated: empty" << std::endl;
+    }
 
     if(!power_estimation_json_updated.empty()) {
+
+      // std::cout << "saveJSONSettings(), !power_estimation_json_updated.empty()" << std::endl;
 
       power_estimation_json = power_estimation_json_updated;
       std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
       power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+    }
+    else {
+      // std::cout << "saveJSONSettings(), power_estimation_json_updated: empty" << std::endl;
     }
 
     savedNewJsonChanges = true;
@@ -999,95 +1032,6 @@ bool QLSettingsManager::saveJSONSettings() {
     // not saving updated JSON files:
     savedNewJsonChanges = false;
   }
-
-
-#if 0
-  if(!newProjectMode) {
-
-    // for an existing project, check if there are any changes, and then update into the json files
-    // replacing the current json files.
-
-    if(areJSONSettingsChanged()) {
-
-      // ask user to confirm the changes, before saving into JSON
-
-      QDialog dialog;
-      dialog.setWindowTitle("Settings Changes!");
-      QVBoxLayout* dialogLayout = new QVBoxLayout();
-      dialog.setLayout(dialogLayout);
-
-      QListWidget* listOfChangesWidget = new QListWidget();
-      listOfChangesWidget->setAlternatingRowColors(true);
-
-      for(std::string change_item: settings_json_change_list) {
-        listOfChangesWidget->addItem(QString::fromStdString(change_item));
-      }
-      
-      for(std::string change_item: power_estimation_json_change_list) {
-        listOfChangesWidget->addItem(QString::fromStdString(change_item));
-      }
-
-      QLabel* dialogLabel = new QLabel("\nPress OK to save the above changes into the Settings JSON\n");
-
-      QDialogButtonBox* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                                                      Qt::Horizontal);
-      QObject::connect(buttons, &QDialogButtonBox::accepted,
-                        &dialog, &QDialog::accept);
-      QObject::connect(buttons, &QDialogButtonBox::rejected,
-                        &dialog, &QDialog::reject);
-
-      dialogLayout->addWidget(listOfChangesWidget);
-      dialogLayout->addStretch();
-      dialogLayout->addWidget(dialogLabel);
-      dialogLayout->addWidget(buttons);
-      
-      dialog.setModal(true);
-
-      int result = dialog.exec();
-      
-      if (result == QDialog::Accepted)
-      {
-          settings_json = settings_json_updated;
-          std::ofstream settings_json_ofstream(settings_json_filepath.string());
-          settings_json_ofstream << std::setw(4) << settings_json << std::endl;
-
-          power_estimation_json = power_estimation_json_updated;
-          std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
-          power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
-
-          savedNewJsonChanges = true;
-      }
-      else if (result == QDialog::Rejected)
-      {
-          // std::cout << "QDialog::Rejected" << std::endl;
-          // user has cancelled, leave state as is.
-          // if user wants to reset, user will click the Reset button
-
-          savedNewJsonChanges = false;
-      }
-    }
-  }
-  else {
-
-    // if the settings json values are empty, ignore them.
-    if(!settings_json_newproject.empty()) {
-
-      settings_json = settings_json_newproject;
-      std::ofstream settings_json_ofstream(settings_json_filepath.string());
-      settings_json_ofstream << std::setw(4) << settings_json << std::endl;
-    }
-
-    if(!power_estimation_json_newproject.empty()) {
-
-      power_estimation_json = power_estimation_json_newproject;
-      std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
-      power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
-    }
-
-    savedNewJsonChanges = true;
-  }
-
-#endif
 
   return savedNewJsonChanges;
 }
@@ -1193,10 +1137,11 @@ void QLSettingsManager::handleSettingsChanged() {
   // derive a diff, and if any changes, enable Reset and Apply buttons.
   // if no changes, disable Reset and Apply buttons.
 
+  // existing project only
   if(!newProjectMode) {
-    // existing project
 
     if(areJSONSettingsChanged()) {
+      
       // enable the buttons as there are unsaved changes
       button_reset->setDisabled(false);
       button_apply->setDisabled(false);
@@ -1208,6 +1153,7 @@ void QLSettingsManager::handleSettingsChanged() {
       m_message_label->show();
     }
     else {
+      
       // disable the buttons as there are no changes
       button_reset->setDisabled(true);
       button_apply->setDisabled(true);
@@ -1215,9 +1161,7 @@ void QLSettingsManager::handleSettingsChanged() {
       m_message_label->hide();
     }
   }
-  else {
-    // new project mode.
-  }
+  // else, newProjectMode - do nothing: as we don't show changes over a template to user.
 }
 
 } // namespace FOEDAG
