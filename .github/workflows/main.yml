@@ -326,6 +326,11 @@ jobs:
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.0.0
+    
+    - name: Install libusb with vcpkg
+      run: |
+        .\vcpkg.exe install libusb:x64-windows
+        .\vcpkg.exe integrate install
 
     - run: git config --global core.autocrlf input
       shell: bash
