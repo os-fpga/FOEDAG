@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if (defined(_MSC_VER) || defined(__CYGWIN__))
+#define NOMINMAX  // prevent error with std::max
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #include <direct.h>
@@ -894,6 +898,12 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
+  ProcessUtilization summaryUtils{};
+  auto appendSumUtils = [&summaryUtils](const ProcessUtilization& utils) {
+    summaryUtils.duration += utils.duration;
+    summaryUtils.utilization =
+        std::max(summaryUtils.utilization, utils.utilization);
+  };
 
   std::string log{LogFile(simulation)};
   // Simulator Model compilation step
@@ -907,6 +917,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       m_compiler->FilePath(Compiler::ToCompilerAction(simulation)).string();
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, false,
                                                           workingDir);
+  appendSumUtils(m_compiler->m_utils);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation compilation failed!\n");
@@ -923,6 +934,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
         command += " " + GetSimulatorElaborationOption(simulation, type);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
+      appendSumUtils(m_compiler->m_utils);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -941,6 +953,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       }
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
+      appendSumUtils(m_compiler->m_utils);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -956,6 +969,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   command = SimulatorRunCommand(simulation, type);
   status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                       workingDir);
+  appendSumUtils(m_compiler->m_utils);
+  m_compiler->m_utils = summaryUtils;
   return status;
 }
 

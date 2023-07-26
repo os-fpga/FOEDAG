@@ -75,6 +75,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/EditorSettings.cpp
   ../MainWindow/Dialog.cpp
   ../MainWindow/CompressProject.cpp
+  ../MainWindow/PerfomanceTracker.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -115,6 +116,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/EditorSettings.h
   ../MainWindow/Dialog.h
   ../MainWindow/CompressProject.h
+  ../MainWindow/PerfomanceTracker.h
 )
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)
@@ -164,6 +166,7 @@ install(
           ${PROJECT_SOURCE_DIR}/../MainWindow/TopLevelInterface.h
           ${PROJECT_SOURCE_DIR}/../NewProject/newprojectmodel.h
           ${PROJECT_SOURCE_DIR}/../NewFile/newfilemodel.h
+          ${PROJECT_SOURCE_DIR}/../MainWindow/PerfomanceTracker.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/foedag/MainWindow)
   
 install(

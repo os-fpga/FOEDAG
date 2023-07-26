@@ -385,9 +385,8 @@ void TaskManager::run() {
 }
 
 void TaskManager::reset() {
-  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
-    (*task)->setStatus(TaskStatus::None);
-  }
+  for (auto task = m_tasks.begin(); task != m_tasks.end(); task++)
+    resetTask(*task);
 }
 
 void TaskManager::cleanDownStreamStatus(Task *t) {
@@ -398,11 +397,11 @@ void TaskManager::cleanDownStreamStatus(Task *t) {
         it--;
       if (isSimulation(*it)) {
         // in case simulation task, we don't need to clean all downstream tasks
-        (*it)->setStatus(TaskStatus::None);
+        resetTask(*it);
         break;
       }
       for (; it != m_taskQueue.end(); ++it) {
-        (*it)->setStatus(TaskStatus::None);
+        resetTask(*it);
       }
       break;
     }
@@ -423,6 +422,11 @@ void TaskManager::setDialogProvider(const DialogProvider *const dProvider) {
 
 void TaskManager::appendTask(Task *t) {
   if (t->isEnable() && t->isValid()) m_runStack.append(t);
+}
+
+void TaskManager::resetTask(Task *t) {
+  t->setStatus(TaskStatus::None);
+  t->setUtilization({});
 }
 
 QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
