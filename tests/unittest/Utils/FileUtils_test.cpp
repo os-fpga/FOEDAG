@@ -80,8 +80,15 @@ TEST(FileUtils, RenameFile) {
   fs::path file{"test1.txt"};
   FileUtils::WriteToFile(file, "content");
   fs::path newFile{"test2.txt"};
-  FileUtils::RenameFile(file, newFile);
+  bool ok = FileUtils::RenameFile(file, newFile);
+  EXPECT_EQ(ok, true);
   EXPECT_EQ(FileUtils::FileExists(newFile), true);
+}
+
+TEST(FileUtils, RenameFileFalse) {
+  fs::path file{"doesNotExists.txt"};
+  bool ok = FileUtils::RenameFile(file, {});
+  EXPECT_EQ(ok, false);
 }
 
 TEST(FileUtils, FindFilesByName) {
@@ -94,4 +101,10 @@ TEST(FileUtils, FindFilesByName) {
   EXPECT_EQ(files.size(), 2);
   EXPECT_EQ(files.at(0), fs::path{testFolder / "test1.txt"});
   EXPECT_EQ(files.at(1), fs::path{testFolder / "test2.txt"});
+}
+
+TEST(FileUtils, FindFilesByNameNotExists) {
+  fs::path testFolder{"NotExists"};
+  auto files = FileUtils::FindFilesByName(testFolder, std::regex{"test.+"});
+  EXPECT_EQ(files.size(), 0);
 }
