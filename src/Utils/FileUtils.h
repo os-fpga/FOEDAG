@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cstdint>
 #include <filesystem>
+#include <regex>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -75,6 +76,8 @@ class FileUtils final {
       const std::filesystem::path& path, const std::string& extension);
   static std::vector<std::filesystem::path> FindFilesByExtension(
       const std::filesystem::path& path, const std::string& extension);
+  static std::vector<std::filesystem::path> FindFilesByName(
+      const std::filesystem::path& path, const std::regex& regex);
 
   static Return ExecuteSystemCommand(const std::string& command,
                                      const std::vector<std::string>& args,
@@ -98,7 +101,8 @@ class FileUtils final {
   static bool removeAll(const std::filesystem::path& path);
 
   // return true if file was renamed otherwise return false
-  static bool MoveFile(const std::filesystem::path& file, const std::filesystem::path& renameFile) noexcept;
+  static bool RenameFile(const std::filesystem::path& file,
+                         const std::filesystem::path& renameFile) noexcept;
 
   // for the debug purposes, this function prints arguments
   static void printArgs(int argc, const char* argv[]);

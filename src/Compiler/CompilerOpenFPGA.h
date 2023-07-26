@@ -175,6 +175,7 @@ class CompilerOpenFPGA : public Compiler {
   bool DesignChangedForAnalysis(std::string& synth_script,
                                 std::filesystem::path& synth_scrypt_path,
                                 std::filesystem::path& outputFile);
+  void RenamePostSynthesisFiles(Action action);
   std::filesystem::path m_yosysExecutablePath = "yosys";
   std::filesystem::path m_analyzeExecutablePath = "analyze";
   SynthesisType m_synthType = SynthesisType::Yosys;

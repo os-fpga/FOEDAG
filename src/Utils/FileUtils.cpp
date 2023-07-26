@@ -249,6 +249,21 @@ std::vector<std::filesystem::path> FileUtils::FindFilesByExtension(
   return files;
 }
 
+std::vector<std::filesystem::path> FileUtils::FindFilesByName(
+    const std::filesystem::path& path, const std::regex& regex) {
+  std::vector<std::filesystem::path> files;
+  if (FileUtils::FileExists(path)) {
+    for (const std::filesystem::path& entry :
+         std::filesystem::directory_iterator(path)) {
+      if (FileUtils::FileIsRegular(entry)) {
+        if (std::regex_match(entry.filename().string(), regex))
+          files.push_back(entry);
+      }
+    }
+  }
+  return files;
+}
+
 Return FileUtils::ExecuteSystemCommand(const std::string& command,
                                        const std::vector<std::string>& args,
                                        std::ostream* out, int timeout_ms,
@@ -388,11 +403,13 @@ bool FileUtils::removeAll(const std::filesystem::path& path) {
   return ok;
 }
 
-bool FileUtils::MoveFile(const std::filesystem::path& file, const std::filesystem::path& renameFile) noexcept {
+bool FileUtils::RenameFile(const std::filesystem::path& file,
+                           const std::filesystem::path& renameFile) noexcept {
   if (!FileExists(file)) return false;
-  std::error_code ec;
-  std::filesystem::rename(file, renameFile, ec);
-  return ec.value() == 0;
+  auto tmp = file;
+  tmp.replace_filename(renameFile);
+  std::filesystem::rename(file, tmp);
+  return true;
 }
 
 }  // namespace FOEDAG

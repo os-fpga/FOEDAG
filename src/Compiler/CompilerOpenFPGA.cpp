@@ -664,6 +664,18 @@ bool CompilerOpenFPGA::DesignChangedForAnalysis(
   return DesignChanged(synth_script, synth_scrypt_path, outputFile);
 }
 
+void CompilerOpenFPGA::RenamePostSynthesisFiles(Action action) {
+  auto routePath = FilePath(action);
+  auto regex = std::regex{".+_post_synthesis\\..+"};
+  auto files = FileUtils::FindFilesByName(routePath, regex);
+  for (auto& fileName : files) {
+    auto oldName = fileName.filename().string();
+    std::string newName = std::regex_replace(
+        oldName, std::regex{"_post_synthesis"}, "_post_route");
+    FileUtils::RenameFile(fileName, std::filesystem::path{newName});
+  }
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
@@ -2027,13 +2039,7 @@ bool CompilerOpenFPGA::Route() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
-    std::string prefix = ProjManager()->projectName();
-    const std::vector<std::string> fileNames = {prefix+"_post_synthesis.v", prefix+"_post_synthesis.sdf"};
-    auto routePath = FilePath(Action::Routing);
-    for (auto &fileName: fileNames){
-      Message("File path: " + fileName);
-//      FileUtils::MoveFile(filePath, )
-    }
+    RenamePostSynthesisFiles(Action::Routing);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2092,6 +2098,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+    RenamePostSynthesisFiles(Action::STA);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2155,6 +2162,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
                    " timing analysis failed");
       return false;
     }
+    RenamePostSynthesisFiles(Action::STA);
     // find files
     auto projName = ProjManager()->projectName();
     auto libFileName = FilePath(Action::STA, projName + ".lib");
