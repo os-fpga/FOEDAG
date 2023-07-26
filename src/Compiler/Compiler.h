@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IPGenerate/IPGenerator.h"
 #include "Main/CommandLine.h"
 #include "Simulation/Simulator.h"
+#include "Task.h"
 #include "Tcl/TclInterpreter.h"
 
 class QProcess;
@@ -411,6 +412,7 @@ class Compiler {
   std::filesystem::path m_programmerToolExecutablePath{};
   std::filesystem::path m_configFileSearchDir{};
   std::string m_name;
+  ProcessUtilization m_utils;
 };
 
 }  // namespace FOEDAG

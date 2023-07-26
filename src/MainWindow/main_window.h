@@ -27,9 +27,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Main/AboutWidget.h"
 #include "NewProject/new_project_dialog.h"
+#include "PerfomanceTracker.h"
 #include "ProjNavigator/FileExplorer.h"
 #include "ProjNavigator/HierarchyView.h"
 #include "TopLevelInterface.h"
+
 class QAction;
 class QLabel;
 class QProgressBar;
@@ -259,6 +261,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   QListView* m_chatGptListView{nullptr};
   FileExplorer m_fileExplorer;
   HierarchyView m_hierarchyView{{}};
+  PerfomanceTracker m_perfomanceTracker;
 };
 
 }  // namespace FOEDAG

@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if (defined(_MSC_VER) || defined(__CYGWIN__))
+#define NOMINMAX  // prevent error with std::max
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #include <direct.h>
@@ -549,7 +553,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
     case SimulatorType::Questa:
       return "";
     case SimulatorType::VCS:
-      return "";
+      return "-full64";
     case SimulatorType::Xcelium:
       return "";
   }
@@ -585,7 +589,7 @@ std::string Simulator::TopModuleCmd(SimulatorType type) {
     case SimulatorType::Questa:
       return "Todo";
     case SimulatorType::VCS:
-      return "Todo";
+      return "-top ";
     case SimulatorType::Xcelium:
       return "Todo";
   }
@@ -692,6 +696,28 @@ std::string Simulator::LanguageDirective(SimulatorType type,
     case SimulatorType::Questa:
       break;
     case SimulatorType::VCS:
+      switch (lang) {
+        case Design::Language::VERILOG_1995:
+          return "";
+        case Design::Language::VERILOG_2001:
+          return "+v2k";
+        case Design::Language::SYSTEMVERILOG_2005:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2009:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2012:
+          return "-sverilog";
+        case Design::Language::SYSTEMVERILOG_2017:
+          return "-sverilog";
+        case Design::Language::VERILOG_NETLIST:
+          return "-sverilog";
+        case Design::Language::C:
+          return "";
+        case Design::Language::CPP:
+          return "";
+        default:
+          return "--invalid-lang-for-vcs";
+      }
       break;
     case SimulatorType::Xcelium:
       break;
@@ -872,6 +898,12 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
     std::string verilator_home = SimulatorExecPath(type).parent_path().string();
     m_compiler->SetEnvironmentVariable("VERILATOR_ROOT", verilator_home);
   }
+  ProcessUtilization summaryUtils{};
+  auto appendSumUtils = [&summaryUtils](const ProcessUtilization& utils) {
+    summaryUtils.duration += utils.duration;
+    summaryUtils.utilization =
+        std::max(summaryUtils.utilization, utils.utilization);
+  };
 
   std::string log{LogFile(simulation)};
   // Simulator Model compilation step
@@ -885,6 +917,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       m_compiler->FilePath(Compiler::ToCompilerAction(simulation)).string();
   int status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, false,
                                                           workingDir);
+  appendSumUtils(m_compiler->m_utils);
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " simulation compilation failed!\n");
@@ -901,6 +934,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
         command += " " + GetSimulatorElaborationOption(simulation, type);
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
+      appendSumUtils(m_compiler->m_utils);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -919,6 +953,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       }
       status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                           workingDir);
+      appendSumUtils(m_compiler->m_utils);
       if (status) {
         ErrorMessage("Design " + ProjManager()->projectName() +
                      " simulation compilation failed!\n");
@@ -934,6 +969,8 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
   command = SimulatorRunCommand(simulation, type);
   status = m_compiler->ExecuteAndMonitorSystemCommand(command, log, true,
                                                       workingDir);
+  appendSumUtils(m_compiler->m_utils);
+  m_compiler->m_utils = summaryUtils;
   return status;
 }
 

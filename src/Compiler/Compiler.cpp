@@ -2101,11 +2101,13 @@ bool Compiler::Compile(Action action) {
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(TaskStatus::InProgress);
   }
+  m_utils = {};
   res = SwitchCompileContext(
       action, [this, action]() { return RunCompileTask(action); });
   if (task != TaskManager::invalid_id && m_taskManager) {
     m_taskManager->task(task)->setStatus(res ? TaskStatus::Success
                                              : TaskStatus::Fail);
+    if (res) m_taskManager->task(task)->setUtilization(m_utils);
   }
   return res;
 }
@@ -2870,6 +2872,8 @@ int Compiler::ExecuteAndMonitorSystemCommand(
     stream << max_utiliation << " kiB";
   else
     stream << max_utiliation / 1024 << " MB";
+  m_utils.utilization = max_utiliation;
+  m_utils.duration = d.count();
   PERF_LOG(stream.str());
   return (status == QProcess::NormalExit) ? exitCode : -1;
 }
