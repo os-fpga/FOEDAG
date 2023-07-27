@@ -169,7 +169,8 @@ void Compiler::ErrorMessage(const std::string& message, bool append,
       (*m_err) << "ERROR: " << prefix << message << std::endl;
     }
   }
-  if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  if (m_interp != nullptr)
+    if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 void Compiler::CleanFiles(Action action) {

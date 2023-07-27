@@ -38,6 +38,9 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
     std::filesystem::path configFile = arg->config;
     auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
+    if (programmerCmd.is_error) {
+      return;
+    }
     if (programmerCmd.name == "fpga_config") {
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
