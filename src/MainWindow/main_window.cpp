@@ -236,8 +236,8 @@ void MainWindow::ScriptFinished() {
   DesignFileWatcher::Instance()->updateDesignFileWatchers(m_projectManager);
   saveSettings();
 
+  if (m_compiler) m_compiler->ResetStopFlag();
   GlobalSession->CmdStack()->push_and_exec(new Command{"analyze"});
-  updateHierarchyTree();
 }
 
 void MainWindow::newFile() {
