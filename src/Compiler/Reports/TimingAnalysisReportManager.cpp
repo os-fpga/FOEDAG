@@ -500,10 +500,11 @@ IDataReport::TableData TimingAnalysisReportManager::CreateIntraClock() const {
     }
   } else if (m_clocksIntra.count() > 1) {
     for (const auto &clock : m_clocksIntra) {
+      const bool met = (clock.WNS == 0);
       data.push_back({clock.clockName,
-                      QString::number(clock.pathDelay + clock.WNS),
-                      QString::number(clock.pathDelay),
-                      QString::number(clock.WNS), QString::number(clock.fMax)});
+                      ToString(met ? 0 : clock.pathDelay + clock.WNS),
+                      QString::number(clock.pathDelay), ToString(clock.WNS),
+                      QString::number(clock.fMax)});
     }
   }
   return data;
