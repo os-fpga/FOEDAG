@@ -55,23 +55,16 @@ endif()
 #
 ###################
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-#find_package(libusb-1.0 REQUIRED)
-# include_directories(${LIBUSB_1_INCLUDE_DIRS})
-# message("Debug message include_directories: ${LIBUSB_1_INCLUDE_DIRS}")
-# message("Debug message libusb-1.0_LIBRARIES: ${LIBUSB_1_LIBRARIES}")
 
 find_package(USB1 REQUIRED)
 include_directories(${LIBUSB_INCLUDE_DIR})
-message("Debug message include_directories: ${LIBUSB_INCLUDE_DIR}")
-message("Debug message libusb-1.0_LIBRARIES: ${LIBUSB_LIBRARIES}")
 
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
   Programmer_helper.cpp
 )
-# target_link_libraries(${subsystem} PUBLIC ${LIBUSB_1_LIBRARIES} foedagutils)
-target_link_libraries(${subsystem} PUBLIC ${LIBUSB_LIBRARIES} foedagutils)
+target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
