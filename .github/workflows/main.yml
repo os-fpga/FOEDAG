@@ -258,7 +258,6 @@ jobs:
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
           mingw-w64-x86_64-libusb
-          mingw-w64-x86_64-libusb-compat-git
     
     - name: Configure shell environment variables
       run: |

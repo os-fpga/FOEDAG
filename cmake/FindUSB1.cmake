@@ -40,8 +40,7 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
     PATH_SUFFIXES 
       libusb-1.0
   )
-  message(STATUS "Debug VCPKG_INSTALLATION_ROOT: $ENV{VCPKG_INSTALLATION_ROOT}")
-  message(STATUS "Debug vcpkg_libusb_library: ${vcpkg_libusb_library}")
+
   FIND_LIBRARY(LIBUSB_LIBRARIES NAMES ${LIBUSB_LIBRARY_NAME}
     PATHS 
       ${PC_LIBUSB_LIBDIR} 
