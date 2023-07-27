@@ -655,8 +655,10 @@ protected:
     void SetUp() override {
       // Initialize the library before each test
       #ifdef DEBUG_BUILD
+          std::cout << "ProgrammerAPI dbuild/bin/openocd" << std::endl;
           InitLibrary("dbuild/bin/openocd");
       #else
+          std::cout << "ProgrammerAPI build/bin/openocd" << std::endl;
           InitLibrary("build/bin/openocd");
       #endif
     }

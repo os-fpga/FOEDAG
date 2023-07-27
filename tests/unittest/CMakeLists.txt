@@ -68,7 +68,7 @@ target_link_libraries(unittest PRIVATE
   newproject
   foedag
   foedagcore
-  cfgcommon
+  cfgcommon)
   programmer)
 
 add_test(NAME unittest COMMAND unittest)
