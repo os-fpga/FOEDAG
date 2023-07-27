@@ -417,6 +417,18 @@ bool Foedag::initBatch() {
   }
   // Tcl_AppInit
   auto tcl_init = [](Tcl_Interp* interp) -> int {
+    // --cmd \"tcl cmd\"
+    if (!GlobalSession->CmdLine()->TclCmd().empty()) {
+      int res =
+          Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
+      if (res != TCL_OK) {
+        GlobalSession->ReturnStatus(res);
+        Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
+      }
+      // Allows: --cmd  \"tcl cmd\" --script <script>
+      if (GlobalSession->CmdLine()->Script().empty())
+        exit(GlobalSession->ReturnStatus());
+    }
     // --script <script>
     if (!GlobalSession->CmdLine()->Script().empty()) {
       int res =
@@ -426,16 +438,6 @@ bool Foedag::initBatch() {
         Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
       }
       GlobalSession->ProjectFileLoader()->Save();
-      exit(GlobalSession->ReturnStatus());
-    }
-    // --cmd \"tcl cmd\"
-    if (!GlobalSession->CmdLine()->TclCmd().empty()) {
-      int res =
-          Tcl_EvalEx(interp, GlobalSession->CmdLine()->TclCmd().c_str(), -1, 0);
-      if (res != TCL_OK) {
-        GlobalSession->ReturnStatus(res);
-        Tcl_EvalEx(interp, "puts $errorInfo", -1, 0);
-      }
       exit(GlobalSession->ReturnStatus());
     }
     // --replay <script> Gui replay, invoke test
