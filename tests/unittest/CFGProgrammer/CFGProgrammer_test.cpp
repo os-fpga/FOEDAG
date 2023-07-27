@@ -625,145 +625,147 @@ INSTANTIATE_TEST_SUITE_P(
                         false),
         std::make_tuple("program", std::vector<std::string>{}, false)));
 
+#if defined(__linux__)
 // API testing
-// #ifdef DEBUG_BUILD
-// TEST(ProgrammerAPI, ProgramFpgaDeathTest) {
-//   // Create a temporary file for testing
-//   Cable cable = {0x403,
-//                  0x6011,
-//                  11,
-//                  22,
-//                  33,
-//                  1,
-//                  "serial_number_xyz",
-//                  "description_xyz",
-//                  10000,
-//                  TransportType::jtag};
-//   Device device = {0,
-//                    "Gemini",
-//                    16384,
-//                    {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
-//   std::string bitfile = "my_bitfile.bit";
-//   std::atomic<bool> stop{false};
-//   EXPECT_DEATH(ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
-//                            nullptr),
-//                ".*");
-// }
-// #endif
-// class ProgrammerAPI : public ::testing::Test {
-// protected:
-//     void SetUp() override {
-//       // Initialize the library before each test
-//       #ifdef DEBUG_BUILD
-//           std::cout << "ProgrammerAPI dbuild/bin/openocd" << std::endl;
-//           InitLibrary("dbuild/bin/openocd");
-//       #else
-//           std::cout << "ProgrammerAPI build/bin/openocd" << std::endl;
-//           InitLibrary("build/bin/openocd");
-//       #endif
-//     }
+#ifdef DEBUG_BUILD
+TEST(ProgrammerAPI, ProgramFpgaDeathTest) {
+  // Create a temporary file for testing
+  Cable cable = {0x403,
+                 0x6011,
+                 11,
+                 22,
+                 33,
+                 1,
+                 "serial_number_xyz",
+                 "description_xyz",
+                 10000,
+                 TransportType::jtag};
+  Device device = {0,
+                   "Gemini",
+                   16384,
+                   {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
+  std::string bitfile = "my_bitfile.bit";
+  std::atomic<bool> stop{false};
+  EXPECT_DEATH(ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
+                           nullptr),
+               ".*");
+}
+#endif // end DEBUG_BUILD
+class ProgrammerAPI : public ::testing::Test {
+protected:
+    void SetUp() override {
+      // Initialize the library before each test
+      #ifdef DEBUG_BUILD
+          InitLibrary("dbuild/bin/openocd");
+      #else
+          InitLibrary("build/bin/openocd");
+      #endif
+    }
 
-//     void TearDown() override {
-//         // Tear down the test fixture.
-//     }
+    void TearDown() override {
+        // Tear down the test fixture.
+    }
 
-//     // Declare any variables or helper functions that you need.
-// };
-// TEST_F(ProgrammerAPI, GetAvailableCables_ReturnsNoErrorWhenSuccessful) {
-//   // expect no cable is connected in CI testing environment
-//   std::vector<Cable> cables;
-//   int errorCode = GetAvailableCables(cables);
-//   EXPECT_EQ(cables.size(), 0);
-//   EXPECT_EQ(errorCode, ProgrammerErrorCode::NoError);
-// }
+    // Declare any variables or helper functions that you need.
+};
+TEST_F(ProgrammerAPI, GetAvailableCables_ReturnsNoErrorWhenSuccessful) {
+  // expect no cable is connected in CI testing environment
+  std::vector<Cable> cables;
+  int errorCode = GetAvailableCables(cables);
+  EXPECT_EQ(cables.size(), 0);
+  EXPECT_EQ(errorCode, ProgrammerErrorCode::NoError);
+}
 
-// TEST_F(ProgrammerAPI, ListDevicesTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
-//   // expect no cable is connected in CI testing environment
-//   // expect no device is connected in CI testing environment
-//   Cable cable;
-//   std::vector<Device> devices;
-//   int errorCode = ListDevices(cable, devices);
-//   EXPECT_EQ(devices.size(), 0);
-//   EXPECT_EQ(errorCode, ProgrammerErrorCode::CableNotSupported);
-// }
+TEST_F(ProgrammerAPI, ListDevicesTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
+  // expect no cable is connected in CI testing environment
+  // expect no device is connected in CI testing environment
+  Cable cable;
+  std::vector<Device> devices;
+  int errorCode = ListDevices(cable, devices);
+  EXPECT_EQ(devices.size(), 0);
+  EXPECT_EQ(errorCode, ProgrammerErrorCode::CableNotSupported);
+}
 
-// TEST_F(ProgrammerAPI, GetFpgaStatusTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
-//   // expect no cable is connected in CI testing environment
-//   // expect no device is connected in CI testing environment
-//   Cable cable;
-//   Device device;
-//   CfgStatus status;
-//   int errorCode = GetFpgaStatus(cable, device, status);
-//   EXPECT_EQ(errorCode, ProgrammerErrorCode::CableNotSupported);
-// }
+TEST_F(ProgrammerAPI, GetFpgaStatusTest_ReturnsCableNotSupportedWhenCableIsDefaultValue) {
+  // expect no cable is connected in CI testing environment
+  // expect no device is connected in CI testing environment
+  Cable cable;
+  Device device;
+  CfgStatus status;
+  int errorCode = GetFpgaStatus(cable, device, status);
+  EXPECT_EQ(errorCode, ProgrammerErrorCode::CableNotSupported);
+}
 
-// class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
-//  protected:
-//   void SetUp() override {
-// // Initialize the library before each test
-// #ifdef DEBUG_BUILD
-//     InitLibrary("dbuild/bin/openocd");
-// #else
-//     InitLibrary("build/bin/openocd");
-// #endif
-//   }
+class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
+ protected:
+  void SetUp() override {
+// Initialize the library before each test
+#ifdef DEBUG_BUILD
+    InitLibrary("dbuild/bin/openocd");
+#else
+    InitLibrary("build/bin/openocd");
+#endif
+  }
 
-//   void TearDown() override {
-//     // Clean up any temporary files after each test
-//     std::remove(bitfile.c_str());
-//   }
-//   const std::string bitfile = "my_bitfile.bit";
-//   Cable cable{0x403,
-//               0x6011,
-//               11,
-//               22,
-//               33,
-//               1,
-//               "serial_number_xyz",
-//               "description_xyz",
-//               10000,
-//               TransportType::jtag};
-//   Device device{0,
-//                 "Gemini",
-//                 16384,
-//                 {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
+  void TearDown() override {
+    // Clean up any temporary files after each test
+    std::remove(bitfile.c_str());
+  }
+  const std::string bitfile = "my_bitfile.bit";
+  Cable cable{0x403,
+              0x6011,
+              11,
+              22,
+              33,
+              1,
+              "serial_number_xyz",
+              "description_xyz",
+              10000,
+              TransportType::jtag};
+  Device device{0,
+                "Gemini",
+                16384,
+                {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
   
-//   ProgramFlashOperation modes = {ProgramFlashOperation::BlankCheck|
-//                                  ProgramFlashOperation::Erase|
-//                                  ProgramFlashOperation::Program|
-//                                  ProgramFlashOperation::Verify};
-//   std::atomic<bool> stop{false};
-// };
+  ProgramFlashOperation modes = {ProgramFlashOperation::BlankCheck|
+                                 ProgramFlashOperation::Erase|
+                                 ProgramFlashOperation::Program|
+                                 ProgramFlashOperation::Verify};
+  std::atomic<bool> stop{false};
+};
 
-// TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaFailedExecuteCommandTest) {
-//   // Create a temporary file for testing
-//   std::ofstream tempFile(bitfile);
-//   tempFile.close();
-//   int expected = ProgrammerErrorCode::FailedExecuteCommand;
-//   int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
-//                            nullptr);
-//   EXPECT_EQ(expected, actual);
-// }
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaFailedExecuteCommandTest) {
+  // Create a temporary file for testing
+  std::ofstream tempFile(bitfile);
+  tempFile.close();
+  int expected = ProgrammerErrorCode::FailedExecuteCommand;
+  int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr,
+                           nullptr);
+  EXPECT_EQ(expected, actual);
+}
 
-// TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaBitfileNotFoundTest) {
-//   int expected = ProgrammerErrorCode::BitfileNotFound;
-//   int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr, nullptr);
-//   EXPECT_EQ(expected, actual);
-// }
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFpgaBitfileNotFoundTest) {
+  int expected = ProgrammerErrorCode::BitfileNotFound;
+  int actual = ProgramFpga(cable, device, bitfile, stop, nullptr, nullptr, nullptr);
+  EXPECT_EQ(expected, actual);
+}
 
-// TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashFailedExecuteCommandTest) {
-//   // Create a temporary file for testing
-//   std::ofstream tempFile(bitfile);
-//   tempFile.close();
-//   int expected = ProgrammerErrorCode::FailedExecuteCommand;
-//   int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr,
-//                            nullptr);
-//   EXPECT_EQ(expected, actual);
-// }
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashFailedExecuteCommandTest) {
+  // Create a temporary file for testing
+  std::ofstream tempFile(bitfile);
+  tempFile.close();
+  int expected = ProgrammerErrorCode::FailedExecuteCommand;
+  int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr,
+                           nullptr);
+  EXPECT_EQ(expected, actual);
+}
 
-// TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
-//   int expected = ProgrammerErrorCode::BitfileNotFound;
-//   int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr, nullptr);
-//   EXPECT_EQ(expected, actual);
-// }
+TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
+  int expected = ProgrammerErrorCode::BitfileNotFound;
+  int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr, nullptr);
+  EXPECT_EQ(expected, actual);
+}
+#endif // __linux__
+
+
 
