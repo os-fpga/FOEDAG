@@ -34,6 +34,7 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
       ${PC_LIBUSB_INCLUDEDIR} 
       ${PC_LIBUSB_INCLUDE_DIRS} 
       /mingw64/include
+      $ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows/include
     PATH_SUFFIXES 
       libusb-1.0
   )
@@ -43,6 +44,7 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
       ${PC_LIBUSB_LIBDIR} 
       ${PC_LIBUSB_LIBRARY_DIRS} 
       /mingw64/lib
+      $ENV{VCPKG_INSTALLATION_ROOT}/
   )
 
   include(FindPackageHandleStandardArgs)
