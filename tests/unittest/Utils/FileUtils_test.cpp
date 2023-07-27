@@ -99,8 +99,11 @@ TEST(FileUtils, FindFilesByName) {
 
   auto files = FileUtils::FindFilesByName(testFolder, std::regex{"test.+"});
   EXPECT_EQ(files.size(), 2);
-  EXPECT_EQ(files.at(0), fs::path{testFolder / "test1.txt"});
-  EXPECT_EQ(files.at(1), fs::path{testFolder / "test2.txt"});
+  // since order of the files is unexpected
+  EXPECT_TRUE((files.at(0) == fs::path{testFolder / "test1.txt"}) ||
+              (files.at(0) == fs::path{testFolder / "test2.txt"}));
+  EXPECT_TRUE((files.at(1) == fs::path{testFolder / "test1.txt"}) ||
+              (files.at(1) == fs::path{testFolder / "test2.txt"}));
 }
 
 TEST(FileUtils, FindFilesByNameNotExists) {
