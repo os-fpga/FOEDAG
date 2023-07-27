@@ -25,7 +25,7 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
   ENDIF(NOT WIN32)
 
   if (MSVC)
-    set(vcpkg_libusb_library "$ENV{VCPKG_INSTALLATION_ROOT}/")
+    set(vcpkg_libusb_library "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows/lib")
     file(TO_CMAKE_PATH "${vcpkg_libusb_library}" vcpkg_libusb_library)
   endif()
 
