@@ -664,6 +664,18 @@ bool CompilerOpenFPGA::DesignChangedForAnalysis(
   return DesignChanged(synth_script, synth_scrypt_path, outputFile);
 }
 
+void CompilerOpenFPGA::RenamePostSynthesisFiles(Action action) {
+  auto routePath = FilePath(action);
+  auto regex = std::regex{".+_post_synthesis\\..+"};
+  auto files = FileUtils::FindFilesByName(routePath, regex);
+  for (auto& fileName : files) {
+    auto oldName = fileName.filename().string();
+    std::string newName = std::regex_replace(
+        oldName, std::regex{"_post_synthesis"}, "_post_route");
+    FileUtils::RenameFile(fileName, std::filesystem::path{newName});
+  }
+}
+
 bool CompilerOpenFPGA::IPGenerate() {
   if (!ProjManager()->HasDesign() && !CreateDesign("noname")) return false;
   if (!HasTargetDevice()) return false;
@@ -2027,6 +2039,7 @@ bool CompilerOpenFPGA::Route() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
+    RenamePostSynthesisFiles(Action::Routing);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2085,6 +2098,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   auto guard = sg::make_scope_guard([this] {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", TIMING_ANALYSIS_LOG);
+    RenamePostSynthesisFiles(Action::STA);
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -2148,12 +2162,12 @@ bool CompilerOpenFPGA::TimingAnalysis() {
                    " timing analysis failed");
       return false;
     }
+    RenamePostSynthesisFiles(Action::STA);
     // find files
     auto projName = ProjManager()->projectName();
     auto libFileName = FilePath(Action::STA, projName + ".lib");
-    auto netlistFileName =
-        FilePath(Action::STA, projName + "_post_synthesis.v");
-    auto sdfFileName = FilePath(Action::STA, projName + "_post_synthesis.sdf");
+    auto netlistFileName = FilePath(Action::STA, projName + "_post_route.v");
+    auto sdfFileName = FilePath(Action::STA, projName + "_post_route.sdf");
     auto sdcFileName = FilePath(Action::STA, projName + ".sdc");
     if (std::filesystem::is_regular_file(libFileName) &&
         std::filesystem::is_regular_file(netlistFileName) &&
