@@ -24,6 +24,11 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
     pkg_check_modules(PC_LIBUSB libusb-1.0)
   ENDIF(NOT WIN32)
 
+  if (MSVC)
+    set(vcpkg_libusb_library "$ENV{VCPKG_INSTALLATION_ROOT}/")
+    file(TO_CMAKE_PATH "${vcpkg_libusb_library}" vcpkg_libusb_library)
+  endif()
+
   set(LIBUSB_LIBRARY_NAME usb-1.0 libusb-1.0)
   IF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     set(LIBUSB_LIBRARY_NAME usb)
@@ -38,13 +43,14 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
     PATH_SUFFIXES 
       libusb-1.0
   )
-  message(STATUS "VCPKG_INSTALLATION_ROOT: $ENV{VCPKG_INSTALLATION_ROOT}")
+  message(STATUS "Debug VCPKG_INSTALLATION_ROOT: $ENV{VCPKG_INSTALLATION_ROOT}")
+  message(STATUS "Debug vcpkg_libusb_library: ${vcpkg_libusb_library}")
   FIND_LIBRARY(LIBUSB_LIBRARIES NAMES ${LIBUSB_LIBRARY_NAME}
     PATHS 
       ${PC_LIBUSB_LIBDIR} 
       ${PC_LIBUSB_LIBRARY_DIRS} 
       /mingw64/lib
-      $ENV{VCPKG_INSTALLATION_ROOT}/packages
+      ${vcpkg_libusb_library}
   )
 
   include(FindPackageHandleStandardArgs)
