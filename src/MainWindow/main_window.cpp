@@ -1279,9 +1279,6 @@ void MainWindow::ReShowWindow(QString strProject) {
   console->addParser(new FileNameParser{});
   m_console = console;
 
-  QDockWidget* perfomance = new DockWidget(tr("Compute usage"), this);
-  perfomance->setWidget(m_perfomanceTracker.widget());
-
   m_compiler->SetInterpreter(m_interpreter);
   m_compiler->SetOutStream(&buffer->getStream());
   m_compiler->SetErrStream(&console->getErrorBuffer()->getStream());
@@ -1303,8 +1300,6 @@ void MainWindow::ReShowWindow(QString strProject) {
           &MainWindow::updateHierarchyTree);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
-  addDockWidget(Qt::BottomDockWidgetArea, perfomance);
-  tabifyDockWidget(consoleDocWidget, perfomance);
 
   // QDockWidget* runDockWidget = new DockWidget(tr("Design Runs"), this);
   // runDockWidget->setObjectName("designrundockwidget");
@@ -1320,6 +1315,11 @@ void MainWindow::ReShowWindow(QString strProject) {
   m_reportsDockWidget = PrepareTab(tr("Reports"), "reportsTreeWidget", nullptr,
                                    m_dockConsole, Qt::BottomDockWidgetArea);
   m_reportsDockWidget->hide();
+
+  QDockWidget* perfomance = PrepareTab(
+      tr("Compute usage"), "computeUsage", m_perfomanceTracker.widget(),
+      m_reportsDockWidget, Qt::BottomDockWidgetArea);
+  perfomance->hide();
 
   // compiler task view
   delete m_taskView;
