@@ -1145,7 +1145,8 @@ void QLSettingsManager::parseJSONSettings() {
     }
   }
   else {
-    std::cout << "[error] no Power Estimation JSON file found to use!" << std::endl;
+    // ignore power estimation, if not available.
+    //std::cout << "[warning] no Power Estimation JSON file found to use!" << std::endl;
   }
 
 
