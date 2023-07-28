@@ -442,7 +442,7 @@ void QLSettingsManager::populateSettingsWidget() {
           containerWidgetHBoxLayout->addWidget(subWidget,1);
 
           // subscribe to changes on any of the widgets:
-          if( widgetType == std::string("input") ) {
+          if( widgetType == std::string("input") || widgetType == std::string("filepath") ) {
 
             QLineEdit* input_widget = containerWidget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
             if(input_widget) {
@@ -783,7 +783,7 @@ bool QLSettingsManager::areJSONSettingsChanged() {
           // int value_int;
           // double value_double;
 
-          if(widgetType == std::string("input")) {
+          if(widgetType == std::string("input") || widgetType == std::string("filepath")) {
 
             QLineEdit* input_widget = container_widget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
             if(input_widget) {
@@ -1041,19 +1041,46 @@ void QLSettingsManager::parseJSONSettings() {
 
   std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
 
-  // parse the settings json
+  if(project_path.empty()) {
+    // project has not been initialized yet, do nothing:
+    return;
+  }
+
+  // settings json filename follows the <project_name>
   std::string settings_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + ".json";
 
+
+  // heuristic to find the settings json (same rules for the power_estimation json as well):
+  // 1. check project_path, to see if <project_name>.json exists, use that
+  // 2. check tcl_script_dir_path (if driven by TCL script), to see if <project_name>.json exists, use that
+  // 3. check current dir, to see if <project_name>.json exists, use that
+
+  // 1. check project_path
   settings_json_filepath = project_path / settings_json_filename;
   if(!FileUtils::FileExists(settings_json_filepath)) {
-    // check one-level up from the project_path (in case the project has been created using a TCL script)
-    settings_json_filepath = project_path / ".." / settings_json_filename;
+    settings_json_filepath.clear();
+  }
+
+  // 2. check tcl_script_dir_path
+  if(settings_json_filepath.empty()) {
+    std::filesystem::path tcl_script_dir_path = ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->GetTCLScriptDirPath();
+    if(!tcl_script_dir_path.empty()) {
+      settings_json_filepath = tcl_script_dir_path / settings_json_filename;
+      if(!FileUtils::FileExists(settings_json_filepath)) {
+        settings_json_filepath.clear();
+      }
+    }
+  }
+
+  // 3. check current working dir path
+  if(settings_json_filepath.empty()) {
+    settings_json_filepath = settings_json_filename;
     if(!FileUtils::FileExists(settings_json_filepath)) {
-      // error!
-      // std::cout << "settings_json_filepath:" << "empty!!!" << std::endl;
       settings_json_filepath.clear();
     }
   }
+
+  // final: check we have a valid settings json:
   if(!settings_json_filepath.empty()) {
     try {
         // std::cout << "settings_json_filepath" << settings_json_filepath << std::endl;
@@ -1068,20 +1095,44 @@ void QLSettingsManager::parseJSONSettings() {
         settings_json = json::object();
     }
   }
+  else {
+    std::cout << "[error] no Settings JSON file found to use!" << std::endl;
+  }
+
+
 
   // parse the power_estimation_json
   std::string power_estimation_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power" + ".json";
 
+  // 1. check project_path
   power_estimation_json_filepath = project_path / power_estimation_json_filename;
   if(!FileUtils::FileExists(power_estimation_json_filepath)) {
-    // check one-level up from the project_path (in case the project has been created using a TCL script)
-    power_estimation_json_filepath = project_path / ".." / power_estimation_json_filename;
+    power_estimation_json_filepath.clear();
+  }
+
+  // 2. check tcl_script_dir_path
+  if(power_estimation_json_filepath.empty()) {
+    std::filesystem::path tcl_script_dir_path = ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->GetTCLScriptDirPath();
+    if(!tcl_script_dir_path.empty()) {
+      power_estimation_json_filepath = tcl_script_dir_path / power_estimation_json_filename;
+      if(!FileUtils::FileExists(power_estimation_json_filepath)) {
+        power_estimation_json_filepath.clear();
+      }
+    }
+  }
+
+  // 3. check current working dir path
+  if(power_estimation_json_filepath.empty()) {
+    power_estimation_json_filepath = power_estimation_json_filename;
     if(!FileUtils::FileExists(power_estimation_json_filepath)) {
       power_estimation_json_filepath.clear();
     }
   }
+
+  // final: check we have a valid settings json:
   if(!power_estimation_json_filepath.empty()) {
     try {
+        // std::cout << "power_estimation_json_filepath" << power_estimation_json_filepath << std::endl;
         std::ifstream power_estimation_json_ifstream(power_estimation_json_filepath.string());
         power_estimation_json = json::parse(power_estimation_json_ifstream);
     }
@@ -1093,6 +1144,10 @@ void QLSettingsManager::parseJSONSettings() {
         power_estimation_json = json::object();
     }
   }
+  else {
+    std::cout << "[error] no Power Estimation JSON file found to use!" << std::endl;
+  }
+
 
   // combine both into single json for easy access internally (no merge):
   combined_json = settings_json;
@@ -1114,7 +1169,7 @@ void QLSettingsManager::handleApplyButtonClicked() {
     }
   }
   else {
-    // need to think about it...
+    // nothing to do
   }
 }
 

@@ -2998,9 +2998,18 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
 
   // ---------------------------------------------------------------- sdc_file ++
+  // sdc_file can come from Settings JSON -or- automatically picked up if named: <project_name>.sdc
+  // sdc_file path can be absolute or relative
+  // >> note: if sdc file specified in the Settings, and not found, then we flag this as an error!
+  // if relative path, heuristic to find the sdc_file:
+  //   1. check project_path, to see if sdc_file exists, use that
+  //   2. check tcl_script_dir_path (if driven by TCL script), to see if sdc_file exists, use that
+  //   3. check current dir, to see if sdc_file exists exists, use that
+
   std::filesystem::path sdc_file_path;
   bool sdc_file_path_from_json = false;
-  // check if an sdc file is specified in the json:
+
+  // 1. check if an sdc file is specified in the json:
   if( !QLSettingsManager::getStringValue("vpr", "filename", "sdc_file").empty() ) {
 
     sdc_file_path = 
@@ -3008,36 +3017,92 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
     sdc_file_path_from_json = true;
   }
-  // check if an sdc file exists with the project name (projectName.sdc) in the project source dir:
+  // else, check for an sdc file with the naming convention (<project_name>.sdc)
+  // note that, this path is always a relative path.
   else {
 
     sdc_file_path = 
       std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
   }
 
-  // convert to canonical path, which will also check that the path exists.
-  std::error_code ec;
-  std::filesystem::path sdc_file_path_c = std::filesystem::canonical(sdc_file_path, ec);
-  if(!ec) {
-    // path exists, and can be used
-    vpr_options += std::string(" --sdc_file") + 
-                   std::string(" ") + 
-                   sdc_file_path_c.string();
+  // check if the path specified is absolute:
+  if (sdc_file_path.is_absolute()) {
+    // check if the file exists:
+    if (!FileUtils::FileExists(sdc_file_path)) {
+      // if the sdc file was specified in the Settings JSON, and does not exist,
+      // this is an error!
+      if(sdc_file_path_from_json) {
+        ErrorMessage(std::string("sdc file specified in Settings JSON: ") + sdc_file_path.string() + std::string(" not found !!"));
+
+        // empty string returned on error.
+        return std::string("");
+      }
+    }
   }
+  // we have a relative path
   else {
-    // path does not exist, we got a filesystem error while making the canonical path.
+    std::filesystem::path sdc_file_path_absolute;
+    
+    // 1. check project_path
+    // 2. check tcl_script_dir_path (if driven by TCL script)
+    // 3. check current_dir_path
 
-    if(sdc_file_path_from_json) {
-
-      // if the sdc_file comes from the json, and it is not found, that is an error.
-      ErrorMessage(std::string("sdc file from json: ") + sdc_file_path.string() + std::string(" does not exist!!"));
-
-      // empty string returned on error.
-      return std::string("");
+    std::filesystem::path project_path = std::filesystem::path(ProjManager()->projectPath());
+    sdc_file_path_absolute = project_path / sdc_file_path;
+    if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+      sdc_file_path_absolute.clear();
     }
 
-    // otherwise, we just have a warning for the user, and proceed.
-    Message(std::string("no sdc file found, skipping this vpr option!"));
+    // 2. check tcl_script_dir_path
+    if(sdc_file_path_absolute.empty()) {
+      std::filesystem::path tcl_script_dir_path = GetTCLScriptDirPath();
+      if(!tcl_script_dir_path.empty()) {
+        sdc_file_path_absolute = tcl_script_dir_path / sdc_file_path;
+        if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+          sdc_file_path_absolute.clear();
+        }
+      }
+    }
+
+    // 3. check current working dir path
+    if(sdc_file_path_absolute.empty()) {
+      sdc_file_path_absolute = sdc_file_path;
+      if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+        sdc_file_path_absolute.clear();
+      }
+    }
+
+    // final: check if we have a valid sdc file path:
+    if(!sdc_file_path_absolute.empty()) {
+      // assign the absolute path to the sdc_file_path variable:
+      sdc_file_path = sdc_file_path_absolute;
+    }
+    else {
+      // we don't have any sdc file for this project:
+      // if the sdc file was specified in the Settings JSON, and does not exist,
+      // this is an error!
+      if(sdc_file_path_from_json) {
+        ErrorMessage(std::string("sdc file specified in Settings JSON: ") + sdc_file_path.string() + std::string(" not found !!"));
+
+        // empty string returned on error.
+        return std::string("");
+      }
+
+      // otherwise, there is no sdc file, so continue without one:
+      sdc_file_path.clear();
+    }
+  }
+  // relative file path processing done.
+
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!sdc_file_path.empty()) {
+    Message(std::string("SDC file found: ") + sdc_file_path.string());
+    vpr_options += std::string(" --sdc_file") + 
+                   std::string(" ") + 
+                   sdc_file_path.string();
+  }
+  else {
+    Message(std::string("no SDC file found, no constraints will be applied in vpr."));
   }
   // ---------------------------------------------------------------- sdc_file --
 
@@ -3164,6 +3229,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
       std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
 
   // if not, use the encrypted file after decryption.
+  std::error_code ec;
   if (!std::filesystem::exists(m_architectureFile, ec)) {
 
     std::filesystem::path vpr_xml_en_path = 
@@ -5433,6 +5499,39 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
   m_TempFileList.clear();
 
   return count;
+}
+
+
+std::filesystem::path CompilerOpenFPGA_ql::GetTCLScriptDirPath() {
+
+  std::filesystem::path tcl_script_dir_path;
+  std::filesystem::path tcl_script_path = GetSession()->CmdLine()->Script();
+
+  std::error_code ec;
+  if(!tcl_script_path.empty()) {
+
+    std::filesystem::path tcl_script_path_c = std::filesystem::canonical(tcl_script_path, ec);
+    if(!ec) {
+      // path exists, and can be used
+    }
+    else {
+      // no tcl script was used.
+      tcl_script_path_c.clear();
+    }
+    
+    // std::cout << "tcl_script_path()     : " << tcl_script_path_c << std::endl;
+    
+    if(!tcl_script_path_c.empty()) {
+      tcl_script_dir_path = tcl_script_path_c.parent_path();
+    }
+
+  }
+  else {
+    // we were not executed via TCL script!
+    // std::cout << "tcl_script_path()     : <none>" << std::endl;
+  }
+
+  return tcl_script_dir_path;
 }
 
 
