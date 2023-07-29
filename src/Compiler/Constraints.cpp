@@ -284,12 +284,17 @@ void Constraints::registerCommands(TclInterpreter* interp) {
             return TCL_ERROR;
           }
           if (!isRtlClock) {
-            Tcl_AppendResult(interp,
-                             (std::string{"Clock ("} + arg +
-                              ") has to be one of the RTL design real clocks")
-                                 .c_str(),
-                             nullptr);
-            return TCL_ERROR;
+            // Demote to warning only for now:
+            constraints->GetCompiler()->Message(
+                std::string{"WARNING: Clock ("} + arg +
+                ") has to be one of the RTL design ports");
+            // Demote to warning only for now:
+            // Tcl_AppendResult(interp,
+            //                 (std::string{"WARNING: Clock ("} + arg +
+            //                  ") has to be one of the RTL design real clocks")
+            //                     .c_str(),
+            //                 nullptr);
+            // return TCL_ERROR;
           }
           constraint += arg + " ";
           constraints->addKeep(arg);
