@@ -1904,13 +1904,16 @@ void MainWindow::compressProject() {
 void MainWindow::documentationClicked() {
   auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
   auto userGuide{Settings::Config(path, "general", "user-guide")};
-  if (!userGuide.isEmpty()) QDesktopServices::openUrl(userGuide);
+  if (!userGuide.isEmpty())
+    if (!QDesktopServices::openUrl(userGuide)) failedOpenDefaultBrowser(this);
 }
 
 void MainWindow::releaseNodesClicked() {
   auto path = GlobalSession->Context()->DataPath() / "etc" / "config.json";
   auto releaseNotes{Settings::Config(path, "general", "release-notes")};
-  if (!releaseNotes.isEmpty()) QDesktopServices::openUrl(releaseNotes);
+  if (!releaseNotes.isEmpty())
+    if (!QDesktopServices::openUrl(releaseNotes))
+      failedOpenDefaultBrowser(this);
 }
 
 void MainWindow::openFileWith(QString file, int editor) {
@@ -1971,6 +1974,12 @@ bool MainWindow::lastProjectClosed() {
   if (!m_projectManager) return true;
   if (m_projectManager && !m_projectManager->HasDesign()) return true;
   return CloseOpenedTabs();
+}
+
+void MainWindow::failedOpenDefaultBrowser(QWidget* parent) {
+  QMessageBox::critical(
+      parent, "Failed to open...",
+      "Failed to open default browser, check terminal output.");
 }
 
 void MainWindow::onShowWelcomePage(bool show) {
