@@ -27,11 +27,11 @@ static cfg_callback_execute_command m_execute_cmd_function = nullptr;
 
 class CFG_Exception : public std::exception {
  public:
-  CFG_Exception(const char* err) : m_err(err) { std::exception(); }
+  CFG_Exception(const std::string& err) : m_err(err) { std::exception(); }
 
  private:
-  virtual const char* what() const throw() { return m_err; }
-  const char* m_err;
+  virtual const char* what() const throw() { return m_err.c_str(); }
+  const std::string m_err = "";
 };
 
 std::string CFG_print(const char* format_string, ...) {
@@ -83,7 +83,7 @@ void CFG_assertion(const char* file, const char* func, size_t line,
     printf("* %s\n", err.c_str());
     printf("*************************************************\n");
   }
-  throw CFG_Exception(msg.c_str());
+  throw CFG_Exception(msg);
 }
 
 std::string CFG_get_time() {
@@ -119,6 +119,12 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
   m_msg_function = msg;
   m_err_function = err;
   m_execute_cmd_function = exec;
+}
+
+void unset_callback_message_function() {
+  m_msg_function = nullptr;
+  m_err_function = nullptr;
+  m_execute_cmd_function = nullptr;
 }
 
 void CFG_post_msg(const std::string& message, const std::string pre_msg,

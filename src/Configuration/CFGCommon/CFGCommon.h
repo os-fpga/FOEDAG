@@ -90,6 +90,8 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
                                    cfg_callback_post_err_function err,
                                    cfg_callback_execute_command exec);
 
+void unset_callback_message_function();
+
 void CFG_post_msg(const std::string& message,
                   const std::string pre_msg = "INFO: ",
                   const bool new_line = true);
