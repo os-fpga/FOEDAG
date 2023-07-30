@@ -21,7 +21,7 @@ class CFGCompiler {
   virtual ~CFGCompiler() {}
   Compiler* GetCompiler() const;
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
-  void RegisterCallbackFunction(std::string name,
+  bool RegisterCallbackFunction(std::string name,
                                 cfg_callback_function function);
   bool Configure();
 
