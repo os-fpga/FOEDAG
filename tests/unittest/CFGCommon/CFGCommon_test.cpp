@@ -109,34 +109,27 @@ TEST(CFGCommon, test_string_split) {
 
 TEST(CFGCommon, test_exception) {
   unset_callback_message_function();
-  char buffer[100];
   int a = 10;
   int exception_count = 0;
   try {
     CFG_ASSERT(0 > a);
     FAIL() << "CFG_ASSERT() should throw an error\n";
-  } catch (std::exception& e1) {
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer)-1, "%s", e1.what());
-    EXPECT_EQ("0 > a", std::string(buffer));
+  } catch (std::exception& e) {
+    EXPECT_EQ("0 > a", CFG_print("%s", e.what()));
     exception_count++;
   }
   try {
     CFG_ASSERT_MSG(0 > 10, "This is invalid comparision - %d > %d", 0, a);
     FAIL() << "CFG_ASSERT_MSG() should throw an error\n";
-  } catch (std::exception& e2) {
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer)-1, "%s", e2.what());
-    EXPECT_EQ("This is invalid comparision - 0 > 10", std::string(buffer));
+  } catch (std::exception& e) {
+    EXPECT_EQ("This is invalid comparision - 0 > 10", CFG_print("%s", e.what()));
     exception_count++;
   }
   try {
     CFG_INTERNAL_ERROR("This is internal error %s", "from CFGCommon UnitTest");
     FAIL() << "CFG_INTERNAL_ERROR() should throw an error\n";
-  } catch (std::exception& e3) {
-    memset(buffer, 0, sizeof(buffer));
-    snprintf(buffer, sizeof(buffer)-1, "%s", e3.what());
-    EXPECT_EQ("This is internal error from CFGCommon UnitTest", std::string(buffer));
+  } catch (std::exception& e) {
+    EXPECT_EQ("This is internal error from CFGCommon UnitTest", CFG_print("%s", e.what()));
     exception_count++;
   }
   EXPECT_EQ(exception_count, 3);
