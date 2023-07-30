@@ -159,9 +159,26 @@ int CFGCompiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   }
 }
 
+/*
+  This is single point entry to all configuration functions
+
+  We use try-and-catch to prevent GUI crash
+
+  We do not need to go to each function to make such change
+*/
 bool CFGCompiler::Configure() {
-  CFG_ASSERT(m_callback_function_map.find(m_cmdarg.command) !=
-             m_callback_function_map.end());
-  m_callback_function_map[m_cmdarg.command](&m_cmdarg);
-  return true;
+  bool status = false;
+  if (m_callback_function_map.find(m_cmdarg.command) !=
+      m_callback_function_map.end()) {
+    try {
+      m_callback_function_map[m_cmdarg.command](&m_cmdarg);
+      status = true;
+    } catch (std::exception& e) {
+      // CFG assertion APIs already print the exception in error message
+      // Do not need to reprint the message
+      // Just print error which command failed to execute
+      CFG_POST_ERROR("Fail to execute command: %s", m_cmdarg.command.c_str());
+    }
+  }
+  return status;
 }
