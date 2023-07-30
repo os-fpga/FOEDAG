@@ -175,9 +175,9 @@ bool CFGCompiler::Configure() {
       status = true;
     } catch (std::exception& e) {
       // CFG assertion APIs already print the exception in error message
-      // Do not need to reprint the message
-      // Just print error which command failed to execute
-      CFG_POST_ERROR("Fail to execute command: %s", m_cmdarg.command.c_str());
+      //   format. Do not need to reprint the error message
+      // Just print new error which command failed to execute
+      CFG_POST_ERR("Fail to execute command: %s", m_cmdarg.command.c_str());
     }
   }
   return status;
