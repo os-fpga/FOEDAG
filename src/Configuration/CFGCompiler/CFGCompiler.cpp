@@ -85,18 +85,22 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     };
     interp->registerCmd("programmer", programmer, this, 0);
   }
-
-  RegisterCallbackFunction("programmer", programmer_entry);
+  status = RegisterCallbackFunction("programmer", programmer_entry);
   return status;
 }
 
-void CFGCompiler::RegisterCallbackFunction(std::string name,
+bool CFGCompiler::RegisterCallbackFunction(std::string name,
                                            cfg_callback_function function) {
-  CFG_ASSERT(name.size());
-  CFG_ASSERT(function != nullptr);
-  CFG_ASSERT(m_callback_function_map.find(name) ==
-             m_callback_function_map.end());
-  m_callback_function_map[name] = function;
+  bool status = false;
+  if (name.size() > 0 && function != nullptr) {
+    if (m_callback_function_map.find(name) == m_callback_function_map.end()) {
+      m_callback_function_map[name] = function;
+      status = true;
+    } else if (m_callback_function_map[name] == function) {
+      status = true;
+    }
+  }
+  return status;
 }
 
 int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
