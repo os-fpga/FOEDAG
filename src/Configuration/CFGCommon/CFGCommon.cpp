@@ -25,19 +25,13 @@ static cfg_callback_post_msg_function m_msg_function = nullptr;
 static cfg_callback_post_err_function m_err_function = nullptr;
 static cfg_callback_execute_command m_execute_cmd_function = nullptr;
 
-class CFG_Exception: public std::exception
-{
+class CFG_Exception : public std::exception {
  public:
-  CFG_Exception(const char * err) :
-    m_err(err) {
-    std::exception();
-  }
+  CFG_Exception(const char* err) : m_err(err) { std::exception(); }
+
  private:
-  virtual const char* what() const throw()
-  {
-    return m_err;
-  }
-  const char * m_err;
+  virtual const char* what() const throw() { return m_err; }
+  const char* m_err;
 };
 
 std::string CFG_print(const char* format_string, ...) {
