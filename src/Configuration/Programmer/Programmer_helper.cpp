@@ -429,14 +429,13 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
   const std::string openocd = openOcdExecPath.string();
   const std::string configFile = configFilePath.string();
- 
+
   if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
     if (arg->m_args.size() < 2) {
-      CFG_POST_ERR("Not enough arguments for %s. ",
-                    programmerCmd.name.c_str());
+      CFG_POST_ERR("Not enough arguments for %s. ", programmerCmd.name.c_str());
       programmerCmd.is_error = true;
       return programmerCmd;
-    } 
+    }
     std::string bitstreamFile = arg->m_args[1];
     std::error_code ec;
     if (cmdarg->compilerName != "dummy") {
