@@ -73,7 +73,9 @@ void CFG_assertion(const char* file, const char* func, size_t line,
     printf("* %s\n", err.c_str());
     printf("*************************************************\n");
   }
+#ifndef PRODUCTION_BUILD
   abort();
+#endif
 }
 
 std::string CFG_get_time() {
