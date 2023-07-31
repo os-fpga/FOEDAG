@@ -2690,35 +2690,81 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // return false;
   //}
 
+
+  // ---------------------------------------------------------------- synth_sdc_file ++
   // SDC file support in yosys using sdc-plugin:
-  // if there is a sdc file specified in yosys > sdc_plugin > sdc_file > userValue -> take this
-  // else if there is an sdc file in the project dir or TCL dir of the name: <project_name>_synth.sdc -> take this
+  // 1. if there is a sdc file specified in yosys > sdc_plugin > sdc_file > userValue -> take this
+  // 2. if there is an sdc file in the project dir of the name: <project_name>_synth.sdc -> take this
+  // 3. if there is an sdc file in the TCL dir of the name: <project_name>_synth.sdc -> take this
   // then we need to process the sdc file using the sdc-plugin.
   std::filesystem::path synth_sdc_filepath;
+  
+  // 1. check if an sdc file is specified in the json:
   if( !QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file").empty() ) {
     synth_sdc_filepath = QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file");
-    if(!FileUtils::FileExists(synth_sdc_filepath)) {
+  }
+  // else, check for an sdc file with the naming convention (<project_name>_synth.sdc)
+  // note that, this path is always a relative path.
+  else {
+    synth_sdc_filepath = ProjManager()->projectName() + std::string("_synth") + std::string(".sdc");
+  }
+
+  // check if the path specified is absolute:
+  if (synth_sdc_filepath.is_absolute()) {
+    // check if the file exists:
+    if (!FileUtils::FileExists(synth_sdc_filepath)) {
+      // currently, we ignore it, if the sdc file path is not found.
       synth_sdc_filepath.clear();
     }
   }
+  // we have a relative path
   else {
-    std::string expected_synth_sdc_filename = ProjManager()->projectName() + std::string("_synth") + std::string(".sdc");
+    std::filesystem::path synth_sdc_filepath_absolute;
+    
+    // 1. check project_path
+    // 2. check tcl_script_dir_path (if driven by TCL script)
+    // 3. check current_dir_path
 
-    // check project_path
-    synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / expected_synth_sdc_filename;
-    if(!FileUtils::FileExists(synth_sdc_filepath)) {
-      
-      // check design_dir_path (TCL script path)
-      synth_sdc_filepath = std::filesystem::path(ProjManager()->projectPath()) / std::string("..") / expected_synth_sdc_filename;
-      if(!FileUtils::FileExists(synth_sdc_filepath)) {
+    std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
+    synth_sdc_filepath_absolute = project_path / synth_sdc_filepath;
+    if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+      synth_sdc_filepath_absolute.clear();
+    }
 
-        // not found, mark path as empty
-        synth_sdc_filepath.clear();
+    // 2. check tcl_script_dir_path
+    if(synth_sdc_filepath_absolute.empty()) {
+      std::filesystem::path tcl_script_dir_path = QLSettingsManager::getTCLScriptDirPath();
+      if(!tcl_script_dir_path.empty()) {
+        synth_sdc_filepath_absolute = tcl_script_dir_path / synth_sdc_filepath;
+        if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+          synth_sdc_filepath_absolute.clear();
+        }
       }
     }
+
+    // 3. check current working dir path
+    if(synth_sdc_filepath_absolute.empty()) {
+      synth_sdc_filepath_absolute = synth_sdc_filepath;
+      if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+        synth_sdc_filepath_absolute.clear();
+      }
+    }
+
+    // final: check if we have a valid sdc file path:
+    if(!synth_sdc_filepath_absolute.empty()) {
+      // assign the absolute path to the sdc_file_path variable:
+      synth_sdc_filepath = synth_sdc_filepath_absolute;
+    }
+    else {
+      // currently, we ignore it, if the sdc file path is not found.
+      synth_sdc_filepath.clear();
+    }
   }
-  
+  // relative file path processing done.
+
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
   if(!synth_sdc_filepath.empty()) {
+    // std::cout << "synth sdc file available: " << synth_sdc_filepath << std::endl;
     
     // we have a valid SDC file
     std::filesystem::path aurora_yosys_import_script_path =
@@ -2735,11 +2781,9 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("read_sdc") +
                                                               std::string(" ") + 
                                                               synth_sdc_filepath.string());
-
   }
   else {
-    
-    // we don't have SDC file
+    //std::cout << "synth sdc file not available." << std::endl;
 
     yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD_SDC}", std::string("# [skipped] sdc plugin load as there is no synth sdc file"));
 
@@ -2747,8 +2791,8 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
     yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("# [skipped] read sdc as there is no synth sdc file"));
   }
+  // ---------------------------------------------------------------- synth_sdc_file --
 
-  
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
