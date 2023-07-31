@@ -170,7 +170,8 @@ void Compiler::ErrorMessage(const std::string& message, bool append,
     }
   }
   if (m_interp != nullptr)
-    if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+    if (append)
+      Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 void Compiler::CleanFiles(Action action) {
