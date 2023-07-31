@@ -678,8 +678,7 @@ int AbstractReportManager::parseSection(
 
 QString AbstractReportManager::FMax() const {
   auto base = ITaskReportManager::FMax();
-  if (!base.isEmpty())
-    return base;
+  if (!base.isEmpty()) return base;
 
   QStringList fmax{};
   for (const auto &clock : m_clocksIntra) {
