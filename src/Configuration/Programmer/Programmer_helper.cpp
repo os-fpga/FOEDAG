@@ -470,6 +470,7 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
   const std::string openocd = openOcdExecPath.string();
   const std::string configFile = configFilePath.string();
+ 
 
   if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
     if (arg->m_args.size() < 2) {
