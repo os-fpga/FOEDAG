@@ -176,6 +176,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   bool isEnableSaveButtons() const;
   bool CloseOpenedTabs();
   bool lastProjectClosed();
+  static void failedOpenDefaultBrowser(QWidget* parent);
 
  private: /* Objects/Widgets under the main window */
   /* Enum holding different states of actions visibility on the welcome page.
