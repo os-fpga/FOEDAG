@@ -100,6 +100,106 @@ void QLSettingsManager::reloadJSONSettings() {
   instance->parseJSONSettings();
 }
 
+
+void QLSettingsManager::parseSDCFilePath() {
+
+  if( (instance->settings_json).empty() ) {
+    // settings json is not parsed yet, nothing to do.
+    return;
+  }
+
+  // ---------------------------------------------------------------- sdc_file ++
+  // sdc_file can come from Settings JSON -or- automatically picked up if named: <project_name>.sdc
+  // sdc_file path can be absolute or relative
+  // >> note: if sdc file specified in the Settings, and not found, then we flag this as an error!
+  // if relative path, heuristic to find the sdc_file:
+  //   1. check project_path, to see if sdc_file exists, use that
+  //   2. check tcl_script_dir_path (if driven by TCL script), to see if sdc_file exists, use that
+  //   3. check current dir, to see if sdc_file exists exists, use that
+
+  std::filesystem::path sdc_file_path;
+  instance->sdc_file_path_from_json = false;
+
+  // 1. check if an sdc file is specified in the json:
+  if( !getStringValue("vpr", "filename", "sdc_file").empty() ) {
+
+    sdc_file_path = 
+        std::filesystem::path(getStringValue("vpr", "filename", "sdc_file"));
+
+    instance->sdc_file_path_from_json = true;
+  }
+  // else, check for an sdc file with the naming convention (<project_name>.sdc)
+  // note that, this path is always a relative path.
+  else {
+
+    sdc_file_path = 
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + std::string(".sdc"));
+  }
+
+  // check if the path specified is absolute:
+  if (sdc_file_path.is_absolute()) {
+    // check if the file exists:
+    if (!FileUtils::FileExists(sdc_file_path)) {
+      // currently, we ignore it, if the sdc file path is not found.
+      sdc_file_path.clear();
+    }
+  }
+  // we have a relative path
+  else {
+    std::filesystem::path sdc_file_path_absolute;
+    
+    // 1. check project_path
+    // 2. check tcl_script_dir_path (if driven by TCL script)
+    // 3. check current_dir_path
+
+    std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
+    sdc_file_path_absolute = project_path / sdc_file_path;
+    if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+      sdc_file_path_absolute.clear();
+    }
+
+    // 2. check tcl_script_dir_path
+    if(sdc_file_path_absolute.empty()) {
+      std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
+      if(!tcl_script_dir_path.empty()) {
+        sdc_file_path_absolute = tcl_script_dir_path / sdc_file_path;
+        if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+          sdc_file_path_absolute.clear();
+        }
+      }
+    }
+
+    // 3. check current working dir path
+    if(sdc_file_path_absolute.empty()) {
+      sdc_file_path_absolute = sdc_file_path;
+      if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+        sdc_file_path_absolute.clear();
+      }
+    }
+
+    // final: check if we have a valid sdc file path:
+    if(!sdc_file_path_absolute.empty()) {
+      // assign the absolute path to the sdc_file_path variable:
+      sdc_file_path = sdc_file_path_absolute;
+    }
+    else {
+      // currently, we ignore it, if the sdc file path is not found.
+      sdc_file_path.clear();
+    }
+  }
+  // relative file path processing done.
+
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!sdc_file_path.empty()) {
+    // std::cout << "sdc file available: " << sdc_file_path << std::endl;
+    instance->sdc_file_path = sdc_file_path;
+  }
+  else {
+    //std::cout << "sdc file not available." << std::endl;
+  }
+}
+
+
 std::string QLSettingsManager::getStringValue(std::string category, std::string subcategory, std::string parameter) {
 
   std::string value;
@@ -229,6 +329,45 @@ const json* QLSettingsManager::getJson(std::string category) {
   }
 
   return nullptr;
+}
+
+
+std::filesystem::path QLSettingsManager::getSDCFilePath() {
+
+  return instance->sdc_file_path;
+}
+
+
+std::filesystem::path QLSettingsManager::getTCLScriptDirPath() {
+
+  std::filesystem::path tcl_script_dir_path;
+  std::filesystem::path tcl_script_path = GlobalSession->CmdLine()->Script();
+
+  std::error_code ec;
+  if(!tcl_script_path.empty()) {
+
+    std::filesystem::path tcl_script_path_c = std::filesystem::canonical(tcl_script_path, ec);
+    if(!ec) {
+      // path exists, and can be used
+    }
+    else {
+      // no tcl script was used.
+      tcl_script_path_c.clear();
+    }
+    
+    // std::cout << "tcl_script_path()     : " << tcl_script_path_c << std::endl;
+    
+    if(!tcl_script_path_c.empty()) {
+      tcl_script_dir_path = tcl_script_path_c.parent_path();
+    }
+
+  }
+  else {
+    // we were not executed via TCL script!
+    // std::cout << "tcl_script_path()     : <none>" << std::endl;
+  }
+
+  return tcl_script_dir_path;
 }
 
 
@@ -1063,7 +1202,7 @@ void QLSettingsManager::parseJSONSettings() {
 
   // 2. check tcl_script_dir_path
   if(settings_json_filepath.empty()) {
-    std::filesystem::path tcl_script_dir_path = ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->GetTCLScriptDirPath();
+    std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
     if(!tcl_script_dir_path.empty()) {
       settings_json_filepath = tcl_script_dir_path / settings_json_filename;
       if(!FileUtils::FileExists(settings_json_filepath)) {
@@ -1096,7 +1235,8 @@ void QLSettingsManager::parseJSONSettings() {
     }
   }
   else {
-    std::cout << "[error] no Settings JSON file found to use!" << std::endl;
+    // we may reach this point (while creating a new project, for example) where it is valid.
+    // ignore this condition.
   }
 
 
@@ -1112,7 +1252,7 @@ void QLSettingsManager::parseJSONSettings() {
 
   // 2. check tcl_script_dir_path
   if(power_estimation_json_filepath.empty()) {
-    std::filesystem::path tcl_script_dir_path = ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->GetTCLScriptDirPath();
+    std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
     if(!tcl_script_dir_path.empty()) {
       power_estimation_json_filepath = tcl_script_dir_path / power_estimation_json_filename;
       if(!FileUtils::FileExists(power_estimation_json_filepath)) {
@@ -1155,6 +1295,10 @@ void QLSettingsManager::parseJSONSettings() {
   if(!power_estimation_json.empty()) {
     combined_json.update(power_estimation_json);
   }
+
+
+  // parse SDC File Path:
+  parseSDCFilePath();
 }
 
 

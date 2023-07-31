@@ -123,7 +123,6 @@ class CompilerOpenFPGA_ql : public Compiler {
   int CleanTempFiles();
   std::string ToUpper(std::string str);
   std::string ToLower(std::string str);
-  std::filesystem::path GetTCLScriptDirPath();
   
   std::vector<std::string> list_device_variants(
       std::string family,

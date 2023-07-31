@@ -13,6 +13,7 @@
 #include "Utils/FileUtils.h"
 #include "tcl_command_integration.h"
 #include "ui_sources_form.h"
+#include "Compiler/QLSettingsManager.h"
 
 using namespace FOEDAG;
 static constexpr int SetFileDataRole{Qt::UserRole + 1};
@@ -578,6 +579,7 @@ void SourcesForm::CreateFolderHierachyTree() {
   m_treeSrcHierachy->addTopLevelItem(topitemCS);
   topitemCS->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_TOP_ITEM);
 
+#ifdef UPSTREAM_UNUSED
   QStringList listConstrFset = m_projManager->getConstrFileSets();
   iFileSum = 0;
   QTreeWidgetItem *parentItem{topitemCS};
@@ -603,6 +605,37 @@ void SourcesForm::CreateFolderHierachyTree() {
     iFileSum += listConstrFile.size();
   }
   topitemCS->setText(0, tr("Constraints") + QString("(%1)").arg(iFileSum));
+#endif //#ifdef UPSTREAM_UNUSED
+
+
+  iFileSum = 0;
+  QTreeWidgetItem *parentItem{topitemCS};
+  QStringList listConstrFile;
+  QString strTarget;
+  std::filesystem::path sdc_file_path = QLSettingsManager::getSDCFilePath();
+  if(!sdc_file_path.empty()) {
+    listConstrFile.append(QString::fromStdString(sdc_file_path.string()));
+    //strTarget = QString::fromStdString(sdc_file_path.filename().string());
+  }
+  for (auto &strfile : listConstrFile) {
+    if (parentItem) {
+      QString filename =
+          strfile.right(strfile.size() - (strfile.lastIndexOf("/") + 1));
+      QTreeWidgetItem *itemf = new QTreeWidgetItem(parentItem);
+      if (filename == strTarget) {
+        itemf->setText(0, filename + SRC_TREE_FLG_TARGET);
+      } else {
+        itemf->setText(0, filename);
+      }
+      itemf->setData(0, Qt::UserRole, strfile);
+      itemf->setIcon(0, QIcon(":/img/file.png"));
+      itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_CONSTR_FILE_ITEM);
+      itemf->setData(0, SetFileDataRole, "constrs_1");
+    }
+  }
+  iFileSum += listConstrFile.size();
+  topitemCS->setText(0, tr("Constraints") + QString("(%1)").arg(iFileSum));
+
 
   // Initialize simulation sources tree
   QTreeWidgetItem *topitemSS = new QTreeWidgetItem(topItem);

@@ -2998,101 +2998,13 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
 
   // ---------------------------------------------------------------- sdc_file ++
-  // sdc_file can come from Settings JSON -or- automatically picked up if named: <project_name>.sdc
-  // sdc_file path can be absolute or relative
-  // >> note: if sdc file specified in the Settings, and not found, then we flag this as an error!
-  // if relative path, heuristic to find the sdc_file:
-  //   1. check project_path, to see if sdc_file exists, use that
-  //   2. check tcl_script_dir_path (if driven by TCL script), to see if sdc_file exists, use that
-  //   3. check current dir, to see if sdc_file exists exists, use that
 
-  std::filesystem::path sdc_file_path;
-  bool sdc_file_path_from_json = false;
+  std::filesystem::path sdc_file_path = QLSettingsManager::getSDCFilePath();
 
-  // 1. check if an sdc file is specified in the json:
-  if( !QLSettingsManager::getStringValue("vpr", "filename", "sdc_file").empty() ) {
-
-    sdc_file_path = 
-        std::filesystem::path(QLSettingsManager::getStringValue("vpr", "filename", "sdc_file"));
-
-    sdc_file_path_from_json = true;
-  }
-  // else, check for an sdc file with the naming convention (<project_name>.sdc)
-  // note that, this path is always a relative path.
-  else {
-
-    sdc_file_path = 
-      std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
-  }
-
-  // check if the path specified is absolute:
-  if (sdc_file_path.is_absolute()) {
-    // check if the file exists:
-    if (!FileUtils::FileExists(sdc_file_path)) {
-      // if the sdc file was specified in the Settings JSON, and does not exist,
-      // this is an error!
-      if(sdc_file_path_from_json) {
-        ErrorMessage(std::string("sdc file specified in Settings JSON: ") + sdc_file_path.string() + std::string(" not found !!"));
-
-        // empty string returned on error.
-        return std::string("");
-      }
-    }
-  }
-  // we have a relative path
-  else {
-    std::filesystem::path sdc_file_path_absolute;
-    
-    // 1. check project_path
-    // 2. check tcl_script_dir_path (if driven by TCL script)
-    // 3. check current_dir_path
-
-    std::filesystem::path project_path = std::filesystem::path(ProjManager()->projectPath());
-    sdc_file_path_absolute = project_path / sdc_file_path;
-    if(!FileUtils::FileExists(sdc_file_path_absolute)) {
-      sdc_file_path_absolute.clear();
-    }
-
-    // 2. check tcl_script_dir_path
-    if(sdc_file_path_absolute.empty()) {
-      std::filesystem::path tcl_script_dir_path = GetTCLScriptDirPath();
-      if(!tcl_script_dir_path.empty()) {
-        sdc_file_path_absolute = tcl_script_dir_path / sdc_file_path;
-        if(!FileUtils::FileExists(sdc_file_path_absolute)) {
-          sdc_file_path_absolute.clear();
-        }
-      }
-    }
-
-    // 3. check current working dir path
-    if(sdc_file_path_absolute.empty()) {
-      sdc_file_path_absolute = sdc_file_path;
-      if(!FileUtils::FileExists(sdc_file_path_absolute)) {
-        sdc_file_path_absolute.clear();
-      }
-    }
-
-    // final: check if we have a valid sdc file path:
-    if(!sdc_file_path_absolute.empty()) {
-      // assign the absolute path to the sdc_file_path variable:
-      sdc_file_path = sdc_file_path_absolute;
-    }
-    else {
-      // we don't have any sdc file for this project:
-      // if the sdc file was specified in the Settings JSON, and does not exist,
-      // this is an error!
-      if(sdc_file_path_from_json) {
-        ErrorMessage(std::string("sdc file specified in Settings JSON: ") + sdc_file_path.string() + std::string(" not found !!"));
-
-        // empty string returned on error.
-        return std::string("");
-      }
-
-      // otherwise, there is no sdc file, so continue without one:
-      sdc_file_path.clear();
-    }
-  }
-  // relative file path processing done.
+  // if(QLSettingsManager::getInstance()->sdc_file_path_from_json && sdc_file_path.empty()) {
+  //   // this is ideally an error, and should be notified.
+  //   // current implementation is to ignore any invalid sdc file path.
+  // }
 
   // if we have a valid sdc_file_path at this point, pass it on to vpr:
   if(!sdc_file_path.empty()) {
@@ -3102,7 +3014,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                    sdc_file_path.string();
   }
   else {
-    Message(std::string("no SDC file found, no constraints will be applied in vpr."));
+    Message(std::string("SDC file not found, no constraints passed to vpr."));
   }
   // ---------------------------------------------------------------- sdc_file --
 
@@ -5499,39 +5411,6 @@ int CompilerOpenFPGA_ql::CleanTempFiles() {
   m_TempFileList.clear();
 
   return count;
-}
-
-
-std::filesystem::path CompilerOpenFPGA_ql::GetTCLScriptDirPath() {
-
-  std::filesystem::path tcl_script_dir_path;
-  std::filesystem::path tcl_script_path = GetSession()->CmdLine()->Script();
-
-  std::error_code ec;
-  if(!tcl_script_path.empty()) {
-
-    std::filesystem::path tcl_script_path_c = std::filesystem::canonical(tcl_script_path, ec);
-    if(!ec) {
-      // path exists, and can be used
-    }
-    else {
-      // no tcl script was used.
-      tcl_script_path_c.clear();
-    }
-    
-    // std::cout << "tcl_script_path()     : " << tcl_script_path_c << std::endl;
-    
-    if(!tcl_script_path_c.empty()) {
-      tcl_script_dir_path = tcl_script_path_c.parent_path();
-    }
-
-  }
-  else {
-    // we were not executed via TCL script!
-    // std::cout << "tcl_script_path()     : <none>" << std::endl;
-  }
-
-  return tcl_script_dir_path;
 }
 
 

@@ -50,12 +50,14 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount,
   }
 
   if (0 == simCount) {
-    ui->m_labelSimPic->setStyleSheet(QString("image: url(:/img/warn.png);"));
-    ui->m_labelSim->setText(m_projectSettings
-                                ? tr("No simulation files or directories.")
-                                : tr("No simulation files or directories will "
-                                     "be added. Use Add Sources to "
-                                     "add them later."));
+    ui->m_labelSimPic->setVisible(false);
+    ui->m_labelSim->setVisible(false);
+    // ui->m_labelSimPic->setStyleSheet(QString("image: url(:/img/warn.png);"));
+    // ui->m_labelSim->setText(m_projectSettings
+    //                             ? tr("No simulation files or directories.")
+    //                             : tr("No simulation files or directories will "
+    //                                  "be added. Use Add Sources to "
+    //                                  "add them later."));
   } else {
     ui->m_labelSimPic->setStyleSheet(QString("image: url(:/img/info.png);"));
     ui->m_labelSim->setText(
@@ -65,13 +67,15 @@ void summaryForm::setSourceCount(const int &srcCount, const int constrCount,
   }
 
   if (0 == constrCount) {
-    ui->m_labelConstraintsPic->setStyleSheet(
-        QString("image: url(:/img/warn.png);"));
-    ui->m_labelConstraints->setText(
-        m_projectSettings ? tr("No constraints files.")
-                          : tr("No constraints files will be added. Use Add "
-                               "Sources to add them "
-                               "later."));
+    ui->m_labelConstraintsPic->setVisible(false);
+    ui->m_labelConstraints->setVisible(false);
+    // ui->m_labelConstraintsPic->setStyleSheet(
+    //     QString("image: url(:/img/warn.png);"));
+    // ui->m_labelConstraints->setText(
+    //     m_projectSettings ? tr("No constraints files.")
+    //                       : tr("No constraints files will be added. Use Add "
+    //                            "Sources to add them "
+    //                            "later."));
   } else {
     ui->m_labelConstraintsPic->setStyleSheet(
         QString("image: url(:/img/info.png);"));
