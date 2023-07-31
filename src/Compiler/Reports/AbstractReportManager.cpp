@@ -445,7 +445,6 @@ void AbstractReportManager::parseStatisticLine(const QString &line) {
   auto fmaxMatch = fmax.match(line);
   if (fmaxMatch.hasMatch()) {
     m_usedRes.stat.fmax = fmaxMatch.captured(1).toDouble();
-    return;
   }
   static const QRegularExpression clock{"^ +Netlist Clocks\\D+(\\d+)"};
   auto clockMatch = clock.match(line);
