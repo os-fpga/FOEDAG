@@ -679,11 +679,14 @@ int AbstractReportManager::parseSection(
 
 QString AbstractReportManager::FMax() const {
   auto base = ITaskReportManager::FMax();
-  if (!base.isEmpty()) return base;
+  if (!base.isEmpty())
+    return base;
 
   QStringList fmax{};
   for (const auto &clock : m_clocksIntra) {
-    if (clock.fMax != 0) fmax.push_back(QString::number(clock.fMax));
+    if (clock.fMax != 0)
+      fmax.push_back(
+          QString{"%1:%2"}.arg(clock.clockName, QString::number(clock.fMax)));
   }
   return fmax.join(", ");
 }
