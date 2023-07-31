@@ -329,6 +329,7 @@ class Compiler {
                          std::string_view to);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
+  virtual void SetDeviceResources() {}
 
   enum AddFilesType { Design, Simulation };
   int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,

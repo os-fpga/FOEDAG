@@ -168,6 +168,7 @@ class CompilerOpenFPGA : public Compiler {
   virtual bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   virtual std::pair<bool, std::string> IsDeviceSizeCorrect(
       const std::string& size) const;
+  virtual void SetDeviceResources();
   bool VerifyTargetDevice() const;
   static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
                                        const std::string& srcFileName,
