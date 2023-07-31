@@ -2435,6 +2435,7 @@ void Compiler::setTaskManager(TaskManager* newTaskManager) {
                          QVariant::fromValue(
                              Simulator::SimulationType::BitstreamBackDoor)});
   }
+  SetDeviceResources();
 }
 
 TaskManager* Compiler::GetTaskManager() const { return m_taskManager; }

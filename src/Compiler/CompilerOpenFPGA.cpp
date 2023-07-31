@@ -628,6 +628,31 @@ std::pair<bool, std::string> CompilerOpenFPGA::IsDeviceSizeCorrect(
   return std::make_pair(false, std::string{"Device size is not correct"});
 }
 
+void CompilerOpenFPGA::SetDeviceResources() {
+  if (m_taskManager) {
+    auto reports = m_taskManager->getReportManagerRegistry().ids();
+    Resources resources{};
+    resources.bram.bram_36k = MaxDeviceBRAMCount();
+    resources.bram.bram_18k = MaxDeviceBRAMCount() * 2;
+    resources.dsp.dsp_9_10 = MaxDeviceDSPCount();
+    resources.dsp.dsp_18_20 = MaxDeviceDSPCount() * 2;
+    resources.logic.dff = MaxDeviceFFCount();
+    resources.logic.latch = MaxDeviceFFCount();
+    resources.logic.clb = MaxDeviceLUTCount() / 8;
+    resources.logic.fa2Bits = MaxDeviceLUTCount();
+    resources.logic.lut6 = MaxDeviceLUTCount();
+    resources.logic.lut5 = MaxDeviceLUTCount() * 2;
+    resources.inouts.io = MaxDeviceIOCount();
+    resources.inouts.inputs = MaxDeviceIOCount();
+    resources.inouts.outputs = MaxDeviceIOCount();
+    for (auto id : reports) {
+      m_taskManager->getReportManagerRegistry()
+          .getReportManager(id)
+          ->setAvailableResources(resources);
+    }
+  }
+}
+
 bool CompilerOpenFPGA::VerifyTargetDevice() const {
   const bool target = Compiler::VerifyTargetDevice();
   const bool archFile = FileUtils::FileExists(m_architectureFile);
@@ -2689,28 +2714,7 @@ bool CompilerOpenFPGA::LoadDeviceData(const std::string& deviceName) {
     }
   }
   if (status) reloadSettings();
-  if (m_taskManager) {
-    auto reports = m_taskManager->getReportManagerRegistry().ids();
-    Resources resources{};
-    resources.bram.bram_36k = MaxDeviceBRAMCount();
-    resources.bram.bram_18k = MaxDeviceBRAMCount() * 2;
-    resources.dsp.dsp_9_10 = MaxDeviceDSPCount();
-    resources.dsp.dsp_18_20 = MaxDeviceDSPCount() * 2;
-    resources.logic.dff = MaxDeviceFFCount();
-    resources.logic.latch = MaxDeviceFFCount();
-    resources.logic.clb = MaxDeviceLUTCount() / 8;
-    resources.logic.fa2Bits = MaxDeviceLUTCount();
-    resources.logic.lut6 = MaxDeviceLUTCount();
-    resources.logic.lut5 = MaxDeviceLUTCount() * 2;
-    resources.inouts.io = MaxDeviceIOCount();
-    resources.inouts.inputs = MaxDeviceIOCount();
-    resources.inouts.outputs = MaxDeviceIOCount();
-    for (auto id : reports) {
-      m_taskManager->getReportManagerRegistry()
-          .getReportManager(id)
-          ->setAvailableResources(resources);
-    }
-  }
+  SetDeviceResources();
   return status;
 }
 
