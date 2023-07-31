@@ -40,6 +40,8 @@ public:
   static const json* getJson(std::string category, std::string subcategory, std::string parameter);
   static const json* getJson(std::string category, std::string subcategory);
   static const json* getJson(std::string category);
+  static std::filesystem::path getSDCFilePath();
+  static std::filesystem::path getTCLScriptDirPath();
 
   ~QLSettingsManager();
 
@@ -49,6 +51,7 @@ public:
  
   void updateJSONSettingsForDeviceTarget(QLDeviceTarget device_target);
   void parseJSONSettings();
+  void parseSDCFilePath();
   bool areJSONSettingsChanged();
   bool saveJSONSettings();
 
@@ -67,6 +70,9 @@ public:
   std::filesystem::path power_estimation_json_filepath;
 
   json combined_json;
+
+  std::filesystem::path sdc_file_path;
+  bool sdc_file_path_from_json = false;
 
   // GUI elements and GUI related variables
   QWidget* settings_manager_widget = nullptr;

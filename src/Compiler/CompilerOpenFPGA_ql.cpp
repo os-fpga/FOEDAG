@@ -3057,46 +3057,23 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
 
   // ---------------------------------------------------------------- sdc_file ++
-  std::filesystem::path sdc_file_path;
-  bool sdc_file_path_from_json = false;
-  // check if an sdc file is specified in the json:
-  if( !QLSettingsManager::getStringValue("vpr", "filename", "sdc_file").empty() ) {
 
-    sdc_file_path = 
-        std::filesystem::path(QLSettingsManager::getStringValue("vpr", "filename", "sdc_file"));
+  std::filesystem::path sdc_file_path = QLSettingsManager::getSDCFilePath();
 
-    sdc_file_path_from_json = true;
-  }
-  // check if an sdc file exists with the project name (projectName.sdc) in the project source dir:
-  else {
+  // if(QLSettingsManager::getInstance()->sdc_file_path_from_json && sdc_file_path.empty()) {
+  //   // this is ideally an error, and should be notified.
+  //   // current implementation is to ignore any invalid sdc file path.
+  // }
 
-    sdc_file_path = 
-      std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
-  }
-
-  // convert to canonical path, which will also check that the path exists.
-  std::error_code ec;
-  std::filesystem::path sdc_file_path_c = std::filesystem::canonical(sdc_file_path, ec);
-  if(!ec) {
-    // path exists, and can be used
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!sdc_file_path.empty()) {
+    Message(std::string("SDC file found: ") + sdc_file_path.string());
     vpr_options += std::string(" --sdc_file") + 
                    std::string(" ") + 
-                   sdc_file_path_c.string();
+                   sdc_file_path.string();
   }
   else {
-    // path does not exist, we got a filesystem error while making the canonical path.
-
-    if(sdc_file_path_from_json) {
-
-      // if the sdc_file comes from the json, and it is not found, that is an error.
-      ErrorMessage(std::string("sdc file from json: ") + sdc_file_path.string() + std::string(" does not exist!!"));
-
-      // empty string returned on error.
-      return std::string("");
-    }
-
-    // otherwise, we just have a warning for the user, and proceed.
-    Message(std::string("no sdc file found, skipping this vpr option!"));
+    Message(std::string("SDC file not found, no constraints passed to vpr."));
   }
   // ---------------------------------------------------------------- sdc_file --
 
@@ -3223,6 +3200,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
       std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
 
   // if not, use the encrypted file after decryption.
+  std::error_code ec;
   if (!std::filesystem::exists(m_architectureFile, ec)) {
 
     std::filesystem::path vpr_xml_en_path = 
