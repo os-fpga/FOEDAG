@@ -470,6 +470,18 @@ void AbstractReportManager::parseStatisticLine(const QString &line) {
       m_clocksIntra[0].fMax = match.captured(4).toDouble();
     return;
   }
+
+  static const QRegularExpression constrained{
+      "Constrained Clock '(.+)' Source:"};
+  match = constrained.match(line);
+  if (match.hasMatch()) {
+    for (auto &clock : m_clocksIntra)
+      if (clock.clockName == match.captured(1)) {
+        clock.constrained = true;
+        break;
+      }
+    return;
+  }
 }
 
 std::unique_ptr<QFile> AbstractReportManager::createLogFile() const {
