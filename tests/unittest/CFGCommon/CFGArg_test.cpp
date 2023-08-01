@@ -106,8 +106,7 @@ TEST(CFGArg, test_programmer_short_option_ok) {
   arg.print();
 }
 
-void test_program_device_long_option_ok() {
-  CFG_POST_MSG("test_program_device_long_option_ok");
+TEST(CFGArg, test_program_device_long_option_ok) {
   CFGArg_PROGRAMMER arg;
   std::vector<std::string> errors;
   EXPECT_EQ(arg.config, "gemini.cfg");
