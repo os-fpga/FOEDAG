@@ -110,7 +110,7 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   cfgcompiler->m_cmdarg.device = compiler->ProjManager()->getTargetDevice();
   cfgcompiler->m_cmdarg.projectPath = compiler->ProjManager()->projectPath();
   cfgcompiler->m_cmdarg.taskPath =
-      compiler->FilePath(Compiler::Action::Bitstream);
+      compiler->FilePath(Compiler::Action::Bitstream).string();
 
   // Call Compile()
   if (batchMode) {
