@@ -2,17 +2,73 @@
 
 #include "CFGCommon.h"
 
-CFGArg::CFGArg(const std::string& n, int i, int a, std::vector<CFGArg_RULE> r,
-               const char* h)
-    : m_name(n), m_min_arg(i), m_max_arg(a), m_rules(r), m_help_msg(h) {
+CFGArg::CFGArg(const std::string& n, bool hidden, int i, int a,
+               std::vector<CFGArg_RULE> r, const char* h)
+    : m_name(n),
+      m_hidden(hidden),
+      m_min_arg(i),
+      m_max_arg(a),
+      m_rules(r),
+      m_help_msg(h) {
   CFG_ASSERT(m_name.size());
   CFG_ASSERT(m_min_arg >= 0);
   CFG_ASSERT(m_max_arg == -1 || m_max_arg >= m_min_arg);
   CFG_ASSERT(m_help_msg != nullptr);
 }
 
+CFGArg::CFGArg(const std::string& n, bool hidden, const char* h)
+    : m_name(n), m_hidden(hidden), m_help_msg(h) {
+  CFG_ASSERT(m_name.size());
+  CFG_ASSERT(m_help_msg != nullptr);
+}
+
 bool CFGArg::parse(int argc, const char** argv,
                    std::vector<std::string>* errors) {
+  bool status = true;
+  if (m_sub_args.size() > 0) {
+    // for parent command, the first position must be help or sub-command
+    if (argc == 0 ||
+        !(std::string(argv[0]) == "-h" || std::string(argv[0]) == "--help" ||
+          m_sub_args.find(std::string(argv[0])) != m_sub_args.end())) {
+      std::string commands = "";
+      for (auto& sub : m_sub_args) {
+        if (!sub.second->m_hidden) {
+          commands = CFG_print("%s, %s", commands.c_str(), sub.first.c_str());
+        }
+      }
+      commands.erase(0, 2);
+      if (argc == 0) {
+        post_error(
+            CFG_print(
+                "Missing any input. You should specify one of sub-commands "
+                "\"%s\" or --help",
+                commands.c_str()),
+            errors);
+      } else {
+        post_error(CFG_print("First argument must be one of sub-commands "
+                             "\"%s\" or --help",
+                             commands.c_str()),
+                   errors);
+      }
+      status = false;
+    }
+  }
+  if (status) {
+    if (m_sub_args.size() > 0 && argc > 0 &&
+        m_sub_args.find(argv[0]) != m_sub_args.end()) {
+      m_subcmd = argv[0];
+      const CFGArg* sub = m_sub_args.at(m_subcmd);
+      status = const_cast<CFGArg*>(sub)->parse(argc - 1, &argv[1], errors);
+      m_help = sub->m_help;
+    } else {
+      status = single_parse(argc, argv, errors);
+    }
+  }
+  return status;
+}
+
+bool CFGArg::single_parse(int argc, const char** argv,
+                          std::vector<std::string>* errors) {
   bool status = true;
   CFGArg_RULE* ptr = nullptr;
   m_help = false;
@@ -355,59 +411,76 @@ bool CFGArg::print_option(const std::string& option,
   return status;
 }
 
-void CFGArg::print() {
-  std::string message = CFG_print("\n\nARG: %s\n", m_name.c_str());
-  if (m_rules.size()) {
-    message = CFG_print("%s  Option(s)\n", message.c_str());
-    for (auto& r : m_rules) {
-      message = CFG_print("%s    %s\n", message.c_str(), r.name.c_str());
-      message =
-          CFG_print("%s      Type: %s\n", message.c_str(), r.type_name.c_str());
-      message = CFG_print("%s      Specified: %d\n", message.c_str(), r.count);
-      message = CFG_print("%s      Value:", message.c_str());
-      if (r.multiple) {
-        if (r.type == "str") {
-          std::vector<std::string>* v_ptr =
-              reinterpret_cast<std::vector<std::string>*>(
-                  const_cast<void*>(r.ptr));
-          for (auto string : *v_ptr) {
-            message = CFG_print("%s %s,", message.c_str(), string.c_str());
+void CFGArg::print() const {
+  if (m_sub_args.size() > 0 && m_subcmd.size() > 0 &&
+      m_sub_args.find(m_subcmd) != m_sub_args.end()) {
+    m_sub_args.at(m_subcmd)->print();
+  } else {
+    std::string message = CFG_print("\n\nARG: %s\n", m_name.c_str());
+    if (m_rules.size()) {
+      message = CFG_print("%s  Option(s)\n", message.c_str());
+      for (auto& r : m_rules) {
+        message = CFG_print("%s    %s\n", message.c_str(), r.name.c_str());
+        message = CFG_print("%s      Type: %s\n", message.c_str(),
+                            r.type_name.c_str());
+        message =
+            CFG_print("%s      Specified: %d\n", message.c_str(), r.count);
+        message = CFG_print("%s      Value:", message.c_str());
+        if (r.multiple) {
+          if (r.type == "str") {
+            std::vector<std::string>* v_ptr =
+                reinterpret_cast<std::vector<std::string>*>(
+                    const_cast<void*>(r.ptr));
+            for (auto string : *v_ptr) {
+              message = CFG_print("%s %s,", message.c_str(), string.c_str());
+            }
+          } else {
+            std::vector<uint64_t>* v_ptr =
+                reinterpret_cast<std::vector<uint64_t>*>(
+                    const_cast<void*>(r.ptr));
+            for (auto u64 : *v_ptr) {
+              message = CFG_print("%s %ld (0x%lx),", message.c_str(), u64, u64);
+            }
           }
+          message.pop_back();
+          message = CFG_print("%s\n", message.c_str());
         } else {
-          std::vector<uint64_t>* v_ptr =
-              reinterpret_cast<std::vector<uint64_t>*>(
-                  const_cast<void*>(r.ptr));
-          for (auto u64 : *v_ptr) {
-            message = CFG_print("%s %ld (0x%lx),", message.c_str(), u64, u64);
+          if (r.type == "str" || r.type == "enum") {
+            std::string* v_ptr =
+                reinterpret_cast<std::string*>(const_cast<void*>(r.ptr));
+            message = CFG_print("%s %s\n", message.c_str(), v_ptr->c_str());
+          } else if (r.type == "flag") {
+            bool* v_ptr = reinterpret_cast<bool*>(const_cast<void*>(r.ptr));
+            message = CFG_print("%s %d\n", message.c_str(), *v_ptr);
+          } else {
+            uint64_t* v_ptr =
+                reinterpret_cast<uint64_t*>(const_cast<void*>(r.ptr));
+            message =
+                CFG_print("%s %ld (0x%lx)\n", message.c_str(), *v_ptr, *v_ptr);
           }
-        }
-        message.pop_back();
-        message = CFG_print("%s\n", message.c_str());
-      } else {
-        if (r.type == "str" || r.type == "enum") {
-          std::string* v_ptr =
-              reinterpret_cast<std::string*>(const_cast<void*>(r.ptr));
-          message = CFG_print("%s %s\n", message.c_str(), v_ptr->c_str());
-        } else if (r.type == "flag") {
-          bool* v_ptr = reinterpret_cast<bool*>(const_cast<void*>(r.ptr));
-          message = CFG_print("%s %d\n", message.c_str(), *v_ptr);
-        } else {
-          uint64_t* v_ptr =
-              reinterpret_cast<uint64_t*>(const_cast<void*>(r.ptr));
-          message =
-              CFG_print("%s %ld (0x%lx)\n", message.c_str(), *v_ptr, *v_ptr);
         }
       }
     }
-  }
-  if (m_args.size()) {
-    message = CFG_print("%s  Argument(s)\n", message.c_str());
-    for (size_t i = 0; i < m_args.size(); i++) {
-      message =
-          CFG_print("%s    (%d) %s\n", message.c_str(), i, m_args[i].c_str());
+    if (m_args.size()) {
+      message = CFG_print("%s  Argument(s)\n", message.c_str());
+      for (size_t i = 0; i < m_args.size(); i++) {
+        message =
+            CFG_print("%s    (%d) %s\n", message.c_str(), i, m_args[i].c_str());
+      }
     }
+    CFG_POST_MSG(message.c_str());
   }
-  CFG_POST_MSG(message.c_str());
+}
+
+std::string CFGArg::get_sub_arg_name() { return m_subcmd; }
+
+const CFGArg* CFGArg::get_sub_arg() {
+  const CFGArg* arg = nullptr;
+  if (m_sub_args.size() > 0 && m_subcmd.size() > 0 &&
+      m_sub_args.find(m_subcmd) != m_sub_args.end()) {
+    arg = m_sub_args.at(m_subcmd);
+  }
+  return arg;
 }
 
 #include "CFGArg_auto.cpp"

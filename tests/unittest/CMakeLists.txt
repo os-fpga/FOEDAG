@@ -46,6 +46,7 @@ set (CPP_LIST
     Simulation/Simulation_test.cpp
     Utils/FileUtils_test.cpp
     CFGCommon/CFGCommon_test.cpp
+    CFGCommon/CFGArg_test.cpp
     CFGCompiler/CFGCompiler_test.cpp
     MainWindow/PerfomanceTracker_test.cpp
 )
@@ -56,7 +57,7 @@ set (H_LIST
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
 
 target_link_libraries(unittest PRIVATE
   gtest

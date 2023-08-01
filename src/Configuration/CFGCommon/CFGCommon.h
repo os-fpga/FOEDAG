@@ -37,6 +37,7 @@ struct CFGCommon_ARG {
   std::string device;
   std::string projectName;
   std::string projectPath;
+  std::string taskPath;
   std::string compilerName;
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
