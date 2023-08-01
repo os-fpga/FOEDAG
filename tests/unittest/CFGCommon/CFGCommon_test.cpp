@@ -106,3 +106,31 @@ TEST(CFGCommon, test_string_split) {
   EXPECT_EQ(results.size(), 1);
   EXPECT_EQ(results[0], "I am*#You*#*#*#HEis*#");
 }
+
+TEST(CFGCommon, test_exception) {
+  unset_callback_message_function();
+  int a = 10;
+  int exception_count = 0;
+  try {
+    CFG_ASSERT(0 > a);
+    FAIL() << "CFG_ASSERT() should throw an error\n";
+  } catch (std::exception& e) {
+    EXPECT_EQ("0 > a", CFG_print("%s", e.what()));
+    exception_count++;
+  }
+  try {
+    CFG_ASSERT_MSG(0 > 10, "This is invalid comparision - %d > %d", 0, a);
+    FAIL() << "CFG_ASSERT_MSG() should throw an error\n";
+  } catch (std::exception& e) {
+    EXPECT_EQ("This is invalid comparision - 0 > 10", CFG_print("%s", e.what()));
+    exception_count++;
+  }
+  try {
+    CFG_INTERNAL_ERROR("This is internal error %s", "from CFGCommon UnitTest");
+    FAIL() << "CFG_INTERNAL_ERROR() should throw an error\n";
+  } catch (std::exception& e) {
+    EXPECT_EQ("This is internal error from CFGCommon UnitTest", CFG_print("%s", e.what()));
+    exception_count++;
+  }
+  EXPECT_EQ(exception_count, 3);
+}

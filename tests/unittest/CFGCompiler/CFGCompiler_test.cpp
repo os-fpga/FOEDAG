@@ -39,4 +39,25 @@ TEST(CFGCompiler, test_RegisterCallbackFunction) {
   EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("xyz", (cfg_callback_function)(0x456)), true);
 }
 
+void test_callback_good_function(const CFGCommon_ARG* cmdarg) {
+  CFG_POST_MSG("This is good function");
+}
+
+void test_callback_bad_function(const CFGCommon_ARG* cmdarg) {
+  CFG_INTERNAL_ERROR("This is internal error by purpose");
+}
+
+TEST(CFGCompiler, test_CallbackFunction) {
+  unset_callback_message_function();
+  // New registration - OK
+  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("good_testing", test_callback_good_function), true);
+  EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("bad_testing", test_callback_bad_function), true);
+  // Call good function
+  cfgcompiler.m_cmdarg.command = "good_testing";
+  EXPECT_EQ(cfgcompiler.Configure(), true);
+  // Call bad function
+  cfgcompiler.m_cmdarg.command = "bad_testing";
+  EXPECT_EQ(cfgcompiler.Configure(), false);
+}
+
 }
