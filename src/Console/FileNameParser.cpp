@@ -48,7 +48,7 @@ LineParser::Result FileNameParser::handleLine(const QString &message,
 
   // use static to fix use-static-qregularexpression clazy warning
   static const QRegularExpression all{
-      "((?:[\\.\\/\\[a-zA-Z]+)[\\/\\:]+\\S+[^\\.]\\.[a-zA-Z]+)"};
+      "((?:[\\.\\/\\_\\-a-zA-Z]+)[\\/\\:]+\\S+[^\\.]\\.[a-zA-Z]+)"};
   regExpMatch = all.match(message);
   if (regExpMatch.hasMatch()) {
     QString file = regExpMatch.captured(1);
