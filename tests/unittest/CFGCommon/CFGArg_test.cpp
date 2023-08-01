@@ -87,3 +87,42 @@ TEST(CFGArg, test_arg) {
              "argument(s) is specified");
   arg.print();
 }
+
+TEST(CFGArg, test_programmer_short_option_ok) {
+  CFGArg_PROGRAMMER arg;
+  std::vector<std::string> errors;
+  EXPECT_EQ(arg.config, "gemini.cfg");
+  EXPECT_EQ(arg.index, 0);
+  EXPECT_EQ(arg.m_args.size(), 0);
+  const char* argv[] = {"flash", "test.bit", "-o", "erase|program"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(arg.config, "gemini.cfg");
+  EXPECT_EQ(arg.index, 0);
+  EXPECT_EQ(arg.operations, "erase|program");
+  EXPECT_EQ(arg.m_args[0], "flash");
+  EXPECT_EQ(arg.m_args[1], "test.bit");
+  arg.print();
+}
+
+void test_program_device_long_option_ok() {
+  CFG_POST_MSG("test_program_device_long_option_ok");
+  CFGArg_PROGRAMMER arg;
+  std::vector<std::string> errors;
+  EXPECT_EQ(arg.config, "gemini.cfg");
+  EXPECT_EQ(arg.index, 0);
+  EXPECT_EQ(arg.m_args.size(), 0);
+  const char* argv[] = {"flash",        "test.bit",
+                        "--operations", "erase,blankcheck,program",
+                        "-c",           "gemini.cfg"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(arg.config, "gemini.cfg");
+  EXPECT_EQ(arg.index, 0);
+  EXPECT_EQ(arg.operations, "erase,blankcheck,program");
+  EXPECT_EQ(arg.m_args[0], "flash");
+  EXPECT_EQ(arg.m_args[1], "test.bit");
+  arg.print();
+}
