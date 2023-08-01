@@ -143,6 +143,10 @@ void PlacementReportManager::parseLogFile() {
                                         m_placementKeys);
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
+    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
@@ -155,6 +159,7 @@ void PlacementReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path PlacementReportManager::logFile() const {

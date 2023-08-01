@@ -43,6 +43,8 @@ class TaskTableView : public QTableView {
   void setModel(QAbstractItemModel *model) override;
   void setViewDisabled(bool disabled);
 
+  void updateLastColumn();
+
  protected:
   void mousePressEvent(QMouseEvent *event) override;
   void mouseDoubleClickEvent(QMouseEvent *event) override;
@@ -89,8 +91,9 @@ class TaskTableView : public QTableView {
   };
 
   TaskManager *m_taskManager{nullptr};
-  static constexpr uint StatusCol{0};
-  static constexpr uint TitleCol{1};
+  static constexpr int StatusCol{0};
+  static constexpr int TitleCol{1};
+  static constexpr int FMaxCol{2};
   // Indicates that view is disabled and shouldn't be interactive
   bool m_viewDisabled{false};
 };
