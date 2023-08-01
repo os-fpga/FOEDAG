@@ -73,7 +73,6 @@ TaskTableView *prepareCompilerView(Compiler *compiler,
   view->setModel(model);
 
   view->resizeColumnsToContents();
-  view->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
   view->horizontalHeader()->setStretchLastSection(true);
   view->setMinimumWidth(340);
 

@@ -159,6 +159,7 @@ void PlacementReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path PlacementReportManager::logFile() const {

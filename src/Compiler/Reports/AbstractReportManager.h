@@ -115,6 +115,7 @@ class AbstractReportManager : public ITaskReportManager {
 
  signals:
   void reportCreated(QString reportName);
+  void logFileParsed();
 
  protected:
   IDataReport::ColumnValues m_resourceColumns;

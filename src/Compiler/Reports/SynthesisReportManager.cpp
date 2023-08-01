@@ -230,6 +230,7 @@ void SynthesisReportManager::parseLogFile() {
   fillErrorsWarnings();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 QString SynthesisReportManager::getTimingLogFileName() const {

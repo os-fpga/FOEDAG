@@ -142,6 +142,7 @@ void RoutingReportManager::parseLogFile() {
 
   logFile->close();
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path RoutingReportManager::logFile() const {

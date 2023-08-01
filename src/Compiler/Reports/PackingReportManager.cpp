@@ -149,6 +149,7 @@ void PackingReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path PackingReportManager::logFile() const {

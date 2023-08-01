@@ -326,6 +326,7 @@ void TimingAnalysisReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path TimingAnalysisReportManager::logFile() const {

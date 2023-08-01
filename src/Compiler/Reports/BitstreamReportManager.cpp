@@ -81,6 +81,7 @@ void BitstreamReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path BitstreamReportManager::logFile() const {
