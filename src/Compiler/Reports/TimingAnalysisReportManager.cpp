@@ -31,16 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TableReport.h"
 #include "Utils/FileUtils.h"
 
-#ifndef PRODUCTION_BUILD
-#define TIMING_SUMMARY
-#endif
-
 namespace {
 static constexpr const char *DESIGN_STAT_REPORT_NAME{"STA - Design statistics"};
 static constexpr const char *RESOURCE_REPORT_NAME{"STA - Utilization report"};
-#ifdef TIMING_SUMMARY
 static constexpr const char *TIMING_REPORT{"Timing Summary"};
-#endif
 
 static const QString LOAD_ARCH_SECTION{"# Loading Architecture Description"};
 static const QString BLOCK_GRAPH_BUILD_SECTION{
@@ -51,8 +45,6 @@ static const QString CREATE_DEVICE_SECTION{"# Create Device"};
 static const QString LOAD_PLACEMENT_SECTION{"# Load Placement"};
 static const QString LOAD_ROUTING_SECTION{"# Load Routing"};
 
-static const QString INTRA_DOMAIN_PATH_DELAYS_SECTION{
-    "Final intra-domain critical path delays (CPDs):"};
 static const QString INTER_DOMAIN_PATH_DELAYS_SECTION{
     "Final inter-domain critical path delays (CPDs):"};
 
@@ -161,33 +153,10 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
     m_timingHold.TNS = match.captured(1).toDouble();
     return;
   }
-
-  static const QRegularExpression clock{"Netlist Clock '(.+)' Fanout"};
-  match = clock.match(line);
-  if (match.hasMatch()) {
-    m_clocksIntra.push_back({match.captured(1)});
-    return;
-  }
-
-  static const QRegularExpression pathDelay{QString{
-      "Final critical path delay \\(least slack\\): %1 ns, Fmax: %1 MHz"}
-                                                .arg(FloatRegex())};
-  match = pathDelay.match(line);
-  if (match.hasMatch() && !m_clocksIntra.isEmpty()) {
-    m_clocksIntra[0].pathDelay = match.captured(1).toDouble();
-    if (match.lastCapturedIndex() >= 4)
-      m_clocksIntra[0].fMax = match.captured(4).toDouble();
-    return;
-  }
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
-  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME
-#ifdef TIMING_SUMMARY
-          ,
-          TIMING_REPORT
-#endif
-  };
+  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
 }
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
@@ -346,6 +315,7 @@ void TimingAnalysisReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path TimingAnalysisReportManager::logFile() const {
@@ -368,7 +338,6 @@ void TimingAnalysisReportManager::clean() {
   m_totalDesignTable.clear();
   m_intraClockTable.clear();
   m_interClockTable.clear();
-  m_clocksIntra.clear();
   m_clocksInter.clear();
   m_totalDesignMeta.clear();
   m_intraClockMeta.clear();
@@ -394,14 +363,14 @@ void TimingAnalysisReportManager::validateTimingReport() {
       m_totalDesignMeta[1][i].forground = Qt::red;
   }
   if (m_clocksIntra.count() == 1) {  // single clock
-    if (m_timingSetup.WNS < 0) {
+    if ((m_timingSetup.WNS < 0) || !m_clocksIntra.at(0).constrained) {
       for (int j = 0; j < m_intraClockMeta.at(0).count(); j++) {
         m_intraClockMeta[0][j].forground = Qt::red;
       }
     }
   } else {
     for (int i = 0; i < m_clocksIntra.count(); i++) {
-      if (m_clocksIntra.at(i).WNS < 0) {
+      if ((m_clocksIntra.at(i).WNS < 0) || !m_clocksIntra.at(i).constrained) {
         for (int j = 0; j < m_intraClockMeta.at(i).count(); j++) {
           m_intraClockMeta[i][j].forground = Qt::red;
         }
@@ -492,19 +461,27 @@ IDataReport::TableData TimingAnalysisReportManager::CreateIntraClock() const {
   if (m_clocksIntra.count() < 2) {
     const bool met = (m_timingSetup.WNS == 0);
     for (const auto &clock : m_clocksIntra) {
-      data.push_back({clock.clockName,
-                      ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
-                      QString::number(clock.pathDelay),
-                      ToString(m_timingSetup.WNS),
-                      QString::number(clock.fMax)});
+      if (!clock.constrained) {
+        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+      } else {
+        data.push_back({clock.clockName,
+                        ToString(met ? 0 : clock.pathDelay + m_timingSetup.WNS),
+                        QString::number(clock.pathDelay),
+                        ToString(m_timingSetup.WNS),
+                        QString::number(clock.fMax)});
+      }
     }
   } else if (m_clocksIntra.count() > 1) {
     for (const auto &clock : m_clocksIntra) {
-      const bool met = (clock.WNS == 0);
-      data.push_back({clock.clockName,
-                      ToString(met ? 0 : clock.pathDelay + clock.WNS),
-                      QString::number(clock.pathDelay), ToString(clock.WNS),
-                      QString::number(clock.fMax)});
+      if (!clock.constrained) {
+        data.push_back({clock.clockName, "Unconstrained", {}, {}, {}});
+      } else {
+        const bool met = (clock.WNS == 0);
+        data.push_back({clock.clockName,
+                        ToString(met ? 0 : clock.pathDelay + clock.WNS),
+                        QString::number(clock.pathDelay), ToString(clock.WNS),
+                        QString::number(clock.fMax)});
+      }
     }
   }
   return data;
@@ -519,23 +496,6 @@ IDataReport::TableData TimingAnalysisReportManager::CreateInterClock() const {
                     QString::number(clock.WNS), QString::number(clock.fMax)});
   }
   return data;
-}
-
-void TimingAnalysisReportManager::parseIntraDomPathDelaysSection(
-    const QString &line) {
-  static const QRegularExpression lineRegex{
-      QString{"(\\S+) .+CPD: %1 ns \\(%1 MHz\\)"}.arg(FloatRegex())};
-  auto match = lineRegex.match(line);
-  if (match.hasMatch()) {
-    auto clockName = match.captured(1);
-    for (auto &clock : m_clocksIntra) {
-      if (clock.clockName == clockName) {
-        clock.pathDelay = match.captured(2).toDouble();
-        clock.fMax = match.captured(5).toDouble();
-        break;
-      }
-    }
-  }
 }
 
 void TimingAnalysisReportManager::parseIntraSetupSection(const QString &line) {
@@ -580,23 +540,6 @@ void TimingAnalysisReportManager::parseInterSetupSection(const QString &line) {
       }
     }
   }
-}
-
-int TimingAnalysisReportManager::parseSection(
-    QTextStream &in, int lineNr,
-    const std::function<void(const QString &)> &processLine) {
-  QString line{};
-  while (in.readLineInto(&line)) {
-    ++lineNr;
-    if (line.isEmpty()) break;  // end of section
-    processLine(line);
-  }
-  return lineNr;
-}
-
-QString TimingAnalysisReportManager::FloatRegex() {
-  static const QString regex{"([-+]?([0-9]+(\\.[0-9]+)?|\\.[0-9]+))"};
-  return regex;
 }
 
 }  // namespace FOEDAG

@@ -108,6 +108,17 @@ void TaskTableView::setViewDisabled(bool disabled) {
   viewport()->setEnabled(!m_viewDisabled);
 }
 
+void TaskTableView::updateLastColumn() {
+  int maxWidth{0};
+  for (int i = 0; i < model()->rowCount(); i++) {
+    auto data = model()->data(model()->index(i, FMaxCol), Qt::DisplayRole);
+    const QFontMetrics fm{font()};
+    auto rect = fm.boundingRect(data.toString());
+    maxWidth = qMax(maxWidth, rect.width() + 20);
+  }
+  if (maxWidth != 0) setColumnWidth(FMaxCol, maxWidth);
+}
+
 void TaskTableView::customMenuRequested(const QPoint &pos) {
   // We only disabled the viewport in order to have scrollbar enabled.
   // Mouse events keep on coming in this case though, so we catch them manually.

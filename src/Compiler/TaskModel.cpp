@@ -90,13 +90,14 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       task->type() == TaskType::Action)
     return task->isEnable() ? Qt::Checked : Qt::Unchecked;
 
-  if (role == Qt::DisplayRole && index.column() == TIMING_COL) {
+  if ((role == Qt::DisplayRole || role == Qt::ToolTipRole) &&
+      index.column() == TIMING_COL) {
     auto registry =
         m_taskManager->getReportManagerRegistry().getReportManager(taskID);
     // Bitstream generation step should not display Fmax
     if (registry && taskID != BITSTREAM) {
-      if (registry->usedResources().stat.fmax != 0)
-        return QString::number(registry->usedResources().stat.fmax);
+      auto fmax = registry->FMax();
+      if (!fmax.isEmpty()) return fmax;
     }
     return QVariant{};
   }

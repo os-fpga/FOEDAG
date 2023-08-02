@@ -1362,6 +1362,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           [this](auto taskName) {
             statusBar()->showMessage(tr("%1 generated").arg(taskName));
           });
+  connect(m_taskManager, &TaskManager::logFileParsed, this,
+          [this]() { m_taskView->updateLastColumn(); });
 
   connect(compilerNotifier, &CompilerNotifier::compilerStateChanged, this,
           &MainWindow::updatePRViewButton);
