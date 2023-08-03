@@ -60,7 +60,7 @@ class HierarchyView : public QObject {
 
  private slots:
   void treeWidgetContextMenu(const QPoint &pos);
-  void itemDoubleClick(QTreeWidgetItem *item, int column);
+  void OpenModuleInstance(QTreeWidgetItem *item, int column);
 
  private:
   QTreeWidgetItem *addItem(QTreeWidgetItem *parent, Module *module);
