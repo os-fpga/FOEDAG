@@ -45,19 +45,7 @@ enum ProgrammerErrorCode {
   OpenOCDExecutableNotFound = -110,
 };
 
-static std::map<int, std::string> ErrorMessages = {
-    {NoError, "Success"},
-    {InvalidArgument, "Invalid argument"},
-    {DeviceNotFound, "Device not found"},
-    {CableNotFound, "Cable not found"},
-    {CableNotSupported, "Cable not supported"},
-    {NoSupportedTapFound, "No supported tap found"},
-    {FailedExecuteCommand, "Failed to execute command"},
-    {FailedToParseOutput, "Failed to parse output"},
-    {BitfileNotFound, "Bitfile not found"},
-    {FailedToProgramFPGA, "Failed to program FPGA"},
-    {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
-};
+extern std::map<int, std::string> ErrorMessages;
 
 struct TapInfo {
   int index;
@@ -71,7 +59,7 @@ struct TapInfo {
 };
 
 static const std::vector<TapInfo> supportedTAP{
-    {0, "Gemini", true, 0x20000913, 0x20000913, 0x5, 0x1, 0x3}};
+    {0, "Gemini", true, 0x1000563d, 0x1000563d, 0x5, 0x1, 0x3}};
 
 static const std::vector<std::tuple<uint16_t, uint16_t>>
     supportedCableVendorIdProductId{{0x0403, 0x6011}, {0x0403, 0x6010}};
@@ -90,10 +78,10 @@ struct Cable {
   uint8_t busAddr;
   uint8_t portAddr;
   uint8_t deviceAddr;
-  uint16_t channel;
-  std::string serialNumber;
-  std::string description;
-  uint32_t speed = 1000;  // hz
+  uint16_t channel = 0;
+  std::string serialNumber = "";
+  std::string description = "";
+  uint32_t speed = 1000;  // kHz
   TransportType transport = TransportType::jtag;
 };
 

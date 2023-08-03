@@ -166,7 +166,7 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
   size_t pos = -1;
   std::vector<std::string> matches;
   const std::string pattern(
-      R"(\s*(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)\s*)");
+      R"(Found\s+(\d+)\s+([\w\s]+)\s+([0-9a-fA-Fx]+)\s+(\d+)\s+(\d+))");
 
   while (std::getline(iss, line)) {
     matches = findStringPattern(line, pattern);
@@ -179,20 +179,29 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
     }
     Device device;
     std::istringstream lineStream(line);
-    std::string indexStr;
     std::string firstToken;
-    std::getline(lineStream, firstToken, ' ');
-    std::getline(lineStream, indexStr, ' ');
-    device.index = std::stoi(indexStr);
+    std::getline(lineStream, firstToken, ' ');  // "found string"
+
+    std::string indexStr;
+    std::getline(lineStream, indexStr, ' ');  // index string
+    device.index = stoi(indexStr);
+
+    std::getline(lineStream >> std::ws, device.name, ' ');  // device name
+
+    std::string idCodeStr;
+    std::getline(lineStream >> std::ws, idCodeStr,
+                 ' ');  // idCode string in hex
+    device.tapInfo.idCode = stol(idCodeStr, 0, 16);
+
+    std::string irLenStr;
+    std::getline(lineStream >> std::ws, irLenStr, ' ');  // irlength string
+    device.tapInfo.irLen = stoi(irLenStr);
 
     std::string flashSizeStr;
-    std::getline(lineStream >> std::ws, flashSizeStr, ' ');
-    device.flashSize = std::stoi(flashSizeStr);
+    std::getline(lineStream >> std::ws, flashSizeStr,
+                 ' ');  // flash size string in base 10
+    device.flashSize = stol(flashSizeStr);
 
-    std::getline(lineStream >> std::ws, device.name, ' ');
-    std::string idCodeStr;
-    std::getline(lineStream >> std::ws, idCodeStr, ' ');
-    device.tapInfo.idCode = std::stoi(idCodeStr, 0, 0);
     for (const TapInfo& tap : supportedTAP) {
       if (tap.idCode == device.tapInfo.idCode) {
         device.tapInfo.enabled = tap.enabled;
@@ -201,7 +210,7 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
         device.tapInfo.irMask = tap.irMask;
         device.tapInfo.irLen = tap.irLen;
         device.tapInfo.tapName = tap.tapName;
-        break;
+        devices.push_back(device);
       }
     }
   }
@@ -248,9 +257,11 @@ CfgStatus extractStatus(const std::string& statusString, bool& statusFound) {
 std::stringstream buildFpgaCableStringStream(const Cable& cable) {
   std::stringstream ss;
   ss << std::hex << std::showbase;
-  ss << " -c \"adapter driver ftdi\""
-     << " -c \"adapter serial " << cable.serialNumber << "\""
-     << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
+  ss << " -c \"adapter driver ftdi\"";
+  if (cable.serialNumber != "") {
+    ss << " -c \"adapter serial " << cable.serialNumber << "\"";
+  }
+  ss << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
      << "\""
      << " -c \"ftdi layout_init 0x0c08 0x0f1b\"";
   ss << std::dec << std::noshowbase;
