@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2023 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2023 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,8 +19,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+
 #include "CFGCommon/CFGCommon.h"
 #include "Programmer.h"
+
+void progressCallback(std::string msg) { std::cout << msg; }
+
+void messageCallback(std::string msg) { std::cout << "MS-CALLBACK :" << msg; }
 
 using namespace FOEDAG;
 int main(int argc, const char** argv) {
@@ -30,12 +36,21 @@ int main(int argc, const char** argv) {
   // programmer_entry(&cmdarg);
 
   // simple programmer API manual testing
+
   std::string openOCDPath = "/home/guanyung/dev/openocd/src/openocd";
-  InitLibrary(openOCDPath);
+  openOCDPath = "/home/asic01/development/openocd_rs/src/openocd";
+  int ret = InitLibrary(openOCDPath);
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+  }
   std::vector<Device> devices;
 
   std::vector<FOEDAG::Cable> cables;
-  GetAvailableCables(cables);
+  ret = GetAvailableCables(cables);
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+  }
+  CFG_POST_MSG("return %d", ret);
   CFG_POST_MSG("-- GetAvailableCables(cables) --")
   for (auto& cable : cables) {
     CFG_POST_MSG("--------------")
@@ -53,43 +68,76 @@ int main(int argc, const char** argv) {
 
   CFG_POST_MSG("-- ListDevices(cables, outputMsg) --")
   if (cables.size() > 0) {
-    if (ListDevices(cables[0], devices)) {
-      CFG_POST_MSG("### ListDevices API testing ###");
-      for (auto& device : devices) {
-        CFG_POST_MSG("-------------------------");
-        CFG_POST_MSG("Device name: %s", device.name.c_str());
-        CFG_POST_MSG("Device index: %d", device.index);
-        CFG_POST_MSG("Device jtagId: %d", device.tapInfo.idCode);
-        CFG_POST_MSG("Device mask: %d", device.tapInfo.irMask);
-        CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
-        CFG_POST_MSG("Device flashSize: %d", device.flashSize);
-      }
+    ret = ListDevices(cables[0], devices);
+    if (ret != NoError) {
+      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+      return ret;
+    }
+    CFG_POST_MSG("### ListDevices API testing ###");
+    for (auto& device : devices) {
+      CFG_POST_MSG("-------------------------");
+      CFG_POST_MSG("Device name: %s", device.name.c_str());
+      CFG_POST_MSG("Device index: %d", device.index);
+      CFG_POST_MSG("Device jtagId: %d", device.tapInfo.idCode);
+      CFG_POST_MSG("Device mask: %d", device.tapInfo.irMask);
+      CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
+      CFG_POST_MSG("Device flashSize: %d", device.flashSize);
+
       CFG_POST_MSG("-------------------------");
     }
   }
+  if (devices.size() > 0) {
+    CfgStatus status;
+    ret = GetFpgaStatus(cables[0], devices[0], status);
+    if (ret != NoError) {
+      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+      return ret;
+    }
+    CFG_POST_MSG("### GetFpgaStatus API testing ###");
+    CFG_POST_MSG("Device cfgDone: %s", std::to_string(status.cfgDone).c_str());
+    CFG_POST_MSG("Device cfgError: %s",
+                 std::to_string(status.cfgError).c_str());
+  }
 
-  // Device device = devices[0];
-  // CfgStatus status;
-  // if (GetFpgaStatus(device, status)) {
-  //   CFG_POST_MSG("### GetFpgaStatus API testing ###");
-  //   CFG_POST_MSG("Device cfgDone: %s",
-  //   std::to_string(status.cfgDone).c_str()); CFG_POST_MSG("Device cfgError:
-  //   %s",
-  //                std::to_string(status.cfgError).c_str());
-  // }
+  int userInput = 1;
+  std::atomic<bool> stop = false;
+  std::string bitfile =
+      "/home/asic01/development/ubi_fsbl_fpga_faked_spare_reg.bin";
+  std::cout << "Enter 1 for fpga programming (default  1)\n"
+            << "2 for flash programming" << std::endl;
+  std::cin >> userInput;
+  if (userInput == 1) {
+    ret = ProgramFpga(cables[0], devices[0], bitfile, stop,
+                      nullptr,          //&std::cout,
+                      nullptr,          // messageCallback, //nullptr
+                      progressCallback  // progressCallback
+    );
+  } else {
+    bitfile = "/home/asic01/development/ubi_fsbl_fpga_flash_program.bin";
+    ProgramFlashOperation modes = ProgramFlashOperation::Program;
+    ret = ProgramFlash(cables[0], devices[0], bitfile, stop, modes,
+                       nullptr,          //&std::cout,
+                       messageCallback,  // nullptr
+                       nullptr           // progressCallback
+    );
+  }
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
+  }
 
-  // OutputCallback callback = [](std::string msg) {
-  //   CFG_POST_MSG("### OutputCallback API testing ###");
-  //   CFG_POST_MSG("OutputCallback msg: %s", msg.c_str());
-  // };
-  // ProgressCallback progress = [](double percent) {
-  //   CFG_POST_MSG("### ProgressCallback API testing ###");
-  //   CFG_POST_MSG("ProgressCallback percent: %s",
-  //                std::to_string(percent).c_str());
-  // };
-  // std::atomic<bool> stop = false;
-  // ProgramFpga(device, "test.bit", "config.cfg", nullptr, callback, progress,
-  //             stop);
+  if (devices.size() > 0) {
+    CfgStatus status;
+    ret = GetFpgaStatus(cables[0], devices[0], status);
+    if (ret != NoError) {
+      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+      return ret;
+    }
+    CFG_POST_MSG("### GetFpgaStatus API testing ###");
+    CFG_POST_MSG("Device cfgDone: %s", std::to_string(status.cfgDone).c_str());
+    CFG_POST_MSG("Device cfgError: %s",
+                 std::to_string(status.cfgError).c_str());
+  }
 
   return 0;
 }

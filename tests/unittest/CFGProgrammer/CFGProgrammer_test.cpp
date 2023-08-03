@@ -120,30 +120,24 @@ TEST(ProgrammerHelper, ExtractTapInfoListTest) {
 TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
   std::string input =
       "Found  0   Device1   0x1234abcd   4   16384\n"
-      "Found 1   Device2   0x5678efgh   5   1024000\n"
-      "Found  2   Device3   0x90abcdef   6   1612312384\n";
+      "Found 1   Device2   0x5678deff   5   1024000\n"
+      "Found  2   Device3   0x90abcdef   6    262144\n"
+      "Found  0 gemini               0x1000563d   5          16384\n";
   std::vector<Device> expected = {
-      {0,
-       "Device1",
-       16384,
-       {11, "Device1.tap", true, 0x1234abcd, 0x1234abcd, 4, 0x1, 0x3}},
       {1,
-       "Device2",
-       1024000,
-       {22, "Device2.tap", true, 0x5678deff, 0x5678deff, 5, 0x1, 0x3}},
-      {2,
-       "Device3",
-       1612312384,
-       {33, "Device3.tap", true, 0x90abcdef, 0x90abcdef, 6, 0x1, 0x3}}};
-  std::vector<Device> actual = extractDeviceList(input);
-  for (size_t i = 0; i < actual.size(); i++) {
-    EXPECT_EQ(expected[i].index, actual[i].index);
-    EXPECT_EQ(expected[i].name, actual[i].name);
-    EXPECT_EQ(expected[i].tapInfo.idCode, actual[i].tapInfo.idCode);
-    EXPECT_EQ(expected[i].tapInfo.irMask, actual[i].tapInfo.irMask);
-    EXPECT_EQ(expected[i].tapInfo.irLen, actual[i].tapInfo.irLen);
-    EXPECT_EQ(expected[i].flashSize, actual[i].flashSize);
-  }
+       "gemini",
+       16384,
+       {44, "gemini.tap", true, 0x1000563d, 0x1000563d, 5, 0x1, 0x3}}
+    };    
+    std::vector<Device> actual = extractDeviceList(input);
+    EXPECT_EQ(expected.size(), actual.size());
+    EXPECT_EQ(expected[0].name, actual[0].name);
+    EXPECT_EQ(expected[0].tapInfo.idCode, actual[0].tapInfo.idCode);
+    EXPECT_EQ(expected[0].tapInfo.irMask, actual[0].tapInfo.irMask);
+    EXPECT_EQ(expected[0].tapInfo.irLen, actual[0].tapInfo.irLen);
+    EXPECT_EQ(expected[0].flashSize, actual[0].flashSize);
+    
+  
 }
 
 TEST(ProgrammerHelper, ExtractDeviceListNoMatchesTest) {
@@ -198,6 +192,25 @@ TEST(ProgrammerHelper, BuildFpgaCableStringStreamBasicTest) {
   expected << std::hex << std::showbase;
   expected << " -c \"adapter driver ftdi\""
            << " -c \"adapter serial " << cable.serialNumber << "\""
+           << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
+           << "\""
+           << " -c \"ftdi layout_init 0x0c08 0x0f1b\"";
+  expected << std::dec << std::noshowbase;
+  expected << " -c \"adapter speed " << cable.speed << "\""
+           << " -c \"transport select "
+           << transportTypeToString(cable.transport) << "\"";
+
+  std::stringstream actual = buildFpgaCableStringStream(cable);
+
+  EXPECT_EQ(expected.str(), actual.str());
+}
+
+TEST(ProgrammerHelper, BuildFpgaCableStringStreamSerialNumEmptyTest) {
+  Cable cable = {0x403, 0x6011,    45,         1,    88,
+                 3,     "", "lopopolo", 2000, TransportType::jtag};
+  std::stringstream expected;
+  expected << std::hex << std::showbase;
+  expected << " -c \"adapter driver ftdi\""
            << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
            << "\""
            << " -c \"ftdi layout_init 0x0c08 0x0f1b\"";
