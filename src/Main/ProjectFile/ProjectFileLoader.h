@@ -43,6 +43,7 @@ class ProjectFileLoader : public QObject {
   ~ProjectFileLoader();
   void registerComponent(ProjectFileComponent *comp, ComponentId id);
   ErrorCode Load(const QString &filename);
+  QString version() const;
 
  public slots:
   void Save();
@@ -56,6 +57,7 @@ class ProjectFileLoader : public QObject {
  private:
   std::vector<ProjectFileComponent *> m_components;
   bool m_loadDone{true};
+  QString m_version{};
 };
 
 }  // namespace FOEDAG

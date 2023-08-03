@@ -56,6 +56,8 @@ ErrorCode ProjectFileLoader::Load(const QString &filename) {
   return ec;
 }
 
+QString ProjectFileLoader::version() const { return m_version; }
+
 ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
   if (filename.isEmpty()) return {true, "Empty project filename"};
 
@@ -65,10 +67,7 @@ ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
   if (filename == strTemp) return {};
 
   // this is starting point for backward compatibility
-  QString version = ProjectVersion(filename);
-  Q_UNUSED(version)
-  // reorganize code in the future to have different loaders for compatible
-  // versions
+  m_version = ProjectVersion(filename);
 
   QFile file(filename);
   if (!file.open(QFile::ReadOnly | QFile::Text))

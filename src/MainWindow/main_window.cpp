@@ -830,6 +830,27 @@ void MainWindow::loadFile(const QString& file) {
       closeProject(true);
       return;
     }
+    auto versionStr = m_projectFileLoader->version();
+    bool ok{};
+    Version version = toVersion(versionStr, &ok);
+    if (ok) {
+      QString currentVersionStr = TO_C_STR(FOEDAG_VERSION);
+      Version currentVersion = toVersion(currentVersionStr, &ok);
+      if (ok && version != currentVersion) {
+        if (version < currentVersion)
+          m_compiler->Message(
+              QString{"Project was created using an older %1 version %2. It is "
+                      "recommended to create this project again using %3."}
+                  .arg(m_projectInfo.name, versionStr, currentVersionStr)
+                  .toStdString());
+        else
+          m_compiler->Message(
+              QString{"Project was created using a newer %1 version %2. It is "
+                      "recommended to upgrade to newer version."}
+                  .arg(m_projectInfo.name, versionStr)
+                  .toStdString());
+      }
+    }
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
     updateTaskTable();
