@@ -42,6 +42,11 @@ struct ProgrammerCommand {
   bool is_error = false;
 };
 
+int64_t ConvertIntegerStringToInt64(const std::string& str,
+                                    std::size_t* pos = nullptr, int base = 10);
+int ConvertIntegerStringToInt(const std::string& str,
+                              std::size_t* pos = nullptr, int base = 10);
+
 void addOrUpdateErrorMessage(int error, const std::string& message);
 std::vector<std::string> findStringPattern(const std::string& input,
                                            const std::string& pattern);
