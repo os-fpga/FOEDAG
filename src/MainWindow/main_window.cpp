@@ -573,6 +573,7 @@ void MainWindow::stopCompilation() {
 void MainWindow::forceStopCompilation() {
   m_compiler->Stop();
   m_progressBar->hide();
+  while (isRunning()) QApplication::processEvents();
 }
 
 void MainWindow::showMessagesTab() {
