@@ -33,6 +33,20 @@ namespace FOEDAG {
 static std::string libOpenOcdExecPath;
 static std::vector<TapInfo> foundTap;
 
+std::map<int, std::string> ErrorMessages = {
+    {NoError, "Success"},
+    {InvalidArgument, "Invalid argument"},
+    {DeviceNotFound, "Device not found"},
+    {CableNotFound, "Cable not found"},
+    {CableNotSupported, "Cable not supported"},
+    {NoSupportedTapFound, "No supported tap found"},
+    {FailedExecuteCommand, "Failed to execute command"},
+    {FailedToParseOutput, "Failed to parse output"},
+    {BitfileNotFound, "Bitfile not found"},
+    {FailedToProgramFPGA, "Failed to program FPGA"},
+    {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
+};
+
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   if (cmdarg->compilerName == "dummy") {
     auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
@@ -186,8 +200,9 @@ int GetAvailableCables(std::vector<Cable>& cables) {
           addOrUpdateErrorMessage(returnCode, outputMsg);
           continue;
         }
-        if (get_string_descriptor(libusbHandle, devDesc.iProduct,
-                                  cable.description, outputMsg) < 0) {
+        returnCode = get_string_descriptor(libusbHandle, devDesc.iProduct,
+                                           cable.description, outputMsg);
+        if (returnCode < 0) {
           addOrUpdateErrorMessage(returnCode, outputMsg);
           libusb_close(libusbHandle);
           continue;
@@ -195,9 +210,8 @@ int GetAvailableCables(std::vector<Cable>& cables) {
 
         if (get_string_descriptor(libusbHandle, devDesc.iSerialNumber,
                                   cable.serialNumber, outputMsg) < 0) {
-          addOrUpdateErrorMessage(returnCode, outputMsg);
-          libusb_close(libusbHandle);
-          continue;
+          cable.serialNumber = "";  // ignore error, not all usb cable has
+                                    // serial number
         }
 
         cables.push_back(cable);
@@ -217,7 +231,7 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
   CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
                  "libOpenOcdExecPath cannot be empty");
   int returnCode = ProgrammerErrorCode::NoError;
-  std::string cmdOutput, outputMsg;
+  std::string cmdOutput, outputMsg, listDeviceCmdOutput;
   std::atomic<bool> stopCommand{false};
   devices.clear();
   outputMsg.clear();
@@ -260,7 +274,8 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
 
   std::string listDeviceCmd =
       libOpenOcdExecPath + buildListDeviceCommand(cable, foundTap);
-  returnCode = CFG_execute_cmd(listDeviceCmd, cmdOutput, nullptr, stopCommand);
+  returnCode =
+      CFG_execute_cmd(listDeviceCmd, listDeviceCmdOutput, nullptr, stopCommand);
   if (returnCode) {
     outputMsg += "Failed to execute following command " + listDeviceCmd +
                  ". Error code: " + std::to_string(returnCode) + "\n";
@@ -270,6 +285,7 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
     returnCode = ProgrammerErrorCode::FailedExecuteCommand;
     return ProgrammerErrorCode::FailedExecuteCommand;
   }
+  devices = extractDeviceList(listDeviceCmdOutput);
   return ProgrammerErrorCode::NoError;
 }
 
