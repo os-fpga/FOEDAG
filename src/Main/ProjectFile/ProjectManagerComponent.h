@@ -29,15 +29,15 @@ class ProjectManagerComponent : public ProjectFileComponent {
  public:
   ProjectManagerComponent(ProjectManager *pManager, QObject *parent = nullptr);
   void Save(QXmlStreamWriter *writer) override;
-  void Load(QXmlStreamReader *reader) override;
+  ErrorCode Load(QXmlStreamReader *reader) override;
   void LoadDone() override;
 
  protected:
   QString relatedPath(const QString &path) const;
-  QString absPath(const QString &path) const;
+  QString absPath(const QString &path, ErrorCode &ec) const;
 
   QString relatedPathList(const QStringList &pathList) const;
-  QString absPathList(const QStringList &pathList) const;
+  QString absPathList(const QStringList &pathList, ErrorCode &ec) const;
 
  protected:
   ProjectManager *m_projectManager{nullptr};

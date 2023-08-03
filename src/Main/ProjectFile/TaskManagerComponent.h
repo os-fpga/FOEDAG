@@ -35,7 +35,7 @@ class TaskManagerComponent : public ProjectFileComponent {
  public:
   TaskManagerComponent(TaskManager *taskManager, QObject *parent = nullptr);
   void Save(QXmlStreamWriter *writer) override;
-  void Load(QXmlStreamReader *reader) override;
+  ErrorCode Load(QXmlStreamReader *reader) override;
 
  protected:
   static QString ProjectVersion(const QString &filename);

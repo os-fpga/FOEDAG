@@ -215,13 +215,13 @@ void ProjectManagerComponent::Save(QXmlStreamWriter* writer) {
   stream.writeEndElement();
 }
 
-void ProjectManagerComponent::Load(QXmlStreamReader* r) {
+ErrorCode ProjectManagerComponent::Load(QXmlStreamReader* r) {
   QXmlStreamReader& reader{*r};
   while (!reader.atEnd()) {
     QXmlStreamReader::TokenType type = reader.readNext();
     if (type == QXmlStreamReader::StartElement) {
       if (reader.name() == PROJECT_CONFIGURATION) {
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == PROJECT_CONFIGURATION) {
@@ -262,7 +262,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         std::vector<std::pair<CompilationUnit, QString>> langList;
         std::vector<std::pair<QStringList, QStringList>> libs;
         QMap<QString, QString> mapOption;
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == PROJECT_FILESETS) {
@@ -280,8 +280,10 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
                 reader.attributes().value(PROJECT_FILESET_RELSRCDIR).toString();
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_PATH)) {
-            listFiles.append(
-                absPath(reader.attributes().value(PROJECT_PATH).toString()));
+            ErrorCode ec{};
+            listFiles.append(absPath(
+                reader.attributes().value(PROJECT_PATH).toString(), ec));
+            if (ec) return ec;
           } else if (type == QXmlStreamReader::StartElement &&
                      reader.attributes().hasAttribute(PROJECT_NAME) &&
                      reader.attributes().hasAttribute(PROJECT_VAL)) {
@@ -293,11 +295,13 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
             QString raw{
                 reader.attributes().value(PROJECT_GROUP_FILES).toString()};
             QStringList fileList = QtUtils::StringSplit(raw, ' ');
+            ErrorCode ec{};
             langList.push_back(std::make_pair(
                 CompilationUnit{
                     reader.attributes().value(PROJECT_GROUP_ID).toInt(),
                     reader.attributes().value(PROJECT_GROUP_NAME).toString()},
-                absPathList(fileList)));
+                absPathList(fileList, ec)));
+            if (ec) return ec;
             auto command =
                 reader.attributes().value(PROJECT_GROUP_LIB_COMMAND).toString();
             auto lib =
@@ -345,7 +349,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         }
       }
       if (reader.name() == COMPILER_CONFIG) {
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == COMPILER_CONFIG) {
@@ -382,7 +386,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         }
       }
       if (reader.name() == SIMULATION_CONFIG) {
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == SIMULATION_CONFIG) {
@@ -419,7 +423,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         }
       }
       if (reader.name() == IP_CONFIG) {
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == IP_CONFIG) {
@@ -467,7 +471,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
         QString strRunState;
         QString strSynthRun;
         QMap<QString, QString> mapOption;
-        while (true) {
+        while (!reader.hasError()) {
           type = reader.readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader.name() == PROJECT_RUNS) {
@@ -527,6 +531,7 @@ void ProjectManagerComponent::Load(QXmlStreamReader* r) {
       }
     }
   }
+  return {};
 }
 
 void ProjectManagerComponent::LoadDone() {
@@ -552,14 +557,21 @@ QString ProjectManagerComponent::relatedPath(const QString& path) const {
   return QString::fromStdString(relative_p.string());
 }
 
-QString ProjectManagerComponent::absPath(const QString& path) const {
+QString ProjectManagerComponent::absPath(const QString& path,
+                                         ErrorCode& ec) const {
   if (path.contains(PROJECT_OSRCDIR)) {
     QString absPath = path;
     auto replated =
         absPath.replace(PROJECT_OSRCDIR, m_projectManager->getProjectPath());
     std::filesystem::path path{replated.toStdString()};
-    path = std::filesystem::canonical(path);
-    return QString::fromStdString(path.string());
+    std::error_code errorCode{};
+    path = std::filesystem::canonical(path, errorCode);
+    if (errorCode) {
+      ec.hasError = true;
+      ec.message = "Failed to open file " + replated;
+    } else {
+      return QString::fromStdString(path.string());
+    }
   }
   return path;
 }
@@ -571,10 +583,13 @@ QString ProjectManagerComponent::relatedPathList(
   return files.join(' ');
 }
 
-QString ProjectManagerComponent::absPathList(
-    const QStringList& pathList) const {
+QString ProjectManagerComponent::absPathList(const QStringList& pathList,
+                                             ErrorCode& ec) const {
   QStringList files{};
-  for (const auto& file : pathList) files.append(absPath(file));
+  for (const auto& file : pathList) {
+    files.append(absPath(file, ec));
+    if (ec) break;
+  }
   return files.join(' ');
 }
 

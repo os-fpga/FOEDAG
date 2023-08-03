@@ -38,7 +38,7 @@ void CompilerComponent::Save(QXmlStreamWriter *writer) {
   writer->writeEndElement();
 }
 
-void CompilerComponent::Load(QXmlStreamReader *reader) {
+ErrorCode CompilerComponent::Load(QXmlStreamReader *reader) {
   while (!reader->atEnd()) {
     QXmlStreamReader::TokenType type = reader->readNext();
     if (type == QXmlStreamReader::StartElement &&
@@ -48,6 +48,7 @@ void CompilerComponent::Load(QXmlStreamReader *reader) {
       break;
     }
   }
+  return {};
 }
 
 }  // namespace FOEDAG

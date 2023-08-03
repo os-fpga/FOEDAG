@@ -818,7 +818,12 @@ bool MainWindow::saveConstraintFile() {
 
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
-    m_projectFileLoader->Load(file);
+    auto errorCode = m_projectFileLoader->Load(file);
+    if (errorCode) {
+      QMessageBox::critical(this, "File loading fails", errorCode.message);
+      closeProject(true);
+      return;
+    }
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));
     updateTaskTable();

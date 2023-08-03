@@ -39,13 +39,19 @@ Version toVersion(const QString &s);
 
 constexpr auto VERSION = "Version";
 
+struct ErrorCode {
+  bool hasError{false};
+  QString message{};
+  explicit operator bool() const { return hasError; }
+};
+
 class ProjectFileComponent : public QObject {
   Q_OBJECT
  public:
   explicit ProjectFileComponent(QObject *parent = nullptr);
   virtual ~ProjectFileComponent() = default;
   virtual void Save(QXmlStreamWriter *writer);
-  virtual void Load(QXmlStreamReader *reader) {}
+  virtual ErrorCode Load(QXmlStreamReader *reader) { return {}; }
   virtual void LoadDone() {}
 
  signals:
