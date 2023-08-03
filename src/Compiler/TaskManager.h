@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 class Compiler;
 class DialogProvider;
+class AbstractReportManager;
 
 /*!
  * \brief The TaskManager class
@@ -120,6 +121,7 @@ class TaskManager : public QObject {
   void progress(int progress, int max, const QString &msg = {});
 
   void taskReportCreated(QString reportName);
+  void logFileParsed();
   void enableChanged();
 
  private slots:
@@ -138,6 +140,7 @@ class TaskManager : public QObject {
    * \return vector of clean tasks in reverse order. Vector includes \param t.
    */
   QVector<Task *> getDownstreamCleanTasks(Task *t) const;
+  void registerReportManager(uint type, AbstractReportManager *manager);
 
  private:
   QMap<uint, Task *> m_tasks;

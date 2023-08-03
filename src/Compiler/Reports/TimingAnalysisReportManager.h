@@ -25,18 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 class Compiler;
 
-struct TimingData {
-  double WNS{};
-  double TNS{};
-};
-
-struct ClockData {
-  QString clockName;
-  double pathDelay{};
-  double WNS{};
-  double fMax{};
-};
-
 /* Report manager for timing analysis. It works with 'timing_analysis.rpt' log
  * file. As there are two timing engines supported: Tatum (Default) and OpenSTA,
  * this manager is responsible for recognizing messages of both.
@@ -74,13 +62,9 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
     for (int i = 0; i < row; i++) vec[i].resize(col);
   }
 
-  void parseIntraDomPathDelaysSection(const QString &line);
   void parseIntraSetupSection(const QString &line);
   void parseInterDomPathDelaysSection(const QString &line);
   void parseInterSetupSection(const QString &line);
-  int parseSection(QTextStream &in, int lineNr,
-                   const std::function<void(const QString &)> &processLine);
-  static QString FloatRegex();
 
   SectionKeys m_createDeviceKeys;
   IDataReport::ColumnValues m_openSTATimingColumns;
@@ -107,7 +91,6 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
   Compiler *m_compiler;
   TimingData m_timingSetup{};
   TimingData m_timingHold{};
-  QVector<ClockData> m_clocksIntra;
   QVector<ClockData> m_clocksInter;
 };
 

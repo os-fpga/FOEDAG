@@ -194,38 +194,14 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   // bitstream is disabled by default
   m_tasks[BITSTREAM]->setEnable(false, false);
 
-  auto synthesisReportManager = std::make_shared<SynthesisReportManager>(*this);
-  connect(synthesisReportManager.get(), &AbstractReportManager::reportCreated,
-          this, &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(
-      SYNTHESIS, std::move(synthesisReportManager));
+  registerReportManager(SYNTHESIS, new SynthesisReportManager{*this});
+  registerReportManager(PLACEMENT, new PlacementReportManager{*this});
+  registerReportManager(ROUTING, new RoutingReportManager{*this});
+  registerReportManager(TIMING_SIGN_OFF,
+                        new TimingAnalysisReportManager{*this, compiler});
+  registerReportManager(PACKING, new PackingReportManager{*this});
+  registerReportManager(BITSTREAM, new BitstreamReportManager{*this});
 
-  auto placementReportManager = std::make_shared<PlacementReportManager>(*this);
-  connect(placementReportManager.get(), &AbstractReportManager::reportCreated,
-          this, &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(
-      PLACEMENT, std::move(placementReportManager));
-  auto routingReportManager = std::make_shared<RoutingReportManager>(*this);
-  connect(routingReportManager.get(), &AbstractReportManager::reportCreated,
-          this, &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(
-      ROUTING, std::move(routingReportManager));
-  auto taReportManager =
-      std::make_shared<TimingAnalysisReportManager>(*this, compiler);
-  connect(taReportManager.get(), &AbstractReportManager::reportCreated, this,
-          &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(TIMING_SIGN_OFF,
-                                                std::move(taReportManager));
-  auto packingReportManager = std::make_shared<PackingReportManager>(*this);
-  connect(packingReportManager.get(), &AbstractReportManager::reportCreated,
-          this, &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(
-      PACKING, std::move(packingReportManager));
-  auto bitstreamReportManager = std::make_shared<BitstreamReportManager>(*this);
-  connect(bitstreamReportManager.get(), &AbstractReportManager::reportCreated,
-          this, &TaskManager::taskReportCreated);
-  m_reportManagerRegistry.registerReportManager(
-      BITSTREAM, std::move(bitstreamReportManager));
   initCleanTasks();
 }
 
@@ -436,6 +412,16 @@ QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
     if (*it == t) break;
   }
   return tasks;
+}
+
+void TaskManager::registerReportManager(uint type,
+                                        AbstractReportManager *manager) {
+  connect(manager, &AbstractReportManager::reportCreated, this,
+          &TaskManager::taskReportCreated);
+  connect(manager, &AbstractReportManager::logFileParsed, this,
+          &TaskManager::logFileParsed);
+  auto ptr = std::shared_ptr<AbstractReportManager>(manager);
+  m_reportManagerRegistry.registerReportManager(type, std::move(ptr));
 }
 
 }  // namespace FOEDAG

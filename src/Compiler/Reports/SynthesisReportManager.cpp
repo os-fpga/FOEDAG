@@ -213,6 +213,10 @@ void SynthesisReportManager::parseLogFile() {
       m_usedRes.dsp = DSP{};
       m_usedRes.logic.dff = 0;
       lineNr = parseStatisticsSection(in, lineNr);
+    } else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION)) {
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
     }
     ++lineNr;
   }
@@ -226,6 +230,7 @@ void SynthesisReportManager::parseLogFile() {
   fillErrorsWarnings();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 QString SynthesisReportManager::getTimingLogFileName() const {

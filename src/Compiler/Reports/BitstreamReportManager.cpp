@@ -65,7 +65,12 @@ void BitstreamReportManager::parseLogFile() {
   QString line;
   while (in.readLineInto(&line)) {
     parseStatisticLine(line);
-    if (line.startsWith(STATISTIC_SECTION)) parseStatisticsSection(in, -1);
+    if (line.startsWith(STATISTIC_SECTION))
+      parseStatisticsSection(in, -1);
+    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+      parseSection(in, -1, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
   }
   CreateLogicData();
   CreateBramData();
@@ -76,6 +81,7 @@ void BitstreamReportManager::parseLogFile() {
   logFile->close();
 
   setFileTimeStamp(this->logFile());
+  emit logFileParsed();
 }
 
 std::filesystem::path BitstreamReportManager::logFile() const {
