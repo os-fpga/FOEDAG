@@ -39,10 +39,19 @@ Version toVersion(const QString &s);
 
 constexpr auto VERSION = "Version";
 
-struct ErrorCode {
-  bool hasError{false};
-  QString message{};
-  explicit operator bool() const { return hasError; }
+class ErrorCode {
+ public:
+  ErrorCode() = default;
+  ErrorCode(bool hasError, const QString &msg)
+      : m_hasError(hasError), m_message(msg) {}
+  explicit operator bool() const { return m_hasError; }
+
+  bool hasError() const { return m_hasError; }
+  QString message() const { return m_message; }
+
+ private:
+  bool m_hasError{false};
+  QString m_message{};
 };
 
 class ProjectFileComponent : public QObject {

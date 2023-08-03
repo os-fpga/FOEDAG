@@ -567,8 +567,7 @@ QString ProjectManagerComponent::absPath(const QString& path,
     std::error_code errorCode{};
     path = std::filesystem::canonical(path, errorCode);
     if (errorCode) {
-      ec.hasError = true;
-      ec.message = "Failed to open file " + replated;
+      ec = {true, "Failed to open file " + replated};
     } else {
       return QString::fromStdString(path.string());
     }

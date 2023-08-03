@@ -820,7 +820,7 @@ void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
     auto errorCode = m_projectFileLoader->Load(file);
     if (errorCode) {
-      QMessageBox::critical(this, "File loading fails", errorCode.message);
+      QMessageBox::critical(this, "File loading fails", errorCode.message());
       closeProject(true);
       return;
     }
