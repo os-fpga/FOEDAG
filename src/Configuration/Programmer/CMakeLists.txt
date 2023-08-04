@@ -54,7 +54,7 @@ endif()
 # subsystem library
 #
 ###################
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
 
 find_package(USB1 REQUIRED)
 include_directories(${LIBUSB_INCLUDE_DIR})
