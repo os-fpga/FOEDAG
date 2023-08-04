@@ -42,16 +42,16 @@ class ProjectFileLoader : public QObject {
   explicit ProjectFileLoader(Project *project, QObject *parent = nullptr);
   ~ProjectFileLoader();
   void registerComponent(ProjectFileComponent *comp, ComponentId id);
+  ErrorCode Load(const QString &filename);
 
  public slots:
-  void Load(const QString &filename);
   void Save();
 
  protected:
   static QString ProjectVersion(const QString &filename);
 
  private:
-  void LoadInternal(const QString &filename);
+  ErrorCode LoadInternal(const QString &filename);
 
  private:
   std::vector<ProjectFileComponent *> m_components;
