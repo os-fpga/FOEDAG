@@ -75,9 +75,7 @@ void FOEDAG::CreateRunsDialog::on_m_btnOK_clicked() {
     } else {
       QList<rundata> listRun = m_createSynthRun->getRunDataList();
       QStringList listNewSynth;
-      foreach (auto rd, listRun) {
-        listNewSynth.append(rd.m_runName);
-      }
+      foreach (auto rd, listRun) { listNewSynth.append(rd.m_runName); }
       m_createImpleRun->setNewSynth(listNewSynth);
     }
   } else if (m_formIndex == CRFI_IMPLERUN) {
