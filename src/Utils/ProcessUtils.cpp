@@ -42,8 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   include <stdlib.h>
 #   include <sys/param.h>
 #   include <unistd.h>
-#   include <fstream>
 #endif
+
+#include <fstream>
 
 namespace FOEDAG {
 
