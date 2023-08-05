@@ -222,6 +222,12 @@ void MainWindow::ProgressVisible(bool visible) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
+  if (isRunning()) {
+    m_closeRequest = true;
+    event->ignore();
+    forceStopCompilation();
+    return;
+  }
   if (confirmExitProgram()) {
     forceStopCompilation();
     event->accept();
@@ -1359,6 +1365,7 @@ void MainWindow::ReShowWindow(QString strProject) {
     m_compiler->finish();
     showMessagesTab();
     showReportsTab();
+    if (m_closeRequest) this->close();
   });
 
   connect(m_taskManager, &TaskManager::started, this,
