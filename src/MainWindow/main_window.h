@@ -263,6 +263,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   FileExplorer m_fileExplorer;
   HierarchyView m_hierarchyView{{}};
   PerfomanceTracker m_perfomanceTracker;
+  bool m_closeRequest{false};
 };
 
 }  // namespace FOEDAG
