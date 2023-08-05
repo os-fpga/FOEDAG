@@ -31,7 +31,7 @@ class CompilerComponent : public ProjectFileComponent {
  public:
   CompilerComponent(Compiler *cc);
   void Save(QXmlStreamWriter *writer) override;
-  void Load(QXmlStreamReader *reader) override;
+  ErrorCode Load(QXmlStreamReader *reader) override;
 };
 
 }  // namespace FOEDAG

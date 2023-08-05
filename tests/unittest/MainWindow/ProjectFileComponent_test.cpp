@@ -18,29 +18,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
 
-#include "Compiler/TaskManager.h"
-#include "ProjectFileComponent.h"
+#include "Main/ProjectFile/ProjectFileComponent.h"
 
-namespace FOEDAG {
+#include "gtest/gtest.h"
 
-constexpr auto TASK_MAIN = "Tasks";
-constexpr auto TASK_NAME = "Task";
-constexpr auto TASK_ID = "ID";
-constexpr auto TASK_STATUS = "Status";
-constexpr auto TASK_ENABLE = "Enable";
+using namespace FOEDAG;
 
-class TaskManagerComponent : public ProjectFileComponent {
- public:
-  TaskManagerComponent(TaskManager *taskManager, QObject *parent = nullptr);
-  void Save(QXmlStreamWriter *writer) override;
-  ErrorCode Load(QXmlStreamReader *reader) override;
+TEST(ErrorCode, constructorDefault) {
+  ErrorCode erc{};
+  EXPECT_EQ(erc.hasError(), false);
+  EXPECT_EQ(erc.message(), QString{});
+}
 
- protected:
-  static QString ProjectVersion(const QString &filename);
+TEST(ErrorCode, constructor) {
+  QString errorStr{"Some error"};
+  ErrorCode erc{true, errorStr};
+  EXPECT_EQ(erc.hasError(), true);
+  EXPECT_EQ(erc.message(), errorStr);
+}
 
- private:
-  TaskManager *m_taskManager{nullptr};
-};
-}  // namespace FOEDAG
+TEST(ErrorCode, operatorBool) {
+  QString errorStr{"Some error"};
+  ErrorCode erc{true, errorStr};
+  EXPECT_EQ((bool)erc, true);
+}

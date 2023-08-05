@@ -48,6 +48,7 @@ set (CPP_LIST
     CFGCommon/CFGCommon_test.cpp
     CFGCompiler/CFGCompiler_test.cpp
     MainWindow/PerfomanceTracker_test.cpp
+    MainWindow/ProjectFileComponent_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
