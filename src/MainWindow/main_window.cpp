@@ -222,13 +222,13 @@ void MainWindow::ProgressVisible(bool visible) {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-  if (isRunning()) {
-    m_closeRequest = true;
-    event->ignore();
-    forceStopCompilation();
-    return;
-  }
   if (confirmExitProgram()) {
+    if (isRunning()) {
+      m_closeRequest = true;
+      event->ignore();
+      forceStopCompilation();
+      return;
+    }
     forceStopCompilation();
     event->accept();
   } else {
@@ -1842,6 +1842,7 @@ bool MainWindow::confirmCloseProject() {
 bool MainWindow::confirmExitProgram() {
   if (!lastProjectClosed()) return false;
   if (!m_askShowMessageOnExit) return true;
+  if (m_closeRequest) return true;
   return (QMessageBox::question(
               this, "Exit Program?", tr("Are you sure you want to exit?\n"),
               QMessageBox::No | QMessageBox::Yes) == QMessageBox::Yes);
