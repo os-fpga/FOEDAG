@@ -19,8 +19,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FOEDAG_FILEUTILS_H
-#define FOEDAG_FILEUTILS_H
 #pragma once
 
 #include <cstdint>
@@ -118,5 +116,3 @@ class FileUtils final {
 };
 
 };  // namespace FOEDAG
-
-#endif /* FOEDAG_FILEUTILS_H */
