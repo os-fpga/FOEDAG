@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "IPGenerate/IPCatalog.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 
