@@ -824,32 +824,13 @@ bool MainWindow::saveConstraintFile() {
 
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
+    m_projectFileLoader->setParentWidget(this);
     auto errorCode = m_projectFileLoader->Load(file);
     if (errorCode) {
-      QMessageBox::critical(this, "File loading fails", errorCode.message());
+      if (!errorCode.message().isEmpty())
+        QMessageBox::critical(this, "File loading fails", errorCode.message());
       closeProject(true);
       return;
-    }
-    auto versionStr = m_projectFileLoader->version();
-    bool ok{};
-    Version version = toVersion(versionStr, &ok);
-    if (ok) {
-      QString currentVersionStr = TO_C_STR(FOEDAG_VERSION);
-      Version currentVersion = toVersion(currentVersionStr, &ok);
-      if (ok && version != currentVersion) {
-        if (version < currentVersion)
-          m_compiler->Message(
-              QString{"Project was created using an older %1 version %2. It is "
-                      "recommended to create this project again using %3."}
-                  .arg(m_projectInfo.name, versionStr, currentVersionStr)
-                  .toStdString());
-        else
-          m_compiler->Message(
-              QString{"Project was created using a newer %1 version %2. It is "
-                      "recommended to upgrade to newer version."}
-                  .arg(m_projectInfo.name, versionStr)
-                  .toStdString());
-      }
     }
     if (sourcesForm) sourcesForm->InitSourcesForm();
     updatePRViewButton(static_cast<int>(m_compiler->CompilerState()));

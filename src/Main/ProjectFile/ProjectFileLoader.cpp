@@ -23,12 +23,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QMessageBox>
 #include <QXmlStreamWriter>
 
 #include "Compiler/CompilerDefines.h"
+#include "FileLoader_0_7_22.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
 #include "foedag_version.h"
+#include "scope_guard/scope_guard.hpp"
 
 namespace FOEDAG {
 
@@ -51,15 +54,17 @@ void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
 
 ErrorCode ProjectFileLoader::Load(const QString &filename) {
   m_loadDone = false;
-  auto ec = LoadInternal(filename);
+  auto result = LoadInternal(filename);
   m_loadDone = true;
-  return ec;
+  if (!result.errorCode && result.migrationDoneSuccessfully) Save();
+  return result.errorCode;
 }
 
-QString ProjectFileLoader::version() const { return m_version; }
+void ProjectFileLoader::setParentWidget(QWidget *parent) { m_parent = parent; }
 
-ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
-  if (filename.isEmpty()) return {true, "Empty project filename"};
+ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
+    const QString &filename) {
+  if (filename.isEmpty()) return {{true, "Empty project filename"}};
 
   QString strTemp = QString("%1/%2%3").arg(Project::Instance()->projectPath(),
                                            Project::Instance()->projectName(),
@@ -67,11 +72,48 @@ ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
   if (filename == strTemp) return {};
 
   // this is starting point for backward compatibility
-  m_version = ProjectVersion(filename);
+  QString version = ProjectVersion(filename);
+  if (version.isEmpty()) return {{true, "Failed to get project version"}};
+  bool ok{};
+  auto ver = toVersion(version, &ok);
+  ProjectFileComponent *compilerComponent{nullptr};
+  ProjectFileComponent *taskComponent{nullptr};
+
+  bool migrationDoneSuccessfully{false};
+  if (ok && (ver < Version{0, 7, 22})) {
+    if (m_parent) {
+      auto btn =
+          QMessageBox::warning(m_parent, "Migration",
+                               "Project was run on an older version " + version,
+                               QMessageBox::Ok | QMessageBox::Cancel);
+      if (btn == QMessageBox::Cancel) return {{true, {}}};
+    }
+    compilerComponent = m_components[static_cast<int>(ComponentId::Compiler)];
+    taskComponent = m_components[static_cast<int>(ComponentId::TaskManager)];
+    m_components[static_cast<int>(ComponentId::Compiler)] = nullptr;
+    m_components[static_cast<int>(ComponentId::TaskManager)] = nullptr;
+
+    const FileLoader_0_7_22 loader{filename};
+    auto result = loader.Migrate();
+    if (!result.first) return {{true, result.second}};
+    if (m_parent)
+      QMessageBox::information(
+          m_parent, "Migration",
+          QString{"Successfully migrate to %1 version"}.arg(
+              TO_C_STR(FOEDAG_VERSION)));
+    migrationDoneSuccessfully = true;
+  }
+
+  auto guard = sg::make_scope_guard([this, compilerComponent, taskComponent] {
+    if (compilerComponent)
+      m_components[static_cast<int>(ComponentId::Compiler)] = compilerComponent;
+    if (taskComponent)
+      m_components[static_cast<int>(ComponentId::TaskManager)] = taskComponent;
+  });
 
   QFile file(filename);
   if (!file.open(QFile::ReadOnly | QFile::Text))
-    return {true, QString{"Failed to open project file %1"}.arg(filename)};
+    return {{true, QString{"Failed to open project file %1"}.arg(filename)}};
 
   Project::Instance()->InitProject();
   QXmlStreamReader reader;
@@ -87,8 +129,10 @@ ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
         Project::Instance()->setProjectPath(projPath);
       }
       for (const auto &component : m_components) {
-        auto errorCode = component->Load(&reader);
-        if (errorCode) return errorCode;
+        if (component) {
+          auto errorCode = component->Load(&reader);
+          if (errorCode) return {errorCode};
+        }
       }
     }
     if (reader.hasError()) break;
@@ -107,11 +151,11 @@ ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
     if (component) component->LoadDone();
 
   if (reader.hasError()) {
-    return {true,
-            QString{"Project file syntax issue: %1"}.arg(reader.errorString())};
+    return {{true, QString{"Project file syntax issue: %1"}.arg(
+                       reader.errorString())}};
   }
   file.close();
-  return {};
+  return {ErrorCode{}, migrationDoneSuccessfully};
 }
 
 QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {

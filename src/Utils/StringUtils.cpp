@@ -291,4 +291,10 @@ void StringUtils::setArgumentValue(StringVector& stringVector,
   }
 }
 
+StringVector& operator+=(StringVector& stringVector,
+                         const StringVector& other) {
+  for (const auto& str : other) stringVector.push_back(str);
+  return stringVector;
+}
+
 }  // namespace FOEDAG
