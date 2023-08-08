@@ -35,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
+static constexpr bool ERROR{true};
+static constexpr bool PASS{false};
+
 ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
   connect(Project::Instance(), &Project::saveFile, this,
@@ -64,7 +67,7 @@ void ProjectFileLoader::setParentWidget(QWidget *parent) { m_parent = parent; }
 
 ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     const QString &filename) {
-  if (filename.isEmpty()) return {{true, "Empty project filename"}};
+  if (filename.isEmpty()) return {{ERROR, "Empty project filename"}};
 
   QString strTemp = QString("%1/%2%3").arg(Project::Instance()->projectPath(),
                                            Project::Instance()->projectName(),
@@ -73,7 +76,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
 
   // this is starting point for backward compatibility
   QString version = ProjectVersion(filename);
-  if (version.isEmpty()) return {{true, "Failed to get project version"}};
+  if (version.isEmpty()) return {{ERROR, "Failed to get project version"}};
   bool ok{};
   auto ver = toVersion(version, &ok);
   ProjectFileComponent *compilerComponent{nullptr};
@@ -84,9 +87,11 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     if (m_parent) {
       auto btn =
           QMessageBox::warning(m_parent, "Migration",
-                               "Project was run on an older version " + version,
+                               QString{"Project was run on older version %1. "
+                                       "Press OK to proceed the migration."}
+                                   .arg(version),
                                QMessageBox::Ok | QMessageBox::Cancel);
-      if (btn == QMessageBox::Cancel) return {{true, {}}};
+      if (btn == QMessageBox::Cancel) return {{PASS, {}}};
     }
     compilerComponent = m_components[static_cast<int>(ComponentId::Compiler)];
     taskComponent = m_components[static_cast<int>(ComponentId::TaskManager)];
@@ -95,7 +100,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
 
     const FileLoader_0_7_22 loader{filename};
     auto result = loader.Migrate();
-    if (!result.first) return {{true, result.second}};
+    if (!result.first) return {{ERROR, result.second}};
     if (m_parent)
       QMessageBox::information(
           m_parent, "Migration",
@@ -113,7 +118,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
 
   QFile file(filename);
   if (!file.open(QFile::ReadOnly | QFile::Text))
-    return {{true, QString{"Failed to open project file %1"}.arg(filename)}};
+    return {{ERROR, QString{"Failed to open project file %1"}.arg(filename)}};
 
   Project::Instance()->InitProject();
   QXmlStreamReader reader;
@@ -151,8 +156,8 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     if (component) component->LoadDone();
 
   if (reader.hasError()) {
-    return {{true, QString{"Project file syntax issue: %1"}.arg(
-                       reader.errorString())}};
+    return {{ERROR, QString{"Project file syntax issue: %1"}.arg(
+                        reader.errorString())}};
   }
   file.close();
   return {ErrorCode{}, migrationDoneSuccessfully};

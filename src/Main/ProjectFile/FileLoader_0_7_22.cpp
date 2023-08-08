@@ -36,8 +36,8 @@ std::pair<bool, QString> FileLoader_0_7_22::Migrate() const {
     return {false, "Project path not specified"};  // internal
   auto path = fs::path{m_project.toStdString()};
 
-  auto result =
-      CompressProject::CompressZip(path.parent_path(), path.stem().filename());
+  auto result = CompressProject::CompressZip(path.parent_path(),
+                                             path.stem().filename().string());
   if (!result.first) return {false, "Failed to create backup"};
 
   // remove old files
