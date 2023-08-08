@@ -37,7 +37,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
+#ifndef __GNUC__
 #include <direct.h>
+#endif
 #include <process.h>
 #ifndef __SIZEOF_INT__
 #define __SIZEOF_INT__ sizeof(int)
