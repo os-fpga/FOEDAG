@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QXmlStreamWriter>
 
 #include "Compiler/CompilerDefines.h"
-#include "FileLoader_0_7_22.h"
+#include "FileLoaderOldStructure.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjectFileComponent.h"
 #include "foedag_version.h"
@@ -82,8 +82,11 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
   ProjectFileComponent *compilerComponent{nullptr};
   ProjectFileComponent *taskComponent{nullptr};
 
+  bool compatibleOk{};
+  Version compatibleVersion = toVersion(
+      QString::fromLatin1(TO_C_STR(FOEDAG_VERSION_COMPAT)), &compatibleOk);
   bool migrationDoneSuccessfully{false};
-  if (ok && (ver < Version{0, 7, 22})) {
+  if (ok && compatibleOk && (ver < compatibleVersion)) {
     if (m_parent) {
       auto btn =
           QMessageBox::warning(m_parent, "Migration",
@@ -98,7 +101,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     m_components[static_cast<int>(ComponentId::Compiler)] = nullptr;
     m_components[static_cast<int>(ComponentId::TaskManager)] = nullptr;
 
-    const FileLoader_0_7_22 loader{filename};
+    const FileLoaderOldStructure loader{filename};
     auto result = loader.Migrate();
     if (!result.first) return {{ERROR, result.second}};
     if (m_parent)

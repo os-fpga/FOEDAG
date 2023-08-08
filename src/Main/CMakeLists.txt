@@ -76,7 +76,7 @@ set (SRC_CPP_LIST ../Main/Foedag.cpp
   ../MainWindow/Dialog.cpp
   ../MainWindow/CompressProject.cpp
   ../MainWindow/PerfomanceTracker.cpp
-  ../Main/ProjectFile/FileLoader_0_7_22.cpp
+  ../Main/ProjectFile/FileLoaderOldStructure.cpp
 )
 
 set (SRC_H_LIST ../Main/Foedag.h
@@ -118,7 +118,7 @@ set (SRC_H_LIST ../Main/Foedag.h
   ../MainWindow/Dialog.h
   ../MainWindow/CompressProject.h
   ../MainWindow/PerfomanceTracker.h
-  ../Main/ProjectFile/FileLoader_0_7_22.h
+  ../Main/ProjectFile/FileLoaderOldStructure.h
 )
 
 set (SRC_UI_LIST ../MainWindow/WelcomePageWidget.ui)

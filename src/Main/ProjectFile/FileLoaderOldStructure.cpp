@@ -18,7 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "FileLoader_0_7_22.h"
+#include "FileLoaderOldStructure.h"
 
 #include <filesystem>
 
@@ -28,10 +28,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-FileLoader_0_7_22::FileLoader_0_7_22(const QString &projectFileName)
+FileLoaderOldStructure::FileLoaderOldStructure(const QString &projectFileName)
     : m_project(projectFileName) {}
 
-std::pair<bool, QString> FileLoader_0_7_22::Migrate() const {
+std::pair<bool, QString> FileLoaderOldStructure::Migrate() const {
   if (m_project.isEmpty())
     return {false, "Project path not specified"};  // internal
   auto path = fs::path{m_project.toStdString()};
@@ -59,7 +59,8 @@ std::pair<bool, QString> FileLoader_0_7_22::Migrate() const {
   return {true, QString{}};
 }
 
-StringVector FileLoader_0_7_22::FilesToRemove(const std::string &projectName) {
+StringVector FileLoaderOldStructure::FilesToRemove(
+    const std::string &projectName) {
   return {/*analysis*/ ANALYSIS_LOG,
           "port_info.json",
           "hier_info.json",
@@ -143,7 +144,7 @@ StringVector FileLoader_0_7_22::FilesToRemove(const std::string &projectName) {
           "simulation_bitstream_back.rpt"};
 }
 
-StringVector FileLoader_0_7_22::FilesByRegex(
+StringVector FileLoaderOldStructure::FilesByRegex(
     const fs::path &path, const std::vector<std::regex> &regexes) {
   StringVector files;
   for (const auto &reg : regexes) {
@@ -153,12 +154,12 @@ StringVector FileLoader_0_7_22::FilesByRegex(
   return files;
 }
 
-StringVector FileLoader_0_7_22::FoldersToRemove(
+StringVector FileLoaderOldStructure::FoldersToRemove(
     const std::string &projectName) {
   return {"obj_dir", "reports", projectName + ".runs"};
 }
 
-StringVector FileLoader_0_7_22::FilesByExtencion(
+StringVector FileLoaderOldStructure::FilesByExtencion(
     const fs::path &path, const StringVector &extensions) {
   StringVector files;
   for (const auto &exе : extensions) {

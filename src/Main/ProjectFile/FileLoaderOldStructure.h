@@ -28,9 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-class FileLoader_0_7_22 {
+class FileLoaderOldStructure {
  public:
-  explicit FileLoader_0_7_22(const QString &projectFileName);
+  explicit FileLoaderOldStructure(const QString &projectFileName);
 
   std::pair<bool, QString> Migrate() const;
 
