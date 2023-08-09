@@ -37,7 +37,8 @@ endif(NOT CMAKE_BUILD_TYPE)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
 set(VERSION_PATCH 223)
-
+# Add the spdlog directory to the include path
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
@@ -109,6 +110,7 @@ add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/DesignQuery)
+add_subdirectory(src/DeviceModeling)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -199,6 +201,9 @@ target_include_directories(foedag PRIVATE
   third_party/googletest/googlemock/include)
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
+find_package(fmt REQUIRED)
+target_link_libraries(foedag PRIVATE fmt::fmt)
+
 if(MSVC)
   add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
   set_property(TARGET foedag-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -272,6 +277,7 @@ if(MSVC)
   )
   target_link_libraries(foedag-bin PUBLIC Netapi32)
   target_link_libraries(foedag  PUBLIC Netapi32)
+  target_link_libraries(foedag-bin PRIVATE fmt::fmt)
 
 else()
   add_library(zlib STATIC IMPORTED)
@@ -314,6 +320,8 @@ add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
 add_dependencies(designquery nlohmann_json)
+add_dependencies(devicemodeling tcl_stubb_build)
+add_dependencies(devicemodeling nlohmann_json)
 add_dependencies(projnavigator nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
@@ -379,6 +387,7 @@ target_link_libraries(foedag  PUBLIC
   compiler
   ipgenerate
   designquery
+  devicemodeling
   simulation
   foedagutils
   console

@@ -56,6 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "scope_guard/scope_guard.hpp"
+#include "DeviceModeling/DeviceModeling.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -331,7 +332,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     SetConfiguration(new CFGCompiler(this));
     GetConfiguration()->RegisterCommands(interp, batchMode);
   }
-
+  if (m_DeviceModeling == nullptr) {
+    m_DeviceModeling = new DeviceModeling(this);
+    m_DeviceModeling->RegisterCommands(interp, batchMode);
+  }
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
