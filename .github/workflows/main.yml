@@ -165,7 +165,7 @@ jobs:
         bash .github/workflows/install_centos_dependencies_build.sh
 
     - name: show space after Qt install
-      run: du -sch *
+      run: du -sch * && df -h
 
     - name: Show shell configuration
       run: |
@@ -196,7 +196,7 @@ jobs:
 
     - name: show space after build & test
       if: always ()
-      run: du -sch *        
+      run: du -sch * && df -h        
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
