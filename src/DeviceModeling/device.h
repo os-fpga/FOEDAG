@@ -54,7 +54,7 @@ class device : public device_block {
     add_string_parameter_type("string",
                               std::make_shared<ParameterType<std::string>>());
   }
-  
+
   virtual ~device() {}
   /**
    * @brief Get the schema version of the device.

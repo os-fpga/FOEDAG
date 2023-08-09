@@ -1,12 +1,12 @@
 /**
  * @file DeviceModeling.h
  * @author Manadher Kharroubi (Manadher.Kharroubi@rapidsilicon.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-07-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 /*
@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "DeviceModelerInterface.h"
 
 namespace FOEDAG {
@@ -51,6 +52,7 @@ class DeviceModeling {
   Compiler* GetCompiler() { return m_compiler; }
   bool RegisterCommands(TclInterpreter* interp, bool batchMode);
   std::filesystem::path GetProjDir() const;
+
  protected:
   Compiler* m_compiler = nullptr;
 };

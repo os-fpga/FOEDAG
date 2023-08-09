@@ -168,8 +168,8 @@ class device_block_instance : public device_block {
    * @return Shared pointer to the device block instance if found; nullptr
    * otherwise.
    */
-  std::shared_ptr<device_block_instance> findInstanceByName
-  (const std::string &name) const override {
+  std::shared_ptr<device_block_instance> findInstanceByName(
+      const std::string &name) const override {
     for (const auto &pair : instance_chains_) {
       for (const auto &instance : pair.second) {
         if (instance->get_instance_name() == name) {
@@ -192,8 +192,8 @@ class device_block_instance : public device_block {
    * @param instanceName Name of the device block instance to remove.
    * @return true if the instance was found and removed; false otherwise.
    */
-  bool removeInstanceFromChainByName (const std::string &chainName,
-                                              const std::string &instanceName) override {
+  bool removeInstanceFromChainByName(const std::string &chainName,
+                                     const std::string &instanceName) override {
     auto chainIt = instance_chains_.find(chainName);
     if (chainIt != instance_chains_.end()) {
       auto &vector = chainIt->second;

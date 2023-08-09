@@ -1,12 +1,12 @@
 /**
  * @file DeviceModeling.cpp
  * @author Manadher Kharroubi (Manadher.Kharroubi@rapidsilicon.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2023-07-25
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 
 /*
@@ -30,27 +30,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(_MSC_VER) || defined(__CYGWIN__)
-#   ifndef NOMINMAX
-#      define NOMINMAX
-#   endif
-#   ifndef WIN32_LEAN_AND_MEAN
-#      define WIN32_LEAN_AND_MEAN
-#   endif
-#   include <windows.h>
-#   include <ctime>
-#   include <direct.h>
-#   include <process.h>
-#   ifndef __SIZEOF_INT__
-#   define __SIZEOF_INT__ sizeof(int)
-#   endif
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || \
+    defined(_MSC_VER) || defined(__CYGWIN__)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <direct.h>
+#include <process.h>
+#include <windows.h>
+
+#include <ctime>
+#ifndef __SIZEOF_INT__
+#define __SIZEOF_INT__ sizeof(int)
+#endif
 #else
-#   include <ctime>
-#   include <sys/time.h>
-#   include <sys/types.h>
-#   include <stdlib.h>
-#   include <sys/param.h>
-#   include <unistd.h>
+#include <stdlib.h>
+#include <sys/param.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <ctime>
 #endif
 
 #include <sys/stat.h>
@@ -71,12 +74,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/WorkerThread.h"
 #include "DeviceModeling/DeviceModeling.h"
 #include "MainWindow/Session.h"
+#include "Model.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
-#include "Model.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -145,7 +148,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto schema_version = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status  = Model::get_modler().schema_version(argc, argv);
+    bool status = Model::get_modler().schema_version(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("schema_version", schema_version, this, 0);
@@ -153,7 +156,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto define_enum_type = [](void* clientData, Tcl_Interp* interp, int argc,
                              const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status  = Model::get_modler().define_enum_type(argc, argv);
+    bool status = Model::get_modler().define_enum_type(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_enum_type", define_enum_type, this, 0);
@@ -161,7 +164,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto define_block = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status  = Model::get_modler().define_block(argc, argv);
+    bool status = Model::get_modler().define_block(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_block", define_block, this, 0);
@@ -201,7 +204,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto define_constraint = [](void* clientData, Tcl_Interp* interp, int argc,
                               const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status  = Model::get_modler().define_constraint(argc, argv);
+    bool status = Model::get_modler().define_constraint(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("define_constraint", define_constraint, this, 0);
@@ -209,7 +212,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   auto create_instance = [](void* clientData, Tcl_Interp* interp, int argc,
                             const char* argv[]) -> int {
     // TODO: Implement this API
-    bool status  = Model::get_modler().create_instance(argc, argv);
+    bool status = Model::get_modler().create_instance(argc, argv);
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("create_instance", create_instance, this, 0);
@@ -571,7 +574,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                       this, 0);
 
   auto get_port_list = [](void* clientData, Tcl_Interp* interp, int argc,
-                      const char* argv[]) -> int {
+                          const char* argv[]) -> int {
     // TODO: Implement this API
     DeviceModeling* device_modeling = (DeviceModeling*)clientData;
     Compiler* compiler = device_modeling->GetCompiler();
@@ -626,7 +629,7 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                                const char* argv[]) -> int {
     // TODO: Implement this API
     bool status = Model::get_modler().map_rtl_user_names(argc, argv);
-    return (status) ? TCL_OK : TCL_ERROR; // map_rtl_user_names
+    return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
   interp->registerCmd("map_rtl_user_names", map_rtl_user_names, this, 0);
 

@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CompilerDefines.h"
 #include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "DesignQuery/DesignQuery.h"
+#include "DeviceModeling/DeviceModeling.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
@@ -56,7 +57,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/QtUtils.h"
 #include "Utils/StringUtils.h"
 #include "scope_guard/scope_guard.hpp"
-#include "DeviceModeling/DeviceModeling.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;

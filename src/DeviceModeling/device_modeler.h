@@ -21,7 +21,7 @@
 
 #include "device.h"
 #include "spdlog/spdlog.h"
-
+#include <climits>
 /**
  * @class device_modeler
  * @brief Singleton class representing a device modeler.

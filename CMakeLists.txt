@@ -202,7 +202,7 @@ target_include_directories(foedag PRIVATE
 target_include_directories(foedag PUBLIC $<INSTALL_INTERFACE:include/foedag>)
 
 find_package(fmt REQUIRED)
-target_link_libraries(foedag PRIVATE fmt::fmt)
+target_link_libraries(foedag PUBLIC fmt::fmt)
 
 if(MSVC)
   add_executable(foedag-bin ${PROJECT_SOURCE_DIR}/src/Main/main.cpp ${QRC_MAIN_WINDOW})
