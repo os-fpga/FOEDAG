@@ -41,7 +41,7 @@ HierarchyView::HierarchyView(const std::filesystem::path &ports)
   m_treeWidget->setHeaderHidden(true);
 
   connect(m_treeWidget, &QTreeWidget::itemDoubleClicked, this,
-          &HierarchyView::itemDoubleClick);
+          &HierarchyView::OpenModuleInstance);
 
   m_treeWidget->setExpandsOnDoubleClick(false);
   m_treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -90,19 +90,24 @@ void HierarchyView::update() {
 QTreeWidget *HierarchyView::widget() { return m_treeWidget; }
 
 void HierarchyView::treeWidgetContextMenu(const QPoint &pos) {
-  QMenu menu{m_treeWidget};
-  QAction *showDef = new QAction{"Go to Definition"};
-  connect(showDef, &QAction::triggered, this, [this]() {
-    const auto selection = m_treeWidget->selectedItems();
-    for (auto item : selection) {
-      emitOpenFile(item, 0);
+  auto item = m_treeWidget->itemAt(pos);
+  if (item) {
+    QMenu menu{m_treeWidget};
+    QAction *showDef = new QAction{"Go to Definition"};
+    connect(showDef, &QAction::triggered, this,
+            [this, item]() { emitOpenFile(item, 0); });
+    if (!item->data(0, TopItemRole).toBool()) {
+      QAction *showInst = new QAction{"Go to Instantiation"};
+      connect(showInst, &QAction::triggered, this,
+              [this, item]() { OpenModuleInstance(item, 0); });
+      menu.addAction(showInst);
     }
-  });
-  menu.addAction(showDef);
-  menu.exec(QCursor::pos());
+    menu.addAction(showDef);
+    menu.exec(QCursor::pos());
+  }
 }
 
-void HierarchyView::itemDoubleClick(QTreeWidgetItem *item, int column) {
+void HierarchyView::OpenModuleInstance(QTreeWidgetItem *item, int column) {
   if (item->data(0, TopItemRole).toBool())
     emitOpenFile(item, column);
   else

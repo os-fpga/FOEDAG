@@ -49,19 +49,20 @@ void ProjectFileLoader::registerComponent(ProjectFileComponent *comp,
   m_components[static_cast<size_t>(id)] = comp;
 }
 
-void ProjectFileLoader::Load(const QString &filename) {
+ErrorCode ProjectFileLoader::Load(const QString &filename) {
   m_loadDone = false;
-  LoadInternal(filename);
+  auto ec = LoadInternal(filename);
   m_loadDone = true;
+  return ec;
 }
 
-void ProjectFileLoader::LoadInternal(const QString &filename) {
-  if (filename.isEmpty()) return;
+ErrorCode ProjectFileLoader::LoadInternal(const QString &filename) {
+  if (filename.isEmpty()) return {true, "Empty project filename"};
 
   QString strTemp = QString("%1/%2%3").arg(Project::Instance()->projectPath(),
                                            Project::Instance()->projectName(),
                                            PROJECT_FILE_FORMAT);
-  if (filename == strTemp) return;
+  if (filename == strTemp) return {};
 
   // this is starting point for backward compatibility
   QString version = ProjectVersion(filename);
@@ -70,7 +71,8 @@ void ProjectFileLoader::LoadInternal(const QString &filename) {
   // versions
 
   QFile file(filename);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) return;
+  if (!file.open(QFile::ReadOnly | QFile::Text))
+    return {true, QString{"Failed to open project file %1"}.arg(filename)};
 
   Project::Instance()->InitProject();
   QXmlStreamReader reader;
@@ -85,8 +87,12 @@ void ProjectFileLoader::LoadInternal(const QString &filename) {
         Project::Instance()->setProjectName(strName);
         Project::Instance()->setProjectPath(projPath);
       }
-      for (const auto &component : m_components) component->Load(&reader);
+      for (const auto &component : m_components) {
+        auto errorCode = component->Load(&reader);
+        if (errorCode) return errorCode;
+      }
     }
+    if (reader.hasError()) break;
   }
 
   // set device
@@ -102,9 +108,11 @@ void ProjectFileLoader::LoadInternal(const QString &filename) {
     if (component) component->LoadDone();
 
   if (reader.hasError()) {
-    return;
+    return {true,
+            QString{"Project file syntax issue: %1"}.arg(reader.errorString())};
   }
   file.close();
+  return {};
 }
 
 QString FOEDAG::ProjectFileLoader::ProjectVersion(const QString &filename) {

@@ -19,15 +19,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
    */
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <direct.h>
-#include <process.h>
-#else
-#include <stdlib.h>
-#include <sys/param.h>
-#include <unistd.h>
-#endif
+#include "Compiler/CompilerOpenFPGA.h"
 
 #include <QDebug>
 #include <QDomDocument>
@@ -39,7 +31,6 @@
 #include <sstream>
 #include <thread>
 
-#include "Compiler/CompilerOpenFPGA.h"
 #include "Compiler/Constraints.h"
 #include "Log.h"
 #include "Main/Settings.h"

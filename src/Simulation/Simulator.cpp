@@ -19,19 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if (defined(_MSC_VER) || defined(__CYGWIN__))
-#define NOMINMAX  // prevent error with std::max
-#endif
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <direct.h>
-#include <process.h>
-#else
-#include <stdlib.h>
-#include <sys/param.h>
-#include <unistd.h>
-#endif
+#include "Simulator.h"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -50,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Log.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "ProjNavigator/tcl_command_integration.h"
-#include "Simulator.h"
 #include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
 

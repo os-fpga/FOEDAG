@@ -20,15 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ProcessUtils.h"
 
-#include <string>
-#if (defined(_MSC_VER) || defined(__CYGWIN__))
-#define NOMINMAX  // prevent error with std::max
-#include <windows.h>
-// include order metters
-#include <psapi.h>
-#else
 #include <fstream>
-#endif
+#include <string>
 
 namespace FOEDAG {
 

@@ -50,12 +50,12 @@ void TaskManagerComponent::Save(QXmlStreamWriter *writer) {
   }
 }
 
-void TaskManagerComponent::Load(QXmlStreamReader *reader) {
+ErrorCode TaskManagerComponent::Load(QXmlStreamReader *reader) {
   while (!reader->atEnd()) {
     QXmlStreamReader::TokenType type = reader->readNext();
     if (type == QXmlStreamReader::StartElement) {
       if (reader->name() == TASK_MAIN) {
-        while (true) {
+        while (!reader->hasError()) {
           type = reader->readNext();
           if (type == QXmlStreamReader::EndElement &&
               reader->name() == TASK_MAIN)
@@ -84,5 +84,6 @@ void TaskManagerComponent::Load(QXmlStreamReader *reader) {
       break;
     }
   }
+  return {};
 }
 }  // namespace FOEDAG

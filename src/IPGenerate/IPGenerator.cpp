@@ -19,15 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <direct.h>
-#include <process.h>
-#else
-#include <stdlib.h>
-#include <sys/param.h>
-#include <unistd.h>
-#endif
+#include "IPGenerate/IPGenerator.h"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -45,7 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Compiler/Log.h"
 #include "Compiler/WorkerThread.h"
 #include "IPGenerate/IPCatalog.h"
-#include "IPGenerate/IPGenerator.h"
 #include "MainWindow/Session.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "Utils/FileUtils.h"

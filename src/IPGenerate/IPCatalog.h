@@ -28,6 +28,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || \
+    defined(_MSC_VER) || defined(__CYGWIN__)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+#ifndef __GNUC__
+#include <direct.h>
+#endif
+#include <process.h>
+#ifndef __SIZEOF_INT__
+#define __SIZEOF_INT__ sizeof(int)
+#endif
+#else
+#include <stdlib.h>
+#include <sys/param.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 namespace FOEDAG {
 
 class Value {
