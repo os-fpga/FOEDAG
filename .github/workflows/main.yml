@@ -157,37 +157,15 @@ jobs:
         submodules: recursive
         fetch-depth: 0
     
-    - name: Show space
+    - name: Show space before Qt install
       run: df -h
       
-    - name: Download workflow artifact
-      if: matrix.mode == 'test'
-      uses: dawidd6/action-download-artifact@v2.24.0
-      with:
-        workflow: main.yml
-        repo: ${{ github.repository }}
-        #run_number: 3912
-        branch: main
-        name: buildqt5-centos7-gcc
-        skip_unpack: true
-    - name: show space
-      run: df -h
     - name: Install dependencies and build QT
       run: |
-        bash .github/workflows/install_centos_dependencies_build.sh && df -h
+        bash .github/workflows/install_centos_dependencies_build.sh
 
-    - name: Prepare QT build artifacts
-      if: matrix.mode == 'test'
-      run: |
-        mkdir build
-        tar czvfp buildqt5-centos7-gcc.tgz buildqt5
-
-    - name: Archive QT build artifacts
-      if: matrix.mode == 'test'
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        name: buildqt5-centos7-gcc
-        path: buildqt5-centos7-gcc.tgz
+    - name: show space after Qt install
+      run: du -sch *
 
     - name: Show shell configuration
       run: |
@@ -195,14 +173,6 @@ jobs:
         source /opt/rh/devtoolset-11/enable
         which gcc 
         which g++ 
-
-    - name: Remove QT tar file.
-      run: |
-        df -h
-        rm -rf buildqt5-centos7-gcc.tgz
-        rm -rf buildqt5-centos7-gcc.zip
-        rm -rf buildqt5
-        df -h
 
     - name: Configure shell
       run: |
@@ -223,6 +193,10 @@ jobs:
         make release test/batch
         make test/gui
         make regression
+
+    - name: show space after build & test
+      if: always ()
+      run: du -sch *        
 
 # Reference: https://github.com/eyllanesc/69108420/blob/main/.github/workflows/test.yml
   msys2-gcc:
