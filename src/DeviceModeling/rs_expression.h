@@ -11,10 +11,9 @@
 
 #pragma once
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "rs_expression_evaluator.h"
+#include "speedlog.h"
+
 /**
  * @class rs_expression
  * @brief Represents a mathematical expression, allowing for evaluation and

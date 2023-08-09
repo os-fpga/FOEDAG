@@ -6,14 +6,13 @@
  * @author Manadher Kharroubi (manadher@rapidsilicon.com)
  */
 #pragma once
-#include <spdlog/fmt/bundled/core.h>
-#include <spdlog/fmt/bundled/format.h>
-#include <spdlog/spdlog.h>
 
 #include <memory>
 #include <ostream>
 #include <set>
 #include <string>
+
+#include "speedlog.h"
 
 class device_block;
 class device_signal;
@@ -190,7 +189,7 @@ class device_net {
    * @return The formatted string representation.
    */
   std::string to_formatted_string() const {
-    return fmt::format("device_net: {}", to_string());
+    return "device_net: " + to_string();
   }
 
  private:

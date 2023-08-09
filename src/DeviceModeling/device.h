@@ -21,7 +21,7 @@
 
 #include "device_instance.h"
 #include "rs_expression.h"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 /**
  * @class device

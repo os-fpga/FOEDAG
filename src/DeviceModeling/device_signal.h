@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "device_net.h"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 class device_block;
 /**

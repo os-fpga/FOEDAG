@@ -15,13 +15,14 @@
 #define __SIZEOF_INT__ sizeof(int)
 #endif
 #include <cfloat>
+#include <climits>
 #include <memory>
 #include <regex>
 #include <unordered_map>
 
 #include "device.h"
-#include "spdlog/spdlog.h"
-#include <climits>
+#include "speedlog.h"
+
 /**
  * @class device_modeler
  * @brief Singleton class representing a device modeler.

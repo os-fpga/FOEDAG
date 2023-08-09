@@ -13,7 +13,7 @@
 #include <string>
 
 #include "device_signal.h"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 class device_block;
 

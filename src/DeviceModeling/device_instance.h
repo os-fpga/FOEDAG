@@ -11,7 +11,7 @@
 #pragma once
 
 #include "device_block.h"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 /**
  * @class device_block_instance

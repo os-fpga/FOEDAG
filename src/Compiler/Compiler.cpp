@@ -63,6 +63,7 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 static const int CHATGPT_TIMEOUT{180000};
+LogLevel SpeedLog::speed_logLevel = LOG_INFO;
 
 auto CreateDummyLog = [](Compiler::Action action,
                          const std::string& outfileName,

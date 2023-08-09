@@ -17,7 +17,7 @@
 #include <string>
 
 #include "exprtk.hpp"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 using namespace std;
 /**

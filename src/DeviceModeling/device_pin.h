@@ -15,7 +15,7 @@
 #include <string>
 
 #include "device_net.h"
-#include "spdlog/fmt/bundled/core.h"
+#include "speedlog.h"
 
 /**
  * @class device_pin
@@ -137,31 +137,31 @@ class device_pin {
   device_net *sink_net_;    ///< The net driven by the pin.
 };
 
-namespace fmt {
-/**
- * @brief Formatter specialization for device_pin>.
- */
-template <>
-struct formatter<device_pin *> {
-  /**
-   * @brief Parse the format specifier.
-   * @param ctx The format context.
-   * @return An iterator past the parsed format specifier.
-   */
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext &ctx) {
-    return ctx.begin();
-  }
+// namespace fmt {
+// /**
+//  * @brief Formatter specialization for device_pin>.
+//  */
+// template <>
+// struct formatter<device_pin *> {
+//   /**
+//    * @brief Parse the format specifier.
+//    * @param ctx The format context.
+//    * @return An iterator past the parsed format specifier.
+//    */
+//   template <typename ParseContext>
+//   constexpr auto parse(ParseContext &ctx) {
+//     return ctx.begin();
+//   }
 
-  /**
-   * @brief Format the device_pin.
-   * @param pin_ptr The shared pointer to the device_pin.
-   * @param ctx The format context.
-   * @return The formatted string.
-   */
-  template <typename FormatContext>
-  auto format(const device_pin *pin_ptr, FormatContext &ctx) {
-    return format_to(ctx.out(), "{}", pin_ptr->to_string());
-  }
-};
-}  // namespace fmt
+//   /**
+//    * @brief Format the device_pin.
+//    * @param pin_ptr The shared pointer to the device_pin.
+//    * @param ctx The format context.
+//    * @return The formatted string.
+//    */
+//   template <typename FormatContext>
+//   auto format(const device_pin *pin_ptr, FormatContext &ctx) {
+//     return format_to(ctx.out(), "{}", pin_ptr->to_string());
+//   }
+// };
+// }  // namespace fmt

@@ -19,7 +19,7 @@
 #include "device_port.h"
 #include "rs_expression.h"
 #include "rs_parameter.h"
-#include "spdlog/spdlog.h"
+#include "speedlog.h"
 
 using namespace std;
 class device_block_instance;
