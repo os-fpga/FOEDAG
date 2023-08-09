@@ -156,7 +156,10 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-
+    
+    - name: Show space
+      run: df -h
+      
     - name: Download workflow artifact
       if: matrix.mode == 'test'
       uses: dawidd6/action-download-artifact@v2.24.0
@@ -167,7 +170,8 @@ jobs:
         branch: main
         name: buildqt5-centos7-gcc
         skip_unpack: true
-
+    - name: show space
+      run: df -h
     - name: Install dependencies and build QT
       run: |
         bash .github/workflows/install_centos_dependencies_build.sh && df -h
