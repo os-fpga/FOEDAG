@@ -72,6 +72,7 @@ class TclCommandIntegration;
 class Constraints;
 class CFGCompiler;
 class ToolContext;
+class DeviceModeling;
 
 struct DeviceData {
   std::string family;
