@@ -38,6 +38,8 @@ namespace FOEDAG {
 static constexpr bool ERROR{true};
 static constexpr bool PASS{false};
 
+static const QString MessageTitle{"Project Migration Tool"};
+
 ProjectFileLoader::ProjectFileLoader(Project *project, QObject *parent)
     : QObject(parent) {
   connect(Project::Instance(), &Project::saveFile, this,
@@ -87,13 +89,17 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
       QString::fromLatin1(TO_C_STR(FOEDAG_VERSION_COMPAT)), &compatibleOk);
   bool migrationDoneSuccessfully{false};
   if (ok && compatibleOk && (ver < compatibleVersion)) {
+    QString newVersion{TO_C_STR(FOEDAG_VERSION)};
+    QString path{QFileInfo{filename}.absolutePath()};
     if (m_parent) {
-      auto btn =
-          QMessageBox::warning(m_parent, "Migration",
-                               QString{"Project was run on older version %1. "
-                                       "Press OK to proceed the migration."}
-                                   .arg(version),
-                               QMessageBox::Ok | QMessageBox::Cancel);
+      auto btn = QMessageBox::warning(
+          m_parent, MessageTitle,
+          QString{"Project created with older version %1 is incompatible with "
+                  "current version %2. Press OK to proceed with the migration "
+                  "automatically.\nNote: Backup will be available as a zip "
+                  "once it is successfully completed at %3"}
+              .arg(version, newVersion, path),
+          QMessageBox::Ok | QMessageBox::Cancel);
       if (btn == QMessageBox::Cancel) return {{PASS, {}}};
     }
     compilerComponent = m_components[static_cast<int>(ComponentId::Compiler)];
@@ -106,9 +112,12 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
     if (!result.first) return {{ERROR, result.second}};
     if (m_parent)
       QMessageBox::information(
-          m_parent, "Migration",
-          QString{"Successfully migrate to %1 version"}.arg(
-              TO_C_STR(FOEDAG_VERSION)));
+          m_parent, MessageTitle,
+          QString{"Successfully migrated the project to %1 version. Backup is "
+                  "available at %2\nNote: Please verify the project before "
+                  "compiling again. Delete any unnecessary files that are not "
+                  "part of the design."}
+              .arg(newVersion, path));
     migrationDoneSuccessfully = true;
   }
 
