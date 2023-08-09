@@ -82,6 +82,15 @@ CompressProject::CompressProject(const fs::path &project, QWidget *parent)
           &CompressProject::compressProject);
 }
 
+std::pair<bool, std::string> CompressProject::CompressZip(
+    const std::filesystem::path &path, const std::string &fileName) {
+  auto fullFileName = fileName + ".zip";
+  StringVector args{"-r", fullFileName, path.filename().string()};
+  auto result = ExecuteSystemCommand("zip", args, path.parent_path().string());
+  if (!result.first) return result;
+  return {true, {}};
+}
+
 void CompressProject::compressProject() {
   auto projectNameLine = findChild<QLineEdit *>("projectName");
   auto projectPathLine = findChild<QLineEdit *>("projectPath");
@@ -93,19 +102,24 @@ void CompressProject::compressProject() {
       // tar -czvf file.tar.gz directory
       StringVector args{"-czvf", projectName + m_extension.toStdString(), "-C",
                         originalProjectPath, m_projectPath.filename().string()};
-      ExecuteSystemCommand("tar", args, projectPath);
+      if (auto res = ExecuteSystemCommand("tar", args, projectPath); !res.first)
+        showErrorMessage(res.second, this);
     } else {
       // zip -r foo.zip foo
-      StringVector args{"-r", projectName + m_extension.toStdString(),
-                        m_projectPath.filename().string()};
-      if (ExecuteSystemCommand("zip", args, originalProjectPath)) {
+      auto result = CompressZip(m_projectPath, projectName);
+      if (result.first) {
         // since zip file is created within original project path we have to
         // move it to the path user selected. zip doesn't allow to drop parent
         // folder structure.
         if (projectPath != originalProjectPath) {
-          args = {projectName + m_extension.toStdString(), projectPath};
-          ExecuteSystemCommand("mv", args, originalProjectPath);
+          StringVector args = {projectName + m_extension.toStdString(),
+                               projectPath};
+          if (auto res = ExecuteSystemCommand("mv", args, originalProjectPath);
+              !res.first)
+            showErrorMessage(res.second, this);
         }
+      } else {
+        showErrorMessage(result.second, this);
       }
     }
   }
@@ -115,17 +129,19 @@ void CompressProject::extensionHasChanged(bool checked) {
   if (checked) m_extension = sender()->property("ext").toString();
 }
 
-bool CompressProject::ExecuteSystemCommand(const std::string &command,
-                                           const std::vector<std::string> &args,
-                                           const std::string &workingDir) {
+std::pair<bool, std::string> CompressProject::ExecuteSystemCommand(
+    const std::string &command, const std::vector<std::string> &args,
+    const std::string &workingDir) {
   std::ostringstream help;
   auto res =
       FileUtils::ExecuteSystemCommand(command, args, &help, -1, workingDir);
-  if (res.code != 0) {
-    QMessageBox::critical(this, "Compression error",
-                          QString::fromStdString(help.str()));
-  }
-  return res.code == 0;
+  return std::make_pair(res.code == 0, help.str());
+}
+
+void CompressProject::showErrorMessage(const std::string &message,
+                                       QWidget *parent) {
+  QMessageBox::critical(parent, "Compression error",
+                        QString::fromStdString(message));
 }
 
 }  // namespace FOEDAG

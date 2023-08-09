@@ -28,16 +28,38 @@ QString toString(Version version) {
            QString::number(version.patch));
 }
 
-Version toVersion(const QString &s) {
+Version toVersion(const QString &s, bool *ok) {
+  if (ok) *ok = true;
   QStringList list = s.split(".");
-  if (list.count() != 3) return Version{};
-  return Version{list.at(0).toUInt(), list.at(1).toUInt(), list.at(2).toUInt()};
+  if (list.count() != 3) {
+    if (ok) *ok = false;
+    return Version{};
+  }
+  Version version{};
+  version.maj = list.at(0).toUInt(ok);
+  if (ok && !(*ok)) return Version{};
+  version.min = list.at(1).toUInt(ok);
+  if (ok && !(*ok)) return Version{};
+  version.patch = list.at(2).toUInt(ok);
+  if (ok && !(*ok)) return Version{};
+  return version;
 }
 
 ProjectFileComponent::ProjectFileComponent(QObject *parent) : QObject(parent) {}
 
 void ProjectFileComponent::Save(QXmlStreamWriter *writer) {
   writer->writeAttribute(VERSION, toString(m_version));
+}
+
+bool operator!=(const Version &v1, const Version &v2) {
+  return (v1.maj != v2.maj) || (v1.min != v2.min) || (v1.patch != v2.patch);
+}
+
+bool operator<(const Version &v1, const Version &v2) {
+  if (v1.maj < v2.maj) return true;
+  if (v1.min < v2.min) return true;
+  if (v1.patch < v2.patch) return true;
+  return false;
 }
 
 }  // namespace FOEDAG
