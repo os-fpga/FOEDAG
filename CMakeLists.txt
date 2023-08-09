@@ -274,8 +274,6 @@ if(MSVC)
   )
   target_link_libraries(foedag-bin PUBLIC Netapi32)
   target_link_libraries(foedag  PUBLIC Netapi32)
-  target_link_libraries(foedag-bin PRIVATE fmt::fmt)
-
 else()
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES

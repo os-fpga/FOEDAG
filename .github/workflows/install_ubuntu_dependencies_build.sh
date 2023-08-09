@@ -14,8 +14,7 @@ sudo apt install -y \
   qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools \
   xvfb \
   yosys \
-  automake \
-  libfmt-dev
+  automake 
 
 # For QML: qtdeclarative5-dev
 
