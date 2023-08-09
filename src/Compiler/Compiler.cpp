@@ -335,8 +335,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   }
   if (m_DeviceModeling == nullptr) {
     m_DeviceModeling = new DeviceModeling(this);
-    m_DeviceModeling->RegisterCommands(interp, batchMode);
   }
+  m_DeviceModeling->RegisterCommands(interp, batchMode);
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
