@@ -152,7 +152,7 @@ class OPTION :
 
 class database :
 
-  def __init__(self, n, h, a) :
+  def __init__(self, n, h, hh, a) :
 
     assert isinstance(n, str)
     check_case(n, False)
@@ -169,6 +169,7 @@ class database :
       (a[1] >= a[0] or a[1] == -1)
     self.name = n
     self.help = h
+    self.hidden_help = hh
     self.arg = a
     self.options = []
     self.arrange_options = []
@@ -242,13 +243,23 @@ def write_arg(file, cfile, arg, subnames, hidden) :
             cfile.write("  %-*s          %s\n" % (arg.longest_option_name, " ", estr))
     cfile.write("\n  Note: Use --help=option to show more detail of the option\n")
   cfile.write(")\"\"\"\";\n\n")
+  if arg.hidden_help == None :
+    cfile.write("const char * CFGArg_%s_HIDDEN_HELP = nullptr;\n\n" % arg.name.upper())
+  else :
+    cfile.write("const char * CFGArg_%s_HIDDEN_HELP = R\"\"\"\"(\n" % arg.name.upper())
+    if isinstance(arg.hidden_help, list) :
+      for h in arg.hidden_help :
+        cfile.write("%s\n" % h)
+    else :
+      cfile.write("%s\n" % arg.hidden_help)
+    cfile.write(")\"\"\"\";\n\n")
   file.write("class CFGArg_%s : public CFGArg\n" % arg.name.upper())
   file.write("{\n")
   file.write("public:\n")
   file.write("  CFGArg_%s();\n" % arg.name.upper())
   cfile.write("CFGArg_%s::CFGArg_%s() :\n" % (arg.name.upper(), arg.name.upper()))
   if subnames != None :
-    cfile.write("  CFGArg(\"%s\", %s, CFGArg_%s_HELP)\n" % (arg.name, "true" if hidden else "false", arg.name.upper()))
+    cfile.write("  CFGArg(\"%s\", %s, CFGArg_%s_HELP, CFGArg_%s_HIDDEN_HELP)\n" % (arg.name, "true" if hidden else "false", arg.name.upper(), arg.name.upper()))
   else :
     cfile.write("  CFGArg(\"%s\", %s, %d, %d, {" % (arg.name, "true" if hidden else "false", arg.arg[0], arg.arg[1]))
     if len(arg.options) == 0 :
@@ -317,17 +328,21 @@ def single_command(name, command, file, cfile, subnames=None) :
   if subnames != None :
     assert isinstance(subnames, dict)
     assert len(subnames) 
-    assert len(command) == 1
+    assert len(command) == 2
     assert "help" in command
+    assert "hidden_help" in command
   assert "help" in command
   help = command["help"]
+  hidden_help = None
+  if "hidden_help" in command :
+    hidden_help = command["hidden_help"]
   hidden = False
   if "hidden" in command and command["hidden"] :
     hidden = True
   arg = [0, 0]
   if "arg" in command :
     arg = command["arg"]
-  db = database(name, help, arg)
+  db = database(name, help, hidden_help, arg)
   if "option" in command :
     short_names = []
     long_names = []
@@ -335,7 +350,8 @@ def single_command(name, command, file, cfile, subnames=None) :
     for option in command["option"] :
       assert isinstance(option, dict)
       assert "name" in option
-      assert option["name"] != "help"
+      assert option["name"] != "help", "help is reserved keyword and cannot be used as user-defined-option"
+      assert option["name"] != "hidden_help", "hidden_help is reserved keyword and cannot be used as user-defined-option"
       db.add_option(OPTION(option, long_names, short_names))
   write_arg(file, cfile, db, subnames, hidden)
       
@@ -395,6 +411,7 @@ def main() :
       subnames = {}
       hidden_subnames = []
       max_subname = 0
+      max_all_subname = 0
       for subcmd in args[name] :
         assert isinstance(subcmd, dict)
         assert len(subcmd) == 1
@@ -410,8 +427,11 @@ def main() :
           if "hidden" in subcmd[subname] and subcmd[subname]["hidden"] :
             hidden_subnames.append(subname)
           single_command("%s_%s" % (name, subname), subcmd[subname], file, cfile)
-          if len(subname) > max_subname :
-            max_subname = len(subname)
+          if subname not in hidden_subnames :
+            if len(subname) > max_subname :
+              max_subname = len(subname)
+          if len(subname) > max_all_subname :
+            max_all_subname = len(subname)
       assert len(subnames) > 1, "There must be at least two sub commands for %s" % name
       assert main_help != None, "Missing main command help"
       help_string = ""
@@ -423,12 +443,16 @@ def main() :
         assert isinstance(main_help, str)
         help_string = main_help
       help_string = "%s\nSupported sub commands:" % help_string
+      hidden_help_string = help_string
       for subname in subnames :
         if subname not in hidden_subnames :
           help_string = "%s\n  %-*s : %s" % (help_string, max_subname, subname, subnames[subname])
-      help_string = "%s\nTo print help menu for each sub command, you can specify:" % help_string
+        hidden_help_string = "%s\n  %-*s : %s" % (hidden_help_string, max_all_subname, subname, subnames[subname])
+      help_string = "%s\n\nTo print help menu for each sub command, you can specify:" % help_string
       help_string = "%s\n  <exe> <sub command> --help" % help_string
-      single_command(name, { "help" : help_string}, file, cfile, subnames)
+      hidden_help_string = "%s\n\nTo print help menu for each sub command, you can specify:" % hidden_help_string
+      hidden_help_string = "%s\n  <exe> <sub command> --help" % hidden_help_string
+      single_command(name, { "help" : help_string, "hidden_help" : hidden_help_string }, file, cfile, subnames)
     else :
       single_command(name, args[name], file, cfile)
   # Close output file

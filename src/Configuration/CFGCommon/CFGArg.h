@@ -55,7 +55,7 @@ class CFGArg {
  public:
   CFGArg(const std::string& n, bool hidden, int i, int a,
          std::vector<CFGArg_RULE> r, const char* h);
-  CFGArg(const std::string& n, bool hidden, const char* h);
+  CFGArg(const std::string& n, bool hidden, const char* h, const char* hh);
   std::string get_sub_arg_name();
   const CFGArg* get_sub_arg();
   bool specified(const std::string& option);
@@ -87,6 +87,7 @@ class CFGArg {
   const int m_max_arg = 0;
   const std::vector<CFGArg_RULE> m_rules = {};
   const char* m_help_msg = nullptr;
+  const char* m_hidden_help_msg = nullptr;
   uint32_t m_count = 0;
   std::string m_subcmd = "";
 

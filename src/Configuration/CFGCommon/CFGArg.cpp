@@ -16,8 +16,8 @@ CFGArg::CFGArg(const std::string& n, bool hidden, int i, int a,
   CFG_ASSERT(m_help_msg != nullptr);
 }
 
-CFGArg::CFGArg(const std::string& n, bool hidden, const char* h)
-    : m_name(n), m_hidden(hidden), m_help_msg(h) {
+CFGArg::CFGArg(const std::string& n, bool hidden, const char* h, const char* hh)
+    : m_name(n), m_hidden(hidden), m_help_msg(h), m_hidden_help_msg(hh) {
   CFG_ASSERT(m_name.size());
   CFG_ASSERT(m_help_msg != nullptr);
 }
@@ -29,6 +29,7 @@ bool CFGArg::parse(int argc, const char** argv,
     // for parent command, the first position must be help or sub-command
     if (argc == 0 ||
         !(std::string(argv[0]) == "-h" || std::string(argv[0]) == "--help" ||
+          std::string(argv[0]) == "--hidden_help" ||
           m_sub_args.find(std::string(argv[0])) != m_sub_args.end())) {
       std::string commands = "";
       for (auto& sub : m_sub_args) {
@@ -82,9 +83,13 @@ bool CFGArg::single_parse(int argc, const char** argv,
         assign(ptr, str, errors);
         ptr = nullptr;
       } else {
-        if (str == "-h" || str == "--help") {
+        if (str == "-h" || str == "--help" || str == "--hidden_help") {
           m_help = true;
-          CFG_POST_MSG(m_help_msg);
+          if (str == "--hidden_help" && m_hidden_help_msg) {
+            CFG_POST_MSG(m_hidden_help_msg);
+          } else {
+            CFG_POST_MSG(m_help_msg);
+          }
         } else if (str[0] == '-') {
           if (str.size() >= 2) {
             if (str[1] == '-') {
