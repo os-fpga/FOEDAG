@@ -35,6 +35,7 @@ class TimingAnalysisReportManager final : public AbstractReportManager {
                               Compiler *compiler);
 
  private:
+  bool isOpensta() const;
   void parseStatisticLine(const QString &line) override;
   QStringList getAvailableReportIds() const override;
   std::unique_ptr<ITaskReport> createReport(const QString &reportId) override;

@@ -117,6 +117,11 @@ TimingAnalysisReportManager::TimingAnalysisReportManager(
                         QRegExp{"Build tileable routing resource graph"}};
 }
 
+bool TimingAnalysisReportManager::isOpensta() const {
+  return m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
+                           Compiler::STAEngineOpt::Opensta;
+}
+
 void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
   AbstractReportManager::parseStatisticLine(line);
   static const QRegularExpression sWNS{
@@ -156,8 +161,7 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
-  if (m_compiler &&
-      m_compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Tatum)
+  if (!isOpensta())
     return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
   else
     return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME};
@@ -167,6 +171,7 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
     const QString &reportId) {
   if (isFileOutdated(logFile())) parseLogFile();
   if (!FileUtils::FileExists(logFile())) clean();
+  if (!isOpensta() && m_totalDesignTable.isEmpty()) parseLogFile();
 
   ITaskReport::DataReports dataReports;
 
@@ -287,34 +292,38 @@ void TimingAnalysisReportManager::parseLogFile() {
       m_histograms.push_back(qMakePair(line, parseHistogram(in, lineNr)));
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
-    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
-      lineNr = parseSection(in, lineNr, [this](const QString &line) {
-        parseIntraDomPathDelaysSection(line);
-      });
-    else if (line.startsWith(INTRA_DOMAIN_SETUP_SLACK_SECTION))
-      lineNr = parseSection(in, lineNr, [this](const QString &line) {
-        parseIntraSetupSection(line);
-      });
-    else if (line.startsWith(INTER_DOMAIN_PATH_DELAYS_SECTION))
-      lineNr = parseSection(in, lineNr, [this](const QString &line) {
-        parseInterDomPathDelaysSection(line);
-      });
-    else if (line.startsWith(INTER_DOMAIN_SETUP_SLACK_SECTION))
-      lineNr = parseSection(in, lineNr, [this](const QString &line) {
-        parseInterSetupSection(line);
-      });
+    else if (!isOpensta()) {
+      if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+        lineNr = parseSection(in, lineNr, [this](const QString &line) {
+          parseIntraDomPathDelaysSection(line);
+        });
+      else if (line.startsWith(INTRA_DOMAIN_SETUP_SLACK_SECTION))
+        lineNr = parseSection(in, lineNr, [this](const QString &line) {
+          parseIntraSetupSection(line);
+        });
+      else if (line.startsWith(INTER_DOMAIN_PATH_DELAYS_SECTION))
+        lineNr = parseSection(in, lineNr, [this](const QString &line) {
+          parseInterDomPathDelaysSection(line);
+        });
+      else if (line.startsWith(INTER_DOMAIN_SETUP_SLACK_SECTION))
+        lineNr = parseSection(in, lineNr, [this](const QString &line) {
+          parseInterSetupSection(line);
+        });
+    }
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
   m_ioData = CreateIOData();
-  m_clockData = CreateClockData();
-  m_totalDesignTable = CreateTotalDesign();
-  m_intraClockTable = CreateIntraClock();
-  m_interClockTable = CreateInterClock();
+  if (!isOpensta()) {
+    m_clockData = CreateClockData();
+    m_totalDesignTable = CreateTotalDesign();
+    m_intraClockTable = CreateIntraClock();
+    m_interClockTable = CreateInterClock();
+    validateTimingReport();
+  }
   designStatistics();
-  validateTimingReport();
 
   logFile->close();
 
