@@ -72,6 +72,7 @@ class TclCommandIntegration;
 class Constraints;
 class CFGCompiler;
 class ToolContext;
+class DeviceModeling;
 
 struct DeviceData {
   std::string family;
@@ -415,7 +416,7 @@ class Compiler {
   bool m_bitstreamEnabled = true;
   bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
-
+  class DeviceModeling* m_DeviceModeling = nullptr;
   // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;

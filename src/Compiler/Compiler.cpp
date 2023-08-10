@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CompilerDefines.h"
 #include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "DesignQuery/DesignQuery.h"
+#include "DeviceModeling/DeviceModeling.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
@@ -62,6 +63,7 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 static const int CHATGPT_TIMEOUT{180000};
+LogLevel SpeedLog::speed_logLevel = LOG_INFO;
 
 auto CreateDummyLog = [](Compiler::Action action,
                          const std::string& outfileName,
@@ -331,7 +333,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     SetConfiguration(new CFGCompiler(this));
     GetConfiguration()->RegisterCommands(interp, batchMode);
   }
-
+  if (m_DeviceModeling == nullptr) {
+    m_DeviceModeling = new DeviceModeling(this);
+  }
+  m_DeviceModeling->RegisterCommands(interp, batchMode);
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
