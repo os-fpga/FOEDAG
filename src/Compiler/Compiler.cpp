@@ -2706,6 +2706,11 @@ bool Compiler::HasIPDefinitions() {
   return result;
 }
 
+void Compiler::TimingAnalysisEngineOpt(STAEngineOpt opt) {
+  m_staEngineOpt = opt;
+  if (m_tclCmdIntegration) m_tclCmdIntegration->updateReports();
+}
+
 bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {

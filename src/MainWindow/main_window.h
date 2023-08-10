@@ -112,6 +112,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openFileWith(QString file, int editor);
   void editorSettings();
   void updateHierarchyTree();
+  void updateReportsView();
 
  public slots:
   void updateSourceTree();

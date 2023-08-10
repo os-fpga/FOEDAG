@@ -1311,6 +1311,8 @@ void MainWindow::ReShowWindow(QString strProject) {
           this, [this]() { saveSettings(); });
   connect(tclCommandIntegration, &TclCommandIntegration::updateHierarchy, this,
           &MainWindow::updateHierarchyTree);
+  connect(tclCommandIntegration, &TclCommandIntegration::updateReports, this,
+          &MainWindow::updateReportsView);
 
   addDockWidget(Qt::BottomDockWidgetArea, consoleDocWidget);
 
@@ -1976,6 +1978,12 @@ void MainWindow::updateHierarchyTree() {
   if (m_compiler)
     m_hierarchyView.setPortsFile(
         m_compiler->FilePath(Compiler::Action::Analyze, "hier_info.json"));
+}
+
+void MainWindow::updateReportsView() {
+  if (m_reportsDockWidget->toggleViewAction()->isChecked() &&
+      m_reportsDockWidget->widget())
+    showReportsTab();
 }
 
 void MainWindow::setEnableSaveButtons(bool enable) {

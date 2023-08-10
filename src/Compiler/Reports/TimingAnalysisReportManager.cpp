@@ -156,7 +156,11 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
-  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
+  if (m_compiler &&
+      m_compiler->TimingAnalysisEngineOpt() == Compiler::STAEngineOpt::Tatum)
+    return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
+  else
+    return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME};
 }
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
