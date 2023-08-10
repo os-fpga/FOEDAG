@@ -20,34 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
-#include "Dialog.h"
-
-// include order issue: <filesystem> must go after Dialog.h
+#include <QStringList>
 #include <filesystem>
-namespace fs = std::filesystem;
+#include <regex>
+
+#include "Utils/StringUtils.h"
 
 namespace FOEDAG {
 
-class CompressProject : public Dialog {
-  Q_OBJECT
-
+class FileLoaderOldStructure {
  public:
-  explicit CompressProject(const fs::path& project, QWidget* parent = nullptr);
-  static std::pair<bool, std::string> CompressZip(const fs::path& path,
-                                                  const std::string& fileName);
+  explicit FileLoaderOldStructure(const QString &projectFileName);
 
- private slots:
-  void compressProject();
-  void extensionHasChanged(bool checked);
+  std::pair<bool, QString> Migrate() const;
 
  private:
-  static std::pair<bool, std::string> ExecuteSystemCommand(
-      const std::string& command, const std::vector<std::string>& args,
-      const std::string& workingDir);
-  static void showErrorMessage(const std::string& message, QWidget* parent);
+  static StringVector FilesToRemove(const std::string &projectName);
+  static StringVector FilesByRegex(const std::filesystem::path &path,
+                                   const std::vector<std::regex> &regexes);
+  static StringVector FoldersToRemove(const std::string &projectName);
+  static StringVector FilesByExtencion(const std::filesystem::path &path,
+                                       const StringVector &extensions);
 
  private:
-  QString m_extension;
-  const fs::path m_projectPath;
+  QString m_project{};
 };
+
 }  // namespace FOEDAG

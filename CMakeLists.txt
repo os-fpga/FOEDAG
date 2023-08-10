@@ -36,9 +36,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 223)
 # Add the spdlog directory to the include path
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
+
+set(VERSION_PATCH 224)
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
