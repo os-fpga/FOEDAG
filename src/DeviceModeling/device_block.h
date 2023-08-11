@@ -158,8 +158,8 @@ class device_block {
    *
    * @return A non-const reference to the map of device signals.
    */
-  std::unordered_map<std::string, std::shared_ptr<device_signal>>
-      &device_signals() {
+  std::unordered_map<std::string, std::shared_ptr<device_signal>> &
+  device_signals() {
     return signals_map_;
   }
 
@@ -170,8 +170,8 @@ class device_block {
    *
    * @return A const reference to the map of device signals.
    */
-  const std::unordered_map<std::string, std::shared_ptr<device_signal>>
-      &device_signals() const {
+  const std::unordered_map<std::string, std::shared_ptr<device_signal>> &
+  device_signals() const {
     return signals_map_;
   }
 
@@ -222,8 +222,8 @@ class device_block {
    * @brief Get a reference to the double parameters map.
    * @return A reference to the double parameters map.
    */
-  std::unordered_map<std::string, std::shared_ptr<Parameter<double>>>
-      &double_parameters() {
+  std::unordered_map<std::string, std::shared_ptr<Parameter<double>>> &
+  double_parameters() {
     return double_parameters_map_;
   }
 
@@ -231,8 +231,8 @@ class device_block {
    * @brief Get a const reference to the double parameters map.
    * @return A const reference to the double parameters map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<Parameter<double>>>
-      &double_parameters() const {
+  const std::unordered_map<std::string, std::shared_ptr<Parameter<double>>> &
+  double_parameters() const {
     return double_parameters_map_;
   }
 
@@ -282,8 +282,8 @@ class device_block {
    * @brief Get a reference to the int parameters map.
    * @return A reference to the int parameters map.
    */
-  std::unordered_map<std::string, std::shared_ptr<Parameter<int>>>
-      &int_parameters() {
+  std::unordered_map<std::string, std::shared_ptr<Parameter<int>>> &
+  int_parameters() {
     return int_parameters_map_;
   }
 
@@ -291,8 +291,8 @@ class device_block {
    * @brief Get a const reference to the int parameters map.
    * @return A const reference to the int parameters map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<Parameter<int>>>
-      &int_parameters() const {
+  const std::unordered_map<std::string, std::shared_ptr<Parameter<int>>> &
+  int_parameters() const {
     return int_parameters_map_;
   }
 
@@ -341,8 +341,8 @@ class device_block {
    * @brief Get a reference to the string parameters map.
    * @return A reference to the string parameters map.
    */
-  std::unordered_map<std::string, std::shared_ptr<Parameter<std::string>>>
-      &string_parameters() {
+  std::unordered_map<std::string, std::shared_ptr<Parameter<std::string>>> &
+  string_parameters() {
     return string_parameters_map_;
   }
 
@@ -350,8 +350,9 @@ class device_block {
    * @brief Get a const reference to the string parameters map.
    * @return A const reference to the string parameters map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<Parameter<std::string>>>
-      &string_parameters() const {
+  const std::unordered_map<std::string,
+                           std::shared_ptr<Parameter<std::string>>> &
+  string_parameters() const {
     return string_parameters_map_;
   }
 
@@ -401,8 +402,8 @@ class device_block {
    * @brief Get a reference to the attributes map.
    * @return A reference to the attributes map.
    */
-  std::unordered_map<std::string, std::shared_ptr<Parameter<int>>>
-      &attributes() {
+  std::unordered_map<std::string, std::shared_ptr<Parameter<int>>> &
+  attributes() {
     return attributes_map_;
   }
 
@@ -410,8 +411,8 @@ class device_block {
    * @brief Get a const reference to the attributes map.
    * @return A const reference to the attributes map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<Parameter<int>>>
-      &attributes() const {
+  const std::unordered_map<std::string, std::shared_ptr<Parameter<int>>> &
+  attributes() const {
     return attributes_map_;
   }
 
@@ -460,8 +461,8 @@ class device_block {
    * @brief Get a reference to the instance map.
    * @return A reference to the instance map.
    */
-  std::unordered_map<std::string, std::shared_ptr<device_block_instance>>
-      &instances() {
+  std::unordered_map<std::string, std::shared_ptr<device_block_instance>> &
+  instances() {
     return instance_map_;
   }
 
@@ -469,8 +470,9 @@ class device_block {
    * @brief Get a const reference to the instance map.
    * @return A const reference to the instance map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<device_block_instance>>
-      &instances() const {
+  const std::unordered_map<std::string,
+                           std::shared_ptr<device_block_instance>> &
+  instances() const {
     return instance_map_;
   }
 
@@ -518,8 +520,8 @@ class device_block {
    * @brief Get a reference to the constraint map.
    * @return A reference to the constraint map.
    */
-  std::unordered_map<std::string, std::shared_ptr<rs_expression<int>>>
-      &constraints() {
+  std::unordered_map<std::string, std::shared_ptr<rs_expression<int>>> &
+  constraints() {
     return constraint_map_;
   }
 
@@ -527,8 +529,8 @@ class device_block {
    * @brief Get a const reference to the constraint map.
    * @return A const reference to the constraint map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<rs_expression<int>>>
-      &constraints() const {
+  const std::unordered_map<std::string, std::shared_ptr<rs_expression<int>>> &
+  constraints() const {
     return constraint_map_;
   }
 
@@ -674,8 +676,8 @@ class device_block {
    * @brief Get a reference to the double parameter types map.
    * @return A reference to the double parameter types map.
    */
-  std::unordered_map<std::string, std::shared_ptr<ParameterType<double>>>
-      &double_parameter_types() {
+  std::unordered_map<std::string, std::shared_ptr<ParameterType<double>>> &
+  double_parameter_types() {
     return double_parameter_types_map_;
   }
 
@@ -683,8 +685,9 @@ class device_block {
    * @brief Get a const reference to the double parameter types map.
    * @return A const reference to the double parameter types map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<ParameterType<double>>>
-      &double_parameter_types() const {
+  const std::unordered_map<std::string,
+                           std::shared_ptr<ParameterType<double>>> &
+  double_parameter_types() const {
     return double_parameter_types_map_;
   }
 
@@ -741,8 +744,8 @@ class device_block {
    * @brief Get a reference to the int parameter types map.
    * @return A reference to the int parameter types map.
    */
-  std::unordered_map<std::string, std::shared_ptr<ParameterType<int>>>
-      &int_parameter_types() {
+  std::unordered_map<std::string, std::shared_ptr<ParameterType<int>>> &
+  int_parameter_types() {
     return int_parameter_types_map_;
   }
 
@@ -750,8 +753,8 @@ class device_block {
    * @brief Get a const reference to the int parameter types map.
    * @return A const reference to the int parameter types map.
    */
-  const std::unordered_map<std::string, std::shared_ptr<ParameterType<int>>>
-      &int_parameter_types() const {
+  const std::unordered_map<std::string, std::shared_ptr<ParameterType<int>>> &
+  int_parameter_types() const {
     return int_parameter_types_map_;
   }
 
@@ -803,8 +806,8 @@ class device_block {
    * @brief Get a reference to the string parameter types map.
    * @return A reference to the string parameter types map.
    */
-  std::unordered_map<std::string, std::shared_ptr<ParameterType<std::string>>>
-      &string_parameter_types() {
+  std::unordered_map<std::string, std::shared_ptr<ParameterType<std::string>>> &
+  string_parameter_types() {
     return string_parameter_types_map_;
   }
 
@@ -813,8 +816,8 @@ class device_block {
    * @return A const reference to the string parameter types map.
    */
   const std::unordered_map<std::string,
-                           std::shared_ptr<ParameterType<std::string>>>
-      &string_parameter_types() const {
+                           std::shared_ptr<ParameterType<std::string>>> &
+  string_parameter_types() const {
     return string_parameter_types_map_;
   }
 
@@ -951,6 +954,58 @@ class device_block {
    */
   bool chainExists(const std::string &key) const {
     return instance_chains_.find(key) != instance_chains_.end();
+  }
+
+  /**
+   * @brief Get the value of a property in the property map.
+   *
+   * @param key The key of the property.
+   * @return The value associated with the key, or an empty string if not found.
+   */
+  std::string getProperty(const std::string &key) const {
+    auto it = property_map_.find(key);
+    if (it != property_map_.end()) {
+      return it->second;
+    }
+    return "";  // Property not found
+  }
+
+  /**
+   * @brief Set the value of a property in the property map.
+   *
+   * If the property already exists, its value will be updated. If it doesn't
+   * exist, a new property will be added to the map.
+   *
+   * @param key The key of the property.
+   * @param value The value to set.
+   */
+  void setProperty(const std::string &key, const std::string &value) {
+    property_map_[key] = value;
+  }
+
+  /**
+   * @brief Check if a property exists in the property map.
+   *
+   * @param key The key of the property.
+   * @return True if the property exists, false otherwise.
+   */
+  bool hasProperty(const std::string &key) const {
+    return property_map_.find(key) != property_map_.end();
+  }
+
+  /**
+   * @brief Remove a property from the property map.
+   *
+   * @param key The key of the property to remove.
+   * @return True if the property was removed, false if it didn't exist.
+   */
+  bool removeProperty(const std::string &key) {
+    auto it = property_map_.find(key);
+    if (it != property_map_.end()) {
+      property_map_.erase(it);
+      return true;  // Property removed
+    }
+    return false;  // Property not found
   }
 
   // // Overload of the operator <<
@@ -1148,6 +1203,9 @@ class device_block {
   std::unordered_map<std::string,
                      std::vector<std::shared_ptr<device_block_instance>>>
       instance_chains_;
+
+  /// Map holding all the string properties of the device block.
+  std::unordered_map<std::string, std::string> property_map_;
 
   friend class device_block_factory;
 };

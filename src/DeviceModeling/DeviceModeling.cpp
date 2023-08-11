@@ -217,6 +217,14 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("create_instance", create_instance, this, 0);
 
+  auto define_properties = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = Model::get_modler().define_properties(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("define_properties", define_properties, this, 0);
+
   auto add_block_to_chain_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
     // TODO: Implement this API
