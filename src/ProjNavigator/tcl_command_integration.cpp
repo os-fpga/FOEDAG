@@ -280,15 +280,21 @@ bool TclCommandIntegration::TclCreateProject(int argc, const char *argv[],
     out << "Command validation fail: internal error" << std::endl;
     return false;
   }
+  bool cleanup{false};
   const QString projName{argv[1]};
   QString type{};
-  if ((argc > 3) && QtUtils::IsEqual(QString{argv[3]}, "-type"))
-    type = QString{argv[3]};
-  return TclCreateProject(projName, type, out);
+  for (int i = 2; i < argc; i++) {
+    std::string arg{argv[i]};
+    if (arg == "clean")
+      cleanup = true;
+    else if (arg == "-type" && (i < argc - 1))
+      type = argv[i + 1];
+  }
+  return TclCreateProject(projName, type, cleanup, out);
 }
 
 bool TclCommandIntegration::TclCreateProject(const QString &name,
-                                             const QString &type,
+                                             const QString &type, bool cleanup,
                                              std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -309,6 +315,7 @@ bool TclCommandIntegration::TclCreateProject(const QString &name,
 
   QDir dir(name);
   if (dir.exists()) {
+    if (cleanup) dir.removeRecursively();
     out << "Project \"" << name.toStdString() << "\" was rewritten.";
   }
 

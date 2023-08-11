@@ -341,7 +341,8 @@ class Compiler {
   bool HasTargetDevice();
 
   bool CreateDesign(const std::string& name,
-                    const std::string& type = std::string{});
+                    const std::string& type = std::string{},
+                    bool cleanup = false);
 
   /* Compiler class utilities */
   bool RunBatch();
