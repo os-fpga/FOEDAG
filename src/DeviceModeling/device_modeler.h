@@ -1055,6 +1055,54 @@ class device_modeler {
     return true;
   }
 
+  /**
+   * @brief Define properties for a device block.
+   *
+   * This function defines a set of properties for a device block. Each property
+   * consists of a property name and an associated value. The property names are
+   * specified with the -property_name flag followed by the property name
+   * itself.
+   *
+   * @param argc Number of command line arguments.
+   * @param argv Array of command line arguments.
+   * @return True if the properties were successfully defined, false otherwise.
+   * @throws std::invalid_argument if insufficient arguments are passed.
+   * @throws std::runtime_error if no device is defined before calling the
+   * function.
+   */
+  bool define_properties(int argc, const char **argv) {
+    // Check for at least two parameters (command name and -block <block_name>)
+    if (argc < 3) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to define_properties.");
+    }
+    std::string block_name = get_argument_value("-block", argc, argv, true);
+    device_block *block;
+    if (!current_device_.get()) {
+      throw std::runtime_error(
+          "Need to define a device before calling \"define_properties\"");
+    }
+    if (block_name.empty()) {
+      block = current_device_.get();
+    } else {
+      block = current_device_->get_block(block_name).get();
+    }
+    // Iterate through the command line arguments to extract property names and
+    // values
+    for (int i = 1; i < argc - 1; ++i) {
+      std::string arg = argv[i];
+      if (arg[0] == '-' && i + 1 < argc && argv[i + 1][0] != '-') {
+        std::string property_name = arg.substr(1);  // Remove the leading "-"
+        std::string property_value = argv[i + 1];
+
+        // Set the property in the block's property map
+        block->setProperty(property_name, property_value);
+        ++i;  // Skip the property value
+      }
+    }
+    return true;
+  }
+
  private:
   std::shared_ptr<device> current_device_ =
       nullptr;  ///< The current device being worked on.
