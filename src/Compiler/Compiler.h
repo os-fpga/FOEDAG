@@ -219,7 +219,7 @@ class Compiler {
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
   STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
-  void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
+  void TimingAnalysisEngineOpt(STAEngineOpt opt);
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
 
