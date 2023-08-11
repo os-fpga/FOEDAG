@@ -161,10 +161,8 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
-  if (!isOpensta())
-    return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
-  else
-    return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME};
+  if (isOpensta()) return {};
+  return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
 }
 
 std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
@@ -244,6 +242,7 @@ void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
 
 void TimingAnalysisReportManager::parseLogFile() {
   clean();
+  if (isOpensta()) return;
   auto logFile = createLogFile();
   if (!logFile) return;
 
@@ -292,37 +291,33 @@ void TimingAnalysisReportManager::parseLogFile() {
       m_histograms.push_back(qMakePair(line, parseHistogram(in, lineNr)));
     else if (line.startsWith(STATISTIC_SECTION))
       lineNr = parseStatisticsSection(in, lineNr);
-    else if (!isOpensta()) {
-      if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
-        lineNr = parseSection(in, lineNr, [this](const QString &line) {
-          parseIntraDomPathDelaysSection(line);
-        });
-      else if (line.startsWith(INTRA_DOMAIN_SETUP_SLACK_SECTION))
-        lineNr = parseSection(in, lineNr, [this](const QString &line) {
-          parseIntraSetupSection(line);
-        });
-      else if (line.startsWith(INTER_DOMAIN_PATH_DELAYS_SECTION))
-        lineNr = parseSection(in, lineNr, [this](const QString &line) {
-          parseInterDomPathDelaysSection(line);
-        });
-      else if (line.startsWith(INTER_DOMAIN_SETUP_SLACK_SECTION))
-        lineNr = parseSection(in, lineNr, [this](const QString &line) {
-          parseInterSetupSection(line);
-        });
-    }
+    else if (line.startsWith(INTRA_DOMAIN_PATH_DELAYS_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraDomPathDelaysSection(line);
+      });
+    else if (line.startsWith(INTRA_DOMAIN_SETUP_SLACK_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseIntraSetupSection(line);
+      });
+    else if (line.startsWith(INTER_DOMAIN_PATH_DELAYS_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseInterDomPathDelaysSection(line);
+      });
+    else if (line.startsWith(INTER_DOMAIN_SETUP_SLACK_SECTION))
+      lineNr = parseSection(in, lineNr, [this](const QString &line) {
+        parseInterSetupSection(line);
+      });
     ++lineNr;
   }
   m_circuitData = CreateLogicData();
   m_bramData = CreateBramData();
   m_dspData = CreateDspData();
   m_ioData = CreateIOData();
-  if (!isOpensta()) {
-    m_clockData = CreateClockData();
-    m_totalDesignTable = CreateTotalDesign();
-    m_intraClockTable = CreateIntraClock();
-    m_interClockTable = CreateInterClock();
-    validateTimingReport();
-  }
+  m_clockData = CreateClockData();
+  m_totalDesignTable = CreateTotalDesign();
+  m_intraClockTable = CreateIntraClock();
+  m_interClockTable = CreateInterClock();
+  validateTimingReport();
   designStatistics();
 
   logFile->close();
