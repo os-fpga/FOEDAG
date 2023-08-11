@@ -49,7 +49,7 @@ class TclCommandIntegration : public QObject {
   bool TclSetActive(int argc, const char *argv[], std::ostream &out);
   bool TclSetAsTarget(int argc, const char *argv[], std::ostream &out);
   bool TclCreateProject(int argc, const char *argv[], std::ostream &out);
-  bool TclCreateProject(const QString &name, const QString &type,
+  bool TclCreateProject(const QString &name, const QString &type, bool cleanup,
                         std::ostream &out);
   bool TclCloseProject();
   bool TclClearSimulationFiles(std::ostream &out);
