@@ -129,6 +129,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../bin)
 
 add_executable(compiler_bin
 	${PROJECT_SOURCE_DIR}/../Compiler/Test/compiler_main.cpp)
-target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate designquery simulation)
+target_link_libraries(compiler_bin foedag tcl_stubb tcl_static zlib compiler ipgenerate designquery simulation devicemodeling)
 set_target_properties(compiler_bin PROPERTIES OUTPUT_NAME compiler_test)
 

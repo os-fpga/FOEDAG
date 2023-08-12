@@ -36,8 +36,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 223)
+# Add the spdlog directory to the include path
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
+set(VERSION_PATCH 225)
 option(
   WITH_LIBCXX
   "Building with clang++ and libc++(in Linux). To enable with: -DWITH_LIBCXX=On"
@@ -109,6 +111,7 @@ add_subdirectory(src/Compiler)
 add_subdirectory(src/Simulation)
 add_subdirectory(src/IPGenerate)
 add_subdirectory(src/DesignQuery)
+add_subdirectory(src/DeviceModeling)
 add_subdirectory(src/TextEditor)
 add_subdirectory(src/Utils)
 add_subdirectory(src/IpConfigurator)
@@ -272,7 +275,6 @@ if(MSVC)
   )
   target_link_libraries(foedag-bin PUBLIC Netapi32)
   target_link_libraries(foedag  PUBLIC Netapi32)
-
 else()
   add_library(zlib STATIC IMPORTED)
   set_target_properties(zlib PROPERTIES
@@ -314,6 +316,8 @@ add_dependencies(simulation tcl_stubb_build)
 add_dependencies(ipgenerate tcl_stubb_build)
 add_dependencies(designquery tcl_stubb_build)
 add_dependencies(designquery nlohmann_json)
+add_dependencies(devicemodeling tcl_stubb_build)
+add_dependencies(devicemodeling nlohmann_json)
 add_dependencies(projnavigator nlohmann_json)
 add_dependencies(foedagcore tcl_stubb_build)
 add_dependencies(console tcl_stubb_build)
@@ -379,6 +383,7 @@ target_link_libraries(foedag  PUBLIC
   compiler
   ipgenerate
   designquery
+  devicemodeling
   simulation
   foedagutils
   console

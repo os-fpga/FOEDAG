@@ -34,8 +34,11 @@ struct Version {
   constexpr Version() = default;
 };
 
+bool operator!=(const Version &v1, const Version &v2);
+bool operator<(const Version &v1, const Version &v2);
+
 QString toString(Version version);
-Version toVersion(const QString &s);
+Version toVersion(const QString &s, bool *ok = nullptr);
 
 constexpr auto VERSION = "Version";
 

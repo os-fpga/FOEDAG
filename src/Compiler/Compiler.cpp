@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CompilerDefines.h"
 #include "Configuration/CFGCompiler/CFGCompiler.h"
 #include "DesignQuery/DesignQuery.h"
+#include "DeviceModeling/DeviceModeling.h"
 #include "IPGenerate/IPCatalogBuilder.h"
 #include "Log.h"
 #include "Main/Settings.h"
@@ -62,6 +63,7 @@ using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
 static const int CHATGPT_TIMEOUT{180000};
+LogLevel SpeedLog::speed_logLevel = LOG_INFO;
 
 auto CreateDummyLog = [](Compiler::Action action,
                          const std::string& outfileName,
@@ -331,7 +333,10 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     SetConfiguration(new CFGCompiler(this));
     GetConfiguration()->RegisterCommands(interp, batchMode);
   }
-
+  if (m_DeviceModeling == nullptr) {
+    m_DeviceModeling = new DeviceModeling(this);
+  }
+  m_DeviceModeling->RegisterCommands(interp, batchMode);
   auto chatgpt = [](void* clientData, Tcl_Interp* interp, int argc,
                     const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
@@ -415,15 +420,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
     std::string type{"rtl"};
+    bool cleanup{false};
     if (argc >= 2) {
       name = argv[1];
     }
-    if (argc > 3) {
-      const std::string t = argv[2];
-      if (t == "-type") type = argv[3];
+    for (int i = 2; i < argc; i++) {
+      std::string arg{argv[i]};
+      if (arg == "clean")
+        cleanup = true;
+      else if (arg == "-type" && (i < argc - 1))
+        type = argv[i + 1];
     }
     compiler->GetOutput().clear();
-    bool ok = compiler->CreateDesign(name, type);
+    bool ok = compiler->CreateDesign(name, type, cleanup);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
     if (!FileUtils::FileExists(name)) {
@@ -2701,7 +2710,13 @@ bool Compiler::HasIPDefinitions() {
   return result;
 }
 
-bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
+void Compiler::TimingAnalysisEngineOpt(STAEngineOpt opt) {
+  m_staEngineOpt = opt;
+  if (m_tclCmdIntegration) m_tclCmdIntegration->updateReports();
+}
+
+bool Compiler::CreateDesign(const std::string& name, const std::string& type,
+                            bool cleanup) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
@@ -2710,7 +2725,8 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
 
     std::ostringstream out;
     bool ok = m_tclCmdIntegration->TclCreateProject(
-        QString::fromStdString(name), QString::fromStdString(type), out);
+        QString::fromStdString(name), QString::fromStdString(type), cleanup,
+        out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
     std::string message{"Created design: " + name};

@@ -117,6 +117,11 @@ TimingAnalysisReportManager::TimingAnalysisReportManager(
                         QRegExp{"Build tileable routing resource graph"}};
 }
 
+bool TimingAnalysisReportManager::isOpensta() const {
+  return m_compiler && m_compiler->TimingAnalysisEngineOpt() ==
+                           Compiler::STAEngineOpt::Opensta;
+}
+
 void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
   AbstractReportManager::parseStatisticLine(line);
   static const QRegularExpression sWNS{
@@ -156,6 +161,7 @@ void TimingAnalysisReportManager::parseStatisticLine(const QString &line) {
 }
 
 QStringList TimingAnalysisReportManager::getAvailableReportIds() const {
+  if (isOpensta()) return {};
   return {RESOURCE_REPORT_NAME, DESIGN_STAT_REPORT_NAME, TIMING_REPORT};
 }
 
@@ -163,6 +169,7 @@ std::unique_ptr<ITaskReport> TimingAnalysisReportManager::createReport(
     const QString &reportId) {
   if (isFileOutdated(logFile())) parseLogFile();
   if (!FileUtils::FileExists(logFile())) clean();
+  if (!isOpensta() && m_totalDesignTable.isEmpty()) parseLogFile();
 
   ITaskReport::DataReports dataReports;
 
@@ -235,6 +242,7 @@ void TimingAnalysisReportManager::splitTimingData(const QString &timingStr) {
 
 void TimingAnalysisReportManager::parseLogFile() {
   clean();
+  if (isOpensta()) return;
   auto logFile = createLogFile();
   if (!logFile) return;
 
@@ -309,8 +317,8 @@ void TimingAnalysisReportManager::parseLogFile() {
   m_totalDesignTable = CreateTotalDesign();
   m_intraClockTable = CreateIntraClock();
   m_interClockTable = CreateInterClock();
-  designStatistics();
   validateTimingReport();
+  designStatistics();
 
   logFile->close();
 

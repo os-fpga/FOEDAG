@@ -72,6 +72,7 @@ class TclCommandIntegration;
 class Constraints;
 class CFGCompiler;
 class ToolContext;
+class DeviceModeling;
 
 struct DeviceData {
   std::string family;
@@ -218,7 +219,7 @@ class Compiler {
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
   STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
-  void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
+  void TimingAnalysisEngineOpt(STAEngineOpt opt);
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
 
@@ -340,7 +341,8 @@ class Compiler {
   bool HasTargetDevice();
 
   bool CreateDesign(const std::string& name,
-                    const std::string& type = std::string{});
+                    const std::string& type = std::string{},
+                    bool cleanup = false);
 
   /* Compiler class utilities */
   bool RunBatch();
@@ -415,7 +417,7 @@ class Compiler {
   bool m_bitstreamEnabled = true;
   bool m_pin_constraintEnabled = true;
   class QProcess* m_process = nullptr;
-
+  class DeviceModeling* m_DeviceModeling = nullptr;
   // Sub engines
   IPGenerator* m_IPGenerator = nullptr;
   Simulator* m_simulator = nullptr;
