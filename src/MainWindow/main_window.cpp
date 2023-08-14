@@ -824,9 +824,11 @@ bool MainWindow::saveConstraintFile() {
 
 void MainWindow::loadFile(const QString& file) {
   if (m_projectFileLoader) {
+    m_projectFileLoader->setParentWidget(this);
     auto errorCode = m_projectFileLoader->Load(file);
     if (errorCode) {
-      QMessageBox::critical(this, "File loading fails", errorCode.message());
+      if (!errorCode.message().isEmpty())
+        QMessageBox::critical(this, "File loading fails", errorCode.message());
       closeProject(true);
       return;
     }

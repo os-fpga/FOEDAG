@@ -33,6 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 using StringVector = std::vector<std::string>;
+StringVector& operator+=(StringVector& stringVector, const StringVector& other);
 class StringUtils final {
  public:
   // Splits the input string with respect to given separator.
