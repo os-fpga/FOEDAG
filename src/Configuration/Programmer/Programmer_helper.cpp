@@ -42,66 +42,6 @@ std::string transportTypeToString(TransportType transport) {
   return "";
 }
 
-int64_t ConvertIntegerStringToInt64(const std::string& str, std::size_t* pos,
-                                    int base) {
-  try {
-    return std::stoll(str, pos, base);
-  } catch (const std::invalid_argument& ia) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt64 Invalid argument: %s",
-                     ia.what());
-    return 0;
-  } catch (const std::out_of_range& oor) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt64 Invalid argument: %s",
-                     oor.what());
-    return 0;
-  }
-}
-
-int ConvertIntegerStringToInt(const std::string& str, std::size_t* pos,
-                              int base) {
-  try {
-    return std::stoi(str, pos, base);
-  } catch (const std::invalid_argument& ia) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt Invalid argument: %s",
-                     ia.what());
-    return 0;
-  } catch (const std::out_of_range& oor) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt Invalid argument: %s",
-                     oor.what());
-    return 0;
-  }
-}
-
-int64_t ConvertIntegerStringToInt64(const std::string& str, std::size_t* pos,
-                                    int base) {
-  try {
-    return std::stoll(str, pos, base);
-  } catch (const std::invalid_argument& ia) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt64 Invalid argument: %s",
-                     ia.what());
-    return 0;
-  } catch (const std::out_of_range& oor) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt64 Invalid argument: %s",
-                     oor.what());
-    return 0;
-  }
-}
-
-int ConvertIntegerStringToInt(const std::string& str, std::size_t* pos,
-                              int base) {
-  try {
-    return std::stoi(str, pos, base);
-  } catch (const std::invalid_argument& ia) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt Invalid argument: %s",
-                     ia.what());
-    return 0;
-  } catch (const std::out_of_range& oor) {
-    CFG_POST_WARNING("ConvertIntegerStringToInt Invalid argument: %s",
-                     oor.what());
-    return 0;
-  }
-}
-
 int get_string_descriptor(struct libusb_device_handle* device,
                           uint8_t desc_index, std::string& stringDesc,
                           std::string& outputMsg) {
@@ -196,20 +136,19 @@ std::vector<TapInfo> extractTapInfoList(const std::string& tapInfoString) {
     }
     if (tokens.size() == 8) {
       TapInfo tapInfo;
-      tapInfo.index = ConvertIntegerStringToInt(tokens[0]);
-      tapInfo.index = ConvertIntegerStringToInt(tokens[0]);
+      tapInfo.index = CFG_convert_string_to_u64(tokens[0]);
       tapInfo.tapName = tokens[1];
       tapInfo.enabled = tokens[2] == "Y" ? true : false;
-      tapInfo.idCode = ConvertIntegerStringToInt(tokens[3], 0, 0);
-      tapInfo.expected = ConvertIntegerStringToInt(tokens[4], 0, 0);
-      tapInfo.irLen = ConvertIntegerStringToInt(tokens[5]);
-      tapInfo.irCap = ConvertIntegerStringToInt(tokens[6], 0, 0);
-      tapInfo.irMask = ConvertIntegerStringToInt(tokens[7], 0, 0);
-      tapInfo.idCode = ConvertIntegerStringToInt(tokens[3], 0, 0);
-      tapInfo.expected = ConvertIntegerStringToInt(tokens[4], 0, 0);
-      tapInfo.irLen = ConvertIntegerStringToInt(tokens[5]);
-      tapInfo.irCap = ConvertIntegerStringToInt(tokens[6], 0, 0);
-      tapInfo.irMask = ConvertIntegerStringToInt(tokens[7], 0, 0);
+      tapInfo.idCode =
+          static_cast<uint32_t>(CFG_convert_string_to_u64(tokens[3], 0, 0));
+      tapInfo.expected =
+          static_cast<uint32_t>(CFG_convert_string_to_u64(tokens[4], 0, 0));
+      tapInfo.irLen =
+          static_cast<uint32_t>(CFG_convert_string_to_u64(tokens[5]));
+      tapInfo.irCap =
+          static_cast<uint32_t>(CFG_convert_string_to_u64(tokens[6], 0, 0));
+      tapInfo.irMask =
+          static_cast<uint32_t>(CFG_convert_string_to_u64(tokens[7], 0, 0));
       tapInfoList.push_back(tapInfo);
     }
   }
@@ -250,42 +189,30 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
 
     std::string indexStr;
     std::getline(lineStream, indexStr, ' ');  // index string
-    device.index = ConvertIntegerStringToInt(indexStr);
+    device.index = static_cast<int>(CFG_convert_string_to_u64(indexStr));
 
     std::getline(lineStream >> std::ws, device.name, ' ');  // device name
 
     std::string idCodeStr;
     std::getline(lineStream >> std::ws, idCodeStr,
                  ' ');  // idCode string in hex
-    device.tapInfo.idCode = ConvertIntegerStringToInt64(idCodeStr, 0, 16);
+    device.tapInfo.idCode =
+        static_cast<uint32_t>(CFG_convert_string_to_u64(idCodeStr));
 
     std::string irLenStr;
     std::getline(lineStream >> std::ws, irLenStr, ' ');  // irlength string
-    device.tapInfo.irLen = ConvertIntegerStringToInt(irLenStr);
-    std::getline(lineStream, firstToken, ' ');  // "found string"
-
-    std::string indexStr;
-    std::getline(lineStream, indexStr, ' ');  // index string
-    device.index = ConvertIntegerStringToInt(indexStr);
-
-    std::getline(lineStream >> std::ws, device.name, ' ');  // device name
-
-    std::string idCodeStr;
-    std::getline(lineStream >> std::ws, idCodeStr,
-                 ' ');  // idCode string in hex
-    device.tapInfo.idCode = ConvertIntegerStringToInt64(idCodeStr, 0, 16);
-
-    std::string irLenStr;
-    std::getline(lineStream >> std::ws, irLenStr, ' ');  // irlength string
-    device.tapInfo.irLen = ConvertIntegerStringToInt(irLenStr);
+    device.tapInfo.irLen =
+        static_cast<uint32_t>(CFG_convert_string_to_u64(irLenStr));
 
     std::string flashSizeStr;
     std::getline(lineStream >> std::ws, flashSizeStr,
                  ' ');  // flash size string in base 10
-    device.flashSize = stol(flashSizeStr);
+    device.flashSize =
+        static_cast<uint32_t>(CFG_convert_string_to_u64(flashSizeStr));
     std::getline(lineStream >> std::ws, flashSizeStr,
                  ' ');  // flash size string in base 10
-    device.flashSize = stol(flashSizeStr);
+    device.flashSize =
+        static_cast<uint32_t>(CFG_convert_string_to_u64(flashSizeStr));
 
     for (const TapInfo& tap : supportedTAP) {
       if (tap.idCode == device.tapInfo.idCode) {
@@ -295,7 +222,6 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
         device.tapInfo.irMask = tap.irMask;
         device.tapInfo.irLen = tap.irLen;
         device.tapInfo.tapName = tap.tapName;
-        devices.push_back(device);
         devices.push_back(device);
       }
     }
@@ -343,11 +269,6 @@ CfgStatus extractStatus(const std::string& statusString, bool& statusFound) {
 std::stringstream buildFpgaCableStringStream(const Cable& cable) {
   std::stringstream ss;
   ss << std::hex << std::showbase;
-  ss << " -c \"adapter driver ftdi\"";
-  if (cable.serialNumber != "") {
-    ss << " -c \"adapter serial " << cable.serialNumber << "\"";
-  }
-  ss << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
   ss << " -c \"adapter driver ftdi\"";
   if (cable.serialNumber != "") {
     ss << " -c \"adapter serial " << cable.serialNumber << "\"";
@@ -531,7 +452,6 @@ ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
   const std::string openocd = openOcdExecPath.string();
   const std::string configFile = configFilePath.string();
- 
 
   if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
     if (arg->m_args.size() < 2) {

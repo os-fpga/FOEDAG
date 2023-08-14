@@ -34,14 +34,29 @@ int main(int argc, const char** argv) {
   CFGCommon_ARG cmdarg;
 
   // programmer_entry(&cmdarg);
-
   // simple programmer API manual testing
+
+  auto formatMemorySize = [](int sizeInBits) -> std::string {
+    const int bitsInKilobit = 1024;
+    const int bitsInMegabit = 1024 * 1024;
+
+    if (sizeInBits >= bitsInMegabit) {
+      int megabits = sizeInBits / bitsInMegabit;
+      return std::to_string(megabits) + "M";
+    } else if (sizeInBits >= bitsInKilobit) {
+      int kilobits = sizeInBits / bitsInKilobit;
+      return std::to_string(kilobits) + "K";
+    } else {
+      return std::to_string(sizeInBits);
+    }
+  };
 
   std::string openOCDPath = "/home/guanyung/dev/openocd/src/openocd";
   openOCDPath = "/home/asic01/development/openocd_rs/src/openocd";
   int ret = InitLibrary(openOCDPath);
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
   }
   std::vector<Device> devices;
 
@@ -49,6 +64,10 @@ int main(int argc, const char** argv) {
   ret = GetAvailableCables(cables);
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
+  } else if (cables.size() == 0) {
+    CFG_POST_MSG("No programming cable found. Make sure it is connected.");
+    return 0;
   }
   CFG_POST_MSG("return %d", ret);
   CFG_POST_MSG("-- GetAvailableCables(cables) --")
@@ -78,10 +97,11 @@ int main(int argc, const char** argv) {
       CFG_POST_MSG("-------------------------");
       CFG_POST_MSG("Device name: %s", device.name.c_str());
       CFG_POST_MSG("Device index: %d", device.index);
-      CFG_POST_MSG("Device jtagId: %d", device.tapInfo.idCode);
-      CFG_POST_MSG("Device mask: %d", device.tapInfo.irMask);
+      CFG_POST_MSG("Device jtagId: 0x%08x", device.tapInfo.idCode);
+      CFG_POST_MSG("Device mask: 0x%08x", device.tapInfo.irMask);
       CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
-      CFG_POST_MSG("Device flashSize: %d", device.flashSize);
+      CFG_POST_MSG("Device flashSize: %s bits",
+                   formatMemorySize(device.flashSize));
 
       CFG_POST_MSG("-------------------------");
     }
