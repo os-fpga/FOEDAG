@@ -60,4 +60,9 @@ third_party/zlib/minigzip.exe
 third_party/zlib/minigzip64.exe
 third_party/zlib/zlib1rc.obj
 third_party/openssl/
-
+third_party/tcl8.6.12/
+third_party/openocd_cmake/
+third_party/gtkwave_cmake/
+third_party/lib/
+third_party/share/
+third_party/include/z*.h
