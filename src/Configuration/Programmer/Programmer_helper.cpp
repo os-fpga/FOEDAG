@@ -197,7 +197,6 @@ std::vector<TapInfo> extractTapInfoList(const std::string& tapInfoString) {
     if (tokens.size() == 8) {
       TapInfo tapInfo;
       tapInfo.index = ConvertIntegerStringToInt(tokens[0]);
-      tapInfo.index = ConvertIntegerStringToInt(tokens[0]);
       tapInfo.tapName = tokens[1];
       tapInfo.enabled = tokens[2] == "Y" ? true : false;
       tapInfo.idCode = ConvertIntegerStringToInt(tokens[3], 0, 0);
@@ -295,7 +294,6 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
         device.tapInfo.irMask = tap.irMask;
         device.tapInfo.irLen = tap.irLen;
         device.tapInfo.tapName = tap.tapName;
-        devices.push_back(device);
         devices.push_back(device);
       }
     }
