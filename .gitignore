@@ -66,3 +66,4 @@ third_party/gtkwave_cmake/
 third_party/lib/
 third_party/share/
 third_party/include/z*.h
+foedag_cmd.tcl
