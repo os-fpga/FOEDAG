@@ -101,7 +101,7 @@ int main(int argc, const char** argv) {
       CFG_POST_MSG("Device mask: 0x%08x", device.tapInfo.irMask);
       CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
       CFG_POST_MSG("Device flashSize: %s bits",
-                   formatMemorySize(device.flashSize));
+                   formatMemorySize(device.flashSize).c_str());
 
       CFG_POST_MSG("-------------------------");
     }
