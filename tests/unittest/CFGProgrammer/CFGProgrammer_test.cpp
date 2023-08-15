@@ -123,9 +123,6 @@ TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
       "Found 1   Device2   0x5678deff   5   1024000\n"
       "Found  2   Device3   0x90abcdef   6    262144\n"
       "Found  0 gemini               0x1000563d   5          16384\n";
-      "Found 1   Device2   0x5678deff   5   1024000\n"
-      "Found  2   Device3   0x90abcdef   6    262144\n"
-      "Found  0 gemini               0x1000563d   5          16384\n";
   std::vector<Device> expected = {
       {1,
        "gemini",
