@@ -961,7 +961,33 @@ class device_modeler {
     block->add_constraint(nm, std::make_shared<rs_expression<int>>(contraint));
     return true;
   }
-
+  /**
+   * @brief Creates a new instance of a device block.
+   *
+   * This function allows the creation of a new instance of a device block. It
+   * requires several parameters to define the instance's properties and
+   * attributes. The following parameters are supported:
+   * - `-block`: The name of the block to create an instance from.
+   * - `-parent`: The name of the parent block to which this instance belongs.
+   * If not provided, the current device scope is used.
+   * - `-name`: The name of the instance to be created.
+   * - `-id`: An optional unique identifier for the instance.
+   * - `-io_bank`: The IO bank associated with the instance.
+   * - `-logic_address`: The logic address associated with the instance.
+   * - `-logic_location_x`: The logic X location of the instance.
+   * - `-logic_location_y`: The logic Y location of the instance.
+   *
+   * After specifying the necessary parameters, this function creates a new
+   * instance of the specified block, sets its attributes, and adds it to the
+   * appropriate data structures within the device block.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the instance was successfully created, false otherwise.
+   * @throws std::invalid_argument If insufficient arguments are provided.
+   * @throws std::runtime_error If the block or parent block cannot be found, or
+   * if there are issues with converting the provided values to integers.
+   */
   bool create_instance(int argc, const char **argv) {
     // Check at least two parameters (command name and -name <par_name>)
     if (argc < 3) {
@@ -1042,6 +1068,23 @@ class device_modeler {
     block->instances()[name] = block->instance_vector().back();
     return true;
   }
+  /**
+   * @brief Maps RTL names to user names.
+   *
+   * This function allows mapping RTL names to user names. It takes two
+   * arguments:
+   * - `-user_name`: The user name to be mapped.
+   * - `-rtl_name`: The RTL name to be associated with the user name.
+   *
+   * After specifying the user name and RTL name, this function creates a
+   * mapping between them in the device block. This mapping is used to associate
+   * user-friendly names with RTL names.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the mapping was successfully created, false otherwise.
+   * @throws std::invalid_argument If insufficient arguments are provided.
+   */
   bool map_rtl_user_names(int argc, const char **argv) {
     // map_rtl_user_names  -user_name CLK_OUT0_DIV -rtl_name pll_POSTDIV0
     // Check at least five parameters (command name and -name <par_name>)
@@ -1052,6 +1095,44 @@ class device_modeler {
     std::string user_name = get_argument_value("-user_name", argc, argv, true);
     std::string rtl_name = get_argument_value("-rtl_name", argc, argv, true);
     current_device_->setUserToRtlMapping(user_name, rtl_name);
+    return true;
+  }
+  /**
+   * @brief Maps model names to user names.
+   *
+   * This function allows mapping model names to user names. It takes two
+   * arguments:
+   * - `-user_name`: The user name to be mapped.
+   * - `-model_name`: The model name to be associated with the user name.
+   *
+   * After specifying the user name and model name, this function creates a
+   * mapping between them in the device block. This mapping is used to associate
+   * user-friendly names with model names.
+   *
+   * @param argc The number of command-line arguments.
+   * @param argv An array of command-line arguments.
+   * @return True if the mapping was successfully created, false otherwise.
+   * @throws std::invalid_argument If insufficient arguments are provided.
+   * @throws std::runtime_error If the current device is not defined.
+   */
+  bool map_model_user_names(int argc, const char **argv) {
+    // map_model_user_names -user_name USER_NAME -model_name MODEL_NAME
+    // Check at least five parameters (command name and -name <par_name>)
+    if (argc < 5) {
+      throw std::invalid_argument(
+          "Insufficient arguments passed to map_model_user_names.");
+    }
+
+    std::string user_name = get_argument_value("-user_name", argc, argv, true);
+    std::string model_name =
+        get_argument_value("-model_name", argc, argv, true);
+
+    if (!current_device_.get()) {
+      throw std::runtime_error(
+          "Need to define a device before calling \"map_model_user_names\"");
+    }
+
+    current_device_->addMapping(model_name, user_name);
     return true;
   }
 

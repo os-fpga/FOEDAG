@@ -1133,8 +1133,98 @@ class device_block {
 
   //     return os;
   // }
+  /**
+   * @brief Adds a mapping between a model name and a customer name.
+   *
+   * @param modelName The name of the model.
+   * @param custName The name of the customer.
+   *
+   * @throws std::runtime_error if a duplicate mapping is detected.
+   */
+  void addMapping(const std::string &modelName, const std::string &custName) {
+    if (modelToCustMap_.count(modelName) > 0) {
+      throw std::runtime_error(
+          "Duplicate mapping detected.Already existing model name " +
+          modelName);
+    }
+    if (custToModelMap_.count(custName) > 0) {
+      throw std::runtime_error(
+          "Duplicate mapping detected.Already existing customer name " +
+          custName);
+    }
+    modelToCustMap_[modelName] = custName;
+    custToModelMap_[custName] = modelName;
+  }
+
+  /**
+   * @brief Gets the customer name associated with a model name.
+   *
+   * @param modelName The name of the model.
+   * @return The associated customer name.
+   *
+   * @throws std::runtime_error if the model name is not found.
+   */
+  const std::string &getCustomerName(const std::string &modelName) const {
+    auto it = modelToCustMap_.find(modelName);
+    if (it != modelToCustMap_.end()) {
+      return it->second;
+    }
+    throw std::runtime_error("Model name not found.");
+  }
+
+  /**
+   * @brief Gets the model name associated with a customer name.
+   *
+   * @param custName The name of the customer.
+   * @return The associated model name.
+   *
+   * @throws std::runtime_error if the customer name is not found.
+   */
+  const std::string &getModelName(const std::string &custName) const {
+    auto it = custToModelMap_.find(custName);
+    if (it != custToModelMap_.end()) {
+      return it->second;
+    }
+    throw std::runtime_error("Customer name not found.");
+  }
+
+  /**
+   * @brief Removes a mapping for a given model name.
+   *
+   * @param modelName The name of the model.
+   * @return True if the mapping was removed, false if the model name was not
+   * found.
+   */
+  bool removeMappingByModel(const std::string &modelName) {
+    auto it = modelToCustMap_.find(modelName);
+    if (it != modelToCustMap_.end()) {
+      custToModelMap_.erase(it->second);
+      modelToCustMap_.erase(it);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @brief Removes a mapping for a given customer name.
+   *
+   * @param custName The name of the customer.
+   * @return True if the mapping was removed, false if the customer name was not
+   * found.
+   */
+  bool removeMappingByCustomer(const std::string &custName) {
+    auto it = custToModelMap_.find(custName);
+    if (it != custToModelMap_.end()) {
+      modelToCustMap_.erase(it->second);
+      custToModelMap_.erase(it);
+      return true;
+    }
+    return false;
+  }
 
  protected:
+  std::unordered_map<std::string, std::string> modelToCustMap_;
+  std::unordered_map<std::string, std::string> custToModelMap_;
   /// The name of the block. Defaults to "__default_block_name__".
   std::string block_name_ = "__default_block_name__";
 
