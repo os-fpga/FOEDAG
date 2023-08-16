@@ -80,7 +80,7 @@ bool CFGArg::single_parse(int argc, const char** argv,
     if (str.size()) {
       if (ptr != nullptr) {
         // Take whatever it is
-        assign(ptr, str, errors);
+        status = assign(ptr, str, errors) & status;
         ptr = nullptr;
       } else {
         if (str == "-h" || str == "--help" || str == "--hidden_help") {
