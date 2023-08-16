@@ -11,12 +11,12 @@
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
 
-if (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
+IF (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
 
   # in cache already
   set(LIBUSB_FOUND TRUE)
 
-else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
+ELSE (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
   IF (NOT WIN32)
     # use pkg-config to get the directories and then use these values
     # in the FIND_PATH() and FIND_LIBRARY() calls
@@ -24,10 +24,10 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
     pkg_check_modules(PC_LIBUSB libusb-1.0)
   ENDIF(NOT WIN32)
 
-  if (MSVC)
+  IF (MSVC)
     set(vcpkg_libusb_library "$ENV{VCPKG_INSTALLATION_ROOT}/packages/libusb_x64-windows/lib")
     file(TO_CMAKE_PATH "${vcpkg_libusb_library}" vcpkg_libusb_library)
-  endif()
+  ENDIF()
 
   set(LIBUSB_LIBRARY_NAME usb-1.0 libusb-1.0)
 
@@ -53,4 +53,4 @@ else (LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
   FIND_PACKAGE_HANDLE_STANDARD_ARGS(LIBUSB DEFAULT_MSG LIBUSB_LIBRARIES LIBUSB_INCLUDE_DIR)
 
   MARK_AS_ADVANCED(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARIES)
-endif(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
+ENDIF(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARIES)
