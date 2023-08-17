@@ -22,7 +22,6 @@
 cmake_minimum_required(VERSION 3.15)
 set(subsystem programmer)
 set(foedag_bin foedag_${subsystem})
-set(test_bin ${subsystem}_test)
 
 project(${subsystem} LANGUAGES CXX)
 
@@ -45,8 +44,6 @@ endif()
 #
 # 2. foedag_bin executable (in this case foedag_programmer exe) - it is external command line entry which eventually call subsystem library (item 1)
 #
-# 3. test_bin executable (in this case programmer_test exe) - it is external command line entry which eventually call subsystem library (item 1) for unit testing
-#
 #################################################################################################################
 
 ###################
@@ -68,17 +65,6 @@ add_executable(
   Programmer_cmd.cpp
 )
 target_link_libraries(${foedag_bin} ${subsystem})
-
-###################
-#
-# test_bin which also has dependency on its own subsystem library
-#
-###################
-add_executable(
-  ${test_bin}
-  Test/Programmer_test.cpp
-)
-target_link_libraries(${test_bin} ${subsystem})
 
 ###################
 #

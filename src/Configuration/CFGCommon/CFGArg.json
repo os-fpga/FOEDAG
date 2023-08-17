@@ -1,85 +1,108 @@
 {
-   "utst" : {
-      "option" : [
-         {
-            "name" : "debug", 
-            "short" : "d", 
-            "type" : "flag", 
-            "optional" : true,
-            "default" : true,
-            "help" : "This is debug" 
-         },
-         {  
-            "name" : "index", 
-            "short" : "i", 
-            "type" : "int", 
-            "optional" : true, 
-            "multi" : true,
-            "default" : 3,
-            "help" : "This is index" 
-         },
-         {  "name" : "cable", 
-            "short" : "c", 
-            "type" : "str", 
-            "optional" : true, 
-            "multi" : false,
-            "default" : "usb",
-            "help" : "This is cable" 
-         },
-         {  
-            "name" : "operation", 
-            "short" : "o", 
-            "type" : "str", 
-            "optional" : true, 
-            "multi" : true,
-            "help" : "This is operation"
-         },
-         {  
-            "name" : "target", 
-            "type" : "fpga|flash", 
-            "optional" : false, 
-            "multi" : false,
-            "help" : "This is target"
-         }
-      ],
-     "help" : [ "This is Dummy ARG" ],
-     "arg"  : [1, 2]
-   },
-   "programmer" : {
-      "option" : [
-         {
-            "name" : "config",
-            "short": "c",
-            "type" : "str", 
-            "multi" : false,
-            "optional" : true,
-            "default" : "gemini.cfg",
-            "help" : "Configuration file for the device programming"
-         },
-         {
-            "name" : "index",
-            "short": "n",
-            "type" : "int", 
-            "multi" : false,
-            "optional" : true,
-            "default" : 0,
-            "help" : "Index of the device to program"
-         },
-         {
-            "name" : "operations",
-            "short": "o",
-            "type" : "str", 
-            "multi" : false,
-            "optional" : true,
-            "default" : "program",
-            "help" : ["Flash operations to perform.", 
-                      "Valid values are: erase, blankcheck, program, verify",
-                      "The values can be chained together using comma or separator", 
-                       "e.g. erase,blankcheck,program,verify",
-                       "e.g. erase|blankcheck|program|verify"]
-         }
-      ],
-     "help" : [ 
+  "utst": [
+    {
+      "sub0": {
+        "option": [
+          {
+            "name": "debug", 
+            "short": "d", 
+            "type": "flag", 
+            "optional": true,
+            "default": true,
+            "help": "This is debug" 
+          },
+          {  
+            "name": "index", 
+            "short": "i", 
+            "type": "int", 
+            "optional": true, 
+            "multi": true,
+            "default": 3,
+            "help": "This is index"
+          },
+          {  "name": "cable", 
+            "short": "c", 
+            "type": "str", 
+            "optional": true, 
+            "multi": false,
+            "default": "usb",
+            "help": "This is cable"
+          },
+          {  
+            "name": "operation", 
+            "short": "o", 
+            "type": "str", 
+            "optional": true, 
+            "multi": true,
+            "help": "This is operation"
+          },
+          {  
+            "name": "target", 
+            "type": "fpga|flash", 
+            "optional": false, 
+            "multi": false,
+            "help": "This is target"
+          }
+        ],
+        "desc": "Sub 0",
+        "help": [ "This is Dummy ARG Sub 0" ],
+        "arg" : [1, 2]
+      }
+    },
+    {
+      "sub_abc": {
+        "option": [
+          {
+            "name": "debug", 
+            "short": "d", 
+            "type": "str", 
+            "optional": true,
+            "default": "no",
+            "help": "This is debug sub_abc" 
+          }
+        ],
+        "desc": "Sub ABC",
+        "help": [ "This is Dummy ARG Sub ABC" ],
+        "arg" : [0, 0]
+      }
+    },
+    {"help": [ "This is Dummy ARG" ]}
+  ],
+  "programmer": {
+    "option": [
+      {
+        "name": "config",
+        "short": "c",
+        "type": "str", 
+        "multi": false,
+        "optional": true,
+        "default": "gemini.cfg",
+        "help": "Configuration file for the device programming"
+      },
+      {
+        "name": "index",
+        "short": "n",
+        "type": "int", 
+        "multi": false,
+        "optional": true,
+        "default": 0,
+        "help": "Index of the device to program"
+      },
+      {
+        "name": "operations",
+        "short": "o",
+        "type": "str", 
+        "multi": false,
+        "optional": true,
+        "default": "program",
+        "help": ["Flash operations to perform.", 
+                 "Valid values are: erase, blankcheck, program, verify",
+                 "The values can be chained together using comma or separator", 
+                 "e.g. erase,blankcheck,program,verify",
+                 "e.g. erase|blankcheck|program|verify"]
+      }
+    ],
+    "help": [ 
       "Configuration bitstream programming tool.", 
       "To program fpga device:",
       "  programmer fpga_config <bitstream>",
@@ -89,7 +112,8 @@
       "To query device status:",
       "  programmer fpga_status",
       "To list all connected FPGA devices:",
-      "  programmer list_devices"],
-      "arg" : [0,3]
-   }
+      "  programmer list_devices"
+    ],
+    "arg": [0,3]
+  }
 }

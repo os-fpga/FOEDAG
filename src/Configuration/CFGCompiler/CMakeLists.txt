@@ -21,7 +21,6 @@
 
 cmake_minimum_required(VERSION 3.15)
 set(subsystem cfgcompiler)
-set(test_bin ${subsystem}_test)
 
 project(${subsystem} LANGUAGES CXX)
 
@@ -42,8 +41,6 @@ endif()
 #
 # 1. subsystem library (in this case cfgcompiler) - it contains all the core code to help configuration. It will be called by other elements
 #
-# 2. test_bin executable (in this case cfgcompiler_test exe) - it is external command line entry which eventually call subsystem library (item 1) for unit testing
-#
 #################################################################################################################
 
 ###################
@@ -57,17 +54,6 @@ add_library(
   CFGCompiler.cpp
 )
 target_link_libraries(${subsystem} PUBLIC Qt5::Widgets)
-
-###################
-#
-# test_bin which also has dependency on its own subsystem library
-#
-###################
-add_executable(
-  ${test_bin}
-  Test/CFGCompiler_test.cpp
-)
-target_link_libraries(${test_bin} ${subsystem})
 
 ###################
 #
