@@ -156,7 +156,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
   auto get_top_module = [](void* clientData, Tcl_Interp* interp, int argc,
                            const char* argv[]) -> int {
-    // TODO: Implement this API
+    // TODO: Implement this API Zaid will not do this , he works on SDT.
     bool status = true;
 
     return (status) ? TCL_OK : TCL_ERROR;
