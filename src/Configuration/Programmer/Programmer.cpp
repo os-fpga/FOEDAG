@@ -117,7 +117,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
                    (ec ? ec.message().c_str() : ""));
       return;
     }
-    InitLibrary(openOcdExecPath);
+    InitLibrary(openOcdExecPath.string());
     if (subCmd == "list_device") {
       auto list_device =
           static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
