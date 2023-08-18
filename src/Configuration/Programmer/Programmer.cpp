@@ -53,7 +53,6 @@ std::map<int, std::string> ErrorMessages = {
 };
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
-  int status = 0;
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
   if (arg == nullptr) return;
 
@@ -64,26 +63,16 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
   std::string subCmd = arg->get_sub_arg_name();
   if (cmdarg->compilerName == "dummy") {
     if (subCmd == "list_device") {
-      auto list_device =
-          static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
       CFG_POST_MSG("<test>      | Device             |  ID        |  IRLen ");
       CFG_POST_MSG("<test> ----- -------------------- ------------ ----------");
       CFG_POST_MSG("<test> Found  0 Gemini             0x1000AABB   5");
       CFG_POST_MSG("<test> Found  1 Gemini             0x2000CCDD   5");
     } else if (subCmd == "list_cable") {
-      auto list_cable =
-          static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
       CFG_POST_MSG("<test>  1 Usb_Programmer_Cable_port1_dev1");
       CFG_POST_MSG("<test>  2 Usb_Programmer_Cable_port2_dev1");
-      CFG_POST_MSG("args size %d", list_cable->m_args.size());
     } else if (subCmd == "fpga_status") {
-      auto fpga_status =
-          static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
-      CFG_POST_MSG("args size %d", fpga_status->m_args.size());
       CFG_POST_MSG("<test> FPGA configuration status : Done");
     } else if (subCmd == "fpga_config") {
-      auto fpga_config =
-          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CFG_POST_MSG("<test> program fpga - %d %%", i);
