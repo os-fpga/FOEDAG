@@ -85,12 +85,12 @@ TEST(CFGArg, test_arg) {
   EXPECT_EQ(errors[3],
              "Can only specify maximum of 2 argument(s), but found 4 "
              "argument(s) is specified");
+  arg.print();
 }
 
 TEST(CFGArg, test_list_device_ok) {
   CFGArg_PROGRAMMER_LIST_DEVICE arg;
   std::vector<std::string> errors;
-  
   const char* argv[] = {"1"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
