@@ -112,9 +112,8 @@ TEST(CFGArg, test_list_device_exceed_max_arg) {
 TEST(CFGArg, test_list_cable_ok) {
   CFGArg_PROGRAMMER_LIST_CABLE arg;
   std::vector<std::string> errors;
-  const char* argv[] = {};
-  int argc = int(sizeof(argv) / sizeof(argv[0]));
-  bool status = arg.parse(argc, argv, &errors);
+  int argc = 0;
+  bool status = arg.parse(argc, nullptr, &errors);
   EXPECT_EQ(status, true);
   EXPECT_EQ(errors.size(), 0);
 }
@@ -221,8 +220,8 @@ TEST(CFGArg, test_fpga_config_empty_option_empty_arg) {
   EXPECT_EQ(arg.cable, "1");
   EXPECT_EQ(arg.index, 1);
   std::vector<std::string> errors;
-  const char* argv[] = {};
-  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  const char** argv{nullptr};
+  int argc = 0;
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, false);
   EXPECT_GE(errors.size(), 1);
@@ -294,8 +293,8 @@ TEST(CFGArg, test_flash_empty_option_empty_arg) {
   EXPECT_EQ(arg.index, 1);
   EXPECT_EQ(arg.operations, "program");
   std::vector<std::string> errors;
-  const char* argv[] = {};
-  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  const char** argv{nullptr};
+  int argc = 0;
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, false);
   EXPECT_GE(errors.size(), 1);
