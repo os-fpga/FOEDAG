@@ -378,48 +378,9 @@ int CFG_compiler_execute_cmd(const std::string& command,
     return m_execute_cmd_function(command, logFile, appendLog);
   } else {
     std::string output = "";
-    return CFG_execute_cmd(command, output);
+    std::atomic<bool> stop = false;
+    return CFG_execute_cmd(command, output, nullptr, stop);
   }
-}
-
-// Summary: This function executes a command and captures its output. It takes
-//          a string `cmd` representing the command to be excuted and a
-//          reference string `output` hold the output of the command.
-// Return:  The exit code of the command is returned to indicate whether the
-//          command is executed successfully or not.
-// Note: 1) This function throw runtime exceptions. Make sure to catch them.
-//       2) This function is used by Programmer_cmd.cpp, it is a
-//          standalone programmer commandline tool.
-int CFG_execute_cmd(const std::string& cmd, std::string& output) {
-  int exitcode = 255;
-  char buffer[513];
-  std::string temp_string = "";
-  output = "";
-#if (defined(_MSC_VER) || defined(__MINGW32__))
-#define popen _popen
-#define pclose _pclose
-#define WEXITSTATUS
-#endif
-  CFG_POST_MSG("Command: %s", cmd.c_str());
-  std::string command = CFG_print("%s 2>&1", cmd.c_str());
-  FILE* pipe = popen(command.c_str(), "r");
-  if (pipe == nullptr) {
-    throw std::runtime_error("popen() failed!");
-  }
-  try {
-    memset(buffer, 0, sizeof(buffer));
-    while (fgets(buffer, sizeof(buffer) - 1, pipe) != nullptr) {
-      temp_string = std::string(buffer);
-      CFG_post_msg(temp_string, "", false);
-      output += temp_string;
-    }
-  } catch (...) {
-    pclose(pipe);
-    throw;
-  }
-  int status = pclose(pipe);
-  exitcode = WEXITSTATUS(status);
-  return exitcode;
 }
 
 int CFG_execute_cmd(const std::string& cmd, std::string& output,

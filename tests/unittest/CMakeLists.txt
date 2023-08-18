@@ -59,7 +59,8 @@ set (H_LIST
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. 
+${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
 
 target_link_libraries(unittest PRIVATE
   gtest

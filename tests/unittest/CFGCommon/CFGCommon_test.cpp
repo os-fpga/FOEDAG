@@ -105,6 +105,16 @@ TEST(CFGCommon, test_string_split) {
   results = CFG_split_string(string, "!");
   EXPECT_EQ(results.size(), 1);
   EXPECT_EQ(results[0], "I am*#You*#*#*#HEis*#");
+  
+  results.clear();
+  string = "aa,bb,cc,dd, ee";
+  results = CFG_split_string(string, ",");
+  EXPECT_EQ(results.size(), 5);
+  EXPECT_EQ(results[0], "aa");
+  EXPECT_EQ(results[1], "bb");
+  EXPECT_EQ(results[2], "cc");
+  EXPECT_EQ(results[3], "dd");
+  EXPECT_EQ(results[4], " ee");
 }
 
 TEST(CFGCommon, test_exception) {

@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace FOEDAG {
 
 static const std::vector<std::string> programmer_subcmd{
-    "fpga_config", "fpga_status", "flash", "list_devices"};
+    "fpga_config", "fpga_status", "flash", "list_device", "list_cable"};
 
 std::string transportTypeToString(TransportType transport) {
   switch (transport) {
@@ -422,113 +422,25 @@ std::string buildFlashProgramCommand(const std::string& bitstream_file,
   return cmd;
 }
 
-ProgrammerCommand parseProgrammerCommand(const CFGCommon_ARG* cmdarg,
-                                         std::filesystem::path configFilePath) {
-  ProgrammerCommand programmerCmd;
-
-  if (cmdarg->arg->m_help) {
-    programmerCmd.name = "help";
-    return programmerCmd;
-  }
-
-  if (cmdarg->arg->m_args.size() < 1) {
-    CFG_POST_ERR("Not enough arguments for programmer. ");
-    programmerCmd.is_error = true;
-    return programmerCmd;
-  }
-
-  auto itSubcmd =
-      std::find(std::begin(programmer_subcmd), std::end(programmer_subcmd),
-                cmdarg->arg->m_args[0]);
-
-  if (itSubcmd == std::end(programmer_subcmd)) {
-    CFG_POST_ERR("Invalid command for %s. ", cmdarg->arg->m_args[0].c_str());
-    programmerCmd.is_error = true;
-    return programmerCmd;
-  }
-
-  programmerCmd.name = cmdarg->arg->m_args[0];
-  const std::filesystem::path openOcdExecPath = cmdarg->toolPath;
-  auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-  const std::string openocd = openOcdExecPath.string();
-  const std::string configFile = configFilePath.string();
-
-  if (programmerCmd.name == "fpga_config" || programmerCmd.name == "flash") {
-    if (arg->m_args.size() < 2) {
-      CFG_POST_ERR("Not enough arguments for %s. ", programmerCmd.name.c_str());
-      programmerCmd.is_error = true;
-      return programmerCmd;
-    }
-    if (arg->m_args.size() < 2) {
-      CFG_POST_ERR("Not enough arguments for %s. ", programmerCmd.name.c_str());
-      programmerCmd.is_error = true;
-      return programmerCmd;
-    }
-    std::string bitstreamFile = arg->m_args[1];
-    std::error_code ec;
-    if (cmdarg->compilerName != "dummy") {
-      if (!std::filesystem::exists(bitstreamFile, ec)) {
-        CFG_POST_ERR("Cannot find bitstream file: %s. %s ",
-                     bitstreamFile.c_str(), (ec ? ec.message().c_str() : ""));
-        programmerCmd.is_error = true;
-        return programmerCmd;
-      }
-    }
-
-    if (programmerCmd.name == "fpga_config") {
-      programmerCmd.executable_cmd =
-          openocd +
-          buildFpgaProgramCommand(bitstreamFile, configFile, arg->index);
-    } else if (programmerCmd.name == "flash") {
-      auto operations = parseOperationString(arg->operations);
-      bool doErase = isOperationRequested("erase", operations);
-      bool doBlankCheck = isOperationRequested("blankcheck", operations);
-      bool doProgram = isOperationRequested("program", operations);
-      bool doVerify = isOperationRequested("verify", operations);
-      // TODO: doVerify, doBlankCheck, doErase set to false
-      // there are not supported yet
-      doErase = doBlankCheck = doVerify = false;
-      programmerCmd.executable_cmd =
-          openocd + buildFlashProgramCommand(bitstreamFile, configFile,
-                                             arg->index, doErase, doBlankCheck,
-                                             doProgram, doVerify);
-    }
-  } else if (programmerCmd.name == "fpga_status") {
-    programmerCmd.executable_cmd =
-        openocd + buildFpgaQueryStatusCommand(configFile, arg->index);
-  } else if (programmerCmd.name == "list_devices") {
-    programmerCmd.executable_cmd = openocd + buildListDeviceCommand(configFile);
-  }
-  return programmerCmd;
-}
-
 std::vector<std::string> parseOperationString(const std::string& operations) {
   std::unordered_set<std::string> uniqueValues;  // To store unique values
   std::stringstream ss(operations);
   std::string token;
   std::vector<std::string> operationsList;
-  // the operations string is a comma separated list or | separated list of
-  // operations
-  while (std::getline(ss, token, ',')) {
-    std::stringstream ss2(token);
-    std::string subToken;
 
-    while (std::getline(ss2, subToken, '|')) {
-      // remove whitespace
-      subToken.erase(
-          std::remove_if(std::begin(subToken), std::end(subToken),
-                         [](unsigned char ch) { return std::isspace(ch); }),
-          std::end(subToken));
-      // convert to lowercase
-      std::transform(std::begin(subToken), std::end(subToken),
-                     std::begin(subToken), ::tolower);
-      if (uniqueValues.find(subToken) ==
-          uniqueValues.end()) {         // Check if value already exists
-        uniqueValues.insert(subToken);  // Add value to the unique set
-        operationsList.push_back(subToken);
-      }
-    }
-  }
+  operationsList = CFG_split_string(operations, ",", 0, false);
+  // Remove duplicates
+  operationsList.erase(
+      std::remove_if(std::begin(operationsList), std::end(operationsList),
+                     [&uniqueValues](std::string& str) {
+                       // erase empty space character
+                       str.erase(
+                           std::remove_if(std::begin(str), std::end(str),
+                                          [](char c) { return c == ' '; }),
+                           std::end(str));
+                       return !uniqueValues.insert(str).second;
+                     }),
+      std::end(operationsList));
   return operationsList;
 }
 

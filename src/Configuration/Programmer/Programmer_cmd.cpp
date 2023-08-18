@@ -19,22 +19,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <iostream>
 
 #include "CFGCommon/CFGCommon.h"
 #include "Programmer.h"
 
-void progressCallback(std::string msg) { std::cout << msg; }
+void progressCallback(std::string msg) { CFG_POST_MSG(msg.c_str()); }
 
-void messageCallback(std::string msg) { std::cout << "MS-CALLBACK :" << msg; }
+void messageCallback(std::string msg) { CFG_POST_MSG(msg.c_str()); }
 
 using namespace FOEDAG;
 int main(int argc, const char** argv) {
   CFG_POST_MSG("This is Programmer cmd");
-  CFGCommon_ARG cmdarg;
-
+  // CFGCommon_ARG cmdarg;
   // programmer_entry(&cmdarg);
-  // simple programmer API manual testing
+
+  // It is currently to use for
+  // programmer API manual testing
+  // <TODO>
+  // eventually it will be a standalone programmer executable
 
   auto formatMemorySize = [](int sizeInBits) -> std::string {
     const int bitsInKilobit = 1024;
@@ -51,9 +55,18 @@ int main(int argc, const char** argv) {
     }
   };
 
-  std::string openOCDPath = "/home/guanyung/dev/openocd/src/openocd";
-  openOCDPath = "/home/asic01/development/openocd_rs/src/openocd";
-  int ret = InitLibrary(openOCDPath);
+  // openocd path is the same as the executable path
+  std::filesystem::path openOcdExecutablePath = std::filesystem::current_path();
+  std::string openOcdName;
+// if windows
+#ifdef _WIN32
+  openOcdName = "openocd.exe";
+#else
+  openOcdName = "openocd";
+#endif
+  openOcdExecutablePath /= openOcdName;
+
+  int ret = InitLibrary(openOcdExecutablePath.string());
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
     return ret;
@@ -67,7 +80,7 @@ int main(int argc, const char** argv) {
     return ret;
   } else if (cables.size() == 0) {
     CFG_POST_MSG("No programming cable found. Make sure it is connected.");
-    return 0;
+    return -1;
   }
   CFG_POST_MSG("return %d", ret);
   CFG_POST_MSG("-- GetAvailableCables(cables) --")
@@ -86,38 +99,37 @@ int main(int argc, const char** argv) {
   }
 
   CFG_POST_MSG("-- ListDevices(cables, outputMsg) --")
-  if (cables.size() > 0) {
-    ret = ListDevices(cables[0], devices);
-    if (ret != NoError) {
-      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
-      return ret;
-    }
-    CFG_POST_MSG("### ListDevices API testing ###");
-    for (auto& device : devices) {
-      CFG_POST_MSG("-------------------------");
-      CFG_POST_MSG("Device name: %s", device.name.c_str());
-      CFG_POST_MSG("Device index: %d", device.index);
-      CFG_POST_MSG("Device jtagId: 0x%08x", device.tapInfo.idCode);
-      CFG_POST_MSG("Device mask: 0x%08x", device.tapInfo.irMask);
-      CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
-      CFG_POST_MSG("Device flashSize: %s bits",
-                   formatMemorySize(device.flashSize).c_str());
+  ret = ListDevices(cables[0], devices);
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
+  }
+  if (devices.size() <= 0) {
+    CFG_POST_MSG("No device found. Make sure the board power is ON.");
+    return -1;
+  }
+  CFG_POST_MSG("### ListDevices API testing ###");
+  for (auto& device : devices) {
+    CFG_POST_MSG("-------------------------");
+    CFG_POST_MSG("Device name: %s", device.name.c_str());
+    CFG_POST_MSG("Device index: %d", device.index);
+    CFG_POST_MSG("Device jtagId: 0x%08x", device.tapInfo.idCode);
+    CFG_POST_MSG("Device mask: 0x%08x", device.tapInfo.irMask);
+    CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
+    CFG_POST_MSG("Device flashSize: %s bits",
+                 formatMemorySize(device.flashSize).c_str());
+    CFG_POST_MSG("-------------------------");
+  }
 
-      CFG_POST_MSG("-------------------------");
-    }
+  CfgStatus status;
+  ret = GetFpgaStatus(cables[0], devices[0], status);
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
   }
-  if (devices.size() > 0) {
-    CfgStatus status;
-    ret = GetFpgaStatus(cables[0], devices[0], status);
-    if (ret != NoError) {
-      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
-      return ret;
-    }
-    CFG_POST_MSG("### GetFpgaStatus API testing ###");
-    CFG_POST_MSG("Device cfgDone: %s", std::to_string(status.cfgDone).c_str());
-    CFG_POST_MSG("Device cfgError: %s",
-                 std::to_string(status.cfgError).c_str());
-  }
+  CFG_POST_MSG("### GetFpgaStatus API testing before programming ###");
+  CFG_POST_MSG("Device cfgDone: %d", status.cfgDone);
+  CFG_POST_MSG("Device cfgError: %d", status.cfgError);
 
   int userInput = 1;
   std::atomic<bool> stop = false;
@@ -126,6 +138,7 @@ int main(int argc, const char** argv) {
   std::cout << "Enter 1 for fpga programming (default  1)\n"
             << "2 for flash programming" << std::endl;
   std::cin >> userInput;
+
   if (userInput == 1) {
     ret = ProgramFpga(cables[0], devices[0], bitfile, stop,
                       nullptr,          //&std::cout,
@@ -141,23 +154,20 @@ int main(int argc, const char** argv) {
                        nullptr           // progressCallback
     );
   }
+
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
     return ret;
   }
 
-  if (devices.size() > 0) {
-    CfgStatus status;
-    ret = GetFpgaStatus(cables[0], devices[0], status);
-    if (ret != NoError) {
-      CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
-      return ret;
-    }
-    CFG_POST_MSG("### GetFpgaStatus API testing ###");
-    CFG_POST_MSG("Device cfgDone: %s", std::to_string(status.cfgDone).c_str());
-    CFG_POST_MSG("Device cfgError: %s",
-                 std::to_string(status.cfgError).c_str());
+  ret = GetFpgaStatus(cables[0], devices[0], status);
+  if (ret != NoError) {
+    CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
+    return ret;
   }
+  CFG_POST_MSG("### GetFpgaStatus API testing after programming ###");
+  CFG_POST_MSG("Device cfgDone: %d", status.cfgDone);
+  CFG_POST_MSG("Device cfgError: %d", status.cfgError);
 
   return 0;
 }

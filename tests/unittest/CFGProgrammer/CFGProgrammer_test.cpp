@@ -371,36 +371,6 @@ INSTANTIATE_TEST_SUITE_P(
                         " -f config3.cfg -c \"gemini load 2 flash "
                         "bitstream3.bin -p 1\" -l /dev/stdout -c exit")));
 
-TEST(ProgrammerHelper, ParseProgrammerCommandHelpCommandTest) {
-  CFGCommon_ARG cmdarg;
-  cmdarg.arg = std::make_shared<CFGArg_PROGRAMMER>();
-  cmdarg.arg->m_help = true;
-  ProgrammerCommand expected;
-  expected.name = "help";
-  ProgrammerCommand actual = parseProgrammerCommand(&cmdarg, "");
-  EXPECT_EQ(expected.name, actual.name);
-  EXPECT_EQ(expected.is_error, actual.is_error);
-}
-
-TEST(ProgrammerHelper, ParseProgrammerCommandNotEnoughArgumentsTest) {
-  CFGCommon_ARG cmdarg;
-  cmdarg.arg = std::make_shared<CFGArg_PROGRAMMER>();
-  ProgrammerCommand expected;
-  expected.is_error = true;
-  ProgrammerCommand actual = parseProgrammerCommand(&cmdarg, "");
-  EXPECT_EQ(expected.is_error, actual.is_error);
-}
-
-TEST(ProgrammerHelper, ParseProgrammerCommandInvalidCommandTest) {
-  CFGCommon_ARG cmdarg;
-  cmdarg.arg = std::make_shared<CFGArg_PROGRAMMER>();
-  cmdarg.arg->m_args.push_back("invalid_command");
-  ProgrammerCommand expected;
-  expected.is_error = true;
-  ProgrammerCommand actual = parseProgrammerCommand(&cmdarg, "");
-  EXPECT_EQ(expected.is_error, actual.is_error);
-}
-
 TEST(ProgrammerHelper, BuildFpgaQueryStatusCommandBasicTest) {
   Cable cable = {0x403,
                  0x6011,
@@ -430,44 +400,6 @@ TEST(ProgrammerHelper, BuildFpgaQueryStatusCommandBasicTest) {
   std::string actual = buildFpgaQueryStatusCommand(cable, device);
   EXPECT_EQ(expected, actual);
 }
-
-class ParseProgrammerCommandTest
-    : public testing::TestWithParam<
-          std::tuple<std::string, std::string, int, std::string, std::string>> {
-};
-
-TEST_P(ParseProgrammerCommandTest, Test) {
-  std::string cmd_name = std::get<0>(GetParam());
-  std::string bitstream_file = std::get<1>(GetParam());
-  int pld_index = std::get<2>(GetParam());
-  std::string compiler_name = std::get<3>(GetParam());
-  std::string expected = std::get<4>(GetParam());
-  std::filesystem::path config_file_path = "config.cfg";
-  CFGCommon_ARG cmdarg;
-  cmdarg.arg = std::make_shared<CFGArg_PROGRAMMER>();
-  std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg.arg)->index = pld_index;
-  cmdarg.arg->m_args.push_back(cmd_name);
-  cmdarg.arg->m_args.push_back(bitstream_file);
-  cmdarg.compilerName = compiler_name;
-  ProgrammerCommand actual = parseProgrammerCommand(&cmdarg, config_file_path);
-  EXPECT_EQ(expected, actual.executable_cmd);
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    ProgrammerHelper, ParseProgrammerCommandTest,
-    testing::Values(
-        std::make_tuple("fpga_config", "bitstream.bin", 0, "dummy",
-                        " -f config.cfg -c \"gemini load 0 fpga bitstream.bin "
-                        "-p 1\" -l /dev/stdout -c exit"),
-        std::make_tuple("flash", "bitstream2.bin", 1, "dummy",
-                        " -f config.cfg -c \"gemini load 1 flash "
-                        "bitstream2.bin -p 1\" -l /dev/stdout -c exit"),
-        std::make_tuple(
-            "fpga_status", "bitstream3.bin", 2, "dummy",
-            " -f config.cfg -c \"gemini status 2\" -l /dev/stdout -c exit"),
-        std::make_tuple(
-            "list_devices", "bitstream4.bin", 3, "dummy",
-            " -f config.cfg -c \"gemini list\" -l /dev/stdout -c exit")));
 
 TEST(ProgrammerHelper, BuildFpgaProgramCommandBasicTest) {
   Cable cable = {0x403,
@@ -607,8 +539,6 @@ INSTANTIATE_TEST_SUITE_P(
     ProgrammerHelper, ParseOperationStringTest,
     testing::Values(
         std::make_tuple("program, verify, erase",
-                        std::vector<std::string>{"program", "verify", "erase"}),
-        std::make_tuple("program|verify, erase",
                         std::vector<std::string>{"program", "verify", "erase"}),
         std::make_tuple("program, verify, program",
                         std::vector<std::string>{"program", "verify"}),

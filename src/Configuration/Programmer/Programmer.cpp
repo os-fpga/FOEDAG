@@ -29,6 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Programmer_helper.h"
 #include "libusb.h"
 
+// temporary to suppress warning
+// <TODO> remove this when implementing programmer tcl command
+#define UNUSED(variable) ((void)variable)
 namespace FOEDAG {
 
 // openOCDPath used by library
@@ -50,28 +53,45 @@ std::map<int, std::string> ErrorMessages = {
 };
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
+  int status = 0;
+  auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
+  if (arg == nullptr) return;
+
+  if (arg->m_help) {
+    return;
+  }
+
+  std::string subCmd = arg->get_sub_arg_name();
   if (cmdarg->compilerName == "dummy") {
-    auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-    std::filesystem::path configFile = arg->config;
-    auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
-    if (programmerCmd.is_error) {
-      return;
-    }
-    if (programmerCmd.name == "fpga_config") {
+    if (subCmd == "list_device") {
+      auto list_device =
+          static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
+      CFG_POST_MSG("<test>      | Device             |  ID        |  IRLen ");
+      CFG_POST_MSG("<test> ----- -------------------- ------------ ----------");
+      CFG_POST_MSG("<test> Found  0 Gemini             0x1000AABB   5");
+      CFG_POST_MSG("<test> Found  1 Gemini             0x2000CCDD   5");
+    } else if (subCmd == "list_cable") {
+      auto list_cable =
+          static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
+      CFG_POST_MSG("<test>  1 Usb_Programmer_Cable_port1_dev1");
+      CFG_POST_MSG("<test>  2 Usb_Programmer_Cable_port2_dev1");
+      CFG_POST_MSG("args size %d", list_cable->m_args.size());
+    } else if (subCmd == "fpga_status") {
+      auto fpga_status =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
+      CFG_POST_MSG("args size %d", fpga_status->m_args.size());
+      CFG_POST_MSG("<test> FPGA configuration status : Done");
+    } else if (subCmd == "fpga_config") {
+      auto fpga_config =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CFG_POST_MSG("<test> program fpga - %d %%", i);
       }
-    } else if (programmerCmd.name == "fpga_status") {
-      CFG_POST_MSG("<test> FPGA configuration status : Done");
-    } else if (programmerCmd.name == "list_devices") {
-      CFG_POST_MSG("<test>        Device               ID           IRLen ");
-      CFG_POST_MSG(
-          "<test> -----  -------------------- ------------ ----------");
-      CFG_POST_MSG("<test> Found  0 Gemini             0x1000AABB   5");
-      CFG_POST_MSG("<test> Found  1 Gemini             0x2000CCDD   5");
-    } else if (programmerCmd.name == "flash") {
-      auto operations = parseOperationString(arg->operations);
+    } else if (subCmd == "flash") {
+      auto flash =
+          static_cast<const CFGArg_PROGRAMMER_FLASH*>(arg->get_sub_arg());
+      auto operations = parseOperationString(flash->operations);
       if (isOperationRequested("erase", operations)) {
         CFG_POST_MSG("<test> Erasing flash memory");
         for (int i = 10; i <= 100; i += 10) {
@@ -97,13 +117,10 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
           CFG_POST_MSG("<test> flash verified- %d %% ", i);
         }
       }
-    } else {
-      CFG_POST_ERR("Invalid subcommand. ");
-      return;
     }
   } else {
+    // check openocd executable
     const std::filesystem::path openOcdExecPath = cmdarg->toolPath;
-    const std::filesystem::path configFileSearchPath = cmdarg->searchPath;
     std::error_code ec;
     if (!std::filesystem::exists(openOcdExecPath, ec)) {
       CFG_POST_ERR("Cannot find openocd executable: %s. %s. ",
@@ -111,27 +128,33 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
                    (ec ? ec.message().c_str() : ""));
       return;
     }
-    auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-    auto configFile = CFG_find_file(arg->config, configFileSearchPath);
-    if (configFile.empty()) {
-      CFG_POST_ERR("Cannot find config file: %s. ", configFile.c_str());
-      return;
-    }
-
-    auto programmerCmd = parseProgrammerCommand(cmdarg, configFile);
-    if (programmerCmd.name == "help") {
-      return;
-    } else if (programmerCmd.name.empty() && programmerCmd.is_error) {
-      CFG_POST_ERR("Subcommand not provided. ");
-      return;
-    } else if (programmerCmd.is_error) {
-      return;
-    }
-    int return_code =
-        CFG_compiler_execute_cmd(programmerCmd.executable_cmd, "", false);
-    if (return_code) {
-      CFG_POST_ERR("Failed to execute following command %s. Error code: %d ",
-                   programmerCmd.name.c_str(), return_code);
+    InitLibrary(openOcdExecPath);
+    if (subCmd == "list_device") {
+      auto list_device =
+          static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
+      UNUSED(list_device);
+      //<TODO> implement programmer tcl command based on programmer API lib
+    } else if (subCmd == "list_cable") {
+      auto list_cable =
+          static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
+      UNUSED(list_cable);
+      //<TODO> implement programmer tcl command based on programmer API lib
+    } else if (subCmd == "fpga_status") {
+      auto fpga_status =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
+      UNUSED(fpga_status);
+      //<TODO> implement programmer tcl command based on programmer API lib
+    } else if (subCmd == "fpga_config") {
+      auto fpga_config =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      UNUSED(fpga_config);
+      //<TODO> implement programmer tcl command based on programmer API lib
+    } else if (subCmd == "flash") {
+      auto flash =
+          static_cast<const CFGArg_PROGRAMMER_FLASH*>(arg->get_sub_arg());
+      auto operations = parseOperationString(flash->operations);
+      UNUSED(operations);
+      //<TODO> implement programmer tcl command based on programmer API lib
     }
   }
 }
