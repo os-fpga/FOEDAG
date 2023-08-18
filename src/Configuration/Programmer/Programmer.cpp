@@ -25,11 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>  // for std::stringstream
 #include <thread>
 #include <unordered_set>
+
 #include "Programmer_helper.h"
 #include "libusb.h"
 
 namespace FOEDAG {
-  
+
 // openOCDPath used by library
 static std::string libOpenOcdExecPath;
 static std::vector<TapInfo> foundTap;
