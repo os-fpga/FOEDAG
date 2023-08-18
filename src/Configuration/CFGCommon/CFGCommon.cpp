@@ -388,6 +388,7 @@ int CFG_execute_cmd(const std::string& cmd, std::string& output,
 #ifdef _WIN32
 #define POPEN _popen
 #define PCLOSE _pclose
+#define WEXITSTATUS
 #else
 #define POPEN popen
 #define PCLOSE pclose
@@ -427,6 +428,7 @@ int CFG_execute_cmd_with_callback(
 #ifdef _WIN32
 #define POPEN _popen
 #define PCLOSE _pclose
+#define WEXITSTATUS
 #else
 #define POPEN popen
 #define PCLOSE pclose
