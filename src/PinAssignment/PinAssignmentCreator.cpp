@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PinAssignmentCreator.h"
 
 #include <QBoxLayout>
+#include <QDebug>
 #include <QDir>
 #include <filesystem>
 
@@ -49,7 +50,8 @@ PinAssignmentCreator::PinAssignmentCreator(const PinAssignmentData &data,
   packagePinModel->setBaseModel(m_baseModel);
 
   PortsLoader *portsLoader{FindPortsLoader(data.target)};
-  portsLoader->load(searchPortsFile(data.projectPath));
+  auto [ok, message] = portsLoader->load(searchPortsFile(data.portsFilePath));
+  if (!ok) qWarning() << message;
 
   PackagePinsLoader *loader{FindPackagePinLoader(data.target)};
   loader->loadHeader(packagePinHeaderFile(data.context));
