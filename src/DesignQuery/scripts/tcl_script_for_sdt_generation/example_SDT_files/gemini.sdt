@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2022 Rapid Silicon.
+ * All rights reserved.
+ *
+ * Author:
+ *       Tony McDowell <tony.mcdowell@rapidsilicon.com>
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/dts-v1/;
+
+/ {
+	compatible = "rapidsi,gemini";
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	model = "Rapid Silicon Internal Board";
+
+	/* Application CPU configuration */
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		
+		cpu@0 {
+			device_type = "cpu";
+			reg = <0x00000000>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv32e";
+			
+		};
+	
+	};
+	
+	/* Boot CPU configuration */
+	bcpu: cpus-cluster@0 {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		compatible = "cpus, cluster";
+		
+		cpu@0 {
+			device_type = "cpu";
+			reg = <0x00000000>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv32e";
+			
+		};		
+	}
+	
+	/* AMBA/AXI resources found in the GEMINI PSS */
+	amba_pss {
+		compatible = "simple-bus";
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+		
+	
+	};
+	
+	/* AMBA/AXI resources found in the FPGA region */
+	amba_fpga {
+		compatible = "simple-bus";
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+		
+	
+	};
+
+};
+
+
+
