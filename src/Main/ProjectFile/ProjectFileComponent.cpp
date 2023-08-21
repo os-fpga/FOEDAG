@@ -56,9 +56,14 @@ bool operator!=(const Version &v1, const Version &v2) {
 }
 
 bool operator<(const Version &v1, const Version &v2) {
-  if (v1.maj < v2.maj) return true;
-  if (v1.min < v2.min) return true;
-  if (v1.patch < v2.patch) return true;
+  if (v1.maj < v2.maj)
+    return true;
+  else if (v1.maj == v2.maj) {
+    if (v1.min < v2.min)
+      return true;
+    else if (v1.min == v2.min)
+      return (v1.patch < v2.patch);
+  }
   return false;
 }
 
