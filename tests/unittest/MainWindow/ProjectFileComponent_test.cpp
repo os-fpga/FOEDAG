@@ -141,3 +141,72 @@ TEST(Version, OperatorLessCase8) {
   bool less = (v1 < v2);
   EXPECT_EQ(less, false);
 }
+
+TEST(Version, toString) {
+  Version v{1, 2, 3};
+  QString str = toString(v);
+  EXPECT_EQ(str, "1.2.3");
+}
+
+TEST(Version, toVersionFailedString) {
+  QString str{"some string"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(v, Version{});
+}
+
+TEST(Version, toVersion2Nums) {
+  QString str{"2.9"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(v, Version{});
+}
+
+TEST(Version, toVersionNotNumber0) {
+  QString str{"notnumber.9.0"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(v, Version{});
+}
+
+TEST(Version, toVersionNotNumber1) {
+  QString str{"2.notnumber.0"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(v, Version{});
+}
+
+TEST(Version, toVersionNotNumber2) {
+  QString str{"2.9.notnumber"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  EXPECT_EQ(ok, false);
+  EXPECT_EQ(v, Version{});
+}
+
+TEST(Version, toVersion) {
+  QString str{"2.9.0"};
+  bool ok{};
+  Version v = toVersion(str, &ok);
+  Version expected{2, 9, 0};
+  EXPECT_EQ(ok, true);
+  EXPECT_EQ(v, expected);
+}
+
+TEST(Version, toVersionNoVerification) {
+  QString str{"2.9.0"};
+  Version v = toVersion(str);
+  Version expected{2, 9, 0};
+  EXPECT_EQ(v, expected);
+}
+
+TEST(Version, toVersionNoVerificationFailed) {
+  QString str{"some str"};
+  Version v = toVersion(str);
+  Version expected{};
+  EXPECT_EQ(v, expected);
+}
