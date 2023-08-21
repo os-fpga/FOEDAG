@@ -1519,7 +1519,8 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.context = GlobalSession->Context();
     data.pinMapFile =
         QString::fromStdString(m_compiler->PinmapCSVFile().string());
-    data.projectPath = m_projectManager->getProjectPath();
+    data.portsFilePath = QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::Analyze).string());
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
     QFile file{data.pinFile};
