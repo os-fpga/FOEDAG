@@ -68,52 +68,124 @@
     },
     {"help": [ "This is Dummy ARG" ]}
   ],
-  "programmer": {
-    "option": [
-      {
-        "name": "config",
-        "short": "c",
-        "type": "str", 
-        "multi": false,
-        "optional": true,
-        "default": "gemini.cfg",
-        "help": "Configuration file for the device programming"
-      },
-      {
-        "name": "index",
-        "short": "n",
-        "type": "int", 
-        "multi": false,
-        "optional": true,
-        "default": 0,
-        "help": "Index of the device to program"
-      },
-      {
-        "name": "operations",
-        "short": "o",
-        "type": "str", 
-        "multi": false,
-        "optional": true,
-        "default": "program",
-        "help": ["Flash operations to perform.", 
-                 "Valid values are: erase, blankcheck, program, verify",
-                 "The values can be chained together using comma or separator", 
-                 "e.g. erase,blankcheck,program,verify",
-                 "e.g. erase|blankcheck|program|verify"]
+  "programmer": 
+  [
+    {
+      "list_device": {
+        "desc": "To display list of connected devices to each conneceted/detected cable.",
+        "help": [ "To display list of connected devices to each conneceted/detected cable.",
+                  "To display list of all connected devices on specify cable.",
+                  "The cable argument input can be the cable name or cable index that map to its name."
+                ],
+        "arg" : [0, 1]
       }
-    ],
-    "help": [ 
-      "Configuration bitstream programming tool.", 
-      "To program fpga device:",
-      "  programmer fpga_config <bitstream>",
-      "To program flash device:",
-      "  programmer flash <bitstream>",
-      "  programmer flash <bitstream> -o erase|blankcheck|program|verify",
-      "To query device status:",
-      "  programmer fpga_status",
-      "To list all connected FPGA devices:",
-      "  programmer list_devices"
-    ],
-    "arg": [0,3]
-  }
+    },
+    {
+      "list_cable": {
+        "desc": "To display all the connected/detected cables.",
+        "help": ["To display all the connected/detected cables"],
+        "arg" : [0, 0]
+      }
+    },
+    {
+      "fpga_status": {
+        "option": [
+            {
+              "name": "cable", 
+              "short": "c", 
+              "type": "str", 
+              "optional": true,
+              "default": "1",
+              "help": "Specify the cable to query the status of all the FPGA devices on the cable." 
+            },
+            {
+              "name": "index",
+              "short": "d",
+              "type": "int", 
+              "optional": true,
+              "default": 1,
+              "help": "Index of the FPGA device to query."
+            }
+        ],
+        "desc": "Query FPGA Configuration Done and Configuration IsError status",
+        "help": ["Query FPGA Configuration Done and Configuration IsError status"],
+        "arg" : [0, 0]
+      }
+    },
+    {
+      "fpga_config": {
+         "option": [
+            {
+              "name": "cable", 
+              "short": "c", 
+              "type": "str", 
+              "optional": false,
+              "default": "1",
+              "help": "Specify the cable to use for fpga configuration" 
+            },
+            {
+              "name": "index",
+              "short": "d",
+              "type": "int", 
+              "optional": true,
+              "default": 1,
+              "help": "Index of the FPGA device to configure"
+            }
+        ],
+        "desc": "Configure FPGA Fabric with the specified bitstream.",
+        "help": ["Configure FPGA Fabric with the specified bitstream."],
+        "arg" : [1, 1]
+      }
+    },
+    {
+      "flash": {
+         "option": [
+            {
+              "name": "cable", 
+              "short": "c", 
+              "type": "str", 
+              "optional": false,
+              "default": "1",
+              "help": "Specify the cable to use for flash configuration" 
+            },
+            {
+              "name": "index",
+              "short": "d",
+              "type": "int",
+              "optional": true,
+              "default": 1,
+              "help": "Index of the flash device to configure"
+            },
+            {
+              "name": "operations",
+              "short": "o",
+              "type": "str",
+              "optional": true,
+              "default": "program",
+              "help": ["Flash programming operations to perform.", 
+                      "Valid values are: erase, blankcheck, program, verify",
+                      "The values can be chained together using comma", 
+                      "e.g. erase,blankcheck,program,verify"]
+            }
+        ],
+        "desc": "Flash programming with the specified bitstream.",
+        "help": ["Flash programming with the specified bitstream."],
+        "arg" : [1, 1]
+      }
+    },
+    {
+      "help": [ 
+        "Configuration bitstream programming tool.", 
+        "To program fpga device:",
+        "  programmer fpga_config <bitstream> -c <cable_index or cable_name> -d <device_index>",
+        "To program flash device:",
+        "  programmer flash <bitstream> -c <cable_index or cable_name> -d <flash_index> -o <operations>",
+        "To query device status:",
+        "  programmer fpga_status",
+        "To list all connected FPGA devices:",
+        "  programmer list_device",
+        "To list all connected programming cable:",
+        "  programmer list_cable"
+    ]}
+  ]
 }

@@ -316,6 +316,20 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
   return value;
 }
 
+std::string CFG_convert_number_to_unit_string(uint64_t number) {
+  std::vector<std::string> units = {"K", "M", "G", "T"};
+  std::string unit = "";
+  for (size_t i = 0; i < units.size(); i++) {
+    if (number >= 1024 && (number % 1024) == 0) {
+      number = number / 1024;
+      unit = units[i];
+    } else {
+      break;
+    }
+  }
+  return std::to_string(number) + unit;
+}
+
 template <typename T>
 int CFG_find_element_in_vector(const std::vector<T>& vector, const T element) {
   auto iter = std::find(vector.begin(), vector.end(), element);
@@ -378,57 +392,17 @@ int CFG_compiler_execute_cmd(const std::string& command,
     return m_execute_cmd_function(command, logFile, appendLog);
   } else {
     std::string output = "";
-    return CFG_execute_cmd(command, output);
+    std::atomic<bool> stop = false;
+    return CFG_execute_cmd(command, output, nullptr, stop);
   }
 }
 
-// Summary: This function executes a command and captures its output. It takes
-//          a string `cmd` representing the command to be excuted and a
-//          reference string `output` hold the output of the command.
-// Return:  The exit code of the command is returned to indicate whether the
-//          command is executed successfully or not.
-// Note: 1) This function throw runtime exceptions. Make sure to catch them.
-//       2) This function is used by Programmer_cmd.cpp, it is a
-//          standalone programmer commandline tool.
-int CFG_execute_cmd(const std::string& cmd, std::string& output) {
-  int exitcode = 255;
-  char buffer[513];
-  std::string temp_string = "";
-  output = "";
-#if (defined(_MSC_VER) || defined(__MINGW32__))
-#define popen _popen
-#define pclose _pclose
-#define WEXITSTATUS
-#endif
-  CFG_POST_MSG("Command: %s", cmd.c_str());
-  std::string command = CFG_print("%s 2>&1", cmd.c_str());
-  FILE* pipe = popen(command.c_str(), "r");
-  if (pipe == nullptr) {
-    throw std::runtime_error("popen() failed!");
-  }
-  try {
-    memset(buffer, 0, sizeof(buffer));
-    while (fgets(buffer, sizeof(buffer) - 1, pipe) != nullptr) {
-      temp_string = std::string(buffer);
-      CFG_post_msg(temp_string, "", false);
-      output += temp_string;
-    }
-  } catch (...) {
-    pclose(pipe);
-    throw;
-  }
-  int status = pclose(pipe);
-  exitcode = WEXITSTATUS(status);
-  return exitcode;
-}
-
-int CFG_execute_cmd_with_callback(
-    const std::string& cmd, std::string& output, std::ostream* outStream,
-    std::regex patternToMatch, std::atomic<bool>& stopCommand,
-    std::function<void(const std::string&)> callback) {
+int CFG_execute_cmd(const std::string& cmd, std::string& output,
+                    std::ostream* outStream, std::atomic<bool>& stopCommand) {
 #ifdef _WIN32
 #define POPEN _popen
 #define PCLOSE _pclose
+#define WEXITSTATUS
 #else
 #define POPEN popen
 #define PCLOSE pclose
@@ -453,13 +427,56 @@ int CFG_execute_cmd_with_callback(
     if (stopCommand) {
       break;
     }
+  }
+
+  int status = PCLOSE(pipe);
+  int exit_code = WEXITSTATUS(status);
+  return exit_code;
+}
+
+int CFG_execute_cmd_with_callback(
+    const std::string& cmd, std::string& output, std::ostream* outStream,
+    std::regex patternToMatch, std::atomic<bool>& stopCommand,
+    std::function<void(const std::string&)> progressCallback,
+    std::function<void(const std::string&)> generalCallback) {
+#ifdef _WIN32
+#define POPEN _popen
+#define PCLOSE _pclose
+#define WEXITSTATUS
+#else
+#define POPEN popen
+#define PCLOSE pclose
+#endif
+
+  FILE* pipe = POPEN(cmd.c_str(), "r");
+  if (pipe == nullptr) {
+    return -1;
+  }
+
+  // Read the output of the command and store it in the output string.
+  char buffer[1024];
+  std::string newline;
+  while (fgets(buffer, sizeof(buffer), pipe) != nullptr && !stopCommand) {
+    output += buffer;
+    newline = buffer;
+    if (generalCallback != nullptr) {
+      generalCallback(newline);
+    }
+
+    if (outStream) {
+      *outStream << newline;
+    }
+
+    if (stopCommand) {
+      break;
+    }
 
     std::smatch matches;
     if (std::regex_search(newline, matches, patternToMatch)) {
-      if (callback != nullptr) {
+      if (progressCallback != nullptr) {
         std::string strOutput = matches.str();
         strOutput += "\n";
-        callback(strOutput);
+        progressCallback(strOutput);
       }
     }
   }

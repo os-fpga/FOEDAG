@@ -1775,15 +1775,13 @@ void MainWindow::updateTaskTable() {
       m_taskView->setRowHidden(row, isPostSynthPure);
     }
     for (auto taskId : {SIMULATE_BITSTREAM, SIMULATE_BITSTREAM_CLEAN,
-                        SIMULATE_BITSTREAM_SETTINGS, POWER, POWER_CLEAN}) {
+                        SIMULATE_BITSTREAM_SETTINGS}) {
       int row = m_taskModel->ToRowIndex(taskId);
       m_taskView->setRowHidden(row, true);
     }
   }
   m_taskManager->task(SIMULATE_BITSTREAM)->setValid(false);
   m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
-  m_taskManager->task(POWER)->setValid(false);
-  m_taskManager->task(POWER_CLEAN)->setValid(false);
   m_perfomanceTracker.setIsRtl(!isPostSynthPure);
 }
 

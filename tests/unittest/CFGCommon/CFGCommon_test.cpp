@@ -105,6 +105,16 @@ TEST(CFGCommon, test_string_split) {
   results = CFG_split_string(string, "!");
   EXPECT_EQ(results.size(), 1);
   EXPECT_EQ(results[0], "I am*#You*#*#*#HEis*#");
+  
+  results.clear();
+  string = "aa,bb,cc,dd, ee";
+  results = CFG_split_string(string, ",");
+  EXPECT_EQ(results.size(), 5);
+  EXPECT_EQ(results[0], "aa");
+  EXPECT_EQ(results[1], "bb");
+  EXPECT_EQ(results[2], "cc");
+  EXPECT_EQ(results[3], "dd");
+  EXPECT_EQ(results[4], " ee");
 }
 
 TEST(CFGCommon, test_exception) {
@@ -133,4 +143,14 @@ TEST(CFGCommon, test_exception) {
     exception_count++;
   }
   EXPECT_EQ(exception_count, 3);
+}
+
+TEST(CFGCommon, test_number_to_unit_string) {
+  EXPECT_EQ(CFG_convert_number_to_unit_string(0), "0");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1023), "1023");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(2048), "2K");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024 * 1024), "1M");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL), "1G");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL * 1024ULL), "1T");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(123456789), "123456789");
 }

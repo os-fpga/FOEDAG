@@ -2267,6 +2267,9 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return false;
   }
 
+  auto file = ProjManager()->projectName() + "_power.cmd";
+  FileUtils::WriteToFile(file, command);
+
   int status = ExecuteAndMonitorSystemCommand(command, {}, false,
                                               FilePath(Action::Power).string());
   if (status) {
