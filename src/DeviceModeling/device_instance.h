@@ -56,13 +56,15 @@ class device_block_instance : public device_block {
                         int instance_id, int logic_location_x,
                         int logic_location_y, int logic_address,
                         std::string instance_name = "__default_instance_name__",
-                        std::string io_bank = "__default_io_bank_name__")
+                        std::string io_bank = "__default_io_bank_name__",
+                        int logic_location_z = -1)
       : device_block_instance(instaciated_block_ptr)
 
   {
     instance_id_ = instance_id;
     logic_location_x_ = logic_location_x;
     logic_location_y_ = logic_location_y;
+    logic_location_z_ = logic_location_z;
     logic_address_ = logic_address;
     instance_name_ = instance_name;
     io_bank_ = io_bank;
@@ -97,6 +99,12 @@ class device_block_instance : public device_block {
    * @return The logic location Y.
    */
   int get_logic_location_y() const { return logic_location_y_; }
+
+  /**
+   * @brief Gets the logic location Z.
+   * @return The logic location Z.
+   */
+  int get_logic_location_z() const { return logic_location_z_; }
 
   /**
    * @brief Gets the logic address.
@@ -135,6 +143,12 @@ class device_block_instance : public device_block {
   void set_logic_location_y(int y) { logic_location_y_ = y; }
 
   /**
+   * @brief Sets the logic location Z.
+   * @param z The logic location Z to set.
+   */
+  void set_logic_location_z(int z) { logic_location_z_ = z; }
+
+  /**
    * @brief Sets the logic address.
    * @param address The logic address to set.
    */
@@ -157,6 +171,7 @@ class device_block_instance : public device_block {
     os << "Instance ID: " << instance.instance_id_ << std::endl;
     os << "Logic Location X: " << instance.logic_location_x_ << std::endl;
     os << "Logic Location Y: " << instance.logic_location_y_ << std::endl;
+    os << "Logic Location Z: " << instance.logic_location_z_ << std::endl;
     os << "Logic Address: " << instance.logic_address_ << std::endl;
 
     return os;
@@ -215,6 +230,7 @@ class device_block_instance : public device_block {
   int instance_id_ = -1;
   int logic_location_x_ = -1;
   int logic_location_y_ = -1;
+  int logic_location_z_ = -1;
   int logic_address_ = -1;
   std::shared_ptr<device_block> instaciated_block_ptr_ = nullptr;
   std::string instance_name_ = "__default_instance_name__";
