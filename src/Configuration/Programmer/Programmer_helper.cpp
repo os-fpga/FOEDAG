@@ -210,8 +210,9 @@ int extractDeviceList(const std::string& devicesString,
                  ' ');  // flash size string in base 10
     device.flashSize =
         static_cast<uint32_t>(CFG_convert_string_to_u64(flashSizeStr));
-    // check flashSize is multiple of 1024
-    if (device.flashSize % 1024 != 0) {
+    // check flashSize is multiple of 8 and power of 2
+    if (!((device.flashSize % 8 == 0) && (device.flashSize > 0) &&
+          ((device.flashSize & (device.flashSize - 1)) == 0))) {
       return ProgrammerErrorCode::InvalidFlashSize;
     }
     for (const TapInfo& tap : supportedTAP) {

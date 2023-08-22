@@ -120,13 +120,13 @@ TEST(ProgrammerHelper, ExtractTapInfoListTest) {
 TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
   std::string input =
       "Found  0   Device1   0x1234abcd   4   16384\n"
-      "Found 1   Device2   0x5678deff   5   16777216\n"
-      "Found  2   Device3   0x90abcdef   6    16777216\n"
-      "Found  0 gemini               0x1000563d   5          16384\n";
+      "Found 1   Device2   0x5678deff   5   2097152\n"
+      "Found  2   Device3   0x90abcdef   6    134217728\n"
+      "Found  0 gemini               0x1000563d   5          2097152\n";
   std::vector<Device> expected = {
       {1,
        "gemini",
-       16384,
+       2097152,
        {44, "gemini.tap", true, 0x1000563d, 0x1000563d, 5, 0x1, 0x3}}
     };    
   std::vector<Device> actual;
