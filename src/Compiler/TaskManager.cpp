@@ -345,6 +345,7 @@ void TaskManager::initCleanTasks() {
                                    {ROUTING, ROUTING_CLEAN},
                                    {SIMULATE_PNR, SIMULATE_PNR_CLEAN},
                                    {TIMING_SIGN_OFF, TIMING_SIGN_OFF_CLEAN},
+                                   {POWER, POWER_CLEAN},
                                    {BITSTREAM, BITSTREAM_CLEAN}};
   for (const auto &[parent, clean] : tasks) {
     m_tasks[parent]->setCleanTask(m_tasks[clean]);
