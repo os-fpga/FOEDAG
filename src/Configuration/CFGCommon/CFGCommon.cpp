@@ -317,13 +317,16 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
 }
 
 std::string CFG_convert_number_to_unit_string(uint64_t number) {
-  static const std::vector<std::string> units = {"", "K", "M", "G", "T"};
-  size_t unitIndex = 0;
-  while (number >= 1024 && unitIndex < units.size() - 1) {
-    number /= 1024;
-    unitIndex++;
+  std::vector<std::string> units = {"K", "M", "G", "T"};
+  std::string unit = "";
+  for (size_t i = 0; i < units.size(); i++) {
+    if (number >= 1024 && (number % 1024) == 0) {
+      number = number / 1024;
+      unit = units[i];
+    } else {
+      break;
+    }
   }
-  std::string unit = units[unitIndex];
   return std::to_string(number) + unit;
 }
 

@@ -152,5 +152,5 @@ TEST(CFGCommon, test_number_to_unit_string) {
   EXPECT_EQ(CFG_convert_number_to_unit_string(1024 * 1024), "1M");
   EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL), "1G");
   EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL * 1024ULL), "1T");
-  EXPECT_EQ(CFG_convert_number_to_unit_string(123456789), "117M");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(123456789), "123456789");
 }
