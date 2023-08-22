@@ -129,6 +129,8 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
                                    uint64_t* init_value = NULL,
                                    bool support_shift = false);
 
+std::string CFG_convert_number_to_unit_string(uint64_t number);
+
 int CFG_find_string_in_vector(const std::vector<std::string>& vector,
                               const std::string element);
 

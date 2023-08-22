@@ -36,24 +36,9 @@ int main(int argc, const char** argv) {
   // programmer_entry(&cmdarg);
 
   // It is currently to use for
-  // programmer API manual testing
+  // programmer API manual testing, and example of using the API
   // <TODO>
   // eventually it will be a standalone programmer executable
-
-  auto formatMemorySize = [](int sizeInBits) -> std::string {
-    const int bitsInKilobit = 1024;
-    const int bitsInMegabit = 1024 * 1024;
-
-    if (sizeInBits >= bitsInMegabit) {
-      int megabits = sizeInBits / bitsInMegabit;
-      return std::to_string(megabits) + "M";
-    } else if (sizeInBits >= bitsInKilobit) {
-      int kilobits = sizeInBits / bitsInKilobit;
-      return std::to_string(kilobits) + "K";
-    } else {
-      return std::to_string(sizeInBits);
-    }
-  };
 
   // openocd path is the same as the executable path
   std::filesystem::path openOcdExecutablePath = std::filesystem::current_path();
@@ -104,7 +89,7 @@ int main(int argc, const char** argv) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
     return ret;
   }
-  if (devices.size() <= 0) {
+  if (devices.size() == 0) {
     CFG_POST_MSG("No device found. Make sure the board power is ON.");
     return -1;
   }
@@ -117,7 +102,7 @@ int main(int argc, const char** argv) {
     CFG_POST_MSG("Device mask: 0x%08x", device.tapInfo.irMask);
     CFG_POST_MSG("Device irlength: %d", device.tapInfo.irLen);
     CFG_POST_MSG("Device flashSize: %s bits",
-                 formatMemorySize(device.flashSize).c_str());
+                 CFG_convert_number_to_unit_string(device.flashSize).c_str());
     CFG_POST_MSG("-------------------------");
   }
 
@@ -133,8 +118,7 @@ int main(int argc, const char** argv) {
 
   int userInput = 1;
   std::atomic<bool> stop = false;
-  std::string bitfile =
-      "/home/asic01/development/ubi_fsbl_fpga_faked_spare_reg.bin";
+  std::string bitfile = "/your/bitstream/file.bin";
   std::cout << "Enter 1 for fpga programming (default  1)\n"
             << "2 for flash programming" << std::endl;
   std::cin >> userInput;
@@ -146,7 +130,8 @@ int main(int argc, const char** argv) {
                       progressCallback  // progressCallback
     );
   } else {
-    bitfile = "/home/asic01/development/ubi_fsbl_fpga_flash_program.bin";
+    bitfile = "/your/flash/bitstream/file.bin";
+    std::cout << "Enter 1 for fpga pr";
     ProgramFlashOperation modes = ProgramFlashOperation::Program;
     ret = ProgramFlash(cables[0], devices[0], bitfile, stop, modes,
                        nullptr,          //&std::cout,

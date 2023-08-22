@@ -50,6 +50,7 @@ std::map<int, std::string> ErrorMessages = {
     {BitfileNotFound, "Bitfile not found"},
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
+    {InvalidFlashSize, "Invalid flash size"},
 };
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
@@ -299,7 +300,14 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
     returnCode = ProgrammerErrorCode::FailedExecuteCommand;
     return ProgrammerErrorCode::FailedExecuteCommand;
   }
-  devices = extractDeviceList(listDeviceCmdOutput);
+  returnCode = extractDeviceList(listDeviceCmdOutput, devices);
+  if (returnCode) {
+    outputMsg += "Failed to extract device list from command output:\n" +
+                 listDeviceCmdOutput + "\n";
+    outputMsg += "ListDevices() failed.\n";
+    addOrUpdateErrorMessage(ProgrammerErrorCode::InvalidFlashSize, outputMsg);
+    return ProgrammerErrorCode::InvalidFlashSize;
+  }
   return ProgrammerErrorCode::NoError;
 }
 

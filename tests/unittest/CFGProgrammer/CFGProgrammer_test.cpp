@@ -120,8 +120,8 @@ TEST(ProgrammerHelper, ExtractTapInfoListTest) {
 TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
   std::string input =
       "Found  0   Device1   0x1234abcd   4   16384\n"
-      "Found 1   Device2   0x5678deff   5   1024000\n"
-      "Found  2   Device3   0x90abcdef   6    262144\n"
+      "Found 1   Device2   0x5678deff   5   16777216\n"
+      "Found  2   Device3   0x90abcdef   6    16777216\n"
       "Found  0 gemini               0x1000563d   5          16384\n";
   std::vector<Device> expected = {
       {1,
@@ -129,20 +129,37 @@ TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
        16384,
        {44, "gemini.tap", true, 0x1000563d, 0x1000563d, 5, 0x1, 0x3}}
     };    
-    std::vector<Device> actual = extractDeviceList(input);
-    EXPECT_EQ(expected.size(), actual.size());
-    EXPECT_EQ(expected[0].name, actual[0].name);
-    EXPECT_EQ(expected[0].tapInfo.idCode, actual[0].tapInfo.idCode);
-    EXPECT_EQ(expected[0].tapInfo.irMask, actual[0].tapInfo.irMask);
-    EXPECT_EQ(expected[0].tapInfo.irLen, actual[0].tapInfo.irLen);
-    EXPECT_EQ(expected[0].flashSize, actual[0].flashSize);
+  std::vector<Device> actual;
+  int status = extractDeviceList(input, actual);
+  EXPECT_EQ(status, ProgrammerErrorCode::NoError);
+  EXPECT_EQ(expected.size(), actual.size());
+  EXPECT_EQ(expected[0].name, actual[0].name);
+  EXPECT_EQ(expected[0].tapInfo.idCode, actual[0].tapInfo.idCode);
+  EXPECT_EQ(expected[0].tapInfo.irMask, actual[0].tapInfo.irMask);
+  EXPECT_EQ(expected[0].tapInfo.irLen, actual[0].tapInfo.irLen);
+  EXPECT_EQ(expected[0].flashSize, actual[0].flashSize);
+}
 
+TEST(ProgrammerHelper, ExtractDeviceListBasicInvalidFlashSize) {
+  std::string input =
+      "Found  0   Device1   0x1234abcd   4   1111\n";
+  std::vector<Device> expected = {
+      {1,
+       "gemini",
+       16384,
+       {44, "gemini.tap", true, 0x1000563d, 0x1000563d, 5, 0x1, 0x3}}
+    };    
+  std::vector<Device> actual;
+  int status = extractDeviceList(input, actual);
+  EXPECT_EQ(status, ProgrammerErrorCode::InvalidFlashSize);
 }
 
 TEST(ProgrammerHelper, ExtractDeviceListNoMatchesTest) {
   std::string input = "This is not a valid device list";
   std::vector<Device> expected = {};
-  std::vector<Device> actual = extractDeviceList(input);
+  std::vector<Device> actual;
+  int status = extractDeviceList(input, actual);
+  EXPECT_EQ(status, ProgrammerErrorCode::NoError);
   EXPECT_EQ(expected.size(), actual.size());
 }
 

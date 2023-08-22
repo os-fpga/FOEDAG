@@ -144,3 +144,13 @@ TEST(CFGCommon, test_exception) {
   }
   EXPECT_EQ(exception_count, 3);
 }
+
+TEST(CFGCommon, test_number_to_unit_string) {
+  EXPECT_EQ(CFG_convert_number_to_unit_string(0), "0");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1023), "1023");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(2048), "2K");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024 * 1024), "1M");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL), "1G");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(1024ULL * 1024ULL * 1024ULL * 1024ULL), "1T");
+  EXPECT_EQ(CFG_convert_number_to_unit_string(123456789), "117M");
+}

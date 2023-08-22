@@ -316,6 +316,17 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
   return value;
 }
 
+std::string CFG_convert_number_to_unit_string(uint64_t number) {
+  static const std::vector<std::string> units = {"", "K", "M", "G", "T"};
+  int unitIndex = 0;
+  while (number >= 1024 && unitIndex < units.size() - 1) {
+    number /= 1024;
+    unitIndex++;
+  }
+  std::string unit = units[unitIndex];
+  return std::to_string(number) + unit;
+}
+
 template <typename T>
 int CFG_find_element_in_vector(const std::vector<T>& vector, const T element) {
   auto iter = std::find(vector.begin(), vector.end(), element);

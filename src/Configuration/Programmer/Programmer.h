@@ -43,6 +43,7 @@ enum ProgrammerErrorCode {
   BitfileNotFound = -108,
   FailedToProgramFPGA = -109,
   OpenOCDExecutableNotFound = -110,
+  InvalidFlashSize = 111,
 };
 
 extern std::map<int, std::string> ErrorMessages;

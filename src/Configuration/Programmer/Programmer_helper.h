@@ -82,7 +82,8 @@ int get_string_descriptor(struct libusb_device_handle* device,
                           std::string& outputMsg);
 
 std::vector<TapInfo> extractTapInfoList(const std::string& tapInfoString);
-std::vector<Device> extractDeviceList(const std::string& deviceListString);
+int extractDeviceList(const std::string& deviceListString,
+                      std::vector<Device>& devices);
 CfgStatus extractStatus(const std::string& statusString, bool& statusFound);
 std::string transportTypeToString(TransportType transport);
 

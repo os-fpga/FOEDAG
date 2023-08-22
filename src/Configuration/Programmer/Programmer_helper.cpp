@@ -24,9 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <regex>
 #include <unordered_set>
 
-#include "../../src/Utils/StringUtils.h"
 #include "Programmer.h"
 #include "libusb.h"
+#include "src/Utils/StringUtils.h"
 
 namespace FOEDAG {
 
@@ -39,7 +39,7 @@ std::string transportTypeToString(TransportType transport) {
       return "jtag";
       // Handle other transport types as needed
   }
-  return "";
+  return std::string{};
 }
 
 int get_string_descriptor(struct libusb_device_handle* device,
@@ -116,7 +116,7 @@ std::vector<TapInfo> extractTapInfoList(const std::string& tapInfoString) {
   std::istringstream iss(tapInfoString);
   std::string line;
   std::string token;
-  size_t pos = -1;
+  size_t pos = std::string::npos;
   std::vector<std::string> matches;
   const std::string pattern(
       R"(\s*(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s+(\S+)\s*)");
@@ -163,12 +163,13 @@ with example below
 -------- -------------------- ------------ ---------- ----------------
 Found  0 Gemini               0x20000913   5          16384
 */
-std::vector<Device> extractDeviceList(const std::string& devicesString) {
-  std::vector<Device> devices;
+int extractDeviceList(const std::string& devicesString,
+                      std::vector<Device>& devices) {
+  devices.clear();
 
   std::istringstream iss(devicesString);
   std::string line;
-  size_t pos = -1;
+  size_t pos = std::string::npos;
   std::vector<std::string> matches;
   const std::string pattern(
       R"(Found\s+(\d+)\s+([\w\s]+)\s+([0-9a-fA-Fx]+)\s+(\d+)\s+(\d+))");
@@ -209,11 +210,10 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
                  ' ');  // flash size string in base 10
     device.flashSize =
         static_cast<uint32_t>(CFG_convert_string_to_u64(flashSizeStr));
-    std::getline(lineStream >> std::ws, flashSizeStr,
-                 ' ');  // flash size string in base 10
-    device.flashSize =
-        static_cast<uint32_t>(CFG_convert_string_to_u64(flashSizeStr));
-
+    // check flashSize is multiple of 1024
+    if (device.flashSize % 1024 != 0) {
+      return ProgrammerErrorCode::InvalidFlashSize;
+    }
     for (const TapInfo& tap : supportedTAP) {
       if (tap.idCode == device.tapInfo.idCode) {
         device.tapInfo.enabled = tap.enabled;
@@ -227,7 +227,7 @@ std::vector<Device> extractDeviceList(const std::string& devicesString) {
     }
   }
 
-  return devices;
+  return ProgrammerErrorCode::NoError;
 }
 
 CfgStatus extractStatus(const std::string& statusString, bool& statusFound) {
@@ -270,7 +270,7 @@ std::stringstream buildFpgaCableStringStream(const Cable& cable) {
   std::stringstream ss;
   ss << std::hex << std::showbase;
   ss << " -c \"adapter driver ftdi\"";
-  if (cable.serialNumber != "") {
+  if (!cable.serialNumber.empty()) {
     ss << " -c \"adapter serial " << cable.serialNumber << "\"";
   }
   ss << " -c \"ftdi vid_pid " << cable.vendorId << " " << cable.productId
@@ -332,7 +332,7 @@ std::string buildScanChainCommand(const Cable& cable) {
 std::string buildListDeviceCommand(const Cable& cable,
                                    const std::vector<TapInfo>& foundTapList) {
   if (foundTapList.size() == 0) {
-    return "";
+    return std::string{};
   }
   std::stringstream cmd;
   cmd = buildFpgaCableStringStream(cable);
