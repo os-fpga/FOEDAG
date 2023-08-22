@@ -318,7 +318,7 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty,
 
 std::string CFG_convert_number_to_unit_string(uint64_t number) {
   static const std::vector<std::string> units = {"", "K", "M", "G", "T"};
-  int unitIndex = 0;
+  size_t unitIndex = 0;
   while (number >= 1024 && unitIndex < units.size() - 1) {
     number /= 1024;
     unitIndex++;
