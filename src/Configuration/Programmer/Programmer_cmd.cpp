@@ -37,7 +37,7 @@ int main(int argc, const char** argv) {
 
   // It is currently to use for
   // programmer API manual testing, and example of using the API
-  // <TODO>
+  // <TODO Standalone programmer cmd line executable EDA-1935>
   // eventually it will be a standalone programmer executable
 
   // openocd path is the same as the executable path
