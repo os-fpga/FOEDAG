@@ -221,7 +221,10 @@ class CompilerOpenFPGA : public Compiler {
   int32_t m_maxUserDSPCount = -1;
   int32_t m_maxUserBRAMCount = -1;
   int32_t m_maxUserCarryLength = -1;
-  virtual std::string BaseVprCommand();
+  struct BaseVprDefaults {
+    bool gen_post_synthesis_netlist{true};
+  };
+  virtual std::string BaseVprCommand(BaseVprDefaults defaults);
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
                                     std::string netlistFileName,
