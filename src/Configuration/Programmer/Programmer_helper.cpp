@@ -25,8 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_set>
 
 #include "Programmer.h"
+#include "Utils/StringUtils.h"
 #include "libusb.h"
-#include "src/Utils/StringUtils.h"
 
 namespace FOEDAG {
 
