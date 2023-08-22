@@ -46,6 +46,9 @@ endif()
 #
 #################################################################################################################
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/")
+find_package(USB1 REQUIRED)
+include_directories(${LIBUSB_INCLUDE_DIR})
 ###################
 #
 # subsystem library
@@ -54,7 +57,9 @@ endif()
 add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
+  Programmer_helper.cpp
 )
+target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
 ###################
 #
 # foedag_bin which also has dependency on its own subsystem library
@@ -63,6 +68,7 @@ add_library(
 add_executable(
   ${foedag_bin}
   Programmer_cmd.cpp
+  Programmer_helper.cpp
 )
 target_link_libraries(${foedag_bin} ${subsystem})
 

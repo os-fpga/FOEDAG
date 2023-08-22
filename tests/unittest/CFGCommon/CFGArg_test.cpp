@@ -88,40 +88,228 @@ TEST(CFGArg, test_arg) {
   arg.print();
 }
 
-TEST(CFGArg, test_programmer_short_option_ok) {
-  CFGArg_PROGRAMMER arg;
+TEST(CFGArg, test_list_device_ok) {
+  CFGArg_PROGRAMMER_LIST_DEVICE arg;
   std::vector<std::string> errors;
-  EXPECT_EQ(arg.config, "gemini.cfg");
-  EXPECT_EQ(arg.index, 0);
-  EXPECT_EQ(arg.m_args.size(), 0);
-  const char* argv[] = {"flash", "test.bit", "-o", "erase|program"};
+  const char* argv[] = {"1"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, true);
-  EXPECT_EQ(arg.config, "gemini.cfg");
-  EXPECT_EQ(arg.index, 0);
-  EXPECT_EQ(arg.operations, "erase|program");
-  EXPECT_EQ(arg.m_args[0], "flash");
-  EXPECT_EQ(arg.m_args[1], "test.bit");
-  arg.print();
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.m_args[0], "1");
 }
 
-TEST(CFGArg, test_program_device_long_option_ok) {
-  CFGArg_PROGRAMMER arg;
+TEST(CFGArg, test_list_device_exceed_max_arg) {
+  CFGArg_PROGRAMMER_LIST_DEVICE arg;
+  std::vector<std::string> errors;  
+  const char* argv[] = {"Cable1", "Cable2"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_list_cable_ok) {
+  CFGArg_PROGRAMMER_LIST_CABLE arg;
   std::vector<std::string> errors;
-  EXPECT_EQ(arg.config, "gemini.cfg");
-  EXPECT_EQ(arg.index, 0);
-  EXPECT_EQ(arg.m_args.size(), 0);
-  const char* argv[] = {"flash",        "test.bit",
-                        "--operations", "erase,blankcheck,program",
-                        "-c",           "gemini.cfg"};
+  int argc = 0;
+  bool status = arg.parse(argc, nullptr, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(errors.size(), 0);
+}
+
+TEST(CFGArg, test_list_cable_exceed_max_arg) {
+  CFGArg_PROGRAMMER_LIST_CABLE arg;
+  std::vector<std::string> errors;
+  const char* argv[] = {"dummy_arg"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_fpga_status_ok) {
+  CFGArg_PROGRAMMER_FPGA_STATUS arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable1", "-d", "1"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, true);
-  EXPECT_EQ(arg.config, "gemini.cfg");
-  EXPECT_EQ(arg.index, 0);
-  EXPECT_EQ(arg.operations, "erase,blankcheck,program");
-  EXPECT_EQ(arg.m_args[0], "flash");
-  EXPECT_EQ(arg.m_args[1], "test.bit");
-  arg.print();
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.cable, "cable1");
+  EXPECT_EQ(arg.index, 1);
+}
+
+TEST(CFGArg, test_fpga_status_one_option_input) {
+  CFGArg_PROGRAMMER_FPGA_STATUS arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-d", "2"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 2);
+}
+
+TEST(CFGArg, test_fpga_status_invalid_index) {
+  CFGArg_PROGRAMMER_FPGA_STATUS arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable1", "-d", "not_a_number"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+  EXPECT_EQ(arg.cable, "cable1");
+  EXPECT_EQ(arg.index, 1); // if error, it should return the default value
+}
+
+TEST(CFGArg, test_fpga_config_ok) {
+  CFGArg_PROGRAMMER_FPGA_CONFIG arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "test.bit"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.cable, "cable123");
+  EXPECT_EQ(arg.m_args[0], "test.bit");
+}
+
+TEST(CFGArg, test_fpga_config_no_cable_option) {
+  CFGArg_PROGRAMMER_FPGA_CONFIG arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-d", "2", "test.bit"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_fpga_config_no_arg) {
+  CFGArg_PROGRAMMER_FPGA_CONFIG arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_fpga_config_empty_option_empty_arg) {
+  CFGArg_PROGRAMMER_FPGA_CONFIG arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char** argv{nullptr};
+  int argc = 0;
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_fpga_config_exceed_max_arg) {
+  CFGArg_PROGRAMMER_FPGA_CONFIG arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "test.bit", "dummy_arg.bit"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_flash_ok) {
+  CFGArg_PROGRAMMER_FLASH arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.operations, "program");
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "test.bit", "-o", "erase|program|verify"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, true);
+  EXPECT_EQ(errors.size(), 0);
+  EXPECT_EQ(arg.cable, "cable123");
+  EXPECT_EQ(arg.index, 2);
+  EXPECT_EQ(arg.operations, "erase|program|verify");
+  EXPECT_EQ(arg.m_args[0], "test.bit");
+}
+
+TEST(CFGArg, test_flash_no_cable_option) {
+  CFGArg_PROGRAMMER_FLASH arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.operations, "program");
+  std::vector<std::string> errors;
+  const char* argv[] = {"-d", "2", "test.bit", "-o", "erase|program"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_flash_no_arg) {
+  CFGArg_PROGRAMMER_FLASH arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.operations, "program");
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "-o", "erase|program|verify"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_flash_empty_option_empty_arg) {
+  CFGArg_PROGRAMMER_FLASH arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.operations, "program");
+  std::vector<std::string> errors;
+  const char** argv{nullptr};
+  int argc = 0;
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
+}
+
+TEST(CFGArg, test_flash_exceed_max_arg) {
+  CFGArg_PROGRAMMER_FLASH arg;
+  //test default cable and index value
+  EXPECT_EQ(arg.cable, "1");
+  EXPECT_EQ(arg.index, 1);
+  EXPECT_EQ(arg.operations, "program");
+  std::vector<std::string> errors;
+  const char* argv[] = {"-c", "cable123", "-d", "2", "test.bit", "extra_arg", "-o", "erase|program|verify"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
+  EXPECT_EQ(status, false);
+  EXPECT_GE(errors.size(), 1);
 }
