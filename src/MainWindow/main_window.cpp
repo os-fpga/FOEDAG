@@ -1519,7 +1519,8 @@ void MainWindow::pinAssignmentActionTriggered() {
     data.context = GlobalSession->Context();
     data.pinMapFile =
         QString::fromStdString(m_compiler->PinmapCSVFile().string());
-    data.projectPath = m_projectManager->getProjectPath();
+    data.portsFilePath = QString::fromStdString(
+        m_compiler->FilePath(Compiler::Action::Analyze).string());
     data.target = QString::fromStdString(m_projectManager->getTargetDevice());
     data.pinFile = QString::fromStdString(m_projectManager->getConstrPinFile());
     QFile file{data.pinFile};
@@ -1774,15 +1775,13 @@ void MainWindow::updateTaskTable() {
       m_taskView->setRowHidden(row, isPostSynthPure);
     }
     for (auto taskId : {SIMULATE_BITSTREAM, SIMULATE_BITSTREAM_CLEAN,
-                        SIMULATE_BITSTREAM_SETTINGS, POWER, POWER_CLEAN}) {
+                        SIMULATE_BITSTREAM_SETTINGS}) {
       int row = m_taskModel->ToRowIndex(taskId);
       m_taskView->setRowHidden(row, true);
     }
   }
   m_taskManager->task(SIMULATE_BITSTREAM)->setValid(false);
   m_taskManager->task(SIMULATE_BITSTREAM_CLEAN)->setValid(false);
-  m_taskManager->task(POWER)->setValid(false);
-  m_taskManager->task(POWER_CLEAN)->setValid(false);
   m_perfomanceTracker.setIsRtl(!isPostSynthPure);
 }
 

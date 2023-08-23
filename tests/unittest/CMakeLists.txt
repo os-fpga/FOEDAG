@@ -48,6 +48,7 @@ set (CPP_LIST
     CFGCommon/CFGCommon_test.cpp
     CFGCommon/CFGArg_test.cpp
     CFGCompiler/CFGCompiler_test.cpp
+    CFGProgrammer/CFGProgrammer_test.cpp
     MainWindow/PerfomanceTracker_test.cpp
     MainWindow/ProjectFileComponent_test.cpp
 )
@@ -58,7 +59,8 @@ set (H_LIST
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. 
+${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
 
 target_link_libraries(unittest PRIVATE
   gtest
@@ -68,6 +70,7 @@ target_link_libraries(unittest PRIVATE
   newproject
   foedag
   foedagcore
-  cfgcommon)
+  cfgcommon
+  programmer)
 
 add_test(NAME unittest COMMAND unittest)

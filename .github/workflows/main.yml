@@ -235,6 +235,7 @@ jobs:
           mingw-w64-x86_64-qt5-declarative-debug
           mingw-w64-x86_64-tcl
           mingw-w64-x86_64-zlib
+          mingw-w64-x86_64-libusb
     
     - name: Configure shell environment variables
       run: |
@@ -294,6 +295,11 @@ jobs:
       with:
         python-version: 3.8
         architecture: x64
+
+    - name: Install libusb with vcpkg
+      run: |
+        C:\vcpkg\vcpkg.exe install libusb:x64-windows
+        C:\vcpkg\vcpkg.exe integrate install
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v3.0.0
@@ -525,7 +531,8 @@ jobs:
         sudo apt -qq -y install clang-tidy-12 \
                                 g++-11 tclsh  default-jre cmake \
                                 uuid-dev build-essential xorg \
-                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb
+                                qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools qtdeclarative5-dev xvfb \
+                                libusb-1.0-0-dev pkg-config
 
     - name: Use ccache
       uses: hendrikmuhs/ccache-action@v1.2.3

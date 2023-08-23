@@ -1512,7 +1512,7 @@ std::string CompilerOpenFPGA::FinishSynthesisScript(const std::string& script) {
   return result;
 }
 
-std::string CompilerOpenFPGA::BaseVprCommand() {
+std::string CompilerOpenFPGA::BaseVprCommand(BaseVprDefaults defaults) {
   std::string device_size = "";
   if (PackOpt() == Compiler::PackingOpt::Debug) {
     device_size = " --device auto";
@@ -1696,7 +1696,7 @@ bool CompilerOpenFPGA::Packing() {
   auto prevOpt = PackOpt();
   PackOpt(PackingOpt::None);
 
-  std::string command = BaseVprCommand() + " --pack";
+  std::string command = BaseVprCommand({}) + " --pack";
   auto file = ProjManager()->projectName() + "_pack.cmd";
   FileUtils::WriteToFile(file, command);
 
@@ -1716,7 +1716,7 @@ bool CompilerOpenFPGA::Packing() {
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() + " packing failed");
     if (PackOpt() == PackingOpt::Debug) {
-      std::string command = BaseVprCommand() + " --pack";
+      std::string command = BaseVprCommand({}) + " --pack";
       FileUtils::WriteToFile(file, command);
       ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
     }
@@ -1890,7 +1890,7 @@ bool CompilerOpenFPGA::Placement() {
     }
   }
 
-  std::string command = BaseVprCommand() + " --place";
+  std::string command = BaseVprCommand({}) + " --place";
   std::string pincommand = m_pinConvExecutablePath.string();
   if ((PinAssignOpts() != PinAssignOpt::Free) &&
       FileUtils::FileExists(pincommand) && (!m_PinMapCSV.empty())) {
@@ -2094,7 +2094,7 @@ bool CompilerOpenFPGA::Route() {
   }
 
   auto routingPath = FilePath(Action::Routing);
-  std::string command = BaseVprCommand() + " --route";
+  std::string command = BaseVprCommand({}) + " --route";
   FileUtils::WriteToFile(
       routingPath / std::string(ProjManager()->projectName() + "_route.cmd"),
       command);
@@ -2144,7 +2144,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   auto workingDir = FilePath(Action::STA).string();
   if (TimingAnalysisOpt() == STAOpt::View) {
     TimingAnalysisOpt(STAOpt::None);
-    const std::string command = BaseVprCommand() + " --analysis --disp on";
+    const std::string command = BaseVprCommand({}) + " --analysis --disp on";
     const int status =
         ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
     if (status) {
@@ -2169,7 +2169,8 @@ bool CompilerOpenFPGA::TimingAnalysis() {
   // use OpenSTA to do the job
   if (TimingAnalysisEngineOpt() == STAEngineOpt::Opensta) {
     // allows SDF to be generated for OpenSTA
-    std::string command = BaseVprCommand() + " --gen_post_synthesis_netlist on";
+    std::string command =
+        BaseVprCommand({}) + " --gen_post_synthesis_netlist on";
     auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
     FileUtils::WriteToFile(file, command);
     int status = ExecuteAndMonitorSystemCommand(command, {}, false, workingDir);
@@ -2206,7 +2207,7 @@ bool CompilerOpenFPGA::TimingAnalysis() {
       return false;
     }
   } else {  // use vpr/tatum engine
-    taCommand = BaseVprCommand() + " --analysis";
+    taCommand = BaseVprCommand({}) + " --analysis";
     auto file = std::string(ProjManager()->projectName() + "_sta.cmd");
     FileUtils::WriteToFile(file, taCommand + " --disp on");
   }
@@ -2260,11 +2261,14 @@ bool CompilerOpenFPGA::PowerAnalysis() {
     return true;
   }
 
-  std::string command = BaseVprCommand() + " --analysis";
+  std::string command = BaseVprCommand({}) + " --analysis";
   if (!FileUtils::FileExists(m_vprExecutablePath)) {
     ErrorMessage("Cannot find executable: " + m_vprExecutablePath.string());
     return false;
   }
+
+  auto file = ProjManager()->projectName() + "_power.cmd";
+  FileUtils::WriteToFile(file, command);
 
   int status = ExecuteAndMonitorSystemCommand(command, {}, false,
                                               FilePath(Action::Power).string());

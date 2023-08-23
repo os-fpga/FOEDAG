@@ -158,7 +158,8 @@ int CFGCompiler::ExecuteAndMonitorSystemCommand(const std::string& command,
         command, logFile, appendLog);
   } else {
     std::string output = "";
-    return CFG_execute_cmd(command, output);
+    std::atomic<bool> stop = false;
+    return CFG_execute_cmd(command, output, nullptr, stop);
   }
 }
 

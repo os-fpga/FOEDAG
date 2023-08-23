@@ -62,6 +62,7 @@ class Constraints {
 
   std::set<std::string> VirtualClocks() const { return m_virtualClocks; };
   bool AddVirtualClock(const std::string& vClock);
+  std::map<std::string, float>& getClockPeriodMap() { return m_clockPeriodMap; }
 
  protected:
   Compiler* m_compiler = nullptr;
@@ -71,6 +72,7 @@ class Constraints {
   std::vector<std::string> m_constraints;
   std::set<std::string> m_keeps;
   std::set<std::string> m_virtualClocks{};
+  std::map<std::string, float> m_clockPeriodMap;
   ConstraintPolicy m_constraintPolicy = ConstraintPolicy::SDCCompatible;
 };
 
