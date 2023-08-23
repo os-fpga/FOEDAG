@@ -28,26 +28,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile,
-                           bool mute)
+CommandStack::CommandStack(TclInterpreter *interp, const std::string &logFile)
     : m_interp(interp) {
-  if (!mute) {
-    std::string textHeader = LogUtils::GetLogHeader();
-    std::string tclHeader = LogUtils::GetLogHeader("# ");
+  std::string textHeader = LogUtils::GetLogHeader();
+  std::string tclHeader = LogUtils::GetLogHeader("# ");
 
-    m_logger = new Logger(logFile.empty() ? "cmd.tcl" : logFile + "_cmd.tcl");
-    m_logger->open();
-    (*m_logger) << tclHeader;
+  m_logger = new Logger(logFile.empty() ? "cmd.tcl" : logFile + "_cmd.tcl");
+  m_logger->open();
+  (*m_logger) << tclHeader;
 
-    m_perfLogger =
-        new Logger(logFile.empty() ? "perf.log" : logFile + "_perf.log");
-    m_perfLogger->open();
-    (*m_perfLogger) << textHeader;
+  m_perfLogger =
+      new Logger(logFile.empty() ? "perf.log" : logFile + "_perf.log");
+  m_perfLogger->open();
+  (*m_perfLogger) << textHeader;
 
-    m_outputLogger = new Logger(logFile.empty() ? "out.log" : logFile + ".log");
-    m_outputLogger->open();
-    (*m_outputLogger) << textHeader;
-  }
+  m_outputLogger = new Logger(logFile.empty() ? "out.log" : logFile + ".log");
+  m_outputLogger->open();
+  (*m_outputLogger) << textHeader;
 }
 
 bool CommandStack::push_and_exec(Command *cmd) {
