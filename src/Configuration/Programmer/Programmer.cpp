@@ -37,6 +37,10 @@ namespace FOEDAG {
 // openOCDPath used by library
 static std::string libOpenOcdExecPath;
 static std::vector<TapInfo> foundTap;
+static std::map<std::string, Cable> cableMap;
+static std::map<std::string, Device> deviceMap;
+static bool isCableMapInitialized = false;
+static bool isDeviceMapInitialized = false;
 
 std::map<int, std::string> ErrorMessages = {
     {NoError, "Success"},
@@ -118,17 +122,65 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
                    (ec ? ec.message().c_str() : ""));
       return;
     }
+    int status = 0;
     InitLibrary(openOcdExecPath.string());
     if (subCmd == "list_device") {
       auto list_device =
           static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
-      UNUSED(list_device);
-      //<TODO> implement programmer tcl command based on programmer API lib
+      std::vector<Device> devices;
+      if (list_device->m_args.size() == 1) {
+        std::string cableInput = list_device->m_args[0];
+        CFG_POST_MSG("list device with cable index: %s",
+                      cableInput.c_str());
+        auto cableIterator = cableMap.find(cableInput);
+        if (cableIterator != cableMap.end()) {
+          CFG_POST_ERR("Cable not found: %s", list_device->m_args[0].c_str());
+          return;
+        }
+        Cable cable = cableIterator->second;
+        status = ListDevices(cable, devices);
+        if (status != ProgrammerErrorCode::NoError) {
+          CFG_POST_ERR("Failed to list devices. Error code: %d",
+                      status);
+          return;
+        }
+        printDeviceList(cable, devices);
+      }
+      else {
+        CFG_POST_MSG("list device with no argument");
+        for (const auto& pairValue : cableMap) {
+          const auto& key = pairValue.first;
+          const auto& cable = pairValue.second;
+          status = ListDevices(cable, devices);
+          if (status != ProgrammerErrorCode::NoError) {
+            CFG_POST_ERR("Failed to list devices. Error code: %d", status);
+            return;
+          }
+          printDeviceList(cable, devices);
+        }
+      }
     } else if (subCmd == "list_cable") {
       auto list_cable =
           static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
-      UNUSED(list_cable);
-      //<TODO> implement programmer tcl command based on programmer API lib
+      std::vector<Cable> cables;
+      status = GetAvailableCables(cables);
+      if (status != ProgrammerErrorCode::NoError) {
+        CFG_POST_ERR("Failed to get available cables. Error code: %d",
+                     status);
+        return;
+      }
+      if (cables.size() == 0) {
+        CFG_POST_MSG("No cable found.");
+        return;
+      }
+      cableMap.clear();
+      // insert cables into map
+      for(size_t i = 0; i < cables.size(); i++) {
+        cableMap[cables[i].name] = cables[i];
+        cableMap[std::to_string(cables[i].index)] = cables[i];
+      }
+      printCableList(cables);
+      isCableMapInitialized = true;
     } else if (subCmd == "fpga_status") {
       auto fpga_status =
           static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
@@ -205,7 +257,9 @@ int GetAvailableCables(std::vector<Cable>& cables) {
         cable.portAddr = libusb_get_port_number(deviceList[index]);
         cable.deviceAddr = libusb_get_device_address(deviceList[index]);
         cable.busAddr = libusb_get_bus_number(deviceList[index]);
-
+        cable.name = "RsFtdi_" + std::to_string(cable.busAddr) + "_" +
+                     std::to_string(cable.portAddr);
+        cable.index = i + 1;
         returnCode = libusb_open(deviceList[index], &libusbHandle);
 
         if (returnCode) {

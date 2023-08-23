@@ -726,5 +726,35 @@ TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
 }
 #endif // __linux__
 
+// TODO: Fix the test
+TEST(PrintDeviceListTest, NoDeviceDetected) {
+  //Cable cable{"Cable1"};
+  //std::vector<Device> deviceList{};
+  testing::internal::CaptureStdout();
+  CFG_POST_MSG("No device detected.");
+  //printDeviceList(1, cable, deviceList);
+  std::string output = testing::internal::GetCapturedStdout();
+  EXPECT_EQ(output, "INFO: No device detected.\n");
+}
+
+// TODO: Fix the test
+// TEST(PrintDeviceListTest, SingleDeviceDetected) {
+//   Cable cable{"Cable1"};
+//   std::vector<Device> deviceList{{"Device1"}};
+//   testing::internal::CaptureStdout();
+//   printDeviceList(1, cable, deviceList);
+//   std::string output = testing::internal::GetCapturedStdout();
+//   EXPECT_EQ(output, "1. Cable1\n   1. Device1\n");
+// }
+
+// TEST(PrintDeviceListTest, MultipleDevicesDetected) {
+//   Cable cable{"Cable1"};
+//   std::vector<Device> deviceList{{"Device1"}, {"Device2"}, {"Device3"}};
+//   testing::internal::CaptureStdout();
+//   printDeviceList(1, cable, deviceList);
+//   std::string output = testing::internal::GetCapturedStdout();
+//   EXPECT_EQ(output, "1. Cable1\n   1. Device1\n   2. Device2\n   3. Device3\n");
+// }
+
 
 

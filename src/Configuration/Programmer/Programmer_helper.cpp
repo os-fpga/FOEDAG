@@ -451,4 +451,25 @@ bool isOperationRequested(const std::string& operation,
                    operation) != supportedOperations.end();
 }
 
+void printCableList(std::vector<Cable> cableList) {
+  for(const auto& cable : cableList) {
+    CFG_POST_MSG("%d. %s", 
+    cable.index,
+    cable.name.c_str());
+  }
+}
+
+void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList) {
+  CFG_POST_MSG("%d. %s", cable.index, cable.name.c_str());
+  if(deviceList.size() == 0) {
+    CFG_POST_MSG("  No device detected.");
+    return;
+  }
+  for(size_t i = 0; i < deviceList.size(); i++) {
+    CFG_POST_MSG("   %d. %s", 
+    deviceList[i].index,
+    deviceList[i].name.c_str());
+  }
+}
+
 }  // namespace FOEDAG

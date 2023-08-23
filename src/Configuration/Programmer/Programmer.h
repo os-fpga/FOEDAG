@@ -85,6 +85,8 @@ struct Cable {
   std::string description = "";
   uint32_t speed = 1000;  // kHz
   TransportType transport = TransportType::jtag;
+  std::string name = "";
+  uint16_t index = 0;
 };
 
 enum class ProgramFlashOperation : uint32_t {

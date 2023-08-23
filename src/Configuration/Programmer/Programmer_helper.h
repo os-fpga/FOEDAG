@@ -76,6 +76,9 @@ std::vector<std::string> parseOperationString(const std::string& operation);
 bool isOperationRequested(const std::string& operation,
                           const std::vector<std::string>& supportedOperations);
 
+void printCableList(std::vector<Cable> cableList);
+void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
+
 // libusb related helper function
 int get_string_descriptor(struct libusb_device_handle* device,
                           uint8_t desc_index, std::string& stringDesc,
