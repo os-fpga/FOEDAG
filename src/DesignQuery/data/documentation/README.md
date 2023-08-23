@@ -9,30 +9,36 @@ The SDT generating  TCL commands along with their brief descriptions are mention
 - The following is the TCL command for generating the "cpus" SDT node only. This command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the "cpus" SDT node only.
   
   **puts [ sdt_gen_cpus_node verbose ]**
+
   **puts [ sdt_gen_cpus_node ]**
 
 - The following is the TCL command for generating the "cpus-cluster" SDT node only. This command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the "cpus-cluster" SDT node only.
 
   **puts [ sdt_gen_cpus_cluster_node verbose ]**
+
   **puts [ sdt_gen_cpus_cluster_node ]**
 
 - The following is the TCL command for generating the "memory" SDT nodes only. This command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the "memory" SDT nodes only.
   
   **puts [ sdt_gen_memory_node verbose ]**
+
   **puts [ sdt_gen_memory_node ]**
 
 - The following is the TCL command for generating the "soc" SDT node only. This command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the "soc" SDT node only.
 
   **puts [ sdt_gen_soc_node verbose ]**
+
   **puts [ sdt_gen_soc_node ]**
 
 - The following is the TCL command for generating the "root meta data" SDT node only. This command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the "root meta data" SDT node only.
 
 
   **puts [ sdt_gen_root_metadata_node verbose ]**
+
   **puts [ sdt_gen_root_metadata_node ]**
 
 - The following is the TCL command for generating the whole SDT. his command is independent of all other commands and can be used on its own. This will print a SDT file in the "FOEDAG" folder that will contain the whole SDT.
 
   **puts [ sdt_gen_system_device_tree verbose ]**
+  
   **puts [ sdt_gen_system_device_tree ]**
