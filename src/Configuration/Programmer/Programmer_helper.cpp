@@ -21,13 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Programmer_helper.h"
 
+#include <iomanip>
 #include <regex>
+#include <sstream>
 #include <unordered_set>
 
 #include "Programmer.h"
 #include "Utils/StringUtils.h"
 #include "libusb.h"
-
 namespace FOEDAG {
 
 static const std::vector<std::string> programmer_subcmd{
@@ -449,6 +450,117 @@ bool isOperationRequested(const std::string& operation,
                           const std::vector<std::string>& supportedOperations) {
   return std::find(supportedOperations.begin(), supportedOperations.end(),
                    operation) != supportedOperations.end();
+}
+
+void printCableList(std::vector<Cable> cableList) {
+  CFG_POST_MSG("Cable            ");
+  CFG_POST_MSG("-----------------");
+  for (const auto& cable : cableList) {
+    CFG_POST_MSG("(%d) %s", cable.index, cable.name.c_str());
+  }
+}
+
+void printDeviceList(const Cable& cable,
+                     const std::vector<Device>& deviceList) {
+  CFG_POST_MSG("Cable               | Device");
+  CFG_POST_MSG("-----------------------------------------------");
+
+  if (deviceList.size() == 0) {
+    CFG_POST_MSG("  No device detected.");
+    return;
+  }
+  for (size_t i = 0; i < deviceList.size(); i++) {
+    std::ostringstream formattedOutput;
+    formattedOutput << "(" << cable.index << ") " << std::left << std::setw(18)
+                    << cable.name << "(" << deviceList[i].index << ") "
+                    << deviceList[i].name;
+    CFG_POST_MSG("%s", formattedOutput.str().c_str());
+  }
+}
+
+std::string removeInfoAndNewline(const std::string& input) {
+  std::string result = input;
+
+  // Remove "info: " prefix
+  size_t infoPos = result.find("Info : ");
+  if (infoPos != std::string::npos) {
+    result.erase(infoPos, 6);  // Length of "info: "
+  }
+
+  // Remove trailing newline character
+  if (!result.empty() && result.back() == '\n') {
+    result.pop_back();
+  }
+
+  return result;
+}
+
+void InitializeCableMap(std::vector<Cable>& cables,
+                        std::map<std::string, Cable>& cableMapObj) {
+  int status = GetAvailableCables(cables);
+  if (status != ProgrammerErrorCode::NoError) {
+    CFG_POST_ERR("Failed to get available cables. Error code: %d", status);
+    return;
+  }
+  if (cables.size() == 0) {
+    CFG_POST_MSG("No cable found.");
+    return;
+  }
+  cableMapObj.clear();
+  for (size_t i = 0; i < cables.size(); i++) {
+    cableMapObj[cables[i].name] = cables[i];
+    cableMapObj[std::to_string(cables[i].index)] = cables[i];
+  }
+}
+
+bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
+                      const Cable& cable, std::string deviceName,
+                      Device& device) {
+  for (const auto& hwDevices : cableDeviceDb) {
+    if (hwDevices.getCable().name == cable.name) {
+      if (hwDevices.findDevice(deviceName, device)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
+                      const Cable& cable, int deviceIndex, Device& device) {
+  for (const auto& hwDevices : cableDeviceDb) {
+    if (hwDevices.getCable().name == cable.name) {
+      if (hwDevices.findDevice(deviceIndex, device)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void InitializeHwDb(
+    std::vector<HwDevices> cableDeviceDb,
+    std::map<std::string, Cable>& cableMap,
+    std::function<void(const Cable&, const std::vector<Device>&)>
+        printDeviceList) {
+  int status = 0;
+  std::vector<Device> devices;
+  std::vector<Cable> cables;
+  InitializeCableMap(cables, cableMap);
+  cableDeviceDb.clear();
+  for (const Cable& cable : cables) {
+    status = ListDevices(cable, devices);
+    if (status != ProgrammerErrorCode::NoError) {
+      CFG_POST_ERR(
+          "Failed to list devices during InitializeHwDb. Error code: %d",
+          status);
+      return;
+    }
+    HwDevices cableStore(cable);
+    cableStore.addDevices(devices);
+    cableDeviceDb.push_back(cableStore);
+    if (printDeviceList) printDeviceList(cable, devices);
+  }
 }
 
 }  // namespace FOEDAG
