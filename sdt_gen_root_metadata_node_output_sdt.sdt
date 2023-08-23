@@ -1,0 +1,17 @@
+/*
+     *
+     *Copyright (c) 2023 Rapid Silicon
+     *SPDX-License-Identifier: rs-eula
+     *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu
+*/
+
+/dts-v1/;
+
+/ {
+	compatible = "rapidsi,gemini";
+	#address-cells = <0x1>;
+	#size-cells = <0x1>;
+	model = "Rapid Silicon Internal Board";
+
+
+};

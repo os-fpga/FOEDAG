@@ -1,0 +1,38 @@
+/*
+     *
+     *Copyright (c) 2023 Rapid Silicon
+     *SPDX-License-Identifier: rs-eula
+     *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu
+*/
+
+/dts-v1/;
+
+/ {
+
+	/* Application CPU configuration */
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		timebase-frequency = 533333333;
+		acpu0: cpu@0x00000000 {
+			compatible = "riscv";
+			device_type = "cpu";
+			reg = <0x00000000>;
+			status = "okay";
+			riscv,isa = "rv32e";
+			mmu-type = "riscv,sv32";
+			clock-frequency = "533333333";
+			i-cache-line-size = <32>;
+			d-cache-line-size = <32>;
+			acpu0_intc: interrupt-controller {
+				compatible = riscv,cpu-intc
+				#address-cells = <<0x0>>;
+				#interrupt-cells = <<0x1>>;
+				interrupt-controller;
+			};
+		};
+	};
+
+
+};

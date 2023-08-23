@@ -1,0 +1,27 @@
+/*
+     *
+     *Copyright (c) 2023 Rapid Silicon
+     *SPDX-License-Identifier: rs-eula
+     *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu
+*/
+
+/dts-v1/;
+
+/ {
+
+	/* Boot CPU configuration */
+
+	bcpu: cpus-cluster {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		compatible = cpus, cluster;
+		bcpu0: cpu@0x00000001 {
+			compatible = "riscv";
+			reg = <0x00000001>;
+			status = "okay";
+			riscv,isa = "rv32e";
+		};
+	};
+
+
+};

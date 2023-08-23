@@ -1,0 +1,45 @@
+/*
+     *
+     *Copyright (c) 2023 Rapid Silicon
+     *SPDX-License-Identifier: rs-eula
+     *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu
+*/
+
+/dts-v1/;
+
+/ {
+
+	/* Memory SDT Node */
+
+	sram0: memory@0x80000000 {
+		compatible = rapidsi,sram0;
+		device type = memory;
+		reg = <0x80000000 DT_SIZE_K(64)>;
+	};
+
+	/* Memory SDT Node */
+
+	sram1: memory@0x80010000 {
+		compatible = rapidsi,sram1;
+		device type = memory;
+		reg = <0x80010000 DT_SIZE_K(64)>;
+	};
+
+	/* Memory SDT Node */
+
+	sram2: memory@0x80020000 {
+		compatible = rapidsi,sram2;
+		device type = memory;
+		reg = <0x80020000 DT_SIZE_K(64)>;
+	};
+
+	/* Memory SDT Node */
+
+	sram3: memory@0x80030000 {
+		compatible = rapidsi,sram3;
+		device type = memory;
+		reg = <0x80030000 DT_SIZE_K(64)>;
+	};
+
+
+};
