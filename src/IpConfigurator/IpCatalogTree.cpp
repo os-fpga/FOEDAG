@@ -52,6 +52,8 @@ IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
   refresh();
   connect(this, &QTreeWidget::itemSelectionChanged, this,
           &IpCatalogTree::itemSelectionHasChanged);
+  connect(this, &QTreeWidget::itemDoubleClicked, this,
+          &IpCatalogTree::openIpSettings);
 }
 
 void IpCatalogTree::refresh() {

@@ -1599,8 +1599,10 @@ void MainWindow::ipConfiguratorActionTriggered() {
       m_ipCatalogTree = ipsWidgets[0];
 
       // Update the IP Config widget when the Available IPs selection changes
-      QObject::connect(m_ipCatalogTree, &IpCatalogTree::ipReady, this,
-                       &MainWindow::handleIpTreeSelectionChanged);
+      connect(m_ipCatalogTree, &IpCatalogTree::ipReady, this,
+              &MainWindow::handleIpTreeSelectionChanged);
+      connect(m_ipCatalogTree, &IpCatalogTree::openIpSettings, this,
+              []() { qDebug() << __PRETTY_FUNCTION__; });
     }
 
     // update the console for input incase the IP system printed any messages
@@ -1668,8 +1670,8 @@ void MainWindow::handleIpReConfigRequested(const QString& ipName,
   } else {  // If dock widget hasn't been created
     // Create and place new dockwidget
     m_ipConfigDockWidget =
-        PrepareTab(tr("Configure IP"), "configureIpsWidget", configWidget,
-                   nullptr, Qt::RightDockWidgetArea);
+        PrepareTab(configWidget->windowTitle(), "configureIpsWidget",
+                   configWidget, nullptr, Qt::RightDockWidgetArea);
   }
 }
 
