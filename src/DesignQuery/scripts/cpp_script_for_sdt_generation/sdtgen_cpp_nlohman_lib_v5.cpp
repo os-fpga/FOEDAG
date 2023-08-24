@@ -27,13 +27,11 @@ using namespace std;
 #include <sstream>  // header file for stringstream
 #include <stdexcept>
 
-
 // Global variables
 string node_tab = "\t";
 string subnode_tab = "\t\t";
 string subsubnode_tab = "\t\t\t";
 
-// void get_soc_node(json data, SdtSocNode &sdt_soc_node_obj) {
 int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["soc"].empty())) {
     if (!data["root"]["soc"]["#size-cells"].empty()) {
@@ -114,7 +112,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                << sdt_soc_node_obj.p_soc_inst_array[i]->soc_subsystem << endl;
 
         if (soc_subsystem_type == "interrupt-controller") {
-
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_interrupt_controller_object->object_has_been_populated = 1;
           if (verbose)
@@ -122,6 +119,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_interrupt_controller_object->object_has_been_"
                     "populated = " \ 
                     
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_interrupt_controller_object
@@ -133,6 +131,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_interrupt_controller_object->interrupt_controller_"
                     "subnode_name = " \ 
                     
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_interrupt_controller_object
@@ -608,6 +607,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_uart_object->object_has_been_populated = " \ 
                      
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->object_has_been_populated
                  << endl;
@@ -616,6 +616,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_uart_object->uart_subnode_name = " \ 
                      
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->uart_subnode_name
@@ -931,6 +932,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_gpio_object->object_has_been_populated = " \ 
                     
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->object_has_been_populated
                  << endl;
@@ -939,6 +941,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->gpio_subnode_name = " \ 
                     
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->gpio_subnode_name
@@ -1277,6 +1280,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_syscon_object->object_has_been_populated = " \ 
                     
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->object_has_been_populated
                  << endl;
@@ -1285,6 +1289,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->syscon_subnode_name = " \ 
                     
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->syscon_subnode_name
@@ -1473,6 +1478,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_timer_object->object_has_been_populated = " \ 
                     
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->object_has_been_populated
                  << endl;
@@ -1481,6 +1487,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_timer_object->timer_subnode_name = " \ 
                     
+                 
                  
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->timer_subnode_name
@@ -2420,7 +2427,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
       // instantiate SdtCpuInstSubNode objects and allocated memory and return
       // their pointers using new
       for (int i = 0; i < sdt_cpus_node_obj.size_cpu_inst_array; i++) {
-
         sdt_cpus_node_obj.p_cpu_inst_array[i] = new SdtCpuInstSubNode();
 
         sdt_cpus_node_obj.p_cpu_inst_array[i]->object_has_been_populated = 1;
@@ -2564,7 +2570,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
                  << "]->cpu_sub_device_type = "
                  << sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_sub_device_type
                  << endl;
-
 
         } else {
           if (verbose)

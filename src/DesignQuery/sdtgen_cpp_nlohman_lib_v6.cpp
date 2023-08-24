@@ -13,8 +13,6 @@
 
 #include "sdtgen_cpp_nlohman_lib_v6.h"
 
-// using json = nlohmann::json;
-
 using namespace std;
 
 #include <fstream>
@@ -26,7 +24,6 @@ using namespace std;
 #include <limits>
 #include <sstream>  // header file for stringstream
 #include <stdexcept>
-
 
 // Global variables
 string node_tab = "\t";
@@ -2823,7 +2820,6 @@ int get_cpus_node(nlohmann::json data, SdtCpusNode &sdt_cpus_node_obj,
         // populating cpu insts interrupt controller object if it exists
         if (!data["root"]["cpus"]["cpu_insts"][i]["interrupt-controller"]
                  .empty()) {
-
           sdt_cpus_node_obj.p_cpu_inst_array[i]
               ->cpu_int_cont_data.cpu_inst_subnode_int_cont_node_name =
               "interrupt-controller";
@@ -3785,5 +3781,4 @@ int gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj,
 
     return 0;
   }
-
 }
