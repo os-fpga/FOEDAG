@@ -12,8 +12,9 @@
 #pragma once
 
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
-
 /**
  * @class ParameterType
  * @brief Template class to hold type information of a parameter.
