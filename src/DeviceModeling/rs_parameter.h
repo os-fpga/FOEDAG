@@ -11,7 +11,9 @@
 
 #pragma once
 
+#include <memory>
 #include <optional>
+#include <sstream>
 
 #include "rs_parameter_type.h"
 
