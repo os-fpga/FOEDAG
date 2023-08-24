@@ -52,6 +52,7 @@ set (CPP_LIST
     MainWindow/PerfomanceTracker_test.cpp
     MainWindow/ProjectFileComponent_test.cpp
     DeviceModeling/rs_expression_test.cpp
+    DeviceModeling/rs_expression_evaluator_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
