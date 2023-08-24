@@ -23,6 +23,10 @@ if(MSVC)
   add_compile_options(/bigobj)
 endif()
 
+if(MINGW)
+    add_compile_options(-Wa,-mbig-obj)
+endif()
+
 set(CPP_LIST
   Tcl/TclInterpreter_test.cpp
   Command/Command_test.cpp
