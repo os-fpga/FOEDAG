@@ -40,7 +40,70 @@ static std::vector<TapInfo> foundTap;
 static std::map<std::string, Cable> cableMap;
 static std::map<std::string, Device> deviceMap;
 static bool isCableMapInitialized = false;
-static bool isDeviceMapInitialized = false;
+
+//static bool isDeviceMapInitialized = false;
+
+class CableContainer
+{
+public:
+    CableContainer(const Cable& cable)
+        : cable_(cable)
+    {}
+
+    const Cable& getCable() const { return cable_; }
+    const std::vector<Device>& getDevices() const { return devices_; }
+
+    void addDevices(const std::vector<Device> sourceDevices) 
+    {
+      devices_.insert(devices_.end(), sourceDevices.begin(), sourceDevices.end());
+    }
+    void addDevice(const Device& device)
+    {
+        devices_.push_back(device);
+    }
+    void ClearDevice()
+    {
+      devices_.clear();
+    }
+    size_t GetDeviceCount() 
+    {
+      return devices_.size();
+    }
+    bool FindDevice(int index, Device& device)
+    {
+      bool found = false;
+      for(const auto& d : devices_)
+      {
+        if (d.index == index)
+        {
+          device = d;
+          found = true;
+          break;
+        }
+      }
+      return found;
+    }
+
+    bool FindDevice(std::string name, Device& device)
+    {
+      bool found = false;
+      for(const auto& d : devices_)
+      {
+        if (d.name == name)
+        {
+          device = d;
+          found = true;
+        }
+      }
+      return found;
+    }
+
+private:
+    Cable cable_;
+    std::vector<Device> devices_;
+};
+
+static std::vector<CableContainer> programmerHardware;
 
 std::map<int, std::string> ErrorMessages = {
     {NoError, "Success"},
@@ -130,10 +193,30 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       std::vector<Device> devices;
       if (list_device->m_args.size() == 1) {
         std::string cableInput = list_device->m_args[0];
-        CFG_POST_MSG("list device with cable index: %s",
-                      cableInput.c_str());
+        if (!isCableMapInitialized) {
+          // refator this code same to list cable
+          std::vector<Cable> cables;
+          status = GetAvailableCables(cables);
+          if (status != ProgrammerErrorCode::NoError) {
+            CFG_POST_ERR("Failed to get available cables. Error code: %d",
+                        status);
+            return;
+          }
+          if (cables.size() == 0) {
+            CFG_POST_MSG("No cable found.");
+            return;
+          }
+          cableMap.clear();
+          // insert cables into map
+          for(size_t i = 0; i < cables.size(); i++) {
+            cableMap[cables[i].name] = cables[i];
+            cableMap[std::to_string(cables[i].index)] = cables[i];
+          }
+          isCableMapInitialized = true;
+        }
+
         auto cableIterator = cableMap.find(cableInput);
-        if (cableIterator != cableMap.end()) {
+        if (cableIterator == cableMap.end()) {
           CFG_POST_ERR("Cable not found: %s", list_device->m_args[0].c_str());
           return;
         }
@@ -147,21 +230,32 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         printDeviceList(cable, devices);
       }
       else {
-        CFG_POST_MSG("list device with no argument");
-        for (const auto& pairValue : cableMap) {
-          const auto& key = pairValue.first;
-          const auto& cable = pairValue.second;
+        //CFG_POST_MSG("list device with no argument");
+        //CFG_POST_MSG("cable map size: %d", cableMap.size());
+        std::vector<Cable> cables;
+        status = GetAvailableCables(cables);
+        if (status != ProgrammerErrorCode::NoError) {
+          CFG_POST_ERR("Failed to get available cables during list_device. Error code: %d",
+                      status);
+          return;
+        }
+        if (cables.size() == 0) {
+          CFG_POST_MSG("No cable found during list_device.");
+          return;
+        }
+        for(const Cable& cable : cables) {  
           status = ListDevices(cable, devices);
           if (status != ProgrammerErrorCode::NoError) {
             CFG_POST_ERR("Failed to list devices. Error code: %d", status);
             return;
           }
+          CableContainer cableStore(cable);
+          cableStore.addDevices(devices);
+          programmerHardware.push_back(cableStore);
           printDeviceList(cable, devices);
         }
       }
     } else if (subCmd == "list_cable") {
-      auto list_cable =
-          static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
       std::vector<Cable> cables;
       status = GetAvailableCables(cables);
       if (status != ProgrammerErrorCode::NoError) {
@@ -179,12 +273,30 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         cableMap[cables[i].name] = cables[i];
         cableMap[std::to_string(cables[i].index)] = cables[i];
       }
+      
       printCableList(cables);
       isCableMapInitialized = true;
     } else if (subCmd == "fpga_status") {
-      auto fpga_status =
+      auto fpga_status_arg =
           static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
       UNUSED(fpga_status);
+      if (fpga_status_arg->m_args.size() == 1) {
+      }
+      else {
+        for(const auto& cableContainer : programmerHardware) {
+          const auto& cable = cableContainer.getCable();
+          for(const auto& device : cableContainer.getDevices()) {
+            CfgStatus cfgStatus;
+            int status = GetFpgaStatus(cable, device, cfgStatus);
+            if (status != ProgrammerErrorCode::NoError) {
+              CFG_POST_ERR("Failed to get available devices status. Error code: %d",
+                     status);
+              return;
+            }
+            
+          }
+        }
+      }
       //<TODO> implement programmer tcl command based on programmer API lib
     } else if (subCmd == "fpga_config") {
       auto fpga_config =
@@ -246,7 +358,7 @@ int GetAvailableCables(std::vector<Cable>& cables) {
     if (libusb_get_device_descriptor(deviceList[index], &devDesc) != 0) {
       continue;
     }
-
+    uint16_t cableIndex = 1;
     for (size_t i = 0; i < supportedCableVendorIdProductId.size(); i++) {
       if (devDesc.idVendor == std::get<0>(supportedCableVendorIdProductId[i]) &&
           devDesc.idProduct ==
@@ -259,7 +371,7 @@ int GetAvailableCables(std::vector<Cable>& cables) {
         cable.busAddr = libusb_get_bus_number(deviceList[index]);
         cable.name = "RsFtdi_" + std::to_string(cable.busAddr) + "_" +
                      std::to_string(cable.portAddr);
-        cable.index = i + 1;
+        cable.index = cableIndex++;
         returnCode = libusb_open(deviceList[index], &libusbHandle);
 
         if (returnCode) {
@@ -313,7 +425,7 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
 
   std::string scanChainCmd = libOpenOcdExecPath + buildScanChainCommand(cable);
   // debug code
-  // CFG_POST_MSG("scanChainCmd: %s", scanChainCmd.c_str());
+  //CFG_POST_MSG("scanChainCmd: %s", scanChainCmd.c_str());
   returnCode = CFG_execute_cmd(scanChainCmd, cmdOutput, nullptr, stopCommand);
   if (returnCode) {
     outputMsg = "Failed to execute following command " + scanChainCmd +
@@ -325,6 +437,8 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
     return ProgrammerErrorCode::FailedExecuteCommand;
   }
   // parse the output
+  // debug code
+  //CFG_POST_MSG("cmdOutput: %s", cmdOutput.c_str());
   auto availableTap = extractTapInfoList(cmdOutput);
   for (auto& tap : availableTap) {
     for (auto& supportedTap : supportedTAP) {
@@ -362,6 +476,8 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
     addOrUpdateErrorMessage(ProgrammerErrorCode::InvalidFlashSize, outputMsg);
     return ProgrammerErrorCode::InvalidFlashSize;
   }
+  // debug code
+  //CFG_POST_MSG("cmdOutput: %s", listDeviceCmdOutput.c_str());
   return ProgrammerErrorCode::NoError;
 }
 

@@ -27,7 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Programmer.h"
 #include "Utils/StringUtils.h"
 #include "libusb.h"
-
+#include <iomanip>
+#include <sstream>
 namespace FOEDAG {
 
 static const std::vector<std::string> programmer_subcmd{
@@ -452,24 +453,67 @@ bool isOperationRequested(const std::string& operation,
 }
 
 void printCableList(std::vector<Cable> cableList) {
+  CFG_POST_MSG("Cable            ");
+  CFG_POST_MSG("-----------------");
   for(const auto& cable : cableList) {
-    CFG_POST_MSG("%d. %s", 
+    CFG_POST_MSG("(%d) %s", 
     cable.index,
     cable.name.c_str());
   }
 }
 
 void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList) {
-  CFG_POST_MSG("%d. %s", cable.index, cable.name.c_str());
+  CFG_POST_MSG("Cable               | Device");
+  CFG_POST_MSG("-----------------------------------------------");
+
+  std::ostringstream formattedOutput;
+  std::string c = "(" + std::to_string(cable.index) + ") " + cable.name; 
+  formattedOutput << std::left << std::setw(22) << c;
+
   if(deviceList.size() == 0) {
     CFG_POST_MSG("  No device detected.");
     return;
   }
   for(size_t i = 0; i < deviceList.size(); i++) {
-    CFG_POST_MSG("   %d. %s", 
-    deviceList[i].index,
-    deviceList[i].name.c_str());
+    std::string d = "(" + std::to_string(deviceList[i].index) + ") " + deviceList[i].name;
+    formattedOutput << d << "\n";
   }
+  CFG_POST_MSG("%s", formattedOutput.str().c_str());
+}
+
+void printDeviceStatusHeader() {
+  CFG_POST_MSG("Cable               | Device                  | CfgDone  | CfgError");
+  CFG_POST_MSG("--------------------------------------------------------------------");
+}
+
+void printDeviceStatus(const Cable& cable, const Device& device, const CfgStatus& cfgStatus) {
+  printDeviceStatusHeader();
+
+  std::ostringstream formattedOutput;
+  std::string c = "(" + std::to_string(cable.index) + ") " + cable.name; 
+  formattedOutput << std::left << std::setw(22) << c;
+  std::string d = "(" + std::to_string(device.index) + ") " + device.name;
+  formattedOutput << d << "\n";
+  
+  CFG_POST_MSG("%s", formattedOutput.str().c_str());
+}
+
+void printDevicesStatus(const Cable& cable, const std::vector<Device>& deviceList, const CfgStatus& cfgStatus) {
+  printDeviceStatusHeader();
+
+  std::ostringstream formattedOutput;
+  std::string c = "(" + std::to_string(cable.index) + ") " + cable.name; 
+  formattedOutput << std::left << std::setw(22) << c;
+  if(deviceList.size() == 0) {
+    CFG_POST_MSG("  No device detected.");
+    return;
+  }
+  for(size_t i = 0; i < deviceList.size(); i++) {
+    std::string d = "(" + std::to_string(deviceList[i].index) + ") " + deviceList[i].name;
+    formattedOutput << d << "\n";
+  }
+  
+  CFG_POST_MSG("%s", formattedOutput.str().c_str());
 }
 
 }  // namespace FOEDAG
