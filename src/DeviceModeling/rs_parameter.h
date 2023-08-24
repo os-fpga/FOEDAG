@@ -14,6 +14,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <iostream>
 
 #include "rs_parameter_type.h"
 
@@ -184,6 +185,7 @@ class Parameter {
     std::ostringstream oss;
     std::string tp;
     std::string tn = std::string(typeid(T).name());
+    std::cout << "____DBG____ typeid " << tn << std::endl;
     tp = (tn == "i") ? "int" : ((tn == "d") ? "double" : "string");
     oss << "Parameter " << name_ << ": " << value_ << " of type " << tp;
     if (has_address()) {
