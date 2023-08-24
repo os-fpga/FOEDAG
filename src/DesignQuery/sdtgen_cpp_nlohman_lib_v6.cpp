@@ -27,41 +27,12 @@ using namespace std;
 #include <sstream>  // header file for stringstream
 #include <stdexcept>
 
-// debugging using GDB
-// §
-// https://cs.franklin.edu/~shaffstj/oldcs2/debugging.htm#:~:text=Use%20a%20symbolic%20debugger%3A&text=You%20can%20examine%20the%20contents,code%20that%20caused%20the%20crash.
-//                 □ v cool for line by line debugging of C++ code using
-//                 breakpoint from gdb API □ used -g flag to use gdb
-//                 functionality after checking that gdb is installed in my
-//                 Ubuntu OS □ use "break (line number) to set up break points.
-//                 □ Use "run" to start prog execution until first breakpoint
-//                 □ Then use "next" to step through breakpoints.
-// more functionality can be checked here
-// https://web.eecs.umich.edu/~sugih/pointers/summary.html#:~:text=Gdb%20is%20a%20debugger%20for,variable%20after%20executing%20each%20line.
 
 // Global variables
 string node_tab = "\t";
 string subnode_tab = "\t\t";
 string subsubnode_tab = "\t\t\t";
-// string sdt_file_path_global = "output_sdtgen_cpp_nlohman_lib_v4.sdt";
-// int verbose_flag_global = 0; //1;
 
-// int SdtCpuInstSubNode::total_instances;
-
-// int SdtCpuClusterInstSubNode::total_instances;
-
-// int SdtMemoryInstSubNode::total_instances;
-
-// int SdtSocInstSubNode::total_instances;
-
-// SdtCpuInstSubNode::total_instances = 0;
-// SdtCpuClusterInstSubNode::total_instances = 0;
-// SdtMemoryInstSubNode::total_instances = 0;
-// SdtSocInstSubNode::total_instances = 0;
-
-// cant redefine default parameter value in cpp when its been defined in h file
-
-// void get_soc_node(json data, SdtSocNode &sdt_soc_node_obj) {
 int get_soc_node(nlohmann::json data, SdtSocNode &sdt_soc_node_obj,
                  int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["soc"].empty())) {
@@ -117,14 +88,9 @@ int get_soc_node(nlohmann::json data, SdtSocNode &sdt_soc_node_obj,
                sdt_soc_node_obj.size_soc_inst_array);
       // size of cpu insts array = 1
 
-      // instantiate SdtSocInstSubNode ptr to ptr array
       sdt_soc_node_obj.p_soc_inst_array = (SdtSocInstSubNode **)malloc(
           sdt_soc_node_obj.size_soc_inst_array * sizeof(SdtSocInstSubNode *));
-      // sizeof(SdtSocInstSubNode*) is size of ptr for this class which is equal
-      // to every other ptr = 8 bytes
 
-      // instantiate SdtSocInstSubNode objects and allocated memory and return
-      // their pointers using new
       for (int i = 0; i < sdt_soc_node_obj.size_soc_inst_array; i++) {
         string soc_subsystem_type =
             data["root"]["soc"]["soc_subsystems"][i]["subsystem"];
@@ -3164,16 +3130,6 @@ int gen_cpus_cluster_node(ofstream &outfile,
   if (sdt_cpus_cluster_node_obj.object_has_been_populated) {
     buffer << endl << node_tab << "/* Boot CPU configuration */\n" << endl;
 
-    // buffer << node_tab << sdt_cpus_cluster_node_obj.cpus_cluster_phandle << ": "<< sdt_cpus_cluster_node_obj.cpus_cluster_node_name \ 
-        // << "@" << sdt_cpus_cluster_node_obj.cpus_cluster_address_cell.substr(1, sdt_cpus_cluster_node_obj.cpus_cluster_address_cell.length() - 2) << " {" << endl;
-    // using substr method to remove the <> from address cell, i.e., index
-    // slicing like in python
-    // https://stackoverflow.com/questions/19327111/indexing-a-string
-    // index slicing works but we dont need address from address cells since
-    // they only denote how many entries in the reg section are for addressing..
-    // and addressing itself comes from reg property.. so commenting it out here
-    // https://elinux.org/Device_Tree_Usage
-
     buffer << node_tab << sdt_cpus_cluster_node_obj.cpus_cluster_phandle << ": "
            << sdt_cpus_cluster_node_obj.cpus_cluster_node_name << " {" << endl;
 
@@ -3845,5 +3801,4 @@ int gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj,
     return 0;
   }
 
-  // return buffer.str();
 }
