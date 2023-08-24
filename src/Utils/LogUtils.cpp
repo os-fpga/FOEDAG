@@ -32,6 +32,7 @@ using namespace FOEDAG;
 extern const char* foedag_version_number;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
+extern const char* release_version;
 
 void LogUtils::AddHeaderToLog(const std::filesystem::path& logPath) {
   // Grab first 2 lines of copyright incase the first is a block comment
@@ -166,10 +167,11 @@ void LogUtils::PrintCopyright(std::ostream* out) {
 }
 
 void LogUtils::PrintVersion(std::ostream* out) {
+  (*out) << "Version    : " << release_version << "\n";
   if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Version    : " << foedag_version_number << "\n";
+    (*out) << "Build      : " << foedag_version_number << "\n";
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
     (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built      : " << __DATE__ << "\n";
+  (*out) << "Built Date : " << __DATE__ << "\n";
   (*out) << "Built type : " << foedag_build_type << "\n";
 }
