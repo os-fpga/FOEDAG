@@ -184,8 +184,7 @@ class Parameter {
   std::string to_string() const {
     std::ostringstream oss;
     std::string tp;
-    T phony;
-    tp = TypeNameMapper::GetTypeName(phony);
+    tp = TypeNameMapper::GetTypeName(T());
     oss << "Parameter " << name_ << ": " << value_ << " of type " << tp;
     if (has_address()) {
       oss << " at address " << get_address();
