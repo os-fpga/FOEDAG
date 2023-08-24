@@ -51,6 +51,7 @@ set (CPP_LIST
     CFGProgrammer/CFGProgrammer_test.cpp
     MainWindow/PerfomanceTracker_test.cpp
     MainWindow/ProjectFileComponent_test.cpp
+    DeviceModeling/rs_expression_test.cpp
 )
 set (H_LIST
     PinAssignment/TestLoader.h
