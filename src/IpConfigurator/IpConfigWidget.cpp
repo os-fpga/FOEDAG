@@ -74,7 +74,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
       m_baseDirDefault{getUserProjectPath("IPs")},
       m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
-  this->setWindowTitle("Configure IP");
+  this->setWindowTitle("IP Description/Details");
   this->setObjectName("IpConfigWidget");
 
   // Set the path related widgets' tooltips to whatever their text is so long
@@ -106,12 +106,12 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Fill and add Parameters box
   CreateParamFields(true);
-  containerLayout->addWidget(paramsBox);
+  //  containerLayout->addWidget(paramsBox);
 
   // Add Output Box
   CreateOutputFields();
-  containerLayout->addWidget(&outputBox);
-  containerLayout->addStretch();
+  //  containerLayout->addWidget(&outputBox);
+  //  containerLayout->addStretch();
   // Update the module name if one was passed (this occurs during a
   // re-configure)
   if (!moduleName.isEmpty()) {
@@ -119,10 +119,10 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
   }
 
   // Add Dialog Buttons
-  AddDialogControls(topLayout);
+  //  AddDialogControls(topLayout);
 
   // Update output path now that meta data has been loaded
-  updateOutputPath();
+  //  updateOutputPath();
 
   // run with --json --json-template parameters to get default GUI
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
@@ -193,6 +193,7 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
     if (m_requestedIpName.toStdString() == def->Name()) {
       // Store VLNV meta data for the requested IP
       m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
+      m_details = FOEDAG::readIpDetails(def->FileDetailsPath());
 
       if (generateMetaLabel) {
         // set default module name to the BuildName provided by the generate
@@ -204,10 +205,11 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
         moduleEdit.setText(QString::fromStdString(build_name));
 
         // Update meta label now that vlnv and module info is updated
-        updateMetaLabel(m_meta);
+        updateMetaLabel(m_details);
       }
 
       // Build widget factory json for each parameter
+      /*
       for (auto paramVal : def->Parameters()) {
         if (paramVal->GetType() == Value::Type::ParamIpVal) {
           IPParameter* param = static_cast<IPParameter*>(paramVal);
@@ -277,6 +279,7 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
               QString::fromStdString(param->Name()), valNoSpaces);
         }
       }
+      */
     }
   }
 
@@ -285,10 +288,10 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
     tclArgList = m_instanceValueArgs;
   }
 
-  containerLayout->removeWidget(paramsBox);
-  paramsBox->deleteLater();
-  paramsBox = new QGroupBox{"Parameters", this};
-  containerLayout->insertWidget(1, paramsBox);
+  //  containerLayout->removeWidget(paramsBox);
+  //  paramsBox->deleteLater();
+  //  paramsBox = new QGroupBox{"Parameters", this};
+  //  containerLayout->insertWidget(1, paramsBox);
 
   if (parentJson.empty()) {
     // Add a note if no parameters were available
@@ -339,19 +342,34 @@ void IpConfigWidget::CreateOutputFields() {
   outputBox.setLayout(form);
 }
 
-void IpConfigWidget::updateMetaLabel(VLNV info) {
-  // Create a descriptive sentence that lists all the VLNV info
-  QString verStr = QString::fromStdString(info.version).replace("_", ".");
-  QString action = "Configuring";
-  if (!m_instanceValueArgs.empty()) {
-    // if params were passed then we are reconfiguring an existing instance
-    action = "Reconfiguring instance \"" + moduleEdit.text() + "\" for ";
-  }
-  std::string text = "<em>" + action.toStdString() + " " + info.name + " (" +
-                     verStr.toStdString() + ")" + " from " + info.vendor +
-                     "'s " + info.library + " library</em>";
+void IpConfigWidget::updateMetaLabel(const IPDetails& details) {
+  QString text = R"(
+<table cellspacing=10>
+  <tr>
+    <td align="left">Name:</th>
+    <td align="left">%1</th>
+  </tr>
+  <tr>
+    <td align="left">Version:</th>
+    <td align="left">%2</th>
+  </tr>
+  <tr>
+    <td align="left">Interface:</th>
+    <td align="left">%3</th>
+  </tr>
+  <tr>
+    <td align="left">Description:</th>
+    <td align="left">%4</th>
+  </tr>
+</table>
+)";
+
+  text = text.arg(QString::fromStdString(details.name),
+                  QString::fromStdString(details.version),
+                  QString::fromStdString(details.interface),
+                  QString::fromStdString(details.description));
   metaLabel.setTextFormat(Qt::RichText);
-  metaLabel.setText(QString::fromStdString(text));
+  metaLabel.setText(text);
   metaLabel.setWordWrap(true);
 }
 
