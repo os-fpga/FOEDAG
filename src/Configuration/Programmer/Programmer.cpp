@@ -279,7 +279,6 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     } else if (subCmd == "fpga_status") {
       auto fpga_status_arg =
           static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
-      UNUSED(fpga_status);
       if (fpga_status_arg->m_args.size() == 1) {
       }
       else {
@@ -293,7 +292,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
                      status);
               return;
             }
-            
+
           }
         }
       }
