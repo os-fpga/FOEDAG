@@ -56,9 +56,9 @@ void buildMockUpIPDef(IPCatalog* catalog) {
   Port* port = new Port("clk", Port::Direction::Input, Port::Function::Clock,
                         Port::Polarity::High, range);
   connections.push_back(port);
-  IPDefinition* def = new IPDefinition(
-      IPDefinition::IPType::Other, "MOCK_IP", "MOCK_IP_wrapper",
-      "path_to_nowhere", connections, parameters, "ip_details.json");
+  IPDefinition* def = new IPDefinition(IPDefinition::IPType::Other, "MOCK_IP",
+                                       "MOCK_IP_wrapper", "path_to_nowhere",
+                                       connections, parameters);
   catalog->addIP(def);
   // catalog->WriteCatalog(std::cout);
 }
@@ -283,13 +283,12 @@ bool IPCatalogBuilder::buildLiteXIPFromJson(
   auto def = catalog->Definition(IPName);
   if (def) {
     def->apply(IPDefinition::IPType::LiteXGenerator, IPName, build_name,
-               pythonConverterScript, connections, parameters,
-               "ip_Details.json");
+               pythonConverterScript, connections, parameters);
     def->Valid(true);
   } else {
     IPDefinition* def = new IPDefinition(
         IPDefinition::IPType::LiteXGenerator, IPName, build_name,
-        pythonConverterScript, connections, parameters, "ip_Details.json");
+        pythonConverterScript, connections, parameters);
     catalog->addIP(def);
   }
   return true;
@@ -316,9 +315,9 @@ bool IPCatalogBuilder::buildLiteXIPFromGeneratorInternal(
   auto info = FOEDAG::getIpInfoFromPath(pythonConverterScript);
   IPName += "_" + info.version;
 
-  IPDefinition* def = new IPDefinition(
-      IPDefinition::IPType::LiteXGenerator, IPName, std::string{},
-      pythonConverterScript, {}, {}, std::string{});
+  IPDefinition* def =
+      new IPDefinition(IPDefinition::IPType::LiteXGenerator, IPName,
+                       std::string{}, pythonConverterScript, {}, {});
   def->Valid(false);
   catalog->addIP(def);
   return result;

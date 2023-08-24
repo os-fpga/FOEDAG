@@ -261,28 +261,24 @@ class IPDefinition {
                const std::string& build_name,
                const std::filesystem::path& filePath,
                const std::vector<Connector*>& connections,
-               const std::vector<Value*>& parameters,
-               const std::filesystem::path& detailsPath)
+               const std::vector<Value*>& parameters)
       : m_type(type),
         m_name(name),
         m_build_name(build_name),
         m_filePath(filePath),
-        m_detailsPath(detailsPath),
         m_connections(connections),
         m_parameters(parameters){};
   void apply(IPType type, const std::string& name,
              const std::string& build_name,
              const std::filesystem::path& filePath,
              const std::vector<Connector*>& connections,
-             const std::vector<Value*>& parameters,
-             const std::filesystem::path& detailsPath) {
+             const std::vector<Value*>& parameters) {
     m_type = type;
     m_name = name;
     m_build_name = build_name;
     m_filePath = filePath;
     m_connections = connections;
     m_parameters = parameters;
-    m_detailsPath = detailsPath;
   }
   ~IPDefinition() {}
   IPType Type() const { return m_type; }
@@ -290,7 +286,6 @@ class IPDefinition {
   const std::string& BuildName() const { return m_build_name; }
   const std::vector<Connector*>& Connections() const { return m_connections; }
   const std::filesystem::path FilePath() const { return m_filePath; }
-  const std::filesystem::path FileDetailsPath() const { return m_detailsPath; }
   const std::vector<Value*> Parameters() const { return m_parameters; }
   bool Valid() const { return m_valid; }
   void Valid(bool valid) { m_valid = valid; }
@@ -300,7 +295,6 @@ class IPDefinition {
   std::string m_name;
   std::string m_build_name;
   std::filesystem::path m_filePath;
-  std::filesystem::path m_detailsPath;
   std::vector<Connector*> m_connections;
   std::vector<Value*> m_parameters;
   bool m_valid{true};
