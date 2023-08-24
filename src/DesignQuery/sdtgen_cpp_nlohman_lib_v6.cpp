@@ -2820,22 +2820,9 @@ int get_cpus_node(nlohmann::json data, SdtCpusNode &sdt_cpus_node_obj,
                       .empty()
                << endl;
 
-        // cout << "Interrupt controller value for data[root][cpus][cpu_insts][" << i << "][interrupt-controllerDoesNotExist].empty() = " \
-                // << data["root"]["cpus"]["cpu_insts"][i]["interrupt-controllerDoesNotExist"].empty() << endl;
-
-        // Interrupt controller value for
-        // data[root][cpus][cpu_insts][0][interrupt-controller].empty() = 0 this
-        // isn't 1 cx there is an interrupt object for this key
-        // Interrupt controller value for
-        // data[root][cpus][cpu_insts][0][interrupt-controllerDoesNotExist].empty()
-        // = 1
-
         // populating cpu insts interrupt controller object if it exists
         if (!data["root"]["cpus"]["cpu_insts"][i]["interrupt-controller"]
                  .empty()) {
-          // cpu_int_cont_data is object of class
-          // "SdtCpuInstSubNodeInterruptControllerData" initialized with each
-          // cpu insts object
 
           sdt_cpus_node_obj.p_cpu_inst_array[i]
               ->cpu_int_cont_data.cpu_inst_subnode_int_cont_node_name =
@@ -3067,8 +3054,6 @@ string return_string_from_ofstream_file(ofstream &outfile, string file_path) {
 }
 
 // passing &output by ref cx we wana change it
-// string gen_rootmetadata_node(ofstream &outfile, SdtRootMetaDataNode
-// sdt_rootmetadata_node_obj, int verbose) {
 int gen_rootmetadata_node(ofstream &outfile,
                           SdtRootMetaDataNode sdt_rootmetadata_node_obj,
                           int verbose) {

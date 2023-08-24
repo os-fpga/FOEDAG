@@ -27,39 +27,11 @@ using namespace std;
 #include <sstream>  // header file for stringstream
 #include <stdexcept>
 
-// debugging using GDB
-// §
-// https://cs.franklin.edu/~shaffstj/oldcs2/debugging.htm#:~:text=Use%20a%20symbolic%20debugger%3A&text=You%20can%20examine%20the%20contents,code%20that%20caused%20the%20crash.
-//                 □ v cool for line by line debugging of C++ code using
-//                 breakpoint from gdb API □ used -g flag to use gdb
-//                 functionality after checking that gdb is installed in my
-//                 Ubuntu OS □ use "break (line number) to set up break points.
-//                 □ Use "run" to start prog execution until first breakpoint
-//                 □ Then use "next" to step through breakpoints.
-// more functionality can be checked here
-// https://web.eecs.umich.edu/~sugih/pointers/summary.html#:~:text=Gdb%20is%20a%20debugger%20for,variable%20after%20executing%20each%20line.
 
 // Global variables
 string node_tab = "\t";
 string subnode_tab = "\t\t";
 string subsubnode_tab = "\t\t\t";
-// string sdt_file_path_global = "output_sdtgen_cpp_nlohman_lib_v4.sdt";
-// int verbose_flag_global = 0; //1;
-
-// int SdtCpuInstSubNode::total_instances;
-
-// int SdtCpuClusterInstSubNode::total_instances;
-
-// int SdtMemoryInstSubNode::total_instances;
-
-// int SdtSocInstSubNode::total_instances;
-
-// SdtCpuInstSubNode::total_instances = 0;
-// SdtCpuClusterInstSubNode::total_instances = 0;
-// SdtMemoryInstSubNode::total_instances = 0;
-// SdtSocInstSubNode::total_instances = 0;
-
-// cant redefine default parameter value in cpp when its been defined in h file
 
 // void get_soc_node(json data, SdtSocNode &sdt_soc_node_obj) {
 int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
@@ -119,24 +91,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
       // instantiate SdtSocInstSubNode ptr to ptr array
       sdt_soc_node_obj.p_soc_inst_array = (SdtSocInstSubNode **)malloc(
           sdt_soc_node_obj.size_soc_inst_array * sizeof(SdtSocInstSubNode *));
-      // sizeof(SdtSocInstSubNode*) is size of ptr for this class which is equal
-      // to every other ptr = 8 bytes
 
-      // instantiate SdtSocInstSubNode objects and allocated memory and return
-      // their pointers using new
       for (int i = 0; i < sdt_soc_node_obj.size_soc_inst_array; i++) {
         string soc_subsystem_type =
             data["root"]["soc"]["soc_subsystems"][i]["subsystem"];
 
-        // each bin in ptr to ptr array contains a pointer that points to an
-        // object of class SdtSocInstSubNode when we use square braces, those
-        // pointers will be dereferenced
         sdt_soc_node_obj.p_soc_inst_array[i] =
             new SdtSocInstSubNode(soc_subsystem_type);
-
-        // allocate cpu insts meta data to cpu_cluster_inst class objects
-        // p_soc_inst_array[i] contains pointers to cpu_cluster_inst class
-        // objects
 
         sdt_soc_node_obj.p_soc_inst_array[i]->object_has_been_populated = 1;
         if (verbose)
@@ -153,15 +114,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                << sdt_soc_node_obj.p_soc_inst_array[i]->soc_subsystem << endl;
 
         if (soc_subsystem_type == "interrupt-controller") {
-          // cout << "sdt_soc_node_obj.p_soc_inst_array[" << i <<
-          // "]->soc_interrupt_controller_object.interrupt_controller_subnode_name
-          // = " <<
-          // sdt_soc_node_obj.p_soc_inst_array[i]->soc_interrupt_controller_object.interrupt_controller_subnode_name
-          // << endl; cout << "sdt_soc_node_obj.p_soc_inst_array[" << i <<
-          // "]->soc_interrupt_controller_object->interrupt_controller_subnode_name
-          // = " <<
-          // sdt_soc_node_obj.p_soc_inst_array[i]->soc_interrupt_controller_object->interrupt_controller_subnode_name.c_str()
-          // << endl;
 
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_interrupt_controller_object->object_has_been_populated = 1;
@@ -170,6 +122,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_interrupt_controller_object->object_has_been_"
                     "populated = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_interrupt_controller_object
                         ->object_has_been_populated
@@ -180,13 +133,11 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  << "]->soc_interrupt_controller_object->interrupt_controller_"
                     "subnode_name = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_interrupt_controller_object
                         ->interrupt_controller_subnode_name
                  << endl;
-          // without c_str() the else statements are being printed ..
-          // after I used "new" to initialize object, then without c_str(), data
-          // was properly being printed as well
 
           // reading subsystem int cont id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
@@ -656,6 +607,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_uart_object->object_has_been_populated = " \ 
                      
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->object_has_been_populated
                  << endl;
@@ -664,6 +616,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_uart_object->uart_subnode_name = " \ 
                      
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->uart_subnode_name
                  << endl;
@@ -977,6 +930,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->object_has_been_populated = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->object_has_been_populated
                  << endl;
@@ -985,6 +939,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->gpio_subnode_name = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->gpio_subnode_name
                  << endl;
@@ -1321,6 +1276,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->object_has_been_populated = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->object_has_been_populated
                  << endl;
@@ -1329,6 +1285,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->syscon_subnode_name = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->syscon_subnode_name
                  << endl;
@@ -1515,6 +1472,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_timer_object->object_has_been_populated = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->object_has_been_populated
                  << endl;
@@ -1523,6 +1481,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_timer_object->timer_subnode_name = " \ 
                     
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->timer_subnode_name
                  << endl;
@@ -2461,95 +2420,8 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
       // instantiate SdtCpuInstSubNode objects and allocated memory and return
       // their pointers using new
       for (int i = 0; i < sdt_cpus_node_obj.size_cpu_inst_array; i++) {
-        // each bin in ptr to ptr array contains a pointer that points to an
-        // object of class SdtCpuInstSubNode when we use square braces, those
-        // pointers will be dereferenced
+
         sdt_cpus_node_obj.p_cpu_inst_array[i] = new SdtCpuInstSubNode();
-
-        // testing by accessing cpu_inst class object in a printf statement
-
-        /*  BLOCK COMMENT!
-
-        printf("class object
-        sdt_cpus_node_obj.p_cpu_inst_array[%d].object_has_been_populated =
-        %d\n", \ i,
-        sdt_cpus_node_obj.p_cpu_inst_array[i]->object_has_been_populated);
-            // According to §7.6.1.5 ¶2 of the ISO C++20 standard, the
-        expression obj->foo is converted to (*obj).foo.
-                // hencing just  using dot inplace of arrow in printf statement
-        above gave an error
-
-        //
-        printf("data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"]
-        = %d\n", \
-        //  i, int(data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"]));
-            // error   what():  [json.exception.type_error.302] type must be
-        number, but is null
-
-
-        printf("data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"]
-        = %d\n", \ i, data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"]);
-
-        cout << "printing a value for a key that doesnt
-        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"] = " <<
-        data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"] << endl;
-            // data["root"]["cpus"]["cpu_insts"][0]["key_doesnt_exist"] =
-        1187440752
-            // printing a value for a key that doesnt
-        data["root"]["cpus"]["cpu_insts"][%d]["key_doesnt_exist"] = null
-
-
-
-        // printf("with int() data[\"root\"][\"cpus\"][\"cpu_insts\"][0][\"id\"]
-        = %d\n", \
-        //  int(data["root"]["cpus"]["cpu_insts"][0]["id"]));
-            // gives CORRECT value: with int()
-        data["root"]["cpus"]["cpu_insts"][0]["id"] = 8
-
-        // printf("with int()
-        data[\"root\"][\"cpus\"][\"cpu_insts\"].at(0)[\"id\"] = %d\n", \
-        //  i, int(data["root"]["cpus"]["cpu_insts"].at(0)["id"]));
-            // even with int(), doesnot give correct value, so at(0) doesnt
-        work. with int() data["root"]["cpus"]["cpu_insts"].at(0)["id"] = 0
-
-        printf("with int()
-        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"clock-frequency\"] =
-        %d\n", \ i,
-        int(data["root"]["cpus"]["cpu_insts"][i]["clock-frequency"]));
-        // WORKS WITH int() function, otherwise it prints some other values
-
-        printf("with int()
-        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"i-cache-line-size\"] =
-        %d\n", \ i,
-        int(data["root"]["cpus"]["cpu_insts"][i]["i-cache-line-size"]));
-
-        json array_container = data["root"]["cpus"]["cpu_insts"][i];
-
-        string test_string = array_container["status"];
-
-        printf("test_string = %s \n", \
-         test_string.c_str());
-            // works
-
-        // printf("array_container[\"status\"] = %s \n", \
-        //  (array_container["status"]).c_str());
-
-        // printf("to_string (array_container[\"status\"] = %s \n", \
-        //  to_string(array_container["status"]));  // nope
-
-        // printf("string (array_container[\"status\"] = %s \n", \
-        //  string(array_container["status"])); // prints some other chars
-
-        // printf("string (array_container[\"status\"] = %c \n", \
-        //  array_container["status"]); // prints some other chars
-
-        printf("array_container[\"status\"] = %s \n", \
-         array_container["status"].get<std::string>().c_str());
-
-        */
-
-        // allocate cpu insts meta data to cpu_inst class objects
-        // p_cpu_inst_array[i] contains pointers to cpu_inst class objects
 
         sdt_cpus_node_obj.p_cpu_inst_array[i]->object_has_been_populated = 1;
         if (verbose)
@@ -2580,10 +2452,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
           sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id =
               data["root"]["cpus"]["cpu_insts"][i]["id"];
 
-          // printf("sdt_cpus_node_obj.p_cpu_inst_array[%d]->cpu_id = %d\n", i,
-          // sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id); cout << "displaying
-          // id using cout without int() function = " <<
-          // data["root"]["cpus"]["cpu_insts"][i]["id"] << endl;
           if (verbose)
             cout << "sdt_cpus_node_obj.p_cpu_inst_array[" << i << "]->cpu_id = "
                  << sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id << endl;
@@ -2697,14 +2565,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
                  << sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_sub_device_type
                  << endl;
 
-          // cout<< sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_sub_device_type
-          // << data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"] <<
-          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"].get<std::string>()
-          // <<
-          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"].get<std::string>().c_str()
-          // << endl; prints with commas "" for cout <<
-          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"] .. so I
-          // will not use .c_str() conversion now
 
         } else {
           if (verbose)
@@ -2861,16 +2721,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
                << data["root"]["cpus"]["cpu_insts"][i]["interrupt-controller"]
                       .empty()
                << endl;
-
-        // cout << "Interrupt controller value for data[root][cpus][cpu_insts][" << i << "][interrupt-controllerDoesNotExist].empty() = " \
-                // << data["root"]["cpus"]["cpu_insts"][i]["interrupt-controllerDoesNotExist"].empty() << endl;
-
-        // Interrupt controller value for
-        // data[root][cpus][cpu_insts][0][interrupt-controller].empty() = 0 this
-        // isn't 1 cx there is an interrupt object for this key
-        // Interrupt controller value for
-        // data[root][cpus][cpu_insts][0][interrupt-controllerDoesNotExist].empty()
-        // = 1
 
         // populating cpu insts interrupt controller object if it exists
         if (!data["root"]["cpus"]["cpu_insts"][i]["interrupt-controller"]
@@ -3171,16 +3021,6 @@ int gen_cpus_cluster_node(ofstream &outfile,
 
   if (sdt_cpus_cluster_node_obj.object_has_been_populated) {
     buffer << endl << node_tab << "/* Boot CPU configuration */\n" << endl;
-
-    // buffer << node_tab << sdt_cpus_cluster_node_obj.cpus_cluster_phandle << ": "<< sdt_cpus_cluster_node_obj.cpus_cluster_node_name \ 
-        // << "@" << sdt_cpus_cluster_node_obj.cpus_cluster_address_cell.substr(1, sdt_cpus_cluster_node_obj.cpus_cluster_address_cell.length() - 2) << " {" << endl;
-    // using substr method to remove the <> from address cell, i.e., index
-    // slicing like in python
-    // https://stackoverflow.com/questions/19327111/indexing-a-string
-    // index slicing works but we dont need address from address cells since
-    // they only denote how many entries in the reg section are for addressing..
-    // and addressing itself comes from reg property.. so commenting it out here
-    // https://elinux.org/Device_Tree_Usage
 
     buffer << node_tab << sdt_cpus_cluster_node_obj.cpus_cluster_phandle << ": "
            << sdt_cpus_cluster_node_obj.cpus_cluster_node_name \ 
