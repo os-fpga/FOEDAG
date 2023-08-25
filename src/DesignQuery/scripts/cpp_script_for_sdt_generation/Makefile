@@ -18,11 +18,13 @@ debug: debugging
 
 .PHONY: all reset_handler
 
-ifeq ($(DEPENDENCY), 1)
 executable: DEPENDENCY_FILE_INCLUDED_RULE
-else 
-executable: $(FILENAME)
-endif
+
+# ifeq ($(DEPENDENCY), 1)
+# executable: DEPENDENCY_FILE_INCLUDED_RULE
+# else 
+# executable: $(FILENAME)
+# endif
 
 debugging: $(SOURCE)
 	g++ -Wall -Wextra -pedantic-errors -ggdb -O2 $< -o $(FILENAME)  && gdb $(FILENAME)
