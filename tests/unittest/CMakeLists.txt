@@ -24,7 +24,7 @@ if(MSVC)
 endif()
 
 if(MINGW)
-    add_compile_options(-Wa,-mbig-obj)
+  add_compile_options(-Wa,-mbig-obj)
 endif()
 
 set(CPP_LIST
@@ -61,6 +61,8 @@ set(CPP_LIST
   DeviceModeling/rs_expression_test.cpp
   DeviceModeling/rs_expression_evaluator_test.cpp
   DeviceModeling/rs_parameter_type_test.cpp
+  DeviceModeling/rs_parameter_test.cpp
+  DeviceModeling/device_net_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h
