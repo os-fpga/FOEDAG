@@ -1121,42 +1121,11 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_syscon_object->object_has_been_populated = 1;
 
-          if (verbose)
-            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_syscon_object->object_has_been_populated = " \ 
-                    
-                 
-                 
-                 
-                 
-                 << sdt_soc_node_obj.p_soc_inst_array[i]
-                        ->soc_syscon_object->object_has_been_populated
-                 << endl;
-
-          if (verbose)
-            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_syscon_object->syscon_subnode_name = " \ 
-                    
-                 
-                 
-                 
-                 
-                 << sdt_soc_node_obj.p_soc_inst_array[i]
-                        ->soc_syscon_object->syscon_subnode_name
-                 << endl;
-
           // reading subsystem syscon id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_syscon_object->syscon_id =
                 data["root"]["soc"]["soc_subsystems"][i]["id"];
-
-            if (verbose)
-              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                   << "]->soc_syscon_object->syscon_id = "
-                   << sdt_soc_node_obj.p_soc_inst_array[i]
-                          ->soc_syscon_object->syscon_id
-                   << endl;
 
           } else {
             if (verbose)
