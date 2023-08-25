@@ -897,6 +897,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->object_has_been_populated
                  << endl;
@@ -905,6 +906,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->gpio_subnode_name = " \ 
                     
+                 
                  
                  
                  
@@ -1252,6 +1254,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->object_has_been_populated = " \ 
                     
+                 
                  
                  
                  
