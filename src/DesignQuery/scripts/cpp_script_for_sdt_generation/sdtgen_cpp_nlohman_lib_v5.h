@@ -593,8 +593,6 @@ class SdtSocInstSubNode {
 
       soc_interrupt_controller_object =
           new SdtSocInstSubNodeInterruptController(soc_subsystem_type);
-      // cout << "inside SdtSocInstSubNode in the if cond when
-      // soc_subsystem_type = int cont \n" << endl;
 
     } else if (soc_subsystem_type == "uart") {
       // SdtSocInstSubNodeUart soc_uart_object(soc_subsystem_type);
@@ -664,26 +662,18 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose = 0);
 int get_memory_node(json data, SdtMemoryNode &sdt_memory_node_obj,
                     int verbose = 0);
 
-// void get_cpus_cluster(json data, SdtCpusClusterNode
-// &sdt_cpus_cluster_node_obj) {
 int get_cpus_cluster_node(json data,
                           SdtCpusClusterNode &sdt_cpus_cluster_node_obj,
                           int verbose = 0);
 
-// void get_rootmetadata_node (json data, SdtRootMetaDataNode
-// &sdt_rootmetadata_node_obj) {
 int get_rootmetadata_node(json data,
                           SdtRootMetaDataNode &sdt_rootmetadata_node_obj,
                           int verbose = 0);
 
-// void get_cpus (json data, SdtCpusNode &sdt_cpus_node_obj) {
 int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose = 0);
 
 string return_string_from_ofstream_file(ofstream &outfile, string file_path);
 
-// passing &output by ref cx we wana change it
-// string gen_rootmetadata_node(ofstream &outfile, SdtRootMetaDataNode
-// sdt_rootmetadata_node_obj, int verbose=0) {
 int gen_rootmetadata_node(ofstream &outfile,
                           SdtRootMetaDataNode sdt_rootmetadata_node_obj,
                           int verbose = 0);
@@ -715,20 +705,12 @@ string gen_soc_subsystem_int_controller(
     SdtSocInstSubNodeInterruptController *soc_interrupt_controller_object,
     int verbose = 0);
 
-// string gen_soc_node(ofstream &outfile, SdtSocNode sdt_soc_node_obj, int
-// verbose=0) {
 int gen_soc_node(ofstream &outfile, SdtSocNode sdt_soc_node_obj,
                  int verbose = 0);
 
-// passing &output by ref cx we wana change it
-// string gen_memory_node(ofstream &outfile, SdtMemoryNode sdt_memory_node_obj,
-// int verbose=0) {
 int gen_memory_node(ofstream &outfile, SdtMemoryNode sdt_memory_node_obj,
                     int verbose = 0);
 
-// passing &output by ref cx we wana change it
-// string gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj, int
-// verbose=0) {
 int gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj,
                   int verbose = 0);
 
