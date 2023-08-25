@@ -100,7 +100,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
         sdt_soc_node_obj.p_soc_inst_array[i]->object_has_been_populated = 1;
 
         if (soc_subsystem_type == "interrupt-controller") {
-
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_interrupt_controller_object->object_has_been_populated = 1;
 
@@ -565,7 +564,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_uart_object->uart_id =
                 data["root"]["soc"]["soc_subsystems"][i]["id"];
 
-
           } else {
             if (verbose)
               printf(
@@ -851,7 +849,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_gpio_object->object_has_been_populated = 1;
 
-
           // reading subsystem gpio id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
@@ -928,7 +925,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_gpio_object->gpio_interrupt_parent =
                 data["root"]["soc"]["soc_subsystems"][i]["interrupt-parent"];
 
-
           } else {
             if (verbose)
               printf(
@@ -963,7 +959,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
               (data["root"]["soc"]["soc_subsystems"][i]["reg"].is_string())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_gpio_object->gpio_reg =
                 data["root"]["soc"]["soc_subsystems"][i]["reg"];
-
 
           } else {
             if (verbose)
@@ -1133,6 +1128,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->object_has_been_populated
                  << endl;
@@ -1141,6 +1137,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->syscon_subnode_name = " \ 
                     
+                 
                  
                  
                  
@@ -1259,7 +1256,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_syscon_object->syscon_reg_address =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_address"];
 
-
           } else {
             if (verbose)
               printf(
@@ -1277,7 +1273,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_syscon_object->syscon_status =
                 data["root"]["soc"]["soc_subsystems"][i]["status"];
-
 
           } else {
             if (verbose)
@@ -1414,7 +1409,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_timer_object->timer_reg_address =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_address"];
-
 
           } else {
             if (verbose)
