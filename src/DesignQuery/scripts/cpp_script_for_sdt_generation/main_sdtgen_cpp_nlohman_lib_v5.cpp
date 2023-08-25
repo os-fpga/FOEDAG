@@ -38,7 +38,6 @@ int SdtSocInstSubNode::total_instances = 0;
 // works as well
 
 int main(int, char*[]) {
-
   SdtCpusNode cpus_node_obj;
 
   SdtCpusClusterNode cpus_cluster_node_obj;

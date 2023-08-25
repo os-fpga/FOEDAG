@@ -27,7 +27,6 @@ using namespace std;
 #include <sstream>  // header file for stringstream
 #include <stdexcept>
 
-
 // class for storing data of sdt cpus node
 class SdtRootMetaDataNode {
  public:
@@ -151,7 +150,6 @@ class SdtCpusNode {
   int size_cpu_inst_array;
   int object_has_been_populated;  // must become 1 when class variables have
                                   // been populated
-
 
   SdtCpuInstSubNode **p_cpu_inst_array;
 
@@ -388,7 +386,6 @@ class SdtSocInstSubNodeUart {
   string uart_reg_address;
   string uart_status;
 
-
   string *uart_interrupts_string_array = NULL;
   // intializing this pointer here instead of constructor
 
@@ -590,7 +587,6 @@ class SdtSocInstSubNode {
     soc_subsystem = soc_subsystem_type;
 
     if (soc_subsystem_type == "interrupt-controller") {
-
       soc_interrupt_controller_object =
           new SdtSocInstSubNodeInterruptController(soc_subsystem_type);
 
@@ -713,6 +709,5 @@ int gen_memory_node(ofstream &outfile, SdtMemoryNode sdt_memory_node_obj,
 
 int gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj,
                   int verbose = 0);
-
 
 #endif /* MY_CLASS_H */

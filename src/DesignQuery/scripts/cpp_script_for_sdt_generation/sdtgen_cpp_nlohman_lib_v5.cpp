@@ -566,34 +566,14 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
 
           if (verbose)
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_uart_object->object_has_been_populated = " \ 
-                     
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
+                 << "]->soc_uart_object->object_has_been_populated = "
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->object_has_been_populated
                  << endl;
 
           if (verbose)
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_uart_object->uart_subnode_name = " \ 
-                     
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
+                 << "]->soc_uart_object->uart_subnode_name = "
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->uart_subnode_name
                  << endl;
@@ -914,6 +894,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
+                 
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->object_has_been_populated
                  << endl;
@@ -922,6 +905,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->gpio_subnode_name = " \ 
                     
+                 
+                 
+                 
                  
                  
                  
@@ -1266,6 +1252,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_syscon_object->object_has_been_populated = " \ 
                     
+                 
+                 
+                 
                  
                  
                  
