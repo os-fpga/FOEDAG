@@ -29,13 +29,13 @@ debugging: $(SOURCE)
 	# look at debugging comment at the bottom
 
 DEPENDENCY_FILE_INCLUDED_RULE: $(FILENAME).o $(DEPENDENCY_FILE).o
-	g++ -std=c++17 -o $(FILENAME) $(FILENAME).o $(DEPENDENCY_FILE).o && ./$(FILENAME) 
+	g++ -o $(FILENAME) $(FILENAME).o $(DEPENDENCY_FILE).o && ./$(FILENAME) 
 
 $(FILENAME).o: $(FILENAME).cpp $(DEPENDENCY_FILE).h
-	g++ -std=c++17 -c $(FILENAME).cpp
+	g++ -c $(FILENAME).cpp
 
 $(DEPENDENCY_FILE).o: $(DEPENDENCY_FILE).cpp $(DEPENDENCY_FILE).h
-	g++ -std=c++17 -c $(DEPENDENCY_FILE).cpp
+	g++ -c $(DEPENDENCY_FILE).cpp
 	 
 
 clean:

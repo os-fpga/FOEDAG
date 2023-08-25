@@ -57,9 +57,7 @@ void RunsGridDelegate::setEditorData(QWidget *editor,
   if (index.isValid() && m_dType == DT_COMBOX) {
     QString value = index.model()->data(index, Qt::DisplayRole).toString();
     QComboBox *combox = static_cast<QComboBox *>(editor);
-    foreach (QString str, m_listComboxData) {
-      combox->addItem(str);
-    }
+    foreach (QString str, m_listComboxData) { combox->addItem(str); }
     combox->setCurrentText(value);
   } else if (index.isValid() && m_dType == DT_LABLE) {
     return;
