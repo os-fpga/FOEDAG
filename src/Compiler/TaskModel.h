@@ -57,6 +57,7 @@ class TaskModel : public QAbstractTableModel {
   bool hasChildren(const QModelIndex &parent) const override;
   Qt::ItemFlags flags(const QModelIndex &index) const override;
   uint ToTaskId(const QModelIndex &index) const;
+  int subTaskCount(Task* task) const;
 
  private:
   TaskManager *m_taskManager{nullptr};
