@@ -146,9 +146,8 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           } else {
             if (verbose)
               printf(
-                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_id \
-                        not found or isn't of the correct data TYPE\n",
-                  i);
+                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_id
+                  not found or isn't of the correct data TYPE\n", i);
           }
 
           // reading subsystem int cont phandle
@@ -172,9 +171,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           } else {
             if (verbose)
               printf(
-                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_phandle \
-                        not found or isn't of the correct data TYPE\n",
-                  i);
+                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_phandle
+                  not found or
+                  isn't of the correct data TYPE\n", i);
           }
 
           // reading subsystem int cont compatible
@@ -199,9 +198,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           } else {
             if (verbose)
               printf(
-                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_compatible \
-                        not found or isn't of the correct data TYPE\n",
-                  i);
+                  "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_compatible
+                  not found or
+                  isn't of the correct data TYPE\n", i);
           }
 
           // reading subsystem int cont address_cells
@@ -361,7 +360,8 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
               printf(
                   "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_riscv_max_priority \
                         not found or isn't of the correct data TYPE\n",
-                  i);;
+                  i);
+            ;
           }
 
           // reading subsystem int cont riscv_ndev
@@ -445,7 +445,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                   "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_interrupt_controller_object->interrupt_controller_reg_address_string_array \
                         not found or isn't of the correct data TYPE\n",
                   i);
-
           }
 
           // reading subsystem int cont reg_size
@@ -575,6 +574,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
+                 
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_uart_object->object_has_been_populated
                  << endl;
@@ -583,6 +585,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_uart_object->uart_subnode_name = " \ 
                      
+                 
+                 
+                 
                  
                  
                  
@@ -686,7 +691,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                   "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_uart_object->uart_reg \
                          not found or isn't of the correct data TYPE\n",
                   i);
-            
           }
 
           // reading subsystem uart reg_address
@@ -907,6 +911,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
+                 
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_gpio_object->object_has_been_populated
                  << endl;
@@ -915,6 +922,9 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
                  << "]->soc_gpio_object->gpio_subnode_name = " \ 
                     
+                 
+                 
+                 
                  
                  
                  
@@ -1262,13 +1272,16 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                  
                  
                  
+                 
+                 
+                 
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->object_has_been_populated
                  << endl;
 
           if (verbose)
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_syscon_object->syscon_subnode_name = "  
+                 << "]->soc_syscon_object->syscon_subnode_name = "
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_syscon_object->syscon_subnode_name
                  << endl;
@@ -1361,7 +1374,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                   "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_syscon_object->syscon_reg \
                         not found or isn't of the correct data TYPE\n",
                   i);
-
           }
 
           // reading subsystem syscon reg_size
@@ -1444,14 +1456,14 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
 
           if (verbose)
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_timer_object->object_has_been_populated = " 
+                 << "]->soc_timer_object->object_has_been_populated = "
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->object_has_been_populated
                  << endl;
 
           if (verbose)
             cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
-                 << "]->soc_timer_object->timer_subnode_name = " 
+                 << "]->soc_timer_object->timer_subnode_name = "
                  << sdt_soc_node_obj.p_soc_inst_array[i]
                         ->soc_timer_object->timer_subnode_name
                  << endl;
@@ -1639,7 +1651,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                   "sdt_soc_node_obj.p_soc_inst_array[%d]->soc_timer_object->timer_status \
                         not found or isn't of the correct data TYPE\n",
                   i);
-
           }
 
         } else {
@@ -2244,7 +2255,6 @@ int get_cpus_cluster_node(json data,
   }
 }
 
-
 int get_rootmetadata_node(json data,
                           SdtRootMetaDataNode &sdt_rootmetadata_node_obj,
                           int verbose) {
@@ -2399,7 +2409,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
 
         if ((!data["root"]["cpus"]["cpu_insts"][i]["id"].empty()) &&
             (data["root"]["cpus"]["cpu_insts"][i]["id"].is_number())) {
-
           sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id =
               data["root"]["cpus"]["cpu_insts"][i]["id"];
 
