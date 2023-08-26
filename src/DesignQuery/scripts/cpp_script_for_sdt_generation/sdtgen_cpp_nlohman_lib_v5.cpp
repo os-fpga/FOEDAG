@@ -32,7 +32,8 @@ string node_tab = "\t";
 string subnode_tab = "\t\t";
 string subsubnode_tab = "\t\t\t";
 
-int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
+int get_soc_node(nlohmann::json data, SdtSocNode &sdt_soc_node_obj,
+                 int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["soc"].empty())) {
     if (!data["root"]["soc"]["#size-cells"].empty()) {
       sdt_soc_node_obj.soc_size_cell = data["root"]["soc"]["#size-cells"];
@@ -86,7 +87,6 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                sdt_soc_node_obj.size_soc_inst_array);
       // size of cpu insts array = 1
 
-      // instantiate SdtSocInstSubNode ptr to ptr array
       sdt_soc_node_obj.p_soc_inst_array = (SdtSocInstSubNode **)malloc(
           sdt_soc_node_obj.size_soc_inst_array * sizeof(SdtSocInstSubNode *));
 
@@ -94,14 +94,63 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
         string soc_subsystem_type =
             data["root"]["soc"]["soc_subsystems"][i]["subsystem"];
 
+        // each bin in ptr to ptr array contains a pointer that points to an
+        // object of class SdtSocInstSubNode when we use square braces, those
+        // pointers will be dereferenced
         sdt_soc_node_obj.p_soc_inst_array[i] =
             new SdtSocInstSubNode(soc_subsystem_type);
 
+        // allocate cpu insts meta data to cpu_cluster_inst class objects
+        // p_soc_inst_array[i] contains pointers to cpu_cluster_inst class
+        // objects
+
         sdt_soc_node_obj.p_soc_inst_array[i]->object_has_been_populated = 1;
+        if (verbose)
+          cout
+              << "\n\nsdt_soc_node_obj.p_soc_inst_array[" << i
+              << "]->object_has_been_populated = "
+              << sdt_soc_node_obj.p_soc_inst_array[i]->object_has_been_populated
+              << endl;
+        // throw 50;
+        // exit(0);
+        if (verbose)
+          cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+               << "]->soc_subsystem = "
+               << sdt_soc_node_obj.p_soc_inst_array[i]->soc_subsystem << endl;
 
         if (soc_subsystem_type == "interrupt-controller") {
+          // cout << "sdt_soc_node_obj.p_soc_inst_array[" << i <<
+          // "]->soc_interrupt_controller_object.interrupt_controller_subnode_name
+          // = " <<
+          // sdt_soc_node_obj.p_soc_inst_array[i]->soc_interrupt_controller_object.interrupt_controller_subnode_name
+          // << endl; cout << "sdt_soc_node_obj.p_soc_inst_array[" << i <<
+          // "]->soc_interrupt_controller_object->interrupt_controller_subnode_name
+          // = " <<
+          // sdt_soc_node_obj.p_soc_inst_array[i]->soc_interrupt_controller_object->interrupt_controller_subnode_name.c_str()
+          // << endl;
+
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_interrupt_controller_object->object_has_been_populated = 1;
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_interrupt_controller_object->object_has_been_"
+                    "populated = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_interrupt_controller_object
+                        ->object_has_been_populated
+                 << endl;
+
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_interrupt_controller_object->interrupt_controller_"
+                    "subnode_name = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_interrupt_controller_object
+                        ->interrupt_controller_subnode_name
+                 << endl;
+          // without c_str() the else statements are being printed ..
+          // after I used "new" to initialize object, then without c_str(), data
+          // was properly being printed as well
 
           // reading subsystem int cont id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
@@ -137,6 +186,15 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_interrupt_controller_object
                 ->interrupt_controller_phandle =
                 data["root"]["soc"]["soc_subsystems"][i]["phandle"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_interrupt_controller_object->interrupt_"
+                      "controller_phandle = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_interrupt_controller_object
+                          ->interrupt_controller_phandle
+                   << endl;
 
           } else {
             if (verbose)
@@ -558,11 +616,32 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_uart_object->object_has_been_populated = 1;
 
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_uart_object->object_has_been_populated = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_uart_object->object_has_been_populated
+                 << endl;
+
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_uart_object->uart_subnode_name = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_uart_object->uart_subnode_name
+                 << endl;
+
           // reading subsystem uart id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_uart_object->uart_id =
                 data["root"]["soc"]["soc_subsystems"][i]["id"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_uart_object->uart_id = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_uart_object->uart_id
+                   << endl;
 
           } else {
             if (verbose)
@@ -581,6 +660,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_uart_object->uart_phandle =
                 data["root"]["soc"]["soc_subsystems"][i]["phandle"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_uart_object->uart_phandle = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_uart_object->uart_phandle
+                   << endl;
 
           } else {
             if (verbose)
@@ -849,6 +935,20 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_gpio_object->object_has_been_populated = 1;
 
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_gpio_object->object_has_been_populated = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_gpio_object->object_has_been_populated
+                 << endl;
+
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_gpio_object->gpio_subnode_name = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_gpio_object->gpio_subnode_name
+                 << endl;
+
           // reading subsystem gpio id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
@@ -906,6 +1006,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_gpio_object->gpio_compatible =
                 data["root"]["soc"]["soc_subsystems"][i]["compatible"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_compatible = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_compatible
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -924,6 +1031,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_gpio_object->gpio_interrupt_parent =
                 data["root"]["soc"]["soc_subsystems"][i]["interrupt-parent"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_interrupt_parent = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_interrupt_parent
+                   << endl;
 
           } else {
             if (verbose)
@@ -944,6 +1058,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_gpio_object->gpio_controller_key_value =
                 data["root"]["soc"]["soc_subsystems"][i]["gpio-controller"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_controller_key_value = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_controller_key_value
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -959,6 +1080,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
               (data["root"]["soc"]["soc_subsystems"][i]["reg"].is_string())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_gpio_object->gpio_reg =
                 data["root"]["soc"]["soc_subsystems"][i]["reg"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_reg = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_reg
+                   << endl;
 
           } else {
             if (verbose)
@@ -977,6 +1105,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_gpio_object->gpio_reg_size =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_size"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_reg_size = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_reg_size
+                   << endl;
 
           } else {
             if (verbose)
@@ -1021,6 +1156,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_gpio_object->gpio_status =
                 data["root"]["soc"]["soc_subsystems"][i]["status"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_status = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_status
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1063,6 +1205,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_gpio_object->gpio_ngpios =
                 data["root"]["soc"]["soc_subsystems"][i]["ngpios"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_ngpios = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_ngpios
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1085,6 +1234,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             int array_size =
                 sdt_soc_node_obj.p_soc_inst_array[i]
                     ->soc_gpio_object->gpio_interrupts_string_array_size;
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_gpio_object->gpio_interrupts_string_array_size = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_gpio_object->gpio_interrupts_string_array_size
+                   << endl;
 
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_gpio_object->gpio_interrupts_string_array =
@@ -1121,11 +1277,32 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_syscon_object->object_has_been_populated = 1;
 
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_syscon_object->object_has_been_populated = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_syscon_object->object_has_been_populated
+                 << endl;
+
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_syscon_object->syscon_subnode_name = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_syscon_object->syscon_subnode_name
+                 << endl;
+
           // reading subsystem syscon id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_syscon_object->syscon_id =
                 data["root"]["soc"]["soc_subsystems"][i]["id"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_id = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_id
+                   << endl;
 
           } else {
             if (verbose)
@@ -1171,6 +1348,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_syscon_object->syscon_compatible =
                 data["root"]["soc"]["soc_subsystems"][i]["compatible"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_compatible = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_compatible
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1187,6 +1371,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_syscon_object->syscon_reg =
                 data["root"]["soc"]["soc_subsystems"][i]["reg"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_reg = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_reg
+                   << endl;
 
           } else {
             if (verbose)
@@ -1205,6 +1396,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_syscon_object->syscon_reg_size =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_size"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_reg_size = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_reg_size
+                   << endl;
 
           } else {
             if (verbose)
@@ -1225,6 +1423,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_syscon_object->syscon_reg_address =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_address"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_reg_address = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_reg_address
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1243,6 +1448,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_syscon_object->syscon_status =
                 data["root"]["soc"]["soc_subsystems"][i]["status"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_syscon_object->syscon_status = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_syscon_object->syscon_status
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1257,11 +1469,32 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
           sdt_soc_node_obj.p_soc_inst_array[i]
               ->soc_timer_object->object_has_been_populated = 1;
 
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_timer_object->object_has_been_populated = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_timer_object->object_has_been_populated
+                 << endl;
+
+          if (verbose)
+            cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                 << "]->soc_timer_object->timer_subnode_name = "
+                 << sdt_soc_node_obj.p_soc_inst_array[i]
+                        ->soc_timer_object->timer_subnode_name
+                 << endl;
+
           // reading subsystem timer id
           if ((!data["root"]["soc"]["soc_subsystems"][i]["id"].empty()) &&
               (data["root"]["soc"]["soc_subsystems"][i]["id"].is_number())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_timer_object->timer_id =
                 data["root"]["soc"]["soc_subsystems"][i]["id"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_id = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_id
+                   << endl;
 
           } else {
             if (verbose)
@@ -1280,6 +1513,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_timer_object->timer_phandle =
                 data["root"]["soc"]["soc_subsystems"][i]["phandle"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_phandle = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_phandle
+                   << endl;
 
           } else {
             if (verbose)
@@ -1326,6 +1566,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_timer_object->timer_interrupts_extended =
                 data["root"]["soc"]["soc_subsystems"][i]["interrupts-extended"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_interrupts_extended = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_interrupts_extended
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1341,6 +1588,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
               (data["root"]["soc"]["soc_subsystems"][i]["reg"].is_string())) {
             sdt_soc_node_obj.p_soc_inst_array[i]->soc_timer_object->timer_reg =
                 data["root"]["soc"]["soc_subsystems"][i]["reg"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_reg = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_reg
+                   << endl;
 
           } else {
             if (verbose)
@@ -1359,6 +1613,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_timer_object->timer_reg_size =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_size"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_reg_size = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_reg_size
+                   << endl;
 
           } else {
             if (verbose)
@@ -1379,6 +1640,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
                 ->soc_timer_object->timer_reg_address =
                 data["root"]["soc"]["soc_subsystems"][i]["reg_address"];
 
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_reg_address = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_reg_address
+                   << endl;
+
           } else {
             if (verbose)
               printf(
@@ -1396,6 +1664,13 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
             sdt_soc_node_obj.p_soc_inst_array[i]
                 ->soc_timer_object->timer_status =
                 data["root"]["soc"]["soc_subsystems"][i]["status"];
+
+            if (verbose)
+              cout << "sdt_soc_node_obj.p_soc_inst_array[" << i
+                   << "]->soc_timer_object->timer_status = "
+                   << sdt_soc_node_obj.p_soc_inst_array[i]
+                          ->soc_timer_object->timer_status
+                   << endl;
 
           } else {
             if (verbose)
@@ -1440,7 +1715,7 @@ int get_soc_node(json data, SdtSocNode &sdt_soc_node_obj, int verbose) {
 }
 
 // void get_memory_node(json data, SdtMemoryNode &sdt_memory_node_obj) {
-int get_memory_node(json data, SdtMemoryNode &sdt_memory_node_obj,
+int get_memory_node(nlohmann::json data, SdtMemoryNode &sdt_memory_node_obj,
                     int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["memory"].empty())) {
     // this tells that the object has been populated
@@ -1670,7 +1945,7 @@ int get_memory_node(json data, SdtMemoryNode &sdt_memory_node_obj,
 
 // void get_cpus_cluster(json data, SdtCpusClusterNode
 // &sdt_cpus_cluster_node_obj) {
-int get_cpus_cluster_node(json data,
+int get_cpus_cluster_node(nlohmann::json data,
                           SdtCpusClusterNode &sdt_cpus_cluster_node_obj,
                           int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["cpus-cluster"].empty())) {
@@ -2011,7 +2286,7 @@ int get_cpus_cluster_node(json data,
 
 // void get_rootmetadata_node (json data, SdtRootMetaDataNode
 // &sdt_rootmetadata_node_obj) {
-int get_rootmetadata_node(json data,
+int get_rootmetadata_node(nlohmann::json data,
                           SdtRootMetaDataNode &sdt_rootmetadata_node_obj,
                           int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["sdt_root_metadata"].empty())) {
@@ -2081,7 +2356,8 @@ int get_rootmetadata_node(json data,
 }
 
 // void get_cpus (json data, SdtCpusNode &sdt_cpus_node_obj) {
-int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
+int get_cpus_node(nlohmann::json data, SdtCpusNode &sdt_cpus_node_obj,
+                  int verbose) {
   if ((!data["root"].empty()) && (!data["root"]["cpus"].empty())) {
     if (!data["root"]["cpus"]["#address-cells"].empty()) {
       sdt_cpus_node_obj.cpus_size_cell = data["root"]["cpus"]["#size-cells"];
@@ -2142,7 +2418,95 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
       // instantiate SdtCpuInstSubNode objects and allocated memory and return
       // their pointers using new
       for (int i = 0; i < sdt_cpus_node_obj.size_cpu_inst_array; i++) {
+        // each bin in ptr to ptr array contains a pointer that points to an
+        // object of class SdtCpuInstSubNode when we use square braces, those
+        // pointers will be dereferenced
         sdt_cpus_node_obj.p_cpu_inst_array[i] = new SdtCpuInstSubNode();
+
+        // testing by accessing cpu_inst class object in a printf statement
+
+        /*  BLOCK COMMENT!
+
+        printf("class object
+        sdt_cpus_node_obj.p_cpu_inst_array[%d].object_has_been_populated =
+        %d\n", \ i,
+        sdt_cpus_node_obj.p_cpu_inst_array[i]->object_has_been_populated);
+            // According to §7.6.1.5 ¶2 of the ISO C++20 standard, the
+        expression obj->foo is converted to (*obj).foo.
+                // hencing just  using dot inplace of arrow in printf statement
+        above gave an error
+
+        //
+        printf("data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"]
+        = %d\n", \
+        //  i, int(data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"]));
+            // error   what():  [json.exception.type_error.302] type must be
+        number, but is null
+
+
+        printf("data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"]
+        = %d\n", \ i, data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"]);
+
+        cout << "printing a value for a key that doesnt
+        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"key_doesnt_exist\"] = " <<
+        data["root"]["cpus"]["cpu_insts"][i]["key_doesnt_exist"] << endl;
+            // data["root"]["cpus"]["cpu_insts"][0]["key_doesnt_exist"] =
+        1187440752
+            // printing a value for a key that doesnt
+        data["root"]["cpus"]["cpu_insts"][%d]["key_doesnt_exist"] = null
+
+
+
+        // printf("with int() data[\"root\"][\"cpus\"][\"cpu_insts\"][0][\"id\"]
+        = %d\n", \
+        //  int(data["root"]["cpus"]["cpu_insts"][0]["id"]));
+            // gives CORRECT value: with int()
+        data["root"]["cpus"]["cpu_insts"][0]["id"] = 8
+
+        // printf("with int()
+        data[\"root\"][\"cpus\"][\"cpu_insts\"].at(0)[\"id\"] = %d\n", \
+        //  i, int(data["root"]["cpus"]["cpu_insts"].at(0)["id"]));
+            // even with int(), doesnot give correct value, so at(0) doesnt
+        work. with int() data["root"]["cpus"]["cpu_insts"].at(0)["id"] = 0
+
+        printf("with int()
+        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"clock-frequency\"] =
+        %d\n", \ i,
+        int(data["root"]["cpus"]["cpu_insts"][i]["clock-frequency"]));
+        // WORKS WITH int() function, otherwise it prints some other values
+
+        printf("with int()
+        data[\"root\"][\"cpus\"][\"cpu_insts\"][%d][\"i-cache-line-size\"] =
+        %d\n", \ i,
+        int(data["root"]["cpus"]["cpu_insts"][i]["i-cache-line-size"]));
+
+        json array_container = data["root"]["cpus"]["cpu_insts"][i];
+
+        string test_string = array_container["status"];
+
+        printf("test_string = %s \n", \
+         test_string.c_str());
+            // works
+
+        // printf("array_container[\"status\"] = %s \n", \
+        //  (array_container["status"]).c_str());
+
+        // printf("to_string (array_container[\"status\"] = %s \n", \
+        //  to_string(array_container["status"]));  // nope
+
+        // printf("string (array_container[\"status\"] = %s \n", \
+        //  string(array_container["status"])); // prints some other chars
+
+        // printf("string (array_container[\"status\"] = %c \n", \
+        //  array_container["status"]); // prints some other chars
+
+        printf("array_container[\"status\"] = %s \n", \
+         array_container["status"].get<std::string>().c_str());
+
+        */
+
+        // allocate cpu insts meta data to cpu_inst class objects
+        // p_cpu_inst_array[i] contains pointers to cpu_inst class objects
 
         sdt_cpus_node_obj.p_cpu_inst_array[i]->object_has_been_populated = 1;
         if (verbose)
@@ -2173,6 +2537,10 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
           sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id =
               data["root"]["cpus"]["cpu_insts"][i]["id"];
 
+          // printf("sdt_cpus_node_obj.p_cpu_inst_array[%d]->cpu_id = %d\n", i,
+          // sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id); cout << "displaying
+          // id using cout without int() function = " <<
+          // data["root"]["cpus"]["cpu_insts"][i]["id"] << endl;
           if (verbose)
             cout << "sdt_cpus_node_obj.p_cpu_inst_array[" << i << "]->cpu_id = "
                  << sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_id << endl;
@@ -2285,6 +2653,15 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
                  << "]->cpu_sub_device_type = "
                  << sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_sub_device_type
                  << endl;
+
+          // cout<< sdt_cpus_node_obj.p_cpu_inst_array[i]->cpu_sub_device_type
+          // << data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"] <<
+          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"].get<std::string>()
+          // <<
+          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"].get<std::string>().c_str()
+          // << endl; prints with commas "" for cout <<
+          // data["root"]["cpus"]["cpu_insts"][i]["sub_device_type"] .. so I
+          // will not use .c_str() conversion now
 
         } else {
           if (verbose)
@@ -2445,10 +2822,6 @@ int get_cpus_node(json data, SdtCpusNode &sdt_cpus_node_obj, int verbose) {
         // populating cpu insts interrupt controller object if it exists
         if (!data["root"]["cpus"]["cpu_insts"][i]["interrupt-controller"]
                  .empty()) {
-          // cpu_int_cont_data is object of class
-          // "SdtCpuInstSubNodeInterruptControllerData" initialized with each
-          // cpu insts object
-
           sdt_cpus_node_obj.p_cpu_inst_array[i]
               ->cpu_int_cont_data.cpu_inst_subnode_int_cont_node_name =
               "interrupt-controller";
@@ -2679,8 +3052,6 @@ string return_string_from_ofstream_file(ofstream &outfile, string file_path) {
 }
 
 // passing &output by ref cx we wana change it
-// string gen_rootmetadata_node(ofstream &outfile, SdtRootMetaDataNode
-// sdt_rootmetadata_node_obj, int verbose) {
 int gen_rootmetadata_node(ofstream &outfile,
                           SdtRootMetaDataNode sdt_rootmetadata_node_obj,
                           int verbose) {
@@ -2743,9 +3114,7 @@ int gen_cpus_cluster_node(ofstream &outfile,
     buffer << endl << node_tab << "/* Boot CPU configuration */\n" << endl;
 
     buffer << node_tab << sdt_cpus_cluster_node_obj.cpus_cluster_phandle << ": "
-           << sdt_cpus_cluster_node_obj.cpus_cluster_node_name \ 
-        << " {"
-           << endl;
+           << sdt_cpus_cluster_node_obj.cpus_cluster_node_name << " {" << endl;
 
     buffer << node_tab << node_tab << "#address-cells = "
            << sdt_cpus_cluster_node_obj.cpus_cluster_address_cell << ";"
@@ -3414,6 +3783,4 @@ int gen_cpus_node(ofstream &outfile, SdtCpusNode sdt_cpus_node_obj,
 
     return 0;
   }
-
-  // return buffer.str();
 }

@@ -46,18 +46,6 @@ using namespace std;
 // string subsubnode_tab = "\t\t\t";
 string sdt_file_path_global = "output_sdtgen_cpp_nlohman_lib_v5.sdt";
 int verbose_flag_global = 0;  // 1;
-// Verbose fuctionality has been removed for this project due to format checker
-// issues, so don't use it if it needs to be used please copy the code from
-// sdtgen_cpp_nlohman_lib_v6.cpp located in DesignQuery folder, it's verbose
-// functionality fully works
-
-// int SdtCpuInstSubNode::total_instances;
-
-// int SdtCpuClusterInstSubNode::total_instances;
-
-// int SdtMemoryInstSubNode::total_instances;
-
-// int SdtSocInstSubNode::total_instances;
 
 int SdtCpuInstSubNode::total_instances = 0;
 int SdtCpuClusterInstSubNode::total_instances = 0;
