@@ -38,6 +38,9 @@ struct CFGCommon_ARG {
   std::string projectName;
   std::string projectPath;
   std::string taskPath;
+  std::string analyzePath;
+  std::string synthesisPath;
+  std::string binPath;
   std::string compilerName;
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
@@ -51,30 +54,30 @@ void CFG_assertion(const char* file, const char* func, size_t line,
                    std::string msg);
 
 #define CFG_INTERNAL_ERROR(...) \
-  { CFG_assertion(__FILE__, __func__, __LINE__, CFG_print(__VA_ARGS__)); }
+  { CFG_assertion(__FILENAME__, __func__, __LINE__, CFG_print(__VA_ARGS__)); }
 
 #if defined(_MSC_VER)
 
-#define CFG_ASSERT(truth)                                \
-  if (!(truth)) {                                        \
-    CFG_assertion(__FILE__, __func__, __LINE__, #truth); \
+#define CFG_ASSERT(truth)                                    \
+  if (!(truth)) {                                            \
+    CFG_assertion(__FILENAME__, __func__, __LINE__, #truth); \
   }
 
-#define CFG_ASSERT_MSG(truth, ...)                                       \
-  if (!(truth)) {                                                        \
-    CFG_assertion(__FILE__, __func__, __LINE__, CFG_print(__VA_ARGS__)); \
+#define CFG_ASSERT_MSG(truth, ...)                                           \
+  if (!(truth)) {                                                            \
+    CFG_assertion(__FILENAME__, __func__, __LINE__, CFG_print(__VA_ARGS__)); \
   }
 
 #else
 
-#define CFG_ASSERT(truth)                                \
-  if (!(__builtin_expect(!!(truth), 0))) {               \
-    CFG_assertion(__FILE__, __func__, __LINE__, #truth); \
+#define CFG_ASSERT(truth)                                    \
+  if (!(__builtin_expect(!!(truth), 0))) {                   \
+    CFG_assertion(__FILENAME__, __func__, __LINE__, #truth); \
   }
 
-#define CFG_ASSERT_MSG(truth, ...)                                       \
-  if (!(__builtin_expect(!!(truth), 0))) {                               \
-    CFG_assertion(__FILE__, __func__, __LINE__, CFG_print(__VA_ARGS__)); \
+#define CFG_ASSERT_MSG(truth, ...)                                           \
+  if (!(__builtin_expect(!!(truth), 0))) {                                   \
+    CFG_assertion(__FILENAME__, __func__, __LINE__, CFG_print(__VA_ARGS__)); \
   }
 
 #endif
@@ -87,11 +90,11 @@ uint64_t CFG_nano_time_elapse(CFG_TIME begin);
 
 float CFG_time_elapse(CFG_TIME begin);
 
-void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err,
-                                   cfg_callback_execute_command exec);
+void CFG_set_callback_message_function(cfg_callback_post_msg_function msg,
+                                       cfg_callback_post_err_function err,
+                                       cfg_callback_execute_command exec);
 
-void unset_callback_message_function();
+void CFG_unset_callback_message_function();
 
 void CFG_post_msg(const std::string& message,
                   const std::string pre_msg = "INFO: ",
@@ -105,9 +108,9 @@ int CFG_execute_and_monitor_system_command(
     const std::string& command, const std::string logFile = std::string{},
     bool appendLog = false);
 
-std::string change_directory_to_linux_format(std::string path);
+std::string CFG_change_directory_to_linux_format(std::string path);
 
-std::string get_configuration_relative_path(std::string path);
+std::string CFG_get_configuration_relative_path(std::string path);
 
 void CFG_get_rid_trailing_whitespace(std::string& string,
                                      const std::vector<char> whitespaces = {
