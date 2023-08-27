@@ -116,7 +116,7 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   cfgcompiler->m_cmdarg.synthesisPath =
       compiler->FilePath(Compiler::Action::Synthesis).string();
   cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
-  cfgcompiler->m_cmdarg.binPath = compiler->GetBinPath().c_str();
+  cfgcompiler->m_cmdarg.binPath = compiler->GetBinPath().u8string();
 
   // Call Compile()
   if (batchMode) {
