@@ -161,7 +161,8 @@ std::string CFG_change_directory_to_linux_format(std::string path) {
 }
 
 std::string CFG_get_configuration_relative_path(std::string path) {
-  size_t index = path.find("/src/Configuration");
+  path = CFG_change_directory_to_linux_format(path);
+  size_t index = path.rfind("/src/Configuration");
   if (index != std::string::npos) {
     path.erase(0, index + 5);
   }
