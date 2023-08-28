@@ -138,6 +138,8 @@ class TaskManager : public QObject {
   /*!
    * \brief getDownstreamClearTasks
    * \return vector of clean tasks in reverse order. Vector includes \param t.
+   * If \param t is simulation clean, return only this task since simulation
+   * doesn't trigger clean for downstream.
    */
   QVector<Task *> getDownstreamCleanTasks(Task *t) const;
   void registerReportManager(uint type, AbstractReportManager *manager);
