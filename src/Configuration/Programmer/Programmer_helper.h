@@ -78,8 +78,11 @@ bool isOperationRequested(const std::string& operation,
 
 void printCableList(std::vector<Cable> cableList);
 void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
-void printDeviceStatus(const Cable& cable, const Device& device, const CfgStatus& cfgStatus);
-void printDevicesStatus(const Cable& cable, const std::vector<Device>& deviceList, const CfgStatus& cfgStatus);
+void printDeviceStatus(const Cable& cable, const Device& device,
+                       const CfgStatus& cfgStatus);
+void printDevicesStatus(const Cable& cable,
+                        const std::vector<Device>& deviceList,
+                        const CfgStatus& cfgStatus);
 
 // libusb related helper function
 int get_string_descriptor(struct libusb_device_handle* device,
