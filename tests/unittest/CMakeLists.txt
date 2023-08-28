@@ -64,6 +64,7 @@ set(CPP_LIST
   DeviceModeling/rs_parameter_test.cpp
   DeviceModeling/device_signal_test.cpp
   DeviceModeling/device_net_test.cpp
+  DeviceModeling/device_port_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h
