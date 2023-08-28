@@ -406,6 +406,12 @@ void TaskManager::resetTask(Task *t) {
 
 QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
   QVector<Task *> tasks;
+  for (auto task : m_taskQueue) {
+    if ((task->cleanTask() == t) && isSimulation(task)) {
+      tasks.append(t);
+      return tasks;
+    }
+  }
   for (auto it{m_taskQueue.rbegin()}; it != m_taskQueue.rend(); ++it) {
     if ((*it)->type() == TaskType::Clean) tasks.append(*it);
     if (*it == t) break;
