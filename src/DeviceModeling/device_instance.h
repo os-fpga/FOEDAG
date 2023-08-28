@@ -241,4 +241,3 @@ class device_block_instance : public device_block {
 // std::shared_ptr<spdlog::logger> logger_ =
 // spdlog::stdout_logger_mt("device_block_instance");
 
-// Add any additional member functions or data members here as needed.
