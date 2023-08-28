@@ -3033,3 +3033,7 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
   }
   return TCL_OK;
 }
+
+std::filesystem::path Compiler::GetBinPath() const {
+  return GlobalSession->Context()->BinaryPath();
+}

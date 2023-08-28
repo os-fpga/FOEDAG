@@ -48,7 +48,7 @@ void test_callback_bad_function(const CFGCommon_ARG* cmdarg) {
 }
 
 TEST(CFGCompiler, test_CallbackFunction) {
-  unset_callback_message_function();
+  CFG_unset_callback_message_function();
   // New registration - OK
   EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("good_testing", test_callback_good_function), true);
   EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("bad_testing", test_callback_bad_function), true);

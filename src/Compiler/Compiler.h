@@ -304,6 +304,8 @@ class Compiler {
     return m_configFileSearchDir;
   }
 
+  std::filesystem::path GetBinPath() const;
+
   std::string Name() const { return m_name; }
 
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
