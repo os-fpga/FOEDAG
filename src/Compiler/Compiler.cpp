@@ -171,7 +171,9 @@ void Compiler::ErrorMessage(const std::string& message, bool append,
       (*m_err) << "ERROR: " << prefix << message << std::endl;
     }
   }
-  if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  if (m_interp != nullptr)
+    if (append)
+      Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 void Compiler::CleanFiles(Action action) {
@@ -1087,10 +1089,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
-#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
-#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1457,10 +1457,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
-#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
-#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -3034,4 +3032,8 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     return TCL_ERROR;
   }
   return TCL_OK;
+}
+
+std::filesystem::path Compiler::GetBinPath() const {
+  return GlobalSession->Context()->BinaryPath();
 }

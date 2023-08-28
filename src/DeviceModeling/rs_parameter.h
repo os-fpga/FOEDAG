@@ -11,7 +11,10 @@
 
 #pragma once
 
+#include <iostream>
+#include <memory>
 #include <optional>
+#include <sstream>
 
 #include "rs_parameter_type.h"
 
@@ -181,8 +184,7 @@ class Parameter {
   std::string to_string() const {
     std::ostringstream oss;
     std::string tp;
-    std::string tn = std::string(typeid(T).name());
-    tp = (tn == "i") ? "int" : ((tn == "d") ? "double" : "string");
+    tp = TypeNameMapper::GetTypeName(T());
     oss << "Parameter " << name_ << ": " << value_ << " of type " << tp;
     if (has_address()) {
       oss << " at address " << get_address();

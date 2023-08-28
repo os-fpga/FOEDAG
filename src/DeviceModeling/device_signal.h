@@ -35,6 +35,14 @@ class device_signal : public std::enable_shared_from_this<device_signal> {
 
   device_signal(const std::string &name, unsigned size = 0) : name_(name) {}
 
+  // Factory function to resolve the weak ptr issue
+  static std::shared_ptr<device_signal> create(const std::string &name,
+                                               unsigned size = 0) {
+    auto signal = std::make_shared<device_signal>(name, size);
+    signal->initialize_vec(size);
+    return signal;
+  }
+
   device_signal(const device_signal &other)
       : std::enable_shared_from_this<device_signal>() {
     name_ = other.get_name();

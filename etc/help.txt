@@ -118,6 +118,7 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 -----------------
 --- Synthesis ---
 -----------------
+   parser_type <type>         : Parser <type> in: verific, yosys, surelog, ghdl
    synth_options <option list>: Yosys Options
    analyze ?clean?            : Analyzes the RTL design, generates top-level, pin and hierarchy information
      clean                    : Deletes files generated from this task
@@ -174,7 +175,14 @@ Tcl commands (Available in GUI or Batch console or Batch script):
 ------------------------------
 --- Static Timing Analysis ---
 ------------------------------
-   sta ?clean?                : Statistical Timing Analysis
+   sta ?clean? ?opensta?      : Statistical Timing Analysis
+     clean                    : Deletes files generated from this task
+     opensta                  : Use OpenSTA tool for timing analysis
+     
+------------------------------
+--- Power Analysis -----------
+------------------------------
+   power ?clean?              : Statistical Power Analysis
      clean                    : Deletes files generated from this task
 
 -----------------

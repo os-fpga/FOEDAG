@@ -38,6 +38,9 @@ struct CFGCommon_ARG {
   std::string projectName;
   std::string projectPath;
   std::string taskPath;
+  std::string analyzePath;
+  std::string synthesisPath;
+  std::string binPath;
   std::string compilerName;
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
@@ -87,11 +90,11 @@ uint64_t CFG_nano_time_elapse(CFG_TIME begin);
 
 float CFG_time_elapse(CFG_TIME begin);
 
-void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err,
-                                   cfg_callback_execute_command exec);
+void CFG_set_callback_message_function(cfg_callback_post_msg_function msg,
+                                       cfg_callback_post_err_function err,
+                                       cfg_callback_execute_command exec);
 
-void unset_callback_message_function();
+void CFG_unset_callback_message_function();
 
 void CFG_post_msg(const std::string& message,
                   const std::string pre_msg = "INFO: ",
@@ -105,9 +108,9 @@ int CFG_execute_and_monitor_system_command(
     const std::string& command, const std::string logFile = std::string{},
     bool appendLog = false);
 
-std::string change_directory_to_linux_format(std::string path);
+std::string CFG_change_directory_to_linux_format(std::string path);
 
-std::string get_configuration_relative_path(std::string path);
+std::string CFG_get_configuration_relative_path(std::string path);
 
 void CFG_get_rid_trailing_whitespace(std::string& string,
                                      const std::vector<char> whitespaces = {
@@ -129,6 +132,8 @@ uint64_t CFG_convert_string_to_u64(std::string string, bool no_empty = false,
                                    uint64_t* init_value = NULL,
                                    bool support_shift = false);
 
+std::string CFG_convert_number_to_unit_string(uint64_t number);
+
 int CFG_find_string_in_vector(const std::vector<std::string>& vector,
                               const std::string element);
 
@@ -144,12 +149,14 @@ int CFG_compiler_execute_cmd(const std::string& command,
                              const std::string logFile = std::string{},
                              bool appendLog = false);
 
-int CFG_execute_cmd(const std::string& cmd, std::string& output);
+int CFG_execute_cmd(const std::string& cmd, std::string& output,
+                    std::ostream* outStream, std::atomic<bool>& stopCommand);
 
 int CFG_execute_cmd_with_callback(
     const std::string& cmd, std::string& output, std::ostream* outstream,
     std::regex patternToMatch, std::atomic<bool>& stopCommand,
-    std::function<void(const std::string&)> callback = nullptr);
+    std::function<void(const std::string&)> progressCallback = nullptr,
+    std::function<void(const std::string&)> generalCallback = nullptr);
 
 std::filesystem::path CFG_find_file(const std::filesystem::path& filePath,
                                     const std::filesystem::path& defaultDir);

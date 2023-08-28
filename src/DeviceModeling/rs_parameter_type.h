@@ -12,7 +12,23 @@
 #pragma once
 
 #include <optional>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
+class TypeNameMapper {
+ public:
+  template <typename T>
+  static std::string GetTypeName() {
+    return "Unknown";
+  }
+
+  // Not a specialization, but a function that's always there
+  static std::string GetTypeName(int) { return "int"; }
+
+  static std::string GetTypeName(double) { return "double"; }
+
+  static std::string GetTypeName(std::string) { return "string"; }
+};
 
 /**
  * @class ParameterType

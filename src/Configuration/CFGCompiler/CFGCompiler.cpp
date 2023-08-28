@@ -54,8 +54,8 @@ static bool programmer_flow(CFGCompiler* cfgcompiler, int argc,
 
 CFGCompiler::CFGCompiler(Compiler* compiler) : m_compiler(compiler) {
   m_CFGCompiler = this;
-  set_callback_message_function(Message, ErrorMessage,
-                                ExecuteAndMonitorSystemCommand);
+  CFG_set_callback_message_function(Message, ErrorMessage,
+                                    ExecuteAndMonitorSystemCommand);
 }
 
 Compiler* CFGCompiler::GetCompiler() const { return m_compiler; }
@@ -111,7 +111,12 @@ int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   cfgcompiler->m_cmdarg.projectPath = compiler->ProjManager()->projectPath();
   cfgcompiler->m_cmdarg.taskPath =
       compiler->FilePath(Compiler::Action::Bitstream).string();
+  cfgcompiler->m_cmdarg.analyzePath =
+      compiler->FilePath(Compiler::Action::Analyze).string();
+  cfgcompiler->m_cmdarg.synthesisPath =
+      compiler->FilePath(Compiler::Action::Synthesis).string();
   cfgcompiler->m_cmdarg.searchPath = compiler->GetConfigFileSearchDirectory();
+  cfgcompiler->m_cmdarg.binPath = compiler->GetBinPath().string();
 
   // Call Compile()
   if (batchMode) {
@@ -158,7 +163,8 @@ int CFGCompiler::ExecuteAndMonitorSystemCommand(const std::string& command,
         command, logFile, appendLog);
   } else {
     std::string output = "";
-    return CFG_execute_cmd(command, output);
+    std::atomic<bool> stop = false;
+    return CFG_execute_cmd(command, output, nullptr, stop);
   }
 }
 

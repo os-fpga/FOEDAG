@@ -14,51 +14,66 @@ if(MSVC)
   # string_view implementation based on it's value. Microsoft's solution is to
   # provide additional flags to make the value correct. More info can be found here -
   #
-  #   https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=msvc-160
-  #   https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+  # https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus?view=msvc-160
+  # https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
   target_compile_options(gmock PRIVATE /Zc:__cplusplus)
   target_compile_options(gmock_main PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
+  add_compile_options(/bigobj)
 endif()
 
-set (CPP_LIST
-    Tcl/TclInterpreter_test.cpp
-    Command/Command_test.cpp
-    Utils/StringUtils_test.cpp
-    NewProject/ProjectManager_test.cpp
-    PinAssignment/BufferedComboBox_test.cpp
-#    PinAssignment/PinAssignmentCreator_test.cpp // TODO @volodymyrk RG-181
-#    PinAssignment/PinsBaseModel_test.cpp // TODO @volodymyrk RG-181
-    PinAssignment/PortsLoader_test.cpp
-#    PinAssignment/PackagePinsLoader_test.cpp // TODO @volodymyrk RG-181
-    Settings/Settings_test.cpp
-    IPGenerator/IPGenerator_test.cpp
-    NewProject/source_grid_test.cpp
-    Utils/sequential_map_test.cpp
-    Utils/QtUtils_test.cpp
-    PinAssignment/TestLoader.cpp
-    PinAssignment/TestPortsLoader.cpp
-    Compiler/CompilerDefines_test.cpp
-    Compiler/Compiler_test.cpp
-    PinAssignment/PortsModel_test.cpp
-    PinAssignment/PinAssignmentBaseView_test.cpp
-    Simulation/Simulation_test.cpp
-    Utils/FileUtils_test.cpp
-    CFGCommon/CFGCommon_test.cpp
-    CFGCommon/CFGArg_test.cpp
-    CFGCompiler/CFGCompiler_test.cpp
-    MainWindow/PerfomanceTracker_test.cpp
-    MainWindow/ProjectFileComponent_test.cpp
+if(MINGW)
+  add_compile_options(-Wa,-mbig-obj)
+endif()
+
+set(CPP_LIST
+  Tcl/TclInterpreter_test.cpp
+  Command/Command_test.cpp
+  Utils/StringUtils_test.cpp
+  NewProject/ProjectManager_test.cpp
+  PinAssignment/BufferedComboBox_test.cpp
+
+  # PinAssignment/PinAssignmentCreator_test.cpp // TODO @volodymyrk RG-181
+  # PinAssignment/PinsBaseModel_test.cpp // TODO @volodymyrk RG-181
+  PinAssignment/PortsLoader_test.cpp
+
+  # PinAssignment/PackagePinsLoader_test.cpp // TODO @volodymyrk RG-181
+  Settings/Settings_test.cpp
+  IPGenerator/IPGenerator_test.cpp
+  NewProject/source_grid_test.cpp
+  Utils/sequential_map_test.cpp
+  Utils/QtUtils_test.cpp
+  PinAssignment/TestLoader.cpp
+  PinAssignment/TestPortsLoader.cpp
+  Compiler/CompilerDefines_test.cpp
+  Compiler/Compiler_test.cpp
+  PinAssignment/PortsModel_test.cpp
+  PinAssignment/PinAssignmentBaseView_test.cpp
+  Simulation/Simulation_test.cpp
+  Utils/FileUtils_test.cpp
+  CFGCommon/CFGCommon_test.cpp
+  CFGCommon/CFGArg_test.cpp
+  CFGCompiler/CFGCompiler_test.cpp
+  CFGProgrammer/CFGProgrammer_test.cpp
+  MainWindow/PerfomanceTracker_test.cpp
+  MainWindow/ProjectFileComponent_test.cpp
+  DeviceModeling/rs_expression_test.cpp
+  DeviceModeling/rs_expression_evaluator_test.cpp
+  DeviceModeling/rs_parameter_type_test.cpp
+  DeviceModeling/rs_parameter_test.cpp
+  DeviceModeling/device_signal_test.cpp
+  DeviceModeling/device_net_test.cpp
 )
-set (H_LIST
-    PinAssignment/TestLoader.h
-    PinAssignment/TestPortsLoader.h
+set(H_LIST
+  PinAssignment/TestLoader.h
+  PinAssignment/TestPortsLoader.h
 )
 
 add_executable(unittest unittest_main.cpp ${CPP_LIST} ${H_LIST} resources.qrc)
 
-include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
+include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/..
+  ${CMAKE_CURRENT_BINARY_DIR}/../../include/ ${CMAKE_CURRENT_BINARY_DIR}/../../src/Configuration/CFGCommon)
 
 target_link_libraries(unittest PRIVATE
   gtest
@@ -68,6 +83,7 @@ target_link_libraries(unittest PRIVATE
   newproject
   foedag
   foedagcore
-  cfgcommon)
+  cfgcommon
+  programmer)
 
 add_test(NAME unittest COMMAND unittest)

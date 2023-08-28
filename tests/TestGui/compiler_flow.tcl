@@ -29,5 +29,5 @@ sta
 power
 bitstream
 bitstream ignore_dont_care_bits wl_decremental_order
-programmer fpga_config bitstream.bit
+programmer fpga_config bitstream.bit -c cable1
 exit

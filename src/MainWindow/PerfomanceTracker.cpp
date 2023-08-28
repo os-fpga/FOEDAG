@@ -79,12 +79,13 @@ QString PerfomanceTracker::ToString(double val) {
 }
 
 QVector<uint> PerfomanceTracker::taskIds() const {
-  static const auto taskIds = {
-      ANALYSIS,  SIMULATE_RTL, SYNTHESIS,    SIMULATE_GATE,   PACKING,
-      PLACEMENT, ROUTING,      SIMULATE_PNR, TIMING_SIGN_OFF, BITSTREAM};
+  static const auto taskIds = {ANALYSIS,      SIMULATE_RTL, SYNTHESIS,
+                               SIMULATE_GATE, PACKING,      PLACEMENT,
+                               ROUTING,       SIMULATE_PNR, TIMING_SIGN_OFF,
+                               POWER,         BITSTREAM};
   static const auto taskIdsPostSynth = {
       SIMULATE_GATE, PACKING,         PLACEMENT, ROUTING,
-      SIMULATE_PNR,  TIMING_SIGN_OFF, BITSTREAM};
+      SIMULATE_PNR,  TIMING_SIGN_OFF, POWER,     BITSTREAM};
   return isRtl() ? taskIds : taskIdsPostSynth;
 }
 
