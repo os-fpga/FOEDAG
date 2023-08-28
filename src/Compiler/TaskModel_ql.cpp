@@ -117,10 +117,10 @@ QVariant TaskModel::data(const QModelIndex &index, int role) const {
       }
     }
   } else if (role == RowVisibilityRole) {
-        if (auto p = task->parentTask()) {
+    if (auto p = task->parentTask()) {
       uint id = m_taskManager->taskId(p);
       if (id != TaskManager::invalid_id) {
-return m_expanded.value(createIndex(ToRowIndex(id), index.column()),
+        return m_expanded.value(createIndex(ToRowIndex(id), index.column()),
                                 true);
       }
     }
