@@ -264,6 +264,8 @@ class Compiler {
   virtual int ExecuteAndMonitorSystemCommand(
       const std::string& command, const std::string logFile = std::string{},
       bool appendLog = false);
+  // TODO: to think how to unite ExecuteCommand and ExecuteAndMonitorSystemCommand, without changing API much.
+  // maybe we could pass some buffercontext structure with instruction, where we want keep cmd output (file or buffer or stream output) for further processing
   int ExecuteCommand(const std::string& command, std::string& stdOut, std::string& stdErr);
 
   std::string ReplaceAll(std::string_view str, std::string_view from,
