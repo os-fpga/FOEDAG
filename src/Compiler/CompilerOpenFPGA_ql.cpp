@@ -7137,25 +7137,25 @@ std::map<std::string, std::optional<int>> CompilerOpenFPGA_ql::GetResourceUsageI
   }
 
   archPropCmd += " --show_resource_usage on";
-  std::string tmpLogFilePath("/tmp/tmpArchPropVpr"+device);
-  ExecuteAndMonitorSystemCommand(archPropCmd, tmpLogFilePath);
 
-  // TODO: think how to deal with buffer, not using the file
-  std::ifstream ifs(tmpLogFilePath);
-  std::string content( (std::istreambuf_iterator<char>(ifs) ),
-                       (std::istreambuf_iterator<char>()    ) );
+  std::string stdOutBuf;
+  std::string stdErrBuf;
 
-  if (std::regex_search(content, match, clbLogPattern)) {
-    result["clb"] = std::atoi(match[1].str().c_str());
-  }
-  if (std::regex_search(content, match, dspLogPattern)) {
-    result["dsp"] = std::atoi(match[1].str().c_str());
-  }
-  if (std::regex_search(content, match, bramLogPattern)) {
-    result["bram"] = std::atoi(match[1].str().c_str());
-  }
+  int exitCode = ExecuteCommand(archPropCmd, stdOutBuf, stdErrBuf);
 
-  std::remove(tmpLogFilePath.c_str());
+  if (exitCode == 0) {
+    if (std::regex_search(stdOutBuf, match, clbLogPattern)) {
+      result["clb"] = std::atoi(match[1].str().c_str());
+    }
+    if (std::regex_search(stdOutBuf, match, dspLogPattern)) {
+      result["dsp"] = std::atoi(match[1].str().c_str());
+    }
+    if (std::regex_search(stdOutBuf, match, bramLogPattern)) {
+      result["bram"] = std::atoi(match[1].str().c_str());
+    }
+  } else {
+    std::cerr << "unable get resource usage for " << device << " using vpr" << std::endl;
+  }
 
   return result;
 }

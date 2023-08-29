@@ -2626,6 +2626,65 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   return (status == QProcess::NormalExit) ? exitCode : -1;
 }
 
+int Compiler::ExecuteCommand(const std::string& command, std::string& stdOut, std::string& stdErr) {
+  auto start = Time::now();
+  PERF_LOG("Command: " + command);
+  (*m_out) << "Command: " << command << std::endl;
+  auto path = std::filesystem::current_path();                  // getting path
+  std::filesystem::current_path(m_projManager->projectPath());  // setting path
+  // new QProcess must be created here to avoid issues related to creating
+  // QObjects in different threads
+  QProcess* process = new QProcess;
+  QStringList env = QProcess::systemEnvironment();
+  if (!m_environmentVariableMap.empty()) {
+    for (std::map<std::string, std::string>::iterator itr =
+         m_environmentVariableMap.begin();
+         itr != m_environmentVariableMap.end(); itr++) {
+      env << strdup(((*itr).first + "=" + (*itr).second).c_str());
+    }
+  }
+  process->setEnvironment(env);
+  std::ofstream ofs;
+
+  QObject::connect(process, &QProcess::readyReadStandardOutput, [process, &stdOut]() {
+    stdOut = process->readAllStandardOutput().toStdString();
+  });
+  QObject::connect(process, &QProcess::readyReadStandardError, [process, &stdErr]() {
+    stdErr = process->readAllStandardError().toStdString();
+  });
+
+  ProcessUtils utils;
+  QObject::connect(process, &QProcess::started,
+                   [&utils, process]() { utils.Start(process->processId()); });
+
+  QString cmd{command.c_str()};
+  QStringList args = cmd.split(" ");
+  QString program = args.first();
+  args.pop_front();  // remove program
+  process->start(program, args);
+  std::filesystem::current_path(path);
+  process->waitForFinished(-1);
+  utils.Stop();
+  // DEBUG: (*m_out) << "Changed path to: " << (path).string() << std::endl;
+  uint max_utiliation{utils.Utilization()};
+  auto status = process->exitStatus();
+  auto exitCode = process->exitCode();
+  delete process;
+  process = nullptr;
+
+  auto end = Time::now();
+  auto fs = end - start;
+  ms d = std::chrono::duration_cast<ms>(fs);
+  std::stringstream stream;
+  stream << "Duration: " << d.count() << " ms. Max utilization: ";
+  if (max_utiliation <= 1024)
+    stream << max_utiliation << " kiB";
+  else
+    stream << max_utiliation / 1024 << " MB";
+  PERF_LOG(stream.str());
+  return (status == QProcess::NormalExit) ? exitCode : -1;
+}
+
 std::string Compiler::ReplaceAll(std::string_view str, std::string_view from,
                                  std::string_view to) {
   size_t start_pos = 0;
