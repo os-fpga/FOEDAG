@@ -171,10 +171,13 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices);
  * configuration status.
  * @param status A reference to a CfgStatus object to store the configuration
  * status in.
+ * @param statusOutputPrint A reference to a string to store the output of the
+ * status command.
  * @return 0 if the configuration status was retrieved successfully, or a
  * non-zero error code otherwise.
  */
-int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status);
+int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status,
+                  std::string& statusOutputPrint);
 
 /**
  * Programs the specified FPGA with the given bitfile using the specified cable

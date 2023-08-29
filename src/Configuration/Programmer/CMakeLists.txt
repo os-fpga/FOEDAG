@@ -58,6 +58,7 @@ add_library(
   ${subsystem} ${CFG_LIB_TYPE}
   Programmer.cpp
   Programmer_helper.cpp
+  HwDevices.cpp
 )
 target_link_libraries(${subsystem} PRIVATE ${LIBUSB_LIBRARIES} foedagutils)
 ###################
@@ -69,6 +70,7 @@ add_executable(
   ${foedag_bin}
   Programmer_cmd.cpp
   Programmer_helper.cpp
+  HwDevices.cpp
 )
 target_link_libraries(${foedag_bin} ${subsystem})
 

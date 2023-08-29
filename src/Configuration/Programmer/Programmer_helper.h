@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 #include "CFGCommon/CFGArg_auto.h"
 #include "CFGCommon/CFGCommon.h"
+#include "HwDevices.h"
 
 struct libusb_device_handle;
 
@@ -78,11 +79,23 @@ bool isOperationRequested(const std::string& operation,
 
 void printCableList(std::vector<Cable> cableList);
 void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
-void printDeviceStatus(const Cable& cable, const Device& device,
-                       const CfgStatus& cfgStatus);
-void printDevicesStatus(const Cable& cable,
-                        const std::vector<Device>& deviceList,
-                        const CfgStatus& cfgStatus);
+
+std::string removeInfoAndNewline(const std::string& input);
+
+void InitializeCableMap(std::vector<Cable>& cables,
+                        std::map<std::string, Cable>& cableMapObj);
+void InitializeHwDb(
+    std::vector<HwDevices> cableDeviceDb,
+    std::map<std::string, Cable>& cableMap,
+    std::function<void(const Cable&, const std::vector<Device>&)>
+        printDeviceList = nullptr);
+
+bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
+                      const Cable& cable, std::string deviceName,
+                      Device& device);
+
+bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
+                      const Cable& cable, int deviceIndex, Device& device);
 
 // libusb related helper function
 int get_string_descriptor(struct libusb_device_handle* device,

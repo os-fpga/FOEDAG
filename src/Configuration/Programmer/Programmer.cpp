@@ -29,62 +29,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Programmer_helper.h"
 #include "libusb.h"
 
-// temporary to suppress warning
-// <TODO> remove this when implementing programmer tcl command
-#define UNUSED(variable) ((void)variable)
 namespace FOEDAG {
 
 // openOCDPath used by library
 static std::string libOpenOcdExecPath;
 static std::vector<TapInfo> foundTap;
 static std::map<std::string, Cable> cableMap;
-static std::map<std::string, Device> deviceMap;
 static bool isCableMapInitialized = false;
-
-// static bool isDeviceMapInitialized = false;
-
-class HwDevices {
- public:
-  HwDevices(const Cable& cable) : cable_(cable) {}
-
-  const Cable& getCable() const { return cable_; }
-  const std::vector<Device>& getDevices() const { return devices_; }
-
-  void addDevices(const std::vector<Device> sourceDevices) {
-    devices_.insert(devices_.end(), sourceDevices.begin(), sourceDevices.end());
-  }
-  void addDevice(const Device& device) { devices_.push_back(device); }
-  void ClearDevice() { devices_.clear(); }
-  size_t GetDeviceCount() { return devices_.size(); }
-  bool FindDevice(int index, Device& device) const {
-    bool found = false;
-    for (const auto& d : devices_) {
-      if (d.index == index) {
-        device = d;
-        found = true;
-        break;
-      }
-    }
-    return found;
-  }
-
-  bool FindDevice(std::string name, Device& device) const {
-    bool found = false;
-    for (const auto& d : devices_) {
-      if (d.name == name) {
-        device = d;
-        found = true;
-      }
-    }
-    return found;
-  }
-
- private:
-  Cable cable_;
-  std::vector<Device> devices_;
-};
-
-static std::vector<HwDevices> CableDeviceDb;
+static bool isHwDbInitialized = false;
+static std::vector<HwDevices> cableDeviceDb;
 
 std::map<int, std::string> ErrorMessages = {
     {NoError, "Success"},
@@ -100,49 +53,6 @@ std::map<int, std::string> ErrorMessages = {
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
     {InvalidFlashSize, "Invalid flash size"},
 };
-
-/// helper function ///
-void InitializeCableMap(std::vector<Cable>& cables,
-                        std::map<std::string, Cable>& cableMapObj) {
-  int status = GetAvailableCables(cables);
-  if (status != ProgrammerErrorCode::NoError) {
-    CFG_POST_ERR("Failed to get available cables. Error code: %d", status);
-    return;
-  }
-  if (cables.size() == 0) {
-    CFG_POST_MSG("No cable found.");
-    return;
-  }
-  cableMapObj.clear();
-  for (size_t i = 0; i < cables.size(); i++) {
-    cableMapObj[cables[i].name] = cables[i];
-    cableMapObj[std::to_string(cables[i].index)] = cables[i];
-  }
-}
-
-bool findDeviceFromDb(const Cable& cable, std::string deviceName,
-                      Device& device) {
-  for (const auto& HwDevices : CableDeviceDb) {
-    if (HwDevices.getCable().name == cable.name) {
-      if (HwDevices.FindDevice(deviceName, device)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool findDeviceFromDb(const Cable& cable, int deviceIndex, Device& device) {
-  for (const auto& HwDevices : CableDeviceDb) {
-    if (HwDevices.getCable().name == cable.name) {
-      if (HwDevices.FindDevice(deviceIndex, device)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-/// end list of helper function ///
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
@@ -217,13 +127,11 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       std::vector<Device> devices;
       std::vector<Cable> cables;
       if (list_device->m_args.size() == 1) {
-        // case for list_device with argument
         std::string cableInput = list_device->m_args[0];
         if (!isCableMapInitialized) {
           InitializeCableMap(cables, cableMap);
           isCableMapInitialized = true;
         }
-
         auto cableIterator = cableMap.find(cableInput);
         if (cableIterator == cableMap.end()) {
           CFG_POST_ERR("Cable not found: %s", list_device->m_args[0].c_str());
@@ -237,20 +145,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         }
         printDeviceList(cable, devices);
       } else {
-        // case for list_device with no argument
-        InitializeCableMap(cables, cableMap);
-        CableDeviceDb.clear();
-        for (const Cable& cable : cables) {
-          status = ListDevices(cable, devices);
-          if (status != ProgrammerErrorCode::NoError) {
-            CFG_POST_ERR("Failed to list devices. Error code: %d", status);
-            return;
-          }
-          HwDevices cableStore(cable);
-          cableStore.addDevices(devices);
-          CableDeviceDb.push_back(cableStore);
-          printDeviceList(cable, devices);
-        }
+        InitializeHwDb(cableDeviceDb, cableMap, printDeviceList);
+        isHwDbInitialized = true;
       }
     } else if (subCmd == "list_cable") {
       std::vector<Cable> cables;
@@ -258,66 +154,20 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       isCableMapInitialized = true;
       printCableList(cables);
     } else if (subCmd == "fpga_status") {
-      ////////////////////////////////////////////
-      ///////// I am here FOCUS   /////////////////
-      ////////////////////////////////////////////
-      ///////////////////////////////////////////
       auto fpga_status_arg =
           static_cast<const CFGArg_PROGRAMMER_FPGA_STATUS*>(arg->get_sub_arg());
       std::string cableInput = fpga_status_arg->cable;
       uint64_t deviceIndex = fpga_status_arg->index;
-      // check if deviceIndex is valid, it must not be a zero
       if (deviceIndex == 0) {
         CFG_POST_ERR("Invalid device index: %d", deviceIndex);
         return;
       }
-      if (cableInput == "1" && deviceIndex == 1) {
-        for (const auto& HwDevices : CableDeviceDb) {
-          const auto& cable = HwDevices.getCable();
-          for (const auto& device : HwDevices.getDevices()) {
-            CfgStatus cfgStatus;
-            int status = GetFpgaStatus(cable, device, cfgStatus);
-            if (status != ProgrammerErrorCode::NoError) {
-              CFG_POST_ERR(
-                  "Failed to get available devices status. Error code: %d",
-                  status);
-              return;
-            }
-            CFG_POST_MSG("-------- cfgDone : %d, cfgError : %d",
-                         cfgStatus.cfgDone, cfgStatus.cfgError);
-          }
-        }
-      } else {
-        auto cableIterator = cableMap.find(cableInput);
-        if (cableIterator == cableMap.end()) {
-          CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
-          return;
-        }
-        Cable cable = cableIterator->second;
-        Device device;
-        if (findDeviceFromDb(cable, deviceIndex, device)) {
-          CfgStatus cfgStatus;
-          status = GetFpgaStatus(cable, device, cfgStatus);
-          if (status != ProgrammerErrorCode::NoError) {
-            CFG_POST_ERR(
-                "Failed to get available devices status. Error code: %d",
-                status);
-            return;
-          }
-          CFG_POST_MSG("cfgDone : %d, cfgError : %d", cfgStatus.cfgDone,
-                       cfgStatus.cfgError);
-        } else {
-          CFG_POST_ERR("Device not found: %d", deviceIndex);
-          return;
-        }
+      if (!isHwDbInitialized) {
+        InitializeHwDb(cableDeviceDb, cableMap);
+        isHwDbInitialized = true;
       }
-    } else if (subCmd == "fpga_config") {
-      auto fpga_config_arg =
-          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
-      std::string bitstreamFile = fpga_config_arg->m_args[0];
-      std::string cableInput = fpga_config_arg->cable;
-      uint64_t deviceIndex = fpga_config_arg->index;
-      // check if database is initialized and cableMap is initialized
+      CfgStatus cfgStatus;
+      std::string statusPrintOut;
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
@@ -325,14 +175,48 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       }
       Cable cable = cableIterator->second;
       Device device;
-      if (!findDeviceFromDb(cable, deviceIndex, device)) {
+      if (findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
+        status = GetFpgaStatus(cable, device, cfgStatus, statusPrintOut);
+        if (status != ProgrammerErrorCode::NoError) {
+          CFG_POST_ERR("Failed to get available devices status. Error code: %d",
+                       status);
+          return;
+        }
+        CFG_POST_MSG("\n%s", statusPrintOut.c_str());
+      } else {
+        CFG_POST_ERR("Device not found: %d", deviceIndex);
+        return;
+      }
+    } else if (subCmd == "fpga_config") {
+      auto fpga_config_arg =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      std::string bitstreamFile = fpga_config_arg->m_args[0];
+      std::string cableInput = fpga_config_arg->cable;
+      uint64_t deviceIndex = fpga_config_arg->index;
+      if (!isHwDbInitialized) {
+        InitializeHwDb(cableDeviceDb, cableMap);
+        isHwDbInitialized = true;
+      }
+      auto cableIterator = cableMap.find(cableInput);
+      if (cableIterator == cableMap.end()) {
+        CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        return;
+      }
+      Cable cable = cableIterator->second;
+      Device device;
+      if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
         return;
       }
       std::atomic<bool> stop = false;
       status = ProgramFpga(
           cable, device, bitstreamFile, stop, nullptr,
-          [](std::string msg) { CFG_POST_MSG("%s", msg.c_str()); }, nullptr);
+          [](std::string msg) {
+            std::string formatted;
+            formatted = removeInfoAndNewline(msg);
+            CFG_POST_MSG("%s", formatted.c_str());
+          },
+          nullptr);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
         return;
@@ -343,7 +227,10 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       std::string bitstreamFile = flash_arg->m_args[0];
       std::string cableInput = flash_arg->cable;
       uint64_t deviceIndex = flash_arg->index;
-      // check if database is initialized and cableMap is initialized
+      if (!isHwDbInitialized) {
+        InitializeHwDb(cableDeviceDb, cableMap);
+        isHwDbInitialized = true;
+      }
       auto cableIterator = cableMap.find(cableInput);
       if (cableIterator == cableMap.end()) {
         CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
@@ -351,14 +238,19 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       }
       Cable cable = cableIterator->second;
       Device device;
-      if (!findDeviceFromDb(cable, deviceIndex, device)) {
+      if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
         return;
       }
       std::atomic<bool> stop = false;
       status = ProgramFlash(
           cable, device, bitstreamFile, stop, ProgramFlashOperation::Program,
-          nullptr, [](std::string msg) { CFG_POST_MSG("%s", msg.c_str()); },
+          nullptr,
+          [](std::string msg) {
+            std::string formatted;
+            formatted = removeInfoAndNewline(msg);
+            CFG_POST_MSG("%s", formatted.c_str());
+          },
           nullptr);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed Flash programming. Error code: %d", status);
@@ -449,7 +341,6 @@ int GetAvailableCables(std::vector<Cable>& cables) {
           cable.serialNumber = "";  // ignore error, not all usb cable has
                                     // serial number
         }
-
         cables.push_back(cable);
         libusb_close(libusbHandle);
       }
@@ -536,7 +427,8 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
   return ProgrammerErrorCode::NoError;
 }
 
-int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status) {
+int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status,
+                  std::string& statusOutputPrint) {
   CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
                  "libOpenOcdExecPath cannot be empty");
   int returnCode = ProgrammerErrorCode::NoError;
@@ -570,6 +462,7 @@ int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status) {
                             outputMsg);
     returnCode = ProgrammerErrorCode::FailedToParseOutput;
   }
+  statusOutputPrint = cmdOutput;
   outputMsg = "FPGA configuration status found.\n";
   return returnCode;
 }
@@ -598,7 +491,6 @@ int ProgramFpga(const Cable& cable, const Device& device,
   returnCode = CFG_execute_cmd_with_callback(programFpgaCommand, cmdOutput,
                                              outStream, regexPattern, stop,
                                              callbackProgress, callbackMsg);
-  // std::cout << cmdOutput << std::endl;
   if (returnCode) {
     errorMessage = "Failed to execute following command " + programFpgaCommand +
                    ". Error code: " + std::to_string(returnCode) + "\n";

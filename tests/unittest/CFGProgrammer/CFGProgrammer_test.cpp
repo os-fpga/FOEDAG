@@ -122,7 +122,7 @@ TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
       "Found  0   Device1   0x1234abcd   4   16384\n"
       "Found 1   Device2   0x5678deff   5   2097152\n"
       "Found  2   Device3   0x90abcdef   6    134217728\n"
-      "Found  0 gemini               0x1000563d   5          2097152\n";
+      "Found  1 gemini               0x1000563d   5          2097152\n";
   std::vector<Device> expected = {
       {1,
        "gemini",
@@ -138,6 +138,7 @@ TEST(ProgrammerHelper, ExtractDeviceListBasicTest) {
   EXPECT_EQ(expected[0].tapInfo.irMask, actual[0].tapInfo.irMask);
   EXPECT_EQ(expected[0].tapInfo.irLen, actual[0].tapInfo.irLen);
   EXPECT_EQ(expected[0].flashSize, actual[0].flashSize);
+  EXPECT_EQ(expected[0].index, actual[0].index);
 }
 
 TEST(ProgrammerHelper, ExtractDeviceListBasicInvalidFlashSize) {
@@ -294,7 +295,9 @@ TEST(ProgrammerHelper, BuildScanChainCommandBasicTest) {
                  "serial_number_xyz",
                  "description_xyz",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
   std::string expected =
       " -c \"adapter driver ftdi\""
       " -c \"adapter serial serial_number_xyz\""
@@ -345,7 +348,9 @@ TEST(ProgrammerHelper, BuildListDeviceCommandNoTapsTest) {
                  "serial_number_xyz",
                  "description_xyz",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag, 
+                 "RsFtdi_1_1",
+                 1};
   std::vector<TapInfo> foundTapList = {};
   std::string expected = "";
   std::string actual = buildListDeviceCommand(cable, foundTapList);
@@ -398,7 +403,9 @@ TEST(ProgrammerHelper, BuildFpgaQueryStatusCommandBasicTest) {
                  "serial_number_xyz",
                  "description_xyz",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
   Device device = {0,
                    "DeviceXZ",
                    16384,
@@ -428,7 +435,9 @@ TEST(ProgrammerHelper, BuildFpgaProgramCommandBasicTest) {
                  "serial_number_xyz",
                  "description_xyz",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
   Device device = {0,
                    "Gemini",
                    16384,
@@ -492,7 +501,9 @@ TEST(ProgrammerHelper, BuildFlashProgramCommandBasicTest) {
                  "serial_number_aaa",
                  "description_bbb",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
   Device device = {0,
                    "Pluto",
                    16384,
@@ -598,7 +609,9 @@ TEST(ProgrammerAPI, ProgramFpgaDeathTest) {
                  "serial_number_xyz",
                  "description_xyz",
                  10000,
-                 TransportType::jtag};
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
   Device device = {0,
                    "Gemini",
                    16384,
@@ -652,7 +665,8 @@ TEST_F(ProgrammerAPI, GetFpgaStatusTest_ReturnsCableNotSupportedWhenCableIsDefau
   Cable cable;
   Device device;
   CfgStatus status;
-  int errorCode = GetFpgaStatus(cable, device, status);
+  std::string statusCmdOutput;
+  int errorCode = GetFpgaStatus(cable, device, status, statusCmdOutput);
   EXPECT_EQ(errorCode, ProgrammerErrorCode::CableNotSupported);
 }
 class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
@@ -680,7 +694,9 @@ class ProgrammerAPI_ProgramFlashAndFpga : public ::testing::Test {
               "serial_number_xyz",
               "description_xyz",
               10000,
-              TransportType::jtag};
+              TransportType::jtag,
+              "RsFtdi_1_1",
+              1};
   Device device{0,
                 "Gemini",
                 16384,
@@ -726,35 +742,155 @@ TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
 }
 #endif // __linux__
 
-// TODO: Fix the test
-TEST(PrintDeviceListTest, NoDeviceDetected) {
-  //Cable cable{"Cable1"};
-  //std::vector<Device> deviceList{};
+TEST(ProgrammerHelper, printCableListTest)
+{
+  std::vector<Cable> cableList{{0x403, 0x6011, 2, 8, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_2_8", 1}};
   testing::internal::CaptureStdout();
-  CFG_POST_MSG("No device detected.");
-  //printDeviceList(1, cable, deviceList);
+  printCableList(cableList);
   std::string output = testing::internal::GetCapturedStdout();
-  EXPECT_EQ(output, "INFO: No device detected.\n");
+  std::string expected = 
+  "INFO: Cable            \n"
+  "INFO: -----------------\n"
+  "INFO: (1) RsFtdi_2_8\n";
+
+  EXPECT_EQ(output, expected);
 }
 
-// TODO: Fix the test
-// TEST(PrintDeviceListTest, SingleDeviceDetected) {
-//   Cable cable{"Cable1"};
-//   std::vector<Device> deviceList{{"Device1"}};
-//   testing::internal::CaptureStdout();
-//   printDeviceList(1, cable, deviceList);
-//   std::string output = testing::internal::GetCapturedStdout();
-//   EXPECT_EQ(output, "1. Cable1\n   1. Device1\n");
-// }
+TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
+  Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
+  testing::internal::CaptureStdout();
+  std::vector<Device> deviceList{};
+  printDeviceList(cable, deviceList);
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected = 
+  "INFO: Cable               | Device\n"
+  "INFO: -----------------------------------------------\n"
+  "INFO:   No device detected.\n";
+  EXPECT_EQ(output, expected);
+}
 
-// TEST(PrintDeviceListTest, MultipleDevicesDetected) {
-//   Cable cable{"Cable1"};
-//   std::vector<Device> deviceList{{"Device1"}, {"Device2"}, {"Device3"}};
-//   testing::internal::CaptureStdout();
-//   printDeviceList(1, cable, deviceList);
-//   std::string output = testing::internal::GetCapturedStdout();
-//   EXPECT_EQ(output, "1. Cable1\n   1. Device1\n   2. Device2\n   3. Device3\n");
-// }
+TEST(ProgrammerHelper, PrintDeviceListSimpleTest) {
+  Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
+  std::vector<Device> deviceList{
+    {1, "Device1", 16384, {1, "Device1.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2, "Gemini2", 16384, {2, "Device2.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}};
+  testing::internal::CaptureStdout();
+  printDeviceList(cable, deviceList);
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected =
+  "INFO: Cable               | Device\n"
+  "INFO: -----------------------------------------------\n"
+  "INFO: (1) RsFtdi_1_2        (1) Device1\n"
+  "INFO: (1) RsFtdi_1_2        (2) Gemini2\n";
+  EXPECT_EQ(output, expected);
+}
 
+TEST(ProgrammerHelperTest, RemoveInfoAndNewlineTest) {
+  EXPECT_EQ(removeInfoAndNewline("Info : Hello, world!\n"), " Hello, world!");
+  EXPECT_EQ(removeInfoAndNewline("Info : \n"), " ");
+  EXPECT_EQ(removeInfoAndNewline("Hello, world!\n"), "Hello, world!");
+  EXPECT_EQ(removeInfoAndNewline(""), "");
+}
+
+class HwDevicesTestFixture : public ::testing::Test {
+protected:
+  void SetUp() override {
+    cable = Cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
+    hwDevices = HwDevices(cable);
+  }
+  void TearDown() override {
+    // Clean up any temporary files after each test
+  }
+  Cable cable;
+  HwDevices hwDevices;
+};
+
+TEST_F(HwDevicesTestFixture, ConstructorTest) {
+  Cable output = hwDevices.getCable();
+  EXPECT_EQ(output.vendorId, cable.vendorId);
+  EXPECT_EQ(output.productId, cable.productId);
+  EXPECT_EQ(output.busAddr, cable.busAddr);
+  EXPECT_EQ(output.portAddr, cable.portAddr);
+  EXPECT_EQ(output.deviceAddr, cable.deviceAddr);
+  EXPECT_EQ(output.serialNumber, cable.serialNumber);
+  EXPECT_EQ(output.description, cable.description);
+  EXPECT_EQ(output.speed, cable.speed);
+  EXPECT_EQ(output.transport, cable.transport);
+  EXPECT_EQ(output.name, cable.name);
+  EXPECT_EQ(output.index, cable.index);
+}
+
+TEST_F(HwDevicesTestFixture, AddDevicesTest) {
+  EXPECT_EQ(hwDevices.getDevicesCount(), 0);
+  hwDevices.addDevices({
+    {1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2,"Gemini2",16384,{2, "Tap2.Gemini2", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}
+  });
+  std::vector<Device> devices = {
+    {1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2,"Gemini2",16384,{2, "Tap2.Gemini2", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}
+  };
+  EXPECT_EQ(hwDevices.getDevices().size(), devices.size());
+  for(size_t i = 0; i < hwDevices.getDevicesCount(); i++) {
+    EXPECT_EQ(hwDevices.getDevices()[i].name, devices[i].name);
+    EXPECT_EQ(hwDevices.getDevices()[i].index, devices[i].index);
+    EXPECT_EQ(hwDevices.getDevices()[i].flashSize, devices[i].flashSize);
+  }
+}
+
+TEST_F(HwDevicesTestFixture, AddDeviceTest124) {
+  EXPECT_EQ(hwDevices.getDevicesCount(), 0);
+  Device device{1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
+  hwDevices.addDevice(device);
+  EXPECT_EQ(hwDevices.getDevicesCount(), 1);
+}
+
+TEST_F(HwDevicesTestFixture, ClearDevicesTest) {
+  EXPECT_EQ(hwDevices.getDevicesCount(), 0);
+  hwDevices.addDevices({
+    {1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2,"Gemini2",16384,{2, "Tap2.Gemini2", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}
+  });
+  EXPECT_EQ(hwDevices.getDevicesCount(), 2);
+  hwDevices.clearDevices();
+  EXPECT_EQ(hwDevices.getDevicesCount(), 0);
+}
+
+TEST_F(HwDevicesTestFixture, FindDeviceByIndexTest) {
+  hwDevices.addDevices({
+    {1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2,"Gemini2",32768,{2, "Tap2.Gemini2", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}
+  });
+  Device device;
+  bool found = hwDevices.findDevice(1, device);
+  EXPECT_TRUE(found);
+  EXPECT_EQ(device.name, hwDevices.getDevices()[0].name);
+  EXPECT_EQ(device.index, hwDevices.getDevices()[0].index);
+  EXPECT_EQ(device.flashSize, hwDevices.getDevices()[0].flashSize);
+}
+
+TEST_F(HwDevicesTestFixture, FindDeviceByNameTest) {
+  hwDevices.addDevices({
+    {1,"Gemini1",16384,{1, "Tap1.Gemini1", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2,"Gemini2",32768,{2, "Tap2.Gemini2", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}
+  });
+  Device device;
+  bool found = hwDevices.findDevice("Gemini2", device);
+  EXPECT_TRUE(found);
+  EXPECT_EQ(device.name, hwDevices.getDevices()[1].name);
+  EXPECT_EQ(device.index, hwDevices.getDevices()[1].index);
+  EXPECT_EQ(device.flashSize, hwDevices.getDevices()[1].flashSize);
+}
+
+TEST(Programmer, InitializeHwDb) {
+  // in CI, no cable is connected
+  std::vector<HwDevices> cableDeviceDb;
+  std::map<std::string, Cable> cableMap;
+  testing::internal::CaptureStdout();
+  InitializeHwDb(cableDeviceDb, cableMap);
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected = "INFO: No cable found.\n";
+  EXPECT_EQ(output, expected);
+}
 
 
