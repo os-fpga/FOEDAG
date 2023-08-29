@@ -65,6 +65,8 @@ class QLDeviceManager : public QObject {
  private:
   QLDeviceManager(QObject *parent = nullptr);
   QLDeviceVariantLayout* findLayoutPtr(const std::string& family, const std::string& layoutName);
+  void updateArchInfo(const std::string& layoutName);
+  void updateArchInfoWidget(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb);
 
  public:
   void initialize();
@@ -176,7 +178,10 @@ class QLDeviceManager : public QObject {
   bool newProjectMode = false;
 };
 
-
+class Parser {
+ public:
+  std::map<std::string, std::optional<int>> parseArchInfo(const std::string&) const;
+};
 
 }
 

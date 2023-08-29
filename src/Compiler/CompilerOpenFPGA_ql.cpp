@@ -3016,7 +3016,12 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
   return result;
 }
 
-std::string CompilerOpenFPGA_ql::BaseVprCommand() {
+std::string CompilerOpenFPGA_ql::GetVprCommand(const std::string& overrideDeviceSize)
+{
+  return BaseVprCommand(overrideDeviceSize);
+}
+
+std::string CompilerOpenFPGA_ql::BaseVprCommand(const std::string& overrideDeviceSize) {
 
   // note: at this point, the current_path() is the project 'source' directory.
 
@@ -3032,7 +3037,11 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     device_size = " --device " + m_deviceSize;
   }
 #endif // #if UPSTREAM_UNUSED
-  if (!m_deviceSize.empty()) {
+  if (!overrideDeviceSize.empty()) {
+    vpr_options += std::string(" --device") +
+                    std::string(" ") +
+                    overrideDeviceSize;
+  } else if (!m_deviceSize.empty()) {
     vpr_options += std::string(" --device") + 
                     std::string(" ") + 
                     m_deviceSize;
@@ -7104,60 +7113,6 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Leakage() {
   power_analysis_debug_rpt.close();
 
   return power_leakage;
-}
-
-std::map<std::string, std::optional<int>> CompilerOpenFPGA_ql::GetResourceUsageInfo(const std::string& device)
-{
-  std::map<std::string, std::optional<int>> result;
-
-  std::smatch match;
-  static std::regex deviceArgePattern(R"(\d+x\d+)");
-  static std::regex deviceCmdLinePattern(R"(\s--device\s\d+x\d+\s)");
-  static std::regex gridGenericLogPattern(R"(FPGA sized to \d+ x \d+: \d+ grid tiles \((\d+)x(\d+)\))");
-  static std::regex clbLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: clb)");
-  static std::regex dspLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: dsp)");
-  static std::regex bramLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: bram)");
-
-  if (!std::regex_search(device, match, deviceArgePattern)){
-    std::cerr << "not proper device pattern, actual=" << device << "expected format=\\d+x\\d+" << std::endl;
-    return result;
-  }
-
-  auto strReplace = [](std::string& src, const std::string& from, const std::string& to) {
-    auto startPos = src.find(from);
-    if (startPos != std::string::npos) {
-        src.replace(startPos, from.size(), to);
-    }
-  };
-
-  std::string archPropCmd = BaseVprCommand();
-  if (std::regex_search(archPropCmd, match, deviceCmdLinePattern)) {
-    std::string deviceArg = match[0].str();
-    strReplace(archPropCmd, deviceArg, " --device "+device+" ");
-  }
-
-  archPropCmd += " --show_resource_usage on";
-
-  std::string stdOutBuf;
-  std::string stdErrBuf;
-
-  int exitCode = ExecuteCommand(archPropCmd, stdOutBuf, stdErrBuf);
-
-  if (exitCode == 0) {
-    if (std::regex_search(stdOutBuf, match, clbLogPattern)) {
-      result["clb"] = std::atoi(match[1].str().c_str());
-    }
-    if (std::regex_search(stdOutBuf, match, dspLogPattern)) {
-      result["dsp"] = std::atoi(match[1].str().c_str());
-    }
-    if (std::regex_search(stdOutBuf, match, bramLogPattern)) {
-      result["bram"] = std::atoi(match[1].str().c_str());
-    }
-  } else {
-    std::cerr << "unable get resource usage for " << device << " using vpr" << std::endl;
-  }
-
-  return result;
 }
 
 // clang-format on

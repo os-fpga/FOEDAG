@@ -49,6 +49,9 @@ class CompilerOpenFPGA_ql : public Compiler {
   ~CompilerOpenFPGA_ql() = default;
 #endif // #if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql();
+
+  std::string GetVprCommand(const std::string& overrideDeviceSize);
+
   void AnalyzeExecPath(const std::filesystem::path& path) {
     m_analyzeExecutablePath = path;
   }
@@ -144,8 +147,6 @@ class CompilerOpenFPGA_ql : public Compiler {
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
-  std::map<std::string, std::optional<int>> GetResourceUsageInfo(const std::string&);
-
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
@@ -216,7 +217,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   std::string m_openFPGAScript;
   std::string m_pb_pin_fixup;
 
-  virtual std::string BaseVprCommand();
+  virtual std::string BaseVprCommand(const std::string& overrideDeviceSize = "");
   virtual std::string BaseStaCommand();
   virtual std::string BaseStaScript(std::string libFileName,
                                     std::string netlistFileName,

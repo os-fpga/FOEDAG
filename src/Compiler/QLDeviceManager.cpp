@@ -20,6 +20,7 @@
 #include <QTextStream>
 #include <QJsonArray>
 #include <QDirIterator>
+#include <QProcess>
 
 #include <iostream>
 #include <set>
@@ -34,6 +35,7 @@
 #include "Utils/StringUtils.h"
 #include "MainWindow/Session.h"
 #include "QLSettingsManager.h"
+#include "NewProject/ProjectManager/project_manager.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -274,44 +276,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   QObject::connect( m_combobox_layout, &QComboBox::currentTextChanged,
                     [this](const QString& currentText){
                         // std::cout << "lambda-oncurrentTextChanged-m_combobox_layout: " << currentText.toStdString() << std::endl;
-                        auto buildResourcesStr = [](const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb) -> std::string {
-                          std::string result;
-                          if (bram) {
-                            result += "bram: <b>" + std::to_string(bram.value()) + " </b>";
-                          }
-                          if (dsp) {
-                            result += "dsp: <b>" + std::to_string(dsp.value()) + " </b>";
-                          }
-                          if (clb) {
-                            result += "clb: <b>" + std::to_string(clb.value()) + " </b>";
-                          }
-                          return result;
-                        };
-
-                        bool requiredResourceFetch = true;
-                        QLDeviceVariantLayout* layout = findLayoutPtr(family, currentText.toStdString());
-                        if (layout) {
-                          requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
-                        } 
-                       
                         this->layoutChanged(currentText);
-
-                        if (layout) {
-                          if (requiredResourceFetch) {
-                            CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
-                            if (compiler) {
-                              std::map<std::string, std::optional<int>> resources = compiler->GetResourceUsageInfo(currentText.toStdString());
-                              
-                              layout->bram = resources["bram"];
-                              layout->dsp = resources["dsp"];
-                              layout->clb = resources["clb"];
-                            } 
-                          }
-                          
-                          std::string resourceUsageStr = buildResourcesStr(layout->bram, layout->dsp, layout->clb);
-                          m_label_resource_usage->setText(resourceUsageStr.c_str());
-                        }
-
                         } );
 
   dlg_familylayout->addWidget(m_combobox_family_label);
@@ -693,8 +658,73 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
         // }
     }
   }
+
+  updateArchInfo(layout); // TODO: pass full device structure here
 }
 
+void QLDeviceManager::updateArchInfo(const std::string& layoutName) {
+  bool requiredResourceFetch = true;
+  QLDeviceVariantLayout* layout = findLayoutPtr(family, layoutName);
+  if (layout) {
+    requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
+  }
+
+  if (layout) {
+    if (requiredResourceFetch) {
+      updateArchInfoWidget(layout->bram, layout->dsp, layout->clb); // clear values before getting new one
+      CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+      if (compiler) {
+          std::smatch match;
+          static std::regex deviceArgePattern(R"(\d+x\d+)");
+          if (!std::regex_search(layoutName, match, deviceArgePattern)){
+              std::cerr << "not proper device pattern, actual=" << layoutName << "expected format=\\d+x\\d+" << std::endl;
+              return;
+          }
+
+          std::string archPropCmd = compiler->GetVprCommand(layoutName);
+          archPropCmd += " --show_resource_usage on";
+
+          QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
+
+          QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, layoutName](int exitCode) {
+            Parser parser;
+            std::map<std::string, std::optional<int>> resources = parser.parseArchInfo(process->readAllStandardOutput().toStdString());
+            process->deleteLater();
+
+            if (exitCode == 0) {
+              QLDeviceVariantLayout* layout = findLayoutPtr(family, layoutName);
+              if (layout) {
+                layout->bram = resources["bram"];
+                layout->dsp = resources["dsp"];
+                layout->clb = resources["clb"];
+
+                updateArchInfoWidget(layout->bram, layout->dsp, layout->clb);
+              }
+            } else {
+              std::cout << "cannot fetch bram,dsp and clb. process finished with err code" << exitCode << std::endl;
+            }
+         });
+      }
+    } else {
+      updateArchInfoWidget(layout->bram, layout->dsp, layout->clb);
+    }
+  }
+}
+
+void QLDeviceManager::updateArchInfoWidget(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb)
+{
+    std::string info;
+    if (bram) {
+      info += "bram: <b>" + std::to_string(bram.value()) + " </b>";
+    }
+    if (dsp) {
+      info += "dsp: <b>" + std::to_string(dsp.value()) + " </b>";
+    }
+    if (clb) {
+      info += "clb: <b>" + std::to_string(clb.value()) + " </b>";
+    }
+    m_label_resource_usage->setText(info.c_str());
+}
 
 void QLDeviceManager::resetButtonClicked() {
 
@@ -1412,6 +1442,29 @@ std::string QLDeviceManager::convertToDeviceString(QLDeviceTarget device_target)
 
   return device_string;
 
+}
+
+std::map<std::string, std::optional<int>> Parser::parseArchInfo(const std::string& content) const
+{
+  std::smatch match;
+
+  static std::regex gridGenericLogPattern(R"(FPGA sized to \d+ x \d+: \d+ grid tiles \((\d+)x(\d+)\))");
+  static std::regex clbLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: clb)");
+  static std::regex dspLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: dsp)");
+  static std::regex bramLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: bram)");
+
+  std::map<std::string, std::optional<int>> result;
+  if (std::regex_search(content, match, clbLogPattern)) {
+    result["clb"] = std::atoi(match[1].str().c_str());
+  }
+  if (std::regex_search(content, match, dspLogPattern)) {
+    result["dsp"] = std::atoi(match[1].str().c_str());
+  }
+  if (std::regex_search(content, match, bramLogPattern)) {
+    result["bram"] = std::atoi(match[1].str().c_str());
+  }
+
+  return result;
 }
 
 } // namespace FOEDAG
