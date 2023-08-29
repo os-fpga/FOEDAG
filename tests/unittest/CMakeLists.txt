@@ -66,6 +66,7 @@ set(CPP_LIST
   DeviceModeling/device_net_test.cpp
   DeviceModeling/device_port_test.cpp
   DeviceModeling/device_instance_test.cpp
+  DeviceModeling/device_test.cpp
   Compiler/TaskManager_test.cpp
 )
 set(H_LIST
