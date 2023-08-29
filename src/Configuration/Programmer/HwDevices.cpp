@@ -27,6 +27,11 @@ namespace FOEDAG {
 
 HwDevices::HwDevices(const Cable& cable) : m_cable(cable) {}
 
+HwDevices::HwDevices(const HwDevices& other) {
+  m_cable = other.m_cable;
+  m_devices = other.m_devices;
+}
+
 HwDevices HwDevices::operator=(const HwDevices& other) {
   m_cable = other.m_cable;
   m_devices = other.m_devices;

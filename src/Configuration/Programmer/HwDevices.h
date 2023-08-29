@@ -28,6 +28,7 @@ class HwDevices {
  public:
   HwDevices() = default;
   HwDevices(const Cable& cable);
+  HwDevices(const HwDevices& other);
   HwDevices operator=(const HwDevices& other);
   const Cable& getCable() const;
   const std::vector<Device>& getDevices() const;
