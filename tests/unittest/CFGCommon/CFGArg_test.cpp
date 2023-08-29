@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "gtest/gtest.h"
 
 TEST(CFGArg, test_arg) {
-  unset_callback_message_function();
+  CFG_unset_callback_message_function();
   CFGArg_UTST arg;
   CFGArg_UTST_SUB0 sub0arg;
   EXPECT_EQ(sub0arg.debug, true);

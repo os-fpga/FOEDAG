@@ -1576,10 +1576,11 @@ bool CompilerOpenFPGA::Synthesize() {
         ++filesIndex;
 
         if (designLibraries.empty())
-          fileList += "read_systemverilog -defer " + macros + libraries +
-                      extensions + lang + " " + lang_file.second + "\n";
+          // -defer still has issues
+          fileList += "read_systemverilog " + macros + libraries + extensions +
+                      lang + " " + lang_file.second + "\n";
         else
-          fileList += "read_systemverilog -defer " + macros + designLibraries +
+          fileList += "read_systemverilog " + macros + designLibraries +
                       libraries + extensions + lang + " " + lang_file.second +
                       "\n";
       }
@@ -1587,13 +1588,14 @@ bool CompilerOpenFPGA::Synthesize() {
       if (!topModuleLib.empty())
         topModuleLibImport = "-work " + topModuleLib + " ";
       if (ProjManager()->DesignTopModule().empty()) {
-        fileList += "read_systemverilog -link -synth\n";
+        // fileList += "read_systemverilog -link -synth\n";
       } else {
         // fileList += "verific " + topModuleLibImport + importLibs + "-import "
         // +
         //             ProjManager()->DesignTopModule() + "\n";
-        fileList += std::string("read_systemverilog -link -synth ") + "-top " +
-                    ProjManager()->DesignTopModule() + "\n";
+        //  fileList += std::string("read_systemverilog -link -synth ") + "-top
+        //  " +
+        //              ProjManager()->DesignTopModule() + "\n";
       }
       yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
       break;
