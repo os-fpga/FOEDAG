@@ -5,6 +5,7 @@
 #include <QLabel>
 
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <set>
@@ -22,7 +23,9 @@ class QLDeviceVariantLayout {
     std::string name;
     int width;
     int height;
-    // can add other things here such as num of BRAM/DSP etc. in the future!
+    std::optional<int> bram;
+    std::optional<int> dsp;
+    std::optional<int> clb;
 };
 
 class QLDeviceVariant {
@@ -61,7 +64,7 @@ class QLDeviceManager : public QObject {
 
  private:
   QLDeviceManager(QObject *parent = nullptr);
-
+  QLDeviceVariantLayout* findLayoutPtr(const std::string& family, const std::string& layoutName);
 
  public:
   void initialize();
@@ -163,6 +166,7 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_voltage_threshold;
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
+  QLabel* m_label_resource_usage;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;

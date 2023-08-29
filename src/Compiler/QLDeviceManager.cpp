@@ -223,6 +223,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   m_combobox_voltage_threshold = new QComboBox();
   m_combobox_p_v_t_corner = new QComboBox();
   m_combobox_layout = new QComboBox();
+  m_label_resource_usage = new QLabel();
   m_combobox_family->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_foundry_node->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_voltage_threshold->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -270,10 +271,47 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
                         this->p_v_t_cornerChanged(currentText);
                         } );
 
-  QObject::connect( m_combobox_layout, &QComboBox::currentTextChanged, 
+  QObject::connect( m_combobox_layout, &QComboBox::currentTextChanged,
                     [this](const QString& currentText){
                         // std::cout << "lambda-oncurrentTextChanged-m_combobox_layout: " << currentText.toStdString() << std::endl;
+                        auto buildResourcesStr = [](const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb) -> std::string {
+                          std::string result;
+                          if (bram) {
+                            result += "bram: <b>" + std::to_string(bram.value()) + " </b>";
+                          }
+                          if (dsp) {
+                            result += "dsp: <b>" + std::to_string(dsp.value()) + " </b>";
+                          }
+                          if (clb) {
+                            result += "clb: <b>" + std::to_string(clb.value()) + " </b>";
+                          }
+                          return result;
+                        };
+
+                        bool requiredResourceFetch = true;
+                        QLDeviceVariantLayout* layout = findLayoutPtr(family, currentText.toStdString());
+                        if (layout) {
+                          requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
+                        } 
+                       
                         this->layoutChanged(currentText);
+
+                        if (layout) {
+                          if (requiredResourceFetch) {
+                            CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+                            if (compiler) {
+                              std::map<std::string, std::optional<int>> resources = compiler->GetResourceUsageInfo(currentText.toStdString());
+                              
+                              layout->bram = resources["bram"];
+                              layout->dsp = resources["dsp"];
+                              layout->clb = resources["clb"];
+                            } 
+                          }
+                          
+                          std::string resourceUsageStr = buildResourcesStr(layout->bram, layout->dsp, layout->clb);
+                          m_label_resource_usage->setText(resourceUsageStr.c_str());
+                        }
+
                         } );
 
   dlg_familylayout->addWidget(m_combobox_family_label);
@@ -290,7 +328,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   dlg_layoutlayout->addWidget(m_combobox_layout_label);
   dlg_layoutlayout->addWidget(m_combobox_layout);
-
+  devicesizeGroupBoxLayout->addWidget(m_label_resource_usage);
 
   QHBoxLayout* dlg_buttonslayout = nullptr;
   if(!newProjectMode) {
@@ -346,6 +384,23 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   return dlg;
 }
+
+QLDeviceVariantLayout* QLDeviceManager::findLayoutPtr(const std::string& family, const std::string& layoutName)
+{
+  for (QLDeviceType& device: this->device_list) {
+    if (device.family == family) {
+      for (QLDeviceVariant& variant: device.device_variants) {
+        for (QLDeviceVariantLayout& layout: variant.device_variant_layouts) {
+          if (layout.name == layoutName) {
+            return &layout;
+          }
+        }
+      }
+    }
+  }
+  std::cout << "cannot find layout " << layoutName << " for family " << family << std::endl;
+  return nullptr;
+};
 
 void QLDeviceManager::giveupDeviceSelectionWidget() {
 

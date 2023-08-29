@@ -144,6 +144,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
+  std::map<std::string, std::optional<int>> GetResourceUsageInfo(const std::string&);
 
  protected:
   virtual bool IPGenerate();

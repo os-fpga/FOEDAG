@@ -7106,4 +7106,58 @@ long double CompilerOpenFPGA_ql::PowerEstimator_Leakage() {
   return power_leakage;
 }
 
+std::map<std::string, std::optional<int>> CompilerOpenFPGA_ql::GetResourceUsageInfo(const std::string& device)
+{
+  std::map<std::string, std::optional<int>> result;
+
+  std::smatch match;
+  static std::regex deviceArgePattern(R"(\d+x\d+)");
+  static std::regex deviceCmdLinePattern(R"(\s--device\s\d+x\d+\s)");
+  static std::regex gridGenericLogPattern(R"(FPGA sized to \d+ x \d+: \d+ grid tiles \((\d+)x(\d+)\))");
+  static std::regex clbLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: clb)");
+  static std::regex dspLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: dsp)");
+  static std::regex bramLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: bram)");
+
+  if (!std::regex_search(device, match, deviceArgePattern)){
+    std::cerr << "not proper device pattern, actual=" << device << "expected format=\\d+x\\d+" << std::endl;
+    return result;
+  }
+
+  auto strReplace = [](std::string& src, const std::string& from, const std::string& to) {
+    auto startPos = src.find(from);
+    if (startPos != std::string::npos) {
+        src.replace(startPos, from.size(), to);
+    }
+  };
+
+  std::string archPropCmd = BaseVprCommand();
+  if (std::regex_search(archPropCmd, match, deviceCmdLinePattern)) {
+    std::string deviceArg = match[0].str();
+    strReplace(archPropCmd, deviceArg, " --device "+device+" ");
+  }
+
+  archPropCmd += " --show_resource_usage on";
+  std::string tmpLogFilePath("/tmp/tmpArchPropVpr"+device);
+  ExecuteAndMonitorSystemCommand(archPropCmd, tmpLogFilePath);
+
+  // TODO: think how to deal with buffer, not using the file
+  std::ifstream ifs(tmpLogFilePath);
+  std::string content( (std::istreambuf_iterator<char>(ifs) ),
+                       (std::istreambuf_iterator<char>()    ) );
+
+  if (std::regex_search(content, match, clbLogPattern)) {
+    result["clb"] = std::atoi(match[1].str().c_str());
+  }
+  if (std::regex_search(content, match, dspLogPattern)) {
+    result["dsp"] = std::atoi(match[1].str().c_str());
+  }
+  if (std::regex_search(content, match, bramLogPattern)) {
+    result["bram"] = std::atoi(match[1].str().c_str());
+  }
+
+  std::remove(tmpLogFilePath.c_str());
+
+  return result;
+}
+
 // clang-format on
