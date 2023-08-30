@@ -3,11 +3,11 @@
 // JSON to SDT cpp script written by ZaidTahir, for questions please email:
 // zaid.butt.tahir@gmail.com or zaidt@bu.edu **************
 // *********************************************************************************************************************************
+#include "sdtgen_cpp_nlohman_lib_v5.h"
 
 #include <cstdio>
 
 #include "../../../../third_party/nlohmann_json/json.hpp"
-#include "sdtgen_cpp_nlohman_lib_v5.h"
 
 using json = nlohmann::json;
 
