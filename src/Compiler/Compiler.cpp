@@ -77,7 +77,7 @@ auto CreateDummyLog = [](Compiler::Action action,
 };
 
 void Compiler::Version(std::ostream* out) {
-  (*out) << "Foedag FPGA Compiler"
+  (*out) << "FOEDAG"
          << "\n";
   LogUtils::PrintVersion(out);
 }
