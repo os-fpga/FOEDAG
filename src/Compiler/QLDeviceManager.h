@@ -3,6 +3,7 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
+#include <QMovie>
 
 
 #include <optional>
@@ -169,6 +170,8 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
   QLabel* m_label_resource_usage;
+  QLabel* m_label_resource_usage_progress;
+  QMovie* m_movie_progress;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;
