@@ -169,9 +169,9 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_voltage_threshold;
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
-  QLabel* m_label_resource_usage;
-  QLabel* m_label_resource_usage_progress;
-  QMovie* m_movie_progress;
+  QLabel* m_label_available_device_resources;
+  QLabel* m_label_available_device_resources_progress;
+  QMovie* m_movie_available_device_resources_progress;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;

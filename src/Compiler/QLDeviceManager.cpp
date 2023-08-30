@@ -225,9 +225,9 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   m_combobox_voltage_threshold = new QComboBox();
   m_combobox_p_v_t_corner = new QComboBox();
   m_combobox_layout = new QComboBox();
-  m_label_resource_usage = new QLabel();
-  m_label_resource_usage_progress = new QLabel();
-  m_movie_progress = new QMovie(":/loading.gif", {}, this);
+  m_label_available_device_resources = new QLabel();
+  m_label_available_device_resources_progress = new QLabel();
+  m_movie_available_device_resources_progress = new QMovie(":/loading.gif", {}, this);
   m_combobox_family->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_foundry_node->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_voltage_threshold->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -295,11 +295,11 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   dlg_layoutlayout->addWidget(m_combobox_layout_label);
   dlg_layoutlayout->addWidget(m_combobox_layout);
-  devicesizeGroupBoxLayout->addWidget(m_label_resource_usage);
-  devicesizeGroupBoxLayout->addWidget(m_label_resource_usage_progress);
+  devicesizeGroupBoxLayout->addWidget(m_label_available_device_resources);
+  devicesizeGroupBoxLayout->addWidget(m_label_available_device_resources_progress);
 
-  m_label_resource_usage_progress->setFixedSize(20, 20);
-  m_label_resource_usage_progress->setMovie(m_movie_progress);
+  m_label_available_device_resources_progress->setFixedSize(20, 20);
+  m_label_available_device_resources_progress->setMovie(m_movie_available_device_resources_progress);
 
   QHBoxLayout* dlg_buttonslayout = nullptr;
   if(!newProjectMode) {
@@ -691,8 +691,8 @@ void QLDeviceManager::updateArchInfo(const std::string& layoutName) {
           archPropCmd += " --show_resource_usage on";
 
           // show progress
-          m_label_resource_usage_progress->setVisible(true);
-          m_movie_progress->start();
+          m_label_available_device_resources_progress->setVisible(true);
+          m_movie_available_device_resources_progress->start();
 
           //std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
           QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
@@ -713,8 +713,8 @@ void QLDeviceManager::updateArchInfo(const std::string& layoutName) {
               }
             } else {
               // hide progress
-              m_label_resource_usage_progress->setVisible(false);
-              m_movie_progress->stop();
+              m_label_available_device_resources_progress->setVisible(false);
+              m_movie_available_device_resources_progress->stop();
 
               std::cout << "cannot fetch bram,dsp and clb. process finished with err code" << exitCode << std::endl;
             }
@@ -740,14 +740,14 @@ void QLDeviceManager::updateArchInfoWidget(const std::optional<int>& bram, const
     }
 
     if (!archInfo.isEmpty()) {
-      m_label_resource_usage->setVisible(true);
-      m_label_resource_usage->setText(archInfo);
+      m_label_available_device_resources->setVisible(true);
+      m_label_available_device_resources->setText(archInfo);
 
       // hide progress
-      m_label_resource_usage_progress->setVisible(false);
-      m_movie_progress->stop();
+      m_label_available_device_resources_progress->setVisible(false);
+      m_movie_available_device_resources_progress->stop();
     } else {
-      m_label_resource_usage->setVisible(false);
+      m_label_available_device_resources->setVisible(false);
     }
 }
 
