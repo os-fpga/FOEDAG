@@ -8,6 +8,7 @@
 #define MY_CLASS_H
 
 #include <cstdio>
+
 #include "../../../../third_party/nlohmann_json/json.hpp"
 using json = nlohmann::json;
 
