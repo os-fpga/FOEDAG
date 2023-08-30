@@ -661,7 +661,10 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
     }
   }
 
-  updateDeviceAvailableResources(layout);
+  m_widget_device_available_resources->setVisible(!newProjectMode);
+  if (!newProjectMode) {
+    updateDeviceAvailableResources(layout);;
+  }  
 }
 
 void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutName) {
@@ -672,13 +675,7 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
       m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
       if (compiler) {
-          if (compiler->ProjManager()->projectPath().empty()) {
-            std::cout << "cannot get device available resourses, due to project path is empty" << std::endl;
-            m_widget_device_available_resources->hide();
-            return;
-          } else {
-            m_widget_device_available_resources->show();
-          }
+
 
           std::smatch match;
           static std::regex deviceArgePattern(R"(\d+x\d+)");
