@@ -63,8 +63,6 @@ int SdtCpuClusterInstSubNode::total_instances;
 int SdtMemoryInstSubNode::total_instances;
 int SdtSocInstSubNode::total_instances;
 
-
-
 std::filesystem::path DesignQuery::GetProjDir() const {
   ProjectManager* projManager = m_compiler->ProjManager();
   std::filesystem::path dir(projManager->getProjectPath().toStdString());
