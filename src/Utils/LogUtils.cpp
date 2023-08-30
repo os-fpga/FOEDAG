@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace FOEDAG;
 
-extern const char* foedag_version_number;
+extern const char* foedag_build;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 extern const char* release_version;
@@ -167,11 +167,11 @@ void LogUtils::PrintCopyright(std::ostream* out) {
 }
 
 void LogUtils::PrintVersion(std::ostream* out) {
-  (*out) << "Version    : " << release_version << "\n";
-  if (std::string(foedag_version_number) != "${VERSION_NUMBER}")
-    (*out) << "Build      : " << foedag_version_number << "\n";
+  (*out) << "Version  : " << release_version << "\n";
+  if (std::string(foedag_build) != "${VERSION_NUMBER}")
+    (*out) << "Build    : " << foedag_build << "\n";
   if (std::string(foedag_git_hash) != "${GIT_HASH}")
-    (*out) << "Git Hash   : " << foedag_git_hash << "\n";
-  (*out) << "Built Date : " << __DATE__ << "\n";
-  (*out) << "Built type : " << foedag_build_type << "\n";
+    (*out) << "Hash     : " << foedag_git_hash << "\n";
+  (*out) << "Date     : " << __DATE__ << "\n";
+  (*out) << "Type     : " << foedag_build_type << "\n";
 }

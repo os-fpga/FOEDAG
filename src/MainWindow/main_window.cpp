@@ -78,7 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "foedag_version.h"
 
 using namespace FOEDAG;
-extern const char* foedag_version_number;
+extern const char* foedag_build;
 extern const char* foedag_git_hash;
 extern const char* foedag_build_type;
 
@@ -172,7 +172,7 @@ MainWindow::MainWindow(Session* session)
 
   //  setCentralWidget(mainSplitter);
   statusBar()->showMessage("Ready");
-  m_projectInfo = {"FOEDAG", foedag_version_number, foedag_git_hash,
+  m_projectInfo = {"FOEDAG", foedag_build, foedag_git_hash,
                    "https://github.com/os-fpga/FOEDAG/commit/",
                    foedag_build_type};
 
