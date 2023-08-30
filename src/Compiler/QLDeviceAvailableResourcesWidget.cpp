@@ -23,6 +23,7 @@ QLDeviceAvailableResourcesWidget::QLDeviceAvailableResourcesWidget(QWidget* pare
 
 void QLDeviceAvailableResourcesWidget::reset()
 {
+  m_label->setText("");
   m_label->setVisible(false);
 }
 

@@ -672,6 +672,14 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
       m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
       if (compiler) {
+          if (compiler->ProjManager()->projectPath().empty()) {
+            std::cout << "cannot get device available resourses, due to project path is empty" << std::endl;
+            m_widget_device_available_resources->hide();
+            return;
+          } else {
+            m_widget_device_available_resources->show();
+          }
+
           std::smatch match;
           static std::regex deviceArgePattern(R"(\d+x\d+)");
           if (!std::regex_search(layoutName, match, deviceArgePattern)){
@@ -681,11 +689,11 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
 
           std::string archPropCmd = compiler->GetVprCommand(layoutName);
           archPropCmd += " --show_resource_usage on";
+          std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
 
           // show progress
           m_widget_device_available_resources->showProgress();
-
-          //std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
+          
           QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
 
           QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, layoutName](int exitCode) {
@@ -704,7 +712,7 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
             } else {
               m_widget_device_available_resources->hideProgress();
 
-              std::cout << "cannot fetch bram,dsp and clb. process finished with err code" << exitCode << std::endl;
+              std::cout << "cannot fetch bram, dsp and clb. process finished with err code " << exitCode << std::endl;
             }
           });
       }
