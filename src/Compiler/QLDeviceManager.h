@@ -3,7 +3,6 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QLabel>
-#include <QMovie>
 
 
 #include <optional>
@@ -18,6 +17,7 @@
 namespace FOEDAG {
 
 class QLSettingsManager;
+class QLDeviceAvailableResourcesWidget;
 
 class QLDeviceVariantLayout {
     public:
@@ -55,7 +55,6 @@ class QLDeviceTarget  {
     QLDeviceVariantLayout device_variant_layout;
 };
 
-
 class QLDeviceManager : public QObject {
   Q_OBJECT
  public:
@@ -65,9 +64,8 @@ class QLDeviceManager : public QObject {
 
  private:
   QLDeviceManager(QObject *parent = nullptr);
-  QLDeviceVariantLayout* findLayoutPtr(const std::string& family, const std::string& layoutName);
-  void updateArchInfo(const std::string& layoutName);
-  void updateArchInfoWidget(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb);
+  QLDeviceVariantLayout* findDeviceLayoutVariantPtr(const std::string& family, const std::string& layoutName);
+  void updateDeviceAvailableResources(const std::string& layoutName);
 
  public:
   void initialize();
@@ -169,9 +167,8 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_voltage_threshold;
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
-  QLabel* m_label_available_device_resources;
-  QLabel* m_label_available_device_resources_progress;
-  QMovie* m_movie_available_device_resources_progress;
+
+  QLDeviceAvailableResourcesWidget* m_widget_device_available_resources;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;
@@ -179,11 +176,6 @@ class QLDeviceManager : public QObject {
 
   bool currentDeviceTargetUpdateInProgress = false;
   bool newProjectMode = false;
-};
-
-class Parser {
- public:
-  std::map<std::string, std::optional<int>> parseArchInfo(const std::string&) const;
 };
 
 }

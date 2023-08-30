@@ -36,6 +36,8 @@
 #include "MainWindow/Session.h"
 #include "QLSettingsManager.h"
 #include "NewProject/ProjectManager/project_manager.h"
+#include "QLDeviceAvailableResourcesWidget.h"
+#include "QLParser.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -225,9 +227,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   m_combobox_voltage_threshold = new QComboBox();
   m_combobox_p_v_t_corner = new QComboBox();
   m_combobox_layout = new QComboBox();
-  m_label_available_device_resources = new QLabel();
-  m_label_available_device_resources_progress = new QLabel();
-  m_movie_available_device_resources_progress = new QMovie(":/loading.gif", {}, this);
+  m_widget_device_available_resources = new QLDeviceAvailableResourcesWidget();
   m_combobox_family->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_foundry_node->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_voltage_threshold->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -295,11 +295,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   dlg_layoutlayout->addWidget(m_combobox_layout_label);
   dlg_layoutlayout->addWidget(m_combobox_layout);
-  devicesizeGroupBoxLayout->addWidget(m_label_available_device_resources);
-  devicesizeGroupBoxLayout->addWidget(m_label_available_device_resources_progress);
-
-  m_label_available_device_resources_progress->setFixedSize(20, 20);
-  m_label_available_device_resources_progress->setMovie(m_movie_available_device_resources_progress);
+  devicesizeGroupBoxLayout->addWidget(m_widget_device_available_resources);
 
   QHBoxLayout* dlg_buttonslayout = nullptr;
   if(!newProjectMode) {
@@ -356,7 +352,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   return dlg;
 }
 
-QLDeviceVariantLayout* QLDeviceManager::findLayoutPtr(const std::string& family, const std::string& layoutName)
+QLDeviceVariantLayout* QLDeviceManager::findDeviceLayoutVariantPtr(const std::string& family, const std::string& layoutName)
 {
   for (QLDeviceType& device: this->device_list) {
     if (device.family == family) {
@@ -665,19 +661,19 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
     }
   }
 
-  updateArchInfo(layout);
+  updateDeviceAvailableResources(layout);
 }
 
-void QLDeviceManager::updateArchInfo(const std::string& layoutName) {
+void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutName) {
   bool requiredResourceFetch = true;
-  QLDeviceVariantLayout* layout = findLayoutPtr(family, layoutName);
+  QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutName);
   if (layout) {
     requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
   }
 
   if (layout) {
     if (requiredResourceFetch) {
-      updateArchInfoWidget(layout->bram, layout->dsp, layout->clb); // clear values before getting new one
+      m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
       if (compiler) {
           std::smatch match;
@@ -691,64 +687,35 @@ void QLDeviceManager::updateArchInfo(const std::string& layoutName) {
           archPropCmd += " --show_resource_usage on";
 
           // show progress
-          m_label_available_device_resources_progress->setVisible(true);
-          m_movie_available_device_resources_progress->start();
+          m_widget_device_available_resources->showProgress();
 
           //std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
           QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
 
           QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, layoutName](int exitCode) {
-            Parser parser;
-            std::map<std::string, std::optional<int>> resources = parser.parseArchInfo(process->readAllStandardOutput().toStdString());
+            std::unordered_map<std::string, std::optional<int>> resources = QLParser::extractDeviceAvailableResourcesFromVprLogContent(process->readAllStandardOutput().toStdString());
             process->deleteLater();
 
             if (exitCode == 0) {
-              QLDeviceVariantLayout* layout = findLayoutPtr(family, layoutName);
+              QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutName);
               if (layout) {
                 layout->bram = resources["bram"];
                 layout->dsp = resources["dsp"];
                 layout->clb = resources["clb"];
 
-                updateArchInfoWidget(layout->bram, layout->dsp, layout->clb);
+                m_widget_device_available_resources->showValues(layout->bram, layout->dsp, layout->clb);
               }
             } else {
-              // hide progress
-              m_label_available_device_resources_progress->setVisible(false);
-              m_movie_available_device_resources_progress->stop();
+              m_widget_device_available_resources->hideProgress();
 
               std::cout << "cannot fetch bram,dsp and clb. process finished with err code" << exitCode << std::endl;
             }
           });
       }
     } else {
-      updateArchInfoWidget(layout->bram, layout->dsp, layout->clb);
+      m_widget_device_available_resources->showValues(layout->bram, layout->dsp, layout->clb);
     }
   }
-}
-
-void QLDeviceManager::updateArchInfoWidget(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb)
-{
-    QString archInfo;
-    if (bram) {
-      archInfo += "bram: <b>" + QString::number(bram.value()) + " </b>";
-    }
-    if (dsp) {
-      archInfo += "dsp: <b>" + QString::number(dsp.value()) + " </b>";
-    }
-    if (clb) {
-      archInfo += "clb: <b>" + QString::number(clb.value()) + " </b>";
-    }
-
-    if (!archInfo.isEmpty()) {
-      m_label_available_device_resources->setVisible(true);
-      m_label_available_device_resources->setText(archInfo);
-
-      // hide progress
-      m_label_available_device_resources_progress->setVisible(false);
-      m_movie_available_device_resources_progress->stop();
-    } else {
-      m_label_available_device_resources->setVisible(false);
-    }
 }
 
 void QLDeviceManager::resetButtonClicked() {
@@ -1466,30 +1433,6 @@ std::string QLDeviceManager::convertToDeviceString(QLDeviceTarget device_target)
   }
 
   return device_string;
-
-}
-
-std::map<std::string, std::optional<int>> Parser::parseArchInfo(const std::string& content) const
-{
-  std::smatch match;
-
-  static std::regex gridGenericLogPattern(R"(FPGA sized to \d+ x \d+: \d+ grid tiles \((\d+)x(\d+)\))");
-  static std::regex clbLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: clb)");
-  static std::regex dspLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: dsp)");
-  static std::regex bramLogPattern(R"(Architecture\s+(\d+)\s+blocks of type: bram)");
-
-  std::map<std::string, std::optional<int>> result;
-  if (std::regex_search(content, match, clbLogPattern)) {
-    result["clb"] = std::atoi(match[1].str().c_str());
-  }
-  if (std::regex_search(content, match, dspLogPattern)) {
-    result["dsp"] = std::atoi(match[1].str().c_str());
-  }
-  if (std::regex_search(content, match, bramLogPattern)) {
-    result["bram"] = std::atoi(match[1].str().c_str());
-  }
-
-  return result;
 }
 
 } // namespace FOEDAG
