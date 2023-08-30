@@ -55,6 +55,7 @@ class QLDeviceTarget  {
     QLDeviceVariantLayout device_variant_layout;
 };
 
+
 class QLDeviceManager : public QObject {
   Q_OBJECT
  public:
@@ -177,6 +178,8 @@ class QLDeviceManager : public QObject {
   bool currentDeviceTargetUpdateInProgress = false;
   bool newProjectMode = false;
 };
+
+
 
 }
 

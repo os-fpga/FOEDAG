@@ -275,7 +275,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
                         this->p_v_t_cornerChanged(currentText);
                         } );
 
-  QObject::connect( m_combobox_layout, &QComboBox::currentTextChanged,
+  QObject::connect( m_combobox_layout, &QComboBox::currentTextChanged, 
                     [this](const QString& currentText){
                         // std::cout << "lambda-oncurrentTextChanged-m_combobox_layout: " << currentText.toStdString() << std::endl;
                         this->layoutChanged(currentText);
@@ -665,13 +665,9 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
 }
 
 void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutName) {
-  bool requiredResourceFetch = true;
   QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutName);
   if (layout) {
-    requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
-  }
-
-  if (layout) {
+    bool requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
     if (requiredResourceFetch) {
       m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
@@ -1433,6 +1429,7 @@ std::string QLDeviceManager::convertToDeviceString(QLDeviceTarget device_target)
   }
 
   return device_string;
+
 }
 
 } // namespace FOEDAG
