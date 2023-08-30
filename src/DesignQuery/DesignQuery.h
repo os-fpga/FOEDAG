@@ -29,7 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 
 #include "nlohmann_json/json.hpp"
-// #include "sdtgen_cpp_nlohman_lib_v6.h"
 
 namespace FOEDAG {
 

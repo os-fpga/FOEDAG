@@ -5,14 +5,8 @@
 // *********************************************************************************************************************************
 
 #include <cstdio>
-// #include <nlohmann_json/json.hpp>
-#include "nlohmann_json/json.hpp"
-// #include "json.hpp"
-// #include "json/single_include/nlohmann/json.hpp"
-// #include <json/single_include/nlohmann/json_fwd.hpp>
-
+#include "../../../../third_party/nlohmann_json/json.hpp"
 #include "sdtgen_cpp_nlohman_lib_v5.h"
-// #include "sdtgen_cpp_nlohman_lib_v5.cpp"
 
 using json = nlohmann::json;
 

@@ -56,7 +56,6 @@ extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
-// using json = nlohmann::ordered_json;
 using json = nlohmann::json;
 
 int SdtCpuInstSubNode::total_instances;
@@ -64,61 +63,7 @@ int SdtCpuClusterInstSubNode::total_instances;
 int SdtMemoryInstSubNode::total_instances;
 int SdtSocInstSubNode::total_instances;
 
-// string sdt_file_path_global = "output_sdtgen_cpp_nlohman_lib_v6.sdt";
-// int verbose_flag_global = 0; //1;
 
-// int SdtCpuInstSubNode::total_instances = 0;
-// int SdtCpuClusterInstSubNode::total_instances = 0;
-// int SdtMemoryInstSubNode::total_instances = 0;
-// int SdtSocInstSubNode::total_instances = 0;
-
-// // int SdtCpuInstSubNode::total_instances;
-// // int SdtCpuClusterInstSubNode::total_instances;
-// // int SdtMemoryInstSubNode::total_instances;
-// // int SdtSocInstSubNode::total_instances;
-
-// // SdtCpuInstSubNode::total_instances = 0;
-// // SdtCpuClusterInstSubNode::total_instances = 0;
-// // SdtMemoryInstSubNode::total_instances = 0;
-// // SdtSocInstSubNode::total_instances = 0;
-
-// SdtCpusNode cpus_node_obj;
-
-// SdtCpusClusterNode cpus_cluster_node_obj;
-
-// SdtMemoryNode memory_node_obj;
-
-// SdtSocNode soc_node_obj;
-
-// SdtRootMetaDataNode rootmetadata_node_obj;
-
-// int size;
-
-// // read JSON file
-// ifstream inputFile;
-
-// // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
-// inputFile.open("gold_hier_v5.json");
-
-// // ifstream inputFile("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
-
-// // std::ifstream::inputFile.open();
-
-// // calculating size of inputFile
-// inputFile.seekg(0, inputFile.end);
-// size = inputFile.tellg();
-// inputFile.seekg (0, inputFile.beg);
-
-// // allocate memory:
-// char * data_file = new char[size];
-
-// // read data as a block:
-// inputFile.read (data_file, size);
-
-// inputFile.close();
-
-// //get meta-data of all SDT nodes from JSON file
-// json data = json::parse(data_file);
 
 std::filesystem::path DesignQuery::GetProjDir() const {
   ProjectManager* projManager = m_compiler->ProjManager();
