@@ -689,7 +689,7 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
 
           std::string archPropCmd = compiler->GetVprCommand(layoutName);
           archPropCmd += " --show_resource_usage on";
-          std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
+          //std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
 
           // show progress
           m_widget_device_available_resources->showProgress();
