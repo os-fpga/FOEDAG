@@ -675,8 +675,6 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
       m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
       if (compiler) {
-
-
           std::smatch match;
           static std::regex deviceArgePattern(R"(\d+x\d+)");
           if (!std::regex_search(layoutName, match, deviceArgePattern)){
