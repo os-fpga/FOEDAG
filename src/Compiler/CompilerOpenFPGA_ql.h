@@ -147,6 +147,7 @@ class CompilerOpenFPGA_ql : public Compiler {
   long double PowerEstimator_Dynamic();
   long double PowerEstimator_Leakage();
 
+
  protected:
   virtual bool IPGenerate();
   virtual bool Analyze();
