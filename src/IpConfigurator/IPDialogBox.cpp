@@ -173,9 +173,8 @@ void IPDialogBox::OpenDocumentaion() {
 void IPDialogBox::OpenIpLocation() {
   if (auto def = getDefinition(m_requestedIpName.toStdString()); def) {
     auto filePath = def->FilePath().parent_path();
-
     QDesktopServices::openUrl(
-        QUrl::fromLocalFile(QString::fromStdString(filePath)));
+        QUrl::fromLocalFile(QString::fromStdString(filePath.string())));
   }
 }
 
