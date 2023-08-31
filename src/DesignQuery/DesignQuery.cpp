@@ -59,7 +59,6 @@ using ms = std::chrono::milliseconds;
 using json_sdt = nlohmann::json;
 using json = nlohmann::ordered_json;
 
-
 int SdtCpuInstSubNode::total_instances;
 int SdtCpuClusterInstSubNode::total_instances;
 int SdtMemoryInstSubNode::total_instances;
@@ -73,7 +72,8 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
   std::filesystem::path dir = GetProjDir();
-  std::filesystem::path hier_info = "./tests/Testcases/DesignQuery/hier_info.json";
+  std::filesystem::path hier_info = 
+      "./tests/Testcases/DesignQuery/hier_info.json";
   return dir / hier_info;
 }
 
@@ -939,8 +939,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
         status = false;
       } else {
         std::string ret = "";
-        for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++)
-        {
+        for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++) {
           ret += " ";
           ret += it.key();
         }

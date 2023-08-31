@@ -1,7 +1,7 @@
 /**
-  
   * @file sdtgen.cpp
-  * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)
+  * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or
+  * https://github.com/zaidtahirbutt)
   * @date 2023-08-30
   * @copyright Copyright 2021 The Foedag team
 
@@ -24,11 +24,11 @@
   
 */
 
+#include "sdtgen.h"
+
 #include <cstdio>
 
 #include "nlohmann_json/json.hpp"
-
-#include "sdtgen.h"
 
 using namespace std;
 
