@@ -50,13 +50,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
-#include "sdtgen_cpp_nlohman_lib_v6.h"
+#include "sdtgen.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
-using json = nlohmann::json;
+using json_sdt = nlohmann::json;
+using json = nlohmann::ordered_json;
+
 
 int SdtCpuInstSubNode::total_instances;
 int SdtCpuClusterInstSubNode::total_instances;
@@ -71,7 +73,7 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
   std::filesystem::path dir = GetProjDir();
-  std::filesystem::path hier_info = "hier_info.json";
+  std::filesystem::path hier_info = "./tests/Testcases/DesignQuery/hier_info.json";
   return dir / hier_info;
 }
 
@@ -174,7 +176,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get cpus node from JSON file
     int result = get_cpus_node(data, cpus_node_obj, verbose_flag_global);
@@ -185,9 +187,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -282,7 +301,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get cpus cluster node from JSON file
     int result =
@@ -294,9 +313,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -393,7 +429,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get memory node from JSON file
     int result = get_memory_node(data, memory_node_obj, verbose_flag_global);
@@ -404,9 +440,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -501,7 +554,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get soc node from JSON file
     int result = get_soc_node(data, soc_node_obj, verbose_flag_global);
@@ -512,9 +565,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -606,7 +676,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get root metadata from JSON file
     int result =
@@ -618,9 +688,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -733,7 +820,7 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     inputFile.close();
 
     // get meta-data of all SDT nodes from JSON file
-    json data = json::parse(data_file);
+    json_sdt data = json_sdt::parse(data_file);
 
     // get rootmetadata node from JSON file
     int result =
@@ -758,9 +845,26 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
 
     outfile << "/*\n \
     *\n \
-    *Copyright (c) 2023 Rapid Silicon\n \
-    *SPDX-License-Identifier: rs-eula\n \
-    *JSON to SDT cpp script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n*/\n\n";
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
 
     outfile << "/dts-v1/;\n\n"
             << "/ {\n";
@@ -820,33 +924,33 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("sdt_gen_system_device_tree", sdt_gen_system_device_tree,
                       this, 0);
 
-  // auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
-  //                        const char* argv[]) -> int {
-  //   DesignQuery* design_query = (DesignQuery*)clientData;
-  //   Compiler* compiler = design_query->GetCompiler();
-  //   bool status = true;
+  auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
+                         const char* argv[]) -> int {
+    DesignQuery* design_query = (DesignQuery*)clientData;
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
 
-  //   if (!design_query->LoadHierInfo()) {
-  //     status = false;
-  //   } else {
-  //     json& hier_info = design_query->getHierJson();
-  //     json file_ids_obj = hier_info["fileIDs"];
-  //     if (!file_ids_obj.is_object()) {
-  //       status = false;
-  //     } else {
-  //       std::string ret = "";
-  //       for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++)
-  //       {
-  //         ret += " ";
-  //         ret += it.key();
-  //       }
-  //       compiler->TclInterp()->setResult(ret);
-  //     }
-  //   }
+    if (!design_query->LoadHierInfo()) {
+      status = false;
+    } else {
+      json& hier_info = design_query->getHierJson();
+      json file_ids_obj = hier_info["fileIDs"];
+      if (!file_ids_obj.is_object()) {
+        status = false;
+      } else {
+        std::string ret = "";
+        for (auto it = file_ids_obj.begin(); it != file_ids_obj.end(); it++)
+        {
+          ret += " ";
+          ret += it.key();
+        }
+        compiler->TclInterp()->setResult(ret);
+      }
+    }
 
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("get_file_ids", get_file_ids, this, 0);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("get_file_ids", get_file_ids, this, 0);
 
   auto get_modules = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {
@@ -883,142 +987,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_ports", get_ports, this, 0);
-
-  //  // first SDT API function implementation
-  //   // get dict of all SDT nodes from JSON file
-  // auto sdt_get_sdt_nodes_dict_from_json = [](void* clientData, Tcl_Interp*
-  // interp, int argc,
-  //                        const char* argv[]) -> int {
-  //     // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]);
-  //     // argv[0] is the main function name which in this case is
-  //     "sdt_get_sdt_nodes_dict_from_json"
-  //   std::string ret = cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_get_sdt_nodes_dict_from_json",
-  // sdt_get_sdt_nodes_dict_from_json, this, 0);
-
-  // // SDT API function implementation
-  //   // get cpus node meta-data
-  // auto sdt_get_cpus = [](void* clientData, Tcl_Interp* interp, int argc,
-  //                        const char* argv[]) -> int {
-  //     // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_get_cpus", sdt_get_cpus, this, 0);
-
-  // // SDT API function implementation
-  //   // get cpu-clusters node meta-data
-  // auto sdt_get_cpus_clusters = [](void* clientData, Tcl_Interp* interp, int
-  // argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_get_cpus_clusters", sdt_get_cpus_clusters, this,
-  // 0);
-
-  // // SDT API function implementation
-  //   // get memory nodes meta-data
-  // auto sdt_get_memory_nodes = [](void* clientData, Tcl_Interp* interp, int
-  // argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_get_memory_nodes", sdt_get_memory_nodes, this, 0);
-
-  // // SDT API function implementation
-  //   // get soc user-logic meta-data (ips)
-  // auto sdt_get_soc = [](void* clientData, Tcl_Interp* interp, int argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_get_soc", sdt_get_soc, this, 0);
-
-  // // SDT API function implementation
-  //   // generating/writing cpus node
-  // auto sdt_gen_cpu_node = [](void* clientData, Tcl_Interp* interp, int argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_gen_cpu_node", sdt_gen_cpu_node, this, 0);
-
-  // // SDT API function implementation
-  //   // generating/writing cpus_cluster node
-  // auto sdt_gen_cpu_cluster_node = [](void* clientData, Tcl_Interp* interp,
-  // int argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_gen_cpu_cluster_node", sdt_gen_cpu_cluster_node,
-  // this, 0);
-
-  // // SDT API function implementation
-  //   // generating/writing memory node
-  // auto sdt_gen_memory_nodes = [](void* clientData, Tcl_Interp* interp, int
-  // argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_gen_memory_nodes", sdt_gen_memory_nodes, this, 0);
-
-  // // SDT API function implementation
-  //   // generating/Wrtiting user-logic under SOC sdt node
-  // auto sdt_gen_soc_node = [](void* clientData, Tcl_Interp* interp, int argc,
-  //                        const char* argv[]) -> int {
-  //    // TODO: Implement this API
-  //   DesignQuery* design_query = (DesignQuery*)clientData;  // typecasting
-  //   pointer Compiler* compiler = design_query->GetCompiler(); bool status =
-  //   true; std::string cmd_name = std::string(argv[0]); std::string ret =
-  //   cmd_name + "__NOT__YET__IMPLEMENTED__";
-  //   compiler->TclInterp()->setResult(ret);
-  //   return (status) ? TCL_OK : TCL_ERROR;
-  // };
-  // interp->registerCmd("sdt_gen_soc_node", sdt_gen_soc_node, this, 0);
 
   return true;
 }

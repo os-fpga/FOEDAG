@@ -1,3 +1,29 @@
+# /**
+  
+#   * @file main_sdtgen_cpp_nlohman_lib_v5.cpp
+#   * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)
+#   * @date 2023-08-30
+#   * @copyright Copyright 2021 The Foedag team
+
+#   * GPL License
+
+#   * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+#   * This program is free software: you can redistribute it and/or modify
+#   * it under the terms of the GNU General Public License as published by
+#   * the Free Software Foundation, either version 3 of the License, or
+#   * (at your option) any later version.
+
+#   * This program is distributed in the hope that it will be useful,
+#   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   * GNU General Public License for more details.
+
+#   * You should have received a copy of the GNU General Public License
+#   * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  
+# */
+
 #!/usr/bin/tclsh
 package require json
 package require Tcl 8.5
@@ -8,10 +34,6 @@ package require json::write
 if {$::tcl_version < 8.5} {
     package require dict
 }
-
-##########################################################################################################################################
-########## JSON to SDT TCL script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu ############
-##########################################################################################################################################
 
 # Use this command to run this script: 
 	# "tclsh sdtgen_v6.tcl -o output_v6.sdt -f"
@@ -416,10 +438,27 @@ proc get_board_info {} {
 
 proc gen_copyright_header {} {
 	set copyrightString "/*\n \
-	*Copyright (c) 2023 Rapid Silicon\n \
-	*SPDX-License-Identifier: rs-eula\n \
-	*JSON to SDT TCL script written by ZaidTahir, for questions please email: zaid.butt.tahir@gmail.com or zaidt@bu.edu\n \
-	*/\n\n"
+	* @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+  * @date 2023-08-30\n \
+  * @copyright Copyright 2021 The Foedag team\n \
+  \n \
+  * GPL License\n \
+  \n \
+  * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+  \n \
+  * This program is free software: you can redistribute it and/or modify\n \
+  * it under the terms of the GNU General Public License as published by\n \
+  * the Free Software Foundation, either version 3 of the License, or\n \
+  * (at your option) any later version.\n \
+  \n \
+  * This program is distributed in the hope that it will be useful,\n \
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+  * GNU General Public License for more details.\n \
+  \n \
+  * You should have received a copy of the GNU General Public License\n \
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n\
+	\n*/\n\n"
 						  
 	return $copyrightString
 }

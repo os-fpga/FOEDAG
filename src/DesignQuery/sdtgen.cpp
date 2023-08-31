@@ -1,17 +1,34 @@
+/**
+  
+  * @file sdtgen.cpp
+  * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)
+  * @date 2023-08-30
+  * @copyright Copyright 2021 The Foedag team
 
-//**********************************************************************************************************************************
-// JSON to SDT cpp script written by ZaidTahir, for questions please email:
-// zaid.butt.tahir@gmail.com or zaidt@bu.edu **************
-// *********************************************************************************************************************************
+  * GPL License
+
+  * Copyright (c) 2021 The Open-Source FPGA Foundation
+
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+  
+*/
 
 #include <cstdio>
-// #include <nlohmann_json/json.hpp>
-#include "nlohmann_json/json.hpp"
-// #include "json.hpp"
-// #include "json/single_include/nlohmann/json.hpp"
-// #include <json/single_include/nlohmann/json_fwd.hpp>
 
-#include "sdtgen_cpp_nlohman_lib_v6.h"
+#include "nlohmann_json/json.hpp"
+
+#include "sdtgen.h"
 
 using namespace std;
 
