@@ -72,7 +72,7 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
   std::filesystem::path dir = GetProjDir();
-  std::filesystem::path hier_info = 
+  std::filesystem::path hier_info =
       "./tests/Testcases/DesignQuery/hier_info.json";
   return dir / hier_info;
 }
