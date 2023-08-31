@@ -144,7 +144,7 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
   LoadImage();
 
-  setWindowTitle("IP Configuration");
+  setWindowTitle("Configure IP");
 }
 
 QString IPDialogBox::ModuleName() const {
