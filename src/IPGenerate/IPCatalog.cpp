@@ -136,7 +136,7 @@ IPDetails FOEDAG::readIpDetails(const std::filesystem::path& path) {
     auto ip_details = object.at("IP details");
     details.name = ip_details["Name"];
     details.description = ip_details["Description"];
-    details.interface = ip_details["Interface"];
+    details.interface_str = ip_details["Interface"];
     details.version = ip_details["Version"];
   }
   return details;

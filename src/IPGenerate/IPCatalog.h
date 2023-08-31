@@ -358,7 +358,7 @@ struct VLNV {
 struct IPDetails {
   std::string name;
   std::string version;
-  std::string interface;
+  std::string interface_str;
   std::string description;
 };
 

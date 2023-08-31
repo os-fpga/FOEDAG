@@ -1586,9 +1586,9 @@ void MainWindow::ipConfiguratorActionTriggered() {
   if (ipConfiguratorAction->isChecked()) {
     IpConfiguratorCreator creator;
     // Available IPs DockWidget
-    auto availableIpsgDockWidget = PrepareTab(tr("IP Index"), "availableIpsWidget",
-                                              creator.GetAvailableIpsWidget(),
-                                              nullptr, Qt::RightDockWidgetArea);
+    auto availableIpsgDockWidget = PrepareTab(
+        tr("IP Index"), "availableIpsWidget", creator.GetAvailableIpsWidget(),
+        nullptr, Qt::RightDockWidgetArea);
     connect(availableIpsgDockWidget, &DockWidget::closed, ipConfiguratorAction,
             &QAction::trigger);
 

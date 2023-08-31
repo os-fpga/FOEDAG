@@ -271,7 +271,7 @@ void IpConfigWidget::updateMetaLabel(const IPDetails& details) {
 
   text = text.arg(QString::fromStdString(details.name),
                   QString::fromStdString(details.version),
-                  QString::fromStdString(details.interface),
+                  QString::fromStdString(details.interface_str),
                   QString::fromStdString(details.description));
   metaLabel.setTextFormat(Qt::RichText);
   metaLabel.setText(text);
