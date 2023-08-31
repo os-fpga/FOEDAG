@@ -27,10 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 #include <QProcess>
 #include <chrono>
+#include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <limits>
 #include <queue>
 #include <sstream>
+#include <stdexcept>
+#include <string>
 #include <thread>
 
 #include "Compiler/Compiler.h"
@@ -43,12 +50,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Utils/FileUtils.h"
 #include "Utils/ProcessUtils.h"
 #include "Utils/StringUtils.h"
+#include "sdtgen.h"
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
 using Time = std::chrono::high_resolution_clock;
 using ms = std::chrono::milliseconds;
+using json_sdt = nlohmann::json;
 using json = nlohmann::ordered_json;
+
+int SdtCpuInstSubNode::total_instances;
+int SdtCpuClusterInstSubNode::total_instances;
+int SdtMemoryInstSubNode::total_instances;
+int SdtSocInstSubNode::total_instances;
 
 std::filesystem::path DesignQuery::GetProjDir() const {
   ProjectManager* projManager = m_compiler->ProjManager();
@@ -58,7 +72,8 @@ std::filesystem::path DesignQuery::GetProjDir() const {
 
 std::filesystem::path DesignQuery::GetHierInfoPath() const {
   std::filesystem::path dir = GetProjDir();
-  std::filesystem::path hier_info = "hier_info.json";
+  std::filesystem::path hier_info =
+      "./tests/Testcases/DesignQuery/hier_info.json";
   return dir / hier_info;
 }
 
@@ -109,6 +124,806 @@ bool DesignQuery::LoadHierInfo() {
 }
 
 bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
+  auto sdt_gen_cpus_node = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    }
+
+    // class SdtCpuInstSubNode variable total_instances
+    SdtCpuInstSubNode::total_instances = 0;
+
+    // SdtCpusNode class object
+    SdtCpusNode cpus_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get cpus node from JSON file
+    int result = get_cpus_node(data, cpus_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    int result2;
+
+    // generate cpus node in SDT file
+    result2 = gen_cpus_node(outfile, cpus_node_obj, verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_cpus_node", sdt_gen_cpus_node, this, 0);
+
+  auto sdt_gen_cpus_cluster_node = [](void* clientData, Tcl_Interp* interp,
+                                      int argc, const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    }
+
+    // class SdtCpuClusterInstSubNode variable total_instances
+    SdtCpuClusterInstSubNode::total_instances = 0;
+
+    // SdtCpusClusterNode class object
+    SdtCpusClusterNode cpus_cluster_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get cpus cluster node from JSON file
+    int result =
+        get_cpus_cluster_node(data, cpus_cluster_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    int result2;
+
+    // generate cpus cluster node in SDT file
+    result2 = gen_cpus_cluster_node(outfile, cpus_cluster_node_obj,
+                                    verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_cpus_cluster_node", sdt_gen_cpus_cluster_node,
+                      this, 0);
+
+  auto sdt_gen_memory_node = [](void* clientData, Tcl_Interp* interp, int argc,
+                                const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    }
+
+    // class SdtMemoryInstSubNode variable total_intances
+    SdtMemoryInstSubNode::total_instances = 0;
+
+    // SdtMemoryNode class object
+    SdtMemoryNode memory_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get memory node from JSON file
+    int result = get_memory_node(data, memory_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    int result2;
+
+    // generate memory node in SDT file
+    result2 = gen_memory_node(outfile, memory_node_obj, verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_memory_node", sdt_gen_memory_node, this, 0);
+
+  auto sdt_gen_soc_node = [](void* clientData, Tcl_Interp* interp, int argc,
+                             const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    }
+
+    // class SdtSocInstSubNode variable total_intances
+    SdtSocInstSubNode::total_instances = 0;
+
+    // SdtSocNode class object
+    SdtSocNode soc_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get soc node from JSON file
+    int result = get_soc_node(data, soc_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    int result2;
+
+    // generate soc node in SDT file
+    result2 = gen_soc_node(outfile, soc_node_obj, verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_soc_node", sdt_gen_soc_node, this, 0);
+
+  auto sdt_gen_root_metadata_node = [](void* clientData, Tcl_Interp* interp,
+                                       int argc, const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    };
+
+    // SdtRootMetaDataNode class object
+    SdtRootMetaDataNode rootmetadata_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get root metadata from JSON file
+    int result =
+        get_rootmetadata_node(data, rootmetadata_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    int result2;
+
+    // generate root metadata node in SDT file
+    result2 = gen_rootmetadata_node(outfile, rootmetadata_node_obj,
+                                    verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_root_metadata_node", sdt_gen_root_metadata_node,
+                      this, 0);
+
+  auto sdt_gen_system_device_tree = [](void* clientData, Tcl_Interp* interp,
+                                       int argc, const char* argv[]) -> int {
+    DesignQuery* design_query =
+        (DesignQuery*)clientData;  // typecasting pointer
+    Compiler* compiler = design_query->GetCompiler();
+    bool status = true;
+    std::string cmd_name = std::string(argv[0]);
+    // argv[0] is the main function name which in this case is
+    // "sdt_get_sdt_nodes_dict_from_json"
+    std::string ret = "\n\n" + cmd_name + "__IMPLEMENTED__";
+
+    string sdt_file_path_global = cmd_name + "_output_sdt.sdt";
+
+    int verbose_flag_global;  // = 1; //1;
+
+    if ((argc > 1) && (string(argv[1]) == "verbose")) {
+      verbose_flag_global = 1;
+    } else {
+      verbose_flag_global = 0;
+    }
+
+    // classes variable total_intances init
+    SdtCpuInstSubNode::total_instances = 0;
+    SdtCpuClusterInstSubNode::total_instances = 0;
+    SdtMemoryInstSubNode::total_instances = 0;
+    SdtSocInstSubNode::total_instances = 0;
+
+    // SdtCpusNode class object
+    SdtCpusNode cpus_node_obj;
+
+    // SdtCpusClusterNode class object
+    SdtCpusClusterNode cpus_cluster_node_obj;
+
+    // SdtMemoryNode class object
+    SdtMemoryNode memory_node_obj;
+
+    // SdtSocNode class object
+    SdtSocNode soc_node_obj;
+
+    // SdtRootMetaDataNode class object
+    SdtRootMetaDataNode rootmetadata_node_obj;
+
+    int size;
+
+    // read JSON file
+    ifstream inputFile;
+
+    // inputFile.open("JSON_Files/GPIO_Yosis_Ver_Example/gold_hier_v5.json");
+    // inputFile.open("gold_hier_v5.json");
+    // inputFile.open("sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+    inputFile.open(
+        "./src/DesignQuery/data/JSON_Files/"
+        "sdt_dev_zaid_rapidsilicon_example_soc_v5.json");
+
+    // calculating size of inputFile
+    inputFile.seekg(0, inputFile.end);
+    size = inputFile.tellg();
+    inputFile.seekg(0, inputFile.beg);
+
+    // allocate memory:
+    char* data_file = new char[size];
+
+    // read data as a block:
+    inputFile.read(data_file, size);
+
+    inputFile.close();
+
+    // get meta-data of all SDT nodes from JSON file
+    json_sdt data = json_sdt::parse(data_file);
+
+    // get rootmetadata node from JSON file
+    int result =
+        get_rootmetadata_node(data, rootmetadata_node_obj, verbose_flag_global);
+
+    // get cpus node from JSON file
+    int result3 = get_cpus_node(data, cpus_node_obj, verbose_flag_global);
+
+    // get cpus-cluster node from JSON file
+    int result4 =
+        get_cpus_cluster_node(data, cpus_cluster_node_obj, verbose_flag_global);
+
+    // get soc node from JSON file
+    int result5 = get_memory_node(data, memory_node_obj, verbose_flag_global);
+
+    // get cpus node from JSON file
+    int result6 = get_soc_node(data, soc_node_obj, verbose_flag_global);
+
+    // open a file in write mode.
+    ofstream outfile;
+    outfile.open(sdt_file_path_global);
+
+    outfile << "/*\n \
+    *\n \
+    * @author Zaid Tahir (zaid.butt.tahir@gmail.com or zaidt@bu.edu or https://github.com/zaidtahirbutt)\n \
+    * @date 2023-08-30\n \
+    * @copyright Copyright 2021 The Foedag team\n \
+    \n \
+    * GPL License\n \
+    \n \
+    * Copyright (c) 2021 The Open-Source FPGA Foundation\n \
+    \n \
+    * This program is free software: you can redistribute it and/or modify\n \
+    * it under the terms of the GNU General Public License as published by\n \
+    * the Free Software Foundation, either version 3 of the License, or\n \
+    * (at your option) any later version.\n \
+    \n \
+    * This program is distributed in the hope that it will be useful,\n \
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of\n \
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n \
+    * GNU General Public License for more details.\n \
+    \n \
+    * You should have received a copy of the GNU General Public License\n \
+    * along with this program.  If not, see <http://www.gnu.org/licenses/>. \n*/\n\n";
+
+    outfile << "/dts-v1/;\n\n"
+            << "/ {\n";
+
+    outfile.flush();
+
+    // generate SystemDeviceTree in SDT file
+
+    // generate root metadata node in SDT file
+    int result2 = gen_rootmetadata_node(outfile, rootmetadata_node_obj,
+                                        verbose_flag_global);
+
+    // generate cpus node in SDT file
+    int result7 = gen_cpus_node(outfile, cpus_node_obj, verbose_flag_global);
+
+    // generate cpus-cluster node in SDT file
+    int result8 = gen_cpus_cluster_node(outfile, cpus_cluster_node_obj,
+                                        verbose_flag_global);
+
+    // generate memory node in SDT file
+    int result9 =
+        gen_memory_node(outfile, memory_node_obj, verbose_flag_global);
+
+    // generate soc node in SDT file
+    int result10 = gen_soc_node(outfile, soc_node_obj, verbose_flag_global);
+
+    outfile << "\n\n};" << endl;
+
+    outfile.flush();
+
+    string string_outfile =
+        return_string_from_ofstream_file(outfile, sdt_file_path_global);
+
+    ret = ret + "\n\n\nOutput of tcl command \"" + cmd_name +
+          "\" is shown below:\n\n" + string_outfile;
+
+    outfile.close();
+
+    status = result2 & result & result3 & result4 & result5 & result6 &
+             result7 & result8 & result9 & result10;
+
+    string return_status;
+
+    if (status) {
+      return_status = "True";
+    } else {
+      return_status = "False";
+    }
+
+    ret = ret + "\n\nReturn status of command \"" + cmd_name +
+          "\" is = " + return_status + "\n\n";
+
+    compiler->TclInterp()->setResult(ret);
+
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("sdt_gen_system_device_tree", sdt_gen_system_device_tree,
+                      this, 0);
+
   auto get_file_ids = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
     DesignQuery* design_query = (DesignQuery*)clientData;
@@ -171,5 +986,6 @@ bool DesignQuery::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;
   };
   interp->registerCmd("get_ports", get_ports, this, 0);
+
   return true;
 }

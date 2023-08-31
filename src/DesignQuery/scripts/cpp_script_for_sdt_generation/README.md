@@ -1,0 +1,1 @@
+Run "make all" to compile and generate sdt file in the current folder 
