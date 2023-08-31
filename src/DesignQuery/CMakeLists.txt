@@ -42,9 +42,13 @@ include_directories(${PROJECT_SOURCE_DIR}/../../src ${PROJECT_SOURCE_DIR}/.. ${C
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
-set (SRC_CPP_LIST
-  DesignQuery.cpp
+file (GLOB SRC_CPP_LIST PRIVATE
+  "*.cpp"
 )
+
+# set (SRC_CPP_LIST
+#   DesignQuery.cpp
+# )
 
 set (SRC_H_INSTALL_LIST
   DesignQuery.h
