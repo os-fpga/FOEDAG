@@ -144,7 +144,7 @@ IPDialogBox::IPDialogBox(QWidget* parent, const QString& requestedIpName,
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
   LoadImage();
 
-  // TODO generate with another module name doesnt work
+  setWindowTitle("IP Configuration");
 }
 
 QString IPDialogBox::ModuleName() const {
