@@ -740,6 +740,17 @@ TEST_F(ProgrammerAPI_ProgramFlashAndFpga, ProgramFlashBitfileNotFoundTest) {
   int actual = ProgramFlash(cable, device, bitfile, stop, modes, nullptr, nullptr, nullptr);
   EXPECT_EQ(expected, actual);
 }
+
+TEST(ProgrammerHelper, InitializeHwDb) {
+  // in CI, no cable is connected
+  std::vector<HwDevices> cableDeviceDb;
+  std::map<std::string, Cable> cableMap;
+  testing::internal::CaptureStdout();
+  InitializeHwDb(cableDeviceDb, cableMap);
+  std::string output = testing::internal::GetCapturedStdout();
+  std::string expected = "INFO: No cable found.\n";
+  EXPECT_EQ(output, expected);
+}
 #endif // __linux__
 
 TEST(ProgrammerHelper, printCableListTest)
@@ -880,17 +891,6 @@ TEST_F(HwDevicesTestFixture, FindDeviceByNameTest) {
   EXPECT_EQ(device.name, hwDevices.getDevices()[1].name);
   EXPECT_EQ(device.index, hwDevices.getDevices()[1].index);
   EXPECT_EQ(device.flashSize, hwDevices.getDevices()[1].flashSize);
-}
-
-TEST(Programmer, InitializeHwDb) {
-  // in CI, no cable is connected
-  std::vector<HwDevices> cableDeviceDb;
-  std::map<std::string, Cable> cableMap;
-  testing::internal::CaptureStdout();
-  InitializeHwDb(cableDeviceDb, cableMap);
-  std::string output = testing::internal::GetCapturedStdout();
-  std::string expected = "INFO: No cable found.\n";
-  EXPECT_EQ(output, expected);
 }
 
 
