@@ -389,7 +389,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               constraints->GetCompiler()->isRtlClock(arg, false);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            return TCL_ERROR;
+            // Temporarily relax until we have analyze command back: return
+            // TCL_ERROR;
           }
           if (isRtlClock) {
             Tcl_AppendResult(
@@ -441,7 +442,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               constraints->GetCompiler()->isRtlClock(arg, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            return TCL_ERROR;
+            // Temporarily relax until we have analyze command back: return
+            // TCL_ERROR;
           }
           if (!isRtlClock) {
             // Demote to warning only for now:
