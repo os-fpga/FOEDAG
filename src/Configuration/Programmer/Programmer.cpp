@@ -52,7 +52,7 @@ std::map<int, std::string> ErrorMessages = {
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
     {InvalidFlashSize, "Invalid flash size"},
-    {UnsupportedFunc, "Unsupported function"}};
+    {UnsupportedFunc, "Unsupported function"}
 };  // namespace FOEDAG
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
