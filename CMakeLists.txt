@@ -40,7 +40,7 @@ set(VERSION_MINOR 0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
 
-set(VERSION_PATCH 238)
+set(VERSION_PATCH 239)
 
 
 option(
@@ -309,7 +309,7 @@ endif()
 
 message(STATUS "GIT_HASH = ${GIT_HASH}")
 message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
-if(STICK_RELEASE_VERSION STREQUAL "")
+if("${STICK_RELEASE_VERSION}" STREQUAL "")
   string(TIMESTAMP CURRENT_DATE "%Y-%m-%d" UTC)
   string(SUBSTRING "${CURRENT_DATE}" 0 4 RELEASE_YEAR)
   string(SUBSTRING "${CURRENT_DATE}" 5 2 RELEASE_MONTH)
