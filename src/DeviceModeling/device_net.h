@@ -17,6 +17,8 @@
 class device_block;
 class device_signal;
 
+using namespace std;
+
 /**
  * @class device_net
  * @brief Class representing a net in a device.

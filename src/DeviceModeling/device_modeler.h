@@ -976,6 +976,7 @@ class device_modeler {
    * - `-logic_address`: The logic address associated with the instance.
    * - `-logic_location_x`: The logic X location of the instance.
    * - `-logic_location_y`: The logic Y location of the instance.
+   * - `-logic_location_z`: The logic Z location of the instance.
    *
    * After specifying the necessary parameters, this function creates a new
    * instance of the specified block, sets its attributes, and adds it to the
@@ -1005,6 +1006,8 @@ class device_modeler {
         get_argument_value("-logic_location_x", argc, argv);
     std::string logic_location_y =
         get_argument_value("-logic_location_y", argc, argv);
+    std::string logic_location_z =
+        get_argument_value("-logic_location_z", argc, argv);
 
     // block_name is optional. If it's empty, use current_device scope
     auto block = current_device_->get_block(block_name);
@@ -1062,9 +1065,22 @@ class device_modeler {
                   << '\n';
       }
     }
+    int logic_location_z_i = -1;
+    if ("" != logic_location_y) {
+      try {
+        logic_location_z_i = std::stoi(logic_location_z);
+      } catch (std::invalid_argument const &e) {
+        std::cout << "Bad input: std::invalid_argument " << logic_location_z
+                  << '\n';
+      } catch (std::out_of_range const &e) {
+        std::cout << "Integer overflow: std::out_of_range " << logic_location_z
+                  << '\n';
+      }
+    }
     block->instance_vector().push_back(std::make_shared<device_block_instance>(
         block, block->instance_vector().size(), logic_location_x_i,
-        logic_location_y_i, logic_address_i, name, io_bank));
+        logic_location_y_i, logic_address_i, name, io_bank,
+        logic_location_z_i));
     block->instances()[name] = block->instance_vector().back();
     return true;
   }

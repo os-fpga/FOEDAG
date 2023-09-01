@@ -65,8 +65,8 @@ std::string CFG_print(const char* format_string, ...) {
 
 void CFG_assertion(const char* file, const char* func, size_t line,
                    std::string msg) {
-  std::string filepath = change_directory_to_linux_format(file);
-  filepath = get_configuration_relative_path(filepath);
+  std::string filepath = CFG_change_directory_to_linux_format(file);
+  filepath = CFG_get_configuration_relative_path(filepath);
   std::string err = func != nullptr
                         ? CFG_print("Assertion at %s (func: %s, line: %d)",
                                     filepath.c_str(), func, (uint32_t)(line))
@@ -110,9 +110,9 @@ float CFG_time_elapse(CFG_TIME begin) {
   return float(CFG_nano_time_elapse(begin) * 1e-9);
 }
 
-void set_callback_message_function(cfg_callback_post_msg_function msg,
-                                   cfg_callback_post_err_function err,
-                                   cfg_callback_execute_command exec) {
+void CFG_set_callback_message_function(cfg_callback_post_msg_function msg,
+                                       cfg_callback_post_err_function err,
+                                       cfg_callback_execute_command exec) {
   CFG_ASSERT(msg != nullptr);
   CFG_ASSERT(err != nullptr);
   CFG_ASSERT(exec != nullptr);
@@ -121,7 +121,7 @@ void set_callback_message_function(cfg_callback_post_msg_function msg,
   m_execute_cmd_function = exec;
 }
 
-void unset_callback_message_function() {
+void CFG_unset_callback_message_function() {
   m_msg_function = nullptr;
   m_err_function = nullptr;
   m_execute_cmd_function = nullptr;
@@ -150,7 +150,7 @@ void CFG_post_err(const std::string& message, bool append) {
   }
 }
 
-std::string change_directory_to_linux_format(std::string path) {
+std::string CFG_change_directory_to_linux_format(std::string path) {
   std::replace(path.begin(), path.end(), '\\', '/');
   size_t index = path.find("//");
   while (index != std::string::npos) {
@@ -160,8 +160,9 @@ std::string change_directory_to_linux_format(std::string path) {
   return path;
 }
 
-std::string get_configuration_relative_path(std::string path) {
-  size_t index = path.find("/src/Configuration");
+std::string CFG_get_configuration_relative_path(std::string path) {
+  path = CFG_change_directory_to_linux_format(path);
+  size_t index = path.rfind("/src/Configuration");
   if (index != std::string::npos) {
     path.erase(0, index + 5);
   }
