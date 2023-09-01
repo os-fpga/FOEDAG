@@ -1,7 +1,10 @@
-#setuptools==67.7.2
 #Python requirements file for building documentation
 # used by Read The Docs to install python required 
 # modules with pip.
+
+sphinx==5.3.0
+sphinx_rtd_theme==1.1.1
+readthedocs-sphinx-search==0.1.1
 
 # Support Markdown
 #recommonmark
@@ -10,7 +13,7 @@
 sphinxcontrib-bibtex
 
 # Package required to embed youtube video
-sphinxcontrib-youtube
+# sphinxcontrib-youtube
 
 # Package required to convert SVG for latex building
 sphinxcontrib-svg2pdfconverter
