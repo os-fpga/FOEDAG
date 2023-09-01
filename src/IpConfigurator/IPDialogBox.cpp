@@ -173,8 +173,12 @@ void IPDialogBox::OpenDocumentaion() {
 void IPDialogBox::OpenIpLocation() {
   if (auto def = getDefinition(m_requestedIpName.toStdString()); def) {
     auto filePath = def->FilePath().parent_path();
-    QDesktopServices::openUrl(
-        QUrl::fromLocalFile(QString::fromStdString(filePath.string())));
+    auto url = QUrl::fromLocalFile(QString::fromStdString(filePath.string()));
+    if (!QDesktopServices::openUrl(url)) {
+      QMessageBox::warning(
+          this, ui->ipLocation->windowTitle(),
+          "Failed to open " + QString::fromStdString(filePath.string()));
+    }
   }
 }
 
