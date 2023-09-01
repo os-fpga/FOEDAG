@@ -452,7 +452,7 @@ bool isOperationRequested(const std::string& operation,
                    operation) != supportedOperations.end();
 }
 
-void printCableList(std::vector<Cable> cableList) {
+void printCableList(const std::vector<Cable>& cableList) {
   CFG_POST_MSG("Cable            ");
   CFG_POST_MSG("-----------------");
   for (const auto& cable : cableList) {
@@ -539,7 +539,7 @@ bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
 }
 
 void InitializeHwDb(
-    std::vector<HwDevices> cableDeviceDb,
+    std::vector<HwDevices>& cableDeviceDb,
     std::map<std::string, Cable>& cableMap,
     std::function<void(const Cable&, const std::vector<Device>&)>
         printDeviceList) {

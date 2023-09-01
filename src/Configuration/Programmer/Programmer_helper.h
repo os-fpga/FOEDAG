@@ -77,7 +77,7 @@ std::vector<std::string> parseOperationString(const std::string& operation);
 bool isOperationRequested(const std::string& operation,
                           const std::vector<std::string>& supportedOperations);
 
-void printCableList(std::vector<Cable> cableList);
+void printCableList(const std::vector<Cable>& cableList);
 void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
 
 std::string removeInfoAndNewline(const std::string& input);
@@ -85,7 +85,7 @@ std::string removeInfoAndNewline(const std::string& input);
 void InitializeCableMap(std::vector<Cable>& cables,
                         std::map<std::string, Cable>& cableMapObj);
 void InitializeHwDb(
-    std::vector<HwDevices> cableDeviceDb,
+    std::vector<HwDevices>& cableDeviceDb,
     std::map<std::string, Cable>& cableMap,
     std::function<void(const Cable&, const std::vector<Device>&)>
         printDeviceList = nullptr);
