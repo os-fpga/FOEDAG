@@ -13,7 +13,7 @@ readthedocs-sphinx-search==0.1.1
 sphinxcontrib-bibtex
 
 # Package required to embed youtube video
-# sphinxcontrib-youtube
+sphinxcontrib-youtube
 
 # Package required to convert SVG for latex building
 sphinxcontrib-svg2pdfconverter
