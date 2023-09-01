@@ -52,7 +52,8 @@ std::map<int, std::string> ErrorMessages = {
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
     {InvalidFlashSize, "Invalid flash size"},
-};
+    {UnsupportedFunc, "Unsupported function"}};
+};  // namespace FOEDAG
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
@@ -280,6 +281,9 @@ std::string GetErrorMessage(int errorCode) {
 }
 
 int GetAvailableCables(std::vector<Cable>& cables) {
+#ifdef _MSC_VER
+  return ProgrammerErrorCode::UnsupportedFunc;
+#else
   struct libusb_context* jtagLibusbContext = nullptr; /**< Libusb context **/
   struct libusb_device** deviceList = nullptr; /**< The usb device list **/
   struct libusb_device_handle* libusbHandle = nullptr;
@@ -352,6 +356,7 @@ int GetAvailableCables(std::vector<Cable>& cables) {
   if (jtagLibusbContext != nullptr) libusb_exit(jtagLibusbContext);
 
   return ProgrammerErrorCode::NoError;
+#endif  // _MSC_VER
 }
 
 int ListDevices(const Cable& cable, std::vector<Device>& devices) {

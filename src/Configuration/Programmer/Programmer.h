@@ -44,6 +44,7 @@ enum ProgrammerErrorCode {
   FailedToProgramFPGA = -109,
   OpenOCDExecutableNotFound = -110,
   InvalidFlashSize = 111,
+  UnsupportedFunc = 112,
 };
 
 extern std::map<int, std::string> ErrorMessages;
