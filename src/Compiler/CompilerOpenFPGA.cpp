@@ -1185,6 +1185,25 @@ bool CompilerOpenFPGA::Synthesize() {
     }
   }
 
+  if (GetParserType() == ParserType::Default) {
+    bool hasVhdl = false;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      switch (lang_file.first.language) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+        case Design::Language::VHDL_2019:
+          hasVhdl = true;
+          break;
+      }
+    }
+    if (hasVhdl) {
+      // For GHDL parser
+      SetParserType(ParserType::GHDL);
+    }
+  }
+
   switch (GetParserType()) {
     case ParserType::Verific: {
       // Verific parser
@@ -1789,6 +1808,14 @@ bool CompilerOpenFPGA::Synthesize() {
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " synthesis failed");
+    if (GetParserType() == ParserType::Default) {
+      // If Default Yosys parser fails, attempt with the Surelog parser
+      SetParserType(ParserType::Surelog);
+      bool subResult = Synthesize();
+      if (subResult) {
+        return true;
+      }
+    }
     return false;
   } else {
     m_state = State::Synthesized;
