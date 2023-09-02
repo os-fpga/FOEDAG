@@ -48,10 +48,12 @@ bool tclCmdExists(const QString& cmdName) {
 
 IpCatalogTree::IpCatalogTree(QWidget* parent /*nullptr*/)
     : QTreeWidget(parent) {
-  this->setHeaderLabel("Available IPs");
+  this->setHeaderLabel("Available");
   refresh();
   connect(this, &QTreeWidget::itemSelectionChanged, this,
           &IpCatalogTree::itemSelectionHasChanged);
+  connect(this, &QTreeWidget::itemDoubleClicked, this,
+          &IpCatalogTree::openIpSettings);
 }
 
 void IpCatalogTree::refresh() {

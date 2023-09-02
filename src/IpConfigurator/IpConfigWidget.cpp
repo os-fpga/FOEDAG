@@ -74,7 +74,7 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
       m_baseDirDefault{getUserProjectPath("IPs")},
       m_requestedIpName(requestedIpName),
       m_instanceValueArgs(instanceValueArgs) {
-  this->setWindowTitle("Configure IP");
+  this->setWindowTitle("IP Description/Details");
   this->setObjectName("IpConfigWidget");
 
   // Set the path related widgets' tooltips to whatever their text is so long
@@ -106,23 +106,15 @@ IpConfigWidget::IpConfigWidget(QWidget* parent /*nullptr*/,
 
   // Fill and add Parameters box
   CreateParamFields(true);
-  containerLayout->addWidget(paramsBox);
 
   // Add Output Box
   CreateOutputFields();
-  containerLayout->addWidget(&outputBox);
-  containerLayout->addStretch();
+
   // Update the module name if one was passed (this occurs during a
   // re-configure)
   if (!moduleName.isEmpty()) {
     moduleEdit.setText(moduleName);
   }
-
-  // Add Dialog Buttons
-  AddDialogControls(topLayout);
-
-  // Update output path now that meta data has been loaded
-  updateOutputPath();
 
   // run with --json --json-template parameters to get default GUI
   if (!requestedIpName.isEmpty()) handleEditorChanged({}, nullptr);
@@ -188,12 +180,19 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
   QStringList tclArgList;
   json parentJson;
   // Loop through IPDefinitions stored in IPCatalog
+
   for (auto def : getDefinitions()) {
     // if this definition is for the requested IP
     if (m_requestedIpName.toStdString() == def->Name()) {
       // Store VLNV meta data for the requested IP
       m_meta = FOEDAG::getIpInfoFromPath(def->FilePath());
-
+      Compiler* compiler = GlobalSession->GetCompiler();
+      auto generator = compiler->GetIPGenerator();
+      for (IPInstance* inst : generator->IPInstances()) {
+        if (inst->IPName() != m_requestedIpName.toStdString()) continue;
+        m_details = FOEDAG::readIpDetails(
+            generator->GetTmpCachePath(inst).parent_path() / "details.json");
+      }
       if (generateMetaLabel) {
         // set default module name to the BuildName provided by the generate
         // script otherwise default to the to the VLNV name
@@ -204,78 +203,7 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
         moduleEdit.setText(QString::fromStdString(build_name));
 
         // Update meta label now that vlnv and module info is updated
-        updateMetaLabel(m_meta);
-      }
-
-      // Build widget factory json for each parameter
-      for (auto paramVal : def->Parameters()) {
-        if (paramVal->GetType() == Value::Type::ParamIpVal) {
-          IPParameter* param = static_cast<IPParameter*>(paramVal);
-          json childJson;
-          // Add P to the arg for configure_ip format: -P{ARG_NAME}
-          childJson["arg"] = "P" + param->Name();
-          // use the param name as a customId for dependency checking
-          childJson["customId"] = param->Name();
-          childJson["label"] = param->GetTitle();
-          childJson["tooltip"] = param->GetDescription();
-          childJson["bool_dependencies"] = param->GetDependencies();
-          childJson["disable"] = param->Disabled();
-          std::string defaultValue = param->GetSValue();
-
-          // Determine what type of widget we need for this parameter
-          if (param->GetParamType() == IPParameter::ParamType::Bool) {
-            // Use Checkboxes for Bools
-            childJson["widgetType"] = "checkbox";
-          } else if (param->GetParamType() ==
-                     IPParameter::ParamType::FilePath) {
-            childJson["widgetType"] = "filepath";
-          } else if (param->GetOptions().size()) {
-            // Use Comboboxes if "options" field exists
-            childJson["widgetType"] = "combobox";
-            childJson["options"] = param->GetOptions();
-            childJson["optionsLookup"] = param->GetOptions();
-            childJson["addUnset"] = false;
-          } else if (param->GetRange().size() > 1) {
-            // Use QLineedit w/ a validator if "range" field exists
-            auto range = param->GetRange();
-            if (range.size() == 2) {
-              auto paramType = param->GetParamType();
-              childJson["widgetType"] = "input";
-              childJson["validatorMin"] = range[0];
-              childJson["validatorMax"] = range[1];
-
-              // Add range info to parameter title
-              std::string rangeStr = " <span style=\"color:grey;\">[" +
-                                     range[0] + ", " + range[1] + "]</span>";
-              childJson["label"] = param->GetTitle() + rangeStr;
-
-              if (paramType == IPParameter::ParamType::Int) {
-                childJson["validator"] = "int";
-              } else if (paramType == IPParameter::ParamType::Float) {
-                childJson["validator"] =
-                    "double";  // Qt only provides a double validator
-              } else {
-                // TODO @skyler-rs nov2022 add error msg when logging is avail
-                // Range option only supports float and int types
-              }
-            } else {
-              // TODO @skyler-rs nov2022 add error msg when logging is avail
-              // only 2 values expected, rest will be ignored
-            }
-          } else {
-            childJson["widgetType"] = "input";
-          }
-
-          parentJson[param->Name()] = childJson;
-
-          // replaces spaces in value so arg list doesn't break
-          QString valNoSpaces =
-              QString::fromStdString(defaultValue).replace(" ", WF_SPACE);
-
-          // Create a list of tcl defaults that will be passed to createWidget
-          tclArgList << QString("-P%1 %2").arg(
-              QString::fromStdString(param->Name()), valNoSpaces);
-        }
+        updateMetaLabel(m_details);
       }
     }
   }
@@ -284,26 +212,6 @@ void IpConfigWidget::CreateParamFields(bool generateMetaLabel) {
   if (!m_instanceValueArgs.isEmpty()) {
     tclArgList = m_instanceValueArgs;
   }
-
-  containerLayout->removeWidget(paramsBox);
-  paramsBox->deleteLater();
-  paramsBox = new QGroupBox{"Parameters", this};
-  containerLayout->insertWidget(1, paramsBox);
-
-  if (parentJson.empty()) {
-    // Add a note if no parameters were available
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(new QLabel("<em>This IP has no parameters</em>"));
-    paramsBox->setLayout(layout);
-  } else {
-    // Create and add the child widget to our parent container
-    auto form = createWidgetFormLayout(parentJson, tclArgList);
-    paramsBox->setLayout(form);
-  }
-
-  QObject::connect(WidgetFactoryDependencyNotifier::Instance(),
-                   &WidgetFactoryDependencyNotifier::editorChanged, this,
-                   &IpConfigWidget::handleEditorChanged, Qt::UniqueConnection);
 }
 
 void IpConfigWidget::CreateOutputFields() {
@@ -339,19 +247,34 @@ void IpConfigWidget::CreateOutputFields() {
   outputBox.setLayout(form);
 }
 
-void IpConfigWidget::updateMetaLabel(VLNV info) {
-  // Create a descriptive sentence that lists all the VLNV info
-  QString verStr = QString::fromStdString(info.version).replace("_", ".");
-  QString action = "Configuring";
-  if (!m_instanceValueArgs.empty()) {
-    // if params were passed then we are reconfiguring an existing instance
-    action = "Reconfiguring instance \"" + moduleEdit.text() + "\" for ";
-  }
-  std::string text = "<em>" + action.toStdString() + " " + info.name + " (" +
-                     verStr.toStdString() + ")" + " from " + info.vendor +
-                     "'s " + info.library + " library</em>";
+void IpConfigWidget::updateMetaLabel(const IPDetails& details) {
+  QString text = R"(
+<table cellspacing=10>
+  <tr>
+    <td align="left">Name:</th>
+    <td align="left">%1</th>
+  </tr>
+  <tr>
+    <td align="left">Version:</th>
+    <td align="left">%2</th>
+  </tr>
+  <tr>
+    <td align="left">Interface:</th>
+    <td align="left">%3</th>
+  </tr>
+  <tr>
+    <td align="left">Description:</th>
+    <td align="left">%4</th>
+  </tr>
+</table>
+)";
+
+  text = text.arg(QString::fromStdString(details.name),
+                  QString::fromStdString(details.version),
+                  QString::fromStdString(details.interface_str),
+                  QString::fromStdString(details.description));
   metaLabel.setTextFormat(Qt::RichText);
-  metaLabel.setText(QString::fromStdString(text));
+  metaLabel.setText(text);
   metaLabel.setWordWrap(true);
 }
 
@@ -520,7 +443,7 @@ void IpConfigWidget::genarateNewPanel(const std::string& newJson,
     qWarning() << "Failed to parse new json";
     return;
   }
-  CreateParamFields(false);
+  CreateParamFields(true);
 }
 
 void IpConfigWidget::restoreProperties(

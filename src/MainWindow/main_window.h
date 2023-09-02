@@ -117,6 +117,7 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
  public slots:
   void updateSourceTree();
   void handleIpTreeSelectionChanged();
+  void openIpConfigurationDialog();
   void handleIpReConfigRequested(const QString& ipName,
                                  const QString& moduleName,
                                  const QStringList& paramList);
