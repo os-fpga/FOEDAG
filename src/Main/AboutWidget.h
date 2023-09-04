@@ -27,6 +27,7 @@ namespace FOEDAG {
 struct ProjectInfo {
   QString name;
   QString version;
+  QString build;
   QString git_hash;
   QString url;
   QString build_type;
