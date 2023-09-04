@@ -389,7 +389,7 @@ void IPGenerator::RemoveIPInstance(IPInstance* instance) {
     // match if the command contains "ipgenerate -modules <moduleName>"
     std::string modName = "ipgenerate -modules " + instance->ModuleName();
     auto isMatch = [modName](const std::string& ipGenStr) {
-      return (ipGenStr.find(modName) == std::string::npos);
+      return (ipGenStr.find(modName) != std::string::npos);
     };
 
     // Remove any found matches
