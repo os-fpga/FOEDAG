@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NewProject/ProjectManager/project_manager.h"
 #include "TaskGlobal.h"
 #include "TaskManager.h"
+#include "Utils/FileUtils.h"
 
 inline void initializeResources() { Q_INIT_RESOURCE(compiler_resources); }
 namespace FOEDAG {
@@ -142,12 +143,9 @@ void TaskTableView::customMenuRequested(const QPoint &pos) {
                 [this, index]() { userActionCleanHandle(index); });
         menu->addAction(clean);
       }
-      if (TaskManager::isSimulation(task)) {
-        QAction *view = new QAction("View waveform", this);
-        connect(view, &QAction::triggered, this,
-                [this, task]() { emit ViewWaveform(task); });
-        menu->addAction(view);
-      }
+      if (TaskManager::isSimulation(task))
+        addTaskViewWaveformAction(menu, task);
+
       addTaskLogAction(menu, task);
       menu->addSeparator();
     }
@@ -253,6 +251,20 @@ void TaskTableView::addExpandCollapse(QMenu *menu) {
   connect(collapse, &QAction::triggered, this,
           [areaAction]() { areaAction(ExpandAreaAction::Collapse); });
   menu->addAction(collapse);
+}
+
+void TaskTableView::addTaskViewWaveformAction(QMenu *menu, Task *task) {
+  QAction *view = new QAction("View waveform", this);
+  connect(view, &QAction::triggered, this,
+          [this, task]() { emit ViewWaveform(task); });
+  menu->addAction(view);
+
+  auto compiler = m_taskManager->GetCompiler();
+  auto simType = task->cusomData().data.value<Simulator::SimulationType>();
+  auto fileName = compiler->GetSimulator()->WaveFile(simType);
+  std::filesystem::path filePath =
+      compiler->FilePath(Compiler::ToCompilerAction(simType), fileName);
+  view->setEnabled(FileUtils::FileExists(filePath));
 }
 
 TaskTableView::TasksDelegate::TasksDelegate(TaskTableView &view,

@@ -40,6 +40,10 @@ static constexpr auto CleanText{
     "files generated from the selected task will be deleted "
     "from disk. Also, this will trigger the cleaning of the subsequent tasks "
     "in compile order."};
+static constexpr auto SimulationCleanText{
+    "Do you want to proceed with the cleaning of the %1?\n\nNote: All the "
+    "files generated from the selected task will be deleted "
+    "from disk."};
 
 static constexpr auto ParentTitle{"ParentTitle"};
 
@@ -271,7 +275,7 @@ void TaskManager::startTask(Task *t) {
     if (m_dialogProvider) {
       if (m_dialogProvider->question(
               CleanTitle,
-              QString{CleanText}.arg(t->property(ParentTitle).toString())) !=
+              cleanText(t).arg(t->property(ParentTitle).toString())) !=
           UserSelection::Accept)
         return;
     }
@@ -405,13 +409,9 @@ void TaskManager::resetTask(Task *t) {
 }
 
 QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
+  auto cleanParent = GetCleanParent(t);
+  if (cleanParent && isSimulation(cleanParent)) return {t};
   QVector<Task *> tasks;
-  for (auto task : m_taskQueue) {
-    if ((task->cleanTask() == t) && isSimulation(task)) {
-      tasks.append(t);
-      return tasks;
-    }
-  }
   for (auto it{m_taskQueue.rbegin()}; it != m_taskQueue.rend(); ++it) {
     if ((*it)->type() == TaskType::Clean) tasks.append(*it);
     if (*it == t) break;
@@ -427,6 +427,22 @@ void TaskManager::registerReportManager(uint type,
           &TaskManager::logFileParsed);
   auto ptr = std::shared_ptr<AbstractReportManager>(manager);
   m_reportManagerRegistry.registerReportManager(type, std::move(ptr));
+}
+
+QString TaskManager::cleanText(Task *t) const {
+  auto cleanParent = GetCleanParent(t);
+  if (cleanParent && isSimulation(cleanParent))
+    return QString{SimulationCleanText};
+  return QString{CleanText};
+}
+
+Task *TaskManager::GetCleanParent(Task *t) const {
+  for (auto task : m_taskQueue) {
+    if ((task->cleanTask() == t) && isSimulation(task)) {
+      return task;
+    }
+  }
+  return nullptr;
 }
 
 }  // namespace FOEDAG
