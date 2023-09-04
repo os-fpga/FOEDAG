@@ -1242,7 +1242,7 @@ void MainWindow::ReShowWindow(QString strProject) {
   addDockWidget(Qt::LeftDockWidgetArea, propertiesDockWidget);
   propertiesDockWidget->hide();
   connect(sourcesForm, &SourcesForm::IpReconfigRequested, this,
-          &MainWindow::handleIpReConfigRequested);
+          &MainWindow::openIpConfigurationDialog);
   connect(sourcesForm, &SourcesForm::IpRemoveRequested, this,
           &MainWindow::handleRemoveIpRequested);
   connect(sourcesForm, &SourcesForm::IpDeleteRequested, this,
@@ -1607,7 +1607,7 @@ void MainWindow::ipConfiguratorActionTriggered() {
       connect(m_ipCatalogTree, &IpCatalogTree::ipReady, this,
               &MainWindow::handleIpTreeSelectionChanged);
       connect(m_ipCatalogTree, &IpCatalogTree::openIpSettings, this,
-              &MainWindow::openIpConfigurationDialog);
+              [this]() { openIpConfigurationDialog({}, {}, {}); });
     }
 
     // update the console for input incase the IP system printed any messages
@@ -1652,10 +1652,16 @@ void MainWindow::handleIpTreeSelectionChanged() {
   }
 }
 
-void MainWindow::openIpConfigurationDialog() {
-  auto items = m_ipCatalogTree->selectedItems();
-  if (items.count() > 0) {
-    IPDialogBox ipDialogBox{this, items[0]->text(0)};
+void MainWindow::openIpConfigurationDialog(const QString& ipName,
+                                           const QString& moduleName,
+                                           const QStringList& paramList) {
+  QString name{ipName};
+  if (name.isEmpty()) {
+    auto items = m_ipCatalogTree->selectedItems();
+    if (items.count() > 0) name = items[0]->text(0);
+  }
+  if (!name.isEmpty()) {
+    IPDialogBox ipDialogBox{this, name, moduleName, paramList};
     auto result = ipDialogBox.exec();
     if (result == QDialog::Accepted) updateSourceTree();
   }
