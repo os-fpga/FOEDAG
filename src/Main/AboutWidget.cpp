@@ -40,18 +40,15 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   QPushButton *close = new QPushButton("Close", this);
 
   QString text = QString(
-                     "<p><b>%1 %2</b></p>"
-                     "<p><b>%3</b></p>"
-                     "<p>Build on %4</p>"
-                     "<p>Build type: %5</p>")
-                     .arg(info.name, info.version, getTagLine(srcPath),
-                          __DATE__, info.build_type);
-  if (!info.url.isEmpty()) {
-    text += QString(
-                "<p>From revision <a "
-                "href=\"%1%2\">%2</a></p>")
-                .arg(info.url, info.git_hash);
-  }
+                     "<p><b>%1</b></p>"
+                     "<p><b>%2</b></p>"
+                     "<p>Version: %3</p>"
+                     "<p>Build: %4</p>"
+                     "<p>Hash: %5</p>"
+                     "<p>Date: %6</p>"
+                     "<p>Type: %7</p>")
+                     .arg(info.name, getTagLine(srcPath), info.version,
+                          info.build, info.git_hash, __DATE__, info.build_type);
   QTextEdit *license{nullptr};
   if (!info.licenseFile.isEmpty()) {
     license = new QTextEdit{this};
