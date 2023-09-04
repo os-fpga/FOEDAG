@@ -143,6 +143,8 @@ class TaskManager : public QObject {
   void appendTask(Task *t);
   void resetTask(Task *t);
   void registerReportManager(uint type, AbstractReportManager *manager);
+  QString cleanText(Task *t) const;
+  Task *GetCleanParent(Task *t) const;
 
  private:
   QMap<uint, Task *> m_tasks;
