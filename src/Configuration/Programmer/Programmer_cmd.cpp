@@ -107,7 +107,8 @@ int main(int argc, const char** argv) {
   }
 
   CfgStatus status;
-  ret = GetFpgaStatus(cables[0], devices[0], status);
+  std::string statusCmdOutput;
+  ret = GetFpgaStatus(cables[0], devices[0], status, statusCmdOutput);
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
     return ret;
@@ -118,11 +119,12 @@ int main(int argc, const char** argv) {
 
   int userInput = 1;
   std::atomic<bool> stop = false;
-  std::string bitfile = "/your/bitstream/file.bin";
+  std::string bitfile{};
   std::cout << "Enter 1 for fpga programming (default  1)\n"
             << "2 for flash programming" << std::endl;
   std::cin >> userInput;
-
+  std::cout << "Enter bitstream file for programming\n";
+  std::cin >> bitfile;
   if (userInput == 1) {
     ret = ProgramFpga(cables[0], devices[0], bitfile, stop,
                       nullptr,          //&std::cout,
@@ -130,8 +132,6 @@ int main(int argc, const char** argv) {
                       progressCallback  // progressCallback
     );
   } else {
-    bitfile = "/your/flash/bitstream/file.bin";
-    std::cout << "Enter 1 for fpga pr";
     ProgramFlashOperation modes = ProgramFlashOperation::Program;
     ret = ProgramFlash(cables[0], devices[0], bitfile, stop, modes,
                        nullptr,          //&std::cout,
@@ -145,7 +145,7 @@ int main(int argc, const char** argv) {
     return ret;
   }
 
-  ret = GetFpgaStatus(cables[0], devices[0], status);
+  ret = GetFpgaStatus(cables[0], devices[0], status, statusCmdOutput);
   if (ret != NoError) {
     CFG_POST_MSG("Error code = %d. %s", ret, GetErrorMessage(ret).c_str());
     return ret;
