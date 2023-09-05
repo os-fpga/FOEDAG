@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/types.h>
 
 #include <QDebug>
+#include <QFile>
 #include <QProcess>
 #include <chrono>
 #include <ctime>
@@ -37,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "MainWindow/Session.h"
 #include "Utils/FileUtils.h"
 #include "Utils/StringUtils.h"
+#include "nlohmann_json/json.hpp"
+using json = nlohmann::ordered_json;
 
 extern FOEDAG::Session* GlobalSession;
 using namespace FOEDAG;
@@ -115,4 +118,26 @@ std::filesystem::path IPCatalog::getPythonPath() {
     s_pythonPath = FileUtils::LocateFileRecursive(searchPath, "python");
   }
   return s_pythonPath;
+}
+
+IPDetails FOEDAG::readIpDetails(const std::filesystem::path& path) {
+  IPDetails details;
+  QFile file{QString::fromStdString(path.string())};
+  if (!file.open(QFile::ReadOnly)) return details;
+  QString content = file.readAll();
+  json object;
+  try {
+    object = json::parse(content.toStdString());
+  } catch (std::exception& e) {
+    return details;
+  }
+
+  if (object.contains("IP details")) {
+    auto ip_details = object.at("IP details");
+    details.name = ip_details["Name"];
+    details.description = ip_details["Description"];
+    details.interface_str = ip_details["Interface"];
+    details.version = ip_details["Version"];
+  }
+  return details;
 }

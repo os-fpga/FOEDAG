@@ -1185,6 +1185,25 @@ bool CompilerOpenFPGA::Synthesize() {
     }
   }
 
+  if (GetParserType() == ParserType::Default) {
+    bool hasVhdl = false;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      switch (lang_file.first.language) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+        case Design::Language::VHDL_2019:
+          hasVhdl = true;
+          break;
+      }
+    }
+    if (hasVhdl) {
+      // For GHDL parser
+      SetParserType(ParserType::GHDL);
+    }
+  }
+
   switch (GetParserType()) {
     case ParserType::Verific: {
       // Verific parser
@@ -1504,6 +1523,7 @@ bool CompilerOpenFPGA::Synthesize() {
       for (auto ext : ProjManager()->libraryExtensionList()) {
         extensions += "+" + ext;
       }
+      extensions += " ";
 
       std::string macros;
       for (auto& macro_value : ProjManager()->macroList()) {
@@ -1528,7 +1548,6 @@ bool CompilerOpenFPGA::Synthesize() {
             lang = "vhdl";
             ErrorMessage("Unsupported file format:" + lang);
             return false;
-            break;
           case Design::Language::VERILOG_1995:
             lang = "";
             break;
@@ -1590,12 +1609,122 @@ bool CompilerOpenFPGA::Synthesize() {
       if (ProjManager()->DesignTopModule().empty()) {
         // fileList += "read_systemverilog -link -synth\n";
       } else {
-        // fileList += "verific " + topModuleLibImport + importLibs + "-import "
+        // fileList += std::string("read_systemverilog -link -synth ") + "-top "
         // +
-        //             ProjManager()->DesignTopModule() + "\n";
-        //  fileList += std::string("read_systemverilog -link -synth ") + "-top
-        //  " +
         //              ProjManager()->DesignTopModule() + "\n";
+      }
+      yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
+      break;
+    }
+    case ParserType::GHDL: {
+      // GHDL parser
+      std::string fileList = "plugin -i ghdl\n";
+
+      for (auto msg_sev : MsgSeverityMap()) {
+        switch (msg_sev.second) {
+          case MsgSeverity::Ignore:
+            break;
+          case MsgSeverity::Info:
+            break;
+          case MsgSeverity::Warning:
+            break;
+          case MsgSeverity::Error:
+            break;
+        }
+      }
+      std::string searchPath;
+      std::set<std::string> designFileDirs;
+      for (const auto& lang_file : ProjManager()->DesignFiles()) {
+        const std::string& fileNames = lang_file.second;
+        std::vector<std::string> files;
+        StringUtils::tokenize(fileNames, " ", files);
+        for (auto file : files) {
+          std::filesystem::path filePath = file;
+          filePath = filePath.parent_path();
+          const std::string& path = filePath.string();
+          if (designFileDirs.find(path) == designFileDirs.end()) {
+            searchPath +=
+                "-P" +
+                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+            designFileDirs.insert(path);
+          }
+        }
+      }
+
+      auto topModuleLib = ProjManager()->DesignTopModuleLib();
+      auto commandsLibs = ProjManager()->DesignLibraries();
+      size_t filesIndex{0};
+      for (const auto& lang_file : ProjManager()->DesignFiles()) {
+        std::string lang;
+        std::string designLibraries;
+        switch (lang_file.first.language) {
+          case Design::Language::VHDL_1987:
+            lang = "--std=87";
+            break;
+          case Design::Language::VHDL_1993:
+            lang = "--std=93";
+            break;
+          case Design::Language::VHDL_2000:
+            lang = "vhdl2000";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::VHDL_2008:
+            lang = "--std=08";
+            break;
+          case Design::Language::VHDL_2019:
+            lang = "vhdl2019";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::VERILOG_1995:
+            lang = "verilog95";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::VERILOG_2001:
+            lang = "verilog2001";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::SYSTEMVERILOG_2005:
+            lang = "sv2005";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::SYSTEMVERILOG_2009:
+            lang = "sv2009";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::SYSTEMVERILOG_2012:
+            lang = "sv2012";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::SYSTEMVERILOG_2017:
+            lang = "sv2017";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::VERILOG_NETLIST:
+            lang = "verilog";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+          case Design::Language::BLIF:
+          case Design::Language::EBLIF:
+            lang = "blif";
+            ErrorMessage("Unsupported file format:" + lang);
+            return false;
+        }
+        if (filesIndex < commandsLibs.size()) {
+          const auto& filesCommandsLibs = commandsLibs[filesIndex];
+          for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
+            auto libName = filesCommandsLibs.second[i];
+            if (!libName.empty()) {
+              auto commandLib = "-e " + libName + " ";
+            }
+          }
+        }
+        ++filesIndex;
+        std::filesystem::path binpath = GetSession()->Context()->BinaryPath();
+        std::filesystem::path prefixPackagePath =
+            binpath / "HDL_simulator" / "GHDL" / "lib" / "ghdl";
+        fileList += "ghdl -frelaxed-rules -fsynopsys --PREFIX=" +
+                    prefixPackagePath.string() + " " + searchPath + lang + " " +
+                    lang_file.second + " -e " + designLibraries + "\n";
       }
       yosysScript = ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", fileList);
       break;
@@ -1679,6 +1808,14 @@ bool CompilerOpenFPGA::Synthesize() {
   if (status) {
     ErrorMessage("Design " + ProjManager()->projectName() +
                  " synthesis failed");
+    if (GetParserType() == ParserType::Default) {
+      // If Default Yosys parser fails, attempt with the Surelog parser
+      SetParserType(ParserType::Surelog);
+      bool subResult = Synthesize();
+      if (subResult) {
+        return true;
+      }
+    }
     return false;
   } else {
     m_state = State::Synthesized;

@@ -54,7 +54,7 @@ class IpConfigWidget : public QWidget {
   void AddIpToProject(const QString& cmd);
   void CreateParamFields(bool generateMetaLabel);
   void CreateOutputFields();
-  void updateMetaLabel(VLNV info);
+  void updateMetaLabel(const IPDetails& details);
   std::vector<FOEDAG::IPDefinition*> getDefinitions();
 
   QMap<QVariant, QVariant> saveProperties(bool& valid) const;
@@ -75,6 +75,7 @@ class IpConfigWidget : public QWidget {
   const QString m_requestedIpName;
   const QStringList m_instanceValueArgs;
   VLNV m_meta;
+  IPDetails m_details;
   QVBoxLayout* containerLayout{nullptr};
 };
 

@@ -355,7 +355,15 @@ struct VLNV {
   std::string version;
 };
 
+struct IPDetails {
+  std::string name;
+  std::string version;
+  std::string interface_str;
+  std::string description;
+};
+
 VLNV getIpInfoFromPath(std::filesystem::path path);
+IPDetails readIpDetails(const std::filesystem::path& path);
 
 }  // namespace FOEDAG
 

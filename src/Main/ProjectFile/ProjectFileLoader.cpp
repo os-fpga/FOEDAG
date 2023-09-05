@@ -89,7 +89,7 @@ ProjectFileLoader::LoadResult ProjectFileLoader::LoadInternal(
       QString::fromLatin1(TO_C_STR(FOEDAG_VERSION_COMPAT)), &compatibleOk);
   bool migrationDoneSuccessfully{false};
   if (ok && compatibleOk && (ver < compatibleVersion)) {
-    QString newVersion{TO_C_STR(FOEDAG_VERSION)};
+    QString newVersion{TO_C_STR(FOEDAG_BUILD)};
     QString path{QFileInfo{filename}.absolutePath()};
     if (m_parent) {
       auto btn = QMessageBox::warning(

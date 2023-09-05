@@ -35,6 +35,7 @@ class IpCatalogTree : public QTreeWidget {
 
  signals:
   void ipReady();
+  void openIpSettings();
 
  private slots:
   void itemSelectionHasChanged();
