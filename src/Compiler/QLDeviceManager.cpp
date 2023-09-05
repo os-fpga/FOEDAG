@@ -37,7 +37,6 @@
 #include "QLSettingsManager.h"
 #include "NewProject/ProjectManager/project_manager.h"
 #include "QLDeviceAvailableResourcesWidget.h"
-#include "QLParser.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -675,44 +674,44 @@ void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutNa
       m_widget_device_available_resources->reset();
       CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
       if (compiler) {
-          std::smatch match;
-          static std::regex deviceArgePattern(R"(\d+x\d+)");
-          if (!std::regex_search(layoutName, match, deviceArgePattern)){
-              std::cerr << "not proper device pattern, actual=" << layoutName << "expected format=\\d+x\\d+" << std::endl;
-              return;
+          std::string archPropCmd = compiler->GetDeviceAvailableResourcesModeVprCommand();
+          if (archPropCmd.empty()) {
+            std::cerr << "Not able to run vpr to get available layout resources" << std::endl;
+            return;
           }
-
-          std::string archPropCmd = compiler->GetVprCommand(layoutName);
-          archPropCmd += " --show_resource_usage on";
-          //std::cout << "DEBUG: archPropCmd = " << archPropCmd << std::endl;
 
           // show progress
           m_widget_device_available_resources->showProgress();
-          
+
           QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
 
           QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, layoutName](int exitCode) {
-            std::unordered_map<std::string, std::optional<int>> resources = QLParser::extractDeviceAvailableResourcesFromVprLogContent(process->readAllStandardOutput().toStdString());
+            CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+            std::vector<std::shared_ptr<LayoutInfoHelper>> layoutsInfo = compiler->extractDeviceAvailableResourcesFromVprLogContent(process->readAllStandardOutput().toStdString());
             process->deleteLater();
 
             if (exitCode == 0) {
-              QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutName);
-              if (layout) {
-                layout->bram = resources["bram"];
-                layout->dsp = resources["dsp"];
-                layout->clb = resources["clb"];
+              for (const std::shared_ptr<LayoutInfoHelper>& layoutInfo: layoutsInfo) {
+                QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutInfo->name);
+                if (layout) {
+                  layout->bram = layoutInfo->bram;
+                  layout->dsp = layoutInfo->dsp;
+                  layout->clb = layoutInfo->clb;
 
-                m_widget_device_available_resources->showValues(layout->bram, layout->dsp, layout->clb);
+                  if (layoutName == layoutInfo->name) {
+                    m_widget_device_available_resources->showValues(layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
+                  }
+                }
               }
             } else {
               m_widget_device_available_resources->hideProgress();
 
-              std::cout << "cannot fetch bram, dsp and clb. process finished with err code " << exitCode << std::endl;
+              std::cout << "Cannot fetch layout available resources. Process finished with err code " << exitCode << std::endl;
             }
           });
       }
     } else {
-      m_widget_device_available_resources->showValues(layout->bram, layout->dsp, layout->clb);
+      m_widget_device_available_resources->showValues(layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
     }
   }
 }

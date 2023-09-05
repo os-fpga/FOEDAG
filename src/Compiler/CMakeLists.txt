@@ -81,7 +81,6 @@ set (SRC_CPP_LIST
   QLSettingsManager.cpp
   QLMetricsManager.cpp
   QLDeviceAvailableResourcesWidget.cpp
-  QLParser.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -114,7 +113,6 @@ set (SRC_H_INSTALL_LIST
   QLSettingsManager.h
   QLMetricsManager.h
   QLDeviceAvailableResourcesWidget.h
-  QLParser.h
 )
 
 set (SRC_H_LIST

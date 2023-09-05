@@ -3016,12 +3016,151 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
   return result;
 }
 
-std::string CompilerOpenFPGA_ql::GetVprCommand(const std::string& overrideDeviceSize)
+std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand()
 {
-  return BaseVprCommand(overrideDeviceSize);
+  bool ok;
+  actualizeArchitectureFile(ok);
+  if (!ok) {
+    // empty string returned on error.
+    return std::string("");
+  }
+    
+  std::string vpr_options;
+  vpr_options += std::string(" --show_resource_usage on");
+
+  std::string vpr_command =
+      m_vprExecutablePath.string() + std::string(" ") +
+      m_architectureFile.string() + std::string(" ") +
+      std::string("placeholder.blif") + // NOTE: we don't need actually blif file for that mode, but still this is required as positional argument from vpr side
+      vpr_options;
+
+  return vpr_command;
 }
 
-std::string CompilerOpenFPGA_ql::BaseVprCommand(const std::string& overrideDeviceSize) {
+std::vector<std::shared_ptr<LayoutInfoHelper>>
+CompilerOpenFPGA_ql::extractDeviceAvailableResourcesFromVprLogContent(const std::string& content) const
+{
+  static QRegularExpression layoutPattern(R"(^Resource usage for device layout (\w+)...$)");
+  static QRegularExpression clbLogPattern(R"(^(\d+)\s+blocks of type: clb$)");
+  static QRegularExpression dspLogPattern(R"(^(\d+)\s+blocks of type: dsp$)");
+  static QRegularExpression bramLogPattern(R"(^(\d+)\s+blocks of type: bram$)");
+
+  auto tryExtractSubInt = [](const QRegularExpression& pattern, const std::string& content) -> std::optional<int> {
+    std::optional<int> result;
+    auto match = pattern.match(content.c_str());
+    if (match.hasMatch() && (match.lastCapturedIndex() == 1)) {
+      bool ok;
+      int candidate = match.captured(1).toInt(&ok);
+      if (ok) {
+        result = candidate;
+      }
+    }
+    return result;
+  };
+  auto tryExtractSubStr = [](const QRegularExpression& pattern, const std::string& content) -> std::string {
+    std::string result;
+    auto match = pattern.match(content.c_str());
+    if (match.hasMatch() && (match.lastCapturedIndex() == 1)) {
+      result = match.captured(1).toStdString();
+    }
+    return result;
+  };
+
+  QString buff(content.c_str());
+  QList<QString> lines = buff.split("\n");
+
+  std::vector<std::shared_ptr<LayoutInfoHelper>> result;
+  std::shared_ptr<LayoutInfoHelper> layoutInfo;
+  for (const QString& line: lines) {
+    std::string trimmedLine = line.trimmed().toStdString();
+    std::string layoutName = tryExtractSubStr(layoutPattern, trimmedLine);
+    if (!layoutName.empty()) {
+      if (layoutInfo) {
+        result.push_back(layoutInfo);
+      }
+      layoutInfo = std::make_shared<LayoutInfoHelper>(layoutName);
+      continue;
+    }
+    std::optional<int> clb = tryExtractSubInt(clbLogPattern, trimmedLine);
+    if (layoutInfo && clb) {
+      layoutInfo->clb = clb;
+      continue;
+    }
+    std::optional<int> dsp = tryExtractSubInt(dspLogPattern, trimmedLine);
+    if (layoutInfo && dsp) {
+      layoutInfo->dsp = dsp;
+      continue;
+    }
+    std::optional<int> bram = tryExtractSubInt(bramLogPattern, trimmedLine);
+    if (layoutInfo && bram) {
+      layoutInfo->bram = bram;
+      continue;
+    }
+  }
+
+  if (layoutInfo) { // add last item
+    result.push_back(layoutInfo);
+  }
+
+  return result;
+}
+
+void CompilerOpenFPGA_ql::actualizeArchitectureFile(bool& ok)
+{
+  ok = true;
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
+
+  std::filesystem::path device_type_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
+
+  // prefer to use the unencrypted file, if available.
+  m_architectureFile =
+      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
+
+  // if not, use the encrypted file after decryption.
+  std::error_code ec;
+  if (!std::filesystem::exists(m_architectureFile, ec)) {
+
+    std::filesystem::path vpr_xml_en_path =
+          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
+    m_architectureFile = GenerateTempFilePath();
+
+    m_cryptdbPath =
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      Message("load cryptdb failed!");
+      ok = false;
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, m_architectureFile)) {
+      ErrorMessage("decryption failed!");
+      ok = false;
+    }
+  }
+
+  if (ok) {
+      Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
+  }
+}
+
+std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   // note: at this point, the current_path() is the project 'source' directory.
 
@@ -3037,11 +3176,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand(const std::string& overrideDevic
     device_size = " --device " + m_deviceSize;
   }
 #endif // #if UPSTREAM_UNUSED
-  if (!overrideDeviceSize.empty()) {
-    vpr_options += std::string(" --device") +
-                    std::string(" ") +
-                    overrideDeviceSize;
-  } else if (!m_deviceSize.empty()) {
+  if (!m_deviceSize.empty()) {
     vpr_options += std::string(" --device") + 
                     std::string(" ") + 
                     m_deviceSize;
@@ -3232,56 +3367,12 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand(const std::string& overrideDevic
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
 #endif // #if UPSTREAM_UNUSED
 
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
-
-  std::filesystem::path device_type_dir_path = 
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node);
-  
-  std::filesystem::path device_variant_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            device_target.device_variant.voltage_threshold /
-                            device_target.device_variant.p_v_t_corner);
-
-  // prefer to use the unencrypted file, if available.
-  m_architectureFile = 
-      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
-
-  // if not, use the encrypted file after decryption.
-  std::error_code ec;
-  if (!std::filesystem::exists(m_architectureFile, ec)) {
-
-    std::filesystem::path vpr_xml_en_path = 
-          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
-    m_architectureFile = GenerateTempFilePath();
-
-    m_cryptdbPath = 
-        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
-                                                           device_target.device_variant.family +
-                                                           "_" +
-                                                           device_target.device_variant.foundry +
-                                                           "_" +
-                                                           device_target.device_variant.node);
-
-    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
-      Message("load cryptdb failed!");
-      // empty string returned on error.
-      return std::string("");
-    }
-
-    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, m_architectureFile)) {
-      ErrorMessage("decryption failed!");
-      // empty string returned on error.
-      return std::string("");
-    }
+  bool ok;
+  actualizeArchitectureFile(ok);
+  if (!ok) {
+    // empty string returned on error.
+    return std::string("");
   }
-
-  Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
 
   // add the *internal* option to allow dangling nodes in the logic.
   // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/blob/a7f573b7a5432711042ddeb9f2958cd035097a10/vpr/src/timing/timing_graph_builder.cpp#L277

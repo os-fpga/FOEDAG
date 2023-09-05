@@ -39,8 +39,9 @@ void QLDeviceAvailableResourcesWidget::hideProgress()
   m_movie_progress->stop();
 }
 
-void QLDeviceAvailableResourcesWidget::showValues(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb)
+void QLDeviceAvailableResourcesWidget::showValues(const QString& layout, const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb)
 {
+  m_layout = layout;
   QString archInfo;
   if (bram) {
     archInfo += "bram: <b>" + QString::number(bram.value()) + " </b>";
