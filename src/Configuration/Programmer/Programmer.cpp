@@ -51,8 +51,9 @@ std::map<int, std::string> ErrorMessages = {
     {BitfileNotFound, "Bitfile not found"},
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
+    {FailedToProgramOTP, "Failed to program device OTP"},
     {InvalidFlashSize, "Invalid flash size"},
-    {UnsupportedFunc, "Unsupported function"}};  // namespace FOEDAG
+    {UnsupportedFunc, "Unsupported function"}};
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
