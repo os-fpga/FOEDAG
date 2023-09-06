@@ -1468,7 +1468,7 @@ bool CompilerOpenFPGA::Synthesize() {
                 if (ifs.good()) {
                   std::stringstream buffer;
                   buffer << ifs.rdbuf();
-                  std::string moduleName = dir_entry.path().stem();
+                  std::string moduleName = dir_entry.path().stem().string();
                   const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
                   if (std::regex_search(buffer.str(), regexp)) {
                     fileContainsModuleOfSameName = true;
