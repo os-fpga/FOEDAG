@@ -71,7 +71,7 @@ class QLDeviceManager : public QObject {
                                                     const std::string& voltage_threshold,
                                                     const std::string& p_v_t_corner,
                                                     const std::string& layoutName);
-  void updateDeviceAvailableResources(const QLDeviceVariant& device_variant);
+  void collectDeviceVariantAvailableResources(const QLDeviceVariant& device_variant);
 
  public:
   void initialize();

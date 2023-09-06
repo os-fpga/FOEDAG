@@ -350,8 +350,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   for (const auto& device: device_list) {
     for (const auto& device_variant: device.device_variants) {
-      std::cout << "~~~~~~~~~~~ update resources for device variant " << device_variant.family << std::endl;
-      updateDeviceAvailableResources(device_variant);
+      collectDeviceVariantAvailableResources(device_variant);
     }
   }
 
@@ -682,7 +681,7 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
   }
 }
 
-void QLDeviceManager::updateDeviceAvailableResources(const QLDeviceVariant& device_variant) {
+void QLDeviceManager::collectDeviceVariantAvailableResources(const QLDeviceVariant& device_variant) {
   CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
   if (!compiler) {
       return;
@@ -693,7 +692,6 @@ void QLDeviceManager::updateDeviceAvailableResources(const QLDeviceVariant& devi
     std::cerr << "Not able to run vpr to get available layout resources" << std::endl;
     return;
   }
-  std::cout << "~~~~~~~~~~~~~ archPropCmd = " << archPropCmd << std::endl;
 
   // show progress
   m_widget_device_available_resources->showProgress();
