@@ -1457,27 +1457,30 @@ bool CompilerOpenFPGA::Synthesize() {
       for (auto path : ProjManager()->libraryPathList()) {
         std::filesystem::path libPath =
             FileUtils::AdjustPath(path, ProjManager()->projectPath());
-        for (auto const& dir_entry :
-             std::filesystem::directory_iterator{libPath}) {
-          for (auto ext : extentions) {
-            if (ext == dir_entry.path().extension()) {
-              if (designFileSet.find(dir_entry.path().filename().string()) ==
-                  designFileSet.end()) {
-                bool fileContainsModuleOfSameName = false;
-                std::ifstream ifs(dir_entry.path());
-                if (ifs.good()) {
-                  std::stringstream buffer;
-                  buffer << ifs.rdbuf();
-                  std::string moduleName = dir_entry.path().stem().string();
-                  const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
-                  if (std::regex_search(buffer.str(), regexp)) {
-                    fileContainsModuleOfSameName = true;
+        if (std::filesystem::exists(libPath) &&
+            std::filesystem::is_directory(libPath)) {
+          for (auto const& dir_entry :
+               std::filesystem::directory_iterator{libPath}) {
+            for (auto ext : extentions) {
+              if (ext == dir_entry.path().extension()) {
+                if (designFileSet.find(dir_entry.path().filename().string()) ==
+                    designFileSet.end()) {
+                  bool fileContainsModuleOfSameName = false;
+                  std::ifstream ifs(dir_entry.path());
+                  if (ifs.good()) {
+                    std::stringstream buffer;
+                    buffer << ifs.rdbuf();
+                    std::string moduleName = dir_entry.path().stem().string();
+                    const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
+                    if (std::regex_search(buffer.str(), regexp)) {
+                      fileContainsModuleOfSameName = true;
+                    }
                   }
-                }
-                ifs.close();
-                if (fileContainsModuleOfSameName) {
-                  designFiles += "read_verilog " + includes +
-                                 dir_entry.path().string() + "\n";
+                  ifs.close();
+                  if (fileContainsModuleOfSameName) {
+                    designFiles += "read_verilog " + includes +
+                                   dir_entry.path().string() + "\n";
+                  }
                 }
               }
             }
