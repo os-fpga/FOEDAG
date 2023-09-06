@@ -62,6 +62,9 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openProject(const QString& project, bool delayedOpen, bool run) override;
   bool isRunning() const override;
 
+ signals:
+  void closeRequest();
+
  protected:
   void closeEvent(QCloseEvent* event) override;
   void ScriptFinished() override;
