@@ -3155,61 +3155,6 @@ std::filesystem::path CompilerOpenFPGA_ql::GetArchitectureFileForDeviceVariant(c
   return architectureFile;
 }
 
-void CompilerOpenFPGA_ql::actualizeArchitectureFile(bool& ok)
-{
-  ok = true;
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
-
-  std::filesystem::path device_type_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node);
-
-  std::filesystem::path device_variant_dir_path =
-      std::filesystem::path(GetSession()->Context()->DataPath() /
-                            device_target.device_variant.family /
-                            device_target.device_variant.foundry /
-                            device_target.device_variant.node /
-                            device_target.device_variant.voltage_threshold /
-                            device_target.device_variant.p_v_t_corner);
-
-  // prefer to use the unencrypted file, if available.
-  m_architectureFile =
-      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
-
-  // if not, use the encrypted file after decryption.
-  std::error_code ec;
-  if (!std::filesystem::exists(m_architectureFile, ec)) {
-
-    std::filesystem::path vpr_xml_en_path =
-          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
-    m_architectureFile = GenerateTempFilePath();
-
-    m_cryptdbPath =
-        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
-                                                           device_target.device_variant.family +
-                                                           "_" +
-                                                           device_target.device_variant.foundry +
-                                                           "_" +
-                                                           device_target.device_variant.node);
-
-    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
-      Message("load cryptdb failed!");
-      ok = false;
-    }
-
-    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, m_architectureFile)) {
-      ErrorMessage("decryption failed!");
-      ok = false;
-    }
-  }
-
-  if (ok) {
-      Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
-  }
-}
-
 std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   // note: at this point, the current_path() is the project 'source' directory.
@@ -3417,12 +3362,56 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
 #endif // #if UPSTREAM_UNUSED
 
-  bool ok;
-  actualizeArchitectureFile(ok);
-  if (!ok) {
-    // empty string returned on error.
-    return std::string("");
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
+
+  std::filesystem::path device_type_dir_path = 
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node);
+  
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_target.device_variant.family /
+                            device_target.device_variant.foundry /
+                            device_target.device_variant.node /
+                            device_target.device_variant.voltage_threshold /
+                            device_target.device_variant.p_v_t_corner);
+
+  // prefer to use the unencrypted file, if available.
+  m_architectureFile = 
+      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
+
+  // if not, use the encrypted file after decryption.
+  std::error_code ec;
+  if (!std::filesystem::exists(m_architectureFile, ec)) {
+
+    std::filesystem::path vpr_xml_en_path = 
+          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
+    m_architectureFile = GenerateTempFilePath();
+
+    m_cryptdbPath = 
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_target.device_variant.family +
+                                                           "_" +
+                                                           device_target.device_variant.foundry +
+                                                           "_" +
+                                                           device_target.device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(m_cryptdbPath.string())) {
+      Message("load cryptdb failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, m_architectureFile)) {
+      ErrorMessage("decryption failed!");
+      // empty string returned on error.
+      return std::string("");
+    }
   }
+
+  Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
 
   // add the *internal* option to allow dangling nodes in the logic.
   // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/blob/a7f573b7a5432711042ddeb9f2958cd035097a10/vpr/src/timing/timing_graph_builder.cpp#L277
