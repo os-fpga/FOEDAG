@@ -229,7 +229,16 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       }
     } else if (subCmd == "otp") {
       auto otp_arg =
-          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+          static_cast<const CFGArg_PROGRAMMER_OTP*>(arg->get_sub_arg());
+      if (otp_arg->confirm == false) {
+        std::string prompt;
+        std::cout << "This OTP programming is not reversable." << std::endl
+                  << "Do you want to continue? [Y/n]";
+        std::cin  >> prompt;
+        if (prompt != "y" && prompt != "Y") {
+          return;
+        }
+      }
       std::string bitstreamFile = otp_arg->m_args[0];
       std::string cableInput = otp_arg->cable;
       uint64_t deviceIndex = otp_arg->index;

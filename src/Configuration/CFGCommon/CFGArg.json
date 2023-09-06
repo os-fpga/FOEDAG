@@ -155,6 +155,14 @@
               "optional": true,
               "default": 1,
               "help": "Index of the device to program"
+            },
+            {
+               "name": "confirm",
+               "short": "y",
+               "type": "flag",
+               "optional": true,
+               "default": false,
+               "help": "Skip prompting and confirm to proceed"
             }
         ],
         "desc": "Program device OTP with the specified bitstream.",
