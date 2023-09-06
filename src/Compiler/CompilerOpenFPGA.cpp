@@ -1449,7 +1449,7 @@ bool CompilerOpenFPGA::Synthesize() {
         StringUtils::tokenize(fileNames, " ", files);
         for (auto file : files) {
           std::filesystem::path filePath = file;
-          designFileSet.insert(filePath.filename());
+          designFileSet.insert(filePath.filename().string());
         }
       }
 
@@ -1461,7 +1461,7 @@ bool CompilerOpenFPGA::Synthesize() {
              std::filesystem::directory_iterator{libPath}) {
           for (auto ext : extentions) {
             if (ext == dir_entry.path().extension()) {
-              if (designFileSet.find(dir_entry.path().filename()) ==
+              if (designFileSet.find(dir_entry.path().filename().string()) ==
                   designFileSet.end()) {
                 bool fileContainsModuleOfSameName = false;
                 std::ifstream ifs(dir_entry.path());
