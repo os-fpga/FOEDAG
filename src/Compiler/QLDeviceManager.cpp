@@ -348,12 +348,6 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
 
   // std::cout << "createDeviceSelectionWidget()--, newProjectMode: " << newProjectMode << std::endl;
 
-  for (const auto& device: device_list) {
-    for (const auto& device_variant: device.device_variants) {
-      collectDeviceVariantAvailableResources(device_variant);
-    }
-  }
-
   return dlg;
 }
 
@@ -694,8 +688,6 @@ void QLDeviceManager::collectDeviceVariantAvailableResources(const QLDeviceVaria
   }
 
   // show progress
-  m_widget_device_available_resources->showProgress();
-
   QProcess* process = compiler->ExecuteCommand(archPropCmd);
 
   QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, device_variant](int exitCode) {
@@ -718,7 +710,6 @@ void QLDeviceManager::collectDeviceVariantAvailableResources(const QLDeviceVaria
         }
       }
     } else {
-      m_widget_device_available_resources->hideProgress();
       std::cout << "Cannot fetch layout available resources. Process finished with err code " << exitCode << std::endl;
     }
   });
@@ -813,6 +804,9 @@ void QLDeviceManager::parseDeviceData() {
                 device.node = node;
                 device.device_variants = device_variants;
 
+                for (const auto& device_variant: device.device_variants) {
+                  collectDeviceVariantAvailableResources(device_variant);
+                }
                 device_list.push_back(device);
               }
             }

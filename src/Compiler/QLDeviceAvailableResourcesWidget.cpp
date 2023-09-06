@@ -21,10 +21,12 @@ QLDeviceAvailableResourcesWidget::QLDeviceAvailableResourcesWidget(QWidget* pare
   layout->addSpacerItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 }
 
-void QLDeviceAvailableResourcesWidget::reset()
+void QLDeviceAvailableResourcesWidget::showEvent(QShowEvent* event) 
 {
-  m_label->setText("");
-  m_label->setVisible(false);
+  QWidget::showEvent(event);
+  if (m_label->text().isEmpty()) {
+    showProgress();
+  }
 }
 
 void QLDeviceAvailableResourcesWidget::showProgress()
@@ -41,7 +43,7 @@ void QLDeviceAvailableResourcesWidget::hideProgress()
 
 void QLDeviceAvailableResourcesWidget::setDevicevariantKey(const QString& deviceVariantKey)
 {
-    m_deviceVariantKey = deviceVariantKey;
+  m_deviceVariantKey = deviceVariantKey;
 }
 
 void QLDeviceAvailableResourcesWidget::showValues(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb)
@@ -62,7 +64,9 @@ void QLDeviceAvailableResourcesWidget::showValues(const std::optional<int>& bram
     m_label->setVisible(true);
     m_label->setText(archInfo);
   } else {
+    showProgress();
     m_label->setVisible(false);
+    m_label->setText("");
   }
 }
 
