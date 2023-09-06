@@ -2626,10 +2626,7 @@ int Compiler::ExecuteAndMonitorSystemCommand(const std::string& command,
   return (status == QProcess::NormalExit) ? exitCode : -1;
 }
 
-QProcess* Compiler::ExecuteCommand(const std::string& workPath, const std::string& command) const {
-  auto path = std::filesystem::current_path();                  // getting path
-  std::filesystem::current_path(workPath);  // setting path
-
+QProcess* Compiler::ExecuteCommand(const std::string& command) const {
   QProcess* process = new QProcess;
 
   QString cmd{command.c_str()};
@@ -2638,7 +2635,6 @@ QProcess* Compiler::ExecuteCommand(const std::string& workPath, const std::strin
   args.pop_front();  // remove program
 
   process->start(program, args);
-  std::filesystem::current_path(path);
 
   return process;
 }

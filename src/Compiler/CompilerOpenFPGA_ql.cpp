@@ -3016,12 +3016,10 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
   return result;
 }
 
-std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand()
+std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand(const QLDeviceVariant& device_variant)
 {
-  bool ok;
-  actualizeArchitectureFile(ok);
-  if (!ok) {
-    // empty string returned on error.
+  std::filesystem::path architectureFile = GetArchitectureFileForDeviceVariant(device_variant);
+  if (architectureFile.empty()) {
     return std::string("");
   }
     
@@ -3030,7 +3028,7 @@ std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand()
 
   std::string vpr_command =
       m_vprExecutablePath.string() + std::string(" ") +
-      m_architectureFile.string() + std::string(" ") +
+      architectureFile.string() + std::string(" ") +
       std::string("placeholder.blif") + // NOTE: we don't need actually blif file for that mode, but still this is required as positional argument from vpr side
       vpr_options;
 
@@ -3038,7 +3036,7 @@ std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand()
 }
 
 std::vector<std::shared_ptr<LayoutInfoHelper>>
-CompilerOpenFPGA_ql::extractDeviceAvailableResourcesFromVprLogContent(const std::string& content) const
+CompilerOpenFPGA_ql::ExtractDeviceAvailableResourcesFromVprLogContent(const std::string& content) const
 {
   static QRegularExpression layoutPattern(R"(^Resource usage for device layout (\w+)...$)");
   static QRegularExpression clbLogPattern(R"(^(\d+)\s+blocks of type: clb$)");
@@ -3074,7 +3072,7 @@ CompilerOpenFPGA_ql::extractDeviceAvailableResourcesFromVprLogContent(const std:
   for (const QString& line: lines) {
     std::string trimmedLine = line.trimmed().toStdString();
     std::string layoutName = tryExtractSubStr(layoutPattern, trimmedLine);
-    if (!layoutName.empty()) {
+    if (!layoutName.empty() && (layoutName != "auto")) {
       if (layoutInfo) {
         result.push_back(layoutInfo);
       }
@@ -3103,6 +3101,58 @@ CompilerOpenFPGA_ql::extractDeviceAvailableResourcesFromVprLogContent(const std:
   }
 
   return result;
+}
+
+std::filesystem::path CompilerOpenFPGA_ql::GetArchitectureFileForDeviceVariant(const QLDeviceVariant& device_variant)
+{
+  std::filesystem::path architectureFile;
+  std::filesystem::path device_type_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_variant.family /
+                            device_variant.foundry /
+                            device_variant.node);
+
+  std::filesystem::path device_variant_dir_path =
+      std::filesystem::path(GetSession()->Context()->DataPath() /
+                            device_variant.family /
+                            device_variant.foundry /
+                            device_variant.node /
+                            device_variant.voltage_threshold /
+                            device_variant.p_v_t_corner);
+
+  // prefer to use the unencrypted file, if available.
+  architectureFile =
+      std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
+
+  // if not, use the encrypted file after decryption.
+  std::error_code ec;
+  if (!std::filesystem::exists(architectureFile, ec)) {
+
+    std::filesystem::path vpr_xml_en_path =
+          std::filesystem::path(device_variant_dir_path / std::string("vpr.xml.en"));
+    architectureFile = GenerateTempFilePath();
+
+    std::filesystem::path cryptdbPath =
+        CRFileCryptProc::getInstance()->getCryptDBFileName(device_type_dir_path.string(),
+                                                           device_variant.family +
+                                                           "_" +
+                                                           device_variant.foundry +
+                                                           "_" +
+                                                           device_variant.node);
+
+    if (!CRFileCryptProc::getInstance()->loadCryptKeyDB(cryptdbPath.string())) {
+      Message("load cryptdb failed!");
+      return std::string("");
+    }
+
+    if (!CRFileCryptProc::getInstance()->decryptFile(vpr_xml_en_path, architectureFile)) {
+      ErrorMessage("decryption failed!");
+      return std::string("");
+    }
+  }
+
+  //Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_variant) );
+  return architectureFile;
 }
 
 void CompilerOpenFPGA_ql::actualizeArchitectureFile(bool& ok)

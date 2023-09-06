@@ -215,7 +215,7 @@ class Compiler {
 
   void SetConstraints(Constraints* c);
 
-  QProcess* ExecuteCommand(const std::string& workPath, const std::string& command) const;
+  QProcess* ExecuteCommand(const std::string& command) const;
 
   void SetNetlistType(NetlistType type) { m_netlistType = type; }
   NetlistType GetNetlistType() { return m_netlistType; }

@@ -66,7 +66,7 @@ class QLDeviceManager : public QObject {
  private:
   QLDeviceManager(QObject *parent = nullptr);
   QLDeviceVariantLayout* findDeviceLayoutVariantPtr(const std::string& family, const std::string& layoutName);
-  void updateDeviceAvailableResources(const std::string& layoutName);
+  void updateDeviceAvailableResources(const QLDeviceVariant& device_variant);
 
  public:
   void initialize();

@@ -58,8 +58,9 @@ class CompilerOpenFPGA_ql : public Compiler {
 #endif // #if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql();
 
-  std::string GetDeviceAvailableResourcesModeVprCommand();
-  std::vector<std::shared_ptr<LayoutInfoHelper>> extractDeviceAvailableResourcesFromVprLogContent(const std::string&) const;
+  std::filesystem::path GetArchitectureFileForDeviceVariant(const QLDeviceVariant& device_variant);
+  std::string GetDeviceAvailableResourcesModeVprCommand(const QLDeviceVariant& device_variant);
+  std::vector<std::shared_ptr<LayoutInfoHelper>> ExtractDeviceAvailableResourcesFromVprLogContent(const std::string&) const;
 
   void AnalyzeExecPath(const std::filesystem::path& path) {
     m_analyzeExecutablePath = path;

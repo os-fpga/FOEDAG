@@ -240,7 +240,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   }
 
   for (std::string family: families) {
-    m_combobox_family->addItem(QString::fromStdString(family));
+    m_combobox_family->addItem(QString::fromStdString(family));    
   }
 
   // connect( m_combobox_family, SIGNAL(currentTextChanged(const QString&)), this, SLOT(familyChanged(const QString&)) );
@@ -347,6 +347,13 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   triggerUIUpdate();
 
   // std::cout << "createDeviceSelectionWidget()--, newProjectMode: " << newProjectMode << std::endl;
+
+  for (const auto& device: device_list) {
+    for (const auto& device_variant: device.device_variants) {
+      std::cout << "~~~~~~~~~~~ update resources for device variant " << device_variant.family << std::endl;
+      updateDeviceAvailableResources(device_variant);
+    }
+  }
 
   return dlg;
 }
@@ -660,60 +667,54 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
     }
   }
 
-  m_widget_device_available_resources->setVisible(!newProjectMode);
-  if (!newProjectMode) {
-    updateDeviceAvailableResources(layout);;
-  }  
+  QLDeviceVariantLayout* deviceLayout = findDeviceLayoutVariantPtr(family, layout);
+  if (deviceLayout) {
+    m_widget_device_available_resources->showValues(family.c_str(), deviceLayout->name.c_str(), deviceLayout->bram, deviceLayout->dsp, deviceLayout->clb);
+  }
 }
 
-void QLDeviceManager::updateDeviceAvailableResources(const std::string& layoutName) {
-  QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutName);
-  if (layout) {
-    bool requiredResourceFetch = (!layout->bram || !layout->dsp || !layout->clb);
-    if (requiredResourceFetch) {
-      m_widget_device_available_resources->reset();
-      CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
-      if (compiler) {
-          std::string archPropCmd = compiler->GetDeviceAvailableResourcesModeVprCommand();
-          if (archPropCmd.empty()) {
-            std::cerr << "Not able to run vpr to get available layout resources" << std::endl;
-            return;
+void QLDeviceManager::updateDeviceAvailableResources(const QLDeviceVariant& device_variant) {
+  CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+  if (!compiler) {
+      return;
+  }
+
+  std::string archPropCmd = compiler->GetDeviceAvailableResourcesModeVprCommand(device_variant);
+  if (archPropCmd.empty()) {
+    std::cerr << "Not able to run vpr to get available layout resources" << std::endl;
+    return;
+  }
+  std::cout << "~~~~~~~~~~~~~ archPropCmd = " << archPropCmd << std::endl;
+
+  // show progress
+  m_widget_device_available_resources->showProgress();
+
+  QProcess* process = compiler->ExecuteCommand(archPropCmd);
+
+  QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, device_variant](int exitCode) {
+    CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
+    std::vector<std::shared_ptr<LayoutInfoHelper>> layoutsInfo = compiler->ExtractDeviceAvailableResourcesFromVprLogContent(process->readAllStandardOutput().toStdString());
+    process->deleteLater();
+
+    if (exitCode == 0) {
+      for (const std::shared_ptr<LayoutInfoHelper>& layoutInfo: layoutsInfo) {
+        std::string family = device_variant.family;
+        QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutInfo->name);
+        if (layout) {
+          layout->bram = layoutInfo->bram;
+          layout->dsp = layoutInfo->dsp;
+          layout->clb = layoutInfo->clb;
+
+          if (m_widget_device_available_resources->match(family.c_str(), layoutInfo->name.c_str())) {
+            m_widget_device_available_resources->showValues(family.c_str(), layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
           }
-
-          // show progress
-          m_widget_device_available_resources->showProgress();
-
-          QProcess* process = compiler->ExecuteCommand(compiler->ProjManager()->projectPath(), archPropCmd);
-
-          QObject::connect(process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), [this, process, layoutName](int exitCode) {
-            CompilerOpenFPGA_ql* compiler = static_cast<CompilerOpenFPGA_ql*>(GlobalSession->GetCompiler());
-            std::vector<std::shared_ptr<LayoutInfoHelper>> layoutsInfo = compiler->extractDeviceAvailableResourcesFromVprLogContent(process->readAllStandardOutput().toStdString());
-            process->deleteLater();
-
-            if (exitCode == 0) {
-              for (const std::shared_ptr<LayoutInfoHelper>& layoutInfo: layoutsInfo) {
-                QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutInfo->name);
-                if (layout) {
-                  layout->bram = layoutInfo->bram;
-                  layout->dsp = layoutInfo->dsp;
-                  layout->clb = layoutInfo->clb;
-
-                  if (layoutName == layoutInfo->name) {
-                    m_widget_device_available_resources->showValues(layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
-                  }
-                }
-              }
-            } else {
-              m_widget_device_available_resources->hideProgress();
-
-              std::cout << "Cannot fetch layout available resources. Process finished with err code " << exitCode << std::endl;
-            }
-          });
+        }
       }
     } else {
-      m_widget_device_available_resources->showValues(layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
+      m_widget_device_available_resources->hideProgress();
+      std::cout << "Cannot fetch layout available resources. Process finished with err code " << exitCode << std::endl;
     }
-  }
+  });
 }
 
 void QLDeviceManager::resetButtonClicked() {
@@ -1201,7 +1202,6 @@ std::string QLDeviceManager::DeviceString(std::string family,
 
   return device_string;
 }
-
 
 bool QLDeviceManager::DeviceExists(std::string family,
                                    std::string foundry,
