@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(compiler LANGUAGES CXX)
+project(programmer-gui LANGUAGES CXX)
 
 if (PRODUCTION_BUILD)
   message("Production Build type set to ON")
@@ -46,14 +46,21 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   ProgrammerMain.cpp
+  ProgrammerBackend.cpp
+  SummaryProgressBar.cpp
+  ProgrammerSettingsWidget.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   ProgrammerMain.h
+  ProgrammerBackend.h
+  SummaryProgressBar.h
+  ProgrammerSettingsWidget.h
 )
 
 set (SRC_UI
   ProgrammerMain.ui
+  ProgrammerSettingsWidget.ui
 )
 
 set (SRC_H_LIST
@@ -61,7 +68,7 @@ set (SRC_H_LIST
 )
 
 set (res_LIST
-#  res.qrc
+  res.qrc
 )
 
 add_library(programmer-gui STATIC
@@ -72,6 +79,7 @@ add_library(programmer-gui STATIC
 )
 
 target_link_libraries(programmer-gui PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(programmer-gui PRIVATE programmer foedag)
 target_compile_definitions(programmer-gui PRIVATE PROGRAMMER_GUI_LIBRARY)
 
 install (
