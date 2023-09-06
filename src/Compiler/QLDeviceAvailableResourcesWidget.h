@@ -14,16 +14,16 @@ class QLDeviceAvailableResourcesWidget : public QWidget {
   QLDeviceAvailableResourcesWidget(QWidget* parent = nullptr);
   ~QLDeviceAvailableResourcesWidget() = default;
 
-  bool match(const QString& deviceFamily, const QString& deviceLayout) const { return (m_deviceFamily == deviceFamily) && (m_deviceLayout == deviceLayout); }
+  void setDevicevariantKey(const QString& deviceVariantKey);
+  const QString& deviceVariantKey() const { return m_deviceVariantKey; }
 
   void reset();
   void showProgress();
   void hideProgress();
-  void showValues(const QString& deviceFamily, const QString& deviceLayout, const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb);
+  void showValues(const std::optional<int>& bram, const std::optional<int>& dsp, const std::optional<int>& clb);
 
  private:
-  QString m_deviceFamily;
-  QString m_deviceLayout;
+  QString m_deviceVariantKey;
   QLabel* m_label;
   QLabel* m_label_progress;
   QMovie* m_movie_progress;

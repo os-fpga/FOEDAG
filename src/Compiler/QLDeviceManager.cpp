@@ -358,14 +358,21 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   return dlg;
 }
 
-QLDeviceVariantLayout* QLDeviceManager::findDeviceLayoutVariantPtr(const std::string& family, const std::string& layoutName)
+QLDeviceVariantLayout* QLDeviceManager::findDeviceLayoutVariantPtr(const std::string& family, 
+                                                                   const std::string& foundry,
+                                                                   const std::string& node,
+                                                                   const std::string& voltage_threshold,
+                                                                   const std::string& p_v_t_corner,
+                                                                   const std::string& layoutName)
 {
   for (QLDeviceType& device: this->device_list) {
-    if (device.family == family) {
-      for (QLDeviceVariant& variant: device.device_variants) {
-        for (QLDeviceVariantLayout& layout: variant.device_variant_layouts) {
-          if (layout.name == layoutName) {
-            return &layout;
+    if ((device.family == family) && (device.foundry == foundry) && (device.node == node)) {
+      for (QLDeviceVariant& device_variant: device.device_variants) {
+        if ((device_variant.voltage_threshold == voltage_threshold) && (device_variant.p_v_t_corner == p_v_t_corner)) {
+          for (QLDeviceVariantLayout& layout: device_variant.device_variant_layouts) {
+            if (layout.name == layoutName) {
+              return &layout;
+            }
           }
         }
       }
@@ -667,9 +674,11 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
     }
   }
 
-  QLDeviceVariantLayout* deviceLayout = findDeviceLayoutVariantPtr(family, layout);
+  QLDeviceVariantLayout* deviceLayout = findDeviceLayoutVariantPtr(family, foundry, node, voltage_threshold, p_v_t_corner, layout);
   if (deviceLayout) {
-    m_widget_device_available_resources->showValues(family.c_str(), deviceLayout->name.c_str(), deviceLayout->bram, deviceLayout->dsp, deviceLayout->clb);
+    std::string variant_key{family+"_"+foundry+"_"+node+"_"+voltage_threshold+"_"+p_v_t_corner+"_"+layout};
+    m_widget_device_available_resources->setDevicevariantKey(variant_key.c_str());
+    m_widget_device_available_resources->showValues(deviceLayout->bram, deviceLayout->dsp, deviceLayout->clb);
   }
 }
 
@@ -698,15 +707,15 @@ void QLDeviceManager::updateDeviceAvailableResources(const QLDeviceVariant& devi
 
     if (exitCode == 0) {
       for (const std::shared_ptr<LayoutInfoHelper>& layoutInfo: layoutsInfo) {
-        std::string family = device_variant.family;
-        QLDeviceVariantLayout* layout = findDeviceLayoutVariantPtr(family, layoutInfo->name);
-        if (layout) {
-          layout->bram = layoutInfo->bram;
-          layout->dsp = layoutInfo->dsp;
-          layout->clb = layoutInfo->clb;
+        QLDeviceVariantLayout* device_layout = findDeviceLayoutVariantPtr(device_variant.family, device_variant.foundry, device_variant.node, device_variant.voltage_threshold, device_variant.p_v_t_corner, layoutInfo->name);
+        if (device_layout) {
+          device_layout->bram = layoutInfo->bram;
+          device_layout->dsp = layoutInfo->dsp;
+          device_layout->clb = layoutInfo->clb;
 
-          if (m_widget_device_available_resources->match(family.c_str(), layoutInfo->name.c_str())) {
-            m_widget_device_available_resources->showValues(family.c_str(), layout->name.c_str(), layout->bram, layout->dsp, layout->clb);
+          std::string deviceVariantKey{device_variant.family+"_"+device_variant.foundry+"_"+device_variant.node+"_"+device_variant.voltage_threshold+"_"+device_variant.p_v_t_corner+"_"+layoutInfo->name};
+          if (m_widget_device_available_resources->deviceVariantKey().toStdString() == deviceVariantKey) {
+            m_widget_device_available_resources->showValues(device_layout->bram, device_layout->dsp, device_layout->clb);
           }
         }
       }
