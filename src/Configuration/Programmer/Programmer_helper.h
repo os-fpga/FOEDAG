@@ -59,7 +59,7 @@ std::string buildListDeviceCommand(const Cable& cable,
 std::string buildFpgaProgramCommand(const Cable& cable, const Device& device,
                                     const std::string& bitstream_file);
 std::string buildOTPProgramCommand(const Cable& cable, const Device& device,
-                                    const std::string& bitstream_file);
+                                   const std::string& bitstream_file);
 std::string buildFlashProgramCommand(
     const Cable& cable, const Device& device, const std::string& bitstreamFile,
     ProgramFlashOperation programFlashOperation);

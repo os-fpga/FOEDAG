@@ -212,8 +212,8 @@ int ProgramFpga(const Cable& cable, const Device& device,
                 ProgressCallback callbackProgress = nullptr);
 
 /**
- * Programs the OTP of a specified device with the given bitfile using the specified cable
- * and device.
+ * Programs the OTP of a specified device with the given bitfile using the
+ * specified cable and device.
  *
  * @param cable The cable to use for programming.
  * @param device The target device to program.
@@ -236,10 +236,10 @@ int ProgramFpga(const Cable& cable, const Device& device,
  *   using OutputMessageCallback = std::function<void(std::string)>
  */
 int ProgramOTP(const Cable& cable, const Device& device,
-                const std::string& bitfile, std::atomic<bool>& stop,
-                std::ostream* outStream = nullptr,
-                OutputMessageCallback callbackMsg = nullptr,
-                ProgressCallback callbackProgress = nullptr);
+               const std::string& bitfile, std::atomic<bool>& stop,
+               std::ostream* outStream = nullptr,
+               OutputMessageCallback callbackMsg = nullptr,
+               ProgressCallback callbackProgress = nullptr);
 
 /**
  * Programs the specified flash memory with the given bitfile using the

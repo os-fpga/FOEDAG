@@ -553,10 +553,10 @@ int ProgramFpga(const Cable& cable, const Device& device,
 }
 
 int ProgramOTP(const Cable& cable, const Device& device,
-                const std::string& bitfile, std::atomic<bool>& stop,
-                std::ostream* outStream /*=nullptr*/,
-                OutputMessageCallback callbackMsg /*=nullptr*/,
-                ProgressCallback callbackProgress /*=nullptr*/) {
+               const std::string& bitfile, std::atomic<bool>& stop,
+               std::ostream* outStream /*=nullptr*/,
+               OutputMessageCallback callbackMsg /*=nullptr*/,
+               ProgressCallback callbackProgress /*=nullptr*/) {
   CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
                  "libOpenOcdExecPath cannot be empty");
   int returnCode = ProgrammerErrorCode::NoError;

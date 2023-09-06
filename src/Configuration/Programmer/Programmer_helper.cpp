@@ -377,7 +377,7 @@ std::string buildFpgaProgramCommand(const Cable& cable, const Device& device,
 }
 
 std::string buildOTPProgramCommand(const Cable& cable, const Device& device,
-                                    const std::string& bitstreamFile) {
+                                   const std::string& bitstreamFile) {
   std::stringstream cmd;
   std::stringstream programCommand;
   std::stringstream cableSS = buildFpgaCableStringStream(cable);
