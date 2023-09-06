@@ -40,6 +40,10 @@ static constexpr auto CleanText{
     "files generated from the selected task will be deleted "
     "from disk. Also, this will trigger the cleaning of the subsequent tasks "
     "in compile order."};
+static constexpr auto SimulationCleanText{
+    "Do you want to proceed with the cleaning of the %1?\n\nNote: All the "
+    "files generated from the selected task will be deleted "
+    "from disk."};
 
 static constexpr auto ParentTitle{"ParentTitle"};
 
@@ -97,9 +101,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks[PACKING]->appendSubTask(m_tasks[PACKING_SETTINGS]);
   m_tasks[SYNTHESIS]->appendSubTask(m_tasks[SYNTHESIS_SETTINGS]);
   m_tasks[PLACEMENT]->appendSubTask(m_tasks[PLACEMENT_SETTINGS]);
-#ifndef PRODUCTION_BUILD
   m_tasks[TIMING_SIGN_OFF]->appendSubTask(m_tasks[TIMING_SIGN_OFF_SETTINGS]);
-#endif
   m_tasks[SIMULATE_RTL]->appendSubTask(m_tasks[SIMULATE_RTL_SETTINGS]);
   m_tasks[SIMULATE_GATE]->appendSubTask(m_tasks[SIMULATE_GATE_SETTINGS]);
   m_tasks[SIMULATE_PNR]->appendSubTask(m_tasks[SIMULATE_PNR_SETTINGS]);
@@ -273,7 +275,7 @@ void TaskManager::startTask(Task *t) {
     if (m_dialogProvider) {
       if (m_dialogProvider->question(
               CleanTitle,
-              QString{CleanText}.arg(t->property(ParentTitle).toString())) !=
+              cleanText(t).arg(t->property(ParentTitle).toString())) !=
           UserSelection::Accept)
         return;
     }
@@ -345,6 +347,7 @@ void TaskManager::initCleanTasks() {
                                    {ROUTING, ROUTING_CLEAN},
                                    {SIMULATE_PNR, SIMULATE_PNR_CLEAN},
                                    {TIMING_SIGN_OFF, TIMING_SIGN_OFF_CLEAN},
+                                   {POWER, POWER_CLEAN},
                                    {BITSTREAM, BITSTREAM_CLEAN}};
   for (const auto &[parent, clean] : tasks) {
     m_tasks[parent]->setCleanTask(m_tasks[clean]);
@@ -406,6 +409,8 @@ void TaskManager::resetTask(Task *t) {
 }
 
 QVector<Task *> TaskManager::getDownstreamCleanTasks(Task *t) const {
+  auto cleanParent = GetCleanParent(t);
+  if (cleanParent && isSimulation(cleanParent)) return {t};
   QVector<Task *> tasks;
   for (auto it{m_taskQueue.rbegin()}; it != m_taskQueue.rend(); ++it) {
     if ((*it)->type() == TaskType::Clean) tasks.append(*it);
@@ -422,6 +427,22 @@ void TaskManager::registerReportManager(uint type,
           &TaskManager::logFileParsed);
   auto ptr = std::shared_ptr<AbstractReportManager>(manager);
   m_reportManagerRegistry.registerReportManager(type, std::move(ptr));
+}
+
+QString TaskManager::cleanText(Task *t) const {
+  auto cleanParent = GetCleanParent(t);
+  if (cleanParent && isSimulation(cleanParent))
+    return QString{SimulationCleanText};
+  return QString{CleanText};
+}
+
+Task *TaskManager::GetCleanParent(Task *t) const {
+  for (auto task : m_taskQueue) {
+    if ((task->cleanTask() == t) && isSimulation(task)) {
+      return task;
+    }
+  }
+  return nullptr;
 }
 
 }  // namespace FOEDAG

@@ -1,9 +1,9 @@
 /*
-Copyright 2021 The Foedag team
+Copyright 2022 The Foedag team
 
 GPL License
 
-Copyright (c) 2021 The Open-Source FPGA Foundation
+Copyright (c) 2022 The Open-Source FPGA Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,11 +17,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
+#pragma once
 
-#include "CFGCommon/CFGCommon.h"
+#include <QMap>
+#include <QObject>
 
-int main(int argc, const char** argv) {
-  CFG_POST_MSG("This is Programmer unit test");
-  return 0;
-}
+class QProgressBar;
+namespace FOEDAG {
+
+class SummaryProgressBar : public QObject {
+ public:
+  explicit SummaryProgressBar(QObject *parent = nullptr);
+  QProgressBar *progressBar();
+  void clear();
+  void AddProgressBar(QProgressBar *progressBar);
+
+ private:
+  void updateMainProgress();
+
+ private:
+  QProgressBar *m_progressBar{};
+  QMap<QProgressBar *, double> m_bars;
+};
+
+}  // namespace FOEDAG

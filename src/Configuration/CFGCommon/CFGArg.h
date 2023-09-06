@@ -1,6 +1,7 @@
 #ifndef CFG_ARG_H
 #define CFG_ARG_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -52,18 +53,24 @@ struct CFGArg_RULE {
 
 class CFGArg {
  public:
-  CFGArg(const std::string& n, int i, int a, std::vector<CFGArg_RULE> r,
-         const char* h);
+  CFGArg(const std::string& n, bool hidden, int i, int a,
+         std::vector<CFGArg_RULE> r, const char* h);
+  CFGArg(const std::string& n, bool hidden, const char* h, const char* hh);
+  std::string get_sub_arg_name();
+  const CFGArg* get_sub_arg();
   bool specified(const std::string& option);
   const std::string m_name = "";
+  const bool m_hidden = false;
   std::vector<std::string> m_args;
   bool m_help = false;
 
  protected:
   bool parse(int argc, const char* argv[], std::vector<std::string>* errors);
-  void print();
+  void print() const;
 
  private:
+  bool single_parse(int argc, const char* argv[],
+                    std::vector<std::string>* errors);
   void post_error(std::string message, std::vector<std::string>* errors);
   bool parse_long_option(const std::string& option, CFGArg_RULE** ptr,
                          std::vector<std::string>* errors);
@@ -80,7 +87,12 @@ class CFGArg {
   const int m_max_arg = 0;
   const std::vector<CFGArg_RULE> m_rules = {};
   const char* m_help_msg = nullptr;
+  const char* m_hidden_help_msg = nullptr;
   uint32_t m_count = 0;
+  std::string m_subcmd = "";
+
+ protected:
+  const std::map<std::string, const CFGArg*> m_sub_args;
 };
 
 #endif

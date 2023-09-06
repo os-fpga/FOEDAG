@@ -65,16 +65,6 @@ if(MSVC)
 		set_target_properties(${SUBSYSTEM} PROPERTIES
 			COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
 		)
-		# Every subsystem will have test
-		set_property(TARGET ${SUBSYSTEM}_test 
-			PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-		)
-		set_property(TARGET ${SUBSYSTEM}_test 
-			PROPERTY COMPILER_FLAGS /DSTATIC_BUILD
-		)
-		set_target_properties(${SUBSYSTEM}_test PROPERTIES
-			COMPILE_OPTIONS "$<$<CONFIG:Debug>:/MTd>$<$<CONFIG:Release>:/MT>"
-		)
 		if (${subsystem_index} GREATER -1)
 			# Currently only ${POST-SUBSYSTEMS} has foedag_xxxx
 			set_property(TARGET foedag_${SUBSYSTEM} 

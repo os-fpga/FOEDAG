@@ -115,10 +115,14 @@ class MainWindow : public QMainWindow, public TopLevelInterface {
   void openFileWith(QString file, int editor);
   void editorSettings();
   void updateHierarchyTree();
+  void updateReportsView();
 
  public slots:
   void updateSourceTree();
   void handleIpTreeSelectionChanged();
+  void openIpConfigurationDialog(const QString& ipName = {},
+                                 const QString& moduleName = {},
+                                 const QStringList& paramList = {});
   void handleIpReConfigRequested(const QString& ipName,
                                  const QString& moduleName,
                                  const QStringList& paramList);

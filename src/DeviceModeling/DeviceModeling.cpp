@@ -217,6 +217,14 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("create_instance", create_instance, this, 0);
 
+  auto define_properties = [](void* clientData, Tcl_Interp* interp, int argc,
+                              const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = Model::get_modler().define_properties(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;
+  };
+  interp->registerCmd("define_properties", define_properties, this, 0);
+
   auto add_block_to_chain_type = [](void* clientData, Tcl_Interp* interp,
                                     int argc, const char* argv[]) -> int {
     // TODO: Implement this API
@@ -632,6 +640,14 @@ bool DeviceModeling::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
   };
   interp->registerCmd("map_rtl_user_names", map_rtl_user_names, this, 0);
+
+  auto map_model_user_names = [](void* clientData, Tcl_Interp* interp, int argc,
+                                 const char* argv[]) -> int {
+    // TODO: Implement this API
+    bool status = Model::get_modler().map_model_user_names(argc, argv);
+    return (status) ? TCL_OK : TCL_ERROR;  // map_rtl_user_names
+  };
+  interp->registerCmd("map_model_user_names", map_model_user_names, this, 0);
 
   auto set_io_bank = [](void* clientData, Tcl_Interp* interp, int argc,
                         const char* argv[]) -> int {

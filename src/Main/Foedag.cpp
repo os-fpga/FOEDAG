@@ -374,7 +374,7 @@ bool Foedag::initBatch() {
   const bool mute{m_cmdLine->Mute() && !m_cmdLine->Script().empty()};
   Config::Instance()->dataPath(m_context->DataPath());
   FOEDAG::CommandStack* commands =
-      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName(), mute);
+      new FOEDAG::CommandStack(interpreter, m_context->ExecutableName());
   GlobalSession =
       new FOEDAG::Session(m_mainWin, interpreter, commands, m_cmdLine,
                           m_context, m_compiler, m_settings);
@@ -397,16 +397,14 @@ bool Foedag::initBatch() {
                                          ComponentId::Compiler);
   GlobalSession->ProjectFileLoader(m_projectFileLoader);
 
-  if (mute) {
-    std::cout.rdbuf(nullptr);
-  } else {
-    BatchModeBuffer* outBuffer = new BatchModeBuffer{commands->OutLogger()};
-    auto tmp = std::cout.rdbuf(outBuffer);
-    outBuffer->getStream().rdbuf(tmp);
+  BatchModeBuffer* outBuffer = new BatchModeBuffer{commands->OutLogger()};
+  auto tmp = std::cout.rdbuf(outBuffer);
+  outBuffer->getStream().rdbuf(mute ? nullptr : tmp);
 
-    BatchModeBuffer* errBuffer = new BatchModeBuffer{commands->OutLogger()};
-    tmp = std::cerr.rdbuf(errBuffer);
-    errBuffer->getStream().rdbuf(tmp);
+  BatchModeBuffer* errBuffer = new BatchModeBuffer{commands->OutLogger()};
+  tmp = std::cerr.rdbuf(errBuffer);
+  errBuffer->getStream().rdbuf(mute ? nullptr : tmp);
+  if (!mute) {
     m_tclChannelHandler = new FOEDAG::TclWorker(interpreter->getInterp(),
                                                 std::cout, &std::cerr, true);
   }

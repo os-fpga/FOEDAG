@@ -101,6 +101,14 @@ class TaskManager : public QObject {
   static bool isSimulation(const Task *const task);
   void setDialogProvider(const DialogProvider *const dProvider);
 
+  /*!
+   * \brief getDownstreamClearTasks
+   * \return vector of clean tasks in reverse order. Vector includes \param t.
+   * If \param t is simulation clean, return only this task since simulation
+   * doesn't trigger clean for downstream.
+   */
+  QVector<Task *> getDownstreamCleanTasks(Task *t) const;
+
  signals:
   /*!
    * \brief taskStateChanged. Emits whenever any task change its status.
@@ -134,13 +142,9 @@ class TaskManager : public QObject {
   void cleanDownStreamStatus(Task *t);
   void appendTask(Task *t);
   void resetTask(Task *t);
-
-  /*!
-   * \brief getDownstreamClearTasks
-   * \return vector of clean tasks in reverse order. Vector includes \param t.
-   */
-  QVector<Task *> getDownstreamCleanTasks(Task *t) const;
   void registerReportManager(uint type, AbstractReportManager *manager);
+  QString cleanText(Task *t) const;
+  Task *GetCleanParent(Task *t) const;
 
  private:
   QMap<uint, Task *> m_tasks;

@@ -87,6 +87,7 @@ class Compiler {
 
  public:
   enum class NetlistType { Blif, EBlif, Edif, Verilog, VHDL };
+  enum class ParserType { Default, Verific, Surelog, GHDL };
   enum class Action {
     NoAction,
     IPGen,
@@ -182,8 +183,8 @@ class Compiler {
   virtual void reloadSettings() {}
   void CleanFiles(Action action);
   std::string GetMessagePrefix() const;
-  void SetUseVerific(bool on) { m_useVerific = on; }
-
+  void SetParserType(ParserType type) { m_parserType = type; }
+  ParserType GetParserType() { return m_parserType; }
   void SetIPGenerator(IPGenerator* generator) { m_IPGenerator = generator; }
   IPGenerator* GetIPGenerator() { return m_IPGenerator; }
   void SetSimulator(Simulator* simulator) { m_simulator = simulator; }
@@ -219,7 +220,7 @@ class Compiler {
   PowerOpt PowerAnalysisOpt() const { return m_powerOpt; }
   void PowerAnalysisOpt(PowerOpt opt) { m_powerOpt = opt; }
   STAEngineOpt TimingAnalysisEngineOpt() const { return m_staEngineOpt; }
-  void TimingAnalysisEngineOpt(STAEngineOpt opt) { m_staEngineOpt = opt; }
+  void TimingAnalysisEngineOpt(STAEngineOpt opt);
   BitstreamOpt BitsOpt() const { return m_bitstreamOpt; }
   void BitsOpt(BitstreamOpt opt) { m_bitstreamOpt = opt; }
 
@@ -303,6 +304,8 @@ class Compiler {
     return m_configFileSearchDir;
   }
 
+  std::filesystem::path GetBinPath() const;
+
   std::string Name() const { return m_name; }
 
   static constexpr SynthesisOpt SYNTH_OPT_DEFAULT{SynthesisOpt::Mixed};
@@ -341,7 +344,8 @@ class Compiler {
   bool HasTargetDevice();
 
   bool CreateDesign(const std::string& name,
-                    const std::string& type = std::string{});
+                    const std::string& type = std::string{},
+                    bool cleanup = false);
 
   /* Compiler class utilities */
   bool RunBatch();
@@ -384,7 +388,7 @@ class Compiler {
   TclCommandIntegration* m_tclCmdIntegration{nullptr};
   Constraints* m_constraints = nullptr;
   std::string m_output;
-  bool m_useVerific = false;
+  ParserType m_parserType{ParserType::Default};
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;

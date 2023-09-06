@@ -23,12 +23,12 @@ if { !$found } { puts "ERROR: analysis.rpt is missing copyright info"; exit 1 }
 set found [regexp "Version.*: " $file_data]
 if { !$found } { puts "ERROR: analysis.rpt is missing version info"; exit 1 }
 
-# Verify Build Date is printed
-set found [regexp "Built.*: " $file_data]
-if { !$found } { puts "ERROR: analysis.rpt is missing version info"; exit 1 }
+# Verify Build is printed
+set found [regexp "Build.*: " $file_data]
+if { !$found } { puts "ERROR: analysis.rpt is missing build info"; exit 1 }
 
-# Verify Build Date is printed
-set found [regexp "Built type.*: " $file_data]
+# Verify Type is printed
+set found [regexp "Type.*: " $file_data]
 if { !$found } { puts "ERROR: analysis.rpt is missing build type info"; exit 1 }
 
 # Verify Log Time is printed

@@ -94,8 +94,9 @@ static std::vector<std::string> constraint_procs = {
     // "get_ports",
     "filter_ports1",
     // "create_clock",
-    "create_generated_clock", "group_path", "check_exception_pins",
-    "set_clock_gating_check", "set_clock_gating_check1",
+    // "create_generated_clock",
+    "group_path", "check_exception_pins", "set_clock_gating_check",
+    "set_clock_gating_check1",
     // "set_clock_groups",
     "set_clock_latency", "set_sense", "set_clock_sense", "set_clock_sense_cmd1",
     "set_clock_transition", "set_clock_uncertainty", "set_data_check",
@@ -160,6 +161,163 @@ void Constraints::registerCommands(TclInterpreter* interp) {
   for (auto proc_name : constraint_procs) {
     interp->registerCmd(proc_name, name_harvesting_sdc_command, this, 0);
   }
+
+  auto create_generated_clock = [](void* clientData, Tcl_Interp* interp,
+                                   int argc, const char* argv[]) -> int {
+    Constraints* constraints = (Constraints*)clientData;
+    if (!verifyTimingLimits(argc, argv)) {
+      Tcl_AppendResult(interp, TimingLimitErrorMessage, nullptr);
+      return TCL_ERROR;
+    }
+    if (constraints->GetPolicy() == ConstraintPolicy::SDC) {
+      std::string constraint = getConstraint(argc, argv);
+      constraints->addConstraint(constraint);
+      return TCL_OK;
+    }
+    std::string constraint = std::string("create_clock") + " ";
+    std::string actual_clock;
+    std::string master_clock;
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+      } else if (arg == "-source") {
+        i++;
+        master_clock = argv[i];
+        auto masterClockData =
+            constraints->getClockPeriodMap().find(master_clock);
+        if (masterClockData == constraints->getClockPeriodMap().end()) {
+          Tcl_AppendResult(
+              interp,
+              ("create_generated_clock, unknown source clock pin: " +
+               master_clock)
+                  .c_str(),
+              nullptr);
+          return TCL_ERROR;
+        }
+      } else if (arg == "-edges") {
+        i++;
+      } else if (arg == "-divide_by") {
+        i++;
+      } else if (arg == "-multiply_by") {
+        i++;
+      } else if (arg == "-combinational") {
+      } else if (arg == "-duty_cycle") {
+        i++;
+      } else if (arg == "-invert") {
+      } else if (arg == "-edge_shift") {
+        i++;
+      } else if (arg == "-add") {
+        i++;
+      } else if (arg == "-master_clock") {
+        i++;
+        master_clock = argv[i];
+        auto masterClockData =
+            constraints->getClockPeriodMap().find(master_clock);
+        if (masterClockData == constraints->getClockPeriodMap().end()) {
+          Tcl_AppendResult(
+              interp,
+              ("create_generated_clock, unknown master clock: " + master_clock)
+                  .c_str(),
+              nullptr);
+          return TCL_ERROR;
+        }
+      } else if (arg == "-quiet") {
+      } else if (arg == "-verbose") {
+      } else if (arg.find("-") != std::string::npos) {
+        i++;
+      } else if (arg.find("[") != std::string::npos) {
+        i++;
+      } else {
+        if (arg != "{*}") {
+          actual_clock = arg;
+        }
+      }
+    }
+
+    for (int i = 1; i < argc; i++) {
+      std::string arg = argv[i];
+      if (arg == "-name") {
+        i++;
+        Tcl_AppendResult(interp,
+                         "In SDC compatibility mode, create_generated_clock "
+                         "does not accept -name <clk> option",
+                         nullptr);
+        return TCL_ERROR;
+      } else if (arg == "-source") {
+        i++;
+      } else if (arg == "-edges") {
+        i++;
+      } else if (arg == "-divide_by") {
+        i++;
+        arg = argv[i];
+        float divide_by = std::stof(arg);
+        auto masterClockData =
+            constraints->getClockPeriodMap().find(master_clock);
+        if (masterClockData != constraints->getClockPeriodMap().end()) {
+          float period = (*masterClockData).second / divide_by;
+          constraint += "-period ";
+          constraint += std::to_string(period) + " ";
+          constraints->getClockPeriodMap().emplace(actual_clock, period);
+        }
+      } else if (arg == "-multiply_by") {
+        i++;
+        arg = argv[i];
+        float multiply_by = std::stof(arg);
+        auto masterClockData =
+            constraints->getClockPeriodMap().find(master_clock);
+        if (masterClockData != constraints->getClockPeriodMap().end()) {
+          float period = (*masterClockData).second * multiply_by;
+          constraint += "-period ";
+          constraint += std::to_string(period) + " ";
+          constraints->getClockPeriodMap().emplace(actual_clock, period);
+        }
+      } else if (arg == "-combinational") {
+      } else if (arg == "-duty_cycle") {
+        i++;
+      } else if (arg == "-invert") {
+      } else if (arg == "-edge_shift") {
+        i++;
+      } else if (arg == "-add") {
+        i++;
+      } else if (arg == "-master_clock") {
+        i++;
+      } else if (arg == "-quiet") {
+      } else if (arg == "-verbose") {
+      } else if (arg.find("-") != std::string::npos) {
+        Tcl_AppendResult(
+            interp,
+            strdup((std::string("ERROR: Illegal option for "
+                                "create_generated_clock, check manual: ") +
+                    arg)
+                       .c_str()),
+            (char*)NULL);
+        return TCL_ERROR;
+      } else if (arg.find("[") != std::string::npos) {
+        bool inCommand = true;
+        std::string value;
+        for (uint32_t i = 1; i < arg.size(); i++) {
+          char c = arg[i];
+          if (c == ']') {
+          } else if (c == ' ') {
+            inCommand = false;
+          } else if (!inCommand) {
+            value += c;
+          }
+        }
+        constraint += value + " ";
+      } else {
+        if (arg != "{*}") {
+          constraint += arg + " ";
+          constraints->addKeep(arg);
+        }
+      }
+    }
+    constraints->addConstraint(constraint);
+    return TCL_OK;
+  };
+  interp->registerCmd("create_generated_clock", create_generated_clock, this,
+                      0);
 
   auto create_clock = [](void* clientData, Tcl_Interp* interp, int argc,
                          const char* argv[]) -> int {
@@ -231,7 +389,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               constraints->GetCompiler()->isRtlClock(arg, false);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            return TCL_ERROR;
+            // Temporarily relax until we have analyze command back: return
+            // TCL_ERROR;
           }
           if (isRtlClock) {
             Tcl_AppendResult(
@@ -247,6 +406,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
         arg = argv[i];
         constraint += "-period ";
         constraint += arg + " ";
+        float period = std::stof(arg);
+        constraints->getClockPeriodMap().emplace(actual_clock, period);
       } else if (arg == "-waveform") {
         i++;
         arg = argv[i];
@@ -281,7 +442,8 @@ void Constraints::registerCommands(TclInterpreter* interp) {
               constraints->GetCompiler()->isRtlClock(arg, true);
           if (!isRtlClock && !message.empty()) {
             Tcl_AppendResult(interp, message.c_str(), nullptr);
-            return TCL_ERROR;
+            // Temporarily relax until we have analyze command back: return
+            // TCL_ERROR;
           }
           if (!isRtlClock) {
             // Demote to warning only for now:

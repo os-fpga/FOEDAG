@@ -47,7 +47,10 @@ int main(int argc, char** argv) {
   if (cmd->CompilerName() == "openfpga") {
     opcompiler = new FOEDAG::CompilerOpenFPGA();
     compiler = opcompiler;
-    compiler->SetUseVerific(cmd->UseVerific());
+    if (cmd->UseVerific())
+      compiler->SetParserType(FOEDAG::Compiler::ParserType::Verific);
+    else
+      compiler->SetParserType(FOEDAG::Compiler::ParserType::Default);
   } else {
     compiler = new FOEDAG::Compiler();
   }

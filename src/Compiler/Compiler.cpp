@@ -77,7 +77,7 @@ auto CreateDummyLog = [](Compiler::Action action,
 };
 
 void Compiler::Version(std::ostream* out) {
-  (*out) << "Foedag FPGA Compiler"
+  (*out) << "FOEDAG"
          << "\n";
   LogUtils::PrintVersion(out);
 }
@@ -171,7 +171,9 @@ void Compiler::ErrorMessage(const std::string& message, bool append,
       (*m_err) << "ERROR: " << prefix << message << std::endl;
     }
   }
-  if (append) Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
+  if (m_interp != nullptr)
+    if (append)
+      Tcl_AppendResult(m_interp->getInterp(), message.c_str(), nullptr);
 }
 
 void Compiler::CleanFiles(Action action) {
@@ -420,15 +422,19 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     Compiler* compiler = (Compiler*)clientData;
     std::string name = "noname";
     std::string type{"rtl"};
+    bool cleanup{false};
     if (argc >= 2) {
       name = argv[1];
     }
-    if (argc > 3) {
-      const std::string t = argv[2];
-      if (t == "-type") type = argv[3];
+    for (int i = 2; i < argc; i++) {
+      std::string arg{argv[i]};
+      if (arg == "clean")
+        cleanup = true;
+      else if (arg == "-type" && (i < argc - 1))
+        type = argv[i + 1];
     }
     compiler->GetOutput().clear();
-    bool ok = compiler->CreateDesign(name, type);
+    bool ok = compiler->CreateDesign(name, type, cleanup);
     if (!compiler->m_output.empty())
       Tcl_AppendResult(interp, compiler->m_output.c_str(), nullptr);
     if (!FileUtils::FileExists(name)) {
@@ -1083,10 +1089,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
-#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
-#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -1453,10 +1457,8 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::Clean);
         } else if (arg == "view") {
           compiler->TimingAnalysisOpt(Compiler::STAOpt::View);
-#ifndef PRODUCTION_BUILD
         } else if (arg == "opensta") {
           compiler->TimingAnalysisEngineOpt(Compiler::STAEngineOpt::Opensta);
-#endif
         } else {
           compiler->ErrorMessage("Unknown option: " + arg);
         }
@@ -2706,7 +2708,13 @@ bool Compiler::HasIPDefinitions() {
   return result;
 }
 
-bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
+void Compiler::TimingAnalysisEngineOpt(STAEngineOpt opt) {
+  m_staEngineOpt = opt;
+  if (m_tclCmdIntegration) m_tclCmdIntegration->updateReports();
+}
+
+bool Compiler::CreateDesign(const std::string& name, const std::string& type,
+                            bool cleanup) {
   if (m_tclCmdIntegration) {
     if (m_projManager->HasDesign()) {
       ErrorMessage("Design already exists");
@@ -2715,7 +2723,8 @@ bool Compiler::CreateDesign(const std::string& name, const std::string& type) {
 
     std::ostringstream out;
     bool ok = m_tclCmdIntegration->TclCreateProject(
-        QString::fromStdString(name), QString::fromStdString(type), out);
+        QString::fromStdString(name), QString::fromStdString(type), cleanup,
+        out);
     if (!out.str().empty()) m_output = out.str();
     if (!ok) return false;
     std::string message{"Created design: " + name};
@@ -3023,4 +3032,8 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
     return TCL_ERROR;
   }
   return TCL_OK;
+}
+
+std::filesystem::path Compiler::GetBinPath() const {
+  return GlobalSession->Context()->BinaryPath();
 }

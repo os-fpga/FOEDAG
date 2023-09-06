@@ -119,7 +119,7 @@ void PackagePinsLoader::parseHeader(const QString &header) {
   QStringList modesRx{};
   QStringList modesTx{};
   for (const auto &col : columns) {
-    if (col.startsWith("Mode_")) {
+    if (col.startsWith("Mode_", Qt::CaseInsensitive)) {
       m_model->insertMode(columns.indexOf(col) - 1, col);
       if (col.endsWith("tx", Qt::CaseInsensitive))
         modesTx.append(col);
