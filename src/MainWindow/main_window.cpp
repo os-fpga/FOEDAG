@@ -189,6 +189,8 @@ MainWindow::MainWindow(Session* session)
           this, &MainWindow::onDesignFilesChanged);
   connect(DesignFileWatcher::Instance(), &DesignFileWatcher::designCreated,
           this, &MainWindow::onDesignCreated);
+  connect(this, &MainWindow::closeRequest, this, &MainWindow::close,
+          Qt::QueuedConnection);
 }
 
 void MainWindow::Tcl_NewProject(int argc, const char* argv[]) {
@@ -229,9 +231,10 @@ void MainWindow::ProgressVisible(bool visible) {
 void MainWindow::closeEvent(QCloseEvent* event) {
   if (confirmExitProgram()) {
     if (isRunning()) {
+      forceStopCompilation();
       m_closeRequest = true;
       event->ignore();
-      forceStopCompilation();
+      emit closeRequest();
       return;
     }
     forceStopCompilation();
@@ -1374,7 +1377,7 @@ void MainWindow::ReShowWindow(QString strProject) {
     m_compiler->finish();
     showMessagesTab();
     showReportsTab();
-    if (m_closeRequest) this->close();
+    if (m_closeRequest) emit closeRequest();
   });
 
   connect(m_taskManager, &TaskManager::started, this,
