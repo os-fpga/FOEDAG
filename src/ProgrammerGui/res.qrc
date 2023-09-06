@@ -1,4 +1,9 @@
 <RCC>
-    <qresource prefix="/images">
+    <qresource prefix="/">
+        <file>images/help-circle.png</file>
+        <file>images/detect.png</file>
+        <file>images/start.png</file>
+        <file>images/pause.png</file>
+        <file>images/electronics-chip.png</file>
     </qresource>
 </RCC>

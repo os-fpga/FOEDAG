@@ -68,6 +68,7 @@ set(CPP_LIST
   DeviceModeling/device_instance_test.cpp
   DeviceModeling/device_test.cpp
   Compiler/TaskManager_test.cpp
+  ProgrammerGui/SummaryProgressBar_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h
@@ -88,6 +89,7 @@ target_link_libraries(unittest PRIVATE
   foedag
   foedagcore
   cfgcommon
-  programmer)
+  programmer
+  programmer-gui)
 
 add_test(NAME unittest COMMAND unittest)
