@@ -138,6 +138,31 @@
       }
     },
     {
+      "otp": {
+         "option": [
+            {
+              "name": "cable",
+              "short": "c",
+              "type": "str",
+              "optional": false,
+              "default": "1",
+              "help": "Specify the cable to use for OTP programming"
+            },
+            {
+              "name": "index",
+              "short": "d",
+              "type": "int",
+              "optional": true,
+              "default": 1,
+              "help": "Index of the device to program"
+            }
+        ],
+        "desc": "Program device OTP with the specified bitstream.",
+        "help": ["Program device OTP with the specified bitstream."],
+        "arg" : [1, 1]
+      }
+    },
+    {
       "flash": {
          "option": [
             {
@@ -178,6 +203,8 @@
         "Configuration bitstream programming tool.", 
         "To program fpga device:",
         "  programmer fpga_config <bitstream> -c <cable_index or cable_name> -d <device_index>",
+        "To program device otp:",
+        "  programmer otp <bitstream> -c <cable_index or cable_name> -d <device_index>",
         "To program flash device:",
         "  programmer flash <bitstream> -c <cable_index or cable_name> -d <flash_index> -o <operations>",
         "To query device status:",
