@@ -779,7 +779,8 @@ bool CompilerOpenFPGA::DesignChanged(
   for (auto path : ProjManager()->includePathList()) {
     std::vector<std::string> tokens;
     StringUtils::tokenize(
-        FileUtils::AdjustPath(path, ProjManager()->projectPath()), " ", tokens);
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string(), " ",
+        tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -794,7 +795,8 @@ bool CompilerOpenFPGA::DesignChanged(
   for (auto path : ProjManager()->libraryPathList()) {
     std::vector<std::string> tokens;
     StringUtils::tokenize(
-        FileUtils::AdjustPath(path, ProjManager()->projectPath()), " ", tokens);
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string(), " ",
+        tokens);
     for (auto file : tokens) {
       file = StringUtils::trim(file);
       if (file.size()) {
@@ -841,7 +843,8 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
       std::string includes;
       for (auto path : ProjManager()->includePathList()) {
         includes +=
-            FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
 
       // Add Tcl project directory as an include dir
@@ -849,7 +852,8 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
         std::filesystem::path script = GetSession()->CmdLine()->Script();
         std::filesystem::path scriptPath = script.parent_path();
         includes += FileUtils::AdjustPath(scriptPath.string(),
-                                          ProjManager()->projectPath()) +
+                                          ProjManager()->projectPath())
+                        .string() +
                     " ";
       }
 
@@ -865,7 +869,9 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
           const std::string& path = filePath.string();
           if (designFileDirs.find(path) == designFileDirs.end()) {
             includes +=
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+                FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                    .string() +
+                " ";
             designFileDirs.insert(path);
           }
         }
@@ -876,7 +882,8 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
       std::string libraries;
       for (auto path : ProjManager()->libraryPathList()) {
         libraries +=
-            FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
       if (!libraries.empty()) fileList += "-vlog-libdir " + libraries + "\n";
 
@@ -1229,7 +1236,8 @@ bool CompilerOpenFPGA::Synthesize() {
 
       for (auto path : ProjManager()->includePathList()) {
         includes +=
-            FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
 
       // Add Tcl project directory as an include dir
@@ -1237,7 +1245,8 @@ bool CompilerOpenFPGA::Synthesize() {
         std::filesystem::path script = GetSession()->CmdLine()->Script();
         std::filesystem::path scriptPath = script.parent_path();
         includes += FileUtils::AdjustPath(scriptPath.string(),
-                                          ProjManager()->projectPath()) +
+                                          ProjManager()->projectPath())
+                        .string() +
                     " ";
       }
 
@@ -1252,7 +1261,9 @@ bool CompilerOpenFPGA::Synthesize() {
           const std::string& path = filePath.string();
           if (designFileDirs.find(path) == designFileDirs.end()) {
             includes +=
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+                FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                    .string() +
+                " ";
             designFileDirs.insert(path);
           }
         }
@@ -1263,7 +1274,8 @@ bool CompilerOpenFPGA::Synthesize() {
       std::string libraries;
       for (auto path : ProjManager()->libraryPathList()) {
         libraries +=
-            FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
       fileList += "verific -vlog-libdir " + libraries + "\n";
 
@@ -1377,6 +1389,7 @@ bool CompilerOpenFPGA::Synthesize() {
           break;
         }
       }
+
       std::string macros = "verilog_defines ";
       for (auto& macro_value : ProjManager()->macroList()) {
         macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
@@ -1384,9 +1397,18 @@ bool CompilerOpenFPGA::Synthesize() {
       macros += "\n";
       std::string includes;
       for (auto path : ProjManager()->includePathList()) {
-        includes += "-I" +
-                    FileUtils::AdjustPath(path, ProjManager()->projectPath()) +
-                    " ";
+        includes +=
+            "-I" +
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
+      }
+
+      std::vector<std::string> extentions{".v"};
+      if (!ProjManager()->libraryExtensionList().empty()) {
+        extentions.clear();
+        for (auto entry : ProjManager()->libraryExtensionList()) {
+          extentions.push_back(entry);
+        }
       }
 
       // Add Tcl project directory as an include dir
@@ -1395,7 +1417,8 @@ bool CompilerOpenFPGA::Synthesize() {
         std::filesystem::path scriptPath = script.parent_path();
         includes += "-I" +
                     FileUtils::AdjustPath(scriptPath.string(),
-                                          ProjManager()->projectPath()) +
+                                          ProjManager()->projectPath())
+                        .string() +
                     " ";
       }
 
@@ -1411,13 +1434,60 @@ bool CompilerOpenFPGA::Synthesize() {
           if (designFileDirs.find(path) == designFileDirs.end()) {
             includes +=
                 "-I" +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+                FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                    .string() +
+                " ";
             designFileDirs.insert(path);
           }
         }
       }
 
-      std::string designFiles;
+      std::set<std::string> designFileSet;
+      for (const auto& lang_file : ProjManager()->DesignFiles()) {
+        const std::string& fileNames = lang_file.second;
+        std::vector<std::string> files;
+        StringUtils::tokenize(fileNames, " ", files);
+        for (auto file : files) {
+          std::filesystem::path filePath = file;
+          designFileSet.insert(filePath.filename().string());
+        }
+      }
+
+      std::string designFiles = macros;
+      for (auto path : ProjManager()->libraryPathList()) {
+        std::filesystem::path libPath =
+            FileUtils::AdjustPath(path, ProjManager()->projectPath());
+        if (std::filesystem::exists(libPath) &&
+            std::filesystem::is_directory(libPath)) {
+          for (auto const& dir_entry :
+               std::filesystem::directory_iterator{libPath}) {
+            for (auto ext : extentions) {
+              if (ext == dir_entry.path().extension()) {
+                if (designFileSet.find(dir_entry.path().filename().string()) ==
+                    designFileSet.end()) {
+                  bool fileContainsModuleOfSameName = false;
+                  std::ifstream ifs(dir_entry.path());
+                  if (ifs.good()) {
+                    std::stringstream buffer;
+                    buffer << ifs.rdbuf();
+                    std::string moduleName = dir_entry.path().stem().string();
+                    const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
+                    if (std::regex_search(buffer.str(), regexp)) {
+                      fileContainsModuleOfSameName = true;
+                    }
+                  }
+                  ifs.close();
+                  if (fileContainsModuleOfSameName) {
+                    designFiles += "read_verilog " + includes +
+                                   dir_entry.path().string() + "\n";
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       for (const auto& lang_file : ProjManager()->DesignFiles()) {
         std::string filesScript =
             "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
@@ -1455,7 +1525,7 @@ bool CompilerOpenFPGA::Synthesize() {
         designFiles += filesScript + "\n";
       }
       yosysScript =
-          ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", macros + designFiles);
+          ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", designFiles);
       break;
     }
     case ParserType::Surelog: {
@@ -1477,9 +1547,10 @@ bool CompilerOpenFPGA::Synthesize() {
       }
 
       for (auto path : ProjManager()->includePathList()) {
-        includes += "-I" +
-                    FileUtils::AdjustPath(path, ProjManager()->projectPath()) +
-                    " ";
+        includes +=
+            "-I" +
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
 
       // Add Tcl project directory as an include dir
@@ -1488,7 +1559,8 @@ bool CompilerOpenFPGA::Synthesize() {
         std::filesystem::path scriptPath = script.parent_path();
         includes += "-I" +
                     FileUtils::AdjustPath(scriptPath.string(),
-                                          ProjManager()->projectPath()) +
+                                          ProjManager()->projectPath())
+                        .string() +
                     " ";
       }
 
@@ -1504,7 +1576,9 @@ bool CompilerOpenFPGA::Synthesize() {
           if (designFileDirs.find(path) == designFileDirs.end()) {
             includes +=
                 "-I" +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+                FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                    .string() +
+                " ";
             designFileDirs.insert(path);
           }
         }
@@ -1512,9 +1586,10 @@ bool CompilerOpenFPGA::Synthesize() {
 
       std::string libraries;
       for (auto path : ProjManager()->libraryPathList()) {
-        libraries += "-y " +
-                     FileUtils::AdjustPath(path, ProjManager()->projectPath()) +
-                     " ";
+        libraries +=
+            "-y " +
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
       }
 
       std::string extensions;
@@ -1645,7 +1720,9 @@ bool CompilerOpenFPGA::Synthesize() {
           if (designFileDirs.find(path) == designFileDirs.end()) {
             searchPath +=
                 "-P" +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+                FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                    .string() +
+                " ";
             designFileDirs.insert(path);
           }
         }

@@ -794,8 +794,10 @@ std::string Simulator::SimulationFileList(SimulationType action,
 
   // includes
   for (const auto& path : ProjManager()->includePathList()) {
-    fileList += IncludeDirective(type) +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+    fileList +=
+        IncludeDirective(type) +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
   }
 
   if (type != SimulatorType::GHDL) {
@@ -810,9 +812,10 @@ std::string Simulator::SimulationFileList(SimulationType action,
         filePath = filePath.parent_path();
         const std::string& path = filePath.string();
         if (designFileDirs.find(path) == designFileDirs.end()) {
-          fileList +=
-              IncludeDirective(type) +
-              FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+          fileList += IncludeDirective(type) +
+                      FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                          .string() +
+                      " ";
           designFileDirs.insert(path);
         }
       }
@@ -828,9 +831,10 @@ std::string Simulator::SimulationFileList(SimulationType action,
         filePath = filePath.parent_path();
         const std::string& path = filePath.string();
         if (designFileDirs.find(path) == designFileDirs.end()) {
-          fileList +=
-              IncludeDirective(type) +
-              FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+          fileList += IncludeDirective(type) +
+                      FileUtils::AdjustPath(path, ProjManager()->projectPath())
+                          .string() +
+                      " ";
           designFileDirs.insert(path);
         }
       }
@@ -839,8 +843,10 @@ std::string Simulator::SimulationFileList(SimulationType action,
 
   // libraries
   for (const auto& path : ProjManager()->libraryPathList()) {
-    fileList += LibraryPathDirective(type) +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+    fileList +=
+        LibraryPathDirective(type) +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
   }
 
   // extensions
@@ -1139,13 +1145,17 @@ bool Simulator::SimulateBitstream(SimulationType sim_type, SimulatorType type) {
   }
 
   for (auto path : ProjManager()->includePathList()) {
-    fileList += IncludeDirective(type) +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+    fileList +=
+        IncludeDirective(type) +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
   }
 
   for (auto path : ProjManager()->libraryPathList()) {
-    fileList += LibraryPathDirective(type) +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath()) + " ";
+    fileList +=
+        LibraryPathDirective(type) +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
   }
 
   for (auto ext : ProjManager()->libraryExtensionList()) {
