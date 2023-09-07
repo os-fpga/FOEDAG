@@ -3809,6 +3809,7 @@ bool CompilerOpenFPGA_ql::Route() {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
     QLMetricsManager::getInstance()->parseMetricsForAction(Action::Routing);
+    QLMetricsManager::getInstance()->parseRoutingReportForDetailedUtilization();
   });
 
   if (!ProjManager()->HasDesign()) {
