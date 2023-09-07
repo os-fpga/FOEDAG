@@ -855,7 +855,7 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   interp->registerCmd("synth_options", synth_options, this, 0);
 
   auto verify_synth_ports = [](void* clientData, Tcl_Interp* interp, int argc,
-                          const char* argv[]) -> int {
+                               const char* argv[]) -> int {
     Compiler* compiler = (Compiler*)clientData;
     return compiler->verifySynthPorts(compiler, interp, argc, argv);
   };
@@ -3046,7 +3046,7 @@ std::filesystem::path Compiler::GetBinPath() const {
 }
 
 int Compiler::verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
-                            const char* argv[]) {
+                               const char* argv[]) {
   bool ok{true};
   std::ostringstream out;
   ok = compiler->m_tclCmdIntegration->TclVerifySynthPorts(out);
@@ -3060,7 +3060,9 @@ int Compiler::verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
   std::string nlPortInfo =
       FilePath(Action::Pack, "post_synth_ports.json").string();
   auto binPath = GlobalSession->Context()->BinaryPath();
-  std::string command = binPath.string() + std::string("/verify_synth_ports ") + "--rtlPortInfo " + rtlPortInfo + " --nlPortInfo " + nlPortInfo;
+  std::string command = binPath.string() + std::string("/verify_synth_ports ") +
+                        "--rtlPortInfo " + rtlPortInfo + " --nlPortInfo " +
+                        nlPortInfo;
   int systemRet = std::system(command.c_str());
   if (systemRet == -1) {
     compiler->ErrorMessage("Error: Error in verify_synth_ports");

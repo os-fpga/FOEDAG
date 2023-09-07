@@ -364,7 +364,7 @@ class Compiler {
   int add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
                 const char* argv[], AddFilesType filesType);
   int verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
-                    const char* argv[]);
+                       const char* argv[]);
 
   void installGTKWaveHelpers();
   void writeHelp(
