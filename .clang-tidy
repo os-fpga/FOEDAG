@@ -29,6 +29,7 @@ Checks: >
   -readability-uppercase-literal-suffix,
   -readability-inconsistent-declaration-parameter-name,
   -readability-simplify-boolean-expr,
+  -readability-identifier-length,
   google-*,
   -google-readability-braces-around-statements,
   -google-readability-todo,
