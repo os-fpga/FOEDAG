@@ -975,50 +975,15 @@ std::string CompilerOpenFPGA::InitAnalyzeScript() {
       break;
     }
     case ParserType::Default: {
-      // TODO: develop an analysis step with only Yosys parser (no synthesis)
-      // Default Yosys parser
-      /*
-         std::string macros = "verilog_defines ";
-         for (auto& macro_value : ProjManager()->macroList()) {
-         macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
-         }
-         macros += "\n";
-         std::string includes;
-         for (auto path : ProjManager()->includePathList()) {
-         includes += "-I" + path + " ";
-         }
-         analysisScript = ReplaceAll(analysisScript, "${READ_DESIGN_FILES}",
-         macros +
-         "read_verilog ${READ_VERILOG_OPTIONS} "
-         "${INCLUDE_PATHS} ${VERILOG_FILES}");
-         std::string fileList;
-         std::string lang;
-         for (const auto& lang_file : ProjManager()->DesignFiles()) {
-         fileList += lang_file.second + " ";
-         switch (lang_file.first) {
-         case Design::Language::VHDL_1987:
-         case Design::Language::VHDL_1993:
-         case Design::Language::VHDL_2000:
-         case Design::Language::VHDL_2008:
-         ErrorMessage("Unsupported language (Yosys default parser)");
-         break;
-         case Design::Language::VERILOG_1995:
-         case Design::Language::VERILOG_2001:
-         case Design::Language::SYSTEMVERILOG_2005:
-         break;
-         case Design::Language::SYSTEMVERILOG_2009:
-         case Design::Language::SYSTEMVERILOG_2012:
-         case Design::Language::SYSTEMVERILOG_2017:
-         lang = "-sv";
-         break;
-         case Design::Language::VERILOG_NETLIST:
-         case Design::Language::BLIF:
-         case Design::Language::EBLIF:
-         ErrorMessage("Unsupported language (Yosys default parser)");
-         break;
-         }
-         analysisScript = fileList;
-         */
+      std::string designFiles = YosysDesignParsingCommmands();
+      analysisScript = designFiles;
+      analysisScript += "\n";
+      if (ProjManager()->DesignTopModule().empty()) {
+        analysisScript += "analyze -auto-top ";
+      } else {
+        analysisScript += "analyze -top " + ProjManager()->DesignTopModule();
+      }
+      analysisScript += "\n";
       break;
     }
     default:
@@ -1070,6 +1035,27 @@ bool CompilerOpenFPGA::Analyze() {
   Message("Analysis for design: " + ProjManager()->projectName());
   Message("##################################################");
 
+  if (GetParserType() == ParserType::Default) {
+    bool hasVhdl = false;
+    for (const auto& lang_file : ProjManager()->DesignFiles()) {
+      switch (lang_file.first.language) {
+        case Design::Language::VHDL_1987:
+        case Design::Language::VHDL_1993:
+        case Design::Language::VHDL_2000:
+        case Design::Language::VHDL_2008:
+        case Design::Language::VHDL_2019:
+          hasVhdl = true;
+          break;
+        default:
+          break;
+      }
+    }
+    if (hasVhdl) {
+      // For GHDL parser
+      SetParserType(ParserType::GHDL);
+    }
+  }
+
   std::string analysisScript;
   std::filesystem::path script_path;
   std::filesystem::path output_path;
@@ -1086,18 +1072,29 @@ bool CompilerOpenFPGA::Analyze() {
   std::string command;
   int status = 0;
   std::filesystem::path analyse_path = ANALYSIS_LOG;
-  if (GetParserType() == ParserType::Verific ||
-      GetParserType() == ParserType::Surelog) {
-    if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
-      ErrorMessage("Cannot find executable: " +
-                   m_analyzeExecutablePath.string());
-      return false;
-    }
-    command = m_analyzeExecutablePath.string() + " -f " + script_path.string();
-    Message("Analyze command: " + command);
-    status = ExecuteAndMonitorSystemCommand(command, analyse_path.string(),
-                                            false, FilePath(Action::Analyze));
+  if (GetParserType() == ParserType::Default ||
+      GetParserType() == ParserType::Surelog ||
+      GetParserType() == ParserType::GHDL) {
+    m_analyzeExecutablePath = m_analyzeExecutablePath.parent_path();
+    m_analyzeExecutablePath = m_analyzeExecutablePath / "yosys";
   }
+  if (!FileUtils::FileExists(m_analyzeExecutablePath)) {
+    ErrorMessage("Cannot find executable: " + m_analyzeExecutablePath.string());
+    return false;
+  }
+  if (GetParserType() == ParserType::Default ||
+      GetParserType() == ParserType::Surelog ||
+      GetParserType() == ParserType::GHDL) {
+    // Yosys-based analyze
+    command = m_analyzeExecutablePath.string() + " -s " + script_path.string();
+  } else {
+    // Verific-based analyze
+    command = m_analyzeExecutablePath.string() + " -f " + script_path.string();
+  }
+  Message("Analyze command: " + command);
+  status = ExecuteAndMonitorSystemCommand(command, analyse_path.string(), false,
+                                          FilePath(Action::Analyze));
+
   std::ifstream raptor_log(analyse_path.string());
   if (raptor_log.good()) {
     std::stringstream buffer;
@@ -1139,6 +1136,154 @@ bool CompilerOpenFPGA::Analyze() {
   printTopModules(output_path, &tempOut);
   Message(tempOut.str());
   return true;
+}
+
+std::string CompilerOpenFPGA::YosysDesignParsingCommmands() {
+  // Default Yosys parser
+
+  for (const auto& commandLib : ProjManager()->DesignLibraries()) {
+    if (!commandLib.first.empty()) {
+      ErrorMessage(
+          "Yosys default parser doesn't support '-work' design file "
+          "command");
+      break;
+    }
+  }
+
+  std::string macros = "verilog_defines ";
+  for (auto& macro_value : ProjManager()->macroList()) {
+    macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+  }
+  macros += "\n";
+  std::string includes;
+  for (auto path : ProjManager()->includePathList()) {
+    includes +=
+        "-I" +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
+  }
+
+  std::vector<std::string> extentions{".v"};
+  if (!ProjManager()->libraryExtensionList().empty()) {
+    extentions.clear();
+    for (auto entry : ProjManager()->libraryExtensionList()) {
+      extentions.push_back(entry);
+    }
+  }
+
+  // Add Tcl project directory as an include dir
+  if (!GetSession()->CmdLine()->Script().empty()) {
+    std::filesystem::path script = GetSession()->CmdLine()->Script();
+    std::filesystem::path scriptPath = script.parent_path();
+    includes +=
+        "-I" +
+        FileUtils::AdjustPath(scriptPath.string(), ProjManager()->projectPath())
+            .string() +
+        " ";
+  }
+
+  std::set<std::string> designFileDirs;
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    const std::string& fileNames = lang_file.second;
+    std::vector<std::string> files;
+    StringUtils::tokenize(fileNames, " ", files);
+    for (auto file : files) {
+      std::filesystem::path filePath = file;
+      filePath = filePath.parent_path();
+      const std::string& path = filePath.string();
+      if (designFileDirs.find(path) == designFileDirs.end()) {
+        includes +=
+            "-I" +
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
+        designFileDirs.insert(path);
+      }
+    }
+  }
+
+  std::set<std::string> designFileSet;
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    const std::string& fileNames = lang_file.second;
+    std::vector<std::string> files;
+    StringUtils::tokenize(fileNames, " ", files);
+    for (auto file : files) {
+      std::filesystem::path filePath = file;
+      designFileSet.insert(filePath.filename().string());
+    }
+  }
+
+  std::string designFiles = macros;
+  for (auto path : ProjManager()->libraryPathList()) {
+    std::filesystem::path libPath =
+        FileUtils::AdjustPath(path, ProjManager()->projectPath());
+    if (std::filesystem::exists(libPath) &&
+        std::filesystem::is_directory(libPath)) {
+      for (auto const& dir_entry :
+           std::filesystem::directory_iterator{libPath}) {
+        for (auto ext : extentions) {
+          if (ext == dir_entry.path().extension()) {
+            if (designFileSet.find(dir_entry.path().filename().string()) ==
+                designFileSet.end()) {
+              bool fileContainsModuleOfSameName = false;
+              std::ifstream ifs(dir_entry.path());
+              if (ifs.good()) {
+                std::stringstream buffer;
+                buffer << ifs.rdbuf();
+                std::string moduleName = dir_entry.path().stem().string();
+                const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
+                if (std::regex_search(buffer.str(), regexp)) {
+                  fileContainsModuleOfSameName = true;
+                }
+              }
+              ifs.close();
+              if (fileContainsModuleOfSameName) {
+                designFiles += "read_verilog " + includes +
+                               dir_entry.path().string() + "\n";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (const auto& lang_file : ProjManager()->DesignFiles()) {
+    std::string filesScript =
+        "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
+        "${VERILOG_FILES}";
+    std::string lang;
+
+    auto files = lang_file.second + " ";
+    switch (lang_file.first.language) {
+      case Design::Language::VHDL_1987:
+      case Design::Language::VHDL_1993:
+      case Design::Language::VHDL_2000:
+      case Design::Language::VHDL_2008:
+      case Design::Language::VHDL_2019:
+        ErrorMessage("Unsupported language (Yosys default parser)");
+        break;
+      case Design::Language::VERILOG_1995:
+      case Design::Language::VERILOG_2001:
+      case Design::Language::SYSTEMVERILOG_2005:
+        break;
+      case Design::Language::SYSTEMVERILOG_2009:
+      case Design::Language::SYSTEMVERILOG_2012:
+      case Design::Language::SYSTEMVERILOG_2017:
+        lang = "-sv";
+        break;
+      case Design::Language::VERILOG_NETLIST:
+      case Design::Language::BLIF:
+      case Design::Language::EBLIF:
+        ErrorMessage("Unsupported language (Yosys default parser)");
+        break;
+    }
+    filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
+    filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
+    filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
+
+    designFiles += filesScript + "\n";
+  }
+  return designFiles;
 }
 
 bool CompilerOpenFPGA::Synthesize() {
@@ -1202,6 +1347,8 @@ bool CompilerOpenFPGA::Synthesize() {
         case Design::Language::VHDL_2008:
         case Design::Language::VHDL_2019:
           hasVhdl = true;
+          break;
+        default:
           break;
       }
     }
@@ -1379,151 +1526,8 @@ bool CompilerOpenFPGA::Synthesize() {
       break;
     }
     case ParserType::Default: {
-      // Default Yosys parser
+      std::string designFiles = YosysDesignParsingCommmands();
 
-      for (const auto& commandLib : ProjManager()->DesignLibraries()) {
-        if (!commandLib.first.empty()) {
-          ErrorMessage(
-              "Yosys default parser doesn't support '-work' design file "
-              "command");
-          break;
-        }
-      }
-
-      std::string macros = "verilog_defines ";
-      for (auto& macro_value : ProjManager()->macroList()) {
-        macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
-      }
-      macros += "\n";
-      std::string includes;
-      for (auto path : ProjManager()->includePathList()) {
-        includes +=
-            "-I" +
-            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
-            " ";
-      }
-
-      std::vector<std::string> extentions{".v"};
-      if (!ProjManager()->libraryExtensionList().empty()) {
-        extentions.clear();
-        for (auto entry : ProjManager()->libraryExtensionList()) {
-          extentions.push_back(entry);
-        }
-      }
-
-      // Add Tcl project directory as an include dir
-      if (!GetSession()->CmdLine()->Script().empty()) {
-        std::filesystem::path script = GetSession()->CmdLine()->Script();
-        std::filesystem::path scriptPath = script.parent_path();
-        includes += "-I" +
-                    FileUtils::AdjustPath(scriptPath.string(),
-                                          ProjManager()->projectPath())
-                        .string() +
-                    " ";
-      }
-
-      std::set<std::string> designFileDirs;
-      for (const auto& lang_file : ProjManager()->DesignFiles()) {
-        const std::string& fileNames = lang_file.second;
-        std::vector<std::string> files;
-        StringUtils::tokenize(fileNames, " ", files);
-        for (auto file : files) {
-          std::filesystem::path filePath = file;
-          filePath = filePath.parent_path();
-          const std::string& path = filePath.string();
-          if (designFileDirs.find(path) == designFileDirs.end()) {
-            includes +=
-                "-I" +
-                FileUtils::AdjustPath(path, ProjManager()->projectPath())
-                    .string() +
-                " ";
-            designFileDirs.insert(path);
-          }
-        }
-      }
-
-      std::set<std::string> designFileSet;
-      for (const auto& lang_file : ProjManager()->DesignFiles()) {
-        const std::string& fileNames = lang_file.second;
-        std::vector<std::string> files;
-        StringUtils::tokenize(fileNames, " ", files);
-        for (auto file : files) {
-          std::filesystem::path filePath = file;
-          designFileSet.insert(filePath.filename().string());
-        }
-      }
-
-      std::string designFiles = macros;
-      for (auto path : ProjManager()->libraryPathList()) {
-        std::filesystem::path libPath =
-            FileUtils::AdjustPath(path, ProjManager()->projectPath());
-        if (std::filesystem::exists(libPath) &&
-            std::filesystem::is_directory(libPath)) {
-          for (auto const& dir_entry :
-               std::filesystem::directory_iterator{libPath}) {
-            for (auto ext : extentions) {
-              if (ext == dir_entry.path().extension()) {
-                if (designFileSet.find(dir_entry.path().filename().string()) ==
-                    designFileSet.end()) {
-                  bool fileContainsModuleOfSameName = false;
-                  std::ifstream ifs(dir_entry.path());
-                  if (ifs.good()) {
-                    std::stringstream buffer;
-                    buffer << ifs.rdbuf();
-                    std::string moduleName = dir_entry.path().stem().string();
-                    const std::regex regexp{"(module)[ ]+(" + moduleName + ")"};
-                    if (std::regex_search(buffer.str(), regexp)) {
-                      fileContainsModuleOfSameName = true;
-                    }
-                  }
-                  ifs.close();
-                  if (fileContainsModuleOfSameName) {
-                    designFiles += "read_verilog " + includes +
-                                   dir_entry.path().string() + "\n";
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      for (const auto& lang_file : ProjManager()->DesignFiles()) {
-        std::string filesScript =
-            "read_verilog ${READ_VERILOG_OPTIONS} ${INCLUDE_PATHS} "
-            "${VERILOG_FILES}";
-        std::string lang;
-
-        auto files = lang_file.second + " ";
-        switch (lang_file.first.language) {
-          case Design::Language::VHDL_1987:
-          case Design::Language::VHDL_1993:
-          case Design::Language::VHDL_2000:
-          case Design::Language::VHDL_2008:
-          case Design::Language::VHDL_2019:
-            ErrorMessage("Unsupported language (Yosys default parser)");
-            break;
-          case Design::Language::VERILOG_1995:
-          case Design::Language::VERILOG_2001:
-          case Design::Language::SYSTEMVERILOG_2005:
-            break;
-          case Design::Language::SYSTEMVERILOG_2009:
-          case Design::Language::SYSTEMVERILOG_2012:
-          case Design::Language::SYSTEMVERILOG_2017:
-            lang = "-sv";
-            break;
-          case Design::Language::VERILOG_NETLIST:
-          case Design::Language::BLIF:
-          case Design::Language::EBLIF:
-            ErrorMessage("Unsupported language (Yosys default parser)");
-            break;
-        }
-        filesScript = ReplaceAll(filesScript, "${READ_VERILOG_OPTIONS}", lang);
-        filesScript = ReplaceAll(filesScript, "${INCLUDE_PATHS}", includes);
-        filesScript = ReplaceAll(filesScript, "${VERILOG_FILES}", files);
-
-        designFiles += filesScript + "\n";
-      }
       yosysScript =
           ReplaceAll(yosysScript, "${READ_DESIGN_FILES}", designFiles);
       break;
