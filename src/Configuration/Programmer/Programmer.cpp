@@ -233,7 +233,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       if (otp_arg->confirm == false) {
         std::string prompt;
         std::cout << "This OTP programming is not reversable." << std::endl
-                  << "Do you want to continue? [Y/n]";
+                  << "Do you want to continue? [y/N]";
         std::cin >> prompt;
         if (prompt != "y" && prompt != "Y") {
           return;

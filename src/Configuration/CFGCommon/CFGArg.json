@@ -162,7 +162,7 @@
                "type": "flag",
                "optional": true,
                "default": false,
-               "help": "Skip prompting and confirm to proceed"
+               "help": "Confirm to proceed and skip the prompting. This can be used for automation."
             }
         ],
         "desc": "Program device OTP with the specified bitstream.",

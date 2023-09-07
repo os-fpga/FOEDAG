@@ -457,6 +457,38 @@ TEST(ProgrammerHelper, BuildFpgaProgramCommandBasicTest) {
   EXPECT_EQ(expected, actual);
 }
 
+TEST(ProgrammerHelper, BuildOTPProgramCommandBasicTest) {
+  Cable cable = {0x403,
+                 0x6011,
+                 11,
+                 22,
+                 33,
+                 1,
+                 "serial_number_xyz",
+                 "description_xyz",
+                 10000,
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
+  Device device = {0,
+                   "Gemini",
+                   16384,
+                   {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
+  std::string bitfile = "my_bitstreamfile.bit";
+  std::string expected =
+      " -c \"adapter driver ftdi\" -c \"adapter serial serial_number_xyz\""
+      " -c \"ftdi vid_pid 0x403 0x6011\" -c \"ftdi layout_init 0x0c08 0x0f1b\""
+      " -c \"adapter speed 10000\" -c \"transport select jtag\""
+      " -c \"jtag newtap Gemini0 tap -irlen 5 -expected-id 0x1234aabb\""
+      " -c \"target create Gemini0 riscv -endian little -chain-position "
+      "Gemini0.tap\""
+      " -c \"pld device gemini Gemini0\" -c \"init\""
+      " -c \"gemini load 0 otp my_bitstreamfile.bit -p 1\" -l /dev/stdout -c "
+      "\"exit\"";
+  std::string actual = buildOTPProgramCommand(cable, device, bitfile);
+  EXPECT_EQ(expected, actual);
+}
+
 class BuildFpgaProgramCommandTest
     : public testing::TestWithParam<
           std::tuple<std::string, std::string, int, std::string>> {};
@@ -893,4 +925,92 @@ TEST_F(HwDevicesTestFixture, FindDeviceByNameTest) {
   EXPECT_EQ(device.flashSize, hwDevices.getDevices()[1].flashSize);
 }
 
+class ProgramerTestFixture : public ::testing::Test {
+protected:
+  void SetUp() override {
+    cmdarg.command = "programmer";
+    cmdarg.toolPath = "build/bin/openocd";
+    original_cout = std::cout.rdbuf(output_stream.rdbuf());
+    original_cin = std::cin.rdbuf(input_stream.rdbuf());
+  }
+  void TearDown() override {
+    std::cout.rdbuf(original_cout);
+    std::cin.rdbuf(original_cin);
+  }
+  CFGCommon_ARG cmdarg;
+  std::ostringstream output_stream;
+  std::istringstream input_stream;
+  std::streambuf* original_cout = nullptr;
+  std::streambuf *original_cin = nullptr;
+};
 
+TEST_F(ProgramerTestFixture, ExecuteOTPCommandWithDummyCompiler) {
+  const char *argv[] = { "otp", "-c", "1", "bitstream.cfgbit" };
+  int argc = 4;
+
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  arg->parse(argc, argv, nullptr);
+  cmdarg.arg = arg;
+  cmdarg.compilerName = "dummy";
+  programmer_entry(&cmdarg);
+
+  // just for code coverage but nothing to be observed for now
+}
+
+TEST_F(ProgramerTestFixture, ExecuteOTPCommandWithOpenFPGACompilerAndYFlag) {
+  const char *argv[] = { "otp", "-c", "1", "bitstream.cfgbit", "-y" };
+  int argc = 5;
+
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  arg->parse(argc, argv, nullptr);
+  cmdarg.arg = arg;
+  cmdarg.compilerName = "openfpga";
+  programmer_entry(&cmdarg);
+
+  EXPECT_EQ(output_stream.str(), "");
+}
+
+TEST_F(ProgramerTestFixture, ExecuteOTPCommandWithPromptingAnd_Y_Anwser) {
+  const char *argv[] = { "otp", "-c", "1", "bitstream.cfgbit" };
+  int argc = 4;
+
+  input_stream.str("Y");
+
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  arg->parse(argc, argv, nullptr);
+  cmdarg.arg = arg;
+  cmdarg.compilerName = "openfpga";
+  programmer_entry(&cmdarg);
+
+  EXPECT_EQ(output_stream.str(), "This OTP programming is not reversable.\nDo you want to continue? [y/N]");
+}
+
+TEST_F(ProgramerTestFixture, ExecuteOTPCommandWithPromptingAnd_N_Anwser) {
+  const char *argv[] = { "otp", "-c", "1", "bitstream.cfgbit" };
+  int argc = 4;
+
+  input_stream.str("N");
+
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  arg->parse(argc, argv, nullptr);
+  cmdarg.arg = arg;
+  cmdarg.compilerName = "openfpga";
+  programmer_entry(&cmdarg);
+
+  EXPECT_EQ(output_stream.str(), "This OTP programming is not reversable.\nDo you want to continue? [y/N]");
+}
+
+TEST_F(ProgramerTestFixture, ExecuteOTPCommandWithPromptingAnd_Garbage_Anwser) {
+  const char *argv[] = { "otp", "-c", "2", "bitstream.cfgbit" };
+  int argc = 4;
+
+  input_stream.str("%^@sadsad");
+
+  auto arg = std::make_shared<CFGArg_PROGRAMMER>();
+  arg->parse(argc, argv, nullptr);
+  cmdarg.arg = arg;
+  cmdarg.compilerName = "openfpga";
+  programmer_entry(&cmdarg);
+
+  EXPECT_EQ(output_stream.str(), "This OTP programming is not reversable.\nDo you want to continue? [y/N]");
+}
