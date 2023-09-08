@@ -376,6 +376,19 @@ std::string buildFpgaProgramCommand(const Cable& cable, const Device& device,
   return cmd.str() + buildInitEndStringWithCommand(programCommand.str());
 }
 
+std::string buildOTPProgramCommand(const Cable& cable, const Device& device,
+                                   const std::string& bitstreamFile) {
+  std::stringstream cmd;
+  std::stringstream programCommand;
+  std::stringstream cableSS = buildFpgaCableStringStream(cable);
+  std::stringstream targetSS = buildFpgaTargetStringStream(device);
+  programCommand << "gemini load " << device.index << " otp " << bitstreamFile
+                 << " -p 1";
+  cmd << cableSS.str() << targetSS.str();
+
+  return cmd.str() + buildInitEndStringWithCommand(programCommand.str());
+}
+
 std::string buildFlashProgramCommand(
     const Cable& cable, const Device& device, const std::string& bitstreamFile,
     ProgramFlashOperation /*programFlashOperation*/) {

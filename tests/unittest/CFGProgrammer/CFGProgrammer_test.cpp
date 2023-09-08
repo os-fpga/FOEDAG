@@ -457,6 +457,38 @@ TEST(ProgrammerHelper, BuildFpgaProgramCommandBasicTest) {
   EXPECT_EQ(expected, actual);
 }
 
+TEST(ProgrammerHelper, BuildOTPProgramCommandBasicTest) {
+  Cable cable = {0x403,
+                 0x6011,
+                 11,
+                 22,
+                 33,
+                 1,
+                 "serial_number_xyz",
+                 "description_xyz",
+                 10000,
+                 TransportType::jtag,
+                 "RsFtdi_1_1",
+                 1};
+  Device device = {0,
+                   "Gemini",
+                   16384,
+                   {99, "Gemini", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}};
+  std::string bitfile = "my_bitstreamfile.bit";
+  std::string expected =
+      " -c \"adapter driver ftdi\" -c \"adapter serial serial_number_xyz\""
+      " -c \"ftdi vid_pid 0x403 0x6011\" -c \"ftdi layout_init 0x0c08 0x0f1b\""
+      " -c \"adapter speed 10000\" -c \"transport select jtag\""
+      " -c \"jtag newtap Gemini0 tap -irlen 5 -expected-id 0x1234aabb\""
+      " -c \"target create Gemini0 riscv -endian little -chain-position "
+      "Gemini0.tap\""
+      " -c \"pld device gemini Gemini0\" -c \"init\""
+      " -c \"gemini load 0 otp my_bitstreamfile.bit -p 1\" -l /dev/stdout -c "
+      "\"exit\"";
+  std::string actual = buildOTPProgramCommand(cable, device, bitfile);
+  EXPECT_EQ(expected, actual);
+}
+
 class BuildFpgaProgramCommandTest
     : public testing::TestWithParam<
           std::tuple<std::string, std::string, int, std::string>> {};
@@ -892,5 +924,3 @@ TEST_F(HwDevicesTestFixture, FindDeviceByNameTest) {
   EXPECT_EQ(device.index, hwDevices.getDevices()[1].index);
   EXPECT_EQ(device.flashSize, hwDevices.getDevices()[1].flashSize);
 }
-
-

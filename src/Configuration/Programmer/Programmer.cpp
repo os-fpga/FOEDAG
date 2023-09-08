@@ -51,8 +51,9 @@ std::map<int, std::string> ErrorMessages = {
     {BitfileNotFound, "Bitfile not found"},
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
+    {FailedToProgramOTP, "Failed to program device OTP"},
     {InvalidFlashSize, "Invalid flash size"},
-    {UnsupportedFunc, "Unsupported function"}};  // namespace FOEDAG
+    {UnsupportedFunc, "Unsupported function"}};
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
@@ -78,6 +79,11 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CFG_POST_MSG("<test> program fpga - %d %%", i);
+      }
+    } else if (subCmd == "otp") {
+      for (int i = 10; i <= 100; i += 10) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        CFG_POST_MSG("<test> program otp - %d %%", i);
       }
     } else if (subCmd == "flash") {
       auto flash =
@@ -219,6 +225,47 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
           nullptr);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        return;
+      }
+    } else if (subCmd == "otp") {
+      auto otp_arg =
+          static_cast<const CFGArg_PROGRAMMER_OTP*>(arg->get_sub_arg());
+      if (otp_arg->confirm == false) {
+        CFG_post_msg(
+            "WARNING: The OTP programming is not reversable. Please use -y to "
+            "indicate your consensus to proceed.\n\n",
+            "", false);
+        return;
+      }
+      std::string bitstreamFile = otp_arg->m_args[0];
+      std::string cableInput = otp_arg->cable;
+      uint64_t deviceIndex = otp_arg->index;
+      if (!isHwDbInitialized) {
+        InitializeHwDb(cableDeviceDb, cableMap);
+        isHwDbInitialized = true;
+      }
+      auto cableIterator = cableMap.find(cableInput);
+      if (cableIterator == cableMap.end()) {
+        CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        return;
+      }
+      Cable cable = cableIterator->second;
+      Device device;
+      if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
+        CFG_POST_ERR("Device not found: %d", deviceIndex);
+        return;
+      }
+      std::atomic<bool> stop = false;
+      status = ProgramOTP(
+          cable, device, bitstreamFile, stop, nullptr,
+          [](std::string msg) {
+            std::string formatted;
+            formatted = removeInfoAndNewline(msg);
+            CFG_POST_MSG("%s", formatted.c_str());
+          },
+          nullptr);
+      if (status != ProgrammerErrorCode::NoError) {
+        CFG_POST_ERR("Failed to program device OTP. Error code: %d", status);
         return;
       }
     } else if (subCmd == "flash") {
@@ -509,6 +556,48 @@ int ProgramFpga(const Cable& cable, const Device& device,
   size_t pos = cmdOutput.find("loaded file");
   if (pos == std::string::npos) {
     returnCode = ProgrammerErrorCode::FailedToProgramFPGA;
+  }
+  return returnCode;
+}
+
+int ProgramOTP(const Cable& cable, const Device& device,
+               const std::string& bitfile, std::atomic<bool>& stop,
+               std::ostream* outStream /*=nullptr*/,
+               OutputMessageCallback callbackMsg /*=nullptr*/,
+               ProgressCallback callbackProgress /*=nullptr*/) {
+  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
+                 "libOpenOcdExecPath cannot be empty");
+  int returnCode = ProgrammerErrorCode::NoError;
+  std::error_code ec;
+  std::string errorMessage;
+  if (!std::filesystem::exists(bitfile, ec)) {
+    errorMessage = "Cannot find bitfile: " + bitfile + ". " + ec.message();
+    returnCode = ProgrammerErrorCode::BitfileNotFound;
+    addOrUpdateErrorMessage(returnCode, errorMessage);
+    return returnCode;
+  }
+  std::string cmdOutput;
+  std::string programOTPCommand =
+      libOpenOcdExecPath + buildOTPProgramCommand(cable, device, bitfile);
+  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}%";
+  std::regex regexPattern(progressPercentagePattern);
+  returnCode = CFG_execute_cmd_with_callback(programOTPCommand, cmdOutput,
+                                             outStream, regexPattern, stop,
+                                             callbackProgress, callbackMsg);
+  if (returnCode) {
+    errorMessage = "Failed to execute following command " + programOTPCommand +
+                   ". Error code: " + std::to_string(returnCode) + "\n";
+    errorMessage += "ProgramOTP() failed.\n";
+    addOrUpdateErrorMessage(ProgrammerErrorCode::FailedExecuteCommand,
+                            errorMessage);
+    return ProgrammerErrorCode::FailedExecuteCommand;
+  }
+
+  // when programming done, openocd will print out "loaded file"
+  // loaded file /home/user1/abc.bin to device 0 in 5s 90381us
+  size_t pos = cmdOutput.find("loaded file");
+  if (pos == std::string::npos) {
+    returnCode = ProgrammerErrorCode::FailedToProgramOTP;
   }
   return returnCode;
 }
