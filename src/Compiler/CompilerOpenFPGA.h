@@ -171,7 +171,8 @@ class CompilerOpenFPGA : public Compiler {
   virtual void SetDeviceResources();
   bool VerifyTargetDevice() const;
   std::string YosysDesignParsingCommmands();
-
+  std::string SurelogDesignParsingCommmands();
+  std::string GhdlDesignParsingCommmands();
   static std::filesystem::path copyLog(FOEDAG::ProjectManager* projManager,
                                        const std::string& srcFileName,
                                        const std::string& destFileName);
