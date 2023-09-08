@@ -1287,7 +1287,7 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
 
 std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
   // Surelog parser
-  std::string fileList = "plugin -i systemverilog\n";
+  std::string fileList;
   std::string includes;
 
   for (auto msg_sev : MsgSeverityMap()) {
@@ -1366,8 +1366,13 @@ std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
   auto topModuleLib = ProjManager()->DesignTopModuleLib();
   auto commandsLibs = ProjManager()->DesignLibraries();
   size_t filesIndex{0};
+  std::set<std::string> fileSet;
+  std::string lang;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    std::string lang;
+    if (fileSet.find(lang_file.second) != fileSet.end()) {
+      continue;
+    }
+    fileSet.insert(lang_file.second);
     std::string designLibraries;
     switch (lang_file.first.language) {
       case Design::Language::VHDL_1987:
@@ -1423,24 +1428,16 @@ std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
       }
     }
     ++filesIndex;
-
-    if (designLibraries.empty())
-      // -defer still has issues
-      fileList += "read_systemverilog " + macros + libraries + extensions +
-                  lang + " " + lang_file.second + "\n";
-    else
-      fileList += "read_systemverilog " + macros + designLibraries + libraries +
-                  extensions + lang + " " + lang_file.second + "\n";
+    fileList += lang_file.second + " \\\n";
   }
   auto topModuleLibImport = std::string{};
   if (!topModuleLib.empty()) topModuleLibImport = "-work " + topModuleLib + " ";
-  if (ProjManager()->DesignTopModule().empty()) {
-    // fileList += "read_systemverilog -link -synth\n";
-  } else {
-    // fileList += std::string("read_systemverilog -link -synth ") + "-top "
-    // +
-    //              ProjManager()->DesignTopModule() + "\n";
+  std::string top;
+  if (!ProjManager()->DesignTopModule().empty()) {
+    top = " -top " + ProjManager()->DesignTopModule() + " ";
   }
+  fileList = "plugin -i systemverilog\nread_systemverilog -synth " + top +
+             macros + libraries + extensions + lang + " " + fileList;
   return fileList;
 }
 
