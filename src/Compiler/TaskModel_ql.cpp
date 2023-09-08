@@ -209,6 +209,19 @@ void TaskModel::setTaskManager(TaskManager *newTaskManager) {
   for (const auto &[row, id] : m_taskOrder) appendTask(m_taskManager->task(id));
 }
 
+int TaskModel::subTaskCount(Task* task) const
+{
+  int result = 0;
+  for (Task* subtask: task->subTask()) {
+    uint subtaskId = m_taskManager->taskId(subtask);
+    int row = ToRowIndex(subtaskId);
+    if (row != -1) {
+      result++;
+    }
+  }
+  return result;
+}
+
 bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
                         int role) {
   if (role == UserActionRole) {
@@ -232,7 +245,7 @@ bool TaskModel::setData(const QModelIndex &index, const QVariant &value,
       }
       emit dataChanged(
           createIndex(index.row() + 1, index.column()),
-          createIndex(index.row() + task->subTask().count(), index.column()),
+          createIndex(index.row() + subTaskCount(task), index.column()),
           {Qt::DecorationRole});
       emit layoutChanged();
     }

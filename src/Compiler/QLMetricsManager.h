@@ -50,6 +50,7 @@ private:
 
 public:
   void parseMetricsForAction(Compiler::Action action);
+  void parseRoutingReportForDetailedUtilization();
 
 public:
   static QLMetricsManager* getInstance();
