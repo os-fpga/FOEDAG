@@ -231,13 +231,11 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
       auto otp_arg =
           static_cast<const CFGArg_PROGRAMMER_OTP*>(arg->get_sub_arg());
       if (otp_arg->confirm == false) {
-        std::string prompt;
-        std::cout << "This OTP programming is not reversable." << std::endl
-                  << "Do you want to continue? [y/N]";
-        std::cin >> prompt;
-        if (prompt != "y" && prompt != "Y") {
-          return;
-        }
+        CFG_post_msg(
+            "WARNING: The OTP programming is not reversable. Please use -y to "
+            "indicate your consensus to proceed.\n\n",
+            "", false);
+        return;
       }
       std::string bitstreamFile = otp_arg->m_args[0];
       std::string cableInput = otp_arg->cable;

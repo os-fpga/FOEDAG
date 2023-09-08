@@ -162,7 +162,7 @@
                "type": "flag",
                "optional": true,
                "default": false,
-               "help": "Confirm to proceed and skip the prompting. This can be used for automation."
+               "help": "Indicate the consensus of the user to proceed with OTP programming."
             }
         ],
         "desc": "Program device OTP with the specified bitstream.",
@@ -212,7 +212,7 @@
         "To program fpga device:",
         "  programmer fpga_config <bitstream> -c <cable_index or cable_name> -d <device_index>",
         "To program device otp:",
-        "  programmer otp <bitstream> -c <cable_index or cable_name> -d <device_index>",
+        "  programmer otp <bitstream> -c <cable_index or cable_name> -d <device_index> -y",
         "To program flash device:",
         "  programmer flash <bitstream> -c <cable_index or cable_name> -d <flash_index> -o <operations>",
         "To query device status:",
