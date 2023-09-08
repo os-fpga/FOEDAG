@@ -1172,7 +1172,7 @@ bool CompilerOpenFPGA::Analyze() {
 
 std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
   // GHDL parser
-  std::string fileList = "plugin -i ghdl\n";
+  std::string fileList;
 
   for (auto msg_sev : MsgSeverityMap()) {
     switch (msg_sev.second) {
@@ -1209,9 +1209,9 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
   auto topModuleLib = ProjManager()->DesignTopModuleLib();
   auto commandsLibs = ProjManager()->DesignLibraries();
   size_t filesIndex{0};
+  std::string lang;
+  std::string designLibraries;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
-    std::string lang;
-    std::string designLibraries;
     switch (lang_file.first.language) {
       case Design::Language::VHDL_1987:
         lang = "--std=87";
@@ -1269,18 +1269,19 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
       for (size_t i = 0; i < filesCommandsLibs.first.size(); ++i) {
         auto libName = filesCommandsLibs.second[i];
         if (!libName.empty()) {
-          auto commandLib = "-e " + libName + " ";
+          designLibraries = libName;
         }
       }
     }
     ++filesIndex;
-    std::filesystem::path binpath = GetSession()->Context()->BinaryPath();
-    std::filesystem::path prefixPackagePath =
-        binpath / "HDL_simulator" / "GHDL" / "lib" / "ghdl";
-    fileList += "ghdl -frelaxed-rules -fsynopsys --PREFIX=" +
-                prefixPackagePath.string() + " " + searchPath + lang + " " +
-                lang_file.second + " -e " + designLibraries + "\n";
+    fileList += lang_file.second + " ";
   }
+  std::filesystem::path binpath = GetSession()->Context()->BinaryPath();
+  std::filesystem::path prefixPackagePath =
+      binpath / "HDL_simulator" / "GHDL" / "lib" / "ghdl";
+  fileList = "plugin -i ghdl\nghdl -frelaxed-rules -fsynopsys --PREFIX=" +
+             prefixPackagePath.string() + " " + searchPath + lang + " " +
+             fileList + " -e " + designLibraries + "\n";
   return fileList;
 }
 
