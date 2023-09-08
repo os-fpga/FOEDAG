@@ -439,38 +439,6 @@ if(MSVC)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
 
-# Concise way to register a new google test
-# call with register_gtest(path/to/UnitTestFile.cpp)
-function(register_gtests)
-  foreach(gtest_cc_file IN LISTS ARGN)
-    # We create the binary name and test prefix from the cpp-filepath
-    get_filename_component(test_bin ${gtest_cc_file} NAME_WE)
-    get_filename_component(test_prefix ${gtest_cc_file} DIRECTORY)
-
-    # Build binary, link all relevant libs and extract tests
-    add_executable(${test_bin} EXCLUDE_FROM_ALL ${gtest_cc_file})
-
-    target_include_directories(${test_bin} PRIVATE
-    )
-    # For simplicity, we link the test with libfoedag, but there is of
-    # course a lot unnecessary churn if headers are modified.
-    # Often it is sufficient to just have a few depeendencies.
-
-    if (APPLE)
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
-    elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
-    else()
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
-    endif()
-
-    gtest_discover_tests(${test_bin} TEST_PREFIX "${test_prefix}/")
-
-    # Now, add this binary to our UnitTests target that it builds this
-    add_dependencies(UnitTests ${test_bin})
-  endforeach()
-endfunction()
-
 if (WIN32 OR APPLE)
 else ()
 # The test works, the CI running headlessly does not
