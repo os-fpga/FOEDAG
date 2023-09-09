@@ -1437,7 +1437,7 @@ std::string CompilerOpenFPGA::SurelogDesignParsingCommmands() {
     top = " -top " + ProjManager()->DesignTopModule() + " ";
   }
   fileList = "plugin -i systemverilog\nread_systemverilog -synth " + top +
-             macros + libraries + extensions + lang + " " + fileList;
+             macros + libraries + includes + extensions + lang + " " + fileList;
   return fileList;
 }
 
@@ -1921,8 +1921,6 @@ bool CompilerOpenFPGA::Synthesize() {
   int status = ExecuteAndMonitorSystemCommand(
       command, {}, false, FilePath(Action::Synthesis).string());
   if (status) {
-    ErrorMessage("Design " + ProjManager()->projectName() +
-                 " synthesis failed");
     if (GetParserType() == ParserType::Default) {
       // If Default Yosys parser fails, attempt with the Surelog parser
       SetParserType(ParserType::Surelog);
