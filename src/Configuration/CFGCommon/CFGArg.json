@@ -78,7 +78,7 @@
             "short": "v",
             "type": "flag",
             "optional": true,
-            "default": true,
+            "default": false,
             "help": "Display additional information of list_device output"
           }
         ],
@@ -98,7 +98,7 @@
             "short": "v",
             "type": "flag",
             "optional": true,
-            "default": true,
+            "default": false,
             "help": "Display additional information of list_cable output"
           }
         ],
