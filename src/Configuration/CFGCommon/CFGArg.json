@@ -72,6 +72,16 @@
   [
     {
       "list_device": {
+        "option": [
+          {
+            "name": "verbose",
+            "short": "v",
+            "type": "flag",
+            "optional": true,
+            "default": true,
+            "help": "Display additional information of list_device output"
+          }
+        ],
         "desc": "To display list of connected devices to each conneceted/detected cable.",
         "help": [ "To display list of connected devices to each conneceted/detected cable.",
                   "To display list of all connected devices on specify cable.",
@@ -82,6 +92,16 @@
     },
     {
       "list_cable": {
+        "option": [
+          {
+            "name": "verbose",
+            "short": "v",
+            "type": "flag",
+            "optional": true,
+            "default": true,
+            "help": "Display additional information of list_cable output"
+          }
+        ],
         "desc": "To display all the connected/detected cables.",
         "help": ["To display all the connected/detected cables"],
         "arg" : [0, 0]
@@ -196,9 +216,9 @@
               "optional": true,
               "default": "program",
               "help": ["Flash programming operations to perform.", 
-                      "Valid values are: erase, blankcheck, program, verify",
+                      "Valid values are: program",
                       "The values can be chained together using comma", 
-                      "e.g. erase,blankcheck,program,verify"]
+                      "e.g. program"]
             }
         ],
         "desc": "Flash programming with the specified bitstream.",
