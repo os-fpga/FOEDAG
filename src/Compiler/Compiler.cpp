@@ -671,8 +671,14 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     compiler->Message(std::string("Reading ") + actualType + " " +
                       expandedFile + std::string("\n"));
     std::ostringstream out;
+    bool isFileCopy = true;
+    bool localToProject = true;
+    if(compiler->copyFilesOnAdd() == false) {
+      isFileCopy = false;
+      localToProject = false;
+    }
     bool ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-        {}, {}, origPathFileList.c_str(), language, out);
+        {}, {}, origPathFileList.c_str(), language, isFileCopy, localToProject, out);
     if (!ok) {
       compiler->ErrorMessage(out.str());
       return TCL_ERROR;
@@ -885,6 +891,24 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
     return TCL_OK;
   };
   interp->registerCmd("synth_options", synth_options, this, 0);
+
+  auto copy_files_on_add = [](void* clientData, Tcl_Interp* interp, int argc,
+                           const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    if (argc != 2) {
+      compiler->ErrorMessage("Specify on/off");
+      return TCL_ERROR;
+    }
+    std::string arg = argv[1];
+    if(arg == "on") {
+      compiler->setCopyFilesOnAdd(true);
+    }
+    else {
+      compiler->setCopyFilesOnAdd(false);
+    }
+    return TCL_OK;
+  };
+  interp->registerCmd("copy_files_on_add", copy_files_on_add, this, 0);
 
   // Long runtime commands have to have different scheduling in batch and GUI
   // modes
@@ -2756,12 +2780,20 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
                     std::string("\n"));
   std::ostringstream out;
   bool ok{true};
+  // check additionally, if user *does not* want to copy files from TCL script path to project dir?
+  // user can set this using: `copy_files_on_add off` in the TCL script
+  bool isFileCopy = true;
+  bool localToProject = true;
+  if(compiler->copyFilesOnAdd() == false) {
+    isFileCopy = false;
+    localToProject = false;
+  }
   if (filesType == Design) {
     ok = compiler->m_tclCmdIntegration->TclAddDesignFiles(
-        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, isFileCopy, localToProject, out);
   } else {
     ok = compiler->m_tclCmdIntegration->TclAddSimulationFiles(
-        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, out);
+        commandsList.c_str(), libList.c_str(), fileList.c_str(), language, isFileCopy, localToProject, out);
   }
 
   if (!ok) {
