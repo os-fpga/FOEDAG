@@ -33,7 +33,7 @@ addSourceForm::addSourceForm(GridType gt, QWidget *parent)
   ui->m_frame->setLayout(box);
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
-  ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Unchecked);
+  ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
 
   connect(ui->toolButtonIncludePath, &QToolButton::clicked, this,
           &addSourceForm::includePathClicked);

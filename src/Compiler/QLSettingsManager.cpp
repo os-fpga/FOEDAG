@@ -100,6 +100,106 @@ void QLSettingsManager::reloadJSONSettings() {
   instance->parseJSONSettings();
 }
 
+
+void QLSettingsManager::parseSDCFilePath() {
+
+  if( (instance->settings_json).empty() ) {
+    // settings json is not parsed yet, nothing to do.
+    return;
+  }
+
+  // ---------------------------------------------------------------- sdc_file ++
+  // sdc_file can come from Settings JSON -or- automatically picked up if named: <project_name>.sdc
+  // sdc_file path can be absolute or relative
+  // >> note: if sdc file specified in the Settings, and not found, then we flag this as an error!
+  // if relative path, heuristic to find the sdc_file:
+  //   1. check project_path, to see if sdc_file exists, use that
+  //   2. check tcl_script_dir_path (if driven by TCL script), to see if sdc_file exists, use that
+  //   3. check current dir, to see if sdc_file exists exists, use that
+
+  std::filesystem::path sdc_file_path;
+  instance->sdc_file_path_from_json = false;
+
+  // 1. check if an sdc file is specified in the json:
+  if( !getStringValue("vpr", "filename", "sdc_file").empty() ) {
+
+    sdc_file_path = 
+        std::filesystem::path(getStringValue("vpr", "filename", "sdc_file"));
+
+    instance->sdc_file_path_from_json = true;
+  }
+  // else, check for an sdc file with the naming convention (<project_name>.sdc)
+  // note that, this path is always a relative path.
+  else {
+
+    sdc_file_path = 
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectName() + std::string(".sdc"));
+  }
+
+  // check if the path specified is absolute:
+  if (sdc_file_path.is_absolute()) {
+    // check if the file exists:
+    if (!FileUtils::FileExists(sdc_file_path)) {
+      // currently, we ignore it, if the sdc file path is not found.
+      sdc_file_path.clear();
+    }
+  }
+  // we have a relative path
+  else {
+    std::filesystem::path sdc_file_path_absolute;
+    
+    // 1. check project_path
+    // 2. check tcl_script_dir_path (if driven by TCL script)
+    // 3. check current_dir_path
+
+    std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
+    sdc_file_path_absolute = project_path / sdc_file_path;
+    if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+      sdc_file_path_absolute.clear();
+    }
+
+    // 2. check tcl_script_dir_path
+    if(sdc_file_path_absolute.empty()) {
+      std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
+      if(!tcl_script_dir_path.empty()) {
+        sdc_file_path_absolute = tcl_script_dir_path / sdc_file_path;
+        if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+          sdc_file_path_absolute.clear();
+        }
+      }
+    }
+
+    // 3. check current working dir path
+    if(sdc_file_path_absolute.empty()) {
+      sdc_file_path_absolute = sdc_file_path;
+      if(!FileUtils::FileExists(sdc_file_path_absolute)) {
+        sdc_file_path_absolute.clear();
+      }
+    }
+
+    // final: check if we have a valid sdc file path:
+    if(!sdc_file_path_absolute.empty()) {
+      // assign the absolute path to the sdc_file_path variable:
+      sdc_file_path = sdc_file_path_absolute;
+    }
+    else {
+      // currently, we ignore it, if the sdc file path is not found.
+      sdc_file_path.clear();
+    }
+  }
+  // relative file path processing done.
+
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!sdc_file_path.empty()) {
+    // std::cout << "sdc file available: " << sdc_file_path << std::endl;
+    instance->sdc_file_path = sdc_file_path;
+  }
+  else {
+    //std::cout << "sdc file not available." << std::endl;
+  }
+}
+
+
 std::string QLSettingsManager::getStringValue(std::string category, std::string subcategory, std::string parameter) {
 
   std::string value;
@@ -229,6 +329,45 @@ const json* QLSettingsManager::getJson(std::string category) {
   }
 
   return nullptr;
+}
+
+
+std::filesystem::path QLSettingsManager::getSDCFilePath() {
+
+  return instance->sdc_file_path;
+}
+
+
+std::filesystem::path QLSettingsManager::getTCLScriptDirPath() {
+
+  std::filesystem::path tcl_script_dir_path;
+  std::filesystem::path tcl_script_path = GlobalSession->CmdLine()->Script();
+
+  std::error_code ec;
+  if(!tcl_script_path.empty()) {
+
+    std::filesystem::path tcl_script_path_c = std::filesystem::canonical(tcl_script_path, ec);
+    if(!ec) {
+      // path exists, and can be used
+    }
+    else {
+      // no tcl script was used.
+      tcl_script_path_c.clear();
+    }
+    
+    // std::cout << "tcl_script_path()     : " << tcl_script_path_c << std::endl;
+    
+    if(!tcl_script_path_c.empty()) {
+      tcl_script_dir_path = tcl_script_path_c.parent_path();
+    }
+
+  }
+  else {
+    // we were not executed via TCL script!
+    // std::cout << "tcl_script_path()     : <none>" << std::endl;
+  }
+
+  return tcl_script_dir_path;
 }
 
 
@@ -442,7 +581,7 @@ void QLSettingsManager::populateSettingsWidget() {
           containerWidgetHBoxLayout->addWidget(subWidget,1);
 
           // subscribe to changes on any of the widgets:
-          if( widgetType == std::string("input") ) {
+          if( widgetType == std::string("input") || widgetType == std::string("filepath") ) {
 
             QLineEdit* input_widget = containerWidget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
             if(input_widget) {
@@ -627,11 +766,11 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
     // new project with specified device_target use-case
 
-    // we cannot copy the json files, as we don't know where to copy them yet.
-    // this can only be done once the project directory is copied.
+    // we cannot copy the json files, as we don't know where to copy/save them yet.
+    // this can only be done once the project directory is created.
 
     // however: we can populate the settings GUI, using the template file,
-    // and when the project creation is actually done by FOEDAG, then we copy the files:
+    // and when the project creation is actually done by FOEDAG, then we save the files:
 
     // read in the template json into the *future* _json_updated variables:
     if(FileUtils::FileExists(settings_json_template_filepath)) {
@@ -717,15 +856,24 @@ void QLSettingsManager::updateJSONSettingsForDeviceTarget(QLDeviceTarget device_
 
 bool QLSettingsManager::areJSONSettingsChanged() {
 
-  if(newProjectMode) return false;
+  // std::cout << "areJSONSettingsChanged(), newProjectMode: " << newProjectMode << std::endl;
 
-  // std::cout << "areJSONSettingsChanged()" << std::endl;
+  if(newProjectMode) {
 
-  // initialize to the current settings_json
-  settings_json_updated = settings_json;
+    // initialize to the "newproject" settings_json
+    settings_json_updated = settings_json_newproject;
 
-  // initialize to the current power_estimation_json_updated
-  power_estimation_json_updated = power_estimation_json;
+    // initialize to the "newproject" power_estimation_json
+    power_estimation_json_updated = power_estimation_json_newproject;
+  }
+  else {
+
+    // initialize to the current settings_json
+    settings_json_updated = settings_json;
+
+    // initialize to the current power_estimation_json
+    power_estimation_json_updated = power_estimation_json;
+  }
 
   // loop through the GUI elements, and check the updates below.
   // root of all the settings is the stackedWidget, which contains one 'page' 
@@ -774,7 +922,7 @@ bool QLSettingsManager::areJSONSettingsChanged() {
           // int value_int;
           // double value_double;
 
-          if(widgetType == std::string("input")) {
+          if(widgetType == std::string("input") || widgetType == std::string("filepath")) {
 
             QLineEdit* input_widget = container_widget->findChild<QLineEdit*>(QString(), Qt::FindChildrenRecursively);
             if(input_widget) {
@@ -826,76 +974,85 @@ bool QLSettingsManager::areJSONSettingsChanged() {
     }
   }
 
-  // compare with original settings json, and if there are differences, we need to initiate
-  // user confirmation, and then update and save json, replacing the original.
 
-  json settings_json_patch = json::diff(settings_json, settings_json_updated);
-  json power_estimation_json_patch = json::diff(power_estimation_json, power_estimation_json_updated);
+  // for existing project only
+  if(!newProjectMode) {
 
-  // std::cout << "settings_json_patch" << std::endl;
-  // std::cout << std::setw(4) << settings_json_patch << std::endl;
+    // compare with original settings json, and if there are differences, we need to initiate
+    // user confirmation, and then update and save json, replacing the original.
 
-  // std::cout << "power_estimation_json_patch" << std::endl;
-  // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
+    json settings_json_patch = json::diff(settings_json, settings_json_updated);
+    json power_estimation_json_patch = json::diff(power_estimation_json, power_estimation_json_updated);
 
-  // the patch is a json array of "diffs", each diff being:
-  // {
-  //     "op": "replace",
-  //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
-  //     "value": "unchecked" -> value changed
-  // }
+    // std::cout << "settings_json_patch" << std::endl;
+    // std::cout << std::setw(4) << settings_json_patch << std::endl;
 
-  // populate the list of changes:
-  settings_json_change_list.clear();
-  power_estimation_json_change_list.clear();
+    // std::cout << "power_estimation_json_patch" << std::endl;
+    // std::cout << std::setw(4) << power_estimation_json_patch << std::endl;
 
-  for (auto diff_element: settings_json_patch) {
-    std::string path = diff_element["path"];
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(path, "/", tokens);
+    // the patch is a json array of "diffs", each diff being:
+    // {
+    //     "op": "replace",
+    //     "path": "/power/power_outputs/debug/default", -> path to the item in the json
+    //     "value": "unchecked" -> value changed
+    // }
 
-    std::string original_value = settings_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
-    std::string new_value = diff_element["value"];
+    // populate the list of changes:
+    settings_json_change_list.clear();
+    power_estimation_json_change_list.clear();
 
-    std::ostringstream json_change_stringstream;
-    json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
-    json_change_stringstream << "  from: " << original_value << "\n";
-    json_change_stringstream << "  to:   " << new_value;
+    for (auto diff_element: settings_json_patch) {
+      std::string path = diff_element["path"];
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(path, "/", tokens);
 
-    settings_json_change_list.push_back(json_change_stringstream.str());
+      std::string original_value = settings_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+      std::string new_value = diff_element["value"];
+
+      std::ostringstream json_change_stringstream;
+      json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+      json_change_stringstream << "  from: " << original_value << "\n";
+      json_change_stringstream << "  to:   " << new_value;
+
+      settings_json_change_list.push_back(json_change_stringstream.str());
+    }
+
+    for (auto diff_element: power_estimation_json_patch) {
+      std::string path = diff_element["path"];
+      std::vector<std::string> tokens;
+      StringUtils::tokenize(path, "/", tokens);
+
+      std::string original_value = power_estimation_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
+      std::string new_value = diff_element["value"];
+
+      std::ostringstream json_change_stringstream;
+      json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
+      json_change_stringstream << "  from: " << original_value << "\n";
+      json_change_stringstream << "  to:   " << new_value << "\n";
+
+      power_estimation_json_change_list.push_back(json_change_stringstream.str());
+    }
+
+    // debug:
+    // std::cout << "--------\n" << std::endl;
+    // for(std::string change: settings_json_change_list) {
+    //   std::cout << change << std::endl;
+    //   std::cout << "--------\n" << std::endl;
+    // }
+    // for(std::string change: power_estimation_json_change_list) {
+    //   std::cout << change << std::endl;
+    //   std::cout << "--------\n" << std::endl;
+    // }
+
+    // no changes:
+    if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
+      return false;
+    }
+    else {
+      return true;
+    }
   }
-
-  for (auto diff_element: power_estimation_json_patch) {
-    std::string path = diff_element["path"];
-    std::vector<std::string> tokens;
-    StringUtils::tokenize(path, "/", tokens);
-
-    std::string original_value = power_estimation_json[tokens[0]][tokens[1]][tokens[2]][tokens[3]].get<std::string>();
-    std::string new_value = diff_element["value"];
-
-    std::ostringstream json_change_stringstream;
-    json_change_stringstream << tokens[0] << " > " << tokens[1] << " > " << tokens[2] << "\n";
-    json_change_stringstream << "  from: " << original_value << "\n";
-    json_change_stringstream << "  to:   " << new_value << "\n";
-
-    power_estimation_json_change_list.push_back(json_change_stringstream.str());
-  }
-
-  // debug:
-  // std::cout << "--------\n" << std::endl;
-  // for(std::string change: settings_json_change_list) {
-  //   std::cout << change << std::endl;
-  //   std::cout << "--------\n" << std::endl;
-  // }
-  // for(std::string change: power_estimation_json_change_list) {
-  //   std::cout << change << std::endl;
-  //   std::cout << "--------\n" << std::endl;
-  // }
-
-  // no changes:
-  if(settings_json_change_list.empty() && power_estimation_json_change_list.empty()) {
-    return false;
-  }
+  // for existing project only
 
   return true;
 }
@@ -907,14 +1064,35 @@ bool QLSettingsManager::saveJSONSettings() {
 
   bool savedNewJsonChanges = false;
 
-  if(!newProjectMode) {
+  if(settings_manager_widget == nullptr) {
+
+    // if we don't have a GUI, then there is nothing to save here.
+    // settings_json_updated and power_estimation_json_updated will always be empty.
+    // std::cout << "saveJSONSettings(), non-GUI mode, do nothing." << std::endl;
+    return savedNewJsonChanges;
+  }
+
+  // For GUI mode of operation, scan through the settings widget, and ensure that
+  // we are saving the changed settings, if any.
+  // this will ensure we have the user updated settings from GUI in the xxxx_json_updated objects.
+  bool userMadeChangesToSettingsJSON = false;
+  userMadeChangesToSettingsJSON = areJSONSettingsChanged();
+
+  // Futher, depending on the mode:
+  // newProject -> save user changes without confirming with the user, because the settings came from a template anyway.
+  // existingProject -> ask user for confirmation and then save to JSON, because the settings came from a project specific JSON
+
+
+  // existing project only:
+  // if !newProjectMode *and* there are changes from the user, prompt user to confirm the changes to be saved:
+  int userDialogConfirmationResult = QDialog::Rejected;
+  if(!newProjectMode && userMadeChangesToSettingsJSON) {
+
+    // std::cout << "saveJSONSettings(), !newProjectMode && userMadeChangesToSettingsJSON" << std::endl;
 
     // for an existing project, check if there are any changes, and then update into the json files
     // replacing the current json files.
-
-    if(areJSONSettingsChanged()) {
-
-      // ask user to confirm the changes, before saving into JSON
+    // ask user to confirm the changes, before saving into JSON
 
       QDialog dialog;
       dialog.setWindowTitle("Settings Changes!");
@@ -948,49 +1126,52 @@ bool QLSettingsManager::saveJSONSettings() {
       
       dialog.setModal(true);
 
-      int result = dialog.exec();
-      
-      if (result == QDialog::Accepted)
-      {
-          settings_json = settings_json_updated;
-          std::ofstream settings_json_ofstream(settings_json_filepath.string());
-          settings_json_ofstream << std::setw(4) << settings_json << std::endl;
-
-          power_estimation_json = power_estimation_json_updated;
-          std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
-          power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
-
-          savedNewJsonChanges = true;
-      }
-      else if (result == QDialog::Rejected)
-      {
-          // std::cout << "QDialog::Rejected" << std::endl;
-          // user has cancelled, leave state as is.
-          // if user wants to reset, user will click the Reset button
-
-          savedNewJsonChanges = false;
-      }
-    }
+      userDialogConfirmationResult = dialog.exec();
   }
-  else {
+
+
+  // if newProjectMode
+  // -or-
+  // if existingProjectMode *and* user has confirmed changes
+  //   -> save the updated settings into the JSON filepath
+  if( (newProjectMode) ||
+      (!newProjectMode && userDialogConfirmationResult == QDialog::Accepted) ) {
+
+    // std::cout << "saveJSONSettings(), going to save the new JSON!!" << std::endl;
 
     // if the settings json values are empty, ignore them.
-    if(!settings_json_newproject.empty()) {
+    if(!settings_json_updated.empty()) {
 
-      settings_json = settings_json_newproject;
+      // std::cout << "saveJSONSettings(), !settings_json_updated.empty()" << std::endl;
+
+      settings_json = settings_json_updated;
       std::ofstream settings_json_ofstream(settings_json_filepath.string());
       settings_json_ofstream << std::setw(4) << settings_json << std::endl;
     }
+    else {
+      // std::cout << "saveJSONSettings(), settings_json_updated: empty" << std::endl;
+    }
 
-    if(!power_estimation_json_newproject.empty()) {
+    if(!power_estimation_json_updated.empty()) {
 
-      power_estimation_json = power_estimation_json_newproject;
+      // std::cout << "saveJSONSettings(), !power_estimation_json_updated.empty()" << std::endl;
+
+      power_estimation_json = power_estimation_json_updated;
       std::ofstream power_estimation_json_ofstream(power_estimation_json_filepath.string());
       power_estimation_json_ofstream << std::setw(4) << power_estimation_json << std::endl;
+    }
+    else {
+      // std::cout << "saveJSONSettings(), power_estimation_json_updated: empty" << std::endl;
     }
 
     savedNewJsonChanges = true;
   }
+  else {
+
+    // not saving updated JSON files:
+    savedNewJsonChanges = false;
+  }
+
   return savedNewJsonChanges;
 }
 
@@ -999,19 +1180,46 @@ void QLSettingsManager::parseJSONSettings() {
 
   std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
 
-  // parse the settings json
+  if(project_path.empty()) {
+    // project has not been initialized yet, do nothing:
+    return;
+  }
+
+  // settings json filename follows the <project_name>
   std::string settings_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + ".json";
 
+
+  // heuristic to find the settings json (same rules for the power_estimation json as well):
+  // 1. check project_path, to see if <project_name>.json exists, use that
+  // 2. check tcl_script_dir_path (if driven by TCL script), to see if <project_name>.json exists, use that
+  // 3. check current dir, to see if <project_name>.json exists, use that
+
+  // 1. check project_path
   settings_json_filepath = project_path / settings_json_filename;
   if(!FileUtils::FileExists(settings_json_filepath)) {
-    // check one-level up from the project_path (in case the project has been created using a TCL script)
-    settings_json_filepath = project_path / ".." / settings_json_filename;
+    settings_json_filepath.clear();
+  }
+
+  // 2. check tcl_script_dir_path
+  if(settings_json_filepath.empty()) {
+    std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
+    if(!tcl_script_dir_path.empty()) {
+      settings_json_filepath = tcl_script_dir_path / settings_json_filename;
+      if(!FileUtils::FileExists(settings_json_filepath)) {
+        settings_json_filepath.clear();
+      }
+    }
+  }
+
+  // 3. check current working dir path
+  if(settings_json_filepath.empty()) {
+    settings_json_filepath = settings_json_filename;
     if(!FileUtils::FileExists(settings_json_filepath)) {
-      // error!
-      // std::cout << "settings_json_filepath:" << "empty!!!" << std::endl;
       settings_json_filepath.clear();
     }
   }
+
+  // final: check we have a valid settings json:
   if(!settings_json_filepath.empty()) {
     try {
         // std::cout << "settings_json_filepath" << settings_json_filepath << std::endl;
@@ -1026,20 +1234,45 @@ void QLSettingsManager::parseJSONSettings() {
         settings_json = json::object();
     }
   }
+  else {
+    // we may reach this point (while creating a new project, for example) where it is valid.
+    // ignore this condition.
+  }
+
+
 
   // parse the power_estimation_json
   std::string power_estimation_json_filename = GlobalSession->GetCompiler()->ProjManager()->projectName() + "_power" + ".json";
 
+  // 1. check project_path
   power_estimation_json_filepath = project_path / power_estimation_json_filename;
   if(!FileUtils::FileExists(power_estimation_json_filepath)) {
-    // check one-level up from the project_path (in case the project has been created using a TCL script)
-    power_estimation_json_filepath = project_path / ".." / power_estimation_json_filename;
+    power_estimation_json_filepath.clear();
+  }
+
+  // 2. check tcl_script_dir_path
+  if(power_estimation_json_filepath.empty()) {
+    std::filesystem::path tcl_script_dir_path = getTCLScriptDirPath();
+    if(!tcl_script_dir_path.empty()) {
+      power_estimation_json_filepath = tcl_script_dir_path / power_estimation_json_filename;
+      if(!FileUtils::FileExists(power_estimation_json_filepath)) {
+        power_estimation_json_filepath.clear();
+      }
+    }
+  }
+
+  // 3. check current working dir path
+  if(power_estimation_json_filepath.empty()) {
+    power_estimation_json_filepath = power_estimation_json_filename;
     if(!FileUtils::FileExists(power_estimation_json_filepath)) {
       power_estimation_json_filepath.clear();
     }
   }
+
+  // final: check we have a valid settings json:
   if(!power_estimation_json_filepath.empty()) {
     try {
+        // std::cout << "power_estimation_json_filepath" << power_estimation_json_filepath << std::endl;
         std::ifstream power_estimation_json_ifstream(power_estimation_json_filepath.string());
         power_estimation_json = json::parse(power_estimation_json_ifstream);
     }
@@ -1051,12 +1284,21 @@ void QLSettingsManager::parseJSONSettings() {
         power_estimation_json = json::object();
     }
   }
+  else {
+    // ignore power estimation, if not available.
+    //std::cout << "[warning] no Power Estimation JSON file found to use!" << std::endl;
+  }
+
 
   // combine both into single json for easy access internally (no merge):
   combined_json = settings_json;
   if(!power_estimation_json.empty()) {
     combined_json.update(power_estimation_json);
   }
+
+
+  // parse SDC File Path:
+  parseSDCFilePath();
 }
 
 
@@ -1072,7 +1314,7 @@ void QLSettingsManager::handleApplyButtonClicked() {
     }
   }
   else {
-    // need to think about it...
+    // nothing to do
   }
 }
 
@@ -1095,10 +1337,11 @@ void QLSettingsManager::handleSettingsChanged() {
   // derive a diff, and if any changes, enable Reset and Apply buttons.
   // if no changes, disable Reset and Apply buttons.
 
+  // existing project only
   if(!newProjectMode) {
-    // existing project
 
     if(areJSONSettingsChanged()) {
+      
       // enable the buttons as there are unsaved changes
       button_reset->setDisabled(false);
       button_apply->setDisabled(false);
@@ -1110,6 +1353,7 @@ void QLSettingsManager::handleSettingsChanged() {
       m_message_label->show();
     }
     else {
+      
       // disable the buttons as there are no changes
       button_reset->setDisabled(true);
       button_apply->setDisabled(true);
@@ -1117,9 +1361,7 @@ void QLSettingsManager::handleSettingsChanged() {
       m_message_label->hide();
     }
   }
-  else {
-    // new project mode.
-  }
+  // else, newProjectMode - do nothing: as we don't show changes over a template to user.
 }
 
 } // namespace FOEDAG

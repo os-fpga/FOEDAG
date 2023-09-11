@@ -2322,6 +2322,14 @@ bool CompilerOpenFPGA_ql::Analyze() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
   }
@@ -2435,6 +2443,13 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
   }
@@ -2689,7 +2704,110 @@ bool CompilerOpenFPGA_ql::Synthesize() {
     // ErrorMessage("Unknown Family Specified: " + family);
     // return false;
   //}
+
+
+  // ---------------------------------------------------------------- synth_sdc_file ++
+  // SDC file support in yosys using sdc-plugin:
+  // 1. if there is a sdc file specified in yosys > sdc_plugin > sdc_file > userValue -> take this
+  // 2. if there is an sdc file in the project dir of the name: <project_name>_synth.sdc -> take this
+  // 3. if there is an sdc file in the TCL dir of the name: <project_name>_synth.sdc -> take this
+  // then we need to process the sdc file using the sdc-plugin.
+  std::filesystem::path synth_sdc_filepath;
   
+  // 1. check if an sdc file is specified in the json:
+  if( !QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file").empty() ) {
+    synth_sdc_filepath = QLSettingsManager::getStringValue("yosys", "sdc_plugin", "sdc_file");
+  }
+  // else, check for an sdc file with the naming convention (<project_name>_synth.sdc)
+  // note that, this path is always a relative path.
+  else {
+    synth_sdc_filepath = ProjManager()->projectName() + std::string("_synth") + std::string(".sdc");
+  }
+
+  // check if the path specified is absolute:
+  if (synth_sdc_filepath.is_absolute()) {
+    // check if the file exists:
+    if (!FileUtils::FileExists(synth_sdc_filepath)) {
+      // currently, we ignore it, if the sdc file path is not found.
+      synth_sdc_filepath.clear();
+    }
+  }
+  // we have a relative path
+  else {
+    std::filesystem::path synth_sdc_filepath_absolute;
+    
+    // 1. check project_path
+    // 2. check tcl_script_dir_path (if driven by TCL script)
+    // 3. check current_dir_path
+
+    std::filesystem::path project_path = std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath());
+    synth_sdc_filepath_absolute = project_path / synth_sdc_filepath;
+    if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+      synth_sdc_filepath_absolute.clear();
+    }
+
+    // 2. check tcl_script_dir_path
+    if(synth_sdc_filepath_absolute.empty()) {
+      std::filesystem::path tcl_script_dir_path = QLSettingsManager::getTCLScriptDirPath();
+      if(!tcl_script_dir_path.empty()) {
+        synth_sdc_filepath_absolute = tcl_script_dir_path / synth_sdc_filepath;
+        if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+          synth_sdc_filepath_absolute.clear();
+        }
+      }
+    }
+
+    // 3. check current working dir path
+    if(synth_sdc_filepath_absolute.empty()) {
+      synth_sdc_filepath_absolute = synth_sdc_filepath;
+      if(!FileUtils::FileExists(synth_sdc_filepath_absolute)) {
+        synth_sdc_filepath_absolute.clear();
+      }
+    }
+
+    // final: check if we have a valid sdc file path:
+    if(!synth_sdc_filepath_absolute.empty()) {
+      // assign the absolute path to the sdc_file_path variable:
+      synth_sdc_filepath = synth_sdc_filepath_absolute;
+    }
+    else {
+      // currently, we ignore it, if the sdc file path is not found.
+      synth_sdc_filepath.clear();
+    }
+  }
+  // relative file path processing done.
+
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!synth_sdc_filepath.empty()) {
+    // std::cout << "synth sdc file available: " << synth_sdc_filepath << std::endl;
+    
+    // we have a valid SDC file
+    std::filesystem::path aurora_yosys_import_script_path =
+        GetSession()->Context()->DataPath() /
+        std::filesystem::path("..") /
+        std::filesystem::path("scripts") /
+        std::filesystem::path("aurora_yosys_import.tcl");
+
+    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD_SDC}", std::string("plugin -i sdc"));
+
+    yosysScript = ReplaceAll(yosysScript, "${CALL_TCL_IMPORT_SCRIPT}", std::string("tcl") + 
+                                                                       std::string(" ") + 
+                                                                       aurora_yosys_import_script_path.string());
+    yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("read_sdc") +
+                                                              std::string(" ") + 
+                                                              synth_sdc_filepath.string());
+  }
+  else {
+    //std::cout << "synth sdc file not available." << std::endl;
+
+    yosysScript = ReplaceAll(yosysScript, "${PLUGIN_LOAD_SDC}", std::string("# [skipped] sdc plugin load as there is no synth sdc file"));
+
+    yosysScript = ReplaceAll(yosysScript, "${CALL_TCL_IMPORT_SCRIPT}", std::string("# [skipped] call tcl import script as there is no synth sdc file"));
+
+    yosysScript = ReplaceAll(yosysScript, "${READ_SDC_FILE}", std::string("# [skipped] read sdc as there is no synth sdc file"));
+  }
+  // ---------------------------------------------------------------- synth_sdc_file --
+
   yosysScript = ReplaceAll(
       yosysScript, "${OUTPUT_BLIF}",
       std::string(ProjManager()->projectName() + "_post_synth.blif"));
@@ -2925,6 +3043,13 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
 
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return std::string("");
+  }
+
+
   std::string vpr_options;
 
   // parse vpr general options
@@ -3003,46 +3128,23 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
 
   // ---------------------------------------------------------------- sdc_file ++
-  std::filesystem::path sdc_file_path;
-  bool sdc_file_path_from_json = false;
-  // check if an sdc file is specified in the json:
-  if( !QLSettingsManager::getStringValue("vpr", "filename", "sdc_file").empty() ) {
 
-    sdc_file_path = 
-        std::filesystem::path(QLSettingsManager::getStringValue("vpr", "filename", "sdc_file"));
+  std::filesystem::path sdc_file_path = QLSettingsManager::getSDCFilePath();
 
-    sdc_file_path_from_json = true;
-  }
-  // check if an sdc file exists with the project name (projectName.sdc) in the project source dir:
-  else {
+  // if(QLSettingsManager::getInstance()->sdc_file_path_from_json && sdc_file_path.empty()) {
+  //   // this is ideally an error, and should be notified.
+  //   // current implementation is to ignore any invalid sdc file path.
+  // }
 
-    sdc_file_path = 
-      std::filesystem::path(m_projManager->projectName() + std::string(".sdc"));
-  }
-
-  // convert to canonical path, which will also check that the path exists.
-  std::error_code ec;
-  std::filesystem::path sdc_file_path_c = std::filesystem::canonical(sdc_file_path, ec);
-  if(!ec) {
-    // path exists, and can be used
+  // if we have a valid sdc_file_path at this point, pass it on to vpr:
+  if(!sdc_file_path.empty()) {
+    Message(std::string("SDC file found: ") + sdc_file_path.string());
     vpr_options += std::string(" --sdc_file") + 
                    std::string(" ") + 
-                   sdc_file_path_c.string();
+                   sdc_file_path.string();
   }
   else {
-    // path does not exist, we got a filesystem error while making the canonical path.
-
-    if(sdc_file_path_from_json) {
-
-      // if the sdc_file comes from the json, and it is not found, that is an error.
-      ErrorMessage(std::string("sdc file from json: ") + sdc_file_path.string() + std::string(" does not exist!!"));
-
-      // empty string returned on error.
-      return std::string("");
-    }
-
-    // otherwise, we just have a warning for the user, and proceed.
-    Message(std::string("no sdc file found, skipping this vpr option!"));
+    Message(std::string("SDC file not found, no constraints passed to vpr."));
   }
   // ---------------------------------------------------------------- sdc_file --
 
@@ -3169,6 +3271,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
       std::filesystem::path(device_variant_dir_path / std::string("vpr.xml"));
 
   // if not, use the encrypted file after decryption.
+  std::error_code ec;
   if (!std::filesystem::exists(m_architectureFile, ec)) {
 
     std::filesystem::path vpr_xml_en_path = 
@@ -3733,6 +3836,7 @@ bool CompilerOpenFPGA_ql::Route() {
     // Rename log file
     copyLog(ProjManager(), "vpr_stdout.log", ROUTING_LOG);
     QLMetricsManager::getInstance()->parseMetricsForAction(Action::Routing);
+    QLMetricsManager::getInstance()->parseRoutingReportForDetailedUtilization();
   });
 
   if (!ProjManager()->HasDesign()) {
@@ -3911,6 +4015,13 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
 
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
@@ -4132,6 +4243,13 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
 
 #if 0 // Disable VPR Power Analysis
 
@@ -4490,6 +4608,13 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return std::string("");
+  }
+
 
   QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
 
@@ -4984,6 +5109,13 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
 
   ///////////////////////////////////////////////////////////////// PLACE ++
   //QLSettingsManager::getStringValue("general", "device", "family");

@@ -7,6 +7,8 @@
 #include "NewProject/ProjectManager/project_manager.h"
 #include "QLMetricsManager.h"
 
+#include <algorithm>
+
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -398,6 +400,872 @@ void QLMetricsManager::parseMetricsForAction(Compiler::Action action) {
 
   // add the processed metrics for the current action to the full metrics list:
   QLMetricsManager::addParsedMetrics(metrics_list);
+}
+
+void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
+
+  // approach:
+  // 1. extract the vpr report section, from routing log, beginning from:
+  //    "Pb types usage..."
+  //    upto:
+  //    blank line
+  //
+  // 2. split the usage report into multiple sections
+  // we use the indentation in the log file to detect hierarchy:
+  // hierarchy level 1 == min_num_of_spaces (generally 2 spaces) - this is detected.
+  // this should yield: io/clb/bram/dsp
+  //
+  // 3. io/bram/dsp only have one level of hierarchy under them, so parse the required
+  //    fields using regex and store the values.
+  //    io : io_input, io_output
+  //    bram: nonsplit, split (and list all subtypes with A and B widths) : mem_36K_BRAM_xxxx or mem_36K_FIFO_xxxx
+  //    dsp: list all subtypes with QL_DSP2_xxxx
+  //
+  // 4. clb
+  // for clb, we have the next hierarchy as fle section: min_num_spaces + 2
+  // which should yield ble6/lut5inter
+  // further parse ble 6 section to get: lut6, ff
+  // further parse lut5inter section to get: flut5, lut5, ff, adder, lut4
+  //
+  // 5. derive other required values from these, and output into "utilization.rpt"
+
+
+  // std::cout << "parseRoutingReportForDetailedUtilization()" << std::endl;
+
+  // read the routing log file:
+  std::filesystem::path filepath =
+  std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath()) / "routing.rpt";
+  
+  // if log file does not exist, skip:
+  if(!FileUtils::FileExists(filepath)) {
+     std::cout << "[warning] file not found: " << filepath << std::endl;
+    return;
+  }
+
+  // get it into a ifstream
+  std::ifstream stream(filepath.string());
+
+  // if log file read failed, skip:
+  if (!stream.good()) {
+     std::cout << "[warning] file could not be read: " << filepath << std::endl;
+    stream.close();
+    return;
+  }
+
+  // obtain the vpr usage section:
+  std::vector<std::string> vpr_pb_types_usage_section;
+  std::string file_line;
+  bool section_save = false;
+  int lines = 0;
+  while(std::getline(stream, file_line)) {
+    lines++;
+    // std::cout << "kkk read lines:" << lines << std::endl;
+    
+    if(section_save && file_line.empty()) {
+      section_save = false;
+      break;
+    }
+
+    if(section_save) {
+      vpr_pb_types_usage_section.push_back(file_line);
+    }
+
+    // note: the if condition here is *after* the save, because we don't want to save this 'marker' line!
+    if(std::string("Pb types usage...") == file_line) {
+      section_save = true;
+    }
+  }
+  
+  stream.close();
+
+  // debug
+  // int index = 0;
+  // for (std::string each_line: vpr_pb_types_usage_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+
+
+  // find the min_num_indent_spaces for the level 1 hierarchy (usually 2 spaces indented, but we don't assume)
+  int min_num_indent_spaces = -1;
+  for (std::string each_line: vpr_pb_types_usage_section) {
+
+    int line_length = each_line.size();
+    int num_spaces = 0;
+
+    for (int index=0; index < line_length; index++) {
+
+      if(!std::isspace(each_line[index])) {
+        num_spaces = index;
+        break;
+      }
+      
+    }
+
+    if(min_num_indent_spaces == -1) {
+      min_num_indent_spaces = num_spaces;
+    }
+    else {
+      min_num_indent_spaces = std::min(min_num_indent_spaces, num_spaces);
+    }
+
+    // debug
+    // std::cout << num_spaces << "  " << min_num_indent_spaces << std::endl;
+  }
+
+
+  // split into sections
+  std::vector<std::string> io_section;
+  std::vector<std::string> clb_section;
+  std::vector<std::string> bram_section;
+  std::vector<std::string> dsp_section;
+
+  bool io_section_save = false;
+  bool clb_section_save = false;
+  bool bram_section_save = false;
+  bool dsp_section_save = false;
+  for (std::string each_line: vpr_pb_types_usage_section) {
+
+    int line_length = each_line.size();
+    int num_spaces = 0;
+
+    for (int index=0; index < line_length; index++) {
+      if(!std::isspace(each_line[index])) {
+        num_spaces = index;
+        break;
+      }
+    }
+
+    if(num_spaces == min_num_indent_spaces) {
+      // level 1 section begins, figure out which section it is.
+      io_section_save = false;
+      clb_section_save = false;
+      bram_section_save = false;
+      dsp_section_save = false;
+
+      if (each_line.rfind("io", min_num_indent_spaces) == (unsigned)min_num_indent_spaces) io_section_save = true;
+      else if (each_line.rfind("clb", min_num_indent_spaces) ==  (unsigned)min_num_indent_spaces) clb_section_save = true;
+      else if (each_line.rfind("bram", min_num_indent_spaces) ==  (unsigned)min_num_indent_spaces) bram_section_save = true;
+      else if (each_line.rfind("dsp", min_num_indent_spaces) ==  (unsigned)min_num_indent_spaces) dsp_section_save = true;
+    }
+
+    if(io_section_save) {
+      io_section.push_back(each_line);
+    }
+    else if(clb_section_save) {
+      clb_section.push_back(each_line);
+    }
+    else if(bram_section_save) {
+      bram_section.push_back(each_line);
+    }
+    else if(dsp_section_save) {
+      dsp_section.push_back(each_line);
+    }
+  }
+
+  // debug
+  // int index = 0;
+  // std::cout << "\n io_section" << std::endl;
+  // for (std::string each_line: io_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n clb_section" <<std::endl;
+  // for (std::string each_line: clb_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n bram_section" <<std::endl;
+  // for (std::string each_line: bram_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n dsp_section" << std::endl;
+  // for (std::string each_line: dsp_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+
+  // extract information, use regex for robust matching
+  std::regex regex;
+  std::smatch smatches;
+  bool found;
+
+  // io section
+  // debug
+  // std:: cout << "\n report_io_section: " << std::endl;
+  std::string report_io_io_output = "0";
+  std::string report_io_io_input = "0";
+  if(io_section.size() > 0) {
+
+    for (std::string each_line: io_section) {
+
+      regex = std::regex("\\s+io_output\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_io_io_output = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+io_input\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_io_io_input = smatches.str(1);
+      }
+    }
+  }
+  // io calculations:
+  unsigned int io_output = 0;
+  unsigned int io_input = 0;
+  try {
+    io_output = std::stoi(report_io_io_output);
+    io_input = std::stoi(report_io_io_input);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "io" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "io" << std::endl;
+  }
+  // debug
+  // std:: cout << "io_output: " << io_output << std::endl;
+  // std:: cout << "io_input: " << io_input << std::endl;
+
+
+
+  // clb section parse
+  // debug
+  // std:: cout << "\n report_clb_section: " << std::endl;
+  std::string report_clb_clb = "0";
+  std::string report_clb_fle = "0";
+  if(clb_section.size() > 0) {
+
+    for (std::string each_line: clb_section) {
+
+      regex = std::regex("\\s+clb\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_clb_clb = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+fle\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_clb_fle = smatches.str(1);
+      }
+    }
+  }
+  // clb extractions:
+  unsigned int clb = 0;
+  unsigned int fle = 0;
+  try {
+    clb = std::stoi(report_clb_clb);
+    fle = std::stoi(report_clb_fle);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "clb" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "clb" << std::endl;
+  }
+  // debug
+  // std:: cout << "clb: " << clb << std::endl;
+  // std:: cout << "fle: " << fle << std::endl;
+
+
+
+  // clb subsections parse [ble6 and lut5inter and shift_reg]
+  // clb -> next indent is fle
+  // fle -> next indent is ble6 and lut5inter and shift_reg
+  // so we take indent = min_indent + 2 to find these 2 sections.
+  std::vector<std::string> ble6_section;
+  std::vector<std::string> lut5inter_section;
+  std::vector<std::string> shift_reg_section;
+  bool ble6_section_save = false;
+  bool lut5inter_section_save = false;
+  bool shift_reg_section_save = false;
+  int fle_section_num_indent_spaces = min_num_indent_spaces + 2;
+  for (std::string each_line: clb_section) {
+
+    int line_length = each_line.size();
+    int num_spaces = 0;
+
+    for (int index=0; index < line_length; index++) {
+      if(!std::isspace(each_line[index])) {
+        num_spaces = index;
+        break;
+      }
+    }
+
+    if(num_spaces == fle_section_num_indent_spaces) {
+      // level 3 section begins, figure out which section it is.
+      ble6_section_save = false;
+      lut5inter_section_save = false;
+      shift_reg_section_save = false;
+
+      if (each_line.rfind("ble6", fle_section_num_indent_spaces) == (unsigned)fle_section_num_indent_spaces) ble6_section_save = true;
+      else if (each_line.rfind("lut5inter", fle_section_num_indent_spaces) ==  (unsigned)fle_section_num_indent_spaces) lut5inter_section_save = true;
+      else if (each_line.rfind("shift_reg", fle_section_num_indent_spaces) ==  (unsigned)fle_section_num_indent_spaces) shift_reg_section_save = true;
+    }
+
+    if(ble6_section_save) {
+      ble6_section.push_back(each_line);
+    }
+    else if(lut5inter_section_save) {
+      lut5inter_section.push_back(each_line);
+    }
+    else if(shift_reg_section_save) {
+      shift_reg_section.push_back(each_line);
+    }
+  }
+  // debug
+  // int index = 0;
+  // std::cout << "\n ble6_section" << std::endl;
+  // for (std::string each_line: ble6_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n lut5inter_section" <<std::endl;
+  // for (std::string each_line: lut5inter_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+  // index = 0;
+  // std::cout << "\n shift_reg_section" <<std::endl;
+  // for (std::string each_line: shift_reg_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+
+
+
+  // debug
+  // std:: cout << "\n report_ble6_section: " << std::endl;
+  std::string report_ble6_ble6 = "0";
+  std::string report_ble6_lut6 = "0";
+  std::string report_ble6_ff = "0";
+  if(ble6_section.size() > 0) {
+
+    for (std::string each_line: ble6_section) {
+
+      regex = std::regex("\\s+ble6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_ble6_ble6 = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+lut6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_ble6_lut6 = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_ble6_ff = smatches.str(1);
+      }
+    }
+  }
+  // ble6 extractions:
+  unsigned int ble6 = 0;
+  unsigned int ble6_lut6 = 0;
+  unsigned int ble6_ff = 0;
+  try {
+    ble6 = std::stoi(report_ble6_ble6);
+    ble6_lut6 = std::stoi(report_ble6_lut6);
+    ble6_ff = std::stoi(report_ble6_ff);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "ble6" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "ble6" << std::endl;
+  }
+  // debug
+  // std:: cout << "ble6: " << ble6 << std::endl;
+  // std:: cout << "ble6_lut6: " << ble6_lut6 << std::endl;
+  // std:: cout << "ble6_ff: " << ble6_ff << std::endl;
+
+
+
+  // debug
+  // std:: cout << "\n report_lut5inter_section: " << std::endl;
+  std::string report_lut5inter_lut5inter = "0";
+  std::string report_lut5inter_ble5 = "0";
+  std::string report_lut5inter_flut5 = "0";
+  std::string report_lut5inter_lut5 = "0";
+  std::string report_lut5inter_ff = "0";
+  std::string report_lut5inter_adder = "0";
+  std::string report_lut5inter_lut4 = "0";
+  if(lut5inter_section.size() > 0) {
+
+    for (std::string each_line: lut5inter_section) {
+
+      regex = std::regex("\\s+lut5inter\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_lut5inter = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+ble5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_ble5 = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+flut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_flut5 = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+lut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_lut5 = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_ff = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+adder\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_adder = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+lut4\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_lut5inter_lut4 = smatches.str(1);
+      }
+    }
+  }
+  // lut5inter extractions:
+  unsigned int lut5inter = 0;
+  unsigned int lut5inter_ble5 = 0;
+  unsigned int lut5inter_flut5 = 0;
+  unsigned int lut5inter_lut5 = 0;
+  unsigned int lut5inter_ff = 0;
+  unsigned int lut5inter_adder = 0;
+  unsigned int lut5inter_lut4 = 0;
+  
+  try {
+    lut5inter = std::stoi(report_lut5inter_lut5inter);
+    lut5inter_ble5 = std::stoi(report_lut5inter_ble5);
+    lut5inter_flut5 = std::stoi(report_lut5inter_flut5);
+    lut5inter_lut5 = std::stoi(report_lut5inter_lut5);
+    lut5inter_ff = std::stoi(report_lut5inter_ff);
+    lut5inter_adder = std::stoi(report_lut5inter_adder);
+    lut5inter_lut4 = std::stoi(report_lut5inter_lut4);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "lut5inter" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "lut5inter" << std::endl;
+  }
+  // debug
+  // std:: cout << "lut5inter: " << lut5inter << std::endl;
+  // std:: cout << "lut5inter_ble5: " << lut5inter_ble5 << std::endl;
+  // std:: cout << "lut5inter_flut5: " << lut5inter_flut5 << std::endl;
+  // std:: cout << "lut5inter_lut5: " << lut5inter_lut5 << std::endl;
+  // std:: cout << "lut5inter_ff: " << lut5inter_ff << std::endl;
+  // std:: cout << "lut5inter_adder: " << lut5inter_adder << std::endl;
+  // std:: cout << "lut5inter_lut4: " << lut5inter_lut4 << std::endl;
+
+
+
+  // debug
+  // std:: cout << "\n report_shift_reg_section: " << std::endl;
+  std::string report_shift_reg_shift_reg = "0";
+  std::string report_shift_reg_ff = "0";
+  if(shift_reg_section.size() > 0) {
+
+    for (std::string each_line: shift_reg_section) {
+
+      regex = std::regex("\\s+shift_reg\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_shift_reg_shift_reg = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_shift_reg_ff = smatches.str(1);
+      }
+    }
+  }
+  // shift_reg extractions:
+  unsigned int shift_reg = 0;
+  unsigned int shift_reg_ff = 0;
+  try {
+    shift_reg = std::stoi(report_shift_reg_shift_reg);
+    shift_reg_ff = std::stoi(report_shift_reg_ff);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "shift_reg" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "shift_reg" << std::endl;
+  }
+  // debug
+  // std:: cout << "shift_reg: " << shift_reg << std::endl;
+  // std:: cout << "shift_reg_ff: " << shift_reg_ff << std::endl;
+
+
+
+  // bram section
+  // debug
+  // std:: cout << "\n report_bram_section: " << std::endl;
+  std::unordered_map<std::string, std::string> report_bram_nonsplit_numbers_map;
+  std::unordered_map<std::string, std::string> report_bram_split_numbers_map;
+  std::unordered_map<std::string, std::string> report_fifo_nonsplit_numbers_map;
+  std::unordered_map<std::string, std::string> report_fifo_split_numbers_map;
+  if(bram_section.size() > 0) {
+
+    for (std::string each_line: bram_section) {
+
+      regex = std::regex("\\s+(mem_36K_BRAM_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_bram_nonsplit_numbers_map[smatches.str(1)] = smatches.str(2);
+      }
+
+      regex = std::regex("\\s+(mem_36K_BRAM_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_bram_split_numbers_map[smatches.str(1)] = smatches.str(2);
+      }
+
+      regex = std::regex("\\s+(mem_36K_FIFO_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_fifo_nonsplit_numbers_map[smatches.str(1)] = smatches.str(2);
+      }
+
+      regex = std::regex("\\s+(mem_36K_FIFO_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_fifo_split_numbers_map[smatches.str(1)] = smatches.str(2);
+      }
+    }
+  }
+  // bram extractions:
+  unsigned int bram_nonsplit = 0;
+  unsigned int bram_split = 0;
+  unsigned int fifo_nonsplit = 0;
+  unsigned int fifo_split = 0;
+  try {
+    for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
+      bram_nonsplit += std::stoi(value);
+    }
+    for (const auto & [ key, value ] : report_bram_split_numbers_map) {
+      bram_split += std::stoi(value);
+    }
+    for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
+      fifo_nonsplit += std::stoi(value);
+    }
+    for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
+      fifo_split += std::stoi(value);
+    }
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "bram" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "bram" << std::endl;
+  }
+  // debug
+  // std:: cout << "bram_nonsplit: " << bram_nonsplit << std::endl;
+  // for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
+  //   std::cout << key << ": " << value << std::endl;
+  // }
+  // std:: cout << "bram_split: " << bram_split << std::endl;
+  // for (const auto & [ key, value ] : report_bram_split_numbers_map) {
+  //   std::cout << key << ": " << value << std::endl;
+  // }
+  // std:: cout << "fifo_nonsplit: " << fifo_nonsplit << std::endl;
+  // for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
+  //   std::cout << key << ": " << value << std::endl;
+  // }
+  // std:: cout << "fifo_split: " << fifo_split << std::endl;
+  // for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
+  //   std::cout << key << ": " << value << std::endl;
+  // }
+
+
+  // dsp section
+  // debug
+  // std:: cout << "\n report_dsp_section: " << std::endl;
+  std::unordered_map<std::string, std::string> report_dsp_numbers_map;
+  if(dsp_section.size() > 0) {
+
+    for (std::string each_line: dsp_section) {
+
+      regex = std::regex("\\s+(QL_DSP2.*)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_dsp_numbers_map[smatches.str(1)] = smatches.str(2);
+      }
+
+    }
+  }
+  // dsp extractions:
+  unsigned int dsp = 0;
+  try {
+    for (const auto & [ key, value ] : report_dsp_numbers_map) {
+      dsp += std::stoi(value);
+    }
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "dsp" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "dsp" << std::endl;
+  }
+  // debug
+  // std:: cout << "dsp: " << dsp << std::endl;
+  // for (const auto & [ key, value ] : report_dsp_numbers_map) {
+  //   std::cout << key << ": " << value << std::endl;
+  // }
+
+
+  // final calculations for the detailed utilization
+
+  // [1] CLB/FLE
+  // total CLBs = clb
+  // total FLEs available in CLBs = clb*10
+  unsigned int fle_available = clb*10;
+  // FLEs used = fle
+
+
+  // [2] LUT
+  // BLE6 can be used as LUT6 only or LUT6+FF or FF only
+  unsigned int ble6_lut6_only = 0;
+  unsigned int ble6_ff_only = 0;
+  unsigned int ble6_lut6_ff = 0;
+  // VPR report interpreted as equations:
+  // ble6 == lut6only + lut6ff + ffonly --> EQ1
+  // ble6_lut6 == lut6only + lut6ff --> EQ2
+  // ble6_ff == lut6ff + ffonly --> EQ3
+  //
+  // using EQ2, EQ1 can be rewritten:
+  // ble6 = ble6_lut6 + ffonly, so:   ffonly = ble6 - ble6_lut6           --> EQ4 (obtain ffonly)
+  // from EQ3, we can write:          lut6ff = ble6_ff - ffonly           --> EQ5 (obtain lut6ff)
+  // from EQ1,                        lut6only = ble6 - lut6ff - ffonly   --> EQ6 (obtain lut6only)
+  //
+  ble6_ff_only = ble6 - ble6_lut6;
+  ble6_lut6_ff = ble6_ff - ble6_ff_only;
+  ble6_lut6_only = ble6 - ble6_lut6_ff - ble6_ff_only;
+
+
+  // FLUT5 can be used as LUT5 only or LUT5+FF or FF only
+  unsigned int flut5_lut5_only = 0;
+  unsigned int flut5_ff_only = 0;
+  unsigned int flut5_lut5_ff = 0;
+  // VPR report interpreted as equations:
+  // flut5 == lut5only + lut5ff + ffonly --> EQ1
+  // lut5 == lut5only + lut5ff --> EQ2
+  // ff == lut5ff + ffonly --> EQ3
+  //
+  // using EQ2, EQ1 can be rewritten:
+  // flut5 = lut5 + ffonly, so:   ffonly = flut5 - lut5                 --> EQ4 (obtain ffonly)
+  // from EQ3, we can write:      lut5ff = ff - ffonly                  --> EQ5 (obtain lut5ff)
+  // from EQ1,                    lut5only = flut5 - lut5ff - ffonly    --> EQ6 (obtain lut5only)
+  //
+  flut5_ff_only = lut5inter_flut5 - lut5inter_lut5;
+  flut5_lut5_ff = lut5inter_ff - flut5_ff_only;
+  flut5_lut5_only = lut5inter_flut5 - flut5_lut5_ff - flut5_ff_only;
+
+  // LUT4 in soft_adder = lut5inter_lut4
+
+  // total LUTs utilized
+  unsigned int total_LUTs = ble6_lut6 + lut5inter_lut5 + lut5inter_lut4;
+
+
+  // [3] FF
+  // total FFs utilized
+  unsigned int total_FFs = ble6_ff + lut5inter_ff + shift_reg_ff;
+  // from BLE6 mode FLEs = ble6_ff
+  // from BLE5 mode FLEs = lut5inter_ff
+  // from shift_reg mode FLEs = shift_reg_ff
+
+
+
+  // [4] BRAM
+  // total BRAMs utilized
+  unsigned int total_brams = bram_split + bram_nonsplit + fifo_split + fifo_nonsplit;
+  //  as non split 36k RAM blocks = bram_nonsplit
+  //    breakdown the list using: report_bram_nonsplit_numbers_map
+  //  as split 2x18k RAM blocks = bram_split
+  //    breakdown the list using: report_bram_split_numbers_map
+  //  as non split 36k FIFO blocks = fifo_nonsplit
+  //    breakdown the list using: report_fifo_nonsplit_numbers_map
+  //  as split 2x18k FIFO blocks = fifo_split
+  //    breakdown the list using: report_fifo_split_numbers_map
+
+
+  // [5] DSP
+  // total DSPs utilized = dsp
+  // breakdown the list using: report_dsp_numbers_map
+
+
+  // [6] IO
+  // total IOs utilized
+  unsigned int total_ios = io_input + io_output;
+  //   as output = io_output
+  //   as inputs = io_input
+  // Q: any buffer flipflops? DFF? DFFN
+
+
+  // double-check calculations:
+  // [1] fle = ble6 + lut5inter
+  // [2] lut5inter in terms of ble5: ble5 <= lut5inter*2 and ble5 >= lut5inter (ble5 is one-half unit of a lut5inter, so ...)
+  // [3] ble5 = flut5 + adder
+  if( !(fle == ble6 + lut5inter) ) {
+    std::cout << "[error]: !(fle == ble6 + lut5inter)" << std::endl;
+  }
+  if( !(lut5inter_ble5 >= lut5inter) ) {
+    std::cout << "[error]: !(ble5 >= lut5inter)" << std::endl;
+  }
+  if( !(lut5inter_ble5 <= lut5inter*2) ) {
+    std::cout << "[error]: !(ble5 <= lut5inter*2)" << std::endl;
+  }
+  if( !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder) ) {
+    std::cout << "[error]: !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder)" << std::endl;
+  }
+
+  bool debug_extended = false;
+
+  std::filesystem::path utilization_rpt_filepath = 
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath()) / "utilization.rpt";
+    
+  std::ofstream utilization_rpt;
+  utilization_rpt.open(utilization_rpt_filepath);
+
+  utilization_rpt << "## Resource Utilization Report ##\n\n" << std::endl;
+  
+  utilization_rpt << "top module: " << getStringValue("synthesis", "top_module") << "\n\n" << std::endl;
+
+  utilization_rpt << "Resource Usage:" << std::endl;
+
+  utilization_rpt << "  " << clb << " CLB" << "( == " << fle_available << " FLEs )" << std::endl;
+  utilization_rpt << "    of which, " << fle << " FLE utilized" << std::endl;
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << "    " << total_LUTs << " LUT utilized" << std::endl;
+  if(total_LUTs > 0) {
+    if(ble6_lut6_only > 0) {
+      utilization_rpt << "      " << ble6_lut6_only << " as 6-LUT" << std::endl;
+    }
+    if(ble6_lut6_ff > 0) {
+      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF" << std::endl;
+    }
+    if(flut5_lut5_only > 0) {
+      utilization_rpt << "      " << flut5_lut5_only << " as 5-LUT" << std::endl;
+    }
+    if(flut5_lut5_ff > 0) {
+      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF" << std::endl;
+    }
+    if(lut5inter_lut4 > 0) {
+      utilization_rpt << "      " << lut5inter_lut4 << " as 4-LUT to implement adder carry chain" << std::endl;
+    }
+  }
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << "    " << total_FFs << " FF utilized" << std::endl;
+  if(total_FFs > 0) {
+    if(ble6_lut6_ff > 0) {
+      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF combination" << std::endl;
+    }
+    if(flut5_lut5_ff > 0) {
+      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF combination" << std::endl;
+    }
+    if((ble6_ff_only + flut5_ff_only) > 0) {
+      utilization_rpt << "      " << (ble6_ff_only + flut5_ff_only) << " as FF only" << std::endl;
+    }
+    if(shift_reg_ff > 0) {
+      utilization_rpt << "      " << shift_reg_ff << " as FF in Shift Register mode" << std::endl;
+    }
+  }
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << "  " << total_brams << " BRAM utilized" << std::endl;
+  if(total_brams > 0) {
+    if(bram_nonsplit > 0) {
+      utilization_rpt << "    " << bram_nonsplit << " as 36k nonsplit BRAM blocks" << std::endl;
+      utilization_rpt << "      " << "list of nonsplit BRAM block types:" << std::endl;
+      for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
+        utilization_rpt << "        " << key << ": " << value << std::endl;
+      }
+    }
+    if(bram_split > 0) {
+      utilization_rpt << "    " << bram_split << " as 2x18k split BRAM blocks" << std::endl;
+      utilization_rpt << "      " << "list of split BRAM block types:" << std::endl;
+      for (const auto & [ key, value ] : report_bram_split_numbers_map) {
+        utilization_rpt << "        " << key << ": " << value << std::endl;
+      }
+    }
+    if(fifo_nonsplit > 0) {
+      utilization_rpt << "    " << fifo_nonsplit << " as 36k nonsplit FIFO blocks" << std::endl;
+      utilization_rpt << "      " << "list of nonsplit FIFO block types:" << std::endl;
+      for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
+        utilization_rpt << "        " << key << ": " << value << std::endl;
+      }
+    }
+    if(fifo_split > 0) {
+      utilization_rpt << "    " << fifo_split << " as 2x18k split FIFO blocks" << std::endl;
+      utilization_rpt << "      " << "list of split FIFO block types:" << std::endl;
+      for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
+        utilization_rpt << "        " << key << ": " << value << std::endl;
+      }
+    }
+  }
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << "  " << dsp << " DSP utilized" << std::endl;
+  if(dsp > 0) {
+    utilization_rpt << "    " << "list of DSP block types:" << std::endl;
+    for (const auto & [ key, value ] : report_dsp_numbers_map) {
+      utilization_rpt << "      " << key << ": " << value << std::endl;
+    }
+  }
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << "  " << total_ios << " IO utilized" << std::endl;
+  if(total_ios > 0) {
+    if(io_output > 0) {
+      utilization_rpt << "    " << io_output << " output" << std::endl;
+    }
+    if(io_input > 0) {
+      utilization_rpt << "    " << io_input << " input" << std::endl;
+    }
+  }
+  utilization_rpt << "" << std::endl;
+
+  if(debug_extended) {
+    utilization_rpt << "\n----------------------------------------" << std::endl;
+    utilization_rpt << "ble6:                 " << ble6 << std::endl;
+    utilization_rpt << " ble6_lut6:           " << ble6_lut6 << std::endl;
+    utilization_rpt << " ble6_ff:             " << ble6_ff << std::endl;
+    utilization_rpt << "lut5inter:            " << lut5inter << std::endl;
+    utilization_rpt << " lut5inter_ble5:      " << lut5inter_ble5 << std::endl;
+    utilization_rpt << "  lut5inter_flut5:    " << lut5inter_flut5 << std::endl;
+    utilization_rpt << "   lut5inter_lut5:    " << lut5inter_lut5 << std::endl;
+    utilization_rpt << "   lut5inter_ff:      " << lut5inter_ff << std::endl;
+    utilization_rpt << " lut5inter_adder:     " << lut5inter_adder << std::endl;
+    utilization_rpt << "  lut5inter_lut4:     " << lut5inter_adder << std::endl;
+    utilization_rpt << "shift_reg:            " << shift_reg << std::endl;
+    utilization_rpt << " shift_reg_ff:        " << shift_reg_ff << std::endl;
+    utilization_rpt << "----------------------------------------" << std::endl;
+    utilization_rpt << "" << std::endl;
+  }
+
+  utilization_rpt << "" << std::endl;
+  utilization_rpt << "## Resource Utilization Complete ##" << std::endl;
+
+  utilization_rpt.close();
 }
 
 

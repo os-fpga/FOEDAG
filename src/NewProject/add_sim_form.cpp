@@ -40,7 +40,7 @@ addSimForm::addSimForm(QWidget *parent)
   ui->m_frame->setLayout(box);
 
   ui->m_ckkBoxCopy->setText(tr("Copy sources into project. "));
-  ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Unchecked);
+  ui->m_ckkBoxCopy->setCheckState(Qt::CheckState::Checked);
 }
 
 addSimForm::~addSimForm() { delete ui; }
