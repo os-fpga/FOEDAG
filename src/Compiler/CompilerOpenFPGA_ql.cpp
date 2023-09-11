@@ -2322,6 +2322,14 @@ bool CompilerOpenFPGA_ql::Analyze() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
   }
@@ -2435,6 +2443,13 @@ bool CompilerOpenFPGA_ql::Synthesize() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
   if( QLSettingsManager::getStringValue("general", "options", "verific") == "checked" ) {
     m_useVerific = true;
   }
@@ -3022,6 +3037,13 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return std::string("");
+  }
+
 
   std::string vpr_options;
 
@@ -3989,6 +4011,13 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
 
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
+
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
           (std::filesystem::path(ProjManager()->projectPath()) /
@@ -4209,6 +4238,13 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
 
 #if 0 // Disable VPR Power Analysis
 
@@ -4567,6 +4603,13 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return std::string("");
+  }
+
 
   QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
 
@@ -5061,6 +5104,13 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
 
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
+
+  // check if settings were loaded correctly before proceeding:
+  if((QLSettingsManager::getInstance()->settings_json).empty()) {
+    ErrorMessage("Project Settings JSON is missing, please check <project_name> and corresponding <project_name>.json exists: " + ProjManager()->projectName());
+    return false;
+  }
+
 
   ///////////////////////////////////////////////////////////////// PLACE ++
   //QLSettingsManager::getStringValue("general", "device", "family");
