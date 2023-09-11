@@ -101,3 +101,17 @@ target_link_libraries(programmer-gui_test foedag foedagcore tcl_stubb tcl_static
   zlib tclutils programmer-gui)
 set_target_properties(programmer-gui_test PROPERTIES OUTPUT_NAME programmer-gui_test)
 
+set (SRC_CPP_LIST
+  app/main.cpp
+)
+
+if(MSVC)
+  add_executable(programmer-bin ${SRC_CPP_LIST})
+  set_property(TARGET programmer-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set_property(TARGET programmer-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
+else()
+  add_executable(programmer-bin ${SRC_CPP_LIST})
+endif()
+set_target_properties(programmer-bin PROPERTIES OUTPUT_NAME programmer)
+target_link_libraries(programmer-bin programmer-gui)
+
