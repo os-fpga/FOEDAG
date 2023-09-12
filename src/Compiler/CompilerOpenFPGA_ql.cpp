@@ -3024,12 +3024,18 @@ std::string CompilerOpenFPGA_ql::GetDeviceAvailableResourcesModeVprCommand(const
   }
     
   std::string vpr_options;
-  vpr_options += std::string(" --show_resource_usage on");
+  vpr_options += std::string("--show_resource_usage on");
+
+  // despite VPR tool doesn't require the blif file for show_resource_usage mode, we still need supply it via cmdline argument since this parameter is mandatory for vpr usage
+  std::filesystem::path blif_filepath = std::filesystem::canonical(GetSession()->Context()->DataPath() /
+                                                                   std::filesystem::path("..") /
+                                                                   std::filesystem::path("scripts") / 
+                                                                   "and2_post_synth.blif");
 
   std::string vpr_command =
       m_vprExecutablePath.string() + std::string(" ") +
       architectureFile.string() + std::string(" ") +
-      std::string("placeholder.blif") + // NOTE: we don't need actually blif file for that mode, but still this is required as positional argument from vpr side
+      blif_filepath.string() + std::string(" ") +
       vpr_options;
 
   return vpr_command;
