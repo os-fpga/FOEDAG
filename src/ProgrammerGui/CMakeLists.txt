@@ -49,6 +49,7 @@ set (SRC_CPP_LIST
   ProgrammerBackend.cpp
   SummaryProgressBar.cpp
   ProgrammerSettingsWidget.cpp
+  ProgrammerGuiIntegration.cpp
 )
 
 set (SRC_H_INSTALL_LIST
@@ -56,6 +57,7 @@ set (SRC_H_INSTALL_LIST
   ProgrammerBackend.h
   SummaryProgressBar.h
   ProgrammerSettingsWidget.h
+  ProgrammerGuiIntegration.h
 )
 
 set (SRC_UI

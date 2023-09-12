@@ -26,6 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 #include <unordered_set>
 
+#include "CFGCommon/CFGArg_auto.h"
+#include "CFGCommon/CFGCommon.h"
+#include "ProgrammerGuiInterface.h"
 #include "Programmer_helper.h"
 #include "libusb.h"
 
@@ -65,19 +68,37 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
 
   std::string subCmd = arg->get_sub_arg_name();
   if (cmdarg->compilerName == "dummy") {
+    Cable cable1{};
+    cable1.name = "Usb_Programmer_Cable_port1_dev1";
+    Cable cable2{};
+    cable2.name = "Usb_Programmer_Cable_port2_dev1";
+    Device device1{};
+    Device device2{};
+    device1.name = device2.name = "Gemini";
+    device1.index = 1;
+    device2.index = 2;
+
     if (subCmd == "list_device") {
-      CFG_POST_MSG("<test>      | Device             |  ID        |  IRLen ");
-      CFG_POST_MSG("<test> ----- -------------------- ------------ ----------");
-      CFG_POST_MSG("<test> Found  0 Gemini             0x1000AABB   5");
-      CFG_POST_MSG("<test> Found  1 Gemini             0x2000CCDD   5");
+      CFG_POST_MSG("<test>");
+      printDeviceList(cable1, {device1, device2});
     } else if (subCmd == "list_cable") {
-      CFG_POST_MSG("<test>  1 Usb_Programmer_Cable_port1_dev1");
-      CFG_POST_MSG("<test>  2 Usb_Programmer_Cable_port2_dev1");
+      CFG_POST_MSG("<test>");
+      printCableList({cable1, cable2});
     } else if (subCmd == "fpga_status") {
       CFG_POST_MSG("<test> FPGA configuration status : Done");
     } else if (subCmd == "fpga_config") {
+      auto fpga_config_arg =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      std::string bitstreamFile = fpga_config_arg->m_args[0];
+      std::string cableInput = fpga_config_arg->cable;
+      uint64_t deviceIndex = fpga_config_arg->index;
+      auto device = deviceIndex == 1 ? device1 : device2;
+      if (Gui::GuiInterface())
+        Gui::GuiInterface()->ProgramFpga(cable1, device, bitstreamFile);
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (Gui::GuiInterface())
+          Gui::GuiInterface()->Progress(std::to_string(i));
         CFG_POST_MSG("<test> program fpga - %d %%", i);
       }
     } else if (subCmd == "otp") {
@@ -86,6 +107,13 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> program otp - %d %%", i);
       }
     } else if (subCmd == "flash") {
+      auto fpga_config_arg =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      std::string bitstreamFile = fpga_config_arg->m_args[0];
+      std::string cableInput = fpga_config_arg->cable;
+      uint64_t deviceIndex = fpga_config_arg->index;
+      auto device = deviceIndex == 1 ? device1 : device2;
+      if (Gui::GuiInterface()) Gui::GuiInterface()->Flash(cable1, device);
       auto flash =
           static_cast<const CFGArg_PROGRAMMER_FLASH*>(arg->get_sub_arg());
       auto operations = parseOperationString(flash->operations);
@@ -93,6 +121,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> Erasing flash memory");
         for (int i = 10; i <= 100; i += 10) {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
+          if (Gui::GuiInterface())
+            Gui::GuiInterface()->Progress(std::to_string(i));
           CFG_POST_MSG("<test> erase flash - %d %% ", i);
         }
       }
@@ -104,6 +134,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> Programming flash memory");
         for (int i = 10; i <= 100; i += 10) {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
+          if (Gui::GuiInterface())
+            Gui::GuiInterface()->Progress(std::to_string(i));
           CFG_POST_MSG("<test> program flash - %d %% ", i);
         }
       }
@@ -215,6 +247,14 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         return;
       }
       std::atomic<bool> stop = false;
+      ProgressCallback progress = nullptr;
+      auto gui = Gui::GuiInterface();
+      if (gui) {
+        progress = [gui](const std::string& progress) {
+          gui->Progress(progress);
+        };
+        gui->ProgramFpga(cable, device, bitstreamFile);
+      }
       status = ProgramFpga(
           cable, device, bitstreamFile, stop, nullptr,
           [](std::string msg) {
@@ -222,7 +262,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
             formatted = removeInfoAndNewline(msg);
             CFG_POST_MSG("%s", formatted.c_str());
           },
-          nullptr);
+          progress);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
         return;

@@ -23,12 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QObject>
 #include <QString>
 
+#include "Configuration/Programmer/Programmer_helper.h"
+
 namespace FOEDAG {
 struct Device;
+struct Cable;
 
 struct FoedagDevice {
   QString name;
-  Device *dev{nullptr};
+  Device dev{};
+  Cable cable{};
 };
 
 using ProgressCallback_ = std::function<void(std::string)>;

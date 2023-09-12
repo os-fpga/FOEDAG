@@ -77,11 +77,9 @@ int ProgrammerBackend::ProgramFlashAPI(
 
 bool ProgrammerBackend::StatusAPI(const FoedagDevice &device) {
   std::vector<Device> devs;
-  if (device.dev) {
-    CfgStatus stat{};
-    bool ok = /*GetFpgaStatus(*device.dev, stat)*/ true;
-    if (ok) return stat.cfgDone == true && stat.cfgError == false;
-  }
+  CfgStatus stat{};
+  bool ok = /*GetFpgaStatus(*device.dev, stat)*/ true;
+  if (ok) return stat.cfgDone == true && stat.cfgError == false;
   return true;
 }
 

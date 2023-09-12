@@ -33,11 +33,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
+#include "MainWindow/Session.h"
+#include "Programmer/Programmer_helper.h"
+#include "ProgrammerGuiIntegration.h"
 #include "ProgrammerSettingsWidget.h"
 #include "qdebug.h"
 #include "ui_ProgrammerMain.h"
 
 inline void InitResources() { Q_INIT_RESOURCE(res); }
+
+extern FOEDAG::Session *GlobalSession;
 
 namespace FOEDAG {
 
@@ -58,9 +63,12 @@ bool StartThread(const std::function<bool(void)> &fn) {
 ProgrammerMain::ProgrammerMain(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::ProgrammerMain),
-      m_settings("programmer_settings", QSettings::IniFormat) {
+      m_settings("programmer_settings", QSettings::IniFormat),
+      m_guiIntegration(new ProgrammerGuiIntegration) {
   InitResources();
   ui->setupUi(this);
+
+  Gui::SetGuiInterface(m_guiIntegration);
 
   QComboBox *hardware = new QComboBox;
   hardware->addItem("FTDI");
@@ -94,8 +102,10 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)),
           SLOT(onCustomContextMenu(QPoint)));
   connect(ui->actionExit, &QAction::triggered, this, &ProgrammerMain::close);
-  connect(ui->actionDetect, &QAction::triggered, this,
-          &ProgrammerMain::autoDetect);
+  connect(ui->actionDetect, &QAction::triggered, this, []() {
+    EvalCommand(std::string{"programmer list_cable"});
+    EvalCommand(std::string{"programmer list_device"});
+  });
   connect(ui->actionStart, &QAction::triggered, this,
           &ProgrammerMain::startPressed);
   connect(ui->actionStop, &QAction::triggered, this,
@@ -104,12 +114,12 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
           &ProgrammerMain::addFile);
   connect(ui->actionReset, &QAction::triggered, this, &ProgrammerMain::reset);
   ui->toolBar->removeAction(ui->actionStop);
-  autoDetect();
   QIcon image{":/images/help-circle.png"};
   auto btn = new QPushButton{image, {}};
   btn->setFlat(true);
   connect(btn, &QPushButton::clicked, this, &ProgrammerMain::showToolTip);
-  menuBar()->setCornerWidget(btn);
+  // todo @volodymyrk RG-433 hide for now
+  //  menuBar()->setCornerWidget(btn);
 
   connect(this, &ProgrammerMain::appendOutput, this,
           [this](const QString &msg) {
@@ -132,6 +142,25 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   // disabled for now
   ui->actionJTAG_Settings->setVisible(false);
   ui->actionOptions->setVisible(false);
+
+  connect(m_guiIntegration, &ProgrammerGuiIntegration::progress, this,
+          [this](const std::string &progress) {
+            const auto &[currentCable, currentDevice] =
+                m_guiIntegration->CurrentDevice();
+            for (auto dev : m_deviceSettings) {
+              auto device = m_guiIntegration->IsFlash() ? dev->flash : dev;
+              if (device->device.cable == currentCable &&
+                  device->device.dev == currentDevice) {
+                device->devOptions.progress(progress);
+                device->devOptions.file = QString::fromStdString(
+                    m_guiIntegration->File(currentDevice));
+                m_items.key(device)->setText(1, device->devOptions.file);
+              }
+            }
+          });
+
+  connect(m_guiIntegration, &ProgrammerGuiIntegration::autoDetect, this,
+          &ProgrammerMain::autoDetect);
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
@@ -170,22 +199,23 @@ void ProgrammerMain::onCustomContextMenu(const QPoint &point) {
 
 void ProgrammerMain::autoDetect() {
   std::vector<FoedagDevice> devices{};
-  auto deviceList = m_backend.ListDevicesAPI(devices);
-  if (deviceList.first) {
-    qDeleteAll(m_deviceSettings);
-    m_deviceSettings.clear();
-    m_items.clear();
-    m_deviceTmp.clear();
-    for (const auto &device : devices) {
+  auto deviceList = m_guiIntegration->devices();
+
+  qDeleteAll(m_deviceSettings);
+  m_deviceSettings.clear();
+  m_items.clear();
+  m_deviceTmp.clear();
+
+  for (auto &[cab, devs] : deviceList.values()) {
+    for (const auto &dev : devs) {
       DeviceSettings *ds = new DeviceSettings;
-      ds->device = device;
+      ds->device = FoedagDevice{QString::fromStdString(dev.name), dev, cab};
       ds->flash = new DeviceSettings;
-      ds->flash->device = device;
-      ds->flash->isFlash = true;
+      ds->flash->device = ds->device;
       m_deviceSettings.push_back(ds);
     }
-    updateTable();
   }
+  updateTable();
 }
 
 void ProgrammerMain::startPressed() {
@@ -257,6 +287,15 @@ void ProgrammerMain::openSettingsWindow(int index) {
   w.setWindowTitle("Settings");
   w.openTab(index);
   w.exec();
+}
+
+bool ProgrammerMain::EvalCommand(const QString &cmd) {
+  return GlobalSession->CmdStack()->push_and_exec(
+      new Command{cmd.toStdString()});
+}
+
+bool ProgrammerMain::EvalCommand(const std::string &cmd) {
+  return GlobalSession->CmdStack()->push_and_exec(new Command{cmd});
 }
 
 void ProgrammerMain::updateTable() {
@@ -361,10 +400,16 @@ bool ProgrammerMain::VerifyDevices() {
 }
 
 void ProgrammerMain::start() {
+  for (auto ds : m_deviceSettings) {
+    if (ds->devOptions.file.isEmpty() ||
+        (ds->flash && ds->flash->devOptions.file.isEmpty())) {
+      QMessageBox::critical(this, "Bitstream file missing",
+                            "Please specify bitstream file");
+      return;
+    }
+  }
   m_programmingDone = false;
-  std::ostream *outStream = nullptr;
   stop = false;
-  auto outputCallback = [this](const QString &msg) { emit appendOutput(msg); };
   if (m_deviceTmp.isEmpty()) {
     for (auto d : m_deviceSettings) {
       m_deviceTmp.push_back(d);
@@ -375,19 +420,17 @@ void ProgrammerMain::start() {
   while (!m_deviceTmp.isEmpty()) {
     auto dev = m_deviceTmp.first();
     setStatus(dev, InProgress);
-    auto result = StartThread([&]() {
-      auto returnValue{0};
-      if (!dev->isFlash) {
-        returnValue = m_backend.ProgramFpgaAPI(
-            dev->device, dev->devOptions.file, m_cfgFile, outStream,
-            outputCallback, dev->devOptions.progress, &stop);
-      } else {
-        returnValue = m_backend.ProgramFlashAPI(
-            dev->device, dev->devOptions.file, m_cfgFile, outStream,
-            outputCallback, dev->devOptions.progress, &stop);
-      }
-      return m_backend.StatusAPI(dev->device) && (returnValue == 0);
-    });
+    bool result{false};
+    if (dev->flash) {
+      result = EvalCommand(QString{"programmer fpga_config -c %1 -d %2 %3"}.arg(
+          QString{dev->device.cable.name.c_str()},
+          QString::number(dev->device.dev.index), dev->devOptions.file));
+    } else {
+      result =
+          EvalCommand(QString{"programmer flash -c %1 -d %2 -o program %3"}.arg(
+              QString{dev->device.cable.name.c_str()},
+              QString::number(dev->device.dev.index), dev->devOptions.file));
+    }
     if (!result) break;
     setStatus(dev, Done);
     m_deviceTmp.removeFirst();

@@ -35,6 +35,7 @@ class QTreeWidgetItem;
 class QProgressBar;
 
 namespace FOEDAG {
+class ProgrammerGuiIntegration;
 
 enum Status { None, InProgress, Pending, Done };
 
@@ -49,18 +50,20 @@ struct DeviceSettings {
   FoedagDevice device;
   DeviceOptions devOptions;
   DeviceSettings *flash{nullptr};
-  bool isFlash{false};
 };
 
 class ProgrammerMain : public QMainWindow {
   Q_OBJECT
 
  public:
-  ProgrammerMain(QWidget *parent = nullptr);
-  ~ProgrammerMain();
+  explicit ProgrammerMain(QWidget *parent = nullptr);
+  ~ProgrammerMain() override;
 
   QString cfgFile() const;
   void setCfgFile(const QString &cfg);
+
+ public slots:
+  void autoDetect();
 
  signals:
   void appendOutput(const QString &);
@@ -71,7 +74,6 @@ class ProgrammerMain : public QMainWindow {
 
  private slots:
   void onCustomContextMenu(const QPoint &point);
-  void autoDetect();
   void startPressed();
   void stopPressed();
   void addFile();
@@ -94,6 +96,8 @@ class ProgrammerMain : public QMainWindow {
   static QString ToString(Status status);
   void setStatus(DeviceSettings *ds, Status status);
   void openSettingsWindow(int index);
+  static bool EvalCommand(const QString &cmd);
+  static bool EvalCommand(const std::string &cmd);
 
  private:
   static constexpr int FILE_COL{1};
@@ -112,6 +116,7 @@ class ProgrammerMain : public QMainWindow {
   QSettings m_settings;
   bool m_programmingDone{true};
   QString m_cfgFile{};
+  ProgrammerGuiIntegration *m_guiIntegration;
 };
 
 }  // namespace FOEDAG

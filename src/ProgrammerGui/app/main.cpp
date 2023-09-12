@@ -53,7 +53,12 @@ int main(int argc, char* argv[]) {
   FOEDAG::GUI_TYPE guiType =
       FOEDAG::Foedag::getGuiType(cmd->WithQt(), cmd->WithQml());
 
-  FOEDAG::Compiler* compiler = new FOEDAG::CompilerOpenFPGA;
+  FOEDAG::Compiler* compiler = nullptr;
+  if (cmd->CompilerName() == "openfpga") {
+    compiler = new FOEDAG::CompilerOpenFPGA();
+  } else {
+    compiler = new FOEDAG::Compiler();
+  }
   auto taskM = new FOEDAG::TaskManager(compiler);
   compiler->setTaskManager(taskM);
   FOEDAG::Settings* settings = new FOEDAG::Settings();
