@@ -41,9 +41,9 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QGroupBox" name="groupBox_2">
+      <widget class="QGroupBox" name="groupBoxDeviceTree">
        <property name="title">
-        <string>Device Tree: 2 device(s) found</string>
+        <string>Device Tree: 0 device(s) found</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <property name="leftMargin">

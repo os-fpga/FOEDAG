@@ -26,10 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <unordered_set>
 
+#include "CFGCommon/CFGArg_auto.h"
+#include "CFGCommon/CFGCommon.h"
 #include "Programmer.h"
+#include "ProgrammerGuiInterface.h"
 #include "Utils/StringUtils.h"
 #include "libusb.h"
+
 namespace FOEDAG {
+
+ProgrammerGuiInterface* Gui::m_guiInterface{nullptr};
 
 static const std::vector<std::string> programmer_subcmd{
     "fpga_config", "fpga_status", "flash", "list_device", "list_cable"};
@@ -471,10 +477,12 @@ void printCableList(const std::vector<Cable>& cableList) {
   for (const auto& cable : cableList) {
     CFG_POST_MSG("(%d) %s", cable.index, cable.name.c_str());
   }
+  if (Gui::GuiInterface()) Gui::GuiInterface()->Cables(cableList);
 }
 
 void printDeviceList(const Cable& cable,
                      const std::vector<Device>& deviceList) {
+  if (Gui::GuiInterface()) Gui::GuiInterface()->Devices(cable, deviceList);
   CFG_POST_MSG("Cable               | Device");
   CFG_POST_MSG("-----------------------------------------------");
 
@@ -575,5 +583,11 @@ void InitializeHwDb(
     if (printDeviceList) printDeviceList(cable, devices);
   }
 }
+
+void Gui::SetGuiInterface(ProgrammerGuiInterface* guiInterface) {
+  m_guiInterface = guiInterface;
+}
+
+ProgrammerGuiInterface* Gui::GuiInterface() { return m_guiInterface; }
 
 }  // namespace FOEDAG
