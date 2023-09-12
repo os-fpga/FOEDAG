@@ -91,7 +91,7 @@ TEST(CFGArg, test_arg) {
 TEST(CFGArg, test_list_device_ok) {
   CFGArg_PROGRAMMER_LIST_DEVICE arg;
   std::vector<std::string> errors;
-  const char* argv[] = {"1"};
+  const char* argv[] = {"1", "-v"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, true);
@@ -112,8 +112,9 @@ TEST(CFGArg, test_list_device_exceed_max_arg) {
 TEST(CFGArg, test_list_cable_ok) {
   CFGArg_PROGRAMMER_LIST_CABLE arg;
   std::vector<std::string> errors;
-  int argc = 0;
-  bool status = arg.parse(argc, nullptr, &errors);
+  const char* argv[] = {"-v"};
+  int argc = int(sizeof(argv) / sizeof(argv[0]));
+  bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, true);
   EXPECT_EQ(errors.size(), 0);
 }
@@ -121,7 +122,7 @@ TEST(CFGArg, test_list_cable_ok) {
 TEST(CFGArg, test_list_cable_exceed_max_arg) {
   CFGArg_PROGRAMMER_LIST_CABLE arg;
   std::vector<std::string> errors;
-  const char* argv[] = {"dummy_arg"};
+  const char* argv[] = {"dummy_arg, dummy_arg2"};
   int argc = int(sizeof(argv) / sizeof(argv[0]));
   bool status = arg.parse(argc, argv, &errors);
   EXPECT_EQ(status, false);
