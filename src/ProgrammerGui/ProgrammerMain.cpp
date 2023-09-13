@@ -33,11 +33,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QToolTip>
 #include <iostream>
 
+#include "Console/FileNameParser.h"
+#include "Console/StreamBuffer.h"
+#include "Console/TclConsole.h"
+#include "Console/TclConsoleBuilder.h"
+#include "Console/TclConsoleWidget.h"
+#include "Console/TclErrorParser.h"
+#include "MainWindow/Session.h"
 #include "ProgrammerSettingsWidget.h"
 #include "qdebug.h"
 #include "ui_ProgrammerMain.h"
 
-inline void InitResources() { Q_INIT_RESOURCE(res); }
+inline void InitResources() {
+  Q_INIT_RESOURCE(res);
+  Q_INIT_RESOURCE(main_window_resource);
+}
+
+extern FOEDAG::Session *GlobalSession;
 
 namespace FOEDAG {
 
@@ -111,12 +123,6 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   connect(btn, &QPushButton::clicked, this, &ProgrammerMain::showToolTip);
   menuBar()->setCornerWidget(btn);
 
-  connect(this, &ProgrammerMain::appendOutput, this,
-          [this](const QString &msg) {
-            ui->plainTextEdit->moveCursor(QTextCursor::End);
-            ui->plainTextEdit->insertPlainText(msg);
-            ui->plainTextEdit->ensureCursorVisible();
-          });
   connect(this, &ProgrammerMain::updateProgress, this,
           &ProgrammerMain::updateProgressSlot);
 
@@ -132,6 +138,17 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   // disabled for now
   ui->actionJTAG_Settings->setVisible(false);
   ui->actionOptions->setVisible(false);
+
+  TclConsoleBuffer *buffer = new TclConsoleBuffer{};
+  auto tclConsole = std::make_unique<FOEDAG::TclConsole>(
+      GlobalSession->TclInterp()->getInterp(), buffer->getStream());
+  TclConsoleWidget *console{nullptr};
+  QWidget *w =
+      FOEDAG::createConsole(GlobalSession->TclInterp()->getInterp(),
+                            std::move(tclConsole), buffer, nullptr, &console);
+  ui->groupBox->layout()->addWidget(w);
+  console->addParser(new TclErrorParser{});
+  console->addParser(new FileNameParser{});
 }
 
 ProgrammerMain::~ProgrammerMain() { delete ui; }
