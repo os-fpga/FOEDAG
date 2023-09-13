@@ -1279,9 +1279,10 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
   std::filesystem::path binpath = GetSession()->Context()->BinaryPath();
   std::filesystem::path prefixPackagePath =
       binpath / "HDL_simulator" / "GHDL" / "lib" / "ghdl";
-  fileList = "plugin -i ghdl\nghdl -frelaxed-rules -fsynopsys --PREFIX=" +
-             prefixPackagePath.string() + " " + searchPath + lang + " " +
-             fileList + " -e " + designLibraries + "\n";
+  fileList =
+      "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys --PREFIX=" +
+      prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
+      " -e " + designLibraries + "\n";
   return fileList;
 }
 
