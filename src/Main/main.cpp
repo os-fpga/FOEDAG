@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
                          compiler, settings, context);
   std::filesystem::path binpath = context->BinaryPath();
   std::filesystem::path datapath = context->DataPath();
-  context->ProgrammerGuiPath(binpath / "programmer");
+  context->ProgrammerGuiPath(binpath / "programmer_gui");
   if (opcompiler) {
     std::filesystem::path analyzePath = binpath / "analyze";
     std::filesystem::path yosysPath = binpath / "yosys";

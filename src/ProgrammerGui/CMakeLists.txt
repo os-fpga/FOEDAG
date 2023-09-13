@@ -114,6 +114,6 @@ if(MSVC)
 else()
   add_executable(programmer-bin ${SRC_CPP_LIST})
 endif()
-set_target_properties(programmer-bin PROPERTIES OUTPUT_NAME programmer)
+set_target_properties(programmer-bin PROPERTIES OUTPUT_NAME programmer_gui)
 target_link_libraries(programmer-bin programmer-gui)
 
