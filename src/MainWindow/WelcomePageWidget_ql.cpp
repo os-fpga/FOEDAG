@@ -36,7 +36,7 @@ using namespace FOEDAG;
 namespace {
 static constexpr auto HEADER_MARGIN = 6;
 static constexpr auto HEADER_POINTSIZE = 24;
-static constexpr auto DESCRIPTION_POINTSIZE = 14;
+static constexpr auto DESCRIPTION_POINTSIZE = 18;
 static constexpr auto PAGE_MARGIN = 30;
 static constexpr auto PAGE_SPACING = 20;
 
@@ -54,36 +54,67 @@ WelcomePageWidget::WelcomePageWidget(const QString &header,
       m_recentProjectsLayout(new QVBoxLayout()) {
   std::filesystem::path srcDir = sourcesPath / ".." / "share" / "aurora" / ETC_DIR / WELCOME_PAGE_DIR;
 
-  // Header label
-  auto headerLabel = new QLabel(header.toUpper(), this);
-  auto headerFont = headerLabel->font();
-  headerFont.setPointSize(HEADER_POINTSIZE);
-  headerLabel->setFont(headerFont);
-  headerLabel->setContentsMargins(0, HEADER_MARGIN, HEADER_MARGIN, 0);
+  // Group box with start actions
+  auto quickStartGroupBox = new QGroupBox(this);
+  quickStartGroupBox->setLayout(m_actionsLayout);
 
-  // Description label
+
+  // headerLayout:
+  // headerLeftLayout (Aurora) - headerRightLayout (Quicklogic)
+  QHBoxLayout* headerLayout = new QHBoxLayout();
+
+  //================================================ HEADER Left : Tool Logo-Name-Description++
+  QVBoxLayout* headerLeftLayout = new QVBoxLayout();
+  
+  QHBoxLayout* headerLeftAuroraLayout = new QHBoxLayout();
+
+  QLabel* headerIconLabel = new QLabel(this);
+  std::filesystem::path headerIconPath = sourcesPath / ".." / "share" / "aurora" / "etc" / "aurora_logo.svg";
+  auto headerIconPixmap = QIcon(QString::fromStdString(headerIconPath.string())).pixmap(QSize(84,84));
+  if (!headerIconPixmap.isNull()) headerIconLabel->setPixmap(headerIconPixmap);
+  headerLeftAuroraLayout->addWidget(headerIconLabel);
+  
+  auto headerLabel = new QLabel(this);
+  std::filesystem::path headerPath = sourcesPath / ".." / "share" / "aurora" / "etc" / "aurora_title.svg";
+  auto headerPixmap = QIcon(QString::fromStdString(headerPath.string())).pixmap(QSize(524,77));
+  if (!headerPixmap.isNull()) headerLabel->setPixmap(headerPixmap);
+  headerLeftAuroraLayout->addWidget(headerLabel);
+  headerLeftAuroraLayout->addStretch();
+  
+  QHBoxLayout* headeLeftDescriptionLayout = new QHBoxLayout();
+    // Description label
   auto descLabel = new QLabel(getDescription(srcDir), this);
   auto descFont = descLabel->font();
   descFont.setPointSize(DESCRIPTION_POINTSIZE);
   descLabel->setFont(descFont);
   descLabel->setContentsMargins(0, 0, HEADER_MARGIN, HEADER_MARGIN * 2);
+  headeLeftDescriptionLayout->addWidget(descLabel);
+  headeLeftDescriptionLayout->addStretch();
+  
+  headerLeftLayout->addLayout(headerLeftAuroraLayout);
+  headerLeftLayout->addLayout(headeLeftDescriptionLayout);
+  //================================================ HEADER Left : Tool Logo-Name-Description--
 
-  // Group box with start actions
-  auto quickStartGroupBox = new QGroupBox(this);
-  m_actionsLayout->addWidget(headerLabel);
-  m_actionsLayout->addWidget(descLabel);
-  quickStartGroupBox->setLayout(m_actionsLayout);
 
-  // Logo label
+  //================================================ HEADER Right : Company Logo++
+  QHBoxLayout* headerRightLayout = new QHBoxLayout();
+
   auto logoLabel = new QLabel(this);
-  std::filesystem::path labelPath = sourcesPath / ".." / "share" / "aurora" / ETC_DIR / LOGO_FILENAME;
-  auto logoPixmap = QPixmap(QString::fromStdString(labelPath.string()));
+  std::filesystem::path labelPath = sourcesPath / ".." / "share" / "aurora" / "etc" / "quickLogic-logo-w-reg-mark.png";
+  auto logoPixmap = QIcon(QString::fromStdString(labelPath.string())).pixmap(QSize(355,70));
   if (!logoPixmap.isNull()) logoLabel->setPixmap(logoPixmap);
+  headerRightLayout->addWidget(logoLabel, 0, Qt::AlignRight | Qt::AlignTop);
+  //================================================ HEADER Right : Company Logo--
+
+
+  headerLayout->addLayout(headerLeftLayout);
+  headerLayout->addLayout(headerRightLayout);
+
 
   // Main layout
   auto mainLayout = new QVBoxLayout(this);
   mainLayout->setSpacing(PAGE_SPACING);
-  mainLayout->addWidget(logoLabel, 0, Qt::AlignHCenter | Qt::AlignTop);
+  mainLayout->addLayout(headerLayout);
   mainLayout->addWidget(quickStartGroupBox);
   mainLayout->setContentsMargins(PAGE_MARGIN, PAGE_MARGIN, PAGE_MARGIN,
                                  PAGE_MARGIN);

@@ -110,6 +110,11 @@ MainWindow::MainWindow(Session* session)
   m_showWelcomePage = m_settings.value(SHOW_WELCOMEPAGE_KEY, true).toBool();
   m_askStopCompilation =
       m_settings.value(SHOW_STOP_COMPILATION_MESSAGE_KEY, true).toBool();
+
+  
+  std::filesystem::path windowIconPath = GlobalSession->Context()->BinaryPath() / ".." / "share" / "aurora" / "etc" / "aurora_logo.svg";
+  setWindowIcon(QIcon(QString::fromStdString(windowIconPath.string())));
+
 #if UPSTREAM_UNUSED
   centerWidget(*this);
 
