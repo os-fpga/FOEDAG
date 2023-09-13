@@ -358,27 +358,31 @@ bool Simulator::Simulate(SimulationType action, SimulatorType type,
   } else if (m_waveFile.find(".ghw") != std::string::npos) {
     m_waveType = WaveformType::GHW;
   }
-  switch (action) {
-    case SimulationType::RTL: {
-      return SimulateRTL(type);
-      break;
+  try {
+    switch (action) {
+      case SimulationType::RTL: {
+        return SimulateRTL(type);
+        break;
+      }
+      case SimulationType::Gate: {
+        return SimulateGate(type);
+        break;
+      }
+      case SimulationType::PNR: {
+        return SimulatePNR(type);
+        break;
+      }
+      case SimulationType::BitstreamFrontDoor: {
+        return SimulateBitstream(action, type);
+        break;
+      }
+      case SimulationType::BitstreamBackDoor: {
+        return SimulateBitstream(action, type);
+        break;
+      }
     }
-    case SimulationType::Gate: {
-      return SimulateGate(type);
-      break;
-    }
-    case SimulationType::PNR: {
-      return SimulatePNR(type);
-      break;
-    }
-    case SimulationType::BitstreamFrontDoor: {
-      return SimulateBitstream(action, type);
-      break;
-    }
-    case SimulationType::BitstreamBackDoor: {
-      return SimulateBitstream(action, type);
-      break;
-    }
+  } catch (std::exception& exception) {
+    ErrorMessage(exception.what());
   }
   return false;
 }
@@ -442,7 +446,7 @@ std::string Simulator::IncludeDirective(SimulatorType type) {
     case SimulatorType::Xcelium:
       return "-I";
   }
-  return "Invalid";
+  throw std::runtime_error{"Unknown simulator type"};
 }
 
 std::string Simulator::LibraryPathDirective(SimulatorType type) {
@@ -675,7 +679,7 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::VHDL_2008:
           return "--std=08";
         case Design::Language::VHDL_2019:
-          return "--std=19";
+          throw std::runtime_error{"VHDL_2019: invalid language for ghdl"};
         default:
           return "--invalid-lang-for-ghdl";
       }
@@ -771,7 +775,7 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
     case SimulatorType::Xcelium:
       return "Todo";
   }
-  return "Invalid";
+  throw std::runtime_error{"Unknown simulator type"};
 }
 
 std::string Simulator::SimulationFileList(SimulationType action,
