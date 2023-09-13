@@ -675,7 +675,7 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::VHDL_2008:
           return "--std=08";
         case Design::Language::VHDL_2019:
-          return "--std=19";
+          return "--invalid-lang-for-ghdl";
         default:
           return "--invalid-lang-for-ghdl";
       }
