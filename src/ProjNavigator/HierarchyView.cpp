@@ -195,9 +195,13 @@ void HierarchyView::parseJson(json &jsonObject) {
   };
 
   // top module parsing
+  QString topModuleFile;
   auto hierTree = jsonObject.at("hierTree");
   for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
     auto topModule = it->at("topModule");
+    const auto &[topModuleFileId, ok] =
+        StringUtils::to_number<int>(it->at("file"));
+    if (ok) topModuleFile = m_files.value(topModuleFileId, {});
     Module m_top;
     m_top.name = QString::fromStdString(topModule.get<std::string>());
     parseModule(*it, &m_top);
@@ -251,6 +255,7 @@ void HierarchyView::parseJson(json &jsonObject) {
     }
     m_topVector.push_back(m_top);
   }
+  emit this->topModuleFile(topModuleFile);
 }
 
 }  // namespace FOEDAG
