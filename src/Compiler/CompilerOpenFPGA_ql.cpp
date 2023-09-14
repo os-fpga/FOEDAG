@@ -4961,10 +4961,10 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     return true;
   }
 #if UPSTREAM_UNUSED
-  if (!ProjManager()->getTargetDevice().empty()) {
-    if (!LicenseDevice(ProjManager()->getTargetDevice())) {
+  if (!QLDeviceManager::getInstance()->getCurrentDeviceTargetString().empty()) {
+    if (!LicenseDevice(QLDeviceManager::getInstance()->getCurrentDeviceTargetString())) {
       ErrorMessage(
-          "Device is not licensed: " + ProjManager()->getTargetDevice() + "\n");
+          "Device is not licensed: " + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() + "\n");
       return false;
     }
   }
@@ -4983,7 +4983,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   }
   Message("##################################################");
   Message("Bitstream generation for design \"" + ProjManager()->projectName() +
-          "\" on device \"" + ProjManager()->getTargetDevice() + "\"");
+          "\" on device \"" + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() + "\"");
   Message("##################################################");
 
   // if flat_routing is enabled in VPR, skip bitstream generation
@@ -4991,7 +4991,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/issues/2256#issuecomment-1498007179
   if( QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
     Message("##################################################");
-    Message("Skipping Bitstream Generation since 'flat_routing' option is turned on in VPR!");
+    Message("Skipping Bitstream Generation since flat_routing is enabled in VPR!");
     Message("##################################################");
     return true;
   }
@@ -5021,7 +5021,7 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
   if (BitsOpt() == BitstreamOpt::DefaultBitsOpt) {
 #ifdef PRODUCTION_BUILD
     if (BitstreamEnabled() == false) {
-      Message("Device " + ProjManager()->getTargetDevice() +
+      Message("Device " + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
               " bitstream is not enabled, skipping");
       return true;
     }
@@ -5256,7 +5256,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   (*m_out) << "##################################################" << std::endl;
   (*m_out) << "PinConstraints generation for design \""
           << ProjManager()->projectName() << "\" on device \""
-          << ProjManager()->getTargetDevice() << "\"" << std::endl;
+          << QLDeviceManager::getInstance()->getCurrentDeviceTargetString() << "\"" << std::endl;
   (*m_out) << "##################################################" << std::endl;
 
   // call openfpga to generate pin_constraints 'fix_pins.place' if 'pcf2place' is enabled
