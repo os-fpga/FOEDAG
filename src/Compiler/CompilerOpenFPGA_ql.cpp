@@ -4020,6 +4020,16 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   }
 
   if (TimingAnalysisOpt() == STAOpt::View) {
+    
+    if( QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
+      Message("");
+      Message("");
+      Message("##################################################");
+      Message("Place&Route View is disabled since flat_routing is enabled in VPR!");
+      Message("##################################################");
+      return true;
+    }
+
     TimingAnalysisOpt(STAOpt::None);
     std::string command = BaseVprCommand() + " --analysis --disp on";
     const int status = ExecuteAndMonitorSystemCommand(command);
