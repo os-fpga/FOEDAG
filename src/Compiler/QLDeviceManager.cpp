@@ -1276,6 +1276,19 @@ void QLDeviceManager::setCurrentDeviceTarget(QLDeviceTarget device_target) {
 }
 
 
+std::string QLDeviceManager::getCurrentDeviceTargetString() {
+
+  return convertToDeviceString(getCurrentDeviceTarget());
+
+}
+
+
+QLDeviceTarget QLDeviceManager::getCurrentDeviceTarget() {
+
+  return this->device_target;
+}
+
+
 void QLDeviceManager::triggerUIUpdate() {
 
   // set the selected device in the GUI:

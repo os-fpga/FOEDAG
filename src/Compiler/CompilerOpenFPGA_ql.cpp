@@ -3174,6 +3174,16 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
                    QLSettingsManager::getStringValue("vpr", "route", "route_chan_width");
   }
 
+  if( QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
+    vpr_options += std::string(" --flat_routing true");
+    // if flat_routing is enabled, increase maximum router iterations to give flat router enough
+    // time to converage to a legal routing solution
+    vpr_options += std::string(" --max_router_iterations 100");
+  }
+  else if( QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "unchecked" ) {
+    vpr_options += std::string(" --flat_routing false");
+  }
+
   // parse vpr analysis options
   if( QLSettingsManager::getStringValue("vpr", "analysis", "gen_post_synthesis_netlist") == "checked" ) {
     vpr_options += std::string(" --gen_post_synthesis_netlist on");
@@ -3198,6 +3208,12 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     vpr_options += std::string(" --timing_report_npaths") + 
                    std::string(" ") + 
                    QLSettingsManager::getStringValue("vpr", "analysis", "timing_report_npaths");
+  }
+
+  if( !QLSettingsManager::getStringValue("vpr", "analysis", "timing_report_detail").empty() ) {
+    vpr_options += std::string(" --timing_report_detail") + 
+                   std::string(" ") + 
+                   QLSettingsManager::getStringValue("vpr", "analysis", "timing_report_detail");
   }
 
   // custom vpr command-line options, it is upto the user to ensure that the options are passed in correctly.
@@ -3250,7 +3266,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
   if (!PerDevicePnROptions().empty()) pnrOptions += " " + PerDevicePnROptions();
 #endif // #if UPSTREAM_UNUSED
 
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
   std::filesystem::path device_type_dir_path = 
       std::filesystem::path(GetSession()->Context()->DataPath() /
@@ -3299,7 +3315,7 @@ std::string CompilerOpenFPGA_ql::BaseVprCommand() {
     }
   }
 
-  Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
+  Message( std::string("Using vpr.xml for: ") + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() );
 
   // add the *internal* option to allow dangling nodes in the logic.
   // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/blob/a7f573b7a5432711042ddeb9f2958cd035097a10/vpr/src/timing/timing_graph_builder.cpp#L277
@@ -3906,13 +3922,6 @@ bool CompilerOpenFPGA_ql::Route() {
   }
   command += std::string(" ") + 
              std::string("--route");
-  
-  //User might specify to run flat router in routing stage, we need to increase
-  //maximum routing iteration in case of congestion to give flat router enough
-  //time to converage to a legal routing solution
-  if(command.find("--flat_routing true") != string::npos){
-    command += std::string(" ") + std::string("--max_router_iterations 100");
-  }
 
   std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                      std::string(ProjManager()->projectName() + "_route.cmd"))
@@ -4001,18 +4010,6 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
   }
 #endif // #if UPSTREAM_UNUSED
 
-  if (TimingAnalysisOpt() == STAOpt::View) {
-    TimingAnalysisOpt(STAOpt::None);
-    const std::string command = BaseVprCommand() + " --analysis --disp on";
-    const int status = ExecuteAndMonitorSystemCommand(command);
-    if (status) {
-      ErrorMessage("Design " + ProjManager()->projectName() +
-                   " place and route view failed");
-      return false;
-    }
-    return true;
-  }
-
   // reload QLSettingsManager() to ensure we account for dynamic changes in the settings/power json:
   QLSettingsManager::reloadJSONSettings();
 
@@ -4022,6 +4019,17 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
     return false;
   }
 
+  if (TimingAnalysisOpt() == STAOpt::View) {
+    TimingAnalysisOpt(STAOpt::None);
+    std::string command = BaseVprCommand() + " --analysis --disp on";
+    const int status = ExecuteAndMonitorSystemCommand(command);
+    if (status) {
+      ErrorMessage("Design " + ProjManager()->projectName() +
+                   " place and route view failed");
+      return false;
+    }
+    return true;
+  }
 
 #if UPSTREAM_UNUSED
   if (FileUtils::IsUptoDate(
@@ -4141,14 +4149,6 @@ bool CompilerOpenFPGA_ql::TimingAnalysis() {
                 std::string(" ") + 
                 std::string("--analysis");
 
-    
-    //User might specify to run flat router in routing stage. Once the flat router
-    //flag is true, we no longer can read routing file in timing analaysis as it is
-    //not supported in VPR as June 2023. Hence, we need to redo the routing stage.
-    if(taCommand.find("--flat_routing true") != string::npos){
-      taCommand += std::string(" ") + std::string("--route --max_router_iterations 100");
-    }
-    
     std::ofstream ofs((std::filesystem::path(ProjManager()->projectPath()) /
                         std::string(ProjManager()->projectName() + "_sta.cmd"))
                             .string());
@@ -4325,12 +4325,6 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
              std::string(" ") + 
              std::string("--analysis");
 
-  //User might specify to run flat router in routing stage. Once the flat router
-  //flag is true, we no longer can read routing file in timing analaysis as it is
-  //not supported in VPR as June 2023. Hence, we need to redo the routing stage.
-  if(command.find("--flat_routing true") != string::npos){
-    command += std::string(" ") + std::string("--route --max_router_iterations 100");
-  }
 
   int status = ExecuteAndMonitorSystemCommand(command);
   CleanTempFiles();
@@ -4349,7 +4343,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
   if(power_dynamic_mW != 0 && power_leakage_mW != 0 && power_total_mW != 0) {
 
     // write power analysis to console
-    Message("# ====== Power Analysis Report ======\n");
+    Message("\n# ====== Power Analysis Report ======\n");
     Message(">> Dynamic Power   =   " + std::to_string(power_dynamic_mW) + " mW");
     Message(">> Leakage Power   =   " + std::to_string(power_leakage_mW) + " mW");
     Message(">> Total Power     =   " + std::to_string(power_total_mW) + " mW");
@@ -4364,7 +4358,7 @@ bool CompilerOpenFPGA_ql::PowerAnalysis() {
       ErrorMessage("File: " + power_analysis_rpt_filepath.string() + " could not be opened");
       return false;
     }
-    power_analysis_rpt << "# ====== Power Analysis Report ======\n" << std::endl;
+    power_analysis_rpt << "\n# ====== Power Analysis Report ======\n" << std::endl;
     power_analysis_rpt << "Dynamic Power  =   " << std::to_string(power_dynamic_mW) << " mW" << std::endl;
     power_analysis_rpt << "Leakage Power  =   " << std::to_string(power_leakage_mW) << " mW" << std::endl;
     power_analysis_rpt << "Total Power    =   " << std::to_string(power_total_mW) << " mW" << std::endl;
@@ -4616,7 +4610,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   }
 
 
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
   std::filesystem::path device_type_dir_path = 
       std::filesystem::path(GetSession()->Context()->DataPath() /
@@ -4652,7 +4646,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   std::string filename_fabric_key_xml;
   std::string filename_fabric_key_xml_en;
   // form the file name using the current device: family_foundry_node
-  filename_fabric_key_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+  filename_fabric_key_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
                             std::string("_fabric_key") + std::string(".xml");
   filename_fabric_key_xml_en = filename_fabric_key_xml + std::string(".en");
 
@@ -4736,7 +4730,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
 
   }
 
-  Message( std::string("Using openfpga.xml for: ") + QLDeviceManager::getInstance()->convertToDeviceString(device_target) );
+  Message( std::string("Using openfpga.xml for: ") + QLDeviceManager::getInstance()->getCurrentDeviceTargetString() );
 
   // call vpr to execute analysis
   std::string vpr_options;
@@ -4923,7 +4917,7 @@ std::string CompilerOpenFPGA_ql::FinishOpenFPGAScript(const std::string& script)
   // fpga_io_map
   std::filesystem::path filepath_fpga_io_map_xml;
   // form the file name using the current device: family_foundry_node
-  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+  filepath_fpga_io_map_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
                              std::string("_fpga_io_map") + std::string(".xml");
   // generate the fpga_io_map file in the generated 'working_directory', not in the 'design_directory'
   // so the below part of code is commented out.
@@ -4992,6 +4986,16 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
           "\" on device \"" + ProjManager()->getTargetDevice() + "\"");
   Message("##################################################");
 
+  // if flat_routing is enabled in VPR, skip bitstream generation
+  // OpenFPGA does not support bitstream generation with flat_routing (yet)
+  // ref: https://github.com/verilog-to-routing/vtr-verilog-to-routing/issues/2256#issuecomment-1498007179
+  if( QLSettingsManager::getStringValue("vpr", "route", "flat_routing") == "checked" ) {
+    Message("##################################################");
+    Message("Skipping Bitstream Generation since 'flat_routing' option is turned on in VPR!");
+    Message("##################################################");
+    return true;
+  }
+
 #if UPSTREAM_UNUSED
   if (BitsOpt() == BitstreamOpt::EnableSimulation) {
     std::filesystem::path bit_path =
@@ -5038,15 +5042,6 @@ bool CompilerOpenFPGA_ql::GenerateBitstream() {
     return false;
   }
 
-  //User might specify to run flat router in routing stage, we need to 
-  //skip bitgeneration in that case, since It is not supported as June 2023
-  if(script.find("--flat_routing true") != string::npos){
-    Message("##################################################");
-    Message("Skipping the bit-generation process since flat router option is turned on in VPR!");
-    Message("##################################################");
-    return true;
-  }
-  
   std::string script_path = ProjManager()->projectName() + ".openfpga";
 
   std::filesystem::remove(std::filesystem::path(ProjManager()->projectPath()) /
@@ -5191,7 +5186,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   ///////////////////////////////////////////////////////////////// NETLIST --
 
   // get the required values for the current device:
-  QLDeviceTarget device_target = QLDeviceManager::getInstance()->device_target;
+  QLDeviceTarget device_target = QLDeviceManager::getInstance()->getCurrentDeviceTarget();
 
   ///////////////////////////////////////////////////////////////// PIN TABLE CSV ++
   // we expect the fpga io map xml to be named: family_foundry_node_voltagethreshold_pvtcorner_size_pin_table.csv
@@ -5199,7 +5194,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // optionally, it can also be placed the design_directory
   std::filesystem::path filename_pin_table_csv;
   std::filesystem::path filepath_pin_table_csv;
-  filename_pin_table_csv = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+  filename_pin_table_csv = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
                            std::string("_pin_table") + std::string(".csv");
 
   filepath_pin_table_csv = GetSession()->Context()->DataPath() /
@@ -5228,7 +5223,7 @@ bool CompilerOpenFPGA_ql::GeneratePinConstraints(std::string& filepath_fpga_fix_
   // optionally, it can also be placed the design_directory
   std::filesystem::path filename_fpga_io_map_xml;
   std::filesystem::path filepath_fpga_io_map_xml;
-  filename_fpga_io_map_xml = QLDeviceManager::getInstance()->convertToDeviceString(device_target) +
+  filename_fpga_io_map_xml = QLDeviceManager::getInstance()->getCurrentDeviceTargetString() +
                              std::string("_fpga_io_map") + std::string(".xml");
 
   filepath_fpga_io_map_xml = GetSession()->Context()->DataPath() /

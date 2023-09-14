@@ -107,6 +107,8 @@ class QLDeviceManager : public QObject {
                               std::string layout_name);
   void setCurrentDeviceTarget(std::string device_string);
   void setCurrentDeviceTarget(QLDeviceTarget device_target);
+  std::string getCurrentDeviceTargetString();
+  QLDeviceTarget getCurrentDeviceTarget();
   // only for GUI usage:
   std::string convertToFoundryNode(std::string foundry, std::string node);
   std::vector<std::string> convertFromFoundryNode(std::string foundrynode);
