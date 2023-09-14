@@ -806,8 +806,8 @@ TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
   printDeviceList(cable, deviceList);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected = 
-  "INFO: Cable               | Device\n"
-  "INFO: -----------------------------------------------\n"
+  "INFO: Cable                       | Device            | Flash Size\n"
+  "INFO: -------------------------------------------------------------\n"
   "INFO:   No device detected.\n";
   EXPECT_EQ(output, expected);
 }
@@ -821,10 +821,34 @@ TEST(ProgrammerHelper, PrintDeviceListSimpleTest) {
   printDeviceList(cable, deviceList);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected =
-  "INFO: Cable               | Device\n"
-  "INFO: -----------------------------------------------\n"
-  "INFO: (1) RsFtdi_1_2        (1) Device1\n"
-  "INFO: (1) RsFtdi_1_2        (2) Gemini2\n";
+  "INFO: Cable                       | Device            | Flash Size\n"
+  "INFO: -------------------------------------------------------------\n"
+  "INFO: (1) RsFtdi_1_2                (1) Device1         16K               \n"
+  "INFO: (1) RsFtdi_1_2                (2) Gemini2         16K               \n";
+  EXPECT_EQ(output, expected);
+}
+
+TEST(ProgrammerHelper, BuildCableDeviceAliasNameTest) {
+  Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
+  std::vector<Device> deviceList{
+    {1, "Device1", 16384, {1, "Device1.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2, "Gemini2", 16384, {2, "Device2.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}};
+  std::string output = buildCableDeviceAliasName(cable, deviceList[0]);
+  std::string expected = "RsFtdi_1_2-" + deviceList[0].name + "<" + std::to_string(deviceList[0].index) + ">-" + "16KB";
+  EXPECT_EQ(output, expected);
+  output = buildCableDeviceAliasName(cable, deviceList[1]);
+  expected = "RsFtdi_1_2-" + deviceList[1].name + "<" + std::to_string(deviceList[1].index) + ">-" + "16KB";
+  EXPECT_EQ(output, expected);
+}
+
+TEST(ProgrammerHelper, buildCableDevicesAliasNameWithSpaceSeparatedString) {
+  Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
+  std::vector<Device> deviceList{
+    {1, "Device1", 16384, {1, "Device1.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
+    {2, "Gemini2", 16384, {2, "Device2.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}};
+  std::string output = buildCableDevicesAliasNameWithSpaceSeparatedString(cable, deviceList);
+  std::string expected = "RsFtdi_1_2-" + deviceList[0].name + "<" + std::to_string(deviceList[0].index) + ">-" + "16KB"
+   + " RsFtdi_1_2-" + deviceList[1].name + "<" + std::to_string(deviceList[1].index) + ">-" + "16KB";
   EXPECT_EQ(output, expected);
 }
 

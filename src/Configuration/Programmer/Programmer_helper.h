@@ -88,6 +88,9 @@ bool isOperationRequested(const std::string& operation,
 
 void printCableList(const std::vector<Cable>& cableList);
 void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
+std::string buildCableDeviceAliasName(const Cable& cable, const Device& device);
+std::string buildCableDevicesAliasNameWithSpaceSeparatedString(
+    const Cable& cable, const std::vector<Device>& devices);
 
 std::string removeInfoAndNewline(const std::string& input);
 

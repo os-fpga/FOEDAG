@@ -125,6 +125,14 @@
               "optional": true,
               "default": 1,
               "help": "Index of the FPGA device to query."
+            },
+            {
+              "name": "verbose",
+              "short": "v",
+              "type": "flag",
+              "optional": true,
+              "default": false,
+              "help": "Display additional information of fpga_status output"
             }
         ],
         "desc": "Query FPGA Configuration Done and Configuration IsError status",

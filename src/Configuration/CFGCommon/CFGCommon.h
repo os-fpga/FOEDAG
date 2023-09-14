@@ -45,6 +45,7 @@ struct CFGCommon_ARG {
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
   bool clean;
+  std::string tclOutput;
   std::shared_ptr<CFGArg> arg;
 };
 

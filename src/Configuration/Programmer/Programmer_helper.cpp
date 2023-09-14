@@ -483,8 +483,9 @@ void printCableList(const std::vector<Cable>& cableList) {
 void printDeviceList(const Cable& cable,
                      const std::vector<Device>& deviceList) {
   if (Gui::GuiInterface()) Gui::GuiInterface()->Devices(cable, deviceList);
-  CFG_POST_MSG("Cable               | Device");
-  CFG_POST_MSG("-----------------------------------------------");
+
+  CFG_POST_MSG("Cable                       | Device            | Flash Size");
+  CFG_POST_MSG("-------------------------------------------------------------");
 
   if (deviceList.size() == 0) {
     CFG_POST_MSG("  No device detected.");
@@ -492,11 +493,37 @@ void printDeviceList(const Cable& cable,
   }
   for (size_t i = 0; i < deviceList.size(); i++) {
     std::ostringstream formattedOutput;
-    formattedOutput << "(" << cable.index << ") " << std::left << std::setw(18)
-                    << cable.name << "(" << deviceList[i].index << ") "
-                    << deviceList[i].name;
+    std::string cable_name =
+        "(" + std::to_string(cable.index) + ") " + cable.name;
+    std::string device_name =
+        "  (" + std::to_string(deviceList[i].index) + ") " + deviceList[i].name;
+    std::string flashSize =
+        "  " + CFG_convert_number_to_unit_string(deviceList[i].flashSize);
+    formattedOutput << std::left << std::setw(28) << cable_name << std::setw(20)
+                    << device_name << std::setw(20) << flashSize;
     CFG_POST_MSG("%s", formattedOutput.str().c_str());
   }
+}
+
+std::string buildCableDeviceAliasName(const Cable& cable,
+                                      const Device& device) {
+  std::string flashString =
+      device.flashSize > 0
+          ? (CFG_convert_number_to_unit_string(device.flashSize) + "B")
+          : "na";
+  return cable.name + "-" + device.name + "<" + std::to_string(device.index) +
+         ">-" + flashString;
+}
+
+std::string buildCableDevicesAliasNameWithSpaceSeparatedString(
+    const Cable& cable, const std::vector<Device>& devices) {
+  std::string result;
+  for (const auto& device : devices) {
+    result += buildCableDeviceAliasName(cable, device) + " ";
+  }
+  // remove last space char
+  if (!result.empty()) result.pop_back();
+  return result;
 }
 
 std::string removeInfoAndNewline(const std::string& input) {
