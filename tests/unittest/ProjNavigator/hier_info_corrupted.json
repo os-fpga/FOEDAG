@@ -1,0 +1,17 @@
+{
+  "fileIDs": {
+      "1": "cell_sim_blackbox.v",
+      "2": "dut.v"
+  },
+  "hierTree": [
+      {
+          "file": "2",,,,,,,,,,
+          "language": "SystemVerilog",
+          "line": 2,
+          "topModule": "dut"
+      }
+  ],
+  "modules": {
+
+  }
+}
