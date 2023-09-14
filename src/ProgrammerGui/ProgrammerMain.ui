@@ -124,27 +124,6 @@
         <property name="spacing">
          <number>3</number>
         </property>
-        <item row="0" column="0">
-         <widget class="QPlainTextEdit" name="plainTextEdit">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <family>Courier New</family>
-           </font>
-          </property>
-          <property name="readOnly">
-           <bool>true</bool>
-          </property>
-          <property name="plainText">
-           <string/>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </widget>
