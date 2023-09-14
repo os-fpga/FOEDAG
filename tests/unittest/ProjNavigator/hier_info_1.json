@@ -1,0 +1,511 @@
+{
+  "fileIDs": {
+      "1": "cell_sim_blackbox.v",
+      "2": "wrapper.v"
+  },
+  "hierTree": [
+      {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 2,
+          "moduleInsts": [
+              {
+                   "file": "2",
+                   "instName": "U1",
+                   "line": 18,
+                   "module":  "decrypt",
+                   "parameters": []
+              }
+          ],
+          "topModule": "wrapper"
+      }
+  ],
+  "modules": {
+      "InvAddRoundKey": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 3,
+          "module": "InvAddRoundKey"
+      },
+      "InvMixCol_slice": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 49,
+          "module": "InvMixCol_slice",
+          "moduleInsts": [
+              {
+                   "file": "2",
+                   "instName": "gfmul_inv_u0",
+                   "line": 65,
+                   "module":  "gfmul_inv",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "gfmul_inv_u1",
+                   "line": 66,
+                   "module":  "gfmul_inv",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "gfmul_inv_u2",
+                   "line": 67,
+                   "module":  "gfmul_inv",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "gfmul_inv_u3",
+                   "line": 68,
+                   "module":  "gfmul_inv",
+                   "parameters": []
+              }
+          ]
+      },
+      "InvMixColumns": {
+          "file": "0",
+          "language": "SystemVerilog",
+          "line": 0,
+          "module": "InvMixColumns",
+          "moduleInsts": [
+              {
+                   "file": "0",
+                   "instName": "genblk1[0].i_mixcol_u",
+                   "line": 64,
+                   "module":  "InvMixCol_slice",
+                   "parameters": []
+              },
+              {
+                   "file": "0",
+                   "instName": "genblk1[1].i_mixcol_u",
+                   "line": 64,
+                   "module":  "InvMixCol_slice",
+                   "parameters": []
+              },
+              {
+                   "file": "0",
+                   "instName": "genblk1[2].i_mixcol_u",
+                   "line": 64,
+                   "module":  "InvMixCol_slice",
+                   "parameters": []
+              },
+              {
+                   "file": "0",
+                   "instName": "genblk1[3].i_mixcol_u",
+                   "line": 64,
+                   "module":  "InvMixCol_slice",
+                   "parameters": []
+              }
+          ]
+      },
+      "InvSbox": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 51,
+          "module": "InvSbox",
+          "moduleInsts": [
+              {
+                   "file": "2",
+                   "instName": "genblk1[0].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[0].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[0].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[1].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[1].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[1].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[2].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[2].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[2].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[3].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[3].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[3].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[4].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[4].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[4].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[5].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[5].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[5].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[6].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[6].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[6].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[7].muxf7_hi",
+                   "line": 69,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[7].muxf7_lo",
+                   "line": 68,
+                   "module":  "MUXF7",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[7].muxf8_u",
+                   "line": 70,
+                   "module":  "MUXF8",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "t0",
+                   "line": 59,
+                   "module":  "invsbox_table0",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "t1",
+                   "line": 60,
+                   "module":  "invsbox_table1",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "t2",
+                   "line": 61,
+                   "module":  "invsbox_table2",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "t3",
+                   "line": 62,
+                   "module":  "invsbox_table3",
+                   "parameters": []
+              }
+          ]
+      },
+      "InvShiftRows": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 50,
+          "module": "InvShiftRows"
+      },
+      "InvSubBytes": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 50,
+          "module": "InvSubBytes",
+          "moduleInsts": [
+              {
+                   "file": "2",
+                   "instName": "genblk1[0].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[10].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[11].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[12].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[13].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[14].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[15].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[1].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[2].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[3].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[4].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[5].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[6].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[7].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[8].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "genblk1[9].InvSbox_u",
+                   "line": 58,
+                   "module":  "InvSbox",
+                   "parameters": []
+              }
+          ]
+      },
+      "MUXF7": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 6,
+          "module": "MUXF7"
+      },
+      "MUXF8": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 10,
+          "module": "MUXF8"
+      },
+      "decrypt": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 51,
+          "module": "decrypt",
+          "moduleInsts": [
+              {
+                   "file": "2",
+                   "instName": "InvAddRoundKey_u",
+                   "line": 84,
+                   "module":  "InvAddRoundKey",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "InvMixColumns_u",
+                   "line": 85,
+                   "module":  "InvMixColumns",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "InvShiftRows_u",
+                   "line": 82,
+                   "module":  "InvShiftRows",
+                   "parameters": []
+              },
+              {
+                   "file": "2",
+                   "instName": "InvSubBytes_u",
+                   "line": 83,
+                   "module":  "InvSubBytes",
+                   "parameters": []
+              }
+          ]
+      },
+      "gfmul_inv": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 50,
+          "module": "gfmul_inv"
+      },
+      "invsbox_table0": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 83,
+          "module": "invsbox_table0"
+      },
+      "invsbox_table1": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 157,
+          "module": "invsbox_table1"
+      },
+      "invsbox_table2": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 230,
+          "module": "invsbox_table2"
+      },
+      "invsbox_table3": {
+          "file": "2",
+          "language": "SystemVerilog",
+          "line": 303,
+          "module": "invsbox_table3"
+      }
+  }
+}

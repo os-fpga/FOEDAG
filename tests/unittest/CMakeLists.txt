@@ -69,6 +69,7 @@ set(CPP_LIST
   DeviceModeling/device_test.cpp
   Compiler/TaskManager_test.cpp
   ProgrammerGui/SummaryProgressBar_test.cpp
+  ProjNavigator/HierarchyView_test.cpp
 )
 set(H_LIST
   PinAssignment/TestLoader.h

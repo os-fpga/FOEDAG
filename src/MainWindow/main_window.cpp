@@ -1421,6 +1421,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(&m_hierarchyView, &HierarchyView::openFile, textEditor,
           &TextEditor::SlotOpenFileWithLine, Qt::UniqueConnection);
+  connect(&m_hierarchyView, &HierarchyView::topModuleFile, sourcesForm,
+          &SourcesForm::SetTopModuleFile);
   QDockWidget* hierDoc = new DockWidget(tr("Hierarchy"), this);
   hierDoc->setWidget(m_hierarchyView.widget());
   addDockWidget(Qt::LeftDockWidgetArea, hierDoc);
