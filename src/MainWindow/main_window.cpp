@@ -587,6 +587,7 @@ void MainWindow::stopCompilation() {
 void MainWindow::forceStopCompilation() {
   m_compiler->Stop();
   m_progressBar->hide();
+  QtUtils::AppendToEventQueue([this]() { m_compiler->ResetStopFlag(); });
 }
 
 void MainWindow::showMessagesTab() {
