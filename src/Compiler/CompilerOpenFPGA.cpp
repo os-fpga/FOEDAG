@@ -1187,6 +1187,7 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
     }
   }
   std::string searchPath;
+  std::string includes;
   std::set<std::string> designFileDirs;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     const std::string& fileNames = lang_file.second;
@@ -1201,9 +1202,36 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
             "-P" +
             FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
             " ";
+        includes +=
+            "-I" +
+            FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+            " ";
         designFileDirs.insert(path);
       }
     }
+  }
+
+  std::string macros;
+  for (auto& macro_value : ProjManager()->macroList()) {
+    macros += "-D" + macro_value.first + "=" + macro_value.second + " ";
+  }
+
+  for (auto path : ProjManager()->includePathList()) {
+    includes +=
+        "-I" +
+        FileUtils::AdjustPath(path, ProjManager()->projectPath()).string() +
+        " ";
+  }
+
+  // Add Tcl project directory as an include dir
+  if (!GetSession()->CmdLine()->Script().empty()) {
+    std::filesystem::path script = GetSession()->CmdLine()->Script();
+    std::filesystem::path scriptPath = script.parent_path();
+    includes +=
+        "-I" +
+        FileUtils::AdjustPath(scriptPath.string(), ProjManager()->projectPath())
+            .string() +
+        " ";
   }
 
   auto topModuleLib = ProjManager()->DesignTopModuleLib();
@@ -1211,6 +1239,7 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
   size_t filesIndex{0};
   std::string lang;
   std::string designLibraries;
+  std::string verilogFiles;
   for (const auto& lang_file : ProjManager()->DesignFiles()) {
     switch (lang_file.first.language) {
       case Design::Language::VHDL_1987:
@@ -1231,29 +1260,29 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
         ErrorMessage("Unsupported file format:" + lang);
         return "";
       case Design::Language::VERILOG_1995:
-        lang = "verilog95";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += lang_file.second + " ";
+        continue;
       case Design::Language::VERILOG_2001:
-        lang = "verilog2001";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += lang_file.second + " ";
+        continue;
       case Design::Language::SYSTEMVERILOG_2005:
-        lang = "sv2005";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += "-sv " + lang_file.second + " ";
+        continue;
       case Design::Language::SYSTEMVERILOG_2009:
-        lang = "sv2009";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += "-sv " + lang_file.second + " ";
+        continue;
       case Design::Language::SYSTEMVERILOG_2012:
-        lang = "sv2012";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += "-sv " + lang_file.second + " ";
+        continue;
       case Design::Language::SYSTEMVERILOG_2017:
-        lang = "sv2017";
-        ErrorMessage("Unsupported file format:" + lang);
-        return "";
+        ++filesIndex;
+        verilogFiles += "-sv " + lang_file.second + " ";
+        continue;
       case Design::Language::VERILOG_NETLIST:
         lang = "verilog";
         ErrorMessage("Unsupported file format:" + lang);
@@ -1279,10 +1308,22 @@ std::string CompilerOpenFPGA::GhdlDesignParsingCommmands() {
   std::filesystem::path binpath = GetSession()->Context()->BinaryPath();
   std::filesystem::path prefixPackagePath =
       binpath / "HDL_simulator" / "GHDL" / "lib" / "ghdl";
+  std::string verilogcmd;
+  if (!verilogFiles.empty()) {
+    if (verilogFiles.find("-sv") != std::string::npos) {
+      verilogcmd = "plugin -i systemverilog\nread_systemverilog -synth " +
+                   macros + includes + verilogFiles + "\n";
+    } else {
+      if (!macros.empty()) verilogcmd += "verilog_defines " + macros + "\n";
+      verilogcmd += "read_verilog " + includes + verilogFiles + "\n";
+    }
+  }
   fileList =
       "plugin -i ghdl\nghdl -frelaxed-rules --no-formal -fsynopsys --PREFIX=" +
       prefixPackagePath.string() + " " + searchPath + lang + " " + fileList +
       " -e " + designLibraries + "\n";
+  fileList += verilogcmd;
+
   return fileList;
 }
 

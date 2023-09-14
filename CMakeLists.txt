@@ -40,7 +40,7 @@ set(VERSION_MINOR 0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
 
-set(VERSION_PATCH 249)
+set(VERSION_PATCH 250)
 
 
 option(
