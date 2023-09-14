@@ -67,7 +67,13 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
-        return CFGCompiler::Compile(cfgcompiler, true);
+        int result = CFGCompiler::Compile(cfgcompiler, true);
+        if (result == TCL_OK && !cfgcompiler->m_cmdarg.tclOutput.empty()) {
+          cfgcompiler->GetCompiler()->TclInterp()->setResult(
+              cfgcompiler->m_cmdarg.tclOutput);
+          cfgcompiler->m_cmdarg.tclOutput.clear();
+        }
+        return result;
       } else {
         return TCL_ERROR;
       }
@@ -78,7 +84,13 @@ bool CFGCompiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
                          const char* argv[]) -> int {
       CFGCompiler* cfgcompiler = (CFGCompiler*)clientData;
       if (programmer_flow(cfgcompiler, argc, argv)) {
-        return CFGCompiler::Compile(cfgcompiler, false);
+        int result = CFGCompiler::Compile(cfgcompiler, false);
+        if (result == TCL_OK && !cfgcompiler->m_cmdarg.tclOutput.empty()) {
+          cfgcompiler->GetCompiler()->TclInterp()->setResult(
+              cfgcompiler->m_cmdarg.tclOutput);
+          cfgcompiler->m_cmdarg.tclOutput.clear();
+        }
+        return result;
       } else {
         return TCL_ERROR;
       }
