@@ -399,16 +399,6 @@ ProjectType ProjectManager::projectType() const {
 ProjectManager::ErrorInfo ProjectManager::addFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
-
-  std::cout << "\n\n ProjectManager::addFiles()";
-  std::cout << commands.toStdString() << std::endl;
-  std::cout << libs.toStdString() << std::endl;
-  std::cout << fileNames.toStdString() << std::endl;
-  std::cout << lang << std::endl;
-  std::cout << grName.toStdString() << std::endl;
-  std::cout << isFileCopy << std::endl;
-  std::cout << localToProject << std::endl;
-
   const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
   const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
   const QStringList libsList = QtUtils::StringSplit(libs, ' ');
@@ -464,21 +454,17 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
   return {result};
 }
 
-// this is only called from TclCommandIntegration::TclAddDesignFiles
 ProjectManager::ErrorInfo ProjectManager::addDesignFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
-  std::cout << "\n\n ProjectManager::addDesignFiles()" << std::endl;
   setCurrentFileSet(getDesignActiveFileSet());
   return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                   localToProject);
 }
 
-// this is only called from TclCommandIntegration::TclAddSimulationFiles
 ProjectManager::ErrorInfo ProjectManager::addSimulationFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
-  std::cout << "\n\n ProjectManager::addSimulationFiles()" << std::endl;
   setCurrentFileSet(getSimulationActiveFileSet());
   return addFiles(commands, libs, fileNames, lang, grName, isFileCopy,
                   localToProject);
@@ -502,16 +488,6 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
                                    const QString& fileNames, int lang,
                                    const QString& grName, bool isFileCopy,
                                    bool localToProject) {
-
-  std::cout << "\n\n ProjectManager::setDesignFiles()+++" << std::endl;
-  std::cout << commands.toStdString() << std::endl;
-  std::cout << libs.toStdString() << std::endl;
-  std::cout << fileNames.toStdString() << std::endl;
-  std::cout << lang << std::endl;
-  std::cout << grName.toStdString() << std::endl;
-  std::cout << isFileCopy << std::endl;
-  std::cout << localToProject << std::endl;
-
   setCurrentFileSet(getDesignActiveFileSet());
   const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
   const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
@@ -608,9 +584,6 @@ int ProjectManager::setSimulationFiles(const QString& commands,
 
 int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
                                   bool localToProject) {
-
-  std::cout << "\n\n ProjectManager::setDesignFile()";
-  std::cout << strFileName.toStdString() << " isFileCopy:" << isFileCopy << " localToProject:" << localToProject << std::endl;
   int ret = 0;
   QFileInfo fileInfo(strFileName);
   if (localToProject) {
@@ -619,7 +592,6 @@ int ProjectManager::setDesignFile(const QString& strFileName, bool isFileCopy,
                          Project::Instance()->projectName(), m_currentFileSet);
     fileInfo.setFile(path, strFileName);
   }
-  std::cout << "fileInfo: " << fileInfo.filePath().toStdString() << std::endl;
   QString suffix = fileInfo.suffix();
   if (fileInfo.isDir()) {
     QStringList fileList = getAllChildFiles(strFileName);
@@ -1762,10 +1734,6 @@ int ProjectManager::CreateSDCFile(QString strFile) {
 
 int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
                                              bool isFileCopy) {
-
-  std::cout << "\n\n ProjectManager::AddOrCreateFileToFileSet" << std::endl;
-  std::cout << strFileName.toStdString() << std::endl;
-  std::cout << isFileCopy << std::endl;
   int ret = 0;
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
@@ -1776,12 +1744,10 @@ int ProjectManager::AddOrCreateFileToFileSet(const QString& strFileName,
   QFileInfo fileInfo(strFileName);
   QString fname = fileInfo.fileName();
   if (isFileCopy) {
-    std::cout << "if isFileCopy" << std::endl;
     QString filePath = "/" + Project::Instance()->projectName() + ".srcs/" +
                        m_currentFileSet + "/" + fname;
     QString destinDir = Project::Instance()->projectPath() + filePath;
     if (CopyFileToPath(strFileName, destinDir)) {
-      std::cout << "CopyFileToPath" << "  " + strFileName.toStdString() << "  " + destinDir.toStdString() << std::endl;
       proFileSet->addFile(fname, PROJECT_OSRCDIR + filePath);
     } else {
       ret = -2;
