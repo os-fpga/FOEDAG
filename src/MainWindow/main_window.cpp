@@ -587,6 +587,7 @@ void MainWindow::stopCompilation() {
 void MainWindow::forceStopCompilation() {
   m_compiler->Stop();
   m_progressBar->hide();
+  QtUtils::AppendToEventQueue([this]() { m_compiler->ResetStopFlag(); });
 }
 
 void MainWindow::showMessagesTab() {
@@ -1420,6 +1421,8 @@ void MainWindow::ReShowWindow(QString strProject) {
 
   connect(&m_hierarchyView, &HierarchyView::openFile, textEditor,
           &TextEditor::SlotOpenFileWithLine, Qt::UniqueConnection);
+  connect(&m_hierarchyView, &HierarchyView::topModuleFile, sourcesForm,
+          &SourcesForm::SetTopModuleFile);
   QDockWidget* hierDoc = new DockWidget(tr("Hierarchy"), this);
   hierDoc->setWidget(m_hierarchyView.widget());
   addDockWidget(Qt::LeftDockWidgetArea, hierDoc);

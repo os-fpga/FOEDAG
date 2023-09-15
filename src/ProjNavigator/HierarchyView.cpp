@@ -157,6 +157,7 @@ QTreeWidgetItem *HierarchyView::addItem(QTreeWidgetItem *parent,
 
 void HierarchyView::parseJson(json &jsonObject) {
   auto files = jsonObject.at("fileIDs");
+  m_files.insert(0, QString::fromStdString(std::string("")));
   for (auto it = files.begin(); it != files.end(); it++) {
     const auto &[value, ok] = StringUtils::to_number<int>(it.key());
     if (ok) {
@@ -195,9 +196,13 @@ void HierarchyView::parseJson(json &jsonObject) {
   };
 
   // top module parsing
+  QString topModuleFile;
   auto hierTree = jsonObject.at("hierTree");
   for (auto it = hierTree.begin(); it != hierTree.end(); it++) {
     auto topModule = it->at("topModule");
+    const auto &[topModuleFileId, ok] =
+        StringUtils::to_number<int>(it->at("file"));
+    if (ok) topModuleFile = m_files.value(topModuleFileId, {});
     Module m_top;
     m_top.name = QString::fromStdString(topModule.get<std::string>());
     parseModule(*it, &m_top);
@@ -222,35 +227,41 @@ void HierarchyView::parseJson(json &jsonObject) {
     // update all modules instances
     for (auto m : qAsConst(allModules)) {
       for (auto inst : qAsConst(m->moduleInst)) {
-        auto sub = getInst(inst->name);
-        for (auto s : qAsConst(sub->moduleInst)) inst->moduleInst.push_back(s);
+        if (auto sub = getInst(inst->name)) {
+          for (auto s : qAsConst(sub->moduleInst))
+            inst->moduleInst.push_back(s);
+        }
       }
     }
 
     // update top module instances
     for (auto topInst : qAsConst(m_top.moduleInst)) {
-      auto inst = getInst(topInst->name);
-      for (auto sub : qAsConst(inst->moduleInst))
-        topInst->moduleInst.append(sub);
+      if (auto inst = getInst(topInst->name)) {
+        for (auto sub : qAsConst(inst->moduleInst))
+          topInst->moduleInst.append(sub);
+      }
     }
 
     // set top module instances file and line
     for (auto topInst : qAsConst(m_top.moduleInst)) {
-      auto inst = getInst(topInst->name);
-      topInst->file = inst->file;
-      topInst->line = inst->line;
+      if (auto inst = getInst(topInst->name)) {
+        topInst->file = inst->file;
+        topInst->line = inst->line;
+      }
     }
 
     // set all modules instances file and line
     for (auto m : qAsConst(allModules)) {
       for (auto inst : qAsConst(m->moduleInst)) {
-        auto sub = getInst(inst->name);
-        inst->file = sub->file;
-        inst->line = sub->line;
+        if (auto sub = getInst(inst->name)) {
+          inst->file = sub->file;
+          inst->line = sub->line;
+        }
       }
     }
     m_topVector.push_back(m_top);
   }
+  emit this->topModuleFile(topModuleFile);
 }
 
 }  // namespace FOEDAG

@@ -118,9 +118,6 @@ bool CFGCompiler::RegisterCallbackFunction(std::string name,
 int CFGCompiler::Compile(CFGCompiler* cfgcompiler, bool batchMode) {
   // Set generic information that every command might need
   Compiler* compiler = cfgcompiler->GetCompiler();
-  cfgcompiler->m_cmdarg.projectName = compiler->ProjManager()->projectName();
-  cfgcompiler->m_cmdarg.device = compiler->ProjManager()->getTargetDevice();
-  cfgcompiler->m_cmdarg.projectPath = compiler->ProjManager()->projectPath();
   cfgcompiler->m_cmdarg.taskPath =
       compiler->FilePath(Compiler::Action::Bitstream).string();
   cfgcompiler->m_cmdarg.analyzePath =

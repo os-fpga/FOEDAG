@@ -8,5 +8,8 @@
         <file>Settings/settings_tclExample_userVals.json</file>
         <file>PinAssignment/package_pin_info.json</file>
         <file>PinAssignment/corrupted.json</file>
+        <file>ProjNavigator/hier_info.json</file>
+        <file>ProjNavigator/hier_info_1.json</file>
+        <file>ProjNavigator/hier_info_corrupted.json</file>
     </qresource>
 </RCC>
