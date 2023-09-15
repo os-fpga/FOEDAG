@@ -423,7 +423,7 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
   // if (localToProject) {
   if (false) {
     const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
+        ProjectFilesPath("",
                          Project::Instance()->projectName(), m_currentFileSet);
     QStringList fullPathFileList;
     for (const auto& file : fileList) {
@@ -437,7 +437,7 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
       for (const auto& file : fileList) {
         const QFileInfo info{file};
         localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
+            ProjectFilesPath("", getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
       proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
@@ -501,7 +501,7 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
 
   if (localToProject) {
     const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
+        ProjectFilesPath("",
                          Project::Instance()->projectName(), m_currentFileSet);
     QStringList fullPathFileList;
     for (const auto& file : fileList) {
@@ -515,7 +515,7 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
       for (const auto& file : fileList) {
         const QFileInfo info{file};
         localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
+            ProjectFilesPath("", getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
       proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
@@ -551,7 +551,7 @@ int ProjectManager::setSimulationFiles(const QString& commands,
 
   if (localToProject) {
     const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
+        ProjectFilesPath("",
                          Project::Instance()->projectName(), m_currentFileSet);
     QStringList fullPathFileList;
     for (const auto& file : fileList) {
@@ -565,7 +565,7 @@ int ProjectManager::setSimulationFiles(const QString& commands,
       for (const auto& file : fileList) {
         const QFileInfo info{file};
         localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
+            ProjectFilesPath("", getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
       proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
