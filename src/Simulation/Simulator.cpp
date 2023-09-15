@@ -675,7 +675,7 @@ std::string Simulator::LanguageDirective(SimulatorType type,
         case Design::Language::VHDL_2008:
           return "--std=08";
         case Design::Language::VHDL_2019:
-          return "--std=19";
+          return "--invalid-lang-for-ghdl";
         default:
           return "--invalid-lang-for-ghdl";
       }
@@ -1027,13 +1027,19 @@ bool Simulator::SimulateGate(SimulatorType type) {
       netlistFile = ProjManager()->projectName() + "_post_synth.vhd";
       break;
     case Compiler::NetlistType::Edif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.edif";
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      // Simulators do not support edif: netlistFile =
+      // ProjManager()->projectName() + "_post_synth.edif";
       break;
     case Compiler::NetlistType::Blif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.blif";
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      // Simulators do not support blif: netlistFile =
+      // ProjManager()->projectName() + "_post_synth.blif";
       break;
     case Compiler::NetlistType::EBlif:
-      netlistFile = ProjManager()->projectName() + "_post_synth.eblif";
+      netlistFile = ProjManager()->projectName() + "_post_synth.v";
+      // Simulators do not support eblif: netlistFile =
+      // ProjManager()->projectName() + "_post_synth.eblif";
       break;
   }
   if (!netlistFile.empty())

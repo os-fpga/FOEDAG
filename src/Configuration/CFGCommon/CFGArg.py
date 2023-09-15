@@ -212,7 +212,7 @@ def write_arg(file, cfile, arg, subnames, hidden) :
   else :
     cfile.write("%s\n" % arg.help)
   if arg.print_options_count() != 0 :
-    cfile.write("\nExplantion:\n")
+    cfile.write("\nExplanation:\n")
     cfile.write("  <> : option/argument is required\n")
     cfile.write("  {} : option/argument is optional\n")
     cfile.write("  s  : option can be specified more than once\n")

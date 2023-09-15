@@ -57,6 +57,7 @@ class HierarchyView : public QObject {
 
  signals:
   void openFile(const QString &file, int line);
+  void topModuleFile(const QString &);
 
  private slots:
   void treeWidgetContextMenu(const QPoint &pos);

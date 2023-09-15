@@ -347,6 +347,7 @@ jobs:
         make test/batch
 
     - name: Archive build artifacts
+      if: always ()
       uses: actions/upload-artifact@v3.1.0
       with:
         name: foedag-windows-msvc
