@@ -40,27 +40,16 @@ namespace FOEDAG {
 //enum class SynthesisType { Yosys, QL, RS };
 #endif // #if UPSTREAM_UNUSED
 
-struct LayoutInfoHelper {
-LayoutInfoHelper(const std::string& name): name(name){}
-std::string name;
-std::optional<int> clb;
-std::optional<int> dsp;
-std::optional<int> bram;
-};
-
 class CompilerOpenFPGA_ql : public Compiler {
     friend class QLSettingsManager;
     friend class QLMetricsManager;
+    friend class QLDeviceManager;
  public:
   CompilerOpenFPGA_ql() = default;
 #if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql() = default;
 #endif // #if UPSTREAM_UNUSED
   ~CompilerOpenFPGA_ql();
-
-  std::filesystem::path GetArchitectureFileForDeviceVariant(const QLDeviceVariant& device_variant);
-  std::string GetDeviceAvailableResourcesModeVprCommand(const QLDeviceVariant& device_variant);
-  std::vector<std::shared_ptr<LayoutInfoHelper>> ExtractDeviceAvailableResourcesFromVprLogContent(const std::string&) const;
 
   void AnalyzeExecPath(const std::filesystem::path& path) {
     m_analyzeExecutablePath = path;

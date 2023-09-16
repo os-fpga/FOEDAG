@@ -5,7 +5,6 @@
 #include <QLabel>
 
 
-#include <optional>
 #include <string>
 #include <vector>
 #include <set>
@@ -17,16 +16,26 @@
 namespace FOEDAG {
 
 class QLSettingsManager;
-class QLDeviceAvailableResourcesWidget;
+
+
+struct LayoutInfoHelper {
+LayoutInfoHelper(const std::string& name): name(name){}
+std::string name;
+int clb;
+int dsp;
+int bram;
+int io;
+};
 
 class QLDeviceVariantLayout {
     public:
     std::string name;
-    int width;
-    int height;
-    std::optional<int> bram;
-    std::optional<int> dsp;
-    std::optional<int> clb;
+    int width = 0;
+    int height = 0;
+    int bram = 0;
+    int dsp = 0;
+    int clb = 0;
+    int io = 0;
 };
 
 class QLDeviceVariant {
@@ -72,6 +81,7 @@ class QLDeviceManager : public QObject {
                                                     const std::string& p_v_t_corner,
                                                     const std::string& layoutName);
   void collectDeviceVariantAvailableResources(const QLDeviceVariant& device_variant);
+  std::vector<std::shared_ptr<LayoutInfoHelper>> ExtractDeviceAvailableResourcesFromVprLogContent(const std::string&) const;
 
  public:
   void initialize();
@@ -117,6 +127,7 @@ class QLDeviceManager : public QObject {
                               std::string layout_name);
   void setCurrentDeviceTarget(std::string device_string);
   void setCurrentDeviceTarget(QLDeviceTarget device_target);
+  std::filesystem::path GetArchitectureFileForDeviceVariant(const QLDeviceVariant& device_variant);
   // only for GUI usage:
   std::string convertToFoundryNode(std::string foundry, std::string node);
   std::vector<std::string> convertFromFoundryNode(std::string foundrynode);
@@ -174,7 +185,7 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
 
-  QLDeviceAvailableResourcesWidget* m_widget_device_available_resources;
+  QLabel* m_widget_device_available_resources;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;
