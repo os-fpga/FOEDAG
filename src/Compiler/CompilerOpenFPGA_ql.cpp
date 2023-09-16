@@ -3036,7 +3036,6 @@ std::string CompilerOpenFPGA_ql::FinishSynthesisScript(const std::string& script
   return result;
 }
 
-
 std::string CompilerOpenFPGA_ql::BaseVprCommand() {
 
   // note: at this point, the current_path() is the project 'source' directory.

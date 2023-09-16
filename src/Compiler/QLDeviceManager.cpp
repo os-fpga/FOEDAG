@@ -228,7 +228,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   m_combobox_voltage_threshold = new QComboBox();
   m_combobox_p_v_t_corner = new QComboBox();
   m_combobox_layout = new QComboBox();
-  m_widget_device_available_resources = new QLabel();
+  m_device_resources_label = new QLabel();
   m_combobox_family->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_foundry_node->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_combobox_voltage_threshold->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -297,7 +297,7 @@ QWidget* QLDeviceManager::createDeviceSelectionWidget(bool newProjectMode) {
   dlg_layoutlayout->addWidget(m_combobox_layout_label);
   dlg_layoutlayout->addWidget(m_combobox_layout);
   dlg_resourceslayout->addStretch();
-  dlg_resourceslayout->addWidget(m_widget_device_available_resources);
+  dlg_resourceslayout->addWidget(m_device_resources_label);
 
   QHBoxLayout* dlg_buttonslayout = nullptr;
   if(!newProjectMode) {
@@ -672,19 +672,16 @@ void QLDeviceManager::layoutChanged(const QString& layout_qstring) {
     // update the layout's resource information:
     QString archInfo;
     //archInfo += "| ";
+    archInfo += "width: <b>" + QString::number(device_target_selected.device_variant_layout.width) + " </b>| ";
+    archInfo += "height: <b>" + QString::number(device_target_selected.device_variant_layout.height) + " </b>| ";
+    archInfo += "\n";
     archInfo += "clb: <b>" + QString::number(device_target_selected.device_variant_layout.clb) + " </b>| ";
     archInfo += "dsp: <b>" + QString::number(device_target_selected.device_variant_layout.dsp) + " </b>| ";
     archInfo += "bram: <b>" + QString::number(device_target_selected.device_variant_layout.bram) + " </b>| ";
     archInfo += "io: <b>" + QString::number(device_target_selected.device_variant_layout.io) + " </b>| ";
-    m_widget_device_available_resources->setText(archInfo);
+    m_device_resources_label->setText(archInfo);
   }
 
-  // QLDeviceVariantLayout* deviceLayout = findDeviceLayoutVariantPtr(family, foundry, node, voltage_threshold, p_v_t_corner, layout);
-  // if (deviceLayout) {
-  //   std::string variant_key{family+"_"+foundry+"_"+node+"_"+voltage_threshold+"_"+p_v_t_corner+"_"+layout};
-  //   m_widget_device_available_resources->setDevicevariantKey(variant_key.c_str());
-  //   m_widget_device_available_resources->showValues(deviceLayout->bram, deviceLayout->dsp, deviceLayout->clb);
-  // }
 }
 
 
@@ -783,7 +780,7 @@ void QLDeviceManager::collectDeviceVariantAvailableResources(const QLDeviceVaria
   std::filesystem::path blif_filepath = std::filesystem::canonical(GlobalSession->Context()->DataPath() /
                                                                    std::filesystem::path("..") /
                                                                    std::filesystem::path("scripts") / 
-                                                                   "and2_post_synth.blif");
+                                                                   "and2.blif");
 
   std::string vpr_command =
       ((CompilerOpenFPGA_ql* )GlobalSession->GetCompiler())->m_vprExecutablePath.string() + std::string(" ") +
@@ -808,20 +805,15 @@ void QLDeviceManager::collectDeviceVariantAvailableResources(const QLDeviceVaria
           device_layout->dsp = layoutInfo->dsp;
           device_layout->clb = layoutInfo->clb;
           device_layout->io = layoutInfo->io;
-
-          // std::string deviceVariantKey{device_variant.family+"_"+device_variant.foundry+"_"+device_variant.node+"_"+device_variant.voltage_threshold+"_"+device_variant.p_v_t_corner+"_"+layoutInfo->name};
-          // if (m_widget_device_available_resources->deviceVariantKey().toStdString() == deviceVariantKey) {
-          //   m_widget_device_available_resources->showValues(device_layout->bram, device_layout->dsp, device_layout->clb);
-          // }
-          triggerUIUpdate();
         }
       }
+      // update GUI with the acquired resource information.
+      triggerUIUpdate();
     } else {
       std::cout << "Cannot fetch layout available resources. Process finished with err code " << exitCode << std::endl;
     }
   });
 
-  //process->waitForFinished(-1);
 }
 
 void QLDeviceManager::resetButtonClicked() {
@@ -1312,6 +1304,7 @@ std::string QLDeviceManager::DeviceString(std::string family,
 
   return device_string;
 }
+
 
 bool QLDeviceManager::DeviceExists(std::string family,
                                    std::string foundry,

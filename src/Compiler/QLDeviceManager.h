@@ -187,7 +187,7 @@ class QLDeviceManager : public QObject {
   QComboBox* m_combobox_p_v_t_corner;
   QComboBox* m_combobox_layout;
 
-  QLabel* m_widget_device_available_resources;
+  QLabel* m_device_resources_label;
 
   QPushButton* m_button_reset;
   QPushButton* m_button_apply;
