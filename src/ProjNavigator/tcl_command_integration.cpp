@@ -149,6 +149,7 @@ bool TclCommandIntegration::TclAddOrCreateDesignFiles(const QString &files,
 bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
                                               const QString &libs,
                                               const QString &files, int lang,
+                                              bool isFileCopy, bool localToProject,
                                               std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
@@ -158,8 +159,8 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
   const QString strSetName = m_projManager->getDesignActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
   const auto ret = m_projManager->addDesignFiles(
-      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
-      false);
+      commands, libs, files, lang, m_projManager->getDefaulUnitName(), isFileCopy,
+      localToProject);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;
@@ -172,7 +173,9 @@ bool TclCommandIntegration::TclAddDesignFiles(const QString &commands,
 bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
                                                   const QString &libs,
                                                   const QString &files,
-                                                  int lang, std::ostream &out) {
+                                                  int lang, 
+                                                  bool isFileCopy, bool localToProject,
+                                                  std::ostream &out) {
   if (!validate()) {
     out << "Command validation fail: internal error" << std::endl;
     return false;
@@ -180,8 +183,8 @@ bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
   const QString strSetName = m_projManager->getSimulationActiveFileSet();
   m_projManager->setCurrentFileSet(strSetName);
   const auto ret = m_projManager->addSimulationFiles(
-      commands, libs, files, lang, m_projManager->getDefaulUnitName(), false,
-      false);
+      commands, libs, files, lang, m_projManager->getDefaulUnitName(), isFileCopy,
+      localToProject);
   if (ProjectManager::EC_Success != ret.code) {
     error(ret.code, ret.message, out);
     return false;

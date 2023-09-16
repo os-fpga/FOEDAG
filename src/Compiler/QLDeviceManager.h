@@ -128,6 +128,8 @@ class QLDeviceManager : public QObject {
   void setCurrentDeviceTarget(std::string device_string);
   void setCurrentDeviceTarget(QLDeviceTarget device_target);
   std::filesystem::path GetArchitectureFileForDeviceVariant(const QLDeviceVariant& device_variant);
+  std::string getCurrentDeviceTargetString();
+  QLDeviceTarget getCurrentDeviceTarget();
   // only for GUI usage:
   std::string convertToFoundryNode(std::string foundry, std::string node);
   std::vector<std::string> convertFromFoundryNode(std::string foundrynode);

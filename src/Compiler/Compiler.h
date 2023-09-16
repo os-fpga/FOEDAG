@@ -234,6 +234,9 @@ class Compiler {
   DeviceData deviceData() const;
   void setDeviceData(const DeviceData& newDeviceData);
 
+  bool copyFilesOnAdd() { return m_copyFilesWhileAdding; }
+  void setCopyFilesOnAdd(bool copyFilesWhileAdding) { m_copyFilesWhileAdding = copyFilesWhileAdding; }
+
  protected:
   /* Methods that can be customized for each new compiler flow */
   virtual bool IPGenerate();
@@ -300,6 +303,10 @@ class Compiler {
   Constraints* m_constraints = nullptr;
   std::string m_output;
   bool m_useVerific = false;
+  // on calling 'add_file' from TCL, should we copy them into the project dir?
+  // default is set to true, so they will be copied unless user does not want this.
+  // call set
+  bool m_copyFilesWhileAdding = true;
 
   // Tasks generic options
   IPGenerateOpt m_ipGenerateOpt = IPGenerateOpt::None;

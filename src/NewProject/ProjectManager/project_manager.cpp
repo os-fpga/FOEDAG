@@ -17,6 +17,7 @@
 #include "Utils/StringUtils.h"
 #include "Utils/sequential_map.h"
 #include "Compiler/QLSettingsManager.h"
+#include "Utils/FileUtils.h"
 
 extern FOEDAG::Session* GlobalSession;
 
@@ -265,13 +266,70 @@ int ProjectManager::CreateProject(const QString& strName,
   // ensure that we instantiate the QLSettingsManager
   QLSettingsManager* qlSettingsManagerInstance = QLSettingsManager::getInstance();
   
-  // create the JSON Files here, if applicable: KK: TODO, API cleanup needed.
+  // create the JSON Files here: batch (script) mode or GUI mode
   if(qlSettingsManagerInstance) {
-    qlSettingsManagerInstance->newProjectMode = true;
-    qlSettingsManagerInstance->settings_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + ".json");
-    qlSettingsManagerInstance->power_estimation_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + "_power" + ".json");
-    qlSettingsManagerInstance->saveJSONSettings();
-    qlSettingsManagerInstance->newProjectMode = false;
+
+    // check whether we were launched via TCL script, or in 'project' mode:
+    // get the TCL script path (which should be valid, if we are being executed from the TCL script)
+    std::filesystem::path tcl_script_dir_path = QLSettingsManager::getTCLScriptDirPath();
+
+    if(!tcl_script_dir_path.empty()) {
+      // we are in TCL script mode, which means we are executed from the TCL script to: create_design
+      // so, we need to copy the settings/power json files from the TCL script directory into the generated project directory
+      // unless the user has set the option *not* to copy via: `copy_files_on_add off` in the TCL script
+      if(GlobalSession->GetCompiler()->copyFilesOnAdd()) {
+          // get the settings/power JSON filepaths (always expected in the TCL script directory)
+          std::filesystem::path source_settings_json_path = 
+              tcl_script_dir_path / (strName.toStdString() + ".json");
+          
+          std::filesystem::path source_power_estimation_json_path = 
+              tcl_script_dir_path / (strName.toStdString() + "_power" + ".json");
+
+          // settings json should exist, and should be copied into the generated project directory
+          if(FileUtils::FileExists(source_settings_json_path)) {
+            std::filesystem::path target_settings_json_path = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + ".json");
+            std::error_code ec;
+            std::filesystem::copy_file(source_settings_json_path,
+                                      target_settings_json_path,
+                                      std::filesystem::copy_options::overwrite_existing,
+                                      ec);
+            if(ec) {
+              // copy failed is a fatal error
+              std::cout << "failed to copy settings json: " + source_settings_json_path.string() << " to: " << target_settings_json_path.string() << std::endl;
+              return -1;
+            }
+          }
+          else {
+            // no settings json, this is a fatal error
+            std::cout << "settings json does not exist: " << source_settings_json_path.string() << std::endl;
+            return -1;
+          }
+
+          // power estimation json is optional (for power analysis), and if it exists, should be copied into the generated project directory
+          if(FileUtils::FileExists(source_power_estimation_json_path)) {
+            std::filesystem::path target_power_estimation_json_path = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + "_power" + ".json");
+            std::error_code ec;
+            std::filesystem::copy_file(source_power_estimation_json_path,
+                                      target_power_estimation_json_path,
+                                      std::filesystem::copy_options::overwrite_existing,
+                                      ec);
+            if(ec) {
+              // fatal error
+              std::cout << "failed to copy: " + source_power_estimation_json_path.string() << " to: " << target_power_estimation_json_path.string() << std::endl;
+              return -1;
+            }
+          }
+      }
+    }
+    else {
+      // we are in 'project'/GUI mode, which means that the settings/power estimation JSON must be created using the 'Project Settings'
+      // selections that user has done:
+      qlSettingsManagerInstance->newProjectMode = true;
+      qlSettingsManagerInstance->settings_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + ".json");
+      qlSettingsManagerInstance->power_estimation_json_filepath = std::filesystem::path(strPath.toStdString()) / (strName.toStdString() + "_power" + ".json");
+      qlSettingsManagerInstance->saveJSONSettings();
+      qlSettingsManagerInstance->newProjectMode = false;
+    }
   }
 
   setDesignFileSet(designSource);
@@ -341,15 +399,15 @@ ProjectType ProjectManager::projectType() const {
 ProjectManager::ErrorInfo ProjectManager::addFiles(
     const QString& commands, const QString& libs, const QString& fileNames,
     int lang, const QString& grName, bool isFileCopy, bool localToProject) {
+  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
+  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
+  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
+
   ProjectFileSet* proFileSet =
       Project::Instance()->getProjectFileset(m_currentFileSet);
   if (nullptr == proFileSet) return {EC_FileSetNotExist};
 
-  const QStringList commandsList = QtUtils::StringSplit(commands, ' ');
-  const QStringList libsList = QtUtils::StringSplit(libs, ' ');
-  const QStringList fileList = QtUtils::StringSplit(fileNames, ' ');
-
-  // check file exists
+  // check file exists : TCL flow, so the file should exist!
   QStringList notExistingFiles;
   for (const auto& file : fileList) {
     if (const QFileInfo fileInfo{file}; !fileInfo.exists())
@@ -357,7 +415,36 @@ ProjectManager::ErrorInfo ProjectManager::addFiles(
   }
   if (!notExistingFiles.isEmpty())
     return {EC_FileNotExist, notExistingFiles.join(", ")};
-  proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
+
+  // add to projectFileSet appropriately, if it needs to be copied (use final project path + filename)
+  // if not copied, use original path
+  // Note that in the TCL flow, localToProject is always false.
+  // this implementation is from ProjectManager::setDesignFiles
+  // if (localToProject) {
+  if (false) {
+    const auto path =
+        ProjectFilesPath("",
+                         Project::Instance()->projectName(), m_currentFileSet);
+    QStringList fullPathFileList;
+    for (const auto& file : fileList) {
+      fullPathFileList.append(QString("%1/%2").arg(path, file));
+    }
+    proFileSet->addFiles(commandsList, libsList, fullPathFileList, lang,
+                         grName);
+  } else {
+    if (isFileCopy) {
+      QStringList localFileList;
+      for (const auto& file : fileList) {
+        const QFileInfo info{file};
+        localFileList.append(
+            ProjectFilesPath("", getProjectName(),
+                             m_currentFileSet, info.fileName()));
+      }
+      proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
+    } else {
+      proFileSet->addFiles(commandsList, libsList, fileList, lang, grName);
+    }
+  }
 
   auto result{EC_Success};
   for (const auto& file : fileList) {
@@ -414,7 +501,7 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
 
   if (localToProject) {
     const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
+        ProjectFilesPath("",
                          Project::Instance()->projectName(), m_currentFileSet);
     QStringList fullPathFileList;
     for (const auto& file : fileList) {
@@ -428,7 +515,7 @@ int ProjectManager::setDesignFiles(const QString& commands, const QString& libs,
       for (const auto& file : fileList) {
         const QFileInfo info{file};
         localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
+            ProjectFilesPath("", getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
       proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);
@@ -464,7 +551,7 @@ int ProjectManager::setSimulationFiles(const QString& commands,
 
   if (localToProject) {
     const auto path =
-        ProjectFilesPath(Project::Instance()->projectPath(),
+        ProjectFilesPath("",
                          Project::Instance()->projectName(), m_currentFileSet);
     QStringList fullPathFileList;
     for (const auto& file : fileList) {
@@ -478,7 +565,7 @@ int ProjectManager::setSimulationFiles(const QString& commands,
       for (const auto& file : fileList) {
         const QFileInfo info{file};
         localFileList.append(
-            ProjectFilesPath(getProjectPath(), getProjectName(),
+            ProjectFilesPath("", getProjectName(),
                              m_currentFileSet, info.fileName()));
       }
       proFileSet->addFiles(commandsList, libsList, localFileList, lang, grName);

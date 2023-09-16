@@ -40,12 +40,28 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   QLabel *label = new QLabel(this);
   QPushButton *close = new QPushButton("Close", this);
 
+  QHBoxLayout* headerLeftAuroraLayout = new QHBoxLayout();
+
+  QLabel* headerIconLabel = new QLabel(this);
+  std::filesystem::path headerIconPath = srcPath / ".." / "share" / "aurora" / ETC_DIR / "aurora_logo.svg";
+  auto headerIconPixmap = QIcon(QString::fromStdString(headerIconPath.string())).pixmap(QSize(21,21));
+  if (!headerIconPixmap.isNull()) headerIconLabel->setPixmap(headerIconPixmap);
+  headerIconLabel->setContentsMargins(0, 0, 5, 0);
+  headerLeftAuroraLayout->addWidget(headerIconLabel);
+  
+  auto headerLabel = new QLabel(this);
+  std::filesystem::path headerPath = srcPath / ".." / "share" / "aurora" / ETC_DIR / "aurora_title.svg";
+  auto headerPixmap = QIcon(QString::fromStdString(headerPath.string())).pixmap(QSize(131,20));
+  if (!headerPixmap.isNull()) headerLabel->setPixmap(headerPixmap);
+  headerLeftAuroraLayout->addWidget(headerLabel);
+  headerLeftAuroraLayout->addStretch();
+
   QString text = QString(
-                     "<p><b>%1 %2</b></p>"
-                     "<p><b>%3</b></p>"
-                     "<p>Date     : %4</p>"
-                     "<p>Build    : %5</p>")
-                     .arg(info.name, info.version, getTagLine(srcPath),
+                     "<p><b>%1</b></p>"
+                     "<p><b>%2</b></p>"
+                     "<p>Date     : %3</p>"
+                     "<p>Build    : %4</p>")
+                     .arg(info.version, getTagLine(srcPath),
                           QString::fromUtf8(foedag_build_date).replace("_"," "), info.build_type);
   if (!info.url.isEmpty()) {
     text += QString(
@@ -72,6 +88,7 @@ AboutWidget::AboutWidget(const ProjectInfo &info,
   QHBoxLayout *closeBtnLayout = new QHBoxLayout;
   closeBtnLayout->addStretch();
   closeBtnLayout->addWidget(close);
+  layout()->addItem(headerLeftAuroraLayout);
   layout()->addWidget(label);
   if (license) layout()->addWidget(license);
   layout()->addItem(closeBtnLayout);

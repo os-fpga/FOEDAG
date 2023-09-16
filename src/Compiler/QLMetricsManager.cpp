@@ -652,7 +652,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       }
     }
   }
-  // clb calculations:
+  // clb extractions:
   unsigned int clb = 0;
   unsigned int fle = 0;
   try {
@@ -671,14 +671,16 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
 
 
-  // clb section [ble6 and lut5inter]
+  // clb subsections parse [ble6 and lut5inter and shift_reg]
   // clb -> next indent is fle
-  // fle -> next indent is ble6 and lut5inter
+  // fle -> next indent is ble6 and lut5inter and shift_reg
   // so we take indent = min_indent + 2 to find these 2 sections.
   std::vector<std::string> ble6_section;
   std::vector<std::string> lut5inter_section;
+  std::vector<std::string> shift_reg_section;
   bool ble6_section_save = false;
   bool lut5inter_section_save = false;
+  bool shift_reg_section_save = false;
   int fle_section_num_indent_spaces = min_num_indent_spaces + 2;
   for (std::string each_line: clb_section) {
 
@@ -696,9 +698,11 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       // level 3 section begins, figure out which section it is.
       ble6_section_save = false;
       lut5inter_section_save = false;
+      shift_reg_section_save = false;
 
       if (each_line.rfind("ble6", fle_section_num_indent_spaces) == (unsigned)fle_section_num_indent_spaces) ble6_section_save = true;
       else if (each_line.rfind("lut5inter", fle_section_num_indent_spaces) ==  (unsigned)fle_section_num_indent_spaces) lut5inter_section_save = true;
+      else if (each_line.rfind("shift_reg", fle_section_num_indent_spaces) ==  (unsigned)fle_section_num_indent_spaces) shift_reg_section_save = true;
     }
 
     if(ble6_section_save) {
@@ -706,6 +710,9 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
     }
     else if(lut5inter_section_save) {
       lut5inter_section.push_back(each_line);
+    }
+    else if(shift_reg_section_save) {
+      shift_reg_section.push_back(each_line);
     }
   }
   // debug
@@ -719,6 +726,13 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // for (std::string each_line: lut5inter_section) {
   //   std::cout << index++ << " : " << each_line << std::endl;
   // }
+  // index = 0;
+  // std::cout << "\n shift_reg_section" <<std::endl;
+  // for (std::string each_line: shift_reg_section) {
+  //   std::cout << index++ << " : " << each_line << std::endl;
+  // }
+
+
 
   // debug
   // std:: cout << "\n report_ble6_section: " << std::endl;
@@ -748,7 +762,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       }
     }
   }
-  // ble6 calculations:
+  // ble6 extractions:
   unsigned int ble6 = 0;
   unsigned int ble6_lut6 = 0;
   unsigned int ble6_ff = 0;
@@ -826,7 +840,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       }
     }
   }
-  // lut5inter calculations:
+  // lut5inter extractions:
   unsigned int lut5inter = 0;
   unsigned int lut5inter_ble5 = 0;
   unsigned int lut5inter_flut5 = 0;
@@ -858,6 +872,46 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // std:: cout << "lut5inter_ff: " << lut5inter_ff << std::endl;
   // std:: cout << "lut5inter_adder: " << lut5inter_adder << std::endl;
   // std:: cout << "lut5inter_lut4: " << lut5inter_lut4 << std::endl;
+
+
+
+  // debug
+  // std:: cout << "\n report_shift_reg_section: " << std::endl;
+  std::string report_shift_reg_shift_reg = "0";
+  std::string report_shift_reg_ff = "0";
+  if(shift_reg_section.size() > 0) {
+
+    for (std::string each_line: shift_reg_section) {
+
+      regex = std::regex("\\s+shift_reg\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_shift_reg_shift_reg = smatches.str(1);
+      }
+
+      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+      found = std::regex_match ( each_line, smatches, regex );
+      if(found) {
+        report_shift_reg_ff = smatches.str(1);
+      }
+    }
+  }
+  // shift_reg extractions:
+  unsigned int shift_reg = 0;
+  unsigned int shift_reg_ff = 0;
+  try {
+    shift_reg = std::stoi(report_shift_reg_shift_reg);
+    shift_reg_ff = std::stoi(report_shift_reg_ff);
+  }
+  catch (std::invalid_argument const &e) {
+    std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "shift_reg" << std::endl;
+  }
+  catch (std::out_of_range const &e) {
+    std::cout << "[utilization] Integer overflow: std::out_of_range thrown: " << "shift_reg" << std::endl;
+  }
+  // debug
+  // std:: cout << "shift_reg: " << shift_reg << std::endl;
+  // std:: cout << "shift_reg_ff: " << shift_reg_ff << std::endl;
 
 
 
@@ -897,7 +951,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       }
     }
   }
-  // bram calculations:
+  // bram extractions:
   unsigned int bram_nonsplit = 0;
   unsigned int bram_split = 0;
   unsigned int fifo_nonsplit = 0;
@@ -957,7 +1011,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
     }
   }
-  // dsp calculations:
+  // dsp extractions:
   unsigned int dsp = 0;
   try {
     for (const auto & [ key, value ] : report_dsp_numbers_map) {
@@ -977,25 +1031,69 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // }
 
 
-  // final calculations for the detailed utilization ( review required )
+  // final calculations for the detailed utilization
+
+  // [1] CLB/FLE
   // total CLBs = clb
   // total FLEs available in CLBs = clb*10
   unsigned int fle_available = clb*10;
   // FLEs used = fle
-  
+
+
+  // [2] LUT
+  // BLE6 can be used as LUT6 only or LUT6+FF or FF only
+  unsigned int ble6_lut6_only = 0;
+  unsigned int ble6_ff_only = 0;
+  unsigned int ble6_lut6_ff = 0;
+  // VPR report interpreted as equations:
+  // ble6 == lut6only + lut6ff + ffonly --> EQ1
+  // ble6_lut6 == lut6only + lut6ff --> EQ2
+  // ble6_ff == lut6ff + ffonly --> EQ3
+  //
+  // using EQ2, EQ1 can be rewritten:
+  // ble6 = ble6_lut6 + ffonly, so:   ffonly = ble6 - ble6_lut6           --> EQ4 (obtain ffonly)
+  // from EQ3, we can write:          lut6ff = ble6_ff - ffonly           --> EQ5 (obtain lut6ff)
+  // from EQ1,                        lut6only = ble6 - lut6ff - ffonly   --> EQ6 (obtain lut6only)
+  //
+  ble6_ff_only = ble6 - ble6_lut6;
+  ble6_lut6_ff = ble6_ff - ble6_ff_only;
+  ble6_lut6_only = ble6 - ble6_lut6_ff - ble6_ff_only;
+
+
+  // FLUT5 can be used as LUT5 only or LUT5+FF or FF only
+  unsigned int flut5_lut5_only = 0;
+  unsigned int flut5_ff_only = 0;
+  unsigned int flut5_lut5_ff = 0;
+  // VPR report interpreted as equations:
+  // flut5 == lut5only + lut5ff + ffonly --> EQ1
+  // lut5 == lut5only + lut5ff --> EQ2
+  // ff == lut5ff + ffonly --> EQ3
+  //
+  // using EQ2, EQ1 can be rewritten:
+  // flut5 = lut5 + ffonly, so:   ffonly = flut5 - lut5                 --> EQ4 (obtain ffonly)
+  // from EQ3, we can write:      lut5ff = ff - ffonly                  --> EQ5 (obtain lut5ff)
+  // from EQ1,                    lut5only = flut5 - lut5ff - ffonly    --> EQ6 (obtain lut5only)
+  //
+  flut5_ff_only = lut5inter_flut5 - lut5inter_lut5;
+  flut5_lut5_ff = lut5inter_ff - flut5_ff_only;
+  flut5_lut5_only = lut5inter_flut5 - flut5_lut5_ff - flut5_ff_only;
+
+  // LUT4 in soft_adder = lut5inter_lut4
+
   // total LUTs utilized
   unsigned int total_LUTs = ble6_lut6 + lut5inter_lut5 + lut5inter_lut4;
-  // as 6-LUT = ble6_lut6
-  // as dual 5-LUT = lut5inter_lut5
-  // Q: include LUT4 of adder here?
-  // Q: how to correlate lut5inter, flut5 and lut5? what is flut5?
-  
-  // total FFs utilized
-  unsigned int total_FFs = ble6_ff + lut5inter_ff;
-  // as 6-LUT + FF = ble6_ff
-  // as dual 5-LUT + FF = lut5inter_ff
-  // Q: is this correct? how to know if we are using in FF-only mode as well?
 
+
+  // [3] FF
+  // total FFs utilized
+  unsigned int total_FFs = ble6_ff + lut5inter_ff + shift_reg_ff;
+  // from BLE6 mode FLEs = ble6_ff
+  // from BLE5 mode FLEs = lut5inter_ff
+  // from shift_reg mode FLEs = shift_reg_ff
+
+
+
+  // [4] BRAM
   // total BRAMs utilized
   unsigned int total_brams = bram_split + bram_nonsplit + fifo_split + fifo_nonsplit;
   //  as non split 36k RAM blocks = bram_nonsplit
@@ -1006,17 +1104,37 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   //    breakdown the list using: report_fifo_nonsplit_numbers_map
   //  as split 2x18k FIFO blocks = fifo_split
   //    breakdown the list using: report_fifo_split_numbers_map
-  // Q: further calculations is required? everything is in terms of 36k mem blocks.
 
+
+  // [5] DSP
   // total DSPs utilized = dsp
   // breakdown the list using: report_dsp_numbers_map
-  // Q: QL_DSP2_MULT QL_DSP2_MULT_REGIN QL_DSP2_MULT_REGOUT are listed separately for example, ok?
 
+
+  // [6] IO
   // total IOs utilized
   unsigned int total_ios = io_input + io_output;
   //   as output = io_output
   //   as inputs = io_input
   // Q: any buffer flipflops? DFF? DFFN
+
+
+  // double-check calculations:
+  // [1] fle = ble6 + lut5inter
+  // [2] lut5inter in terms of ble5: ble5 <= lut5inter*2 and ble5 >= lut5inter (ble5 is one-half unit of a lut5inter, so ...)
+  // [3] ble5 = flut5 + adder
+  if( !(fle == ble6 + lut5inter) ) {
+    std::cout << "[error]: !(fle == ble6 + lut5inter)" << std::endl;
+  }
+  if( !(lut5inter_ble5 >= lut5inter) ) {
+    std::cout << "[error]: !(ble5 >= lut5inter)" << std::endl;
+  }
+  if( !(lut5inter_ble5 <= lut5inter*2) ) {
+    std::cout << "[error]: !(ble5 <= lut5inter*2)" << std::endl;
+  }
+  if( !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder) ) {
+    std::cout << "[error]: !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder)" << std::endl;
+  }
 
   bool debug_extended = false;
 
@@ -1038,25 +1156,37 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   utilization_rpt << "    " << total_LUTs << " LUT utilized" << std::endl;
   if(total_LUTs > 0) {
-    if(ble6_lut6 > 0) {
-      utilization_rpt << "      " << ble6_lut6 << " as 6-LUT" << std::endl;
+    if(ble6_lut6_only > 0) {
+      utilization_rpt << "      " << ble6_lut6_only << " as 6-LUT" << std::endl;
     }
-    if(lut5inter_lut5 > 0) {
-      utilization_rpt << "      " << lut5inter_lut5 << " as 5-LUT" << std::endl;
+    if(ble6_lut6_ff > 0) {
+      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF" << std::endl;
+    }
+    if(flut5_lut5_only > 0) {
+      utilization_rpt << "      " << flut5_lut5_only << " as 5-LUT" << std::endl;
+    }
+    if(flut5_lut5_ff > 0) {
+      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF" << std::endl;
     }
     if(lut5inter_lut4 > 0) {
-      utilization_rpt << "      " << lut5inter_lut4 << " as 4-LUT to implement soft_adder" << std::endl;
+      utilization_rpt << "      " << lut5inter_lut4 << " as 4-LUT to implement adder carry chain" << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;
 
   utilization_rpt << "    " << total_FFs << " FF utilized" << std::endl;
   if(total_FFs > 0) {
-    if(ble6_ff > 0) {
-      utilization_rpt << "      " << ble6_ff << " as 6-LUT + FF combination" << std::endl;
+    if(ble6_lut6_ff > 0) {
+      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF combination" << std::endl;
     }
-    if(lut5inter_ff > 0) {
-    utilization_rpt << "      " << lut5inter_ff << " as dual 5-LUT + dual FF combination" << std::endl;
+    if(flut5_lut5_ff > 0) {
+      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF combination" << std::endl;
+    }
+    if((ble6_ff_only + flut5_ff_only) > 0) {
+      utilization_rpt << "      " << (ble6_ff_only + flut5_ff_only) << " as FF only" << std::endl;
+    }
+    if(shift_reg_ff > 0) {
+      utilization_rpt << "      " << shift_reg_ff << " as FF in Shift Register mode" << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;
@@ -1115,16 +1245,20 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   utilization_rpt << "" << std::endl;
 
   if(debug_extended) {
-    utilization_rpt << "ble6:             " << ble6 << std::endl;
-    utilization_rpt << " ble6_lut6:        " << ble6_lut6 << std::endl;
-    utilization_rpt << " ble6_ff:          " << ble6_ff << std::endl;
-    utilization_rpt << "lut5inter:        " << lut5inter << std::endl;
-    utilization_rpt << " lut5inter_ble5:   " << lut5inter_ble5 << std::endl;
-    utilization_rpt << "  lut5inter_flut5:  " << lut5inter_flut5 << std::endl;
-    utilization_rpt << "   lut5inter_lut5:   " << lut5inter_lut5 << std::endl;
-    utilization_rpt << "   lut5inter_ff:     " << lut5inter_ff << std::endl;
-    utilization_rpt << " lut5inter_adder:  " << lut5inter_adder << std::endl;
-    utilization_rpt << "  lut5inter_lut4:  " << lut5inter_adder << std::endl;
+    utilization_rpt << "\n----------------------------------------" << std::endl;
+    utilization_rpt << "ble6:                 " << ble6 << std::endl;
+    utilization_rpt << " ble6_lut6:           " << ble6_lut6 << std::endl;
+    utilization_rpt << " ble6_ff:             " << ble6_ff << std::endl;
+    utilization_rpt << "lut5inter:            " << lut5inter << std::endl;
+    utilization_rpt << " lut5inter_ble5:      " << lut5inter_ble5 << std::endl;
+    utilization_rpt << "  lut5inter_flut5:    " << lut5inter_flut5 << std::endl;
+    utilization_rpt << "   lut5inter_lut5:    " << lut5inter_lut5 << std::endl;
+    utilization_rpt << "   lut5inter_ff:      " << lut5inter_ff << std::endl;
+    utilization_rpt << " lut5inter_adder:     " << lut5inter_adder << std::endl;
+    utilization_rpt << "  lut5inter_lut4:     " << lut5inter_adder << std::endl;
+    utilization_rpt << "shift_reg:            " << shift_reg << std::endl;
+    utilization_rpt << " shift_reg_ff:        " << shift_reg_ff << std::endl;
+    utilization_rpt << "----------------------------------------" << std::endl;
     utilization_rpt << "" << std::endl;
   }
 
