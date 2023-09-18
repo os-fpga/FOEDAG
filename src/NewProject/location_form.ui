@@ -112,9 +112,6 @@
            <layout class="QHBoxLayout" name="horizontalLayout" stretch="90,10">
             <item>
              <widget class="QLineEdit" name="m_lineEditPpath">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
              </widget>
             </item>
             <item>

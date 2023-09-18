@@ -49,6 +49,9 @@ class RoutingReportManager final : public AbstractReportManager {
   IDataReport::ColumnValues m_circuitColumns;
   IDataReport::TableData m_circuitData;
 
+  IDataReport::ColumnValues m_detailedUtilizationColumns;
+  IDataReport::TableData m_detailedUtilizationData;
+
   SectionKeys m_routingKeys;
 };
 

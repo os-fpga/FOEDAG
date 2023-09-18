@@ -8,6 +8,7 @@
 #include "DefaultTaskReport.h"
 #include "NewProject/ProjectManager/project.h"
 #include "TableReport.h"
+#include "QLMetricsManager.h"
 
 namespace {
 static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
@@ -65,9 +66,12 @@ std::unique_ptr<ITaskReport> RoutingReportManager::createReport(
 
   ITaskReport::DataReports dataReports;
 
-  if (reportId == QString(RESOURCE_REPORT_NAME))
+  if (reportId == QString(RESOURCE_REPORT_NAME)) {
     dataReports.push_back(std::make_unique<TableReport>(
         m_resourceColumns, m_resourceData, QString{"Resource Utilization"}));
+    dataReports.push_back(std::make_unique<TableReport>(
+        m_detailedUtilizationColumns, m_detailedUtilizationData, QString{"Detailed Resource Utilization"}));
+  }
   else if (reportId == QString(CIRCUIT_REPORT_NAME))
     dataReports.push_back(std::make_unique<TableReport>(
         m_circuitColumns, m_circuitData, QString{"Circuit Statistics"}));
@@ -125,6 +129,172 @@ void RoutingReportManager::parseLogFile() {
   if (!timings.isEmpty()) fillTimingData(timings);
 
   logFile->close();
+
+  // create report using detailed utilization data:
+  // column headers : blank, as this is a hierarchy-based report
+  m_detailedUtilizationColumns.push_back(ReportColumn{""});
+  m_detailedUtilizationColumns.push_back(ReportColumn{""});
+  m_detailedUtilizationColumns.push_back(ReportColumn{""});
+
+  AuroraUtilization& util_p = QLMetricsManager::getInstance()->aurora_routing_utilization;
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          QString::number(util_p.clb) + " CLB used",
+          "",
+          ""}));
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "which contains " + QString::number(util_p.fle) + " FLE",
+          "",
+          ""}));
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          QString::number(util_p.clb_fle) + " FLE used",
+          "",
+          ""}));
+
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.clb_lut) + " LUT used",
+          ""}));
+  if(util_p.clb_lut_lut6 > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_lut_lut6) + " as LUT6"}));
+  if(util_p.clb_lut_lut6ff > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_lut_lut6ff) + " as LUT6+FF"}));
+  if(util_p.clb_lut_lut5 > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_lut_lut5) + " as LUT5"}));
+  if(util_p.clb_lut_lut5ff > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_lut_lut5ff) + " as LUT5+FF"}));
+  if(util_p.clb_lut_lut4 > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_lut_lut4) + " as LUT4 (adder carry chain)"}));
+
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.clb_ff) + " FF used",
+          ""}));
+  if(util_p.clb_ff_lut6ff > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_ff_lut6ff) + " as LUT6+FF"}));
+  if(util_p.clb_ff_lut5ff > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_ff_lut5ff) + " as LUT5+FF"}));
+  if(util_p.clb_ff_ff > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_ff_ff) + " as FF"}));
+  if(util_p.clb_ff_shiftreg > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::number(util_p.clb_ff_shiftreg) + " as shift register"}));
+
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          ""}));
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          QString::number(util_p.bram) + " BRAM used",
+          "",
+          ""}));
+  if(util_p.bram_bram_nonsplit > 0) {
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.bram_bram_nonsplit) + " in nonsplit BRAM mode",
+          ""}));
+  for (const auto & [ key, value ] : util_p.bram_bram_nonsplit_map) {
+    m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::fromStdString(key).trimmed() + " : " + QString::number(value)}));
+  }
+  }
+  if(util_p.bram_bram_split) {
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.bram_bram_split) + " in split BRAM mode",
+          ""}));
+  for (const auto & [ key, value ] : util_p.bram_bram_split_map) {
+    m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::fromStdString(key).trimmed() + " : " + QString::number(value)}));
+  }
+  }
+  if(util_p.bram_fifo_nonsplit > 0) {
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.bram_fifo_nonsplit) + " in nonsplit FIFO mode",
+          ""}));
+  for (const auto & [ key, value ] : util_p.bram_fifo_nonsplit_map) {
+    m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::fromStdString(key).trimmed() + " : " + QString::number(value)}));
+  }
+  }
+  if(util_p.bram_fifo_split > 0) {
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.bram_fifo_split) + " in split FIFO mode",
+          ""}));
+  for (const auto & [ key, value ] : util_p.bram_fifo_split_map) {
+    m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          QString::fromStdString(key).trimmed() + " : " + QString::number(value)}));
+  }
+  }
+
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          ""}));
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          QString::number(util_p.dsp) + " DSP used",
+          "",
+          ""}));
+  for (const auto & [ key, value ] : util_p.dsp_map) {
+    m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::fromStdString(key).trimmed() + " : " + QString::number(value),
+          ""}));
+  }
+
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          "",
+          ""}));
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          QString::number(util_p.io) + " IO used",
+          "",
+          ""}));
+  if(util_p.io_input > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.io_input) + " as input",
+          ""}));
+  if(util_p.io_output > 0)
+  m_detailedUtilizationData.push_back(std::move(QStringList{
+          "",
+          QString::number(util_p.io_output) + " as output",
+          ""}));
   setFileParsed(true);
 }
 

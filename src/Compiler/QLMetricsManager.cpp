@@ -592,31 +592,26 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // io section
   // debug
   // std:: cout << "\n report_io_section: " << std::endl;
-  std::string report_io_io_output = "0";
-  std::string report_io_io_input = "0";
-  if(io_section.size() > 0) {
-
-    for (std::string each_line: io_section) {
-
-      regex = std::regex("\\s+io_output\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_io_io_output = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+io_input\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_io_io_input = smatches.str(1);
-      }
-    }
-  }
-  // io calculations:
   unsigned int io_output = 0;
   unsigned int io_input = 0;
   try {
-    io_output = std::stoi(report_io_io_output);
-    io_input = std::stoi(report_io_io_input);
+    if(io_section.size() > 0) {
+
+      for (std::string each_line: io_section) {
+
+        regex = std::regex("\\s+io_output\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          io_output = std::stoul(smatches.str(1));
+        }
+
+        regex = std::regex("\\s+io_input\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          io_input = std::stoul(smatches.str(1));
+        }
+      }
+    }
   }
   catch (std::invalid_argument const &e) {
     std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "io" << std::endl;
@@ -633,31 +628,28 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // clb section parse
   // debug
   // std:: cout << "\n report_clb_section: " << std::endl;
-  std::string report_clb_clb = "0";
-  std::string report_clb_fle = "0";
-  if(clb_section.size() > 0) {
-
-    for (std::string each_line: clb_section) {
-
-      regex = std::regex("\\s+clb\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_clb_clb = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+fle\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_clb_fle = smatches.str(1);
-      }
-    }
-  }
-  // clb extractions:
   unsigned int clb = 0;
   unsigned int fle = 0;
+  std::string report_clb_clb = "0";
+  std::string report_clb_fle = "0";
   try {
-    clb = std::stoi(report_clb_clb);
-    fle = std::stoi(report_clb_fle);
+    if(clb_section.size() > 0) {
+
+      for (std::string each_line: clb_section) {
+
+        regex = std::regex("\\s+clb\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          clb = std::stoul(smatches.str(1));
+        }
+
+        regex = std::regex("\\s+fle\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          fle = std::stoul(smatches.str(1));
+        }
+      }
+    }
   }
   catch (std::invalid_argument const &e) {
     std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "clb" << std::endl;
@@ -736,40 +728,33 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   // debug
   // std:: cout << "\n report_ble6_section: " << std::endl;
-  std::string report_ble6_ble6 = "0";
-  std::string report_ble6_lut6 = "0";
-  std::string report_ble6_ff = "0";
-  if(ble6_section.size() > 0) {
-
-    for (std::string each_line: ble6_section) {
-
-      regex = std::regex("\\s+ble6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_ble6_ble6 = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+lut6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_ble6_lut6 = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_ble6_ff = smatches.str(1);
-      }
-    }
-  }
-  // ble6 extractions:
   unsigned int ble6 = 0;
   unsigned int ble6_lut6 = 0;
   unsigned int ble6_ff = 0;
   try {
-    ble6 = std::stoi(report_ble6_ble6);
-    ble6_lut6 = std::stoi(report_ble6_lut6);
-    ble6_ff = std::stoi(report_ble6_ff);
+    if(ble6_section.size() > 0) {
+
+      for (std::string each_line: ble6_section) {
+
+        regex = std::regex("\\s+ble6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          ble6 = std::stoul(smatches.str(1));
+        }
+
+        regex = std::regex("\\s+lut6\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          ble6_lut6 = std::stoul(smatches.str(1));
+        }
+
+        regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          ble6_ff = std::stoul(smatches.str(1));
+        }
+      }
+    }
   }
   catch (std::invalid_argument const &e) {
     std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "ble6" << std::endl;
@@ -786,61 +771,6 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   // debug
   // std:: cout << "\n report_lut5inter_section: " << std::endl;
-  std::string report_lut5inter_lut5inter = "0";
-  std::string report_lut5inter_ble5 = "0";
-  std::string report_lut5inter_flut5 = "0";
-  std::string report_lut5inter_lut5 = "0";
-  std::string report_lut5inter_ff = "0";
-  std::string report_lut5inter_adder = "0";
-  std::string report_lut5inter_lut4 = "0";
-  if(lut5inter_section.size() > 0) {
-
-    for (std::string each_line: lut5inter_section) {
-
-      regex = std::regex("\\s+lut5inter\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_lut5inter = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+ble5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_ble5 = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+flut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_flut5 = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+lut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_lut5 = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_ff = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+adder\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_adder = smatches.str(1);
-      }
-
-      regex = std::regex("\\s+lut4\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_lut5inter_lut4 = smatches.str(1);
-      }
-    }
-  }
-  // lut5inter extractions:
   unsigned int lut5inter = 0;
   unsigned int lut5inter_ble5 = 0;
   unsigned int lut5inter_flut5 = 0;
@@ -848,15 +778,54 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   unsigned int lut5inter_ff = 0;
   unsigned int lut5inter_adder = 0;
   unsigned int lut5inter_lut4 = 0;
-  
   try {
-    lut5inter = std::stoi(report_lut5inter_lut5inter);
-    lut5inter_ble5 = std::stoi(report_lut5inter_ble5);
-    lut5inter_flut5 = std::stoi(report_lut5inter_flut5);
-    lut5inter_lut5 = std::stoi(report_lut5inter_lut5);
-    lut5inter_ff = std::stoi(report_lut5inter_ff);
-    lut5inter_adder = std::stoi(report_lut5inter_adder);
-    lut5inter_lut4 = std::stoi(report_lut5inter_lut4);
+    if(lut5inter_section.size() > 0) {
+
+      for (std::string each_line: lut5inter_section) {
+
+        regex = std::regex("\\s+lut5inter\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+ble5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_ble5 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+flut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_flut5 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+lut5\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_lut5 = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_ff = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+adder\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_adder = std::stoul((smatches.str(1)));
+        }
+
+        regex = std::regex("\\s+lut4\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          lut5inter_lut4 = std::stoul((smatches.str(1)));
+        }
+      }
+    }
   }
   catch (std::invalid_argument const &e) {
     std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "lut5inter" << std::endl;
@@ -877,8 +846,9 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   // debug
   // std:: cout << "\n report_shift_reg_section: " << std::endl;
-  std::string report_shift_reg_shift_reg = "0";
-  std::string report_shift_reg_ff = "0";
+  unsigned int shift_reg = 0;
+  unsigned int shift_reg_ff = 0;
+  try {
   if(shift_reg_section.size() > 0) {
 
     for (std::string each_line: shift_reg_section) {
@@ -886,22 +856,16 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
       regex = std::regex("\\s+shift_reg\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
       found = std::regex_match ( each_line, smatches, regex );
       if(found) {
-        report_shift_reg_shift_reg = smatches.str(1);
+        shift_reg = std::stoul(smatches.str(1));
       }
 
       regex = std::regex("\\s+ff\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
       found = std::regex_match ( each_line, smatches, regex );
       if(found) {
-        report_shift_reg_ff = smatches.str(1);
+        shift_reg_ff = std::stoul(smatches.str(1));
       }
     }
   }
-  // shift_reg extractions:
-  unsigned int shift_reg = 0;
-  unsigned int shift_reg_ff = 0;
-  try {
-    shift_reg = std::stoi(report_shift_reg_shift_reg);
-    shift_reg_ff = std::stoi(report_shift_reg_ff);
   }
   catch (std::invalid_argument const &e) {
     std::cout << "[utilization] Bad input: std::invalid_argument thrown: " << "shift_reg" << std::endl;
@@ -918,56 +882,53 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // bram section
   // debug
   // std:: cout << "\n report_bram_section: " << std::endl;
-  std::unordered_map<std::string, std::string> report_bram_nonsplit_numbers_map;
-  std::unordered_map<std::string, std::string> report_bram_split_numbers_map;
-  std::unordered_map<std::string, std::string> report_fifo_nonsplit_numbers_map;
-  std::unordered_map<std::string, std::string> report_fifo_split_numbers_map;
-  if(bram_section.size() > 0) {
-
-    for (std::string each_line: bram_section) {
-
-      regex = std::regex("\\s+(mem_36K_BRAM_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_bram_nonsplit_numbers_map[smatches.str(1)] = smatches.str(2);
-      }
-
-      regex = std::regex("\\s+(mem_36K_BRAM_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_bram_split_numbers_map[smatches.str(1)] = smatches.str(2);
-      }
-
-      regex = std::regex("\\s+(mem_36K_FIFO_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_fifo_nonsplit_numbers_map[smatches.str(1)] = smatches.str(2);
-      }
-
-      regex = std::regex("\\s+(mem_36K_FIFO_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_fifo_split_numbers_map[smatches.str(1)] = smatches.str(2);
-      }
-    }
-  }
-  // bram extractions:
   unsigned int bram_nonsplit = 0;
+  std::unordered_map<std::string, unsigned int> bram_nonsplit_numbers_map;
   unsigned int bram_split = 0;
+  std::unordered_map<std::string, unsigned int> bram_split_numbers_map;
   unsigned int fifo_nonsplit = 0;
+  std::unordered_map<std::string, unsigned int> fifo_nonsplit_numbers_map;
   unsigned int fifo_split = 0;
+  std::unordered_map<std::string, unsigned int> fifo_split_numbers_map;
   try {
-    for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
-      bram_nonsplit += std::stoi(value);
-    }
-    for (const auto & [ key, value ] : report_bram_split_numbers_map) {
-      bram_split += std::stoi(value);
-    }
-    for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
-      fifo_nonsplit += std::stoi(value);
-    }
-    for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
-      fifo_split += std::stoi(value);
+    if(bram_section.size() > 0) {
+
+      unsigned int value;
+
+      for (std::string each_line: bram_section) {
+
+        regex = std::regex("\\s+(mem_36K_BRAM_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          value = std::stoul(smatches.str(2));
+          bram_nonsplit_numbers_map[smatches.str(1)] = value;
+          bram_nonsplit += value;
+        }
+
+        regex = std::regex("\\s+(mem_36K_BRAM_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          value = std::stoul(smatches.str(2));
+          bram_split_numbers_map[smatches.str(1)] = value;
+          bram_split += value;
+        }
+
+        regex = std::regex("\\s+(mem_36K_FIFO_.+_nonsplit)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          value = std::stoul(smatches.str(2));
+          fifo_nonsplit_numbers_map[smatches.str(1)] = value;
+          fifo_nonsplit += value;
+        }
+
+        regex = std::regex("\\s+(mem_36K_FIFO_.+_split)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          value = std::stoul(smatches.str(2));
+          fifo_split_numbers_map[smatches.str(1)] = value;
+          fifo_split += value;
+        }
+      }
     }
   }
   catch (std::invalid_argument const &e) {
@@ -978,19 +939,19 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   }
   // debug
   // std:: cout << "bram_nonsplit: " << bram_nonsplit << std::endl;
-  // for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
+  // for (const auto & [ key, value ] : bram_nonsplit_numbers_map) {
   //   std::cout << key << ": " << value << std::endl;
   // }
   // std:: cout << "bram_split: " << bram_split << std::endl;
-  // for (const auto & [ key, value ] : report_bram_split_numbers_map) {
+  // for (const auto & [ key, value ] : bram_split_numbers_map) {
   //   std::cout << key << ": " << value << std::endl;
   // }
   // std:: cout << "fifo_nonsplit: " << fifo_nonsplit << std::endl;
-  // for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
+  // for (const auto & [ key, value ] : fifo_nonsplit_numbers_map) {
   //   std::cout << key << ": " << value << std::endl;
   // }
   // std:: cout << "fifo_split: " << fifo_split << std::endl;
-  // for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
+  // for (const auto & [ key, value ] : fifo_split_numbers_map) {
   //   std::cout << key << ": " << value << std::endl;
   // }
 
@@ -998,24 +959,24 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // dsp section
   // debug
   // std:: cout << "\n report_dsp_section: " << std::endl;
-  std::unordered_map<std::string, std::string> report_dsp_numbers_map;
-  if(dsp_section.size() > 0) {
-
-    for (std::string each_line: dsp_section) {
-
-      regex = std::regex("\\s+(QL_DSP2.*)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
-      found = std::regex_match ( each_line, smatches, regex );
-      if(found) {
-        report_dsp_numbers_map[smatches.str(1)] = smatches.str(2);
-      }
-
-    }
-  }
-  // dsp extractions:
   unsigned int dsp = 0;
+  std::unordered_map<std::string, unsigned int> dsp_numbers_map;
   try {
-    for (const auto & [ key, value ] : report_dsp_numbers_map) {
-      dsp += std::stoi(value);
+    if(dsp_section.size() > 0) {
+
+      unsigned int value;
+
+      for (std::string each_line: dsp_section) {
+
+        regex = std::regex("\\s+(QL_DSP2.*)\\s+:\\s+(\\d+)\\s*", std::regex::ECMAScript);
+        found = std::regex_match ( each_line, smatches, regex );
+        if(found) {
+          value = std::stoul(smatches.str(2));
+          dsp_numbers_map[smatches.str(1)] = value;
+          dsp += value;
+        }
+
+      }
     }
   }
   catch (std::invalid_argument const &e) {
@@ -1026,7 +987,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   }
   // debug
   // std:: cout << "dsp: " << dsp << std::endl;
-  // for (const auto & [ key, value ] : report_dsp_numbers_map) {
+  // for (const auto & [ key, value ] : dsp_numbers_map) {
   //   std::cout << key << ": " << value << std::endl;
   // }
 
@@ -1036,12 +997,11 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // [1] CLB/FLE
   // total CLBs = clb
   // total FLEs available in CLBs = clb*10
-  unsigned int fle_available = clb*10;
   // FLEs used = fle
 
 
   // [2] LUT
-  // BLE6 can be used as LUT6 only or LUT6+FF or FF only
+  // BLE6 can be used as LUT6 only or LUT6+FF or FF only ( lut6 mode ff only never happens practically!)
   unsigned int ble6_lut6_only = 0;
   unsigned int ble6_ff_only = 0;
   unsigned int ble6_lut6_ff = 0;
@@ -1097,18 +1057,18 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   // total BRAMs utilized
   unsigned int total_brams = bram_split + bram_nonsplit + fifo_split + fifo_nonsplit;
   //  as non split 36k RAM blocks = bram_nonsplit
-  //    breakdown the list using: report_bram_nonsplit_numbers_map
+  //    breakdown the list using: bram_nonsplit_numbers_map
   //  as split 2x18k RAM blocks = bram_split
-  //    breakdown the list using: report_bram_split_numbers_map
+  //    breakdown the list using: bram_split_numbers_map
   //  as non split 36k FIFO blocks = fifo_nonsplit
-  //    breakdown the list using: report_fifo_nonsplit_numbers_map
+  //    breakdown the list using: fifo_nonsplit_numbers_map
   //  as split 2x18k FIFO blocks = fifo_split
-  //    breakdown the list using: report_fifo_split_numbers_map
+  //    breakdown the list using: fifo_split_numbers_map
 
 
   // [5] DSP
   // total DSPs utilized = dsp
-  // breakdown the list using: report_dsp_numbers_map
+  // breakdown the list using: dsp_numbers_map
 
 
   // [6] IO
@@ -1136,10 +1096,49 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
     std::cout << "[error]: !(lut5inter_ble5 = lut5inter_flut5 + lut5inter_adder)" << std::endl;
   }
 
+  // store the final numbers into the utilization object:
+  aurora_routing_utilization.clb = clb;
+  aurora_routing_utilization.fle = clb*10;
+  aurora_routing_utilization.clb_fle = fle;
+  
+  aurora_routing_utilization.clb_lut = total_LUTs;
+  aurora_routing_utilization.clb_lut_lut4 = lut5inter_lut4;
+  aurora_routing_utilization.clb_lut_lut5 = flut5_lut5_only;
+  aurora_routing_utilization.clb_lut_lut5ff = flut5_lut5_ff;
+  aurora_routing_utilization.clb_lut_lut6 = ble6_lut6_only;
+  aurora_routing_utilization.clb_lut_lut6ff = ble6_lut6_ff;
+
+  aurora_routing_utilization.clb_ff = total_FFs;
+  aurora_routing_utilization.clb_ff_lut5ff = flut5_lut5_ff;
+  aurora_routing_utilization.clb_ff_lut6ff = ble6_lut6_ff;
+  aurora_routing_utilization.clb_ff_ff = ble6_ff_only + flut5_ff_only;
+  aurora_routing_utilization.clb_ff_shiftreg = shift_reg_ff;
+
+  aurora_routing_utilization.bram = total_brams;
+  aurora_routing_utilization.bram_bram_split = bram_split;
+  aurora_routing_utilization.bram_bram_split_map = bram_split_numbers_map;
+  aurora_routing_utilization.bram_bram_nonsplit = bram_nonsplit;
+  aurora_routing_utilization.bram_bram_nonsplit_map = bram_nonsplit_numbers_map;
+  aurora_routing_utilization.bram_fifo_split = fifo_split;
+  aurora_routing_utilization.bram_fifo_split_map = fifo_split_numbers_map;
+  aurora_routing_utilization.bram_fifo_nonsplit = fifo_nonsplit;
+  aurora_routing_utilization.bram_fifo_nonsplit_map = fifo_nonsplit_numbers_map;
+
+  aurora_routing_utilization.dsp = dsp;
+  aurora_routing_utilization.dsp_map = dsp_numbers_map;
+
+  aurora_routing_utilization.io = total_ios;
+  aurora_routing_utilization.io_input = io_input;
+  aurora_routing_utilization.io_output = io_output;
+
   bool debug_extended = false;
 
   std::filesystem::path utilization_rpt_filepath = 
-      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath()) / "utilization.rpt";
+      std::filesystem::path(GlobalSession->GetCompiler()->ProjManager()->projectPath()) / "routing_utilization.rpt";
+
+  std::string level_1_indent = "  ";
+  std::string level_2_indent = "    ";
+  std::string level_3_indent = "      ";
     
   std::ofstream utilization_rpt;
   utilization_rpt.open(utilization_rpt_filepath);
@@ -1150,96 +1149,97 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   utilization_rpt << "Resource Usage:" << std::endl;
 
-  utilization_rpt << "  " << clb << " CLB" << "( == " << fle_available << " FLEs )" << std::endl;
-  utilization_rpt << "    of which, " << fle << " FLE utilized" << std::endl;
+  utilization_rpt << level_1_indent << aurora_routing_utilization.clb << " CLB used" << std::endl;
+  utilization_rpt << level_1_indent << "which contains " <<aurora_routing_utilization.fle << " FLE" << std::endl;
+  utilization_rpt << level_1_indent << "of which, " << fle << " FLE used" << std::endl;
   utilization_rpt << "" << std::endl;
 
-  utilization_rpt << "    " << total_LUTs << " LUT utilized" << std::endl;
-  if(total_LUTs > 0) {
-    if(ble6_lut6_only > 0) {
-      utilization_rpt << "      " << ble6_lut6_only << " as 6-LUT" << std::endl;
+  utilization_rpt << level_2_indent << aurora_routing_utilization.clb_lut << " LUT used" << std::endl;
+  if(aurora_routing_utilization.clb_lut > 0) {
+    if(aurora_routing_utilization.clb_lut_lut6 > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_lut_lut6 << " as LUT6" << std::endl;
     }
-    if(ble6_lut6_ff > 0) {
-      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF" << std::endl;
+    if(aurora_routing_utilization.clb_lut_lut6ff > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_lut_lut6ff << " as LUT6+FF" << std::endl;
     }
-    if(flut5_lut5_only > 0) {
-      utilization_rpt << "      " << flut5_lut5_only << " as 5-LUT" << std::endl;
+    if(aurora_routing_utilization.clb_lut_lut5 > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_lut_lut5 << " as LUT5" << std::endl;
     }
-    if(flut5_lut5_ff > 0) {
-      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF" << std::endl;
+    if(aurora_routing_utilization.clb_lut_lut5ff > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_lut_lut5ff << " as LUT5+FF" << std::endl;
     }
-    if(lut5inter_lut4 > 0) {
-      utilization_rpt << "      " << lut5inter_lut4 << " as 4-LUT to implement adder carry chain" << std::endl;
+    if(aurora_routing_utilization.clb_lut_lut4 > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_lut_lut4 << " as LUT4 (adder carry chain)" << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;
 
-  utilization_rpt << "    " << total_FFs << " FF utilized" << std::endl;
-  if(total_FFs > 0) {
-    if(ble6_lut6_ff > 0) {
-      utilization_rpt << "      " << ble6_lut6_ff << " as 6-LUT+FF combination" << std::endl;
+  utilization_rpt << level_2_indent << aurora_routing_utilization.clb_ff << " FF used" << std::endl;
+  if(aurora_routing_utilization.clb_ff > 0) {
+    if(aurora_routing_utilization.clb_ff_lut6ff > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_ff_lut6ff << " as LUT6+FF combination" << std::endl;
     }
-    if(flut5_lut5_ff > 0) {
-      utilization_rpt << "      " << flut5_lut5_ff << " as 5-LUT+FF combination" << std::endl;
+    if(aurora_routing_utilization.clb_ff_lut5ff > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_ff_lut5ff << " as LUT5+FF combination" << std::endl;
     }
-    if((ble6_ff_only + flut5_ff_only) > 0) {
-      utilization_rpt << "      " << (ble6_ff_only + flut5_ff_only) << " as FF only" << std::endl;
+    if(aurora_routing_utilization.clb_ff_ff > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_ff_ff << " as FF only" << std::endl;
     }
-    if(shift_reg_ff > 0) {
-      utilization_rpt << "      " << shift_reg_ff << " as FF in Shift Register mode" << std::endl;
-    }
-  }
-  utilization_rpt << "" << std::endl;
-
-  utilization_rpt << "  " << total_brams << " BRAM utilized" << std::endl;
-  if(total_brams > 0) {
-    if(bram_nonsplit > 0) {
-      utilization_rpt << "    " << bram_nonsplit << " as 36k nonsplit BRAM blocks" << std::endl;
-      utilization_rpt << "      " << "list of nonsplit BRAM block types:" << std::endl;
-      for (const auto & [ key, value ] : report_bram_nonsplit_numbers_map) {
-        utilization_rpt << "        " << key << ": " << value << std::endl;
-      }
-    }
-    if(bram_split > 0) {
-      utilization_rpt << "    " << bram_split << " as 2x18k split BRAM blocks" << std::endl;
-      utilization_rpt << "      " << "list of split BRAM block types:" << std::endl;
-      for (const auto & [ key, value ] : report_bram_split_numbers_map) {
-        utilization_rpt << "        " << key << ": " << value << std::endl;
-      }
-    }
-    if(fifo_nonsplit > 0) {
-      utilization_rpt << "    " << fifo_nonsplit << " as 36k nonsplit FIFO blocks" << std::endl;
-      utilization_rpt << "      " << "list of nonsplit FIFO block types:" << std::endl;
-      for (const auto & [ key, value ] : report_fifo_nonsplit_numbers_map) {
-        utilization_rpt << "        " << key << ": " << value << std::endl;
-      }
-    }
-    if(fifo_split > 0) {
-      utilization_rpt << "    " << fifo_split << " as 2x18k split FIFO blocks" << std::endl;
-      utilization_rpt << "      " << "list of split FIFO block types:" << std::endl;
-      for (const auto & [ key, value ] : report_fifo_split_numbers_map) {
-        utilization_rpt << "        " << key << ": " << value << std::endl;
-      }
+    if(aurora_routing_utilization.clb_ff_shiftreg > 0) {
+      utilization_rpt << level_3_indent << aurora_routing_utilization.clb_ff_shiftreg << " as FF in Shift Register mode" << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;
 
-  utilization_rpt << "  " << dsp << " DSP utilized" << std::endl;
-  if(dsp > 0) {
-    utilization_rpt << "    " << "list of DSP block types:" << std::endl;
-    for (const auto & [ key, value ] : report_dsp_numbers_map) {
-      utilization_rpt << "      " << key << ": " << value << std::endl;
+  utilization_rpt << level_1_indent << aurora_routing_utilization.bram << " BRAM used" << std::endl;
+  if(aurora_routing_utilization.bram > 0) {
+    if(aurora_routing_utilization.bram_bram_nonsplit > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_bram_nonsplit << " as 36k nonsplit BRAM blocks" << std::endl;
+      // utilization_rpt << "      " << "list of nonsplit BRAM block types:" << std::endl;
+      for (const auto & [ key, value ] : aurora_routing_utilization.bram_bram_nonsplit_map) {
+        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+      }
+    }
+    if(aurora_routing_utilization.bram_bram_split > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_bram_split << " as 2x18k split BRAM blocks" << std::endl;
+      // utilization_rpt << "      " << "list of split BRAM block types:" << std::endl;
+      for (const auto & [ key, value ] : aurora_routing_utilization.bram_bram_split_map) {
+        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+      }
+    }
+    if(aurora_routing_utilization.bram_fifo_nonsplit > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_fifo_nonsplit << " as 36k nonsplit FIFO blocks" << std::endl;
+      // utilization_rpt << "      " << "list of nonsplit FIFO block types:" << std::endl;
+      for (const auto & [ key, value ] : aurora_routing_utilization.bram_fifo_nonsplit_map) {
+        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+      }
+    }
+    if(aurora_routing_utilization.bram_fifo_split > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_fifo_split << " as 2x18k split FIFO blocks" << std::endl;
+      // utilization_rpt << "      " << "list of split FIFO block types:" << std::endl;
+      for (const auto & [ key, value ] : aurora_routing_utilization.bram_fifo_split_map) {
+        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+      }
     }
   }
   utilization_rpt << "" << std::endl;
 
-  utilization_rpt << "  " << total_ios << " IO utilized" << std::endl;
-  if(total_ios > 0) {
-    if(io_output > 0) {
-      utilization_rpt << "    " << io_output << " output" << std::endl;
+  utilization_rpt << level_1_indent << aurora_routing_utilization.dsp << " DSP used" << std::endl;
+  if(aurora_routing_utilization.dsp > 0) {
+    // utilization_rpt << level_2_indent << "list of DSP block types:" << std::endl;
+    for (const auto & [ key, value ] : aurora_routing_utilization.dsp_map) {
+      utilization_rpt << level_2_indent << key << ": " << value << std::endl;
     }
-    if(io_input > 0) {
-      utilization_rpt << "    " << io_input << " input" << std::endl;
+  }
+  utilization_rpt << "" << std::endl;
+
+  utilization_rpt << level_1_indent << aurora_routing_utilization.io << " IO used" << std::endl;
+  if(aurora_routing_utilization.io > 0) {
+    if(aurora_routing_utilization.io_input > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.io_input << " as input" << std::endl;
+    }
+    if(aurora_routing_utilization.io_output > 0) {
+      utilization_rpt << level_2_indent << aurora_routing_utilization.io_output << " as output" << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;
