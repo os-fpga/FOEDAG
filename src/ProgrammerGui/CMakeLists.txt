@@ -46,16 +46,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   ProgrammerMain.cpp
-  ProgrammerBackend.cpp
   SummaryProgressBar.cpp
   ProgrammerSettingsWidget.cpp
+  ProgrammerGuiIntegration.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   ProgrammerMain.h
-  ProgrammerBackend.h
   SummaryProgressBar.h
   ProgrammerSettingsWidget.h
+  ProgrammerGuiIntegration.h
 )
 
 set (SRC_UI

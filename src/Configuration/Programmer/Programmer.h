@@ -22,12 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROGRAMMER_H
 #define PROGRAMMER_H
 
+#include <atomic>
 #include <functional>
 #include <map>
+#include <string>
 #include <tuple>
+#include <vector>
 
-#include "CFGCommon/CFGArg_auto.h"
-#include "CFGCommon/CFGCommon.h"
+struct CFGCommon_ARG;
 
 namespace FOEDAG {
 
