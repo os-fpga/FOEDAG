@@ -76,6 +76,7 @@ void IpCatalogTree::refresh() {
       item->setText(0, ip);
       this->addTopLevelItem(item);
     }
+    sortItems(0, Qt::SortOrder::AscendingOrder);
     prevIpCatalogResults = ips;
   }
 }
