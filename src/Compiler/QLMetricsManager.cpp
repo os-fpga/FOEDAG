@@ -1080,11 +1080,11 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
 
   // double-check calculations:
-  // [1] fle = ble6 + lut5inter
+  // [1] fle = ble6 + lut5inter + shift_reg
   // [2] lut5inter in terms of ble5: ble5 <= lut5inter*2 and ble5 >= lut5inter (ble5 is one-half unit of a lut5inter, so ...)
   // [3] ble5 = flut5 + adder
-  if( !(fle == ble6 + lut5inter) ) {
-    std::cout << "[error]: !(fle == ble6 + lut5inter)" << std::endl;
+  if( !(fle == ble6 + lut5inter + shift_reg) ) {
+    std::cout << "[error]: !(fle == ble6 + lut5inter + shift_reg)" << std::endl;
   }
   if( !(lut5inter_ble5 >= lut5inter) ) {
     std::cout << "[error]: !(ble5 >= lut5inter)" << std::endl;
