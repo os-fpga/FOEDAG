@@ -10,6 +10,8 @@
 #include "TableReport.h"
 #include "QLMetricsManager.h"
 
+#define USE_QTREEVIEW (1)
+
 namespace {
 static const QRegExp FIND_INIT_ROUTER{"Initializing router criticalities"};
 static const QRegExp FIND_NET_CONNECTION{
@@ -129,6 +131,16 @@ void RoutingReportManager::parseLogFile() {
   if (!timings.isEmpty()) fillTimingData(timings);
 
   logFile->close();
+
+
+#if USE_QTREEVIEW
+  // push placeholder column and data row to ensure we are not reported empty.
+  // the actual treeview is populated inside the Tasks_ql.cpp file directly.
+  // To enable all data reports to be flexible, we should be using QStandardItemModel (or QAbstractItemModel)
+  // based data model, and render according to the type of report, maybe table, tree, list etc.
+  m_detailedUtilizationColumns.push_back(ReportColumn{""});
+  m_detailedUtilizationData.push_back(std::move(QStringList{""}));
+#else // #if USE_QTREEVIEW
 
   // create report using detailed utilization data:
   // column headers : blank, as this is a hierarchy-based report
@@ -295,6 +307,8 @@ void RoutingReportManager::parseLogFile() {
           "",
           QString::number(util_p.io_output) + " as output",
           ""}));
+#endif // #if USE_QTREEVIEW
+
   setFileParsed(true);
 }
 

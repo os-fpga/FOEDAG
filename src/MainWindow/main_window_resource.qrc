@@ -10,5 +10,10 @@
         <file>images/minus.png</file>
         <file>images/playSim.png</file>
         <file>images/erase.png</file>
+        <file>images/stylesheet-branch-closed.png</file>
+        <file>images/stylesheet-branch-end.png</file>
+        <file>images/stylesheet-branch-more.png</file>
+        <file>images/stylesheet-branch-open.png</file>
+        <file>images/stylesheet-vline.png</file>
     </qresource>
 </RCC>

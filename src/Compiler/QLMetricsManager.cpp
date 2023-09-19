@@ -459,7 +459,6 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   int lines = 0;
   while(std::getline(stream, file_line)) {
     lines++;
-    // std::cout << "kkk read lines:" << lines << std::endl;
     
     if(section_save && file_line.empty()) {
       section_save = false;
@@ -1193,32 +1192,22 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
 
   utilization_rpt << level_1_indent << aurora_routing_utilization.bram << " BRAM used" << std::endl;
   if(aurora_routing_utilization.bram > 0) {
-    if(aurora_routing_utilization.bram_bram_nonsplit > 0) {
-      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_bram_nonsplit << " as 36k nonsplit BRAM blocks" << std::endl;
-      // utilization_rpt << "      " << "list of nonsplit BRAM block types:" << std::endl;
+    if((aurora_routing_utilization.bram_bram_nonsplit + aurora_routing_utilization.bram_fifo_nonsplit) > 0) {
+      utilization_rpt << level_2_indent << (aurora_routing_utilization.bram_bram_nonsplit + aurora_routing_utilization.bram_fifo_nonsplit) << " as 36k BRAM blocks" << std::endl;
       for (const auto & [ key, value ] : aurora_routing_utilization.bram_bram_nonsplit_map) {
-        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+        utilization_rpt << level_3_indent << value << " of " << key << std::endl;
       }
-    }
-    if(aurora_routing_utilization.bram_bram_split > 0) {
-      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_bram_split << " as 2x18k split BRAM blocks" << std::endl;
-      // utilization_rpt << "      " << "list of split BRAM block types:" << std::endl;
-      for (const auto & [ key, value ] : aurora_routing_utilization.bram_bram_split_map) {
-        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
-      }
-    }
-    if(aurora_routing_utilization.bram_fifo_nonsplit > 0) {
-      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_fifo_nonsplit << " as 36k nonsplit FIFO blocks" << std::endl;
-      // utilization_rpt << "      " << "list of nonsplit FIFO block types:" << std::endl;
       for (const auto & [ key, value ] : aurora_routing_utilization.bram_fifo_nonsplit_map) {
-        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+        utilization_rpt << level_3_indent << value << " of " << key << std::endl;
       }
     }
-    if(aurora_routing_utilization.bram_fifo_split > 0) {
-      utilization_rpt << level_2_indent << aurora_routing_utilization.bram_fifo_split << " as 2x18k split FIFO blocks" << std::endl;
-      // utilization_rpt << "      " << "list of split FIFO block types:" << std::endl;
+    if((aurora_routing_utilization.bram_bram_split + aurora_routing_utilization.bram_fifo_split) > 0) {
+      utilization_rpt << level_2_indent << (aurora_routing_utilization.bram_bram_split + aurora_routing_utilization.bram_fifo_split) << " as 2x18k BRAM blocks" << std::endl;
+      for (const auto & [ key, value ] : aurora_routing_utilization.bram_bram_split_map) {
+        utilization_rpt << level_3_indent << value << " of " << key << std::endl;
+      }
       for (const auto & [ key, value ] : aurora_routing_utilization.bram_fifo_split_map) {
-        utilization_rpt << level_3_indent << key << ": " << value << std::endl;
+        utilization_rpt << level_3_indent << value << " of " << key << std::endl;
       }
     }
   }
@@ -1228,7 +1217,7 @@ void QLMetricsManager::parseRoutingReportForDetailedUtilization() {
   if(aurora_routing_utilization.dsp > 0) {
     // utilization_rpt << level_2_indent << "list of DSP block types:" << std::endl;
     for (const auto & [ key, value ] : aurora_routing_utilization.dsp_map) {
-      utilization_rpt << level_2_indent << key << ": " << value << std::endl;
+      utilization_rpt << level_2_indent << value << " of " << key << std::endl;
     }
   }
   utilization_rpt << "" << std::endl;

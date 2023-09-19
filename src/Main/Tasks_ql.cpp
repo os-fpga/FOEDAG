@@ -26,6 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QStackedWidget>
+#include <QTreeView>
+#include <QStandardItemModel>
+#include <QStandardItem>
 
 #include "Compiler/Reports/IDataReport.h"
 #include "Compiler/Reports/ITaskReport.h"
@@ -35,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextEditor/text_editor_form.h"
 #include "Utils/StringUtils.h"
 #include "WidgetFactory.h"
+#include "Compiler/QLMetricsManager.h"
 
 using json = nlohmann::ordered_json;
 using namespace FOEDAG;
@@ -80,37 +84,218 @@ void generateReport(const ITaskReport& report, QVBoxLayout* reportLayout) {
       reportTablesStackedWidget->addWidget(new QLabel("No statistics data found to generate report."));
       continue;
     }
-    auto reportsView = new QTableWidget();
-    // Fill columns
-    auto columns = dataReport->getColumns();
-    reportsView->setColumnCount(columns.size());
-    auto colIndex = 0;
-    for (auto& col : columns) {
-      auto columnItem = new QTableWidgetItem(col.m_name);
-      reportsView->setHorizontalHeaderItem(colIndex, columnItem);
-      ++colIndex;
-    }
+    if(dataReportName == "Detailed Resource Utilization") {
 
-    // Fill table
-    auto rowIndex = 0;
-    for (auto& lineData : dataReport->getData()) {
-      reportsView->insertRow(rowIndex);
+      AuroraUtilization& util_p = QLMetricsManager::getInstance()->aurora_routing_utilization;
+      QStandardItemModel * model = new QStandardItemModel();
+      // model->setHorizontalHeaderLabels(QStringList{"Resources"});
+
+
+      QStandardItem *item_clb = new QStandardItem(QString::number(util_p.clb) + " CLB used");
+      model->appendRow(item_clb);
+        QStandardItem *item_fle = new QStandardItem(QString("which contains " + QString::number(util_p.fle) + " FLE"));
+        item_clb->appendRow(item_fle);
+          QStandardItem *item_clb_fle = new QStandardItem(QString::number(util_p.clb_fle) + " FLE used");
+          item_fle->appendRow(item_clb_fle);
+
+        QStandardItem *item_clb_lut = new QStandardItem(QString::number(util_p.clb_lut) + " LUT used");
+        item_clb->appendRow(item_clb_lut);
+        if(util_p.clb_lut_lut6 > 0) {
+          QStandardItem *item_clb_lut_lut6 = new QStandardItem(QString::number(util_p.clb_lut_lut6) + " as LUT6");
+          item_clb_lut->appendRow(item_clb_lut_lut6);
+        }
+        if(util_p.clb_lut_lut6ff > 0) {
+          QStandardItem *item_clb_lut_lut6ff = new QStandardItem(QString::number(util_p.clb_lut_lut6ff) + " as LUT6+FF");
+          item_clb_lut->appendRow(item_clb_lut_lut6ff);
+        }
+        if(util_p.clb_lut_lut5 > 0) {
+          QStandardItem *item_clb_lut_lut5 = new QStandardItem(QString::number(util_p.clb_lut_lut5) + " as LUT5");
+          item_clb_lut->appendRow(item_clb_lut_lut5);
+        }
+        if(util_p.clb_lut_lut5ff > 0) {
+          QStandardItem *item_clb_lut_lut5ff = new QStandardItem(QString::number(util_p.clb_lut_lut5ff) + " as LUT5+FF");
+          item_clb_lut->appendRow(item_clb_lut_lut5ff);
+        }
+        if(util_p.clb_lut_lut4 > 0) {
+          QStandardItem *item_clb_lut_lut4 = new QStandardItem(QString::number(util_p.clb_lut_lut4) + " as LUT4 (adder carry chain)");
+          item_clb_lut->appendRow(item_clb_lut_lut4);
+        }
+        
+        QStandardItem *item_clb_ff = new QStandardItem(QString::number(util_p.clb_ff) + " FF used");
+        item_clb->appendRow(item_clb_ff);
+        if(util_p.clb_ff_lut6ff > 0) {
+          QStandardItem *item_clb_ff_lut6ff = new QStandardItem(QString::number(util_p.clb_ff_lut6ff) + " as LUT6+FF");
+          item_clb_ff->appendRow(item_clb_ff_lut6ff);
+        }
+        if(util_p.clb_ff_lut5ff > 0) {
+          QStandardItem *item_clb_ff_lut5ff = new QStandardItem(QString::number(util_p.clb_ff_lut5ff) + " as LUT5+FF");
+          item_clb_ff->appendRow(item_clb_ff_lut5ff);
+        }
+        if(util_p.clb_ff_ff > 0) {
+          QStandardItem *item_clb_ff_ff = new QStandardItem(QString::number(util_p.clb_ff_ff) + " as FF");
+          item_clb_ff->appendRow(item_clb_ff_ff);
+        }
+        if(util_p.clb_ff_shiftreg > 0) {
+          QStandardItem *item_clb_ff_shiftreg = new QStandardItem(QString::number(util_p.clb_ff_shiftreg) + " as shift register");
+          item_clb_ff->appendRow(item_clb_ff_shiftreg);
+        }
+
+
+      QStandardItem *item_bram = new QStandardItem(QString::number(util_p.bram) + " BRAM used");
+      model->appendRow(item_bram);
+      if((util_p.bram_bram_nonsplit + util_p.bram_fifo_nonsplit) > 0) {
+        QStandardItem *item_bram_nonsplit = new QStandardItem(QString::number(util_p.bram_bram_nonsplit + util_p.bram_fifo_nonsplit) + " as 36k BRAM blocks");
+        item_bram->appendRow(item_bram_nonsplit);
+        for (const auto & [ key, value ] : util_p.bram_bram_nonsplit_map) {
+          QStandardItem *item_bram_nonsplit_inst = new QStandardItem(QString::number(value) + " of " + QString::fromStdString(key).trimmed());
+          item_bram_nonsplit->appendRow(item_bram_nonsplit_inst);
+        }
+        for (const auto & [ key, value ] : util_p.bram_fifo_nonsplit_map) {
+          QStandardItem *item_fifo_nonsplit_inst = new QStandardItem(QString::number(value) + " of " + QString::fromStdString(key).trimmed());
+          item_bram_nonsplit->appendRow(item_fifo_nonsplit_inst);
+        }
+      }
+      if((util_p.bram_bram_split + util_p.bram_fifo_split) > 0) {
+        QStandardItem *item_bram_split = new QStandardItem(QString::number(util_p.bram_bram_split + util_p.bram_fifo_split) + " as 2x18k BRAM blocks");
+        item_bram->appendRow(item_bram_split);
+        for (const auto & [ key, value ] : util_p.bram_bram_split_map) {
+          QStandardItem *item_bram_split_inst = new QStandardItem(QString::number(value) + " of " + QString::fromStdString(key).trimmed());
+          item_bram_split->appendRow(item_bram_split_inst);
+        }
+        for (const auto & [ key, value ] : util_p.bram_fifo_split_map) {
+          QStandardItem *item_fifo_split_inst = new QStandardItem(QString::number(value) + " of " + QString::fromStdString(key).trimmed());
+          item_bram_split->appendRow(item_fifo_split_inst);
+        }
+      }
+
+
+      QStandardItem *item_dsp = new QStandardItem(QString::number(util_p.dsp) + " DSP used");
+      model->appendRow(item_dsp);
+      for (const auto & [ key, value ] : util_p.dsp_map) {
+        QStandardItem *item_dsp_inst = new QStandardItem(QString::number(value) + " of " + QString::fromStdString(key).trimmed());
+        item_dsp->appendRow(item_dsp_inst);
+      }
+
+
+      QStandardItem *item_io = new QStandardItem(QString::number(util_p.io) + " IO used");
+      model->appendRow(item_io);
+      if(util_p.io_input > 0) {
+        QStandardItem *item_io_input = new QStandardItem(QString::number(util_p.io_input) + " as input");
+        item_io->appendRow(item_io_input);
+      }
+      if(util_p.io_output > 0) {
+        QStandardItem *item_io_output = new QStandardItem(QString::number(util_p.io_output) + " as output");
+        item_io->appendRow(item_io_output);
+      }
+
+
+      QTreeView *treeView = new QTreeView();
+      treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+      treeView->setSelectionMode(QAbstractItemView::NoSelection);
+      treeView->setSortingEnabled(false);
+      treeView->setHeaderHidden(true);
+      
+      treeView->setModel(model);
+      
+      treeView->expandAll();
+
+          static QString sTreeStyle = "\
+            QAbstractItemView {\
+                border: 0px;\
+                selection-background-color: #FFFFFF;\
+            }\
+            QTreeView {\
+                show-decoration-selected: 0;\
+            }\
+            \
+            QTreeView::item {\
+                border: 1px solid;\
+                padding: 4px;\
+                margin-top: 1px;\
+                min-height: 30px;\
+                font-size: 20px;\
+                color: #000000;\
+                background: #FFFFFF;\
+            }\
+            \
+            QTreeView::item:hover {\
+                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #2ABf9E, stop: 1 #18Bc9b);\
+                border: 1px solid #bfcde4;\
+            }\
+            \
+            QTreeView::item:selected {\
+                background: #FFFFFF;\
+            }\
+            \
+            QTreeView::item:selected:active{\
+                background: #FFFFFF;\
+            }\
+            \
+            QTreeView::item:selected:!active {\
+                background: #FFFFFF;\
+            }\
+            \
+            QTreeView::branch:has-siblings:!adjoins-item {\
+            border-image: url(:/images/stylesheet-vline.png) 0;\
+            }\
+            \
+            QTreeView::branch:has-siblings:adjoins-item {\
+              border-image: url(:/images/stylesheet-branch-more.png) 0;\
+            }\
+            \
+            QTreeView::branch:!has-children:!has-siblings:adjoins-item {\
+              border-image: url(:/images/stylesheet-branch-end.png) 0;\
+            }\
+            \
+            QTreeView::branch:has-children:!has-siblings:closed,\
+            QTreeView::branch:closed:has-children:has-siblings {\
+              border-image: none;\
+              image: url(:/images/stylesheet-branch-closed.png);\
+            }\
+            \
+            QTreeView::branch:open:has-children:!has-siblings,\
+            QTreeView::branch:open:has-children:has-siblings {\
+              border-image: none;\
+              image: url(:/images/stylesheet-branch-open.png);\
+            }";
+      treeView->setStyleSheet(sTreeStyle);
+
+      reportTablesStackedWidget->addWidget(treeView);
+
+    } // testing data report
+    else {
+      auto reportsView = new QTableWidget();
+      // Fill columns
+      auto columns = dataReport->getColumns();
+      reportsView->setColumnCount(columns.size());
       auto colIndex = 0;
-      for (auto& lineValue : lineData) {
-        auto item = new QTableWidgetItem(lineValue);
-        item->setTextAlignment(columns[colIndex].m_alignment);
-        reportsView->setItem(rowIndex, colIndex, item);
+      for (auto& col : columns) {
+        auto columnItem = new QTableWidgetItem(col.m_name);
+        reportsView->setHorizontalHeaderItem(colIndex, columnItem);
         ++colIndex;
       }
-      ++rowIndex;
+
+      // Fill table
+      auto rowIndex = 0;
+      for (auto& lineData : dataReport->getData()) {
+        reportsView->insertRow(rowIndex);
+        auto colIndex = 0;
+        for (auto& lineValue : lineData) {
+          auto item = new QTableWidgetItem(lineValue);
+          item->setTextAlignment(columns[colIndex].m_alignment);
+          reportsView->setItem(rowIndex, colIndex, item);
+          ++colIndex;
+        }
+        ++rowIndex;
+      }
+      // Initialize the view itself
+      reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+      reportsView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+      reportsView->horizontalHeader()->resizeSections(
+          QHeaderView::ResizeToContents);
+      //reportLayout->addWidget(reportsView);
+      reportTablesStackedWidget->addWidget(reportsView);
     }
-    // Initialize the view itself
-    reportsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    reportsView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    reportsView->horizontalHeader()->resizeSections(
-        QHeaderView::ResizeToContents);
-    //reportLayout->addWidget(reportsView);
-    reportTablesStackedWidget->addWidget(reportsView);
   }
 
   QObject::connect(reportTablesSelectionComboBox, qOverload<int>(&QComboBox::currentIndexChanged), 
