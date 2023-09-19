@@ -126,7 +126,7 @@ class StringUtils final {
   template <typename NumberType>
   static std::pair<NumberType, bool> to_number(const std::string& str) {
     static_assert(!std::is_floating_point<NumberType>::value, "Not supported");
-    NumberType number = {}; // Zero Initialization
+    NumberType number = {};  // Zero Initialization
     [[maybe_unused]] auto [ptr, ec]{
         std::from_chars(str.data(), str.data() + str.size(), number)};
     return std::make_pair(number, ec == std::errc());
