@@ -22,25 +22,113 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <QMainWindow>
+#include <QMap>
+#include <QSettings>
+
+#include "Configuration/Programmer/Programmer_helper.h"
+#include "MainWindow/TopLevelInterface.h"
+#include "SummaryProgressBar.h"
 
 namespace Ui {
 class ProgrammerMain;
 }
+class QTreeWidgetItem;
+class QProgressBar;
 
 namespace FOEDAG {
 
-class ProgrammerMain : public QMainWindow {
+class ProgrammerGuiIntegration;
+
+enum Status { None, InProgress, Pending, Done };
+
+struct DeviceOptions {
+  QString file;
+  QStringList operations;
+  ProgressCallback progress;
+};
+
+struct DeviceInfo {
+  ~DeviceInfo() { delete flash; }
+  Device dev{};
+  Cable cable{};
+  DeviceOptions options;
+  bool isFlash{false};
+  DeviceInfo *flash{nullptr};
+};
+
+class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
 
  public:
-  ProgrammerMain(QWidget *parent = nullptr);
-  ~ProgrammerMain();
+  explicit ProgrammerMain(QWidget *parent = nullptr);
+  ~ProgrammerMain() override;
+  void gui_start(bool showWP) override;
+  void openProject(const QString &projectFile, bool delayedOpen,
+                   bool run) override {}
+  bool isRunning() const override;
+  void ProgressVisible(bool visible) override {}
 
- private:
-  Ui::ProgrammerMain *ui;
+  QString cfgFile() const;
+  void setCfgFile(const QString &cfg);
+
+ signals:
+  void appendOutput(const QString &);
+  void updateProgress(QProgressBar *progressBar, int value);
+
+ protected:
+  void closeEvent(QCloseEvent *e) override;
 
  private slots:
   void onCustomContextMenu(const QPoint &point);
+  void startPressed();
+  void stopPressed();
+  void addFile();
+  void reset();
+  void showToolTip();
+  void updateProgressSlot(QProgressBar *progressBar, int value);
+  void updateDeviceOperations(bool ok);
+  void progressChanged(const std::string &progress);
+  void GetDeviceList();
+  void autoDetect();
+
+ private:
+  void updateTable();
+  void updateOperationActions(QTreeWidgetItem *item);
+  static void updateRow(QTreeWidgetItem *item, DeviceInfo *deviceInfo);
+  int itemIndex(QTreeWidgetItem *item) const;
+  QMenu *prepareMenu(bool flash);
+  void cleanupStatusAndProgress();
+  void cleanDeviceList();
+  static QStringList BuildDeviceRow(const DeviceInfo &dev, int counter);
+  static QStringList BuildFlashRow(const DeviceInfo &dev);
+  bool VerifyDevices();
+  void start();
+  static QString ToString(Status status);
+  void setStatus(DeviceInfo *deviceInfo, Status status);
+  void openSettingsWindow(int index);
+  static bool EvalCommand(const QString &cmd);
+  static bool EvalCommand(const std::string &cmd);
+  void SetFile(DeviceInfo *device, const QString &file);
+  static QString ToString(const QString &str);
+  static QString ToString(const QStringList &strList, const QString &sep);
+
+ private:
+  static constexpr int FILE_COL{1};
+  static constexpr int OPERATIONS_COL{2};
+  static constexpr int STATUS_COL{3};
+  static constexpr int PROGRESS_COL{4};
+  Ui::ProgrammerMain *ui;
+  QAction *m_progressAction{nullptr};
+  QVector<DeviceInfo *> m_deviceSettings;
+  QVector<DeviceInfo *> m_deviceTmp;
+  QTreeWidgetItem *m_currentItem{nullptr};
+  std::atomic_bool stop{false};
+  SummaryProgressBar m_mainProgress;
+  QMap<QTreeWidgetItem *, DeviceInfo *> m_items;
+  QSettings m_settings;
+  bool m_programmingDone{true};
+  QString m_cfgFile{};
+  ProgrammerGuiIntegration *m_guiIntegration;
 };
 
 }  // namespace FOEDAG

@@ -55,10 +55,13 @@ int main(int argc, char** argv) {
     compiler = new FOEDAG::Compiler();
   }
 
-  FOEDAG::Foedag* foedag = new FOEDAG::Foedag(
-      cmd, mainWindowBuilder, registerAllFoedagCommands, compiler, settings);
-  std::filesystem::path binpath = foedag->Context()->BinaryPath();
-  std::filesystem::path datapath = foedag->Context()->DataPath();
+  auto context = new FOEDAG::ToolContext("Foedag", "OpenFPGA", "foedag");
+  FOEDAG::Foedag* foedag =
+      new FOEDAG::Foedag(cmd, mainWindowBuilder, registerAllFoedagCommands,
+                         compiler, settings, context);
+  std::filesystem::path binpath = context->BinaryPath();
+  std::filesystem::path datapath = context->DataPath();
+  context->ProgrammerGuiPath(binpath / "programmer_gui");
   if (opcompiler) {
     std::filesystem::path analyzePath = binpath / "analyze";
     std::filesystem::path yosysPath = binpath / "yosys";

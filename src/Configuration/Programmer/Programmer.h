@@ -22,12 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROGRAMMER_H
 #define PROGRAMMER_H
 
+#include <atomic>
 #include <functional>
 #include <map>
+#include <string>
 #include <tuple>
+#include <vector>
 
-#include "CFGCommon/CFGArg_auto.h"
-#include "CFGCommon/CFGCommon.h"
+struct CFGCommon_ARG;
 
 namespace FOEDAG {
 
@@ -43,8 +45,9 @@ enum ProgrammerErrorCode {
   BitfileNotFound = -108,
   FailedToProgramFPGA = -109,
   OpenOCDExecutableNotFound = -110,
-  InvalidFlashSize = 111,
-  UnsupportedFunc = 112,
+  FailedToProgramOTP = -111,
+  InvalidFlashSize = -112,
+  UnsupportedFunc = -113,
 };
 
 extern std::map<int, std::string> ErrorMessages;
@@ -209,6 +212,36 @@ int ProgramFpga(const Cable& cable, const Device& device,
                 std::ostream* outStream = nullptr,
                 OutputMessageCallback callbackMsg = nullptr,
                 ProgressCallback callbackProgress = nullptr);
+
+/**
+ * Programs the OTP of a specified device with the given bitfile using the
+ * specified cable and device.
+ *
+ * @param cable The cable to use for programming.
+ * @param device The target device to program.
+ * @param bitfile The path to the bitfile to program the device OTP.
+ * @param stop An atomic boolean flag that can be used to stop the programming
+ * process.
+ * @param outStream An optional output stream to write progress messages to.
+ * @param callbackMsg An optional callback function to allow caller to receive
+ * output messages.
+ * @param callbackProgress An optional callback function to allow caller to
+ * receive progress updates.
+ * @return 0 if the OTP was programmed successfully, or a non-zero error code
+ * otherwise.
+ * @note The `callbackMsg` function is called with progress messages during the
+ * programming operation. The `callbackProgress` function is called with
+ * progress updates during the programming operation. Both functions are
+ * optional and can be set to `nullptr` if not needed. The definition of the
+ * callback functions are as follows:
+ *   using ProgressCallback = std::function<void(std::string)>
+ *   using OutputMessageCallback = std::function<void(std::string)>
+ */
+int ProgramOTP(const Cable& cable, const Device& device,
+               const std::string& bitfile, std::atomic<bool>& stop,
+               std::ostream* outStream = nullptr,
+               OutputMessageCallback callbackMsg = nullptr,
+               ProgressCallback callbackProgress = nullptr);
 
 /**
  * Programs the specified flash memory with the given bitfile using the

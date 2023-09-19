@@ -40,7 +40,7 @@ set(VERSION_MINOR 0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third_party/spdlog/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/exprtk) 
 
 
-set(VERSION_PATCH 242)
+set(VERSION_PATCH 252)
 
 
 option(
@@ -290,24 +290,19 @@ add_custom_command(TARGET foedag POST_BUILD
           ${CMAKE_CURRENT_SOURCE_DIR}/third_party/tcl8.6.12/library/init.tcl
           ${CMAKE_CURRENT_BINARY_DIR}/lib/tcl8.6/init.tcl)
 
-if(WIN32)
-    execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND git rev-parse --short HEAD
-      COMMAND dos2unix
-      OUTPUT_VARIABLE GIT_HASH
-      ERROR_VARIABLE GIT_HASH_ERR
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    set(HEADERS_TO_INCLUDE_DIRS "${HEADERS_TO_INCLUDE_DIRS} ./third_party/nlohmann_json")
+execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND git rev-parse --short HEAD
+  OUTPUT_VARIABLE GIT_HASH
+  ERROR_VARIABLE GIT_HASH_ERR
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+if ("${GIT_HASH_ERR}" STREQUAL "")
+  string(STRIP "${GIT_HASH}" GIT_HASH)
+  message(STATUS "GIT_HASH = ${GIT_HASH}")
 else()
-    execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND git rev-parse --short HEAD
-      COMMAND tr -d '\n'
-      OUTPUT_VARIABLE GIT_HASH
-      ERROR_VARIABLE GIT_HASH_ERR
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+  message(FATAL_ERROR "${GIT_HASH_ERR}")
 endif()
 
-message(STATUS "GIT_HASH = ${GIT_HASH}")
 message(STATUS "BUILD_TYPE_STRING = ${BUILD_TYPE_STRING}")
 if("${STICK_RELEASE_VERSION}" STREQUAL "")
   string(TIMESTAMP CURRENT_DATE "%Y-%m-%d" UTC)
@@ -443,38 +438,6 @@ if(MSVC)
   target_compile_options(gtest PRIVATE /Zc:__cplusplus)
   target_compile_options(gtest_main PRIVATE /Zc:__cplusplus)
 endif()
-
-# Concise way to register a new google test
-# call with register_gtest(path/to/UnitTestFile.cpp)
-function(register_gtests)
-  foreach(gtest_cc_file IN LISTS ARGN)
-    # We create the binary name and test prefix from the cpp-filepath
-    get_filename_component(test_bin ${gtest_cc_file} NAME_WE)
-    get_filename_component(test_prefix ${gtest_cc_file} DIRECTORY)
-
-    # Build binary, link all relevant libs and extract tests
-    add_executable(${test_bin} EXCLUDE_FROM_ALL ${gtest_cc_file})
-
-    target_include_directories(${test_bin} PRIVATE
-    )
-    # For simplicity, we link the test with libfoedag, but there is of
-    # course a lot unnecessary churn if headers are modified.
-    # Often it is sufficient to just have a few depeendencies.
-
-    if (APPLE)
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
-    elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main "-framework CoreFoundation")
-    else()
-      target_link_libraries(${test_bin} foedag gtest gmock gtest_main)
-    endif()
-
-    gtest_discover_tests(${test_bin} TEST_PREFIX "${test_prefix}/")
-
-    # Now, add this binary to our UnitTests target that it builds this
-    add_dependencies(UnitTests ${test_bin})
-  endforeach()
-endfunction()
 
 if (WIN32 OR APPLE)
 else ()

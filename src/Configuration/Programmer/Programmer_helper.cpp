@@ -26,10 +26,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <unordered_set>
 
+#include "CFGCommon/CFGArg_auto.h"
+#include "CFGCommon/CFGCommon.h"
 #include "Programmer.h"
+#include "ProgrammerGuiInterface.h"
 #include "Utils/StringUtils.h"
 #include "libusb.h"
+
 namespace FOEDAG {
+
+ProgrammerGuiInterface* Gui::m_guiInterface{nullptr};
 
 static const std::vector<std::string> programmer_subcmd{
     "fpga_config", "fpga_status", "flash", "list_device", "list_cable"};
@@ -376,6 +382,19 @@ std::string buildFpgaProgramCommand(const Cable& cable, const Device& device,
   return cmd.str() + buildInitEndStringWithCommand(programCommand.str());
 }
 
+std::string buildOTPProgramCommand(const Cable& cable, const Device& device,
+                                   const std::string& bitstreamFile) {
+  std::stringstream cmd;
+  std::stringstream programCommand;
+  std::stringstream cableSS = buildFpgaCableStringStream(cable);
+  std::stringstream targetSS = buildFpgaTargetStringStream(device);
+  programCommand << "gemini load " << device.index << " otp " << bitstreamFile
+                 << " -p 1";
+  cmd << cableSS.str() << targetSS.str();
+
+  return cmd.str() + buildInitEndStringWithCommand(programCommand.str());
+}
+
 std::string buildFlashProgramCommand(
     const Cable& cable, const Device& device, const std::string& bitstreamFile,
     ProgramFlashOperation /*programFlashOperation*/) {
@@ -458,10 +477,12 @@ void printCableList(const std::vector<Cable>& cableList) {
   for (const auto& cable : cableList) {
     CFG_POST_MSG("(%d) %s", cable.index, cable.name.c_str());
   }
+  if (Gui::GuiInterface()) Gui::GuiInterface()->Cables(cableList);
 }
 
 void printDeviceList(const Cable& cable,
                      const std::vector<Device>& deviceList) {
+  if (Gui::GuiInterface()) Gui::GuiInterface()->Devices(cable, deviceList);
   CFG_POST_MSG("Cable               | Device");
   CFG_POST_MSG("-----------------------------------------------");
 
@@ -562,5 +583,11 @@ void InitializeHwDb(
     if (printDeviceList) printDeviceList(cable, devices);
   }
 }
+
+void Gui::SetGuiInterface(ProgrammerGuiInterface* guiInterface) {
+  m_guiInterface = guiInterface;
+}
+
+ProgrammerGuiInterface* Gui::GuiInterface() { return m_guiInterface; }
 
 }  // namespace FOEDAG

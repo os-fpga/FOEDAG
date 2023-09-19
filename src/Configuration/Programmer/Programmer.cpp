@@ -26,6 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <thread>
 #include <unordered_set>
 
+#include "CFGCommon/CFGArg_auto.h"
+#include "CFGCommon/CFGCommon.h"
+#include "ProgrammerGuiInterface.h"
 #include "Programmer_helper.h"
 #include "libusb.h"
 
@@ -51,8 +54,9 @@ std::map<int, std::string> ErrorMessages = {
     {BitfileNotFound, "Bitfile not found"},
     {FailedToProgramFPGA, "Failed to program FPGA"},
     {OpenOCDExecutableNotFound, "OpenOCD executable not found"},
+    {FailedToProgramOTP, "Failed to program device OTP"},
     {InvalidFlashSize, "Invalid flash size"},
-    {UnsupportedFunc, "Unsupported function"}};  // namespace FOEDAG
+    {UnsupportedFunc, "Unsupported function"}};
 
 void programmer_entry(const CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
@@ -64,22 +68,54 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
 
   std::string subCmd = arg->get_sub_arg_name();
   if (cmdarg->compilerName == "dummy") {
+    Cable cable1{};
+    cable1.name = "Usb_Programmer_Cable_port1_dev1";
+    Cable cable2{};
+    cable2.name = "Usb_Programmer_Cable_port2_dev1";
+    Device device1{};
+    Device device2{};
+    device1.name = device2.name = "Gemini";
+    device1.index = 1;
+    device2.index = 2;
+    device2.flashSize = 2;
+
     if (subCmd == "list_device") {
-      CFG_POST_MSG("<test>      | Device             |  ID        |  IRLen ");
-      CFG_POST_MSG("<test> ----- -------------------- ------------ ----------");
-      CFG_POST_MSG("<test> Found  0 Gemini             0x1000AABB   5");
-      CFG_POST_MSG("<test> Found  1 Gemini             0x2000CCDD   5");
+      CFG_POST_MSG("<test>");
+      printDeviceList(cable1, {device1, device2});
     } else if (subCmd == "list_cable") {
-      CFG_POST_MSG("<test>  1 Usb_Programmer_Cable_port1_dev1");
-      CFG_POST_MSG("<test>  2 Usb_Programmer_Cable_port2_dev1");
+      CFG_POST_MSG("<test>");
+      printCableList({cable1, cable2});
     } else if (subCmd == "fpga_status") {
       CFG_POST_MSG("<test> FPGA configuration status : Done");
     } else if (subCmd == "fpga_config") {
+      auto fpga_config_arg =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      std::string bitstreamFile = fpga_config_arg->m_args[0];
+      std::string cableInput = fpga_config_arg->cable;
+      uint64_t deviceIndex = fpga_config_arg->index;
+      auto device = deviceIndex == 1 ? device1 : device2;
+      if (Gui::GuiInterface())
+        Gui::GuiInterface()->ProgramFpga(cable1, device, bitstreamFile);
       for (int i = 10; i <= 100; i += 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (Gui::GuiInterface())
+          Gui::GuiInterface()->Progress(std::to_string(i));
         CFG_POST_MSG("<test> program fpga - %d %%", i);
       }
+    } else if (subCmd == "otp") {
+      for (int i = 10; i <= 100; i += 10) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        CFG_POST_MSG("<test> program otp - %d %%", i);
+      }
     } else if (subCmd == "flash") {
+      auto fpga_config_arg =
+          static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
+      std::string bitstreamFile = fpga_config_arg->m_args[0];
+      std::string cableInput = fpga_config_arg->cable;
+      uint64_t deviceIndex = fpga_config_arg->index;
+      auto device = deviceIndex == 1 ? device1 : device2;
+      if (Gui::GuiInterface())
+        Gui::GuiInterface()->Flash(cable1, device, bitstreamFile);
       auto flash =
           static_cast<const CFGArg_PROGRAMMER_FLASH*>(arg->get_sub_arg());
       auto operations = parseOperationString(flash->operations);
@@ -87,6 +123,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> Erasing flash memory");
         for (int i = 10; i <= 100; i += 10) {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
+          if (Gui::GuiInterface())
+            Gui::GuiInterface()->Progress(std::to_string(i));
           CFG_POST_MSG("<test> erase flash - %d %% ", i);
         }
       }
@@ -98,6 +136,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_MSG("<test> Programming flash memory");
         for (int i = 10; i <= 100; i += 10) {
           std::this_thread::sleep_for(std::chrono::milliseconds(20));
+          if (Gui::GuiInterface())
+            Gui::GuiInterface()->Progress(std::to_string(i));
           CFG_POST_MSG("<test> program flash - %d %% ", i);
         }
       }
@@ -209,7 +249,56 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         return;
       }
       std::atomic<bool> stop = false;
+      ProgressCallback progress = nullptr;
+      auto gui = Gui::GuiInterface();
+      if (gui) {
+        progress = [gui](const std::string& progress) {
+          gui->Progress(progress);
+        };
+        gui->ProgramFpga(cable, device, bitstreamFile);
+      }
       status = ProgramFpga(
+          cable, device, bitstreamFile, stop, nullptr,
+          [](std::string msg) {
+            std::string formatted;
+            formatted = removeInfoAndNewline(msg);
+            CFG_POST_MSG("%s", formatted.c_str());
+          },
+          progress);
+      if (status != ProgrammerErrorCode::NoError) {
+        CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        return;
+      }
+    } else if (subCmd == "otp") {
+      auto otp_arg =
+          static_cast<const CFGArg_PROGRAMMER_OTP*>(arg->get_sub_arg());
+      if (otp_arg->confirm == false) {
+        CFG_post_msg(
+            "WARNING: The OTP programming is not reversable. Please use -y to "
+            "indicate your consensus to proceed.\n\n",
+            "", false);
+        return;
+      }
+      std::string bitstreamFile = otp_arg->m_args[0];
+      std::string cableInput = otp_arg->cable;
+      uint64_t deviceIndex = otp_arg->index;
+      if (!isHwDbInitialized) {
+        InitializeHwDb(cableDeviceDb, cableMap);
+        isHwDbInitialized = true;
+      }
+      auto cableIterator = cableMap.find(cableInput);
+      if (cableIterator == cableMap.end()) {
+        CFG_POST_ERR("Cable not found: %s", cableInput.c_str());
+        return;
+      }
+      Cable cable = cableIterator->second;
+      Device device;
+      if (!findDeviceFromDb(cableDeviceDb, cable, deviceIndex, device)) {
+        CFG_POST_ERR("Device not found: %d", deviceIndex);
+        return;
+      }
+      std::atomic<bool> stop = false;
+      status = ProgramOTP(
           cable, device, bitstreamFile, stop, nullptr,
           [](std::string msg) {
             std::string formatted;
@@ -218,7 +307,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
           },
           nullptr);
       if (status != ProgrammerErrorCode::NoError) {
-        CFG_POST_ERR("Failed to program FPGA. Error code: %d", status);
+        CFG_POST_ERR("Failed to program device OTP. Error code: %d", status);
         return;
       }
     } else if (subCmd == "flash") {
@@ -242,6 +331,14 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
         return;
       }
+      ProgressCallback progress = nullptr;
+      auto gui = Gui::GuiInterface();
+      if (gui) {
+        progress = [gui](const std::string& progress) {
+          gui->Progress(progress);
+        };
+        gui->Flash(cable, device, bitstreamFile);
+      }
       std::atomic<bool> stop = false;
       status = ProgramFlash(
           cable, device, bitstreamFile, stop, ProgramFlashOperation::Program,
@@ -251,7 +348,7 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
             formatted = removeInfoAndNewline(msg);
             CFG_POST_MSG("%s", formatted.c_str());
           },
-          nullptr);
+          progress);
       if (status != ProgrammerErrorCode::NoError) {
         CFG_POST_ERR("Failed Flash programming. Error code: %d", status);
         return;
@@ -509,6 +606,48 @@ int ProgramFpga(const Cable& cable, const Device& device,
   size_t pos = cmdOutput.find("loaded file");
   if (pos == std::string::npos) {
     returnCode = ProgrammerErrorCode::FailedToProgramFPGA;
+  }
+  return returnCode;
+}
+
+int ProgramOTP(const Cable& cable, const Device& device,
+               const std::string& bitfile, std::atomic<bool>& stop,
+               std::ostream* outStream /*=nullptr*/,
+               OutputMessageCallback callbackMsg /*=nullptr*/,
+               ProgressCallback callbackProgress /*=nullptr*/) {
+  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
+                 "libOpenOcdExecPath cannot be empty");
+  int returnCode = ProgrammerErrorCode::NoError;
+  std::error_code ec;
+  std::string errorMessage;
+  if (!std::filesystem::exists(bitfile, ec)) {
+    errorMessage = "Cannot find bitfile: " + bitfile + ". " + ec.message();
+    returnCode = ProgrammerErrorCode::BitfileNotFound;
+    addOrUpdateErrorMessage(returnCode, errorMessage);
+    return returnCode;
+  }
+  std::string cmdOutput;
+  std::string programOTPCommand =
+      libOpenOcdExecPath + buildOTPProgramCommand(cable, device, bitfile);
+  std::string progressPercentagePattern = "\\d{1,3}\\.\\d{2}%";
+  std::regex regexPattern(progressPercentagePattern);
+  returnCode = CFG_execute_cmd_with_callback(programOTPCommand, cmdOutput,
+                                             outStream, regexPattern, stop,
+                                             callbackProgress, callbackMsg);
+  if (returnCode) {
+    errorMessage = "Failed to execute following command " + programOTPCommand +
+                   ". Error code: " + std::to_string(returnCode) + "\n";
+    errorMessage += "ProgramOTP() failed.\n";
+    addOrUpdateErrorMessage(ProgrammerErrorCode::FailedExecuteCommand,
+                            errorMessage);
+    return ProgrammerErrorCode::FailedExecuteCommand;
+  }
+
+  // when programming done, openocd will print out "loaded file"
+  // loaded file /home/user1/abc.bin to device 0 in 5s 90381us
+  size_t pos = cmdOutput.find("loaded file");
+  if (pos == std::string::npos) {
+    returnCode = ProgrammerErrorCode::FailedToProgramOTP;
   }
   return returnCode;
 }

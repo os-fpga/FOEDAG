@@ -563,6 +563,11 @@ QAction *SourcesForm::ProjectSettingsActions() const {
   return m_actProjectSettings;
 }
 
+void SourcesForm::SetTopModuleFile(const QString &file) {
+  m_topModuleFile = file;
+  UpdateSrcHierachyTree();
+}
+
 void SourcesForm::CreateFolderHierachyTree() {
   // Initialize design sources tree
   QTreeWidgetItem *topItem = new QTreeWidgetItem(m_treeSrcHierachy);
@@ -590,6 +595,11 @@ void SourcesForm::CreateFolderHierachyTree() {
         itemf->setIcon(0, QIcon(":/img/file.png"));
         itemf->setData(0, Qt::WhatsThisPropertyRole, SRC_TREE_DESIGN_FILE_ITEM);
         itemf->setData(0, SetFileDataRole, str);
+        if (strfile == m_topModuleFile) {
+          auto font = itemf->font(0);
+          font.setBold(true);
+          itemf->setFont(0, font);
+        }
       }
     }
     iFileSum += listDesFile.size();

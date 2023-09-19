@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-project(compiler LANGUAGES CXX)
+project(programmer-gui LANGUAGES CXX)
 
 if (PRODUCTION_BUILD)
   message("Production Build type set to ON")
@@ -46,14 +46,21 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../lib)
 
 set (SRC_CPP_LIST
   ProgrammerMain.cpp
+  SummaryProgressBar.cpp
+  ProgrammerSettingsWidget.cpp
+  ProgrammerGuiIntegration.cpp
 )
 
 set (SRC_H_INSTALL_LIST
   ProgrammerMain.h
+  SummaryProgressBar.h
+  ProgrammerSettingsWidget.h
+  ProgrammerGuiIntegration.h
 )
 
 set (SRC_UI
   ProgrammerMain.ui
+  ProgrammerSettingsWidget.ui
 )
 
 set (SRC_H_LIST
@@ -61,7 +68,7 @@ set (SRC_H_LIST
 )
 
 set (res_LIST
-#  res.qrc
+  res.qrc
 )
 
 add_library(programmer-gui STATIC
@@ -72,6 +79,7 @@ add_library(programmer-gui STATIC
 )
 
 target_link_libraries(programmer-gui PUBLIC Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml)
+target_link_libraries(programmer-gui PRIVATE programmer foedag)
 target_compile_definitions(programmer-gui PRIVATE PROGRAMMER_GUI_LIBRARY)
 
 install (
@@ -92,4 +100,18 @@ add_executable(programmer-gui_test
 target_link_libraries(programmer-gui_test foedag foedagcore tcl_stubb tcl_static
   zlib tclutils programmer-gui)
 set_target_properties(programmer-gui_test PROPERTIES OUTPUT_NAME programmer-gui_test)
+
+set (SRC_CPP_LIST
+  app/main.cpp
+)
+
+if(MSVC)
+  add_executable(programmer-bin ${SRC_CPP_LIST})
+  set_property(TARGET programmer-bin PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set_property(TARGET programmer-bin PROPERTY COMPILER_FLAGS /DSTATIC_BUILD)
+else()
+  add_executable(programmer-bin ${SRC_CPP_LIST})
+endif()
+set_target_properties(programmer-bin PROPERTIES OUTPUT_NAME programmer_gui)
+target_link_libraries(programmer-bin programmer-gui)
 

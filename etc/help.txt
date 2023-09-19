@@ -195,15 +195,31 @@ Tcl commands (Available in GUI or Batch console or Batch script):
                               : Uses alternate bitstream generation configuration files
 </openfpga>
 
----------------
---- Program ---
----------------
-   programmer <command> 
-     command                      :fpga_config, flash, fpga_status, list_devices
-     fpga_config <bitstream_file> : Program the device via JTAG
-     flash <bitstream_file>       : Program the flash via JTAG
-     fpga_status                  : Get the status of the device
-     list_devices                 : List all available devices
+------------------
+--- Programmer ---
+------------------
+   programmer <command>           : A programmer tool allows you to program and configure FPGA devices via JTAG 
+     command                      : fpga_config, flash, fpga_status, list_device, list_cable, otp
+     fpga_config -c <cable name/index> ?-d <device_index>? <bitstream_file> : Program the FPGA device via JTAG
+       -c <cable_name/index>    : Specify the cable name or index
+       -d <device_index>        : Specify the device index
+       <bitstream_file>         : Bitstream file to program
+     flash -c <cable name/index> ?-d <device_index>? ?-o <operations>? <bitstream_file> : Program the Flash via JTAG
+       -c <cable_name/index>    : Specify the cable name or index
+       -d <device_index>        : Specify the device index
+       -o <operations>          : Specify the operations to perform on the flash (Valid operations: program)
+       <bitstream_file>         : Bitstream file to program
+     fpga_status ?-c <cable name/index>? ?-d <device_index>? : Query FPGA Configuration Done and Configuration IsError status for a specify device
+       -c <cable_name/index>    : Specify the cable name or index
+       -d <device_index>        : Specify the device index
+     list_device ?-c <cable name/index>? : List all available devices or specified cable devices
+       -c <cable_name/index>    : Specify the cable name or index
+     list_cable                 : List all connected USB programmer cables
+     otp -c <cable name/index> ?-d <device_index>? ?-y? <bitstream_file> : Program the device OTP via JTAG. WARNING: OTP programming is not reversible once programmed successfully.
+       -c <cable_name/index>    : Specify the cable name or index
+       -d <device_index>        : Specify the device index
+       -y                       : Indicate the consesus of the user to proceed with OTP programming.
+       <bitstream_file>         : Bitstream file to program
 
 -----------------------------------------------
 

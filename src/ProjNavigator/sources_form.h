@@ -48,6 +48,9 @@ class SourcesForm : public QWidget {
   void UpdateSrcHierachyTree();
   QAction* ProjectSettingsActions() const;
 
+ public slots:
+  void SetTopModuleFile(const QString& file);
+
  signals:
   void OpenFile(QString);
   void OpenFileWith(QString, int);
@@ -110,6 +113,7 @@ class SourcesForm : public QWidget {
 
   ProjectManager* m_projManager;
   QSettings* m_setting{nullptr};
+  QString m_topModuleFile{};
 
   void CreateActions();
   void CreateFolderHierachyTree();

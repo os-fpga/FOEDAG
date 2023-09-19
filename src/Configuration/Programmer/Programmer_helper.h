@@ -20,8 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #pragma once
-#include "CFGCommon/CFGArg_auto.h"
-#include "CFGCommon/CFGCommon.h"
 #include "HwDevices.h"
 
 struct libusb_device_handle;
@@ -33,6 +31,7 @@ struct Cable;
 struct Device;
 struct TapInfo;
 struct CfgStatus;
+class ProgrammerGuiInterface;
 enum class ProgramFlashOperation : uint32_t;
 enum class TransportType : uint32_t;
 
@@ -40,6 +39,14 @@ struct ProgrammerCommand {
   std::string name;
   std::string executable_cmd;
   bool is_error = false;
+};
+
+class Gui {
+  static ProgrammerGuiInterface* m_guiInterface;
+
+ public:
+  static void SetGuiInterface(ProgrammerGuiInterface* guiInterface);
+  static ProgrammerGuiInterface* GuiInterface();
 };
 
 void addOrUpdateErrorMessage(int error, const std::string& message);
@@ -58,6 +65,8 @@ std::string buildListDeviceCommand(const Cable& cable,
                                    const std::vector<TapInfo>& foundTapList);
 std::string buildFpgaProgramCommand(const Cable& cable, const Device& device,
                                     const std::string& bitstream_file);
+std::string buildOTPProgramCommand(const Cable& cable, const Device& device,
+                                   const std::string& bitstream_file);
 std::string buildFlashProgramCommand(
     const Cable& cable, const Device& device, const std::string& bitstreamFile,
     ProgramFlashOperation programFlashOperation);
