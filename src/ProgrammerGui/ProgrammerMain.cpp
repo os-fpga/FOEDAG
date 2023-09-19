@@ -94,8 +94,8 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   ui->treeWidget->header()->resizeSection(2, 200);
   ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
   ui->treeWidget->expandAll();
-  connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)),
-          SLOT(onCustomContextMenu(QPoint)));
+  connect(ui->treeWidget, &QTreeWidget::customContextMenuRequested, this,
+          &ProgrammerMain::onCustomContextMenu);
   connect(ui->actionExit, &QAction::triggered, this, &ProgrammerMain::close);
   connect(ui->actionDetect, &QAction::triggered, this,
           &ProgrammerMain::GetDeviceList);
