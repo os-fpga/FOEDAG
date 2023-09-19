@@ -59,9 +59,8 @@ std::map<int, std::string> ErrorMessages = {
     {InvalidFlashSize, "Invalid flash size"},
     {UnsupportedFunc, "Unsupported function"}};
 
-void programmer_entry(const CFGCommon_ARG* cmdarg) {
+void programmer_entry(CFGCommon_ARG* cmdarg) {
   auto arg = std::static_pointer_cast<CFGArg_PROGRAMMER>(cmdarg->arg);
-  auto nonConstCmdArg = const_cast<CFGCommon_ARG*>(cmdarg);
   if (arg == nullptr) return;
 
   if (arg->m_help) {
@@ -86,18 +85,17 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
     if (subCmd == "list_device") {
       CFG_POST_MSG("<test>");
       printDeviceList(cable1, {device1, device2});
-      nonConstCmdArg->tclOutput =
+      cmdarg->tclOutput =
           "UsbProgrammerCable_1_1-Gemini<1>-16KB "
           "UsbProgrammerCable_1_1-Gemini<2>-16KB";
     } else if (subCmd == "list_cable") {
       CFG_POST_MSG("<test>");
       printCableList({cable1, cable2});
-      nonConstCmdArg->tclOutput =
-          "UsbProgrammerCable_1_1 UsbProgrammerCable_1_2";
+      cmdarg->tclOutput = "UsbProgrammerCable_1_1 UsbProgrammerCable_1_2";
     } else if (subCmd == "fpga_status") {
       CFG_POST_MSG("<test> FPGA configuration status CfgDone : True");
       CFG_POST_MSG("<test> FPGA configuration status CfgError : False");
-      nonConstCmdArg->tclOutput = "1 0";
+      cmdarg->tclOutput = "1 0";
     } else if (subCmd == "fpga_config") {
       auto fpga_config_arg =
           static_cast<const CFGArg_PROGRAMMER_FPGA_CONFIG*>(arg->get_sub_arg());
@@ -197,8 +195,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         if (list_device->verbose) {
           printDeviceList(cable, devices);
         }
-        if (devices.size() > 0) {
-          nonConstCmdArg->tclOutput =
+        if (!devices.empty()) {
+          cmdarg->tclOutput =
               buildCableDevicesAliasNameWithSpaceSeparatedString(cable,
                                                                  devices);
         }
@@ -208,15 +206,15 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         } else {
           InitializeHwDb(cableDeviceDb, cableMap);
         }
-        if (cableDeviceDb.size() > 0) {
+        if (!cableDeviceDb.empty()) {
           for (const HwDevices& hwDevice : cableDeviceDb) {
-            nonConstCmdArg->tclOutput +=
+            cmdarg->tclOutput +=
                 buildCableDevicesAliasNameWithSpaceSeparatedString(
                     hwDevice.getCable(), hwDevice.getDevices()) +
                 " ";
           }
-          if (!nonConstCmdArg->tclOutput.empty()) {
-            nonConstCmdArg->tclOutput.pop_back();
+          if (!cmdarg->tclOutput.empty()) {
+            cmdarg->tclOutput.pop_back();
           }
         }
         isHwDbInitialized = true;
@@ -236,9 +234,9 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
                             [](const std::string& a, const Cable& c) {
                               return a + (a.empty() ? "" : " ") + c.name;
                             });
-        nonConstCmdArg->tclOutput = cableNamesTclOuput;
+        cmdarg->tclOutput = cableNamesTclOuput;
       } else {
-        nonConstCmdArg->tclOutput.clear();
+        cmdarg->tclOutput.clear();
       }
     } else if (subCmd == "fpga_status") {
       auto fpga_status_arg =
@@ -272,8 +270,8 @@ void programmer_entry(const CFGCommon_ARG* cmdarg) {
         if (fpga_status_arg->verbose) {
           CFG_POST_MSG("\n%s", statusPrintOut.c_str());
         }
-        nonConstCmdArg->tclOutput = std::to_string(cfgStatus.cfgDone) + " " +
-                                    std::to_string(cfgStatus.cfgError);
+        cmdarg->tclOutput = std::to_string(cfgStatus.cfgDone) + " " +
+                            std::to_string(cfgStatus.cfgError);
       } else {
         CFG_POST_ERR("Device not found: %d", deviceIndex);
         return;
