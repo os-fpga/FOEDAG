@@ -241,5 +241,35 @@ TEST(StringUtilsTest, FromArgsNull) {
   EXPECT_EQ(res, expected);
 }
 
+TEST(FileUtils, format) {
+  std::string formatstr{"hello %"};
+  formatstr = StringUtils::format(formatstr, "world");
+  EXPECT_EQ(formatstr, std::string{"hello world"});
+
+  formatstr = "% %";
+  formatstr = StringUtils::format(formatstr, 10, 20);
+  EXPECT_EQ(formatstr, std::string{"10 20"});
+}
+
+TEST(FileUtils, formatOneArg) {
+  std::string formatstr{"hello % %"};
+  formatstr = StringUtils::format(formatstr, "world");
+  EXPECT_EQ(formatstr, std::string{"hello world %"});
+
+  formatstr = "% % %";
+  formatstr = StringUtils::format(formatstr, 10, 20);
+  EXPECT_EQ(formatstr, std::string{"10 20 %"});
+}
+
+TEST(FileUtils, formatFewArgs) {
+  std::string formatstr{"hello"};
+  formatstr = StringUtils::format(formatstr, "world");
+  EXPECT_EQ(formatstr, std::string{"hello"});
+
+  formatstr = "%";
+  formatstr = StringUtils::format(formatstr, 10, 20);
+  EXPECT_EQ(formatstr, std::string{"10"});
+}
+
 }  // namespace
 }  // namespace FOEDAG

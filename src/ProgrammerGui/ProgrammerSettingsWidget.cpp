@@ -26,23 +26,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace FOEDAG {
 
-const char *ProgrammerSettingsWidget::ALWAYS_VERIFY{"always-verify"};
-
-ProgrammerSettingsWidget::ProgrammerSettingsWidget(QSettings &settings,
-                                                   QWidget *parent)
+ProgrammerSettingsWidget::ProgrammerSettingsWidget(
+    const ProgrammerSettings &pSettings, QSettings &settings, QWidget *parent)
     : Dialog(parent),
       ui(new Ui::ProgrammerSettingsWidget),
       m_settings(settings) {
   ui->setupUi(this);
   initDialogBox(ui->gridLayout, Dialog::Ok | Dialog::Cancel);
-  ui->checkBoxAlwaysPerformVerify->setChecked(
-      m_settings.value(ALWAYS_VERIFY, false).toBool());
   connect(this, &ProgrammerSettingsWidget::accepted, this,
           &ProgrammerSettingsWidget::apply);
 
   // disable for now
   ui->tabWidget->removeTab(3);
   ui->tabWidget->removeTab(2);
+  ui->pushButtonAddDevice->hide();
+  ui->pushButtonRemoveDevice->hide();
+  ui->pushButtonEditDevice->hide();
+
+  for (auto iter = pSettings.frequency.begin();
+       iter != pSettings.frequency.end(); iter++) {
+    ui->comboBoxHw->addItem(iter.key());
+    ui->spinBoxFreq->setRange(iter.value(), iter.value());
+  }
+
+  for (auto deviceInfo : pSettings.devices) {
+    int rowIndex = ui->tableWidgetDevices->rowCount();
+    ui->tableWidgetDevices->insertRow(rowIndex);
+    ui->tableWidgetDevices->setItem(
+        rowIndex, 0,
+        new QTableWidgetItem{QString::fromStdString(deviceInfo->dev.name)});
+    ui->tableWidgetDevices->setItem(
+        rowIndex, 1,
+        new QTableWidgetItem{ToHexString(deviceInfo->dev.tapInfo.idCode)});
+    ui->tableWidgetDevices->setItem(
+        rowIndex, 2,
+        new QTableWidgetItem{ToHexString(deviceInfo->dev.tapInfo.irMask)});
+    ui->tableWidgetDevices->setItem(
+        rowIndex, 3,
+        new QTableWidgetItem{QString::number(deviceInfo->dev.tapInfo.irLen)});
+  }
 }
 
 ProgrammerSettingsWidget::~ProgrammerSettingsWidget() { delete ui; }
@@ -53,8 +75,8 @@ void ProgrammerSettingsWidget::openTab(int index) {
 }
 
 void ProgrammerSettingsWidget::apply() {
-  m_settings.setValue(ALWAYS_VERIFY,
-                      ui->checkBoxAlwaysPerformVerify->isChecked());
+  m_settings.setValue(HardwareFrequencyKey().arg(ui->comboBoxHw->currentText()),
+                      ui->spinBoxFreq->text());
 }
 
 }  // namespace FOEDAG
