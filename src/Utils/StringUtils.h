@@ -147,6 +147,22 @@ class StringUtils final {
 
   static StringVector FromArgs(int argc, const char* argv[]);
 
+  static std::string format(const std::string& format) { return format; }
+  template <typename T, typename... Targs>
+  static std::string format(const std::string& string, T value,
+                            Targs... Fargs) {
+    static const size_t length{1};
+    auto find = string.find('%');
+    if (find != std::string::npos) {
+      std::string str = string;
+      std::stringstream sstream;
+      sstream << value;
+      str.replace(find, length, sstream.str());
+      return format(str, Fargs...);
+    }
+    return string;
+  }
+
  private:
   StringUtils() = delete;
   StringUtils(const StringUtils& orig) = delete;

@@ -56,6 +56,7 @@ set (SRC_H_INSTALL_LIST
   SummaryProgressBar.h
   ProgrammerSettingsWidget.h
   ProgrammerGuiIntegration.h
+  ProgrammerGuiCommon.h
 )
 
 set (SRC_UI

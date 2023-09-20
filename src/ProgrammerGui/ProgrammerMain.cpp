@@ -65,26 +65,33 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
 
   Gui::SetGuiInterface(m_guiIntegration);
 
-  QComboBox *hardware = new QComboBox;
-  hardware->addItem("FTDI");
-  hardware->setFixedWidth(120);
+  m_frequency.insert("FTDI", Frequency);
+
+  m_hardware = new QComboBox;
+  loadFromSettigns();
+  QMapIterator<QString, uint64_t> i(m_frequency);
+  while (i.hasNext()) {
+    i.next();
+    m_hardware->addItem(i.key());
+  }
+  m_hardware->setFixedWidth(120);
 
   QLabel *label1 = new QLabel("Hardware:");
-  label1->setBuddy(hardware);
+  label1->setBuddy(m_hardware);
 
-  QComboBox *iface = new QComboBox;
-  iface->addItem("JTAG");
-  iface->setFixedWidth(120);
+  m_iface = new QComboBox;
+  m_iface->addItem("JTAG");
+  m_iface->setFixedWidth(120);
 
   QLabel *label2 = new QLabel("Interface:");
-  label2->setBuddy(iface);
+  label2->setBuddy(m_iface);
 
   m_mainProgress.progressBar()->setAlignment(Qt::AlignHCenter);
 
   ui->toolBar->insertWidget(ui->actionDetect, label1);
-  ui->toolBar->insertWidget(ui->actionDetect, hardware);
+  ui->toolBar->insertWidget(ui->actionDetect, m_hardware);
   ui->toolBar->insertWidget(ui->actionDetect, label2);
-  ui->toolBar->insertWidget(ui->actionDetect, iface);
+  ui->toolBar->insertWidget(ui->actionDetect, m_iface);
   m_progressAction = ui->toolBar->addWidget(m_mainProgress.progressBar());
   ui->toolBar->layout()->setSpacing(5);
   ui->toolBar->layout()->setContentsMargins(5, 5, 5, 5);
@@ -94,8 +101,8 @@ ProgrammerMain::ProgrammerMain(QWidget *parent)
   ui->treeWidget->header()->resizeSection(2, 200);
   ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
   ui->treeWidget->expandAll();
-  connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)),
-          SLOT(onCustomContextMenu(QPoint)));
+  connect(ui->treeWidget, &QTreeWidget::customContextMenuRequested, this,
+          &ProgrammerMain::onCustomContextMenu);
   connect(ui->actionExit, &QAction::triggered, this, &ProgrammerMain::close);
   connect(ui->actionDetect, &QAction::triggered, this,
           &ProgrammerMain::GetDeviceList);
@@ -282,10 +289,15 @@ void ProgrammerMain::progressChanged(const std::string &progress) {
 }
 
 void ProgrammerMain::openSettingsWindow(int index) {
-  ProgrammerSettingsWidget w{m_settings, this};
+  ProgrammerSettings settings;
+  settings.frequency = m_frequency;
+  settings.devices = m_deviceSettings;
+  ProgrammerSettingsWidget w{settings, m_settings, this};
   w.setWindowTitle("Settings");
   w.openTab(index);
-  w.exec();
+  if (w.exec() == QDialog::Accepted) {
+    loadFromSettigns();
+  }
 }
 
 bool ProgrammerMain::EvalCommand(const QString &cmd) {
@@ -317,6 +329,17 @@ QString ProgrammerMain::ToString(const QString &str) {
 QString ProgrammerMain::ToString(const QStringList &strList,
                                  const QString &sep) {
   return strList.isEmpty() ? NONE_STR : strList.join(sep);
+}
+
+void ProgrammerMain::loadFromSettigns() {
+  QMapIterator<QString, uint64_t> i(m_frequency);
+  while (i.hasNext()) {
+    i.next();
+    auto settingKey = HardwareFrequencyKey().arg(i.key());
+    if (m_settings.contains(settingKey)) {
+      m_frequency[i.key()] = m_settings.value(settingKey).toUInt();
+    }
+  }
 }
 
 void ProgrammerMain::GetDeviceList() {
