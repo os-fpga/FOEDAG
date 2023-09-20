@@ -536,7 +536,7 @@ std::string Simulator::SimulatorCompilationOptions(SimulatorType type) {
     case SimulatorType::Icarus:
       return "-DIVERILOG=1 -v";
     case SimulatorType::GHDL:
-      return "-a -fsynopsys";
+      return "-a -fsynopsys -fexplicit";
     case SimulatorType::Questa:
       return "";
     case SimulatorType::VCS:
@@ -665,7 +665,7 @@ std::string Simulator::LanguageDirective(SimulatorType type,
               m_simType == SimulationType::PNR) {
             return "--std=08";
           }
-          return "--std=93c";
+          return "--std=93";
         case Design::Language::VHDL_2000:
           if (m_simType == SimulationType::Gate ||
               m_simType == SimulationType::PNR) {
@@ -737,7 +737,7 @@ std::string Simulator::SimulatorRunCommand(SimulationType simulation,
       return command;
     }
     case SimulatorType::GHDL: {
-      std::string command = execPath + " -r -fsynopsys";
+      std::string command = execPath + " -r -fsynopsys -fexplicit";
       command += " --workdir=" +
                  m_compiler->FilePath(Compiler::Action::SimulateRTL).string();
       if (!GetSimulatorExtraOption(simulation, type).empty())
@@ -936,7 +936,7 @@ int Simulator::SimulationJob(SimulationType simulation, SimulatorType type,
       break;
     }
     case SimulatorType::GHDL: {
-      std::string command = execPath + " -e -fsynopsys";
+      std::string command = execPath + " -e -fsynopsys -fexplicit";
       if (!GetSimulatorElaborationOption(simulation, type).empty())
         command += " " + GetSimulatorElaborationOption(simulation, type);
       command += " --workdir=" +
