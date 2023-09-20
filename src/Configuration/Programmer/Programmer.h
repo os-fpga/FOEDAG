@@ -122,7 +122,7 @@ struct CfgStatus {
 using ProgressCallback = std::function<void(std::string)>;
 using OutputMessageCallback = std::function<void(std::string)>;
 
-void programmer_entry(const CFGCommon_ARG* cmdarg);
+void programmer_entry(CFGCommon_ARG* cmdarg);
 
 // Backend API
 /**

@@ -39,11 +39,11 @@ TEST(CFGCompiler, test_RegisterCallbackFunction) {
   EXPECT_EQ(cfgcompiler.RegisterCallbackFunction("xyz", (cfg_callback_function)(0x456)), true);
 }
 
-void test_callback_good_function(const CFGCommon_ARG* cmdarg) {
+void test_callback_good_function(CFGCommon_ARG* cmdarg) {
   CFG_POST_MSG("This is good function");
 }
 
-void test_callback_bad_function(const CFGCommon_ARG* cmdarg) {
+void test_callback_bad_function(CFGCommon_ARG* cmdarg) {
   CFG_INTERNAL_ERROR("This is internal error by purpose");
 }
 
