@@ -778,7 +778,7 @@ TEST(ProgrammerHelper, InitializeHwDb) {
   std::vector<HwDevices> cableDeviceDb;
   std::map<std::string, Cable> cableMap;
   testing::internal::CaptureStdout();
-  InitializeHwDb(cableDeviceDb, cableMap);
+  InitializeHwDb(cableDeviceDb, cableMap, false);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected = "INFO: No cable found.\n";
   EXPECT_EQ(output, expected);
@@ -789,7 +789,7 @@ TEST(ProgrammerHelper, printCableListTest)
 {
   std::vector<Cable> cableList{{0x403, 0x6011, 2, 8, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_2_8", 1}};
   testing::internal::CaptureStdout();
-  printCableList(cableList);
+  printCableList(cableList, true);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected = 
   "INFO: Cable            \n"
@@ -803,7 +803,7 @@ TEST(ProgrammerHelper, PrintDeviceListNoDeviceTest) {
   Cable cable{0x403, 0x6011, 1, 2, 33, 1, "serial_number_xyz", "description_xyz", 10000, TransportType::jtag, "RsFtdi_1_2", 1};
   testing::internal::CaptureStdout();
   std::vector<Device> deviceList{};
-  printDeviceList(cable, deviceList);
+  printDeviceList(cable, deviceList, true);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected = 
   "INFO: Cable                       | Device            | Flash Size\n"
@@ -818,7 +818,7 @@ TEST(ProgrammerHelper, PrintDeviceListSimpleTest) {
     {1, "Device1", 16384, {1, "Device1.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}},
     {2, "Gemini2", 16384, {2, "Device2.Tap", true, 0x1234AABB, 0x1234AABB, 5, 0x1, 0x3}}};
   testing::internal::CaptureStdout();
-  printDeviceList(cable, deviceList);
+  printDeviceList(cable, deviceList, true);
   std::string output = testing::internal::GetCapturedStdout();
   std::string expected =
   "INFO: Cable                       | Device            | Flash Size\n"

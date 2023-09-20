@@ -83,18 +83,12 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
     device1.flashSize = device2.flashSize = 16384;
 
     if (subCmd == "list_device") {
-      CFG_POST_MSG("<test>");
-      printDeviceList(cable1, {device1, device2});
       cmdarg->tclOutput =
           "UsbProgrammerCable_1_1-Gemini<1>-16KB "
           "UsbProgrammerCable_1_1-Gemini<2>-16KB";
     } else if (subCmd == "list_cable") {
-      CFG_POST_MSG("<test>");
-      printCableList({cable1, cable2});
       cmdarg->tclOutput = "UsbProgrammerCable_1_1 UsbProgrammerCable_1_2";
     } else if (subCmd == "fpga_status") {
-      CFG_POST_MSG("<test> FPGA configuration status CfgDone : True");
-      CFG_POST_MSG("<test> FPGA configuration status CfgError : False");
       cmdarg->tclOutput = "1 0";
     } else if (subCmd == "fpga_config") {
       auto fpga_config_arg =
@@ -192,20 +186,15 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
           CFG_POST_ERR("Failed to list devices. Error code: %d", status);
           return;
         }
-        if (list_device->verbose) {
-          printDeviceList(cable, devices);
-        }
+        processDeviceList(cable, devices, list_device->verbose);
         if (!devices.empty()) {
           cmdarg->tclOutput =
               buildCableDevicesAliasNameWithSpaceSeparatedString(cable,
                                                                  devices);
         }
       } else {
-        if (list_device->verbose) {
-          InitializeHwDb(cableDeviceDb, cableMap, printDeviceList);
-        } else {
-          InitializeHwDb(cableDeviceDb, cableMap);
-        }
+        InitializeHwDb(cableDeviceDb, cableMap, list_device->verbose,
+                       processDeviceList);
         if (!cableDeviceDb.empty()) {
           for (const HwDevices& hwDevice : cableDeviceDb) {
             cmdarg->tclOutput +=
@@ -225,9 +214,8 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       std::vector<Cable> cables;
       InitializeCableMap(cables, cableMap);
       isCableMapInitialized = true;
-      if (list_cable_arg->verbose) {
-        printCableList(cables);
-      }
+      processCableList(cables, list_cable_arg->verbose);
+
       if (!cables.empty()) {
         std::string cableNamesTclOuput =
             std::accumulate(cables.begin(), cables.end(), std::string(),
@@ -248,7 +236,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
         return;
       }
       if (!isHwDbInitialized) {
-        InitializeHwDb(cableDeviceDb, cableMap);
+        InitializeHwDb(cableDeviceDb, cableMap, false);
         isHwDbInitialized = true;
       }
       CfgStatus cfgStatus;
@@ -283,7 +271,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       std::string cableInput = fpga_config_arg->cable;
       uint64_t deviceIndex = fpga_config_arg->index;
       if (!isHwDbInitialized) {
-        InitializeHwDb(cableDeviceDb, cableMap);
+        InitializeHwDb(cableDeviceDb, cableMap, false);
         isHwDbInitialized = true;
       }
       auto cableIterator = cableMap.find(cableInput);
@@ -332,7 +320,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       std::string cableInput = otp_arg->cable;
       uint64_t deviceIndex = otp_arg->index;
       if (!isHwDbInitialized) {
-        InitializeHwDb(cableDeviceDb, cableMap);
+        InitializeHwDb(cableDeviceDb, cableMap, false);
         isHwDbInitialized = true;
       }
       auto cableIterator = cableMap.find(cableInput);
@@ -366,7 +354,7 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
       std::string cableInput = flash_arg->cable;
       uint64_t deviceIndex = flash_arg->index;
       if (!isHwDbInitialized) {
-        InitializeHwDb(cableDeviceDb, cableMap);
+        InitializeHwDb(cableDeviceDb, cableMap, false);
         isHwDbInitialized = true;
       }
       auto cableIterator = cableMap.find(cableInput);
