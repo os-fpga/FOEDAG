@@ -93,7 +93,11 @@ void TaskTableView::setModel(QAbstractItemModel *model) {
     if (task && ((task->type() == TaskType::Settings) ||
                  (task->type() == TaskType::Button))) {
       auto index = this->model()->index(i, TitleCol);
-      auto button = new QPushButton(task->title());
+      QString title = task->title();
+      if (title.contains("&")) { 
+        title = title.replace("&", "&&"); // escape Access Key Indicator by adding one more extra '&' for button text
+      }
+      auto button = new QPushButton(title);
       button->setObjectName(task->title());
       if (task->type() == TaskType::Settings)
         connect(button, &QPushButton::clicked, this,
