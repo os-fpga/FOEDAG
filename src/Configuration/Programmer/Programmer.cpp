@@ -83,10 +83,16 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
     device1.flashSize = device2.flashSize = 16384;
 
     if (subCmd == "list_device") {
+      auto list_device =
+          static_cast<const CFGArg_PROGRAMMER_LIST_DEVICE*>(arg->get_sub_arg());
+      processDeviceList(cable1, {device1, device2}, list_device->verbose);
       cmdarg->tclOutput =
           "UsbProgrammerCable_1_1-Gemini<1>-16KB "
           "UsbProgrammerCable_1_1-Gemini<2>-16KB";
     } else if (subCmd == "list_cable") {
+      auto list_cable_arg =
+          static_cast<const CFGArg_PROGRAMMER_LIST_CABLE*>(arg->get_sub_arg());
+      processCableList({cable1, cable2}, list_cable_arg->verbose);
       cmdarg->tclOutput = "UsbProgrammerCable_1_1 UsbProgrammerCable_1_2";
     } else if (subCmd == "fpga_status") {
       cmdarg->tclOutput = "1 0";
@@ -395,7 +401,10 @@ void programmer_entry(CFGCommon_ARG* cmdarg) {
 }
 
 int InitLibrary(std::string openOCDPath) {
-  CFG_ASSERT_MSG(!openOCDPath.empty(), "openOCDPath cannot be empty");
+  if (openOCDPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
+
   libOpenOcdExecPath = openOCDPath;
 
   if (!std::filesystem::exists(openOCDPath)) {
@@ -493,8 +502,9 @@ int GetAvailableCables(std::vector<Cable>& cables) {
 }
 
 int ListDevices(const Cable& cable, std::vector<Device>& devices) {
-  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
-                 "libOpenOcdExecPath cannot be empty");
+  if (libOpenOcdExecPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
   int returnCode = ProgrammerErrorCode::NoError;
   std::string cmdOutput, outputMsg, listDeviceCmdOutput;
   std::atomic<bool> stopCommand{false};
@@ -560,8 +570,9 @@ int ListDevices(const Cable& cable, std::vector<Device>& devices) {
 
 int GetFpgaStatus(const Cable& cable, const Device& device, CfgStatus& status,
                   std::string& statusOutputPrint) {
-  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
-                 "libOpenOcdExecPath cannot be empty");
+  if (libOpenOcdExecPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
   int returnCode = ProgrammerErrorCode::NoError;
   std::string cmdOutput, outputMsg;
   bool found = false;
@@ -603,8 +614,9 @@ int ProgramFpga(const Cable& cable, const Device& device,
                 std::ostream* outStream /*=nullptr*/,
                 OutputMessageCallback callbackMsg /*=nullptr*/,
                 ProgressCallback callbackProgress /*=nullptr*/) {
-  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
-                 "libOpenOcdExecPath cannot be empty");
+  if (libOpenOcdExecPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
   int returnCode = ProgrammerErrorCode::NoError;
   std::error_code ec;
   std::string errorMessage;
@@ -645,8 +657,9 @@ int ProgramOTP(const Cable& cable, const Device& device,
                std::ostream* outStream /*=nullptr*/,
                OutputMessageCallback callbackMsg /*=nullptr*/,
                ProgressCallback callbackProgress /*=nullptr*/) {
-  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
-                 "libOpenOcdExecPath cannot be empty");
+  if (libOpenOcdExecPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
   int returnCode = ProgrammerErrorCode::NoError;
   std::error_code ec;
   std::string errorMessage;
@@ -691,8 +704,9 @@ int ProgramFlash(
     std::ostream* outStream /*=nullptr*/,
     OutputMessageCallback callbackMsg /*=nullptr*/,
     ProgressCallback callbackProgress /*=nullptr*/) {
-  CFG_ASSERT_MSG(!libOpenOcdExecPath.empty(),
-                 "libOpenOcdExecPath cannot be empty");
+  if (libOpenOcdExecPath.empty()) {
+    return ProgrammerErrorCode::OpenOCDExecutableNotFound;
+  }
   int returnCode = ProgrammerErrorCode::NoError;
   std::error_code ec;
   std::string errorMessage;
