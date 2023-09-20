@@ -72,7 +72,7 @@ TaskManager::TaskManager(Compiler *compiler, QObject *parent)
   m_tasks.insert(POWER_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(BITSTREAM, new Task{"Bitstream Generation"});
   m_tasks.insert(BITSTREAM_CLEAN, new Task{"Clean", TaskType::Clean});
-  m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&&R View", TaskType::Button});
+  m_tasks.insert(PLACE_AND_ROUTE_VIEW, new Task{"P&R View", TaskType::Button});
   m_tasks.insert(SIMULATE_RTL, new Task{"Simulate RTL"});
   m_tasks.insert(SIMULATE_RTL_CLEAN, new Task{"Clean", TaskType::Clean});
   m_tasks.insert(SIMULATE_RTL_SETTINGS,
