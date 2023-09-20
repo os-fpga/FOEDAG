@@ -854,6 +854,13 @@ bool Compiler::RegisterCommands(TclInterpreter* interp, bool batchMode) {
   };
   interp->registerCmd("synth_options", synth_options, this, 0);
 
+  auto verify_synth_ports = [](void* clientData, Tcl_Interp* interp, int argc,
+                               const char* argv[]) -> int {
+    Compiler* compiler = (Compiler*)clientData;
+    return compiler->verifySynthPorts(compiler, interp, argc, argv);
+  };
+  interp->registerCmd("verify_synth_ports", verify_synth_ports, this, nullptr);
+
   // Long runtime commands have to have different scheduling in batch and GUI
   // modes
   if (batchMode) {
@@ -3036,4 +3043,29 @@ int Compiler::add_files(Compiler* compiler, Tcl_Interp* interp, int argc,
 
 std::filesystem::path Compiler::GetBinPath() const {
   return GlobalSession->Context()->BinaryPath();
+}
+
+int Compiler::verifySynthPorts(Compiler* compiler, Tcl_Interp* interp, int argc,
+                               const char* argv[]) {
+  bool ok{true};
+  std::ostringstream out;
+  ok = compiler->m_tclCmdIntegration->TclVerifySynthPorts(out);
+  if (!ok) {
+    compiler->ErrorMessage(out.str());
+    return TCL_ERROR;
+  }
+  compiler->Message(out.str());
+  std::string rtlPortInfo =
+      FilePath(Action::Analyze, "port_info.json").string();
+  std::string nlPortInfo =
+      FilePath(Action::Pack, "post_synth_ports.json").string();
+  auto binPath = GlobalSession->Context()->BinaryPath();
+  std::string command = binPath.string() + std::string("/verify_synth_ports ") +
+                        "--rtlPortInfo " + rtlPortInfo + " --nlPortInfo " +
+                        nlPortInfo;
+  int systemRet = ExecuteAndMonitorSystemCommand(command);
+  if (systemRet == -1) {
+    compiler->ErrorMessage("Error in verify_synth_ports");
+  }
+  return TCL_OK;
 }

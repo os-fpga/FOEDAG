@@ -44,6 +44,7 @@ class TclCommandIntegration : public QObject {
                          const QString &files, int lang, std::ostream &out);
   bool TclAddSimulationFiles(const QString &commands, const QString &libs,
                              const QString &files, int lang, std::ostream &out);
+  bool TclVerifySynthPorts(std::ostream &out);
   bool TclAddOrCreateConstrFiles(const QString &file, std::ostream &out);
   bool TclAddConstrFiles(const QString &file, std::ostream &out);
   bool TclSetActive(int argc, const char *argv[], std::ostream &out);
