@@ -45,6 +45,7 @@ struct CFGCommon_ARG {
   std::filesystem::path toolPath;    // for any tool path
   std::filesystem::path searchPath;  // for any search path
   bool clean;
+  std::string tclOutput;
   std::shared_ptr<CFGArg> arg;
 };
 
@@ -93,8 +94,14 @@ float CFG_time_elapse(CFG_TIME begin);
 void CFG_set_callback_message_function(cfg_callback_post_msg_function msg,
                                        cfg_callback_post_err_function err,
                                        cfg_callback_execute_command exec);
+void CFG_set_callback_post_msg_function(cfg_callback_post_msg_function msg);
+void CFG_set_callback_post_err_function(cfg_callback_post_err_function err);
+void CFG_set_callback_exec_cmd_function(cfg_callback_execute_command exec);
 
 void CFG_unset_callback_message_function();
+void CFG_unset_callback_post_msg_function();
+void CFG_unset_callback_post_err_function();
+void CFG_unset_callback_exec_cmd_function();
 
 void CFG_post_msg(const std::string& message,
                   const std::string pre_msg = "INFO: ",

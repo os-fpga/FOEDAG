@@ -25,8 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMap>
 #include <QSettings>
 
-#include "Configuration/Programmer/Programmer_helper.h"
 #include "MainWindow/TopLevelInterface.h"
+#include "ProgrammerGuiCommon.h"
 #include "SummaryProgressBar.h"
 
 namespace Ui {
@@ -34,27 +34,13 @@ class ProgrammerMain;
 }
 class QTreeWidgetItem;
 class QProgressBar;
+class QComboBox;
 
 namespace FOEDAG {
 
 class ProgrammerGuiIntegration;
 
 enum Status { None, InProgress, Pending, Done };
-
-struct DeviceOptions {
-  QString file;
-  QStringList operations;
-  ProgressCallback progress;
-};
-
-struct DeviceInfo {
-  ~DeviceInfo() { delete flash; }
-  Device dev{};
-  Cable cable{};
-  DeviceOptions options;
-  bool isFlash{false};
-  DeviceInfo *flash{nullptr};
-};
 
 class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   Q_OBJECT
@@ -111,12 +97,14 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   void SetFile(DeviceInfo *device, const QString &file);
   static QString ToString(const QString &str);
   static QString ToString(const QStringList &strList, const QString &sep);
+  void loadFromSettigns();
 
  private:
   static constexpr int FILE_COL{1};
   static constexpr int OPERATIONS_COL{2};
   static constexpr int STATUS_COL{3};
   static constexpr int PROGRESS_COL{4};
+  static constexpr int Frequency{1000};
   Ui::ProgrammerMain *ui;
   QAction *m_progressAction{nullptr};
   QVector<DeviceInfo *> m_deviceSettings;
@@ -129,6 +117,9 @@ class ProgrammerMain : public QMainWindow, public TopLevelInterface {
   bool m_programmingDone{true};
   QString m_cfgFile{};
   ProgrammerGuiIntegration *m_guiIntegration;
+  QComboBox *m_hardware;
+  QComboBox *m_iface;
+  QMap<QString, uint64_t> m_frequency{};
 };
 
 }  // namespace FOEDAG

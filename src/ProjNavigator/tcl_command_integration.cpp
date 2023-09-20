@@ -195,6 +195,16 @@ bool TclCommandIntegration::TclAddSimulationFiles(const QString &commands,
   return true;
 }
 
+bool TclCommandIntegration::TclVerifySynthPorts(std::ostream &out) {
+  if (!validate()) {
+    out << "Command validation failed for verify_synth_ports: internal error"
+        << std::endl;
+    return false;
+  }
+  update();
+  return true;
+}
+
 bool TclCommandIntegration::TclAddOrCreateConstrFiles(const QString &file,
                                                       std::ostream &out) {
   if (!validate()) {

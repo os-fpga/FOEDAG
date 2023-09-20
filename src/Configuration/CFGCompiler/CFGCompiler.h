@@ -7,7 +7,7 @@
 
 #include "Configuration/CFGCommon/CFGCommon.h"
 
-typedef void (*cfg_callback_function)(const CFGCommon_ARG* cmdarg);
+typedef void (*cfg_callback_function)(CFGCommon_ARG* cmdarg);
 typedef std::map<std::string, cfg_callback_function> cfg_callback_function_map;
 
 namespace FOEDAG {

@@ -113,17 +113,34 @@ float CFG_time_elapse(CFG_TIME begin) {
 void CFG_set_callback_message_function(cfg_callback_post_msg_function msg,
                                        cfg_callback_post_err_function err,
                                        cfg_callback_execute_command exec) {
-  CFG_ASSERT(msg != nullptr);
-  CFG_ASSERT(err != nullptr);
-  CFG_ASSERT(exec != nullptr);
-  m_msg_function = msg;
-  m_err_function = err;
-  m_execute_cmd_function = exec;
+  CFG_set_callback_post_msg_function(msg);
+  CFG_set_callback_post_err_function(err);
+  CFG_set_callback_exec_cmd_function(exec);
+}
+
+void CFG_set_callback_post_msg_function(cfg_callback_post_msg_function msg) {
+  if (msg != nullptr) m_msg_function = msg;
+}
+
+void CFG_set_callback_post_err_function(cfg_callback_post_err_function err) {
+  if (err != nullptr) m_err_function = err;
+}
+
+void CFG_set_callback_exec_cmd_function(cfg_callback_execute_command exec) {
+  if (exec != nullptr) m_execute_cmd_function = exec;
 }
 
 void CFG_unset_callback_message_function() {
-  m_msg_function = nullptr;
-  m_err_function = nullptr;
+  CFG_unset_callback_post_msg_function();
+  CFG_unset_callback_post_err_function();
+  CFG_unset_callback_exec_cmd_function();
+}
+
+void CFG_unset_callback_post_msg_function() { m_msg_function = nullptr; }
+
+void CFG_unset_callback_post_err_function() { m_err_function = nullptr; }
+
+void CFG_unset_callback_exec_cmd_function() {
   m_execute_cmd_function = nullptr;
 }
 

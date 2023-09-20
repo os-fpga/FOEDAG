@@ -20,9 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <QMap>
+#include <QVector>
 #include <QWidget>
 
 #include "MainWindow/Dialog.h"
+#include "ProgrammerGuiCommon.h"
 
 namespace Ui {
 class ProgrammerSettingsWidget;
@@ -31,20 +34,30 @@ class ProgrammerSettingsWidget;
 class QSettings;
 namespace FOEDAG {
 
+struct ProgrammerSettings {
+  QMap<QString, uint64_t> frequency;
+  QVector<DeviceInfo *> devices;
+};
+
 class ProgrammerSettingsWidget : public Dialog {
   Q_OBJECT
 
  public:
-  explicit ProgrammerSettingsWidget(QSettings &settings,
+  explicit ProgrammerSettingsWidget(const ProgrammerSettings &pSettings,
+                                    QSettings &settings,
                                     QWidget *parent = nullptr);
-  ~ProgrammerSettingsWidget();
+  ~ProgrammerSettingsWidget() override;
 
   void openTab(int index);
 
-  static const char *ALWAYS_VERIFY;
-
  private slots:
   void apply();
+
+ private:
+  template <typename T>
+  QString ToHexString(T val) {
+    return QString{"0x%1"}.arg(val, 8, 16, QLatin1Char{'0'});
+  }
 
  private:
   Ui::ProgrammerSettingsWidget *ui;

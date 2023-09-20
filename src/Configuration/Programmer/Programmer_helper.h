@@ -86,8 +86,15 @@ std::vector<std::string> parseOperationString(const std::string& operation);
 bool isOperationRequested(const std::string& operation,
                           const std::vector<std::string>& supportedOperations);
 
-void printCableList(const std::vector<Cable>& cableList);
-void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList);
+void printCableList(const std::vector<Cable>& cableList, bool verbose);
+void processCableList(const std::vector<Cable>& cableList, bool verbose);
+void printDeviceList(const Cable& cable, const std::vector<Device>& deviceList,
+                     bool verbose);
+void processDeviceList(const Cable& cable,
+                       const std::vector<Device>& deviceList, bool verbose);
+std::string buildCableDeviceAliasName(const Cable& cable, const Device& device);
+std::string buildCableDevicesAliasNameWithSpaceSeparatedString(
+    const Cable& cable, const std::vector<Device>& devices);
 
 std::string removeInfoAndNewline(const std::string& input);
 
@@ -95,9 +102,9 @@ void InitializeCableMap(std::vector<Cable>& cables,
                         std::map<std::string, Cable>& cableMapObj);
 void InitializeHwDb(
     std::vector<HwDevices>& cableDeviceDb,
-    std::map<std::string, Cable>& cableMap,
-    std::function<void(const Cable&, const std::vector<Device>&)>
-        printDeviceList = nullptr);
+    std::map<std::string, Cable>& cableMap, bool verbose,
+    std::function<void(const Cable&, const std::vector<Device>&, bool)>
+        processDeviceList = nullptr);
 
 bool findDeviceFromDb(const std::vector<HwDevices>& cableDeviceDb,
                       const Cable& cable, std::string deviceName,
